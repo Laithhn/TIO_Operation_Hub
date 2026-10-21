@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/TioHub.Api/TioHub.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TioHub.Tests/TioHub.Tests.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tio-hub",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/TioHub.Api", "--launch-profile", "http"],
+      "port": 5094
+    }
+  ]
+}

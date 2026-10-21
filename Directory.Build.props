@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Version>2.22.0</Version>
+    <Company>Vitronic TIO</Company>
+    <Product>TIO Operations Hub</Product>
+  </PropertyGroup>
+</Project>

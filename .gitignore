@@ -1,0 +1,16 @@
+bin/
+obj/
+node_modules/
+.tools/
+release/
+logs/
+*.user
+.vs/
+src/TioHub.Api/wwwroot/
+tests/e2e/test-results/
+tests/e2e/playwright-report/
+appsettings.Local.json
+.local/
+App_Data/
+
+*.tsbuildinfo
