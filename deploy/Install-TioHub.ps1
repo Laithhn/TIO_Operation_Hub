@@ -62,8 +62,18 @@ function Ok($text) { Write-Host "  [ok]   $text" -ForegroundColor Green }
 function Warn($text) { Write-Host "  [warn] $text" -ForegroundColor Yellow }
 function Fail($text) { Write-Host "  [fail] $text" -ForegroundColor Red; $script:failed = $true }
 function Sql([string[]]$sqlArgs) {
-  & sqlcmd -S $SqlServer -E -b @sqlArgs
+  # -r0 sends SQL errors (severity 11+) to the error stream, where they are shown; messages and "(n rows affected)" are dropped.
+  # The exit code decides success, so PowerShell must not stop on the native error text itself.
+  $ErrorActionPreference = 'Continue'
+  & sqlcmd -S $SqlServer -E -b -r0 @sqlArgs | Out-Null
   if ($LASTEXITCODE -ne 0) { throw "sqlcmd failed ($($sqlArgs -join ' '))" }
+}
+function Grant-AppLogin {
+  # sqlcmd -v cannot pass a value with a space (IIS APPPOOL\TioHub, NT AUTHORITY\...), so the identity is written into a temporary copy.
+  $login = Join-Path ([IO.Path]::GetTempPath()) "tiohub-app-login-$([guid]::NewGuid().ToString('N')).sql"
+  (Get-Content (Join-Path $dbSource '02-app-login.sql') -Raw).Replace('$(AppPoolIdentity)', $poolIdentity.Replace("'", "''")) | Set-Content $login -Encoding UTF8
+  try { Sql @('-d', $Database, '-i', $login) } finally { Remove-Item $login -ErrorAction SilentlyContinue }
+  Ok "SQL login and least-privilege permissions for $poolIdentity"
 }
 
 # ---------------------------------------------------------------- prerequisites
@@ -103,20 +113,20 @@ if ($CheckOnly) { Write-Host "`nAll prerequisites met. Nothing was changed (-Che
 # ---------------------------------------------------------------- database
 if ($needSql) {
   Step "Database $Database on $SqlServer"
-  if ($PSCmdlet.ShouldProcess("$SqlServer/$Database", 'create database (if missing), apply schema, create application login')) {
+  if ($PSCmdlet.ShouldProcess("$SqlServer/$Database", 'create database (if missing) and apply the schema')) {
     if ($CreateDatabase) {
       Sql @('-Q', "IF DB_ID(N'$Database') IS NULL BEGIN CREATE DATABASE [$Database]; ALTER DATABASE [$Database] SET RECOVERY FULL; END")
       Ok 'Database present (recovery model FULL for a new database)'
     }
     Sql @('-d', $Database, '-i', (Join-Path $dbSource '01-schema.sql'))
     Ok 'Schema applied (idempotent: applied migrations are skipped)'
-    # sqlcmd -v cannot pass a value with a space (IIS APPPOOL\TioHub, NT AUTHORITY\…), so the identity is written into a temporary copy.
-    $login = Join-Path ([IO.Path]::GetTempPath()) "tiohub-app-login-$([guid]::NewGuid().ToString('N')).sql"
-    (Get-Content (Join-Path $dbSource '02-app-login.sql') -Raw).Replace('$(AppPoolIdentity)', $poolIdentity.Replace("'", "''")) | Set-Content $login -Encoding UTF8
-    try { Sql @('-d', $Database, '-i', $login) } finally { Remove-Item $login -ErrorAction SilentlyContinue }
-    Ok "Login and least-privilege permissions for $poolIdentity"
   }
-  if ($DatabaseOnly) { Write-Host "`nDatabase steps done." -ForegroundColor Green; return }
+  if ($DatabaseOnly) {
+    # The built-in pool identity exists only once IIS has created the pool, so the login is added later by the full installation.
+    if (-not $AppPoolIdentity) { Warn "No -AppPoolIdentity: the login for $poolIdentity is created by the full installation, after its application pool exists." }
+    elseif ($PSCmdlet.ShouldProcess("$SqlServer/$Database", "create the application login for $poolIdentity")) { Grant-AppLogin }
+    Write-Host "`nDatabase steps done." -ForegroundColor Green; return
+  }
 } else {
   Step 'Database'
   Warn "Skipped (no -CreateDatabase). The DBA runs database\01-schema.sql and database\02-app-login.sql with AppPoolIdentity=$poolIdentity before the first start."
@@ -124,8 +134,10 @@ if ($needSql) {
 
 # ---------------------------------------------------------------- files
 Step "Application files -> $appDir"
+Import-Module WebAdministration
+if (Test-Path "IIS:\Sites\$SiteName") { throw "Site $SiteName already exists. For an existing installation use Upgrade-TioHub.ps1." }
 if ((Test-Path $appDir) -and (Get-ChildItem $appDir -Force | Select-Object -First 1)) {
-  throw "$appDir is not empty. For an existing installation use Upgrade-TioHub.ps1."
+  Warn "$appDir is not empty but no site exists yet: continuing an interrupted installation (files are copied again)."
 }
 if ($PSCmdlet.ShouldProcess($appDir, 'copy application files and write appsettings.Production.json')) {
   New-Item -ItemType Directory -Force $appDir, (Join-Path $appDir 'App_Data'), (Join-Path $appDir 'logs'), $AttachmentsPath | Out-Null
@@ -144,11 +156,9 @@ if ($PSCmdlet.ShouldProcess($appDir, 'copy application files and write appsettin
 
 # ---------------------------------------------------------------- IIS
 Step "IIS application pool and site '$SiteName'"
-Import-Module WebAdministration
 if ($PSCmdlet.ShouldProcess($SiteName, 'create IIS application pool and site')) {
-  if (Test-Path "IIS:\AppPools\$SiteName") { throw "Application pool $SiteName already exists." }
-  if (Test-Path "IIS:\Sites\$SiteName") { throw "Site $SiteName already exists." }
-  $pool = New-WebAppPool -Name $SiteName
+  if (Test-Path "IIS:\AppPools\$SiteName") { Warn "Application pool $SiteName exists (interrupted installation): it is reused and reconfigured." }
+  else { New-WebAppPool -Name $SiteName | Out-Null }
   Set-ItemProperty "IIS:\AppPools\$SiteName" -Name managedRuntimeVersion -Value ''
   Set-ItemProperty "IIS:\AppPools\$SiteName" -Name processModel.loadUserProfile -Value $true
   Set-ItemProperty "IIS:\AppPools\$SiteName" -Name startMode -Value 'AlwaysRunning'
@@ -169,6 +179,15 @@ if ($PSCmdlet.ShouldProcess($SiteName, 'create IIS application pool and site')) 
     Set-WebConfigurationProperty -PSPath 'IIS:\' -Location $SiteName -Filter 'system.webServer/security/authentication/windowsAuthentication' -Name enabled -Value (-not $anon)
   }
   Ok "Site $siteUrl -> $appDir (pool identity $poolIdentity)"
+}
+
+# ---------------------------------------------------------------- SQL login (needs the pool: IIS APPPOOL\<name> exists only from now on)
+if ($CreateDatabase) {
+  Step "SQL login for $poolIdentity"
+  if ($PSCmdlet.ShouldProcess("$SqlServer/$Database", "create the application login for $poolIdentity")) { Grant-AppLogin }
+} else {
+  Step 'SQL login'
+  Warn "Not created (no -CreateDatabase). The DBA runs database-app-login.sql for $poolIdentity before the first start."
 }
 
 # ---------------------------------------------------------------- permissions
