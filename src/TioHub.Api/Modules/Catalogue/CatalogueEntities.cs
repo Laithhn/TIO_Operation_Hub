@@ -79,6 +79,9 @@ public class ProductFeature : Entity
     public ProductModule? Module { get; set; }
     public string Name { get; set; } = "";
     public string? Description { get; set; }
+    /// <summary>A57: the product version that introduced the feature (its "new features" list).</summary>
+    public long? IntroducedInVersionId { get; set; }
+    public ProductVersion? IntroducedInVersion { get; set; }
     public bool IsActive { get; set; } = true;
 }
 
@@ -99,6 +102,8 @@ public class ProductVersion : Entity
     public string Version { get; set; } = "";
     public string SortKey { get; set; } = "";
     public DateOnly? ReleasedOn { get; set; }
+    /// <summary>A57: what changed in this version (plain text).</summary>
+    public string? ReleaseNotes { get; set; }
     public bool IsActive { get; set; } = true;
 }
 

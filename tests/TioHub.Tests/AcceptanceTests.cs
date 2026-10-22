@@ -1440,7 +1440,8 @@ public class AC03b_MicroserviceDeployment(HubFactory hub) : Scenario(hub)
         var v12 = versions[1]!;
         Assert.Equal(HttpStatusCode.NoContent, (await e.Put($"/products/microservice-versions/{Id(v12)}", new { version = "1.2.0", releaseNotes = "Fixes: importer retry", isActive = true }, v12["rowVersion"]!.GetValue<string>())).Status);
         var again = (await e.Get($"/products/microservices/{imp}")).Body!["versions"]!.AsArray()[1]!;
-        Assert.NotNull((await e.Put($"/products/microservice-versions/{Id(again)}", new { version = "1.2.1", isActive = true }, again["rowVersion"]!.GetValue<string>())).Error("version"));
+        // A56: an unused number may be corrected, but never to one the microservice already has.
+        Assert.NotNull((await e.Put($"/products/microservice-versions/{Id(again)}", new { version = "1.10.0", isActive = true }, again["rowVersion"]!.GetValue<string>())).Error("version"));
         Assert.Equal("1.10.0", (await e.Get($"/products/{pid}")).Body!["microservices"]!.AsArray().First(x => Id(x) == imp)!["latestVersion"]!.GetValue<string>());
 
         // The deployed version per server: set while creating the server, changed from the server page, kept by the installation page.
@@ -2144,5 +2145,98 @@ public class AC53_TeamMembersRolesAndProducts(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/teams/{team}/members/{member}")).Status);
         Assert.Empty((await m.Get($"/teams/{team}")).Body!["members"]!.AsArray());
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/admin/users/{e.UserId}")).Status);
+    }
+}
+
+[Collection("hub")]
+public class AC56_ProductPartsEditAndDelete(HubFactory hub) : Scenario(hub)
+{
+    /// <summary>A56: modules, features, microservices and versions are edited and deleted; items still in use are refused with where they are used.</summary>
+    [Fact]
+    public async Task Product_parts_are_edited_and_deleted_unless_in_use()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var c = await NewClient();
+        var env = await NewEnv(c, "Production");
+        var pid = await m.Create("/products", new { code = U("PP"), name = "Parts product" });
+        var mod = await m.Create($"/products/{pid}/modules", new { code = "CORE", name = "Core" });
+        var feature = await m.Create($"/products/{pid}/features", new { name = "Bulk import", moduleId = mod });
+        var ms = await m.Create($"/products/{pid}/microservices", new { name = U("Svc"), moduleId = mod });
+        var msv = await m.Create($"/products/microservices/{ms}/versions", new { version = "1.0.0" });
+        var used = await m.Create($"/products/{pid}/versions", new { version = "1.0", isActive = true });
+        var spare = await m.Create($"/products/{pid}/versions", new { version = "1.1-typo", isActive = true });
+        await m.Create("/installations", new { environmentId = env, productId = pid, instanceName = "Main", productVersionId = used, versionEvidence = "RN-1" });
+
+        // Versions: an unused label is corrected; a used one cannot change and cannot be deleted.
+        var versions = (await m.Get($"/products/{pid}")).Body!["versions"]!.AsArray();
+        string Rv(long id) => versions.First(v => Id(v) == id)!["rowVersion"]!.GetValue<string>();
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/products/versions/{spare}", new { version = "1.1", isActive = true }, Rv(spare))).Status);
+        Assert.NotNull((await m.Put($"/products/versions/{used}", new { version = "1.0.1", isActive = true }, Rv(used))).Error("version"));
+        var refused = await m.Send(HttpMethod.Delete, $"/products/versions/{used}");
+        Assert.Equal(HttpStatusCode.Conflict, refused.Status);
+        Assert.Contains("used by installations", refused.Text);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/versions/{spare}")).Status);
+        Assert.Equal(new[] { "1.0" }, (await m.Get($"/products/{pid}")).Body!["versions"]!.AsArray().Select(v => v!["version"]!.GetValue<string>()));
+
+        // Microservice version: number corrected while no server runs it, then deleted; the microservice is deleted with its versions.
+        var mv = (await m.Get($"/products/microservices/{ms}")).Body!["versions"]!.AsArray().Single()!;
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/products/microservice-versions/{msv}", new { version = "1.0.1", isActive = true }, mv["rowVersion"]!.GetValue<string>())).Status);
+        Assert.Equal("1.0.1", (await m.Get($"/products/microservices/{ms}")).Body!["versions"]![0]!["version"]!.GetValue<string>());
+        await m.Create($"/products/microservices/{ms}/versions", new { version = "1.0.2" });
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/microservice-versions/{msv}")).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/microservices/{ms}")).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/products/microservices/{ms}")).Status);
+
+        // Module: deleting it unlinks its features; the feature is then deleted.
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/modules/{mod}")).Status);
+        var p = (await m.Get($"/products/{pid}")).Body!;
+        Assert.Empty(p["modules"]!.AsArray());
+        Assert.Null(p["features"]!.AsArray().Single()!["moduleId"]?.GetValue<long?>());
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/features/{feature}")).Status);
+        Assert.Empty((await m.Get($"/products/{pid}")).Body!["features"]!.AsArray());
+        Assert.Contains("deleted", (await m.Get("/admin/audit?entityType=ProductFeature&pageSize=50")).Text);
+    }
+}
+
+[Collection("hub")]
+public class AC57_VersionReleaseNotesAndFeatures(HubFactory hub) : Scenario(hub)
+{
+    /// <summary>A57: a product version carries release notes and the list of features it introduced (picked or created).</summary>
+    [Fact]
+    public async Task Versions_record_release_notes_and_their_new_features()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var pid = await m.Create("/products", new { code = U("RN"), name = "Release notes product" });
+        var existing = await m.Create($"/products/{pid}/features", new { name = "Bulk import" });
+
+        // Refused: a feature of another product, a new name that already exists.
+        var other = await m.Create("/products", new { code = U("RO"), name = "Other product" });
+        var foreign = await m.Create($"/products/{other}/features", new { name = "Foreign" });
+        var bad = await m.Post($"/products/{pid}/versions", new { version = "2.0", isActive = true, featureIds = new[] { foreign }, newFeatures = new[] { "bulk import" } });
+        Assert.NotNull(bad.Error("featureIds"));
+        Assert.NotNull(bad.Error("newFeatures"));
+
+        var v2 = await m.Create($"/products/{pid}/versions", new { version = "2.0", isActive = true, releaseNotes = "Faster import\nFixes login timeout",
+            featureIds = new[] { existing }, newFeatures = new[] { "Duplicate check", " " } });
+        var p = (await m.Get($"/products/{pid}")).Body!;
+        var ver = p["versions"]!.AsArray().Single()!;
+        Assert.Equal("Faster import\nFixes login timeout", ver["releaseNotes"]!.GetValue<string>());
+        Assert.Equal(new[] { "Bulk import", "Duplicate check" }, ver["features"]!.AsArray().Select(f => f!["name"]!.GetValue<string>()));
+        Assert.All(p["features"]!.AsArray(), f => Assert.Equal("2.0", f!["introducedIn"]!.GetValue<string>()));
+
+        // Edit: drop one feature from the list (it stays on the product); a feature can name its version itself.
+        var v21 = await m.Create($"/products/{pid}/versions", new { version = "2.1", isActive = true });
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/products/versions/{v2}", new { version = "2.0", isActive = true, releaseNotes = "Faster import", featureIds = new[] { existing } }, ver["rowVersion"]!.GetValue<string>())).Status);
+        var dup = (await m.Get($"/products/{pid}")).Body!["features"]!.AsArray().First(f => f!["name"]!.GetValue<string>() == "Duplicate check")!;
+        Assert.Null(dup["introducedIn"]?.GetValue<string>());
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/products/features/{Id(dup)}", new { name = "Duplicate check", isActive = true, introducedInVersionId = v21 }, dup["version"]!.GetValue<string>())).Status);
+        Assert.NotNull((await m.Put($"/products/features/{Id(dup)}", new { name = "Duplicate check", isActive = true, introducedInVersionId = foreign },
+            (await m.Get($"/products/{pid}")).Body!["features"]!.AsArray().First(f => Id(f) == Id(dup))!["version"]!.GetValue<string>())).Error("introducedInVersionId"));
+
+        // Deleting a version keeps its features on the product, without a version.
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/versions/{v21}")).Status);
+        var after = (await m.Get($"/products/{pid}")).Body!["features"]!.AsArray();
+        Assert.Equal(2, after.Count);
+        Assert.Null(after.First(f => Id(f) == Id(dup))!["introducedIn"]?.GetValue<string>());
     }
 }

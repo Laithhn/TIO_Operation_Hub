@@ -75,6 +75,30 @@ function TeamEditor({ rows, onChange, clientId, error }: { rows: TeamRow[]; onCh
   // A37 (fixes the role field of 2.9–2.13): roles come from the configured "Project team roles" list; a role no longer offered stays selectable on rows that have it.
   const roles = useLookup('TeamRole');
   const roleOptions = (current: string) => [...roles.map(x => ({ value: x.code, label: x.label })), ...(current && !roles.some(x => x.code === current) ? [{ value: current, label: `${current} (retired)` }] : [])];
+  // A58: add everyone in a team from Teams at once; each person becomes a row (role taken over when the team role is also a project team role).
+  const teams = useTeamOptions();
+  const [teamId, setTeamId] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const addTeam = async () => {
+    if (!teamId) return;
+    setBusy(true); setNote(null);
+    try {
+      const t = await get<{ code: string; members: { userId: number; name: string; userActive: boolean; isActive: boolean; teamRole?: string }[] }>(`/teams/${teamId}`);
+      const have = new Set(rows.map(r => r.userId));
+      const fresh = t.members.filter(m => m.isActive && m.userActive && !have.has(m.userId));
+      const roleOf = (r?: string) => roles.find(x => r && (x.code.toLowerCase() === r.toLowerCase() || x.label.toLowerCase() === r.toLowerCase()))?.code ?? '';
+      const added = fresh.map(m => ({ userId: m.userId, role: roleOf(m.teamRole) }));
+      onChange([...rows.filter(r => r.userId !== null || r.role), ...added]);
+      const noRole = added.filter(a => !a.role).length;
+      const skipped = t.members.length - fresh.length;
+      const active = t.members.filter(m => m.isActive && m.userActive).length;
+      setNote(active === 0 ? `${t.code} has no active members to add.` : added.length === 0 ? `Everyone active in ${t.code} is already on the team.`
+        : `Added ${added.length} member(s) from ${t.code}${skipped ? ` (${skipped} already listed or inactive)` : ''}.${noRole ? ` Choose the role of ${noRole} of them.` : ''}`);
+      setTeamId('');
+    } catch { setNote('The team could not be loaded.'); }
+    finally { setBusy(false); }
+  };
   return (
     <fieldset className="wide team-edit" style={{ border: 0, padding: 0 }}>
       <legend className="flabel">Project team</legend>
@@ -86,7 +110,13 @@ function TeamEditor({ rows, onChange, clientId, error }: { rows: TeamRow[]; onCh
           <button className="linkbtn" onClick={() => onChange(rows.filter((_, i) => i !== n))} aria-label={`Remove team member ${n + 1}`}>Remove</button>
         </div>
       ))}
-      <button className="btn" onClick={() => onChange([...rows, { userId: null, role: roles[0]?.code ?? '' }])}>+ Team member</button>
+      <div className="team-from">
+        <button className="btn" onClick={() => onChange([...rows, { userId: null, role: roles[0]?.code ?? '' }])}>+ Team member</button>
+        <span className="muted">or add a whole team:</span>
+        <SelectInput label="Team from Teams" value={teamId} onChange={setTeamId} options={teams} empty="— Select a team —" />
+        <button className="btn" onClick={addTeam} disabled={!teamId || busy}>{busy ? 'Adding…' : 'Add team members'}</button>
+      </div>
+      {note && <p className="hint" role="status" style={{ margin: '6px 0 0' }}>{note}</p>}
       {error('team') && <div className="err">{error('team')}</div>}
     </fieldset>
   );

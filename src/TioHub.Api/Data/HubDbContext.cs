@@ -364,6 +364,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<ProductFeature>(e =>
         {
             e.ToTable("ProductFeature", "catalogue");
+            e.HasOne(x => x.IntroducedInVersion).WithMany().HasForeignKey(x => x.IntroducedInVersionId);
             e.Property(x => x.Name).HasMaxLength(150);
             e.Property(x => x.Description).HasMaxLength(2000);
             e.HasOne(x => x.Module).WithMany().HasForeignKey(x => x.ModuleId);
@@ -382,6 +383,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.ToTable("ProductVersion", "catalogue");
             e.Property(x => x.Version).HasMaxLength(50);
             e.Property(x => x.SortKey).HasMaxLength(100);
+            e.Property(x => x.ReleaseNotes).HasMaxLength(8000);
             e.HasIndex(x => new { x.ProductId, x.Version }).IsUnique();
         });
         m.Entity<Installation>(e =>

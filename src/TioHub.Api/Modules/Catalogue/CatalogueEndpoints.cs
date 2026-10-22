@@ -15,13 +15,22 @@ public static class CatalogueEndpoints
         long? OwningTeamId, string? ProductOwner, bool IsActive = true, List<DeveloperInput>? Developers = null);
     public sealed record MicroserviceVersionInput(string? Version, DateOnly? ReleasedOn, string? ReleaseNotes, bool IsActive = true);
     public sealed record ModuleInput(string? Code, string? Name, string? Description, bool IsActive = true);
-    public sealed record FeatureInput(string? Name, string? Description, long? ModuleId, bool IsActive = true);
+    public sealed record FeatureInput(string? Name, string? Description, long? ModuleId, bool IsActive = true, long? IntroducedInVersionId = null);
     public sealed record MicroserviceInput(string? Name, string? Description, long? ModuleId, string? Role, bool IsActive = true);
     public sealed record DeploymentInput(long[]? MicroserviceIds);
-    public sealed record VersionInput(string? Version, DateOnly? ReleasedOn, bool IsActive = true);
+    /// <summary>A57: FeatureIds = the product's features new in this version (null leaves the list as it is); NewFeatures = names of features to create in it.</summary>
+    public sealed record VersionInput(string? Version, DateOnly? ReleasedOn, bool IsActive = true, string? ReleaseNotes = null, List<long>? FeatureIds = null, List<string>? NewFeatures = null);
     public sealed record InstallationInput(long? EnvironmentId, long? ProductId, long? ModuleId, string? InstanceName, long? ProductVersionId, string? VersionEvidence,
         DateOnly? DeployedOn, string? SupportNotes, long? OwnerUserId);
     public sealed record VersionChangeInput(long? ProductVersionId, string? Reason, string? Evidence, DateOnly? DeployedOn);
+
+    private static void InUse(string field, string message) =>
+        throw new ConflictException("This item is in use and cannot be deleted.", new() { [field] = [message] });
+
+    /// <summary>Installations on this product version now, plus version-change history entries naming it.</summary>
+    private static async Task<int> VersionUsesAsync(HubDbContext db, long versionId, CancellationToken ct) =>
+        await db.Installations.IgnoreQueryFilters().CountAsync(i => i.ProductVersionId == versionId, ct)
+        + await db.InstallationVersionChanges.IgnoreQueryFilters().CountAsync(c => c.FromVersionId == versionId || c.ToVersionId == versionId, ct);
 
     public static void MapCatalogueEndpoints(this RouteGroupBuilder api)
     {
@@ -83,7 +92,8 @@ public static class CatalogueEndpoints
                     features = p.Features.Count(f => f.ModuleId == m.Id && f.IsActive), installations = installs.Count(i => i.module == m.Code)
                 }),
                 features = p.Features.OrderBy(f => f.Module == null ? "" : f.Module.Code).ThenBy(f => f.Name)
-                    .Select(f => new { f.Id, f.Name, f.Description, f.ModuleId, module = f.Module == null ? null : f.Module.Code, f.IsActive, version = Convert.ToBase64String(f.RowVersion) }),
+                    .Select(f => new { f.Id, f.Name, f.Description, f.ModuleId, module = f.Module == null ? null : f.Module.Code, f.IntroducedInVersionId,
+                        introducedIn = p.Versions.Where(v => v.Id == f.IntroducedInVersionId).Select(v => v.Version).FirstOrDefault(), f.IsActive, version = Convert.ToBase64String(f.RowVersion) }),
                 microservices = p.Microservices.OrderBy(m => m.Module == null ? "" : m.Module.Code).ThenBy(m => m.Name).Select(m => new
                 {
                     m.Id, m.Name, m.Description, m.ModuleId, module = m.Module == null ? null : m.Module.Code, m.Role, m.IsActive, version = Convert.ToBase64String(m.RowVersion),
@@ -93,7 +103,8 @@ public static class CatalogueEndpoints
                 }),
                 versions = p.Versions.OrderByDescending(v => v.SortKey).Select(v => new
                 {
-                    v.Id, v.Version, v.ReleasedOn, v.IsActive, rowVersion = Convert.ToBase64String(v.RowVersion), installations = installs.Count(i => i.version == v.Version)
+                    v.Id, v.Version, v.ReleasedOn, v.ReleaseNotes, v.IsActive, rowVersion = Convert.ToBase64String(v.RowVersion), installations = installs.Count(i => i.version == v.Version),
+                    features = p.Features.Where(f => f.IntroducedInVersionId == v.Id).OrderBy(f => f.Name).Select(f => new { f.Id, f.Name })
                 }),
                 usage = installs.GroupBy(i => new { i.ClientId, i.clientCode, i.clientName }).OrderBy(g => g.Key.clientCode).Select(g => new
                 {
@@ -183,6 +194,21 @@ public static class CatalogueEndpoints
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
+        // A56 (owner request, 22 Oct 2026): modules, features, microservices and versions can be deleted when nothing depends on them;
+        // otherwise the answer says where they are used (retire them instead). Deleting needs the Delete records right.
+        pg.MapDelete("/modules/{moduleId:long}", async (long moduleId, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            me.RequireRight(Right.Delete);
+            var m = await db.ProductModules.FirstOrDefaultAsync(x => x.Id == moduleId, ct) ?? throw new NotFoundException("The module");
+            var installs = await db.Installations.IgnoreQueryFilters().CountAsync(i => i.ModuleId == moduleId, ct);
+            if (installs > 0) InUse("module", $"Module {m.Code} is used by {installs} installation(s), including archived ones. Change them to another module, or untick Active to retire it.");
+            await db.ProductFeatures.Where(f => f.ModuleId == moduleId).ExecuteUpdateAsync(u => u.SetProperty(f => f.ModuleId, (long?)null), ct);
+            await db.ProductMicroservices.Where(x => x.ModuleId == moduleId).ExecuteUpdateAsync(u => u.SetProperty(x => x.ModuleId, (long?)null), ct);
+            db.AuditReason = $"Module {m.Code} deleted";
+            db.ProductModules.Remove(m);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
         pg.MapPost("/{id:long}/features", async (long id, FeatureInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             me.Require(Role.Engineer);
@@ -202,6 +228,15 @@ public static class CatalogueEndpoints
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
+        pg.MapDelete("/features/{featureId:long}", async (long featureId, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            me.RequireRight(Right.Delete);
+            var f = await db.ProductFeatures.FirstOrDefaultAsync(x => x.Id == featureId, ct) ?? throw new NotFoundException("The feature");
+            db.AuditReason = $"Feature {f.Name} deleted";
+            db.ProductFeatures.Remove(f);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
         pg.MapPost("/{id:long}/microservices", async (long id, MicroserviceInput input, HubDbContext db, UserContext me, LookupService lookups, CancellationToken ct) =>
         {
             me.Require(Role.Engineer);
@@ -218,6 +253,18 @@ public static class CatalogueEndpoints
             var m = await db.ProductMicroservices.FirstOrDefaultAsync(x => x.Id == microserviceId, ct) ?? throw new NotFoundException("The microservice");
             db.ExpectVersion(ctx, m);
             await ApplyMicroserviceAsync(m, input, db, lookups, ct);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+        pg.MapDelete("/microservices/{microserviceId:long}", async (long microserviceId, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            me.RequireRight(Right.Delete);
+            var m = await db.ProductMicroservices.Include(x => x.Versions).FirstOrDefaultAsync(x => x.Id == microserviceId, ct) ?? throw new NotFoundException("The microservice");
+            var deployed = await db.Components.IgnoreQueryFilters().CountAsync(c => c.MicroserviceId == microserviceId, ct);
+            if (deployed > 0) InUse("microservice", $"{m.Name} is deployed in {deployed} installation(s). Remove it from their servers first, or untick Active to retire it.");
+            db.AuditReason = $"Microservice {m.Name} deleted";
+            db.MicroserviceVersions.RemoveRange(m.Versions);
+            db.ProductMicroservices.Remove(m);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -260,11 +307,33 @@ public static class CatalogueEndpoints
             me.Require(Role.Engineer);
             var mv = await db.MicroserviceVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
             db.ExpectVersion(ctx, mv);
-            if ((input.Version ?? "").Trim() != mv.Version) throw new ValidationException("version", "A version number cannot be renamed once recorded; retire it and add the correct one.");
+            var renamed = (input.Version ?? "").Trim();
+            if (renamed != mv.Version)
+            {
+                // A56: a version number can be corrected while no server runs it.
+                new Check().Text("version", input.Version, 50, "the version number", true).ThrowIfAny();
+                if (await db.ComponentHosts.IgnoreQueryFilters().AnyAsync(h => h.MicroserviceVersionId == mv.Id, ct))
+                    throw new ValidationException("version", "Servers run this version, so its number cannot change. Retire it and add the correct one.");
+                if (await db.MicroserviceVersions.AnyAsync(x => x.MicroserviceId == mv.MicroserviceId && x.Version == renamed && x.Id != mv.Id, ct))
+                    throw new ValidationException("version", "Version numbers are unique per microservice.");
+                mv.Version = renamed;
+                mv.SortKey = Text.VersionKey(renamed);
+            }
             new Check().Text("releaseNotes", input.ReleaseNotes, 8000, "Release notes").ThrowIfAny();
             mv.ReleasedOn = input.ReleasedOn;
             mv.ReleaseNotes = Text.Clean(input.ReleaseNotes);
             mv.IsActive = input.IsActive;
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+        pg.MapDelete("/microservice-versions/{versionId:long}", async (long versionId, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            me.RequireRight(Right.Delete);
+            var mv = await db.MicroserviceVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
+            var servers = await db.ComponentHosts.IgnoreQueryFilters().CountAsync(h => h.MicroserviceVersionId == versionId, ct);
+            if (servers > 0) InUse("version", $"Version {mv.Version} is recorded as deployed on {servers} server(s). Change their deployed version first, or untick Active to retire it.");
+            db.AuditReason = $"Microservice version {mv.Version} deleted";
+            db.MicroserviceVersions.Remove(mv);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -276,6 +345,7 @@ public static class CatalogueEndpoints
             var v = input.Version!.Trim();
             if (await db.ProductVersions.AnyAsync(x => x.ProductId == id && x.Version == v, ct)) throw new ConflictException("This version already exists for the product.");
             var pv = new ProductVersion { ProductId = id, Version = v, SortKey = Text.VersionKey(v), ReleasedOn = input.ReleasedOn, IsActive = input.IsActive };
+            await ApplyVersionContentAsync(pv, input, db, ct);
             db.ProductVersions.Add(pv);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/v1/products/{id}/versions/{pv.Id}", new { pv.Id });
@@ -285,9 +355,34 @@ public static class CatalogueEndpoints
             me.Require(Role.Engineer);
             var pv = await db.ProductVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
             db.ExpectVersion(ctx, pv);
-            if ((input.Version ?? "").Trim() != pv.Version) throw new ValidationException("version", "A version label cannot be renamed once recorded; retire it instead.");
+            var renamed = (input.Version ?? "").Trim();
+            if (renamed != pv.Version)
+            {
+                // A56: a version label can be corrected while no installation uses it or records it in its history.
+                new Check().Text("version", input.Version, 50, "the version", true).ThrowIfAny();
+                if (await VersionUsesAsync(db, pv.Id, ct) > 0)
+                    throw new ValidationException("version", "Installations use this version or record it in their history, so its label cannot change. Retire it and add the correct one.");
+                if (await db.ProductVersions.AnyAsync(x => x.ProductId == pv.ProductId && x.Version == renamed && x.Id != pv.Id, ct))
+                    throw new ValidationException("version", "This version already exists for the product.");
+                pv.Version = renamed;
+                pv.SortKey = Text.VersionKey(renamed);
+            }
             pv.ReleasedOn = input.ReleasedOn;
             pv.IsActive = input.IsActive;
+            await ApplyVersionContentAsync(pv, input, db, ct);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+        pg.MapDelete("/versions/{versionId:long}", async (long versionId, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            me.RequireRight(Right.Delete);
+            var pv = await db.ProductVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
+            var uses = await VersionUsesAsync(db, versionId, ct);
+            if (uses > 0) InUse("version", $"Version {pv.Version} is used by installations or recorded in their version history ({uses} reference(s), including archived ones). Untick Active to retire it instead.");
+            db.AuditReason = $"Product version {pv.Version} deleted";
+            // A57: its features stay on the product, without an "introduced in" version.
+            await db.ProductFeatures.Where(f => f.IntroducedInVersionId == versionId).ExecuteUpdateAsync(u => u.SetProperty(f => f.IntroducedInVersionId, (long?)null), ct);
+            db.ProductVersions.Remove(pv);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -573,6 +668,8 @@ public static class CatalogueEndpoints
         var check = new Check().Text("name", i.Name, 150, "the feature name", true).Text("description", i.Description, 2000, "Description");
         if (i.ModuleId is not null && !await db.ProductModules.AnyAsync(m => m.Id == i.ModuleId && m.ProductId == f.ProductId, ct))
             check.Add("moduleId", "Select a module of this product.");
+        if (i.IntroducedInVersionId is not null && !await db.ProductVersions.AnyAsync(v => v.Id == i.IntroducedInVersionId && v.ProductId == f.ProductId, ct))
+            check.Add("introducedInVersionId", "Select a version of this product.");
         check.ThrowIfAny();
         var name = i.Name!.Trim();
         if (await db.ProductFeatures.AnyAsync(x => x.ProductId == f.ProductId && x.Name == name && x.Id != f.Id, ct))
@@ -580,7 +677,30 @@ public static class CatalogueEndpoints
         f.Name = name;
         f.Description = Text.Clean(i.Description);
         f.ModuleId = i.ModuleId;
+        f.IntroducedInVersionId = i.IntroducedInVersionId;
         f.IsActive = i.IsActive;
+    }
+
+    /// <summary>A57: release notes and the features new in a version (existing features are linked, new names created).</summary>
+    private static async Task ApplyVersionContentAsync(ProductVersion pv, VersionInput i, HubDbContext db, CancellationToken ct)
+    {
+        var check = new Check().Text("releaseNotes", i.ReleaseNotes, 8000, "Release notes");
+        var names = (i.NewFeatures ?? []).Select(n => n?.Trim() ?? "").Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        foreach (var n in names.Where(n => n.Length > 150)) check.Add("newFeatures", $"Feature names have at most 150 characters ({n[..20]}…).");
+        var existing = await db.ProductFeatures.Where(f => f.ProductId == pv.ProductId).ToListAsync(ct);
+        var ids = i.FeatureIds?.Distinct().ToList();
+        if (ids is not null && ids.Any(id => existing.All(f => f.Id != id))) check.Add("featureIds", "Select features of this product.");
+        foreach (var n in names.Where(n => existing.Any(f => string.Equals(f.Name, n, StringComparison.OrdinalIgnoreCase))))
+            check.Add("newFeatures", $"The product already has a feature called {n}; select it from the list instead.");
+        check.ThrowIfAny();
+        pv.ReleaseNotes = Text.Clean(i.ReleaseNotes);
+        if (ids is not null)
+            foreach (var f in existing)
+            {
+                if (ids.Contains(f.Id)) f.IntroducedInVersion = pv;
+                else if (f.IntroducedInVersionId == pv.Id && pv.Id != 0) f.IntroducedInVersionId = null;
+            }
+        foreach (var n in names) db.ProductFeatures.Add(new ProductFeature { ProductId = pv.ProductId, Name = n, IntroducedInVersion = pv });
     }
 
     private static async Task ApplyAsync(Installation i, InstallationInput input, HubDbContext db, HubAccess access, bool isNew, CancellationToken ct)

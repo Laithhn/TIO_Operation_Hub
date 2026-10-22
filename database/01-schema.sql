@@ -5811,3 +5811,48 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022085746_VersionReleaseNotesAndFeatures'
+)
+BEGIN
+    ALTER TABLE [catalogue].[ProductVersion] ADD [ReleaseNotes] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022085746_VersionReleaseNotesAndFeatures'
+)
+BEGIN
+    ALTER TABLE [catalogue].[ProductFeature] ADD [IntroducedInVersionId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022085746_VersionReleaseNotesAndFeatures'
+)
+BEGIN
+    CREATE INDEX [IX_ProductFeature_IntroducedInVersionId] ON [catalogue].[ProductFeature] ([IntroducedInVersionId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022085746_VersionReleaseNotesAndFeatures'
+)
+BEGIN
+    ALTER TABLE [catalogue].[ProductFeature] ADD CONSTRAINT [FK_ProductFeature_ProductVersion_IntroducedInVersionId] FOREIGN KEY ([IntroducedInVersionId]) REFERENCES [catalogue].[ProductVersion] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022085746_VersionReleaseNotesAndFeatures'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261022085746_VersionReleaseNotesAndFeatures', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

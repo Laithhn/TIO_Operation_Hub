@@ -351,7 +351,7 @@ const CASCADE_KINDS = ['clients', 'regions', 'environments', 'projects', 'contra
 type DepItem = { id: number; label: string; link?: string | null; deletePath?: string | null };
 type DepGroup = { type: string; label: string; count: number; unlinked: boolean; main: boolean; items: DepItem[] };
 type DepPreview = { label: string; total: number; delete: DepGroup[]; unlink: DepGroup[] };
-const errText = (e: unknown) => (e instanceof ApiError ? (e.detail ?? e.title) : (e as Error).message);
+const errText = (e: unknown) => (e instanceof ApiError ? [e.detail ?? e.title, ...Object.values(e.errors ?? {}).flat()].join(' ') : (e as Error).message);
 
 export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; what: string; onClose: () => void; onDone?: () => void }) {
   const [busy, setBusy] = useState(false);

@@ -973,6 +973,9 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<long?>("IntroducedInVersionId")
+                        .HasColumnType("bigint");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -1002,6 +1005,8 @@ namespace TioHub.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedById");
+
+                    b.HasIndex("IntroducedInVersionId");
 
                     b.HasIndex("ModuleId");
 
@@ -1152,6 +1157,10 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<long>("ProductId")
                         .HasColumnType("bigint");
+
+                    b.Property<string>("ReleaseNotes")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateOnly?>("ReleasedOn")
                         .HasColumnType("date");
@@ -4926,6 +4935,11 @@ namespace TioHub.Api.Data.Migrations
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("TioHub.Api.Modules.Catalogue.ProductVersion", "IntroducedInVersion")
+                        .WithMany()
+                        .HasForeignKey("IntroducedInVersionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("TioHub.Api.Modules.Catalogue.ProductModule", "Module")
                         .WithMany()
                         .HasForeignKey("ModuleId")
@@ -4941,6 +4955,8 @@ namespace TioHub.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("IntroducedInVersion");
 
                     b.Navigation("Module");
                 });

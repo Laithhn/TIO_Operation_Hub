@@ -538,7 +538,7 @@ test.describe('Access (roles and rights)', () => {
     await page.getByRole('button', { name: 'Save module' }).click();
     await page.getByRole('button', { name: '+ Feature' }).click();
     await page.getByLabel('Feature name').fill('Bulk import');
-    await page.getByLabel('Module').selectOption({ label: 'IMPORTER · Importer' });
+    await page.getByLabel('Module', { exact: true }).selectOption({ label: 'IMPORTER · Importer' });
     await page.getByRole('button', { name: 'Save feature' }).click();
     await expect(page.getByRole('row', { name: /Bulk import\s+IMPORTER/ })).toBeVisible();
     await expect(page.getByRole('row', { name: /IMPORTER · Importer/ })).toContainText('1');
@@ -1241,5 +1241,103 @@ test.describe('Teams, time zones and retired sections (A52, A53)', () => {
       await t.click();
       await expect(page.getByRole('heading', { name: /Meaningful reviews|Document references/ })).toHaveCount(0);
     }
+  });
+});
+
+test.describe('Product parts edit and delete (A56)', () => {
+  test('modules, features, microservices and versions are edited and deleted from the product page', async ({ page }) => {
+    const code = unique('PP').replace(/[^A-Z0-9]/gi, '').slice(-8).toUpperCase();
+    await page.goto('/products/new');
+    await page.getByLabel('Product code').fill(code);
+    await page.getByLabel('Product name').fill(`Fictional product ${code}`);
+    await page.getByRole('button', { name: 'Save product' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(code);
+    const dlg = page.getByRole('dialog');
+    // Add one of each.
+    await page.getByRole('button', { name: '+ Module' }).click();
+    await dlg.getByLabel('Module code').fill('CORE');
+    await dlg.getByLabel('Module name').fill('Core');
+    await dlg.getByRole('button', { name: 'Save module' }).click();
+    await page.getByRole('button', { name: '+ Feature' }).click();
+    await dlg.getByLabel('Feature name').fill('Bulk import');
+    await dlg.getByRole('button', { name: 'Save feature' }).click();
+    await page.getByRole('button', { name: '+ Microservice' }).click();
+    await dlg.getByLabel('Microservice name').fill(`${code}.Api`);
+    await dlg.getByRole('button', { name: /Save microservice/ }).click();
+    await page.getByRole('button', { name: '+ Version' }).click();
+    await dlg.getByLabel('Version', { exact: true }).fill('1.0-typo');
+    await dlg.getByRole('button', { name: 'Add version' }).click();
+    await expect(dlg).toBeHidden();
+    // Edit the version label (not in use), then delete each part.
+    await page.getByRole('button', { name: 'Edit version 1.0-typo' }).click();
+    await dlg.getByLabel('Version', { exact: true }).fill('1.0');
+    await dlg.getByRole('button', { name: 'Save version' }).click();
+    await expect(page.getByRole('button', { name: 'Edit version 1.0' })).toBeVisible();
+    for (const name of ['feature Bulk import', `microservice ${code}.Api`, 'module CORE', 'version 1.0']) {
+      await page.getByRole('button', { name: `Delete ${name}`, exact: true }).click();
+      await page.getByRole('dialog').getByRole('button', { name: /^Delete/ }).click();
+      await expect(page.getByRole('button', { name: `Delete ${name}`, exact: true })).toHaveCount(0);
+    }
+    await expect(page.getByRole('heading', { name: 'Modules (0)' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Versions (0)' })).toBeVisible();
+  });
+
+  test('a version in use cannot be deleted and the dialog says why', async ({ page }) => {
+    await page.goto('/');
+    const id = await page.evaluate(async () => {
+      const r = await fetch('/api/v1/products?q=PSOP', { credentials: 'same-origin' }).then(x => x.json());
+      return r.find((p: { code: string }) => p.code === 'PSOP').id as number;
+    });
+    await page.goto(`/products/${id}`);
+    const row = page.getByRole('row').filter({ has: page.getByRole('button', { name: /^Delete version / }) }).filter({ hasNot: page.getByRole('cell', { name: '0', exact: true }) }).first();
+    await row.getByRole('button', { name: /^Delete version / }).click();
+    const dlg = page.getByRole('dialog');
+    await dlg.getByRole('button', { name: /^Delete/ }).click();
+    await expect(dlg).toContainText('used by installations');
+    await dlg.getByRole('button', { name: 'Cancel' }).click();
+  });
+});
+
+test.describe('Version release notes and project teams from Teams (A57, A58)', () => {
+  test('a version records release notes and its new features', async ({ page }) => {
+    const code = unique('RN').replace(/[^A-Z0-9]/gi, '').slice(-8).toUpperCase();
+    await page.goto('/products/new');
+    await page.getByLabel('Product code').fill(code);
+    await page.getByLabel('Product name').fill(`Fictional product ${code}`);
+    await page.getByRole('button', { name: 'Save product' }).click();
+    await expect(page.getByRole('heading', { level: 1 })).toContainText(code);
+    const dlg = page.getByRole('dialog');
+    await page.getByRole('button', { name: '+ Feature' }).click();
+    await dlg.getByLabel('Feature name').fill('Bulk import');
+    await dlg.getByRole('button', { name: 'Save feature' }).click();
+    await page.getByRole('button', { name: '+ Version' }).click();
+    await dlg.getByLabel('Version', { exact: true }).fill('3.0');
+    await dlg.getByLabel('Release notes').fill('Faster import\nFixes the login timeout');
+    await dlg.getByRole('group', { name: 'Existing features' }).getByRole('button', { name: 'Bulk import' }).click();
+    await dlg.getByLabel('New feature name').fill('Duplicate check');
+    await dlg.getByRole('button', { name: 'Add feature' }).click();
+    await expect(dlg.getByRole('group', { name: 'New features to add' })).toContainText('Duplicate check');
+    await dlg.getByRole('button', { name: 'Add version' }).click();
+    await expect(dlg).toBeHidden();
+    const row = page.getByRole('row', { name: /^3\.0/ });
+    await expect(row).toContainText('Bulk import, Duplicate check');
+    await row.getByRole('button', { name: 'Release notes of 3.0' }).click();
+    await expect(page.getByRole('dialog')).toContainText('Fixes the login timeout');
+    await expect(page.getByRole('dialog')).toContainText('Duplicate check');
+    await page.getByRole('dialog').locator('.form-actions').getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByRole('row', { name: /^Duplicate check/ })).toContainText('3.0');
+  });
+
+  test('a new client takes a whole team from Teams into its project team', async ({ page }) => {
+    await page.goto('/clients/new');
+    const team = page.getByLabel('Team from Teams');
+    await team.selectOption({ label: 'TIO Operations' });
+    await page.getByRole('button', { name: 'Add team members' }).click();
+    await expect(page.getByRole('status').filter({ hasText: /Added \d+ member\(s\)|already on the team/ })).toBeVisible();
+    await expect(page.getByLabel('Team member 1', { exact: true })).not.toHaveValue('');
+    // One by one still works next to it.
+    const before = await page.getByRole('button', { name: /^Remove team member/ }).count();
+    await page.getByRole('button', { name: '+ Team member' }).click();
+    await expect(page.getByRole('button', { name: /^Remove team member/ })).toHaveCount(before + 1);
   });
 });

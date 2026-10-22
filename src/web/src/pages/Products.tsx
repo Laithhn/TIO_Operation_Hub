@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { del, get, post, put } from '../api';
 import { fmtDate, label } from '../format';
 import { useCan, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';
-import { Badge, Checkbox, DataTable, Dialog, DL, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { AttachmentsPanel } from './Attachments';
 
 // Products — the business also calls them applications: the software TIO delivers and supports.
@@ -18,11 +18,12 @@ type Row = {
 type Module = { id: number; code: string; name: string; description?: string; isActive: boolean; version: string; features: number; installations: number };
 type Microservice = { id: number; name: string; description?: string; moduleId?: number; module?: string; role?: string; isActive: boolean; version: string; installations: number; clients: number; servers: number; latestVersion?: string; versionCount: number };
 type Developer = { name: string; role: string; email?: string };
-type Feature = { id: number; name: string; description?: string; moduleId?: number; module?: string; isActive: boolean; version: string };
+type ProductVersionT = { id: number; version: string; releasedOn?: string; releaseNotes?: string; isActive: boolean; installations: number; rowVersion: string; features: { id: number; name: string }[] };
+type Feature = { id: number; name: string; description?: string; moduleId?: number; module?: string; introducedInVersionId?: number; introducedIn?: string; isActive: boolean; version: string };
 type Detail = {
   id: number; code: string; name: string; aliases?: string; description?: string; category?: string; technology?: string; isActive: boolean;
   developers: Developer[]; productOwner?: string; modules: Module[]; features: Feature[]; microservices: Microservice[];
-  versions: { id: number; version: string; releasedOn?: string; isActive: boolean; installations: number }[];
+  versions: ProductVersionT[];
   usage: { clientId: number; clientCode: string; clientName: string; installations: { id: number; instanceName: string; environmentId: number; environment: string; region?: string; module?: string; version?: string }[] }[];
   projects: { id: number; code: string; name: string; status: string; clientId: number; clientCode: string }[];
   contracts: { id: number; ref: string; title: string; status: string; clientId: number; clientCode: string }[];
@@ -59,9 +60,12 @@ export function ProductList() {
 export function ProductDetail() {
   const { id } = useParams();
   const q = useQuery({ queryKey: ['product', id], queryFn: () => get<Detail>(`/products/${id}`) });
-  const [dialog, setDialog] = useState<null | { kind: 'module'; item?: Module } | { kind: 'feature'; item?: Feature } | { kind: 'microservice'; item?: Microservice } | { kind: 'version' }>(null);
+  const [dialog, setDialog] = useState<null | { kind: 'module'; item?: Module } | { kind: 'feature'; item?: Feature } | { kind: 'microservice'; item?: Microservice } | { kind: 'version'; item?: ProductVersionT } | { kind: 'notes'; item: ProductVersionT }>(null);
+  // A56: modules, microservices, features and versions are deleted when nothing depends on them (the server says where they are used).
+  const [removing, setRemoving] = useState<{ path: string; what: string } | null>(null);
   const p = q.data;
   const can = !!p?.permissions.canEdit;
+  const canDelete = !!p?.permissions.canDelete;
   const [deleting, setDeleting] = useState(false);
   return (
     <QueryState q={q}>
@@ -99,7 +103,8 @@ export function ProductDetail() {
             { key: 'f', header: 'Features', className: 'num', render: m => m.features },
             { key: 'i', header: 'Installations', className: 'num', render: m => m.installations },
             { key: 's', header: 'Status', render: m => m.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
-            { key: 'e', header: '', render: m => can && <button className="linkbtn" onClick={() => setDialog({ kind: 'module', item: m })}>Edit</button> }
+            { key: 'e', header: '', className: 'nowrap', render: m => <RowActions name={`module ${m.code}`} onEdit={can ? () => setDialog({ kind: 'module', item: m }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/modules/${m.id}`, what: `Module ${m.code}` }) : undefined} /> }
           ]} />
         </Panel>
         <Panel title={`Microservices (${p.microservices.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'microservice' })}>+ Microservice</button>}>
@@ -112,24 +117,32 @@ export function ProductDetail() {
             { key: 'd', header: 'Description', render: x => x.description ?? <span className="muted">—</span> },
             { key: 'u', header: 'Deployed', render: x => x.installations ? `${x.installations} installation(s) · ${x.servers} server(s)` : <span className="muted">Not deployed</span> },
             { key: 's', header: 'Status', render: x => x.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
-            { key: 'e', header: '', render: x => can && <button className="linkbtn" onClick={() => setDialog({ kind: 'microservice', item: x })}>Edit</button> }
+            { key: 'e', header: '', className: 'nowrap', render: x => <RowActions name={`microservice ${x.name}`} onEdit={can ? () => setDialog({ kind: 'microservice', item: x }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/microservices/${x.id}`, what: `Microservice ${x.name}` }) : undefined} /> }
           ]} />
         </Panel>
         <Panel title={`Features (${p.features.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'feature' })}>+ Feature</button>}>
           <DataTable<Feature> rowKey={x => x.id} rows={p.features} caption="Features" columns={[
             { key: 'n', header: 'Feature', render: x => <b>{x.name}</b> },
             { key: 'm', header: 'Module', render: x => x.module ?? <span className="muted">Whole product</span> },
+            { key: 'iv', header: 'Introduced in', render: x => x.introducedIn ?? <span className="muted">—</span> },
             { key: 'd', header: 'Description', render: x => x.description ?? <span className="muted">—</span> },
             { key: 's', header: 'Status', render: x => x.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
-            { key: 'e', header: '', render: x => can && <button className="linkbtn" onClick={() => setDialog({ kind: 'feature', item: x })}>Edit</button> }
+            { key: 'e', header: '', className: 'nowrap', render: x => <RowActions name={`feature ${x.name}`} onEdit={can ? () => setDialog({ kind: 'feature', item: x }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/features/${x.id}`, what: `Feature ${x.name}` }) : undefined} /> }
           ]} />
         </Panel>
         <Panel title={`Versions (${p.versions.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'version' })}>+ Version</button>}>
           <DataTable rowKey={v => v.id} rows={p.versions} caption="Versions" columns={[
             { key: 'v', header: 'Version', render: v => <b>{v.version}</b> },
             { key: 'r', header: 'Released', render: v => v.releasedOn ? fmtDate(v.releasedOn) : <span className="muted">—</span> },
+            { key: 'f', header: 'New features', render: v => v.features.length ? v.features.map(x => x.name).join(', ') : <span className="muted">—</span> },
+            { key: 'n', header: 'Release notes', render: v => v.releaseNotes || v.features.length
+              ? <button className="linkbtn" onClick={() => setDialog({ kind: 'notes', item: v })} aria-label={`Release notes of ${v.version}`}>View</button> : <span className="muted">—</span> },
             { key: 'i', header: 'Installations', className: 'num', render: v => v.installations },
-            { key: 's', header: 'Status', render: v => v.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> }
+            { key: 's', header: 'Status', render: v => v.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
+            { key: 'e', header: '', className: 'nowrap', render: v => <RowActions name={`version ${v.version}`} onEdit={can ? () => setDialog({ kind: 'version', item: v }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/versions/${v.id}`, what: `Version ${v.version}` }) : undefined} /> }
           ]} />
         </Panel>
         <Panel title="Installations by client" pad={false}>
@@ -153,9 +166,11 @@ export function ProductDetail() {
         </div>
         <AttachmentsPanel recordType="Product" recordId={p.id} canEdit={can} title="Product documents" />
         {dialog?.kind === 'module' && <ModuleDialog productId={p.id} item={dialog.item} onClose={() => setDialog(null)} />}
-        {dialog?.kind === 'feature' && <FeatureDialog productId={p.id} modules={p.modules} item={dialog.item} onClose={() => setDialog(null)} />}
+        {dialog?.kind === 'feature' && <FeatureDialog productId={p.id} modules={p.modules} versions={p.versions} item={dialog.item} onClose={() => setDialog(null)} />}
+        {dialog?.kind === 'notes' && <ReleaseNotesDialog item={dialog.item} productCode={p.code} onClose={() => setDialog(null)} />}
         {dialog?.kind === 'microservice' && <MicroserviceDialog productId={p.id} productCode={p.code} modules={p.modules} item={dialog.item} onClose={() => setDialog(null)} />}
-        {dialog?.kind === 'version' && <VersionDialog productId={p.id} onClose={() => setDialog(null)} />}
+        {dialog?.kind === 'version' && <VersionDialog productId={p.id} features={p.features} item={dialog.item} onClose={() => setDialog(null)} />}
+        {removing && <ConfirmDelete path={removing.path} what={removing.what} onClose={() => setRemoving(null)} />}
       </>)}
     </QueryState>
   );
@@ -183,12 +198,13 @@ function ModuleDialog({ productId, item, onClose }: { productId: number; item?: 
   );
 }
 
-function FeatureDialog({ productId, modules, item, onClose }: { productId: number; modules: Module[]; item?: Feature; onClose: () => void }) {
-  const f = useForm({ name: item?.name ?? '', description: item?.description ?? '', moduleId: item?.moduleId ? String(item.moduleId) : '', isActive: item?.isActive ?? true });
+function FeatureDialog({ productId, modules, versions, item, onClose }: { productId: number; modules: Module[]; versions: ProductVersionT[]; item?: Feature; onClose: () => void }) {
+  const f = useForm({ name: item?.name ?? '', description: item?.description ?? '', moduleId: item?.moduleId ? String(item.moduleId) : '',
+    introducedInVersionId: item?.introducedInVersionId ? String(item.introducedInVersionId) : '', isActive: item?.isActive ?? true });
   const toast = useToast();
   const refresh = useRefresh();
   const save = async () => {
-    const body = { ...f.values, moduleId: f.values.moduleId ? Number(f.values.moduleId) : null };
+    const body = { ...f.values, moduleId: f.values.moduleId ? Number(f.values.moduleId) : null, introducedInVersionId: f.values.introducedInVersionId ? Number(f.values.introducedInVersionId) : null };
     const ok = await f.submit(() => (item ? put(`/products/features/${item.id}`, body, item.version) : post(`/products/${productId}/features`, body)).then(() => true));
     if (ok) { toast('Feature saved.'); refresh(); onClose(); }
   };
@@ -199,6 +215,8 @@ function FeatureDialog({ productId, modules, item, onClose }: { productId: numbe
         <TextInput label="Feature name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} />
         <SelectInput label="Module" value={f.values.moduleId} onChange={v => f.set('moduleId', v)} options={modules.filter(m => m.isActive || String(m.id) === f.values.moduleId).map(m => ({ value: String(m.id), label: `${m.code} · ${m.name}` }))}
           empty="Whole product (no module)" error={f.fieldError('moduleId')} />
+        <SelectInput label="Introduced in version" value={f.values.introducedInVersionId} onChange={v => f.set('introducedInVersionId', v)}
+          options={versions.map(v => ({ value: String(v.id), label: v.version }))} empty="Not recorded" error={f.fieldError('introducedInVersionId')} />
         <TextInput label="Description" wide multiline value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} hint="What the feature does and for whom." />
         <Checkbox label="Active (untick to retire)" checked={f.values.isActive} onChange={v => f.set('isActive', v)} />
       </div>
@@ -233,22 +251,84 @@ function MicroserviceDialog({ productId, productCode, modules, item, onClose }: 
   );
 }
 
-function VersionDialog({ productId, onClose }: { productId: number; onClose: () => void }) {
-  const f = useForm({ version: '', releasedOn: '' });
+/** Edit and Delete links for a row; each appears only with its right. */
+function RowActions({ name, onEdit, onDelete }: { name: string; onEdit?: () => void; onDelete?: () => void }) {
+  if (!onEdit && !onDelete) return null;
+  return (
+    <span className="row-actions">
+      {onEdit && <button className="linkbtn" onClick={onEdit} aria-label={`Edit ${name}`}>Edit</button>}
+      {onDelete && <button className="linkbtn danger-link" onClick={onDelete} aria-label={`Delete ${name}`}>Delete</button>}
+    </span>
+  );
+}
+
+/** A57: a product version with its release notes and the features it introduced (existing ones picked, new ones named here). */
+function VersionDialog({ productId, features, item, onClose }: { productId: number; features: Feature[]; item?: ProductVersionT; onClose: () => void }) {
+  const f = useForm({ version: item?.version ?? '', releasedOn: item?.releasedOn ?? '', releaseNotes: item?.releaseNotes ?? '', isActive: item?.isActive ?? true,
+    featureIds: (item?.features ?? []).map(x => x.id), newFeatures: [] as string[] });
+  const [draft, setDraft] = useState('');
   const toast = useToast();
   const refresh = useRefresh();
-  const save = async () => {
-    const ok = await f.submit(v => post(`/products/${productId}/versions`, { version: v.version, releasedOn: v.releasedOn || null, isActive: true }).then(() => true));
-    if (ok) { toast('Version added.'); refresh(); onClose(); }
+  const toggle = (id: number) => f.set('featureIds', f.values.featureIds.includes(id) ? f.values.featureIds.filter(x => x !== id) : [...f.values.featureIds, id]);
+  const addNew = () => {
+    const n = draft.trim();
+    if (!n) return;
+    const same = features.find(x => x.name.toLowerCase() === n.toLowerCase());
+    if (same) { if (!f.values.featureIds.includes(same.id)) toggle(same.id); }
+    else if (!f.values.newFeatures.some(x => x.toLowerCase() === n.toLowerCase())) f.set('newFeatures', [...f.values.newFeatures, n]);
+    setDraft('');
   };
+  const save = async () => {
+    const body = { version: f.values.version, releasedOn: f.values.releasedOn || null, isActive: f.values.isActive, releaseNotes: f.values.releaseNotes || null,
+      featureIds: f.values.featureIds, newFeatures: f.values.newFeatures };
+    const ok = await f.submit(async () => { if (item) await put(`/products/versions/${item.id}`, body, item.rowVersion); else await post(`/products/${productId}/versions`, body); return true; });
+    if (ok) { toast(item ? 'Version saved.' : 'Version added.'); refresh(); onClose(); }
+  };
+  const elsewhere = (x: Feature) => x.introducedInVersionId && x.introducedInVersionId !== item?.id ? x.introducedIn : undefined;
   return (
-    <Dialog title="Add version" onClose={onClose}>
-      <FormError error={f.error} />
+    <Dialog title={item ? `Edit version ${item.version}` : 'Add version'} onClose={onClose} wide>
+      <FormError error={f.error} fields={['version', 'releaseNotes', 'featureIds', 'newFeatures']} />
       <div className="form-grid">
-        <TextInput label="Version" required value={f.values.version} onChange={v => f.set('version', v)} error={f.fieldError('version')} hint="As the product team labels it, e.g. 17.8.1." />
+        <TextInput label="Version" required value={f.values.version} onChange={v => f.set('version', v)} error={f.fieldError('version')}
+          hint={item ? 'The label can be corrected while no installation uses it.' : 'As the product team labels it, e.g. 17.8.1.'} />
         <TextInput label="Released on" type="date" value={f.values.releasedOn} onChange={v => f.set('releasedOn', v)} />
+        <TextInput label="Release notes" wide multiline value={f.values.releaseNotes} onChange={v => f.set('releaseNotes', v)} error={f.fieldError('releaseNotes')}
+          hint="What changed: improvements, fixes, known issues, upgrade steps. Plain text; one item per line works well." />
+        <Field label="New features in this version" wide error={f.fieldError('featureIds') ?? f.fieldError('newFeatures')}
+          hint="Select the product's features this version introduced, or name new ones (they are added to the product's features).">
+          {(fid, desc) => <>
+            {features.length > 0 && <div className="day-chips" role="group" aria-label="Existing features" id={fid} aria-describedby={desc}>
+              {features.map(x => (
+                <button type="button" key={x.id} aria-pressed={f.values.featureIds.includes(x.id)} onClick={() => toggle(x.id)}
+                  title={elsewhere(x) ? `Now listed under ${elsewhere(x)}; selecting moves it here` : x.description}>{x.name}{elsewhere(x) && <span className="muted"> ({elsewhere(x)})</span>}</button>
+              ))}
+            </div>}
+            {f.values.newFeatures.length > 0 && <div className="day-chips" role="group" aria-label="New features to add" style={{ marginTop: 6 }}>
+              {f.values.newFeatures.map(n => <button type="button" key={n} aria-pressed onClick={() => f.set('newFeatures', f.values.newFeatures.filter(x => x !== n))} title="Click to remove">+ {n} ✕</button>)}
+            </div>}
+            <div className="inline-add">
+              <input className="input" aria-label="New feature name" placeholder="New feature name" value={draft} maxLength={150}
+                onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addNew(); } }} />
+              <button type="button" className="btn" onClick={addNew} disabled={!draft.trim()}>Add feature</button>
+            </div>
+          </>}
+        </Field>
+        {item && <Checkbox label="Active (untick to retire this version)" checked={f.values.isActive} onChange={v => f.set('isActive', v)} />}
       </div>
-      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Add version</button></div>
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{item ? 'Save version' : 'Add version'}</button></div>
+    </Dialog>
+  );
+}
+
+function ReleaseNotesDialog({ item, productCode, onClose }: { item: ProductVersionT; productCode: string; onClose: () => void }) {
+  return (
+    <Dialog title={`${productCode} ${item.version}`} onClose={onClose} wide>
+      <p className="muted" style={{ marginTop: 0 }}>{item.releasedOn ? `Released ${fmtDate(item.releasedOn)}` : 'Release date not recorded'}{!item.isActive && ' · retired'}</p>
+      <h3 className="sub-h">New features</h3>
+      {item.features.length ? <ul className="plain">{item.features.map(x => <li key={x.id}>{x.name}</li>)}</ul> : <p className="muted">None recorded.</p>}
+      <h3 className="sub-h">Release notes</h3>
+      {item.releaseNotes ? <div className="release-notes">{item.releaseNotes}</div> : <p className="muted">No release notes.</p>}
+      <div className="form-actions"><button className="btn btn-primary" onClick={onClose}>Close</button></div>
     </Dialog>
   );
 }
@@ -328,14 +408,18 @@ export function MicroserviceDetail() {
   const [dialog, setDialog] = useState<null | { kind: 'edit' } | { kind: 'version'; item?: MicroserviceDetailT['versions'][number] }>(null);
   const m = q.data;
   const can = !!m?.permissions.canEdit;
+  const canDelete = useCan('Delete');
+  const [removing, setRemoving] = useState<{ path: string; what: string; after?: string } | null>(null);
+  const nav = useNavigate();
   return (
     <QueryState q={q}>
       {m && (<>
         <PageHead title={m.name} crumbs={[{ to: '/products', label: 'Products' }, { to: `/products/${m.product.id}`, label: m.product.code }, { label: 'Microservice' }]}
           sub={<>{m.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge>} <span className="muted">· microservice of {m.product.code} · {m.product.name}</span></>}
-          actions={can && <>
-            <button className="btn" onClick={() => setDialog({ kind: 'edit' })}>Edit</button>
-            <button className="btn btn-primary" onClick={() => setDialog({ kind: 'version' })}>+ Version</button>
+          actions={<>
+            {can && <button className="btn" onClick={() => setDialog({ kind: 'edit' })}>Edit</button>}
+            {canDelete && <button className="btn btn-danger-outline" onClick={() => setRemoving({ path: `/products/microservices/${m.id}`, what: `Microservice ${m.name}`, after: `/products/${m.product.id}` })}>Delete</button>}
+            {can && <button className="btn btn-primary" onClick={() => setDialog({ kind: 'version' })}>+ Version</button>}
           </>} />
         <Panel title="Microservice">
           <DL items={[
@@ -355,7 +439,8 @@ export function MicroserviceDetail() {
                     <b className="mono">{v.version}</b>
                     <span className="muted">{v.releasedOn ? `released ${fmtDate(v.releasedOn)}` : 'release date not recorded'}</span>
                     {!v.isActive && <Badge>Retired</Badge>}
-                    {can && <button className="linkbtn" onClick={() => setDialog({ kind: 'version', item: v })}>Edit</button>}
+                    <RowActions name={`version ${v.version}`} onEdit={can ? () => setDialog({ kind: 'version', item: v }) : undefined}
+                      onDelete={canDelete ? () => setRemoving({ path: `/products/microservice-versions/${v.id}`, what: `Version ${v.version}` }) : undefined} />
                   </div>
                   {v.releaseNotes ? <div className="release-notes">{v.releaseNotes}</div> : <p className="muted" style={{ margin: '4px 0 0' }}>No release notes.</p>}
                 </li>
@@ -376,6 +461,7 @@ export function MicroserviceDetail() {
         {dialog?.kind === 'edit' && product.data && <MicroserviceDialog productId={m.product.id} productCode={m.product.code} modules={product.data.modules}
           item={{ id: m.id, name: m.name, description: m.description, moduleId: m.module?.id, role: m.role, isActive: m.isActive, version: m.etag, installations: 0, clients: 0, servers: 0, versionCount: m.versions.length }} onClose={() => setDialog(null)} />}
         {dialog?.kind === 'version' && <MicroserviceVersionDialog microserviceId={m.id} item={dialog.item} onClose={() => setDialog(null)} />}
+        {removing && <ConfirmDelete path={removing.path} what={removing.what} onClose={() => setRemoving(null)} onDone={() => { if (removing.after) nav(removing.after, { replace: true }); }} />}
       </>)}
     </QueryState>
   );
@@ -394,8 +480,8 @@ function MicroserviceVersionDialog({ microserviceId, item, onClose }: { microser
     <Dialog title={item ? `Edit version ${item.version}` : 'Add version'} onClose={onClose} wide>
       <FormError error={f.error} />
       <div className="form-grid">
-        <TextInput label="Version number" required value={f.values.version} onChange={v => f.set('version', v)} error={f.fieldError('version')} disabled={!!item}
-          hint={item ? 'Version numbers cannot be renamed; retire a wrong one and add the correct one.' : 'As the product team labels it, e.g. 2.4.1.'} />
+        <TextInput label="Version number" required value={f.values.version} onChange={v => f.set('version', v)} error={f.fieldError('version')}
+          hint={item ? 'The number can be corrected while no server runs this version.' : 'As the product team labels it, e.g. 2.4.1.'} />
         <TextInput label="Released on" type="date" value={f.values.releasedOn} onChange={v => f.set('releasedOn', v)} />
         <TextInput label="Release notes" wide multiline value={f.values.releaseNotes} onChange={v => f.set('releaseNotes', v)} error={f.fieldError('releaseNotes')}
           hint="What changed: new features, fixes, known issues, upgrade steps. Plain text; one item per line works well." />
