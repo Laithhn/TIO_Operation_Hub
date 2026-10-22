@@ -944,7 +944,7 @@ public class AC20_ContractsAndSla(HubFactory hub) : Scenario(hub)
         Assert.Equal("RenewalDue", d.Body!["renewalState"]!.GetValue<string>());
         Assert.Equal(DateTime.UtcNow.AddDays(10).ToString("yyyy-MM-dd"), d.Body["noticeDeadline"]!.GetValue<string>());
         Assert.StartsWith("CT-", d.Body["ref"]!.GetValue<string>());
-        Assert.Contains("does not measure", d.Body["slaNote"]!.GetValue<string>());
+        Assert.Contains("measured against the target", d.Body["slaNote"]!.GetValue<string>());
         Assert.Single(d.Body["environments"]!.AsArray());
         Assert.Equal(client, d.Body["clientId"]!.GetValue<long>());
         Assert.Equal(project, Id(d.Body["project"]));

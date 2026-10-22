@@ -12,7 +12,7 @@ public sealed record CaseFilter(
     long? ClientId = null, long? RegionId = null, long? EnvironmentId = null, long? ProductId = null, long? TeamId = null, long? OwnerId = null,
     bool? Unassigned = null, string? Status = null, Priority? Priority = null, WorkScope? Scope = null, string? Due = null, bool? Waiting = null,
     bool? ReviewOverdue = null, bool? Stale = null, string? JiraKey = null, string? Q = null, DateTimeOffset? CreatedFrom = null, DateTimeOffset? CreatedTo = null,
-    bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null);
+    bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null);
 
 public static class CaseQuery
 {
@@ -61,6 +61,26 @@ public static class CaseQuery
             q = q.Where(c => c.JiraReferences.Any(j => j.RemovedAt == null && j.IssueKey == key));
         }
         if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || c.NextAction.Contains(f.Q));
+        if (f.ContractId is not null) q = q.Where(c => c.ContractId == f.ContractId);
+        // A61: contractual SLA outcome; a pending obligation whose deadline passed counts as breached (same rule as the dashboard).
+        q = f.Sla switch
+        {
+            "withContract" => q.Where(c => c.ContractId != null),
+            "breached" => q.Where(c => c.ResponseSlaStatus == SlaState.Breached || c.ResolutionSlaStatus == SlaState.Breached
+                || (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now) || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now)),
+            "noContract" => q.Where(c => c.ClientId != null && c.ContractId == null && c.Status != CaseStatus.Cancelled),
+            "responseMet" => q.Where(c => c.ResponseSlaStatus == SlaState.Met),
+            "responseBreached" => q.Where(c => c.ResponseSlaStatus == SlaState.Breached || (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now)),
+            "responsePending" => q.Where(c => c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt >= now),
+            "responseNotMeasurable" => q.Where(c => c.ResponseSlaStatus == SlaState.NotMeasurable),
+            "resolutionMet" => q.Where(c => c.ResolutionSlaStatus == SlaState.Met),
+            "resolutionBreached" => q.Where(c => c.ResolutionSlaStatus == SlaState.Breached || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now)),
+            "resolutionPending" => q.Where(c => c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt >= now),
+            "resolutionNotMeasurable" => q.Where(c => c.ResolutionSlaStatus == SlaState.NotMeasurable),
+            "approaching" => q.Where(c => (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt >= now && c.ResponseDueAt <= now.AddHours(24))
+                || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt >= now && c.ResolutionDueAt <= now.AddHours(24))),
+            _ => q
+        };
         if (f.CreatedFrom is not null) q = q.Where(c => c.CreatedAt >= f.CreatedFrom);
         if (f.CreatedTo is not null) q = q.Where(c => c.CreatedAt < f.CreatedTo);
         if (f.DeactivatedOwner == true) q = q.Where(c => c.Owner != null && !c.Owner.IsActive);

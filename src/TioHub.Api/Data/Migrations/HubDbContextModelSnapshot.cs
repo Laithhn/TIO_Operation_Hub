@@ -2001,6 +2001,9 @@ namespace TioHub.Api.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<bool>("SlaPauseWhileWaitingOnCustomer")
+                        .HasColumnType("bit");
+
                     b.Property<DateOnly?>("StartDate")
                         .HasColumnType("date");
 
@@ -4162,6 +4165,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<long?>("ContractId")
+                        .HasColumnType("bigint");
+
                     b.Property<long?>("CoordinatorUserId")
                         .HasColumnType("bigint");
 
@@ -4193,6 +4199,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<string>("EvidenceExceptionReason")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("FirstResponseAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("ImpactSummary")
                         .IsRequired()
@@ -4236,6 +4245,31 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<int>("ReopenCount")
                         .HasColumnType("int");
 
+                    b.Property<DateTimeOffset?>("ResolutionDueAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ResolutionElapsedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResolutionSlaStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ResponseDueAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("ResponseElapsedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResponseSlaStatus")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<string>("ResponsibleOrganization")
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
@@ -4258,6 +4292,58 @@ namespace TioHub.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset?>("SlaAppliedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SlaBasis")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset?>("SlaCalculatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SlaContractRef")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("SlaNote")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("SlaPauseOnCustomerWaiting")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("SlaPausedMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SlaPriority")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int?>("SlaResolutionMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("SlaResponseMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("SlaSupport24x7")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("SlaSupportDays")
+                        .HasMaxLength(40)
+                        .HasColumnType("int");
+
+                    b.Property<TimeOnly?>("SlaSupportFrom")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("SlaSupportTo")
+                        .HasColumnType("time");
+
+                    b.Property<string>("SlaTimeZone")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -4326,6 +4412,12 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("ResponsibleTeamId");
 
                     b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ContractId", "CreatedAt");
+
+                    b.HasIndex("ResolutionSlaStatus", "ResolutionDueAt");
+
+                    b.HasIndex("ResponseSlaStatus", "ResponseDueAt");
 
                     b.HasIndex("Status", "DueAt");
 
@@ -6086,6 +6178,11 @@ namespace TioHub.Api.Data.Migrations
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("TioHub.Api.Modules.Contracts.Contract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("TioHub.Api.Modules.Access.User", null)
                         .WithMany()
                         .HasForeignKey("CoordinatorUserId")
@@ -6124,6 +6221,8 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("BackupOwner");
 
                     b.Navigation("Client");
+
+                    b.Navigation("Contract");
 
                     b.Navigation("Owner");
 

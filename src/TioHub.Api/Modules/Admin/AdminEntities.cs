@@ -69,6 +69,8 @@ public static class SettingKeys
     public const string DefaultTimeZone = "DefaultTimeZone";
     /// <summary>A49: how many days ahead a contract payment due date is announced in the notifications.</summary>
     public const string PaymentReminderDays = "Contracts.PaymentReminderDays";
+    /// <summary>A61: when first responses began to be recorded; set once by the application.</summary>
+    public const string SlaTrackingFrom = "Sla.FirstResponseTrackingFrom";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

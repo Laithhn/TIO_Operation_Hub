@@ -17,7 +17,7 @@ export function UserPicker({ label, value, onChange, clientId, teamId, required,
   return <SelectInput label={label} value={value ?? ''} onChange={v => onChange(v ? Number(v) : null)} options={opts} required={required} error={error} hint={hint} empty={empty} />;
 }
 
-export type ActionField = { name: string; label: string; kind?: 'text' | 'textarea' | 'datetime' | 'date' | 'select' | 'user' | 'timezone'; required?: boolean; options?: Option[]; hint?: string; clientId?: number | null; teamId?: number | null };
+export type ActionField = { name: string; label: string; kind?: 'text' | 'textarea' | 'datetime' | 'date' | 'select' | 'user' | 'timezone' | 'checkbox'; required?: boolean; options?: Option[]; hint?: string; clientId?: number | null; teamId?: number | null };
 
 /**
  * Confirmation dialog for business actions that need a reason or evidence (archive, close, cancel, reopen, revise…).
@@ -45,6 +45,7 @@ export function ActionDialog({ title, intro, fields, submitLabel, danger, path, 
           const common = { label: fd.label, required: fd.required, error: f.fieldError(fd.name), hint: fd.hint };
           if (fd.kind === 'select') return <SelectInput key={fd.name} {...common} value={f.values[fd.name]} onChange={v => f.set(fd.name, v)} options={fd.options ?? []} wide />;
           if (fd.kind === 'timezone') return <TimeZoneSelect key={fd.name} {...common} wide value={f.values[fd.name]} onChange={v => f.set(fd.name, v)} />;
+          if (fd.kind === 'checkbox') return <div className="wide" key={fd.name}><label className="check"><input type="checkbox" checked={f.values[fd.name] === 'true'} onChange={e => f.set(fd.name, e.target.checked ? 'true' : '')} /> {fd.label}</label>{fd.hint && <div className="hint">{fd.hint}</div>}</div>;
           if (fd.kind === 'user') return <div className="wide" key={fd.name}><UserPicker {...common} value={f.values[fd.name] ? Number(f.values[fd.name]) : null} onChange={v => f.set(fd.name, v ? String(v) : '')} clientId={fd.clientId} teamId={fd.teamId} empty="— Select —" /></div>;
           return <TextInput key={fd.name} {...common} wide value={f.values[fd.name]} onChange={v => f.set(fd.name, v)}
             multiline={fd.kind === 'textarea'} type={fd.kind === 'datetime' ? 'datetime-local' : fd.kind === 'date' ? 'date' : 'text'} />;

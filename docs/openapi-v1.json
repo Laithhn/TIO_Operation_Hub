@@ -5495,6 +5495,25 @@
               ],
               "format": "int32"
             }
+          },
+          {
+            "name": "ContractId",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "Sla",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -5716,6 +5735,74 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ReasonInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{id}/first-response": {
+      "post": {
+        "tags": [
+          "Cases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirstResponseInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/cases/{id}/contract": {
+      "post": {
+        "tags": [
+          "Cases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractLinkInput"
               }
             }
           },
@@ -7731,6 +7818,25 @@
               "type": "string",
               "format": "date-time"
             }
+          },
+          {
+            "name": "slaContractId",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
+          },
+          {
+            "name": "slaPriority",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Priority"
+            }
           }
         ],
         "responses": {
@@ -9120,6 +9226,15 @@
               "null",
               "string"
             ]
+          },
+          "contractId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -10401,6 +10516,36 @@
             "items": {
               "$ref": "#/components/schemas/PaymentInput"
             }
+          },
+          "slaPauseWhileWaitingOnCustomer": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
+      "ContractLinkInput": {
+        "required": [
+          "contractId",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -11116,6 +11261,35 @@
           "Any",
           null
         ]
+      },
+      "FirstResponseInput": {
+        "required": [
+          "respondedAt",
+          "channel",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "respondedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "channel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
       },
       "FlowDirection": {
         "enum": [
@@ -12225,8 +12399,13 @@
               "string"
             ],
             "format": "date-time"
+          },
+          "customerResponse": {
+            "type": "boolean",
+            "default": false
           }
-        }
+        },
+        "description": "CustomerResponse: the update was sent to the customer, so it is the first response when none is recorded yet (A61)."
       },
       "ProjectInput": {
         "required": [

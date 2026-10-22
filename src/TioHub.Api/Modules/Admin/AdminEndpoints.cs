@@ -212,12 +212,12 @@ public static class AdminEndpoints
         g.MapGet("/settings", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             me.RequireAdministrator();
-            return Results.Ok(await db.Settings.AsNoTracking().Where(s => !s.Key.StartsWith("Attachments.")).OrderBy(s => s.Key).Select(s => new { s.Id, s.Key, s.Value, s.Description, version = Convert.ToBase64String(s.RowVersion) }).ToListAsync(ct));
+            return Results.Ok(await db.Settings.AsNoTracking().Where(s => !s.Key.StartsWith("Attachments.") && !s.Key.StartsWith("Sla.")).OrderBy(s => s.Key).Select(s => new { s.Id, s.Key, s.Value, s.Description, version = Convert.ToBase64String(s.RowVersion) }).ToListAsync(ct));
         });
         g.MapPut("/settings/{id:long}", async (long id, SettingInput input, HttpContext ctx, HubDbContext db, UserContext me, HubSettings settings, CancellationToken ct) =>
         {
             me.RequireAdministrator();
-            var s = await db.Settings.FirstOrDefaultAsync(x => x.Id == id && !x.Key.StartsWith("Attachments."), ct) ?? throw new NotFoundException("The setting");
+            var s = await db.Settings.FirstOrDefaultAsync(x => x.Id == id && !x.Key.StartsWith("Attachments.") && !x.Key.StartsWith("Sla."), ct) ?? throw new NotFoundException("The setting");
             db.ExpectVersion(ctx, s);
             new Check().Text("value", input.Value, 2000, "the value", true).ThrowIfAny();
             var value = input.Value!.Trim();

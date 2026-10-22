@@ -35,6 +35,13 @@ Runs the tests, builds the React front end into `wwwroot`, publishes the API (fr
 Schema changes in later releases: developers add an EF Core migration and regenerate `01-schema.sql` with
 `dotnet tool run dotnet-ef migrations script --idempotent --project src/TioHub.Api --output database/01-schema.sql`, then re-add the `SET` header (see the file top). The DBA runs the new script before deploying the new application files.
 
+### Contractual SLA measurement (2.28.0)
+
+- The `CaseContractualSla` migration only adds columns (cases: contract link, first-response and resolution times, the target snapshot and results; contracts: the pause option). Existing cases start as *Not applicable* and are not linked to contracts.
+- At the first start of 2.28.0 the application records when first-response tracking began (setting `Sla.FirstResponseTrackingFrom`, not shown under Settings) and evaluates every case once. The log shows `SLA backfill: n case(s) processed, n resolution time(s) taken from the status history, n skipped, n failed`. Restarting is safe: processed cases are not touched again.
+- A background sweep re-evaluates running obligations every `Sla:SweepMinutes` minutes (default 5; `0` switches it off; figures still show a passed deadline as breached at once). Failures are logged and retried at the next interval.
+- After the upgrade, link open client cases to their contract from the case page (*Link contract*) where the SLA should be measured; nothing is linked automatically.
+
 ## 4. Application (IIS)
 
 1. Unzip the release into e.g. `D:\Apps\TioHub\app`. Create an IIS site bound to HTTPS only, app pool “No Managed Code”, identity = the gMSA.

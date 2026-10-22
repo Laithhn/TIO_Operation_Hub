@@ -81,3 +81,5 @@ public enum ContractStatus { Draft, Active, Ended, Terminated }
 public enum RenewalTerms { Unknown, FixedTerm, AutoRenew, RenewalByAgreement }
 public enum SupportModel { Unknown, Remote, OnSite, Hybrid }
 public enum SlaBasis { Unknown, CalendarHours, SupportHours }
+/// <summary>A61: outcome of one contractual SLA obligation of a case.</summary>
+public enum SlaState { NotApplicable, NotMeasurable, Pending, Met, Breached }

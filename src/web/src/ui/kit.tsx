@@ -101,7 +101,8 @@ const STATUS_TONE: Record<string, 'good' | 'warn' | 'bad' | 'info' | 'neutral'> 
   Open: 'info', Completed: 'good', Healthy: 'good', Degraded: 'warn', Unavailable: 'bad', Unknown: 'neutral',
   Critical: 'bad', High: 'warn', Normal: 'neutral', Low: 'neutral', Active: 'good', Opportunity: 'info', Archived: 'neutral',
   Planned: 'info', OnHold: 'warn', Retired: 'neutral', PendingAcknowledgment: 'warn', CompletedByException: 'warn', Resolved: 'good',
-  Current: 'good', Stale: 'bad', NotYetReviewed: 'neutral', NoPolicy: 'warn', NotApplicable: 'neutral'
+  Current: 'good', Stale: 'bad', NotYetReviewed: 'neutral', NoPolicy: 'warn', NotApplicable: 'neutral',
+  Met: 'good', Breached: 'bad', Pending: 'info', NotMeasurable: 'warn'
 };
 export function StatusBadge({ value }: { value?: string | null }) {
   if (!value) return <Unknown />;

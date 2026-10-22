@@ -58,6 +58,16 @@ type CC = {
   contracts?: { within30: number; within60: number; within90: number; expired: number; unknownEnd: number } | null;
   payments?: { open: number; withoutAmount: number; overdueByClient: { clientId: number; client: string; count: number; amounts: { currency: string; amount: number }[] }[] } | null;
   environments: EnvRow[];
+  sla: SlaBlock;
+};
+/** A61: contractual SLA compliance of client cases opened in the period. */
+type SlaTally = { met: number; breached: number; pending: number; notMeasurable: number; measured: number; rate: number | null };
+type SlaBlock = {
+  definition: string; casesInPeriod: number; withContract: number; withoutContract: number; response: SlaTally; resolution: SlaTally;
+  overall: { completed: number; compliant: number; rate: number | null }; approaching: number; breachedOpen: number;
+  byContract: { contractId: number; contractRef: string; title: string; client?: string | null; cases: number; response: SlaTally; resolution: SlaTally; breached: number }[];
+  byPriority: { priority: string; cases: number; response: SlaTally; resolution: SlaTally }[];
+  trend: { key: string; label: string; responseMet: number; responseMeasured: number; resolutionMet: number; resolutionMeasured: number }[];
 };
 type ActionRow = {
   category: string; recordType: string; recordId: number; reference: string; title: string; clientId?: number | null; clientCode?: string | null; owner: string; reason: string;
@@ -135,6 +145,10 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
         tone={cc.cases.risk.approaching ? 'warning' : undefined}
         partLabel={e ? `Escalation response ${resp ?? 'n/a'} · resolution ${reso ?? 'n/a'}` : undefined}
         context={<>Case due dates met: {adh ?? 'n/a'}{cc.cases.risk.approaching ? ` · ${cc.cases.risk.approaching} case(s) due within 24 h` : ''}</>} />
+      <Kpi icon={<Icon name="matrix" size={18} />} label="Contractual SLA met (period)" value={rate(cc.sla.response.met + cc.sla.resolution.met, cc.sla.response.measured + cc.sla.resolution.measured) ?? 'Not available'}
+        to="/cases?sla=withContract&status=all" tone={cc.sla.breachedOpen ? 'critical' : cc.sla.approaching ? 'warning' : undefined}
+        partLabel={`Response ${cc.sla.response.rate ?? 'n/a'}${cc.sla.response.rate !== null ? ' %' : ''} · resolution ${cc.sla.resolution.rate ?? 'n/a'}${cc.sla.resolution.rate !== null ? ' %' : ''}`}
+        context={<>{cc.sla.response.measured + cc.sla.resolution.measured} obligation(s) measured{cc.sla.breachedOpen ? ` · ${cc.sla.breachedOpen} open case(s) breached` : ''}</>} />
       <Kpi icon={<Icon name="commitment" size={18} />} label="Open commitments" value={openComs.value} to={openComs.drilldown} tone={overdueComs.value ? 'critical' : undefined}
         part={overdueComs.value} of={openComs.value} partLabel={overdueComs.value ? `${overdueComs.value} overdue` : 'None overdue'}
         context={`${upcoming.value} due in the next ${dash.upcomingDays} days`} />
@@ -533,10 +547,93 @@ function ContractCharts({ d, cc }: { d: InsightsT; cc: CC }) {
         <section className="panel viz-panel cc-sla">
           <div className="panel-head"><h2>Measured SLA compliance</h2></div>
           <div className="panel-body">
-            <p><b>Measured SLA compliance is not yet available.</b></p>
-            <p className="hint">Cases record their due date but not the time of the first response, and a case is not linked to the SLA targets of its contract, so contractual response and resolution compliance cannot be computed. What is measured today: escalation response and resolution against their own targets, and case due dates met — both under <i>Targets met</i> at the top.</p>
+            <p>Configured targets above are the contractual terms. What cases achieved against them is measured in <a href="#sla">Contractual SLA compliance</a>.</p>
+            <p className="hint">Response and resolution {rateText(cc.sla.response)} / {rateText(cc.sla.resolution)} for client cases opened in {PERIOD_LABEL[cc.period.name]}.</p>
           </div>
         </section>
+      </div>
+    </Band>
+  );
+}
+
+const rateText = (t: SlaTally) => (t.rate === null ? 'not available' : `${t.rate} %`);
+const OUTCOME_OF: Record<string, string> = { met: STATUS.good, breached: STATUS.critical, pending: SERIES.blue, notMeasurable: STATUS.neutral };
+
+/** A61: contractual response and resolution compliance, with every denominator shown and every count linked to its cases. */
+function SlaCharts({ cc, scope, slaContractId, slaPriority, onFilter }: {
+  cc: CC; scope: Record<string, string>; slaContractId: string; slaPriority: string; onFilter: (x: { slaContractId?: string; slaPriority?: string }) => void;
+}) {
+  const s = cc.sla;
+  const period = { status: 'all', createdFrom: cc.period.from, createdTo: cc.period.to };
+  const link = (sla: string, extra: Record<string, string> = {}, inPeriod = true) =>
+    `/cases${qs({ ...scope, ...(inPeriod ? period : {}), contractId: slaContractId, priority: slaPriority, sla, ...extra })}`;
+  const parts = (t: SlaTally, kind: 'response' | 'resolution'): BarT[] => [
+    { key: 'met', label: 'Met', value: t.met, link: link(`${kind}Met`) },
+    { key: 'breached', label: 'Breached', value: t.breached, link: link(`${kind}Breached`) },
+    { key: 'pending', label: 'Pending (running)', value: t.pending, link: link(`${kind}Pending`) },
+    { key: 'notMeasurable', label: 'Not measurable', value: t.notMeasurable, link: link(`${kind}NotMeasurable`) }
+  ];
+  const trend = s.trend.map(t => ({ label: t.label, a: t.responseMet + t.resolutionMet, b: t.responseMeasured - t.responseMet + t.resolutionMeasured - t.resolutionMet }));
+  const ratio = (t: SlaTally) => `${t.met} of ${t.measured}`;
+  const priorities = ['Critical', 'High', 'Normal', 'Low'];
+  return (
+    <Band id="sla" icon="matrix" title="Contractual SLA compliance"
+      hint={<>{s.withContract} of {s.casesInPeriod} client case(s) opened in {PERIOD_LABEL[cc.period.name]} are linked to a contract · <Link to={link('noContract')}>{s.withoutContract} without a contract</Link> (not measured)</>}>
+      <div className="sla-filters">
+        <SelectInput label="Contract" value={slaContractId} onChange={v => onFilter({ slaContractId: v })} empty="All contracts"
+          options={[...s.byContract.map(k => ({ value: String(k.contractId), label: `${k.contractRef} · ${k.client ?? ''}` })),
+            ...(slaContractId && !s.byContract.some(k => String(k.contractId) === slaContractId) ? [{ value: slaContractId, label: `Contract #${slaContractId}` }] : [])]} />
+        <SelectInput label="Priority" value={slaPriority} onChange={v => onFilter({ slaPriority: v })} empty="All priorities" options={priorities.map(p => ({ value: p, label: p }))} />
+      </div>
+      <p className="hint sla-def">{s.definition}</p>
+      <div className="cc-tiles sla-tiles" aria-label="Contractual SLA figures">
+        <Link to={link('responseBreached')} className={`cc-tile${s.response.breached ? ' bad' : s.response.measured ? ' good' : ''}`}>
+          <b>{rateText(s.response)}</b><span>Response compliance</span><small>{ratio(s.response)} met · {s.response.pending} pending · {s.response.notMeasurable} not measurable</small></Link>
+        <Link to={link('resolutionBreached')} className={`cc-tile${s.resolution.breached ? ' bad' : s.resolution.measured ? ' good' : ''}`}>
+          <b>{rateText(s.resolution)}</b><span>Resolution compliance</span><small>{ratio(s.resolution)} met · {s.resolution.pending} pending · {s.resolution.notMeasurable} not measurable</small></Link>
+        <Link to={link('withContract')} className="cc-tile">
+          <b>{s.overall.rate === null ? 'not available' : `${s.overall.rate} %`}</b><span>Overall (both met)</span><small>{s.overall.compliant} of {s.overall.completed} case(s) with both obligations completed</small></Link>
+        <Link to={link('approaching', { status: '', createdFrom: '', createdTo: '' }, false)} className={`cc-tile${s.approaching ? ' warn' : ''}`}>
+          <b>{s.approaching}</b><span>Approaching breach</span><small>open, a deadline within 24 hours</small></Link>
+        <Link to={link('breached', { status: '', createdFrom: '', createdTo: '' }, false)} className={`cc-tile${s.breachedOpen ? ' bad' : ''}`}>
+          <b>{s.breachedOpen}</b><span>Open and breached</span><small>open now, any obligation breached</small></Link>
+      </div>
+      <div className="viz-grid three">
+        <VizPanel title="First response" sub={<>Rate = met ÷ (met + breached) = {ratio(s.response)}. Click a part for the cases.</>} table={tableOf(parts(s.response, 'response'), 'Cases')}>
+          <PartBar data={parts(s.response, 'response')} colorOf={b => OUTCOME_OF[b.key] ?? STATUS.neutral} unit="case(s)" />
+        </VizPanel>
+        <VizPanel title="Resolution" sub={<>Rate = met ÷ (met + breached) = {ratio(s.resolution)}. Click a part for the cases.</>} table={tableOf(parts(s.resolution, 'resolution'), 'Cases')}>
+          <PartBar data={parts(s.resolution, 'resolution')} colorOf={b => OUTCOME_OF[b.key] ?? STATUS.neutral} unit="case(s)" />
+        </VizPanel>
+        <VizPanel title={`Obligations met and breached — ${PERIOD_LABEL[cc.period.name]}`} sub={`By the week, day or hour the case was opened; response and resolution together.`}
+          table={{ columns: ['Period', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.trend.map(t => [t.label, t.responseMet, t.responseMeasured, t.resolutionMet, t.resolutionMeasured]) }}>
+          <TrendLines data={trend} aLabel="Met" bLabel="Breached" />
+        </VizPanel>
+        <div className="span-2">
+          <VizPanel title="By contract" sub="Contracts with the most breaches first (top 10)."
+            table={{ columns: ['Contract', 'Client', 'Cases', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byContract.map(k => [k.contractRef, k.client ?? '', k.cases, k.response.met, k.response.measured, k.resolution.met, k.resolution.measured]) }}>
+            {s.byContract.length === 0 ? <div className="viz-empty">No case opened in the period is linked to a contract.</div> : (
+              <table className="grid">
+                <thead><tr><th>Contract</th><th>Client</th><th className="num">Cases</th><th>Response</th><th>Resolution</th><th className="num">Breached</th></tr></thead>
+                <tbody>{s.byContract.map(k => (
+                  <tr key={k.contractId}>
+                    <td><Link to={`/contracts/${k.contractId}`}>{k.contractRef}</Link> <span className="hint">{k.title}</span></td><td>{k.client}</td>
+                    <td className="num"><Link to={link('withContract', { contractId: String(k.contractId) })}>{k.cases}</Link></td>
+                    <td>{rateText(k.response)} <span className="hint">({ratio(k.response)})</span></td><td>{rateText(k.resolution)} <span className="hint">({ratio(k.resolution)})</span></td>
+                    <td className="num">{k.breached ? <Link className="err" to={link('responseBreached', { contractId: String(k.contractId) })}>{k.breached}</Link> : 0}</td>
+                  </tr>))}</tbody>
+              </table>)}
+          </VizPanel>
+        </div>
+        <VizPanel title="By priority" sub="Each case is measured against the target for its priority."
+          table={{ columns: ['Priority', 'Cases', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byPriority.map(p => [p.priority, p.cases, p.response.met, p.response.measured, p.resolution.met, p.resolution.measured]) }}>
+          <table className="grid">
+            <thead><tr><th>Priority</th><th className="num">Cases</th><th>Response</th><th>Resolution</th></tr></thead>
+            <tbody>{s.byPriority.map(p => (
+              <tr key={p.priority}><td>{p.priority}</td><td className="num">{p.cases ? <Link to={link('withContract', { priority: p.priority })}>{p.cases}</Link> : 0}</td>
+                <td>{rateText(p.response)} <span className="hint">({ratio(p.response)})</span></td><td>{rateText(p.resolution)} <span className="hint">({ratio(p.resolution)})</span></td></tr>))}</tbody>
+          </table>
+        </VizPanel>
       </div>
     </Band>
   );
@@ -602,7 +699,7 @@ function QualityCharts({ d, deferred }: { d: InsightsT; deferred: string }) {
 
 const SECTIONS = [
   { id: 'overview', label: 'Overview' }, { id: 'attention', label: 'Attention' }, { id: 'cases', label: 'Cases' }, { id: 'escalations', label: 'Escalations' },
-  { id: 'contracts', label: 'Contracts & SLAs' }, { id: 'payments', label: 'Payments' }, { id: 'health', label: 'Health' }, { id: 'quality', label: 'Data quality' }
+  { id: 'sla', label: 'Contractual SLA' }, { id: 'contracts', label: 'Contracts & SLAs' }, { id: 'payments', label: 'Payments' }, { id: 'health', label: 'Health' }, { id: 'quality', label: 'Data quality' }
 ];
 
 /** A51: sticky section navigation; the section in view is highlighted. */
@@ -636,14 +733,14 @@ export function Dashboard() {
   const me = useMe().data!;
   const canManage = useCan('Manage');
   // Role default: people without the Manage right start on their own work; the TIO Manager starts on everything they can see.
-  const defaults = { clientId: '', teamId: '', productId: '', country: '', period: '30d', from: '', to: '', view: canManage ? 'all' : 'mine' };
+  const defaults = { clientId: '', teamId: '', productId: '', country: '', period: '30d', from: '', to: '', view: canManage ? 'all' : 'mine', slaContractId: '', slaPriority: '' };
   const [f, set] = useUrlState(defaults);
   const mine = f.view === 'mine';
   const params = { clientId: f.clientId, teamId: f.teamId, productId: f.productId, country: f.country, ownerId: mine ? String(me.id) : '' };
   const custom = f.period === 'custom';
   const range = custom && f.from && f.to && f.from <= f.to
     ? { from: new Date(`${f.from}T00:00:00`).toISOString(), to: new Date(new Date(`${f.to}T00:00:00`).getTime() + 86400000).toISOString() } : null;
-  const periodParams = { period: custom ? (range ? 'custom' : '30d') : f.period, from: range?.from ?? '', to: range?.to ?? '' };
+  const periodParams = { period: custom ? (range ? 'custom' : '30d') : f.period, from: range?.from ?? '', to: range?.to ?? '', slaContractId: f.slaContractId, slaPriority: f.slaPriority };
   const dash = useQuery({ queryKey: ['dashboard', params], queryFn: () => get<Dash>(`/dashboard${qs(params)}`), placeholderData: keepPreviousData });
   const insights = useQuery({ queryKey: ['insights', params], queryFn: () => get<InsightsT>(`/dashboard/insights${qs(params)}`), placeholderData: keepPreviousData });
   const cc = useQuery({ queryKey: ['command-center', params, periodParams], queryFn: () => get<CC>(`/dashboard/command-center${qs({ ...params, ...periodParams })}`), placeholderData: keepPreviousData });
@@ -652,7 +749,7 @@ export function Dashboard() {
   const products = useProductOptions();
   const countries = insights.data?.countries;
   const countryOptions = [...(countries?.rows ?? []).map(c => c.country), ...(countries?.unknownCountryClients ? ['Unknown'] : [])].map(c => ({ value: c, label: c }));
-  const active = [f.clientId, f.teamId, f.productId, f.country].filter(Boolean).length + (f.period !== '30d' ? 1 : 0) + (f.view !== defaults.view ? 1 : 0);
+  const active = [f.clientId, f.teamId, f.productId, f.country, f.slaContractId, f.slaPriority].filter(Boolean).length + (f.period !== '30d' ? 1 : 0) + (f.view !== defaults.view ? 1 : 0);
   const qc = useQueryClient();
   const refreshing = dash.isFetching || insights.isFetching || cc.isFetching;
   const linkParams = { clientId: f.clientId, teamId: f.teamId, productId: f.productId, country: f.country };
@@ -700,6 +797,7 @@ export function Dashboard() {
       <ActionCenter params={params} />
       {insights.data && dash.data && cc.data && <>
         <CaseCharts d={insights.data} age={dash.data.caseAge} cc={cc.data} />
+        <SlaCharts cc={cc.data} scope={params} slaContractId={f.slaContractId} slaPriority={f.slaPriority} onFilter={x => set(x)} />
         <EscalationCharts d={insights.data} cc={cc.data} />
         <ContractCharts d={insights.data} cc={cc.data} />
         <PaymentCharts d={insights.data} cc={cc.data} />

@@ -1,6 +1,7 @@
 using TioHub.Api.Common;
 using TioHub.Api.Modules.Access;
 using TioHub.Api.Modules.Clients;
+using TioHub.Api.Modules.Contracts;
 using TioHub.Api.Modules.Teams;
 
 namespace TioHub.Api.Modules.Work;
@@ -54,6 +55,41 @@ public class Case : Entity, IClientOwned, IAccountable
     /// <summary>Start of the current cycle after a reopen; creation time otherwise. Age since creation is kept separately (Section 7).</summary>
     public DateTimeOffset CycleStartedAt { get; set; }
     public DateTimeOffset? LastReviewedAt { get; set; }
+
+    // ---- A61: contractual SLA (see CaseSla) ----
+    /// <summary>The contract whose SLA targets apply; must belong to the case's client.</summary>
+    public long? ContractId { get; set; }
+    public Contract? Contract { get; set; }
+    /// <summary>First qualifying response to the customer (recorded explicitly; never derived from internal notes or system events).</summary>
+    public DateTimeOffset? FirstResponseAt { get; set; }
+    /// <summary>First move into Pending validation or Closed in the current resolution; cleared when validation is rejected.</summary>
+    public DateTimeOffset? ResolvedAt { get; set; }
+    // Snapshot of the applicable target, basis and calendar, taken when the contract is set or the priority changes.
+    public Priority? SlaPriority { get; set; }
+    public int? SlaResponseMinutes { get; set; }
+    public int? SlaResolutionMinutes { get; set; }
+    public SlaBasis SlaBasis { get; set; }
+    public bool SlaSupport24x7 { get; set; }
+    public SupportDays SlaSupportDays { get; set; }
+    public TimeOnly? SlaSupportFrom { get; set; }
+    public TimeOnly? SlaSupportTo { get; set; }
+    public string? SlaTimeZone { get; set; }
+    public bool SlaPauseOnCustomerWaiting { get; set; }
+    public string? SlaContractRef { get; set; }
+    public DateTimeOffset? SlaAppliedAt { get; set; }
+    // Results (recomputed on every save of the case and by the SLA sweep).
+    /// <summary>Contractual response deadline. Separate from <see cref="DueAt"/>, which is the operational due date the team agreed.</summary>
+    public DateTimeOffset? ResponseDueAt { get; set; }
+    /// <summary>Contractual resolution deadline (from the contract's target), not the operational <see cref="DueAt"/>.</summary>
+    public DateTimeOffset? ResolutionDueAt { get; set; }
+    public SlaState ResponseSlaStatus { get; set; }
+    public SlaState ResolutionSlaStatus { get; set; }
+    public int? ResponseElapsedMinutes { get; set; }
+    public int? ResolutionElapsedMinutes { get; set; }
+    public int? SlaPausedMinutes { get; set; }
+    public string? SlaNote { get; set; }
+    public DateTimeOffset? SlaCalculatedAt { get; set; }
+
     public long? ScopeClientId => ClientId;
     public List<CaseEnvironment> Environments { get; set; } = [];
     public List<CaseAsset> Assets { get; set; } = [];
@@ -82,7 +118,9 @@ public class CaseWaitingInterval
 public enum CaseEventType
 {
     Created, Triaged, Started, ValidationRequested, Closed, Cancelled, Reopened, WaitingStarted, WaitingEnded,
-    OwnerChanged, PriorityChanged, DueChanged, ScopeChanged, Progress, Reviewed, JiraAdded, JiraRemoved, EvidenceException
+    OwnerChanged, PriorityChanged, DueChanged, ScopeChanged, Progress, Reviewed, JiraAdded, JiraRemoved, EvidenceException,
+    // A61
+    FirstResponse, ContractChanged
 }
 
 /// <summary>Timeline (WRK-06): retains previous owner, priority, status, due date and material scope changes with reasons.</summary>

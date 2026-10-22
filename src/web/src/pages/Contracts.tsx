@@ -24,7 +24,7 @@ type Detail = {
   client: { id: number; code: string; name: string; country?: string }; project: { id: number; code: string; name: string; status: string }; owner?: UserRef;
   startDate?: string; endDate?: string; renewalTerms: string; noticeDays?: number; noticeDeadline?: string; renewalState: string; renewalNote?: string;
   supportModel: string; supportHours?: string; supportTimeZone?: string; onSiteEngineersRequired?: number; coverage?: string; obligations?: string;
-  support24x7: boolean; supportDays: string[]; supportFrom?: string; supportTo?: string; supportSummary?: string; currency?: string;
+  support24x7: boolean; supportDays: string[]; supportFrom?: string; supportTo?: string; supportSummary?: string; currency?: string; slaPauseWhileWaitingOnCustomer: boolean;
   milestones: { id: number; phase: string; description?: string; completionPercent?: number; date?: string }[];
   fees: { id: number; description: string; unit?: string; quantity?: number; unitPrice?: number; total?: number }[]; feesTotal?: number;
   payments: { id: number; condition: string; percentage?: number; amount?: number; dueDate?: string; status: string; paidOn?: string; notes?: string; overdue: boolean }[];
@@ -68,7 +68,7 @@ export function ContractList() {
   return (
     <>
       <PageHead title="Projects & contracts" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, { label: 'Contract register' }]}
-        sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; the hub does not measure them or calculate compliance."
+        sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; cases linked to a contract are measured against them."
         actions={<>
           {me.grants.export && <button className="btn" onClick={() => exportCsv('contracts', f)}>Export CSV</button>}
           {canLead && <Link className="btn btn-primary" to={`/contracts/new${f.clientId ? `?clientId=${f.clientId}` : ''}`}>+ New contract</Link>}
@@ -168,7 +168,7 @@ export function ContractDetail() {
           </Panel>
         </div>
         <Panel title="SLA targets (recorded)" pad={false}>
-          <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote}</p>
+          <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote} {c.slaPauseWhileWaitingOnCustomer ? 'The clock pauses while a case waits on the customer.' : 'The clock does not pause while a case waits on the customer.'} <Link to={`/cases?contractId=${c.id}&status=all`}>Cases measured against this contract</Link></p>
           <DataTable<Target> rowKey={t => t.priority} rows={c.slaTargets} caption="SLA targets"
             columns={[
               { key: 'p', header: 'Priority', render: t => t.priority },
@@ -223,6 +223,7 @@ export function ContractForm() {
     coverage: '', obligations: '', environmentIds: [] as number[], targets: [] as TargetForm[],
     // A49
     support24x7: false, supportDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'] as string[], supportFrom: '08:00', supportTo: '17:00', currency: '',
+    slaPauseWhileWaitingOnCustomer: false,
     milestones: [] as MilestoneForm[], fees: [] as FeeForm[], payments: [] as PaymentForm[]
   });
   useLeaveGuard(f.dirty && !f.busy);
@@ -234,6 +235,7 @@ export function ContractForm() {
       supportModel: c.supportModel, supportHours: c.supportHours ?? '', supportTimeZone: c.supportTimeZone ?? '', onSiteEngineersRequired: c.onSiteEngineersRequired?.toString() ?? '',
       coverage: c.coverage ?? '', obligations: c.obligations ?? '', environmentIds: c.environments.map(e => e.id), targets: c.slaTargets.map(toForm),
       support24x7: c.support24x7, supportDays: c.supportDays, supportFrom: c.supportFrom ?? '', supportTo: c.supportTo ?? '', currency: c.currency ?? '',
+      slaPauseWhileWaitingOnCustomer: c.slaPauseWhileWaitingOnCustomer,
       milestones: c.milestones.map(m => ({ id: m.id, phase: m.phase, description: m.description ?? '', completionPercent: m.completionPercent?.toString() ?? '', date: m.date ?? '' })),
       fees: c.fees.map(x => ({ id: x.id, description: x.description, unit: x.unit ?? '', quantity: x.quantity?.toString() ?? '', unitPrice: x.unitPrice?.toString() ?? '' })),
       payments: c.payments.map(x => ({ id: x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: x.dueDate ?? '', status: x.status, paidOn: x.paidOn ?? '', notes: x.notes ?? '' }))
@@ -259,7 +261,7 @@ export function ContractForm() {
       environmentIds: v.environmentIds,
       slaTargets: v.targets.map(t => ({ priority: t.priority, responseMinutes: toMinutes(t.response, t.unit), resolutionMinutes: toMinutes(t.resolution, t.unit), basis: t.basis, notes: t.notes || null })),
       support24x7: v.support24x7, supportDays: v.support24x7 ? [] : v.supportDays, supportFrom: v.support24x7 || !v.supportFrom ? null : v.supportFrom, supportTo: v.support24x7 || !v.supportTo ? null : v.supportTo,
-      currency: v.currency || null,
+      currency: v.currency || null, slaPauseWhileWaitingOnCustomer: v.slaPauseWhileWaitingOnCustomer,
       milestones: v.milestones.map(m => ({ id: m.id ?? null, phase: m.phase, description: m.description || null, completionPercent: num(m.completionPercent), date: m.date || null })),
       fees: v.fees.map(x => ({ id: x.id ?? null, description: x.description, unit: x.unit || null, quantity: num(x.quantity), unitPrice: num(x.unitPrice) })),
       payments: v.payments.map(x => ({ id: x.id ?? null, condition: x.condition, percentage: num(x.percentage), amount: num(x.amount), dueDate: x.dueDate || null, status: x.status, paidOn: x.status === 'Paid' ? x.paidOn || null : null, notes: x.notes || null }))
@@ -308,7 +310,8 @@ export function ContractForm() {
         </div>
       </Panel>
       <Panel title="SLA targets (recorded)" actions={unused.length > 0 && <button className="btn" onClick={() => f.set('targets', [...f.values.targets, { priority: unused[0], response: '', resolution: '', unit: 'h', basis: 'SupportHours', notes: '' }])}>+ Target</button>}>
-        <p className="hint">One row per priority, as written in the contract. The hub records these targets; it does not time cases against them.</p>
+        <p className="hint">One row per priority, as written in the contract. Cases linked to this contract are timed against the target for their priority; changes apply to cases linked from now on.</p>
+        <label className="check" style={{ margin: '8px 0' }}><input type="checkbox" checked={f.values.slaPauseWhileWaitingOnCustomer} onChange={e => f.set('slaPauseWhileWaitingOnCustomer', e.target.checked)} /> Pause the SLA clock while a case waits on the customer</label>
         {f.values.targets.length === 0 ? <StateMessage kind="none">No SLA targets recorded.</StateMessage> : (
           <table className="grid sla-edit">
             <thead><tr><th>Priority</th><th>Response</th><th>Resolution</th><th>Unit</th><th>Clock</th><th>Notes</th><th /></tr></thead>

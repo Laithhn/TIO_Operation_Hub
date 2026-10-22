@@ -242,13 +242,13 @@ public static class DashboardEndpoints
             return Results.Ok(await insights.BuildAsync(p, ct));
         });
         // A60: the Operations Command Center's period and attention figures (period = today, 7d, 30d, quarter or custom with from/to).
-        g.MapGet("/command-center", async ([AsParameters] DashboardQuery p, string? period, DateTimeOffset? from, DateTimeOffset? to, CommandCenter cc, HubAccess access, CancellationToken ct) =>
+        g.MapGet("/command-center", async ([AsParameters] DashboardQuery p, string? period, DateTimeOffset? from, DateTimeOffset? to, long? slaContractId, Priority? slaPriority, CommandCenter cc, HubAccess access, CancellationToken ct) =>
         {
             access.RequireBusiness();
             if (period is not null && !CommandCenter.Periods.Contains(period)) throw new ValidationException("period", "Unknown reporting period.");
             if (period == "custom" && (from is null || to is null || from >= to)) throw new ValidationException("from", "Give a start before the end for a custom period.");
             if (period == "custom" && to - from > TimeSpan.FromDays(731)) throw new ValidationException("to", "A custom period can cover at most two years.");
-            return Results.Ok(await cc.BuildAsync(p, period, from, to, access.Me, ct));
+            return Results.Ok(await cc.BuildAsync(p, period, from, to, access.Me, ct, slaContractId, slaPriority));
         });
         g.MapGet("/actions", async ([AsParameters] DashboardQuery p, Dashboard dash, HubAccess access, CancellationToken ct) =>
         {

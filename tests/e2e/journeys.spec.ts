@@ -250,6 +250,8 @@ test.describe('Sub-clients and copying between regions', () => {
     if (await open.isVisible()) await open.click();
     await expect(r2).toBeVisible();
     await page.getByRole('tab', { name: /Servers & assets/ }).click();
+    // Earlier runs add servers here; narrow the table first.
+    await page.getByLabel('Filter rows').fill(`cp${tag}`);
     await page.getByRole('link', { name: `nta-r2-cp${tag}` }).click();
     await expect(page.getByText('Planned').first()).toBeVisible();
   });
@@ -369,7 +371,7 @@ test.describe('Projects and contracts', () => {
     await expect(page.getByText('End date unknown').first()).toBeVisible();
     const sla = page.locator('section.panel', { has: page.getByRole('heading', { name: 'SLA targets (recorded)' }) });
     await expect(sla.getByRole('row', { name: /Critical\s+1 h\s+4 h/ })).toBeVisible();
-    await expect(sla).toContainText('does not measure');
+    await expect(sla).toContainText('measured against the target');
     await expect(page.locator('section.panel', { has: page.getByRole('heading', { name: 'Covered products (from the project)' }) })).toContainText('ViTIS');
     await page.screenshot({ path: 'test-results/visual-contract-1600.png', fullPage: true });
 
@@ -1370,8 +1372,8 @@ test.describe('Operations Command Center (A60)', () => {
     await page.goto('/');
     await expect(page.getByRole('heading', { level: 1, name: 'Operations Command Center' })).toBeVisible();
     await expect(page.getByText(/Last refreshed/)).toBeVisible();
-    // Eight figures, each a link to its list.
-    for (const name of ['Clients', 'Open cases', 'Targets met (period)', 'Open commitments', 'Active escalations', 'Active contracts', 'Overdue payments', 'Environment health'])
+    // Nine figures, each a link to its list.
+    for (const name of ['Clients', 'Open cases', 'Targets met (period)', 'Contractual SLA met (period)', 'Open commitments', 'Active escalations', 'Active contracts', 'Overdue payments', 'Environment health'])
       await expect(page.getByRole('link', { name: new RegExp(`^${name.replace(/[()]/g, '\\$&')}: `) })).toBeVisible();
 
     // The attention queue: severity first, filter by issue type, rows open their record.
@@ -1400,13 +1402,75 @@ test.describe('Operations Command Center (A60)', () => {
     await expect(page.getByLabel('Reporting period')).toHaveValue('30d');
     await expect(page.getByText(/filter\(s\) active/)).toHaveCount(0);
 
-    // Sections: contract health tiles, the honest SLA statement, environment health, data quality.
+    // Sections: contract health tiles, measured SLA compliance (A61), environment health, data quality.
     await expect(page.locator('[aria-label="Contract health"]').getByRole('link')).toHaveCount(6);
-    await expect(page.getByText('Measured SLA compliance is not yet available.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Contractual SLA compliance' })).toBeVisible();
+    await expect(page.locator('[aria-label="Contractual SLA figures"]').getByRole('link')).toHaveCount(5);
     await expect(page.getByRole('heading', { name: 'Environments not reported healthy' })).toBeVisible();
     const dq = page.locator('section#quality');
     await expect(dq.getByRole('columnheader', { name: 'Severity' })).toBeVisible();
     const rule = dq.getByRole('link', { name: /^Open / }).first();
     if (await rule.count()) { await rule.click(); await expect(page).toHaveURL(/\/data-quality\?rule=/); }
+  });
+});
+
+test.describe('Measured SLA compliance (A61)', () => {
+  test('a case is linked to its contract, the first response is recorded and the dashboard drills down to the cases', async ({ page }) => {
+    await page.goto('/cases/new');
+    const title = unique('E2E SLA case');
+    await page.getByLabel('Title').fill(title);
+    await page.getByLabel('Case type').selectOption('Incident');
+    await page.getByLabel('Client', { exact: true }).selectOption({ label: 'DEMO-NTA · Northwind Transit Authority (fictional)' });
+    await page.getByLabel('Responsible team').selectOption({ label: 'TIO Operations' });
+    await page.getByLabel('Priority').selectOption('High');
+    await page.getByLabel('Impact summary').fill('Ticket imports delayed (fictional)');
+    await page.getByLabel('Next action').fill('Check the import worker');
+    // The contract choice lists the client's contracts; pick the support agreement.
+    const contract = page.getByLabel('Contract (SLA)');
+    await expect(contract.locator('option', { hasText: 'NTA support and maintenance agreement' })).toHaveCount(1);
+    await contract.selectOption({ value: await contract.locator('option', { hasText: 'NTA support and maintenance agreement' }).getAttribute('value') ?? '' });
+    await page.getByRole('button', { name: 'Create case' }).click();
+    await expect(page).toHaveURL(/\/cases\/\d+$/);
+
+    // The case shows its contractual SLA: contract link, applied target, deadlines and outcomes.
+    const sla = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Contractual SLA', exact: true }) });
+    await expect(sla.getByRole('link', { name: /^CT-/ })).toBeVisible();
+    await expect(sla).toContainText('High priority');
+    await expect(sla).toContainText('later contract edits do not change it');
+    await expect(sla.getByRole('row', { name: /First response/ })).toContainText(/Pending|Not measurable/);
+    await expect(sla.getByRole('row', { name: /Resolution/ })).toContainText(/Pending|Not measurable/);
+
+    // The first response is recorded once.
+    await sla.getByRole('button', { name: 'Record first response' }).click();
+    await page.getByRole('dialog').getByLabel('Channel').selectOption('Email');
+    await confirmDialog(page, 'Record response');
+    await expect(sla.getByRole('row', { name: /First response/ })).not.toContainText('Not yet recorded');
+    await expect(sla.getByRole('button', { name: 'Record first response' })).toHaveCount(0);
+    await page.getByRole('tab', { name: 'Timeline' }).click();
+    await expect(page.locator('.timeline').getByText('First response', { exact: true })).toBeVisible();
+
+    // The list filters by contract and by SLA outcome; the column shows both obligations.
+    await sla.getByRole('link', { name: /^CT-/ }).click();
+    await expect(page).toHaveURL(/\/contracts\/\d+$/);
+    await page.getByRole('link', { name: 'Cases measured against this contract' }).click();
+    await expect(page).toHaveURL(/contractId=\d+/);
+    await page.getByLabel('Search cases').fill(title);
+    const row = page.locator('tbody tr', { hasText: title });
+    await expect(row).toBeVisible();
+    await expect(row.getByTitle('Response')).toBeVisible();
+    await page.getByLabel('Contractual SLA').selectOption('noContract');
+    await expect(row).toHaveCount(0);
+
+    // Dashboard: the band shows the definition and denominators; a tile opens the matching cases.
+    await page.goto('/?period=7d');
+    const band = page.locator('section#sla');
+    await expect(band.getByRole('heading', { name: 'Contractual SLA compliance' })).toBeVisible();
+    await expect(band).toContainText('met ÷ (met + breached)');
+    await expect(band.getByText('Response compliance')).toBeVisible();
+    await band.getByRole('link', { name: /Overall \(both met\)/ }).click();
+    await expect(page).toHaveURL(/\/cases\?.*sla=withContract/);
+    await expect(page.getByLabel('Contractual SLA')).toHaveValue('withContract');
+    await expect(page.getByText(/Opened from/)).toBeVisible();
+    await page.screenshot({ path: 'test-results/visual-sla-cases-1600.png', fullPage: true });
   });
 });

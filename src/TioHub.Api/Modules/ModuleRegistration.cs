@@ -34,6 +34,7 @@ public static class ModuleRegistration
         services.AddScoped<CommandCenter>();
         services.AddHostedService<DataQualityScanner>();
         services.AddHostedService<Notifications.NotificationScanner>();
+        services.AddHostedService<Work.SlaSweep>();
         return services;
     }
 

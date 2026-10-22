@@ -10,11 +10,26 @@ import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOption
 import { AttachmentsPanel } from './Attachments';
 import { EscalationTable } from './Escalations';
 
-type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[] };
+type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
+  contractRef?: string; responseSla: string; resolutionSla: string };
+
+/** A61: contractual SLA filters of the case list (also the dashboard drill-downs). */
+export const SLA_FILTERS = [
+  { value: 'withContract', label: 'Contract linked' }, { value: 'noContract', label: 'No contract linked' },
+  { value: 'approaching', label: 'Deadline within 24 hours' }, { value: 'breached', label: 'Any obligation breached' },
+  { value: 'responseMet', label: 'Response met' }, { value: 'responseBreached', label: 'Response breached' }, { value: 'responsePending', label: 'Response pending' }, { value: 'responseNotMeasurable', label: 'Response not measurable' },
+  { value: 'resolutionMet', label: 'Resolution met' }, { value: 'resolutionBreached', label: 'Resolution breached' }, { value: 'resolutionPending', label: 'Resolution pending' }, { value: 'resolutionNotMeasurable', label: 'Resolution not measurable' }
+];
+
+/** Compact response / resolution outcome for tables. */
+export function SlaPair({ response, resolution }: { response: string; resolution: string }) {
+  if (response === 'NotApplicable' && resolution === 'NotApplicable') return <span className="muted">—</span>;
+  return <span className="sla-pair"><span title="Response">R <StatusBadge value={response} /></span> <span title="Resolution">X <StatusBadge value={resolution} /></span></span>;
+}
 
 export function CaseList() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', sort: '-created', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', createdFrom: '', createdTo: '', sort: '-created', page: '1', pageSize: '15' });
   const [text, setText] = useState(f.q);
   const dq = useDebounced(text);
   useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -40,7 +55,11 @@ export function CaseList() {
         <SelectInput label="Attention" value={f.waiting ? 'waiting' : f.reviewOverdue ? 'review' : f.stale ? 'stale' : f.coverageGap ? 'coverage' : ''}
           onChange={v => set({ waiting: v === 'waiting' ? 'true' : '', reviewOverdue: v === 'review' ? 'true' : '', stale: v === 'stale' ? 'true' : '', coverageGap: v === 'coverage' ? 'true' : '' })}
           options={[{ value: 'waiting', label: 'Waiting' }, { value: 'review', label: 'Next review passed' }, { value: 'stale', label: 'Stale review' }, { value: 'coverage', label: 'No backup (coverage policy)' }]} empty="Any" />
+        <SelectInput label="Contractual SLA" value={f.sla} onChange={v => set({ sla: v })} options={SLA_FILTERS} empty="Any" />
         <TextInput label="Jira key" value={f.jiraKey} onChange={v => set({ jiraKey: v })} placeholder="ABC-123" />
+        {(f.contractId || f.createdFrom || f.createdTo) && <div className="notice" style={{ margin: 0 }}>
+          {f.contractId && <>Contract #{f.contractId}. </>}{(f.createdFrom || f.createdTo) && <>Opened {f.createdFrom ? `from ${fmtDateTime(f.createdFrom)}` : ''} {f.createdTo ? `until ${fmtDateTime(f.createdTo)}` : ''} (from dashboard). </>}
+          <button className="linkbtn" onClick={() => set({ contractId: '', createdFrom: '', createdTo: '' })}>Clear</button></div>}
         {f.asOf && <div className="notice" style={{ margin: 0 }}>Evaluated at {fmtDateTime(f.asOf)} (from dashboard). <button className="linkbtn" onClick={() => set({ asOf: '' })}>Use now</button></div>}
       </div>
       <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Cases"
@@ -57,6 +76,7 @@ export function CaseList() {
           { key: 'team', header: 'Team', render: r => r.teamName },
           { key: 'next', header: 'Next action / review', render: r => <>{r.nextAction}<div className="hint">{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</div></> },
           { key: 'due', header: 'Due', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">No deadline</span> },
+          { key: 'sla', header: 'Contractual SLA', render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
           { key: 'flags', header: 'Flags', render: r => <>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</> },
           { key: 'jira', header: 'Jira', render: r => r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>) }, { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/cases/${r.id}`} what={`case ${r.ref}`} /> }
         ]} />
@@ -84,6 +104,20 @@ function AffectedPicker({ clientId, value, onChange, error }: { clientId: number
   );
 }
 
+type SlaObligation = { status: string; dueAt?: string; actualAt?: string; elapsedMinutes?: number; breachMinutes?: number };
+type CaseSlaT = {
+  applied?: { contractRef: string; priority?: string; responseMinutes?: number; resolutionMinutes?: number; basis: string; support24x7: boolean; supportDays: string; supportFrom?: string; supportTo?: string; timeZone?: string; pausesWhileWaitingOnCustomer: boolean; at: string };
+  startAt: string; response: SlaObligation; resolution: SlaObligation; pausedMinutes?: number; note?: string; calculatedAt?: string; operationalDueAt?: string;
+};
+type ContractOption = { id: number; ref: string; title: string; status: string };
+
+const minutes = (m?: number | null) => m === undefined || m === null ? '—' : m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${m % 60} min`;
+
+/** Contracts of one client for the case contract choice. */
+function useClientContracts(clientId: number | null) {
+  return useQuery({ queryKey: ['contracts-of', clientId], queryFn: () => get<Paged<ContractOption>>(`/contracts?clientId=${clientId}&pageSize=100`), enabled: !!clientId });
+}
+
 type CaseDto = {
   id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; impactSummary: string; progressSummary?: string; nextAction: string; nextReviewAt: string;
   dueAt?: string; dueTimeZone?: string; dueLocal?: string; client?: { id: number; code: string; name: string }; team?: { id: number; code: string; name: string };
@@ -96,6 +130,8 @@ type CaseDto = {
   jiraReferences: { id: number; instance: string; kind: string; jiraInstanceId: number; issueKey: string; url: string; reuseReason?: string }[]; removedJiraReferences: { id: number; instance: string; issueKey: string; removedAt: string }[];
   commitments: { id: number; ref: string; description: string; status: string; currentDueAt: string; timeZone: string }[];
   events: { id: number; type: string; fromValue?: string; toValue?: string; note?: string; at: string; by?: string }[];
+  contract?: { id: number; ref: string; title: string; status: string };
+  sla: CaseSlaT;
   permissions: { canEdit: boolean; canTriage: boolean; canAssign: boolean; canStart: boolean; canClose: boolean; canAuthorizeEvidenceException: boolean; canReopen: boolean; canCancel: boolean };
   version: string;
 };
@@ -117,7 +153,7 @@ export function CaseForm() {
   const f = useForm({
     title: '', type: '', scope: 'Client', clientId: '', responsibleTeamId: '', impactSummary: '', priority: 'Normal', ownerUserId: null as number | null, backupOwnerUserId: null as number | null,
     responsibleParty: 'TIO', responsibleOrganization: '', coordinatorUserId: null as number | null, nextAction: '', nextReviewAt: inDays(2), dueLocal: '', dueTimeZone: me.timeZone,
-    affected: { environmentIds: [], assetIds: [], componentIds: [], unknownEnvironmentReason: '' } as AffectedState, changeNote: ''
+    affected: { environmentIds: [], assetIds: [], componentIds: [], unknownEnvironmentReason: '' } as AffectedState, changeNote: '', contractId: ''
   });
   const [version, setVersion] = useState<string>();
   useLeaveGuard(f.dirty && !f.busy);
@@ -128,16 +164,24 @@ export function CaseForm() {
     f.reset({ title: c.title, type: c.type, scope: c.scope, clientId: c.client ? String(c.client.id) : '', responsibleTeamId: c.team ? String(c.team.id) : '', impactSummary: c.impactSummary, priority: c.priority,
       ownerUserId: c.owner?.id ?? null, backupOwnerUserId: c.backupOwner?.id ?? null, responsibleParty: c.responsibleParty, responsibleOrganization: c.responsibleOrganization ?? '', coordinatorUserId: c.coordinator?.id ?? null,
       nextAction: c.nextAction, nextReviewAt: toLocalInput(c.nextReviewAt), dueLocal: '', dueTimeZone: c.dueTimeZone ?? me.timeZone,
-      affected: { environmentIds: c.environments.map(e => e.id), assetIds: c.assets.map(a => a.id), componentIds: c.components.map(x => x.id), unknownEnvironmentReason: c.unknownEnvironmentReason ?? '' }, changeNote: '' });
+      affected: { environmentIds: c.environments.map(e => e.id), assetIds: c.assets.map(a => a.id), componentIds: c.components.map(x => x.id), unknownEnvironmentReason: c.unknownEnvironmentReason ?? '' }, changeNote: '', contractId: c.contract ? String(c.contract.id) : '' });
   }, [existing.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const v = f.values;
   const cid = v.scope === 'Client' ? toNum(v.clientId) : null;
+  const contracts = useClientContracts(isNew ? cid : null);
+  const contractOptions = (contracts.data?.items ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}${k.status === 'Active' ? '' : ` (${label(k.status)})`}` }));
+  // A61: with exactly one active contract the client's SLA is preselected; anything else is the user's choice.
+  useEffect(() => {
+    if (!isNew) return;
+    const active = (contracts.data?.items ?? []).filter(k => k.status === 'Active');
+    f.set('contractId', active.length === 1 ? String(active[0].id) : '');
+  }, [contracts.data, cid]); // eslint-disable-line react-hooks/exhaustive-deps
   const save = async () => {
     const affected = { ...v.affected, unknownEnvironmentReason: v.affected.unknownEnvironmentReason || null };
     const r = await f.submit(async () => {
       if (isNew) return post<{ id: number }>('/cases', { title: v.title, type: v.type || null, scope: v.scope, clientId: cid, responsibleTeamId: toNum(v.responsibleTeamId), impactSummary: v.impactSummary, priority: v.priority,
         ownerUserId: v.ownerUserId, backupOwnerUserId: v.backupOwnerUserId, responsibleParty: v.responsibleParty, responsibleOrganization: v.responsibleOrganization, coordinatorUserId: v.coordinatorUserId,
-        nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt), dueLocal: v.dueLocal || null, dueTimeZone: v.dueLocal ? v.dueTimeZone : null, affected });
+        nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt), dueLocal: v.dueLocal || null, dueTimeZone: v.dueLocal ? v.dueTimeZone : null, affected, contractId: cid ? toNum(v.contractId) : null });
       await put(`/cases/${id}`, { title: v.title, type: v.type, responsibleTeamId: toNum(v.responsibleTeamId), impactSummary: v.impactSummary, priority: v.priority, responsibleParty: v.responsibleParty,
         responsibleOrganization: v.responsibleOrganization, coordinatorUserId: v.coordinatorUserId, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt), affected, changeNote: v.changeNote || null }, version);
       return { id: Number(id) };
@@ -155,6 +199,8 @@ export function CaseForm() {
           <SelectInput label="Case type" required value={v.type} onChange={x => f.set('type', x)} options={T.options('CaseType', v.type)} error={f.fieldError('type')} hint="Use Risk follow-up for risk actions; it does not imply formal risk acceptance." />
           <SelectInput label="Work scope" required value={v.scope} onChange={x => f.set('scope', x)} options={[{ value: 'Client', label: 'Client-related' }, { value: 'Internal', label: 'Internal' }]} empty={null} disabled={!isNew} error={f.fieldError('scope')} />
           {v.scope === 'Client' && <SelectInput label="Client" required value={v.clientId} onChange={x => f.set('clientId', x)} options={clients} error={f.fieldError('clientId')} disabled={!isNew} />}
+          {isNew && cid && <SelectInput label="Contract (SLA)" value={v.contractId} onChange={x => f.set('contractId', x)} options={contractOptions} empty="No contract" error={f.fieldError('contractId')}
+            hint={contracts.isLoading ? 'Loading contracts…' : contractOptions.length === 0 ? 'This client has no contract: the case is not measured against an SLA.' : 'Response and resolution targets are taken from this contract for the case priority.'} />}
           <SelectInput label="Responsible team" required value={v.responsibleTeamId} onChange={x => f.set('responsibleTeamId', x)} options={teams} error={f.fieldError('responsibleTeamId')} disabled={!isNew && !canLead} />
           <SelectInput label="Priority" required value={v.priority} onChange={x => f.set('priority', x)} options={enumOptions(priorities)} empty={null} error={f.fieldError('priority')} disabled={!isNew && !canLead} />
           <TextInput label="Impact summary" required wide multiline value={v.impactSummary} onChange={x => f.set('impactSummary', x)} error={f.fieldError('impactSummary')} />
@@ -191,6 +237,8 @@ export function CaseDetail() {
   const open = c && !['Closed', 'Cancelled'].includes(c.status);
   const close = () => setDialog(null);
   const common = { path: '', version: c?.version, onClose: close };
+  // A61: a progress update can be the first response to the customer, until one is recorded.
+  const responseField = c?.contract && !c.sla.response.actualAt ? [{ name: 'customerResponse', label: 'This update was sent to the customer (first response)', kind: 'checkbox' as const, hint: 'Records the first response for the contractual SLA at this time.' }] : [];
   return (
     <QueryState q={q}>{c && p && (<>
       <PageHead title={`${c.ref} · ${c.title}`} crumbs={[{ to: '/cases', label: 'Cases' }, ...(c.client ? [{ to: `/clients/${c.client.id}`, label: c.client.code }] : [{ label: 'Internal' }]), { label: c.ref }]}
@@ -224,13 +272,14 @@ export function CaseDetail() {
         <Panel title="Age and waiting">
           <DL items={[
             ['Age since creation', `${c.ageDays} days`], ...(c.currentCycleAgeDays !== undefined && c.currentCycleAgeDays !== null ? [['Current cycle age (after reopen)', `${c.currentCycleAgeDays} days`] as [string, string]] : []),
-            ['Reopened', `${c.reopenCount} time(s)`], ['Recorded waiting', `${c.waitingHours} h (deadlines are not paused)`],
+            ['Reopened', `${c.reopenCount} time(s)`], ['Recorded waiting', `${c.waitingHours} h (the operational due date is not paused${c.sla.applied?.pausesWhileWaitingOnCustomer ? '; the contractual SLA pauses while waiting on the customer' : ''})`],
             ['Validation request', c.validationRequest], ['Outcome', c.outcome], ['Validation evidence', c.validationEvidence],
             ...(c.evidenceException ? [['Evidence exception', <>{c.evidenceException.reason}<div className="hint">Authorized by {c.evidenceException.approvedBy?.name} · follow-up {c.evidenceException.followUpOwner?.name} by {c.evidenceException.followUpDate}</div></>] as [string, React.ReactNode]] : []),
             ...(c.cancelReason ? [['Cancellation reason', c.cancelReason] as [string, string]] : [])
           ]} />
         </Panel>
       </div>
+      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }]} />
       {tab === 'escalations' && <Panel title="Escalations about this case" pad={false} actions={c.client && p.canEdit && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
       {tab === 'timeline' && <Panel title="Timeline"><ul className="timeline">{c.events.map(e => <li key={e.id}><b>{label(e.type)}</b>{(e.fromValue || e.toValue) && <> {e.fromValue ?? '—'} → {e.toValue ?? '—'}</>}{e.note && <> — {e.note}</>}<div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul></Panel>}
@@ -272,10 +321,15 @@ export function CaseDetail() {
       {dialog === 'assign' && <ActionDialog {...common} title="Assign owner" path={`/cases/${id}/assign`} submitLabel="Assign" intro={me.businessRole === 'Engineer' ? 'You can take unassigned work of your own team. Only a Team Lead or the TIO Manager can assign someone else.' : 'Ownership changes are kept in the timeline.'}
         fields={[{ name: 'ownerUserId', label: 'Owner', kind: 'user', clientId: c.client?.id, teamId: c.team?.id }, { name: 'backupOwnerUserId', label: 'Backup owner', kind: 'user', clientId: c.client?.id, teamId: c.team?.id }, { name: 'reason', label: 'Reason' }]}
         transform={v => ({ ownerUserId: toNum(v.ownerUserId) ?? (me.businessRole === 'Engineer' ? me.id : null), backupOwnerUserId: toNum(v.backupOwnerUserId) ?? c.backupOwner?.id ?? null, reason: v.reason || null })} />}
-      {dialog === 'start' && <ActionDialog {...common} title="Start work" path={`/cases/${id}/start`} submitLabel="Start" fields={[{ name: 'progressSummary', label: 'Progress (optional)', kind: 'textarea' }]} transform={v => ({ progressSummary: v.progressSummary || null })} />}
+      {dialog === 'start' && <ActionDialog {...common} title="Start work" path={`/cases/${id}/start`} submitLabel="Start" fields={[{ name: 'progressSummary', label: 'Progress (optional)', kind: 'textarea' }, ...responseField]} transform={v => ({ progressSummary: v.progressSummary || null, customerResponse: v.customerResponse === 'true' })} />}
       {dialog === 'progress' && <ActionDialog {...common} title="Record progress" path={`/cases/${id}/progress`} submitLabel="Save progress"
-        fields={[{ name: 'progressSummary', label: 'Progress summary', kind: 'textarea', required: true }, { name: 'nextAction', label: 'Next action', required: true }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }]}
-        transform={v => ({ progressSummary: v.progressSummary, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt) })} />}
+        fields={[{ name: 'progressSummary', label: 'Progress summary', kind: 'textarea', required: true }, { name: 'nextAction', label: 'Next action', required: true }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }, ...responseField]}
+        transform={v => ({ progressSummary: v.progressSummary, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt), customerResponse: v.customerResponse === 'true' })} />}
+      {dialog === 'respond' && <ActionDialog {...common} title="Record first response" path={`/cases/${id}/first-response`} submitLabel="Record response"
+        intro="The first response to the customer stops the contractual response clock. Record when it was actually sent; it is recorded once. Internal notes are not a response."
+        fields={[{ name: 'respondedAt', label: `Sent at (${me.timeZone}; empty = now)`, kind: 'datetime' }, { name: 'channel', label: 'Channel', kind: 'select', required: true, options: ['Email', 'Phone', 'Customer portal', 'Meeting', 'Jira comment', 'Other'].map(x => ({ value: x, label: x })) }, { name: 'note', label: 'Note', kind: 'textarea' }]}
+        transform={v => ({ respondedAt: v.respondedAt ? fromLocalInput(v.respondedAt) : null, channel: v.channel, note: v.note || null })} />}
+      {dialog === 'contract' && <ContractDialog c={c} onClose={close} />}
       {dialog === 'wait' && <ActionDialog {...common} title="Set waiting" path={`/cases/${id}/waiting`} submitLabel="Set waiting" intro="Waiting is separate from status. Deadlines continue to run."
         fields={[{ name: 'reason', label: 'Waiting on', kind: 'select', required: true, options: ['Customer', 'InternalTeam', 'Vendor', 'PlannedChange'].map(x => ({ value: x, label: label(x) })) }, { name: 'note', label: 'Note' }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }]}
         transform={v => ({ reason: v.reason, note: v.note || null, nextReviewAt: fromLocalInput(v.nextReviewAt) })} />}
@@ -296,6 +350,44 @@ export function CaseDetail() {
       {dialog?.startsWith('unjira-') && <ActionDialog {...common} title="Remove Jira reference" danger path={`/cases/${id}/jira/${dialog.slice(7)}/remove`} submitLabel="Remove" intro="The reference stays in the audit history." fields={[{ name: 'reason', label: 'Reason', required: true }]} />}
     </>)}</QueryState>
   );
+}
+
+/** A61: the contractual SLA of a case — the contract, the snapshot of its target, deadlines, actual times and outcomes. */
+function SlaPanel({ c, canEdit, onRespond, onContract }: { c: CaseDto; canEdit: boolean; onRespond: () => void; onContract: () => void }) {
+  const s = c.sla;
+  const a = s.applied;
+  const row = (name: string, target: number | undefined, o: SlaObligation, actualLabel: string) => (
+    <tr><th scope="row">{name}</th><td>{minutes(target)}</td><td>{o.dueAt ? fmtDateTime(o.dueAt) : <span className="muted">—</span>}</td>
+      <td>{o.actualAt ? fmtDateTime(o.actualAt) : <span className="muted">{actualLabel}</span>}{o.elapsedMinutes !== undefined && o.elapsedMinutes !== null && <div className="hint">{minutes(o.elapsedMinutes)} counted</div>}</td>
+      <td><StatusBadge value={o.status} />{o.breachMinutes ? <div className="hint err">{minutes(o.breachMinutes)} over</div> : null}</td></tr>);
+  return (
+    <Panel title="Contractual SLA" actions={<>
+      {canEdit && c.contract && !s.response.actualAt && <button className="btn" onClick={onRespond}>Record first response</button>}
+      {canEdit && <button className="btn" onClick={onContract}>{c.contract ? 'Change contract' : 'Link contract'}</button>}</>}>
+      <DL items={[
+        ['Contract', c.contract ? <><Link to={`/contracts/${c.contract.id}`}>{c.contract.ref}</Link> · {c.contract.title} {c.contract.status !== 'Active' && <Badge tone="warn">{label(c.contract.status)}</Badge>}</> : <span className="muted">No contract linked — not measured</span>],
+        ...(a ? [['Applied target', <>{a.priority} priority · {a.basis === 'CalendarHours' ? 'calendar hours' : a.basis === 'SupportHours' ? (a.support24x7 ? 'support hours (24×7)' : `support hours ${a.supportDays.replace(/, /g, ' ')} ${a.supportFrom ?? ''}–${a.supportTo ?? ''} ${a.timeZone ?? ''}`) : 'basis not set'}
+          {a.pausesWhileWaitingOnCustomer && ' · paused while waiting on the customer'}<div className="hint">Taken from {a.contractRef} on {fmtDateTime(a.at)}; later contract edits do not change it.</div></>] as [string, React.ReactNode]] : []),
+        ['Clock start', fmtDateTime(s.startAt)],
+        ...(s.pausedMinutes ? [['Paused (waiting on the customer)', minutes(s.pausedMinutes)] as [string, string]] : []),
+        ['Operational due date', s.operationalDueAt ? <>{fmtDateTime(s.operationalDueAt)} <span className="hint">(agreed by the team; separate from the contractual deadlines)</span></> : <span className="muted">None</span>]
+      ]} />
+      {c.contract && <table className="grid sla-table" style={{ marginTop: 10 }}>
+        <thead><tr><th>Measurement</th><th>Target</th><th>Deadline</th><th>Actual</th><th>Status</th></tr></thead>
+        <tbody>{row('First response', a?.responseMinutes, s.response, 'Not yet recorded')}{row('Resolution', a?.resolutionMinutes, s.resolution, 'Not yet resolved')}</tbody>
+      </table>}
+      {s.note && <p className="hint" style={{ marginTop: 8 }}>{s.note}</p>}
+    </Panel>
+  );
+}
+
+function ContractDialog({ c, onClose }: { c: CaseDto; onClose: () => void }) {
+  const contracts = useClientContracts(c.client?.id ?? null);
+  const options = [...(contracts.data?.items ?? []).filter(k => k.id !== c.contract?.id).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}${k.status === 'Active' ? '' : ` (${label(k.status)})`}` }))];
+  return <ActionDialog title={c.contract ? 'Change contract' : 'Link contract'} path={`/cases/${c.id}/contract`} version={c.version} onClose={onClose} submitLabel="Save contract"
+    intro="The response and resolution targets are taken again from the chosen contract for the case priority and the case is measured again from its creation. The change is kept in the timeline."
+    fields={[{ name: 'contractId', label: 'Contract', kind: 'select', options, hint: c.contract ? 'Leave empty to remove the contract: the case is then not measured.' : undefined }, { name: 'reason', label: 'Reason', kind: 'textarea', required: !!c.contract }]}
+    transform={v => ({ contractId: toNum(v.contractId), reason: v.reason || null })} />;
 }
 
 function CloseDialog({ c, canException, onClose }: { c: CaseDto; canException: boolean; onClose: () => void }) {

@@ -280,6 +280,8 @@ public static class Cascade
         foreach (var t in Enumerable.Reverse(plan.Order))
             await db.Database.ExecuteSqlRawAsync($"DELETE x FROM {Table(t)} x WHERE {Owned(plan, t)};", ct);
         await db.Database.ExecuteSqlRawAsync("DROP TABLE #own;", ct);
+        // A61: cases whose contract went are no longer measured (the unlink above bypasses the save hook).
+        await Work.CaseSla.ClearUnlinkedAsync(db, DateTimeOffset.UtcNow, ct);
         await db.AuditActionAsync("Remove", HubDbContext.EntityName(kind.Entity), id, label, clientId, $"{label} deleted with everything that belonged to it",
             new { deleted = summary, unlinked }, ct);
         await tx.CommitAsync(ct);

@@ -75,7 +75,7 @@ public static class ContractEndpoints
         DateOnly? StartDate, DateOnly? EndDate, RenewalTerms? RenewalTerms, int? NoticeDays, SupportModel? SupportModel, string? SupportHours, string? SupportTimeZone,
         int? OnSiteEngineersRequired, string? Coverage, string? Obligations, List<long>? EnvironmentIds, List<SlaTargetInput>? SlaTargets,
         bool? Support24x7 = null, List<string>? SupportDays = null, TimeOnly? SupportFrom = null, TimeOnly? SupportTo = null, string? Currency = null,
-        List<MilestoneInput>? Milestones = null, List<FeeInput>? Fees = null, List<PaymentInput>? Payments = null);
+        List<MilestoneInput>? Milestones = null, List<FeeInput>? Fees = null, List<PaymentInput>? Payments = null, bool? SlaPauseWhileWaitingOnCustomer = null);
 
     public static void MapContractEndpoints(this RouteGroupBuilder api)
     {
@@ -136,7 +136,7 @@ public static class ContractEndpoints
                 c.StartDate, c.EndDate, c.RenewalTerms, c.NoticeDays, noticeDeadline = c.NoticeDeadline,
                 renewalState = state, renewalNote = state is "Expired" or "RenewalDue" or "EndDateUnknown" ? ContractQuery.Reason(state, c.EndDate, c.NoticeDeadline, now) : null,
                 c.SupportModel, c.SupportHours, c.SupportTimeZone, c.OnSiteEngineersRequired, c.Coverage, c.Obligations,
-                c.Support24x7, supportDays = DaysOf(c.SupportDays), supportFrom = c.SupportFrom?.ToString("HH:mm"), supportTo = c.SupportTo?.ToString("HH:mm"), supportSummary = SupportSummary(c),
+                c.Support24x7, c.SlaPauseWhileWaitingOnCustomer, supportDays = DaysOf(c.SupportDays), supportFrom = c.SupportFrom?.ToString("HH:mm"), supportTo = c.SupportTo?.ToString("HH:mm"), supportSummary = SupportSummary(c),
                 c.Currency,
                 milestones = c.Milestones.OrderBy(m => m.SortOrder).Select(m => new { m.Id, m.Phase, m.Description, m.CompletionPercent, m.Date }),
                 fees = c.Fees.OrderBy(f => f.SortOrder).Select(f => new { f.Id, f.Description, f.Unit, f.Quantity, f.UnitPrice, total = f.UnitPrice * (f.Quantity ?? 1) }),
@@ -150,7 +150,7 @@ public static class ContractEndpoints
                 environments = await db.Environments.AsNoTracking().Where(e => envIds.Contains(e.Id))
                     .Select(e => new { e.Id, e.Name, e.Type, region = e.Region == null ? null : e.Region.Code }).ToListAsync(ct),
                 slaTargets = c.SlaTargets.OrderBy(t => t.Priority).Select(t => new { t.Id, t.Priority, t.ResponseMinutes, t.ResolutionMinutes, t.Basis, t.Notes }),
-                slaNote = "Recorded targets from the contract. The hub does not measure response or resolution times or calculate SLA compliance.",
+                slaNote = "Targets as the contract states them. Cases linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects cases linked afterwards.",
                 c.LastReviewedAt, c.CreatedAt, c.UpdatedAt,
                 permissions = new { canEdit = maintain, canArchive = access.Me.HasRight(Right.Archive) && access.Me.SeesClient(c.ClientId) }
             });
@@ -292,6 +292,7 @@ public static class ContractEndpoints
         c.SupportHours = Text.Clean(i.SupportHours);
         c.SupportTimeZone = Text.Clean(i.SupportTimeZone);
         c.Support24x7 = i.Support24x7 == true;
+        if (i.SlaPauseWhileWaitingOnCustomer is not null) c.SlaPauseWhileWaitingOnCustomer = i.SlaPauseWhileWaitingOnCustomer.Value;
         c.SupportDays = c.Support24x7 ? SupportDays.None : days;
         c.SupportFrom = c.Support24x7 ? null : i.SupportFrom;
         c.SupportTo = c.Support24x7 ? null : i.SupportTo;

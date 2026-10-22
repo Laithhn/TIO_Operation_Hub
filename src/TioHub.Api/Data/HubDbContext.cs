@@ -544,6 +544,15 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Ignore(x => x.ScopeClientId);
             e.HasIndex(x => new { x.Status, x.DueAt });
             e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
+            // A61: contractual SLA
+            e.HasOne(x => x.Contract).WithMany().HasForeignKey(x => x.ContractId);
+            e.HasIndex(x => new { x.ContractId, x.CreatedAt });
+            e.HasIndex(x => new { x.ResponseSlaStatus, x.ResponseDueAt });
+            e.HasIndex(x => new { x.ResolutionSlaStatus, x.ResolutionDueAt });
+            e.Property(x => x.SlaTimeZone).HasMaxLength(64);
+            e.Property(x => x.SlaContractRef).HasMaxLength(20);
+            e.Property(x => x.SlaNote).HasMaxLength(300);
+            e.Property(x => x.SlaSupportDays).HasConversion<int>();
             e.HasOne(x => x.ResponsibleTeam).WithMany().HasForeignKey(x => x.ResponsibleTeamId);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
             e.HasOne(x => x.BackupOwner).WithMany().HasForeignKey(x => x.BackupOwnerUserId);
@@ -1076,6 +1085,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
                 entry.Entity.UpdatedById = userId;
             }
         }
+
+        // A61: contractual SLA of every case touched by this save (after creation times are set).
+        await Modules.Work.CaseSla.EvaluateTrackedAsync(this, now, ct);
 
         var pending = ChangeTracker.Entries()
             .Where(e => (e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted) && !NotAudited.Contains(e.Entity.GetType()))

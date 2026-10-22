@@ -14,12 +14,16 @@ public static class CaseEndpoints
     public sealed record AffectedInput(long[]? EnvironmentIds, long[]? AssetIds, long[]? ComponentIds, long[]? DependencyIds, string? UnknownEnvironmentReason);
     public sealed record CaseInput(string? Title, string? Type, WorkScope? Scope, long? ClientId, long? ResponsibleTeamId, string? ImpactSummary, Priority? Priority,
         long? OwnerUserId, long? BackupOwnerUserId, ResponsibleParty? ResponsibleParty, string? ResponsibleOrganization, long? CoordinatorUserId,
-        string? NextAction, DateTimeOffset? NextReviewAt, string? DueLocal, string? DueTimeZone, AffectedInput? Affected, JiraInput[]? JiraReferences, string? ProgressSummary);
+        string? NextAction, DateTimeOffset? NextReviewAt, string? DueLocal, string? DueTimeZone, AffectedInput? Affected, JiraInput[]? JiraReferences, string? ProgressSummary,
+        long? ContractId = null);
     public sealed record CaseUpdateInput(string? Title, string? Type, long? ResponsibleTeamId, string? ImpactSummary, Priority? Priority, ResponsibleParty? ResponsibleParty,
         string? ResponsibleOrganization, long? CoordinatorUserId, string? NextAction, DateTimeOffset? NextReviewAt, AffectedInput? Affected, string? ChangeNote);
     public sealed record TriageInput(long? ResponsibleTeamId, string? ImpactSummary, Priority? Priority, string? NextAction, DateTimeOffset? NextReviewAt, long? OwnerUserId);
     public sealed record AssignInput(long? OwnerUserId, long? BackupOwnerUserId, string? Reason);
-    public sealed record ProgressInput(string? ProgressSummary, string? NextAction, DateTimeOffset? NextReviewAt);
+    /// <summary>CustomerResponse: the update was sent to the customer, so it is the first response when none is recorded yet (A61).</summary>
+    public sealed record ProgressInput(string? ProgressSummary, string? NextAction, DateTimeOffset? NextReviewAt, bool CustomerResponse = false);
+    public sealed record FirstResponseInput(DateTimeOffset? RespondedAt, string? Channel, string? Note);
+    public sealed record ContractLinkInput(long? ContractId, string? Reason);
     public sealed record ValidationRequestInput(string? ProgressSummary, string? ValidationRequest, string? NextAction, DateTimeOffset? NextReviewAt);
     public sealed record CloseInput(string? Outcome, string? ValidationEvidence, string? EvidenceExceptionReason, long? FollowUpOwnerId, DateOnly? FollowUpDate);
     public sealed record ReasonInput(string? Reason, string? NextAction, DateTimeOffset? NextReviewAt);
@@ -96,6 +100,23 @@ public static class CaseEndpoints
                 jiraReferences = c.JiraReferences.Where(j => j.RemovedAt == null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, kind = j.JiraInstance.Kind, j.JiraInstanceId, j.IssueKey, j.Url, j.ReuseReason }),
                 removedJiraReferences = c.JiraReferences.Where(j => j.RemovedAt != null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, j.IssueKey, j.RemovedAt }),
                 commitments, events,
+                contract = c.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == c.ContractId).Select(k => new { k.Id, k.Ref, k.Title, k.Status }).FirstOrDefaultAsync(ct),
+                sla = new
+                {
+                    applied = c.SlaAppliedAt == null ? null : new
+                    {
+                        contractRef = c.SlaContractRef, priority = c.SlaPriority, responseMinutes = c.SlaResponseMinutes, resolutionMinutes = c.SlaResolutionMinutes, basis = c.SlaBasis,
+                        support24x7 = c.SlaSupport24x7, supportDays = c.SlaSupportDays.ToString(), supportFrom = c.SlaSupportFrom?.ToString("HH:mm"), supportTo = c.SlaSupportTo?.ToString("HH:mm"),
+                        timeZone = c.SlaTimeZone, pausesWhileWaitingOnCustomer = c.SlaPauseOnCustomerWaiting, at = c.SlaAppliedAt
+                    },
+                    startAt = c.CreatedAt,
+                    response = new { status = CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now), dueAt = c.ResponseDueAt, actualAt = c.FirstResponseAt, elapsedMinutes = c.ResponseElapsedMinutes,
+                        breachMinutes = c.ResponseDueAt is { } rd && (c.FirstResponseAt ?? now) > rd && c.ResponseSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.FirstResponseAt ?? now) - rd).TotalMinutes : null },
+                    resolution = new { status = CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now), dueAt = c.ResolutionDueAt, actualAt = c.ResolvedAt, elapsedMinutes = c.ResolutionElapsedMinutes,
+                        breachMinutes = c.ResolutionDueAt is { } xd && (c.ResolvedAt ?? now) > xd && c.ResolutionSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.ResolvedAt ?? now) - xd).TotalMinutes : null },
+                    pausedMinutes = c.SlaPausedMinutes, note = c.SlaNote, calculatedAt = c.SlaCalculatedAt,
+                    operationalDueAt = c.DueAt
+                },
                 permissions = Permissions(c, access.Me)
             });
         });
@@ -129,6 +150,7 @@ public static class CaseEndpoints
             if ((input.ResponsibleParty ?? ResponsibleParty.TIO) != ResponsibleParty.TIO && input.CoordinatorUserId is null && input.OwnerUserId is null)
                 check.Add("coordinatorUserId", "Responsibility is external or unknown: select an internal coordinator.");
             var due = ParseDue(check, input.DueLocal, input.DueTimeZone);
+            if (input.ContractId is not null) await CheckContractAsync(check, db, input.ContractId.Value, input.ClientId, ct);
             check.ThrowIfAny();
 
             var c = new Case
@@ -137,7 +159,7 @@ public static class CaseEndpoints
                 ImpactSummary = input.ImpactSummary!.Trim(), Priority = input.Priority!.Value, OwnerUserId = input.OwnerUserId, BackupOwnerUserId = input.BackupOwnerUserId,
                 ResponsibleParty = input.ResponsibleParty ?? ResponsibleParty.TIO, ResponsibleOrganization = Text.Clean(input.ResponsibleOrganization), CoordinatorUserId = input.CoordinatorUserId,
                 NextAction = input.NextAction!.Trim(), NextReviewAt = input.NextReviewAt!.Value, DueAt = due?.At, DueTimeZone = due?.Zone,
-                ProgressSummary = Text.Clean(input.ProgressSummary), Status = CaseStatus.New, CycleStartedAt = now, LastReviewedAt = now
+                ProgressSummary = Text.Clean(input.ProgressSummary), Status = CaseStatus.New, CycleStartedAt = now, LastReviewedAt = now, ContractId = input.ContractId
             };
             await ApplyAffectedAsync(c, input.Affected, db, ct);
             await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -264,6 +286,7 @@ public static class CaseEndpoints
             if (c.Owner is { IsActive: false }) throw new ValidationException("The owner is deactivated.", new Dictionary<string, string[]> { ["ownerUserId"] = ["The owner is deactivated. Reassign the case to an active owner before starting."] });
             var now = clock.GetUtcNow();
             ApplyProgress(c, input, now, required: false);
+            if (input.CustomerResponse) RecordFirstResponse(db, c, now, "Progress update sent to the customer", access.Me, now);
             Transition(db, c, CaseStatus.InProgress, CaseEventType.Started, input.ProgressSummary, access.Me, now);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
@@ -281,6 +304,7 @@ public static class CaseEndpoints
             c.LastReviewedAt = now;
             db.Reviews.Add(new Quality.Review { RecordType = RecordTypes.Case, RecordId = c.Id, ClientId = c.ClientId, TeamId = c.ClientId == null ? c.ResponsibleTeamId : null, Scope = ReviewScope.Record, Note = c.ProgressSummary ?? c.NextAction, ReviewerId = access.Me.UserId, ReviewedAt = now, NextReviewAt = c.NextReviewAt });
             AddEvent(db, c, CaseEventType.Progress, null, null, c.ProgressSummary, access.Me, now);
+            if (input.CustomerResponse) RecordFirstResponse(db, c, now, "Progress update sent to the customer", access.Me, now);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -317,6 +341,46 @@ public static class CaseEndpoints
             if (!string.IsNullOrWhiteSpace(input.NextAction)) c.NextAction = input.NextAction.Trim();
             if (input.NextReviewAt is not null) c.NextReviewAt = input.NextReviewAt.Value;
             Transition(db, c, CaseStatus.InProgress, CaseEventType.Started, reason, access.Me, now);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+
+        // A61: the first response to the customer, with the time it was actually sent (not later than now, not before the case).
+        g.MapPost("/{id:long}/first-response", async (long id, FirstResponseInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            var c = await LoadForChangeAsync(db, id, ct);
+            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            db.ExpectVersion(ctx, c);
+            if (c.Status == CaseStatus.Cancelled) throw new ValidationException("respondedAt", "The case was cancelled.");
+            if (c.FirstResponseAt is { } fr) throw new ConflictException("The first response is already recorded.", new() { ["respondedAt"] = [$"Recorded at {fr:yyyy-MM-dd HH:mm} UTC; a first response is recorded once."] });
+            var now = clock.GetUtcNow();
+            var at = input.RespondedAt ?? now;
+            var check = new Check().Text("channel", input.Channel, 60, "the channel", true).Text("note", input.Note, 1000, "Note");
+            if (at > now.AddMinutes(1)) check.Add("respondedAt", "The response time is in the future.");
+            if (at < c.CreatedAt.AddMinutes(-1)) check.Add("respondedAt", "The response time is before the case was opened.");
+            check.ThrowIfAny();
+            RecordFirstResponse(db, c, at, $"{input.Channel!.Trim()}{(string.IsNullOrWhiteSpace(input.Note) ? "" : $": {input.Note.Trim()}")}", access.Me, now);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+
+        // A61: link, change or remove the contract whose SLA applies; the targets are taken again from that contract.
+        g.MapPost("/{id:long}/contract", async (long id, ContractLinkInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            var c = await LoadForChangeAsync(db, id, ct);
+            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            db.ExpectVersion(ctx, c);
+            var check = new Check();
+            if (input.ContractId is not null) await CheckContractAsync(check, db, input.ContractId.Value, c.ClientId, ct);
+            if (input.ContractId == c.ContractId) check.Add("contractId", "This contract is already linked.");
+            var reason = c.ContractId is null ? Text.Clean(input.Reason) : Rules.RequireReason(input.Reason, "reason", "why the contract changes");
+            check.ThrowIfAny();
+            var now = clock.GetUtcNow();
+            var from = c.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == c.ContractId).Select(k => k.Ref).FirstOrDefaultAsync(ct);
+            var to = input.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == input.ContractId).Select(k => k.Ref).FirstOrDefaultAsync(ct);
+            c.ContractId = input.ContractId;
+            AddEvent(db, c, CaseEventType.ContractChanged, from ?? "No contract", to ?? "No contract", reason, access.Me, now);
+            db.AuditReason = reason;
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -499,9 +563,9 @@ public static class CaseEndpoints
 
     public sealed record CaseListQuery(long? ClientId, long? RegionId, long? EnvironmentId, long? ProductId, long? TeamId, long? OwnerId, bool? Unassigned, string? Status,
         Priority? Priority, WorkScope? Scope, string? Due, bool? Waiting, bool? ReviewOverdue, bool? Stale, string? JiraKey, string? Q, DateTimeOffset? CreatedFrom, DateTimeOffset? CreatedTo,
-        bool? CoverageGap, bool? DeactivatedOwner, string? Country, DateTimeOffset? AsOf, string? Sort, int? Page, int? PageSize)
+        bool? CoverageGap, bool? DeactivatedOwner, string? Country, DateTimeOffset? AsOf, string? Sort, int? Page, int? PageSize, long? ContractId = null, string? Sla = null)
     {
-        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, Priority, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country);
+        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, Priority, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla);
     }
 
     public static Expression<Func<Case, CaseRow>> Row(DateTimeOffset now, Quality.ReviewPolicy? policy)
@@ -516,13 +580,16 @@ public static class CaseEndpoints
             c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled && c.DueAt != null && c.DueAt < now,
             c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled && c.NextReviewAt < now,
             c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled && ((hasAge && (c.LastReviewedAt ?? c.CreatedAt) < limit) || (byNext && c.NextReviewAt < now)),
-            c.JiraReferences.Where(j => j.RemovedAt == null).Select(j => j.IssueKey).ToList());
+            c.JiraReferences.Where(j => j.RemovedAt == null).Select(j => j.IssueKey).ToList(),
+            c.Contract == null ? null : c.Contract.Ref,
+            c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now ? SlaState.Breached : c.ResponseSlaStatus,
+            c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now ? SlaState.Breached : c.ResolutionSlaStatus);
     }
 
     public sealed record CaseRow(long Id, string Ref, string Title, string Type, WorkScope Scope, CaseStatus Status, Priority Priority,
         long? ClientId, string? ClientCode, string? TeamName, long? OwnerUserId, string? OwnerName, bool OwnerDeactivated,
         WaitingReason? WaitingReason, DateTimeOffset? WaitingSince, string NextAction, DateTimeOffset NextReviewAt, DateTimeOffset? DueAt, string? DueTimeZone, DateTimeOffset CreatedAt,
-        bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys);
+        bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys, string? ContractRef = null, SlaState ResponseSla = SlaState.NotApplicable, SlaState ResolutionSla = SlaState.NotApplicable);
 
     private static object Permissions(Case c, UserContext me)
     {
@@ -566,7 +633,28 @@ public static class CaseEndpoints
     private static void Transition(HubDbContext db, Case c, CaseStatus to, CaseEventType type, string? note, UserContext me, DateTimeOffset now)
     {
         AddEvent(db, c, type, c.Status.ToString(), to.ToString(), note, me, now);
+        // A61: resolved = first move into Pending validation or Closed; a rejected validation clears it; a later reopen keeps it.
+        if (to is CaseStatus.PendingValidation or CaseStatus.Closed) c.ResolvedAt ??= now;
+        else if (c.Status == CaseStatus.PendingValidation && to == CaseStatus.InProgress) c.ResolvedAt = null;
         c.Status = to;
+    }
+
+    /// <summary>A61: the first qualifying response is recorded once; later responses never move it.</summary>
+    private static bool RecordFirstResponse(HubDbContext db, Case c, DateTimeOffset at, string note, UserContext me, DateTimeOffset now)
+    {
+        if (c.FirstResponseAt is not null) return false;
+        c.FirstResponseAt = at;
+        AddEvent(db, c, CaseEventType.FirstResponse, null, at.ToString("O"), note, me, now);
+        return true;
+    }
+
+    /// <summary>A61: a case's contract belongs to the case's client.</summary>
+    private static async Task CheckContractAsync(Check check, HubDbContext db, long contractId, long? clientId, CancellationToken ct)
+    {
+        var k = await db.Contracts.AsNoTracking().Where(x => x.Id == contractId).Select(x => new { x.ClientId }).FirstOrDefaultAsync(ct);
+        if (k is null) check.Add("contractId", "Select a contract you can access.");
+        else if (clientId is null) check.Add("contractId", "Internal work has no contract.");
+        else if (k.ClientId != clientId) check.Add("contractId", "Select a contract of the case's client.");
     }
 
     private static void EndWaiting(HubDbContext db, Case c, UserContext me, DateTimeOffset now, string? note = null)

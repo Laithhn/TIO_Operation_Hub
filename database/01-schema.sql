@@ -5856,3 +5856,248 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [contracts].[Contract] ADD [SlaPauseWhileWaitingOnCustomer] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ContractId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [FirstResponseAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResolutionDueAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResolutionElapsedMinutes] int NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResolutionSlaStatus] nvarchar(40) NOT NULL DEFAULT N'NotApplicable';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResolvedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResponseDueAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResponseElapsedMinutes] int NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ResponseSlaStatus] nvarchar(40) NOT NULL DEFAULT N'NotApplicable';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaAppliedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaBasis] nvarchar(40) NOT NULL DEFAULT N'Unknown';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaCalculatedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaContractRef] nvarchar(20) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaNote] nvarchar(300) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaPauseOnCustomerWaiting] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaPausedMinutes] int NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaPriority] nvarchar(40) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaResolutionMinutes] int NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaResponseMinutes] int NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaSupport24x7] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaSupportDays] int NOT NULL DEFAULT 0;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaSupportFrom] time NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaSupportTo] time NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaTimeZone] nvarchar(64) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    CREATE INDEX [IX_Case_ContractId_CreatedAt] ON [work].[Case] ([ContractId], [CreatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    CREATE INDEX [IX_Case_ResolutionSlaStatus_ResolutionDueAt] ON [work].[Case] ([ResolutionSlaStatus], [ResolutionDueAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    CREATE INDEX [IX_Case_ResponseSlaStatus_ResponseDueAt] ON [work].[Case] ([ResponseSlaStatus], [ResponseDueAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD CONSTRAINT [FK_Case_Contract_ContractId] FOREIGN KEY ([ContractId]) REFERENCES [contracts].[Contract] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022115328_CaseContractualSla'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261022115328_CaseContractualSla', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

@@ -132,6 +132,8 @@ using (var scope = app.Services.CreateScope())
     // A48: the attachment folder and limits saved under Settings override the configuration file.
     var attachmentStore = scope.ServiceProvider.GetRequiredService<TioHub.Api.Modules.Attachments.AttachmentStore>();
     await TioHub.Api.Modules.Attachments.StorageSettings.LoadAsync(db, attachmentStore, CancellationToken.None);
+    // A61: start of first-response tracking, resolution times from the status history, first SLA evaluation (re-runnable).
+    await TioHub.Api.Modules.Work.CaseSla.BackfillAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
     attachmentStore.Prepare();
 }
 

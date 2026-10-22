@@ -20,6 +20,8 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
     public static readonly string[] Periods = ["today", "7d", "30d", "quarter", "custom"];
 
     public sealed record Point(string Key, string Label, int A, int B);
+    /// <summary>A61: met and measured (met + breached) obligations of the cases opened in one bucket.</summary>
+    public sealed record SlaPoint(string Key, string Label, int ResponseMet, int ResponseMeasured, int ResolutionMet, int ResolutionMeasured);
 
     /// <summary>The period in the user's time zone (today = local midnight until now), and the bucket size for trends.</summary>
     public static (DateTimeOffset From, DateTimeOffset To, string Unit) Period(string? period, DateTimeOffset? from, DateTimeOffset? to, DateTimeOffset now, TimeZoneInfo zone)
@@ -63,7 +65,8 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
         return list;
     }
 
-    public async Task<object> BuildAsync(DashboardQuery p, string? period, DateTimeOffset? from, DateTimeOffset? to, UserContext me, CancellationToken ct)
+    public async Task<object> BuildAsync(DashboardQuery p, string? period, DateTimeOffset? from, DateTimeOffset? to, UserContext me, CancellationToken ct,
+        long? slaContractId = null, Priority? slaPriority = null)
     {
         var now = p.AsOf ?? DateTimeOffset.UtcNow;
         var zone = Zones.Find(me.TimeZone) ?? TimeZoneInfo.Utc;
@@ -90,6 +93,66 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
         var closed = await all.Where(c => c.ClosedAt != null && c.ClosedAt >= pf && c.ClosedAt < pt).Select(c => new { At = c.ClosedAt!.Value, c.DueAt }).ToListAsync(ct);
         var withDue = closed.Where(c => c.DueAt != null).ToList();
         var caseTrend = buckets.Select(b => new Point(b.Key, b.Label, opened.Count(x => x >= b.From && x < b.To), closed.Count(x => x.At >= b.From && x.At < b.To))).ToList();
+
+        // ---- A61: contractual SLA compliance of client cases opened in the period ----
+        var slaFilter = baseCase with { Status = "all", Scope = WorkScope.Client, ContractId = slaContractId, Priority = slaPriority };
+        var slaRows = await Cases(slaFilter with { CreatedFrom = pf, CreatedTo = pt }).Where(c => c.Status != CaseStatus.Cancelled)
+            .Select(c => new
+            {
+                c.CreatedAt, c.Priority, c.ContractId, contractRef = c.Contract == null ? null : c.Contract.Ref, contractTitle = c.Contract == null ? null : c.Contract.Title,
+                client = c.Client == null ? null : c.Client.Code, c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt
+            }).ToListAsync(ct);
+        var measured = slaRows.Where(r => r.ContractId != null).Select(r => new
+        {
+            r.CreatedAt, r.Priority, r.ContractId, r.contractRef, r.contractTitle, r.client,
+            Response = CaseSla.Now(r.ResponseSlaStatus, r.ResponseDueAt, now), Resolution = CaseSla.Now(r.ResolutionSlaStatus, r.ResolutionDueAt, now)
+        }).ToList();
+        static object Tally(IEnumerable<SlaState> states)
+        {
+            var s = states.ToList();
+            int met = s.Count(x => x == SlaState.Met), breached = s.Count(x => x == SlaState.Breached);
+            return new
+            {
+                met, breached, pending = s.Count(x => x == SlaState.Pending), notMeasurable = s.Count(x => x == SlaState.NotMeasurable),
+                measured = met + breached, rate = met + breached == 0 ? (double?)null : Math.Round(100.0 * met / (met + breached), 1)
+            };
+        }
+        bool Done(SlaState s) => s is SlaState.Met or SlaState.Breached;
+        var bothDone = measured.Where(r => Done(r.Response) && Done(r.Resolution)).ToList();
+        var bothMet = bothDone.Count(r => r.Response == SlaState.Met && r.Resolution == SlaState.Met);
+        var approachingSla = await Cases(baseCase with { Scope = WorkScope.Client, ContractId = slaContractId, Priority = slaPriority, Sla = "approaching" }).CountAsync(ct);
+        var breachedOpen = await Cases(baseCase with { Scope = WorkScope.Client, ContractId = slaContractId, Priority = slaPriority })
+            .CountAsync(c => (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now) || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now)
+                || c.ResponseSlaStatus == SlaState.Breached || c.ResolutionSlaStatus == SlaState.Breached, ct);
+        var sla = new
+        {
+            definition = "Cases opened in the period with a linked contract. A rate is met ÷ (met + breached); pending and not measurable obligations are excluded. "
+                + "Overall counts cases whose response and resolution are both completed, compliant only when both were met. A pending obligation past its deadline counts as breached.",
+            casesInPeriod = slaRows.Count,
+            withContract = measured.Count,
+            withoutContract = slaRows.Count - measured.Count,
+            response = Tally(measured.Select(r => r.Response)),
+            resolution = Tally(measured.Select(r => r.Resolution)),
+            overall = new { completed = bothDone.Count, compliant = bothMet, rate = bothDone.Count == 0 ? (double?)null : Math.Round(100.0 * bothMet / bothDone.Count, 1) },
+            approaching = approachingSla,
+            breachedOpen,
+            byContract = measured.GroupBy(r => new { r.ContractId, r.contractRef, r.contractTitle, r.client })
+                .Select(g => new { contractId = g.Key.ContractId, contractRef = g.Key.contractRef, title = g.Key.contractTitle, client = g.Key.client, cases = g.Count(),
+                    response = Tally(g.Select(r => r.Response)), resolution = Tally(g.Select(r => r.Resolution)),
+                    breached = g.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached) })
+                .OrderByDescending(x => x.breached).ThenByDescending(x => x.cases).Take(10).ToList(),
+            byPriority = Enum.GetValues<Priority>().Select(pr => new
+            {
+                priority = pr.ToString(), cases = measured.Count(r => r.Priority == pr),
+                response = Tally(measured.Where(r => r.Priority == pr).Select(r => r.Response)), resolution = Tally(measured.Where(r => r.Priority == pr).Select(r => r.Resolution))
+            }).ToList(),
+            trend = buckets.Select(b =>
+            {
+                var inB = measured.Where(r => r.CreatedAt >= b.From && r.CreatedAt < b.To).ToList();
+                return new SlaPoint(b.Key, b.Label, inB.Count(r => r.Response == SlaState.Met), inB.Count(r => Done(r.Response)),
+                    inB.Count(r => r.Resolution == SlaState.Met), inB.Count(r => Done(r.Resolution)));
+            }).ToList()
+        };
 
         // ---- escalations: active now; targets met for those received in the period ----
         object? escalations = null;
@@ -196,11 +259,11 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
                 risk,
                 openedInPeriod = opened.Count,
                 closedInPeriod = closed.Count,
-                // Due-date adherence of cases closed in the period that had a due date; the contractual SLA is not measured per case.
+                // Operational due-date adherence of cases closed in the period that had a due date (the contractual SLA is in "sla").
                 adherence = new { measured = withDue.Count, onTime = withDue.Count(c => c.At <= c.DueAt) },
-                trend = caseTrend,
-                slaMeasurement = (string?)null
+                trend = caseTrend
             },
+            sla,
             escalations,
             contracts,
             payments,

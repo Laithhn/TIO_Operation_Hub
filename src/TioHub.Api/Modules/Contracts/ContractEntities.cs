@@ -37,6 +37,8 @@ public class Contract : Entity, IArchivable, IClientOwned
     public string? SupportTimeZone { get; set; }
     /// <summary>A49: round-the-clock support; days and hours are then not used.</summary>
     public bool Support24x7 { get; set; }
+    /// <summary>A61: the contractual SLA clock stops while a case waits on the customer.</summary>
+    public bool SlaPauseWhileWaitingOnCustomer { get; set; }
     public SupportDays SupportDays { get; set; }
     public TimeOnly? SupportFrom { get; set; }
     public TimeOnly? SupportTo { get; set; }
