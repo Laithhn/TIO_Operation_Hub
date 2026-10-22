@@ -633,19 +633,15 @@ public class AC10_Verification(HubFactory hub) : Scenario(hub)
         Assert.Equal("Healthy", e1["condition"]!["reported"]!.GetValue<string>());
         Assert.Null(e1["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
 
-        // Unrelated edit and page views do not refresh any review.
-        await m.Put($"/environments/{env}", new { clientId = c, name = "Production", type = "Production", criticality = "Normal", ownerUserId = m.UserId, backupGapReason = "g", description = "New text" }, (await m.Get($"/environments/{env}")).ETag);
+        // Page views do not refresh any review; the condition report did not refresh the inventory.
         await m.Get($"/environments/{env}/overview");
-        var e2 = (await m.Get($"/environments/{env}")).Body!;
-        Assert.Null(e2["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
-        Assert.Null(e2["lastReviewedAt"]?.GetValue<DateTimeOffset?>());
-        // Condition review through the generic review endpoint is refused.
-        Assert.NotNull((await m.Post("/reviews", new { recordType = "Environment", recordId = env, scope = "Condition", note = "x" })).Error("scope"));
-        // An inventory review sets inventory freshness only.
-        await m.Ok("/reviews", new { recordType = "Environment", recordId = env, scope = "Inventory", note = "Checked all servers; RAM of app02 still unknown" });
+        Assert.Null((await m.Get($"/environments/{env}")).Body!["lastReviewedAt"]?.GetValue<DateTimeOffset?>());
+        // A52: the separate review records are gone; saving the environment confirms it (record, inventory and dependencies).
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Post("/reviews", new { recordType = "Environment", recordId = env, scope = "Inventory", note = "x" })).Status);
+        await m.Put($"/environments/{env}", new { clientId = c, name = "Production", type = "Production", criticality = "Normal", ownerUserId = m.UserId, backupGapReason = "g", description = "New text" }, (await m.Get($"/environments/{env}")).ETag);
         var e3 = (await m.Get($"/environments/{env}")).Body!;
         Assert.NotNull(e3["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
-        Assert.Null(e3["lastReviewedAt"]?.GetValue<DateTimeOffset?>());
+        Assert.NotNull(e3["lastReviewedAt"]?.GetValue<DateTimeOffset?>());
         Assert.Equal("Current", e3["freshness"]!["inventory"]!["state"]!.GetValue<string>());
 
         // Missing policies surface as quality gaps; seeded stale inventory (45 days > 30) is flagged.
@@ -845,8 +841,8 @@ public class AC14_SecurityAndUsability(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.UnprocessableEntity, r.Status);
         Assert.NotNull(r.Error("impactSummary"));
         Assert.DoesNotContain("Sommer2026", r.Text);
-        var docs = await m.Post("/documents", new { recordType = "Client", recordId = nta, kind = "VaultReference", title = "x", reference = "Pa55w0rd!" });
-        Assert.NotNull(docs.Error("reference"));
+        // A52: document references were removed; their endpoint no longer exists.
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Post("/documents", new { recordType = "Client", recordId = nta, kind = "VaultReference", title = "x", reference = "Pa55w0rd!" })).Status);
         // Unknown routes and server errors return problem details without internals.
         var nf = await m.Get("/does-not-exist");
         Assert.Equal(HttpStatusCode.NotFound, nf.Status);
@@ -2085,5 +2081,68 @@ public class AC50_PaymentsOnDashboardAndNotifications(HubFactory hub) : Scenario
         Assert.All(notes["items"]!.AsArray(), n => Assert.StartsWith("Payment", n!["title"]!.GetValue<string>()));
         Assert.True(notes["unreadPayments"]!.GetValue<int>() >= 2);
         Assert.NotNull((await e.Get("/notifications?category=other")).Error("category"));
+    }
+}
+
+[Collection("hub")]
+public class AC52_ReviewsAndDocumentReferencesRemoved(HubFactory hub) : Scenario(hub)
+{
+    /// <summary>A52: no review or document-reference endpoints; inventory changes confirm the environment's inventory.</summary>
+    [Fact]
+    public async Task Review_and_reference_endpoints_are_gone_and_inventory_changes_count_as_review()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var c = await NewClient();
+        var env = await NewEnv(c, "Production");
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/reviews?recordType=Environment&recordId={env}")).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/documents?recordType=Environment&recordId={env}")).Status);
+        Assert.Null((await m.Get($"/environments/{env}")).Body!["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
+        await m.Create("/assets", new { environmentId = env, name = "app01", type = "VM", lifecycle = "Active", ownerUserId = m.UserId });
+        Assert.NotNull((await m.Get($"/environments/{env}")).Body!["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
+    }
+}
+
+[Collection("hub")]
+public class AC53_TeamMembersRolesAndProducts(HubFactory hub) : Scenario(hub)
+{
+    /// <summary>A53: team member roles come from a configurable list, product familiarity from the configured products; members are edited and removed.</summary>
+    [Fact]
+    public async Task Members_take_a_listed_role_and_configured_products_and_can_be_edited_and_removed()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var e = await Hub.As(HubFactory.Engineer);
+        var team = await m.Create("/teams", new { code = U("TM"), name = "Fictional team", leadUserId = m.UserId });
+        var lookups = (await m.Get("/admin/lookups")).Body!.AsArray();
+        Assert.Contains(lookups, l => l!["listName"]!.GetValue<string>() == "TeamMemberRole" && l["code"]!.GetValue<string>() == "Support engineer");
+        var label = U("Shift lead");
+        await m.Create("/admin/lookups", new { listName = "TeamMemberRole", label });
+        var role = (await m.Get("/admin/lookups")).Body!.AsArray().First(l => l!["listName"]!.GetValue<string>() == "TeamMemberRole" && l["label"]!.GetValue<string>() == label)!["code"]!.GetValue<string>();
+        var product = await m.Create("/products", new { code = U("TP"), name = "Team product" });
+        var code = (await m.Get($"/products/{product}")).Body!["code"]!.GetValue<string>();
+
+        // Refused: a role that is not in the list, an unknown product; a non-manager cannot change members.
+        var bad = await m.Post($"/teams/{team}/members", new { userId = e.UserId, teamRole = "Wizard", productFamiliarity = $"{code}, NOPE-1" });
+        Assert.NotNull(bad.Error("teamRole"));
+        Assert.NotNull(bad.Error("productFamiliarity"));
+        Assert.Equal(HttpStatusCode.Forbidden, (await e.Post($"/teams/{team}/members", new { userId = e.UserId, teamRole = role })).Status);
+
+        var member = await m.Create($"/teams/{team}/members", new { userId = e.UserId, teamRole = role, skills = "Linux", productFamiliarity = code.ToLowerInvariant() });
+        var row = (await m.Get($"/teams/{team}")).Body!["members"]!.AsArray().Single()!;
+        Assert.Equal(role, row["teamRole"]!.GetValue<string>());
+        Assert.Equal(code, row["productFamiliarity"]!.GetValue<string>());
+
+        // Edit: another listed role, no products, inactive.
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/teams/{team}/members/{member}", new { userId = e.UserId, teamRole = "Engineer", skills = "Linux, SQL", productFamiliarity = "", isActive = false },
+            row["version"]!.GetValue<string>())).Status);
+        row = (await m.Get($"/teams/{team}")).Body!["members"]!.AsArray().Single()!;
+        Assert.Equal("Engineer", row["teamRole"]!.GetValue<string>());
+        Assert.Null(row["productFamiliarity"]?.GetValue<string>());
+        Assert.False(row["isActive"]!.GetValue<bool>());
+
+        // The role in use is counted; removing the membership leaves the person.
+        Assert.Equal(HttpStatusCode.Forbidden, (await e.Send(HttpMethod.Delete, $"/teams/{team}/members/{member}")).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/teams/{team}/members/{member}")).Status);
+        Assert.Empty((await m.Get($"/teams/{team}")).Body!["members"]!.AsArray());
+        Assert.Equal(HttpStatusCode.OK, (await m.Get($"/admin/users/{e.UserId}")).Status);
     }
 }

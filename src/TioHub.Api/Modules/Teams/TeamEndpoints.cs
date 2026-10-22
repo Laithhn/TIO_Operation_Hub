@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Commitments;
 using TioHub.Api.Modules.Shared;
 using TioHub.Api.Modules.Work;
@@ -74,12 +75,12 @@ public static class TeamEndpoints
         {
             var t = await db.Teams.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
             if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change members.");
-            var check = MemberCheck(input);
+            var check = new Check();
             if (input.UserId is null || !await db.Users.AnyAsync(u => u.Id == input.UserId && u.IsActive, ct)) check.Add("userId", "Select an active person.");
-            check.ThrowIfAny();
-            if (await db.TeamMembers.AnyAsync(m => m.TeamId == id && m.UserId == input.UserId, ct)) throw new ConflictException("This person is already a member. Edit the membership instead.");
-            var m = new TeamMember { TeamId = id, UserId = input.UserId!.Value };
-            ApplyMember(m, input);
+            var m = new TeamMember { TeamId = id };
+            await ApplyMemberAsync(m, input, check, db, ct);
+            if (await db.TeamMembers.AnyAsync(x => x.TeamId == id && x.UserId == input.UserId, ct)) throw new ConflictException("This person is already a member. Edit the membership instead.");
+            m.UserId = input.UserId!.Value;
             db.TeamMembers.Add(m);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/v1/teams/{id}/members/{m.Id}", new { m.Id });
@@ -90,8 +91,17 @@ public static class TeamEndpoints
             if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change members.");
             var m = await db.TeamMembers.FirstOrDefaultAsync(x => x.Id == memberId && x.TeamId == id, ct) ?? throw new NotFoundException("The membership");
             db.ExpectVersion(ctx, m);
-            MemberCheck(input).ThrowIfAny();
-            ApplyMember(m, input);
+            await ApplyMemberAsync(m, input, new Check(), db, ct);
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
+        });
+        // A53: a membership can be removed (the person and their work are untouched).
+        g.MapDelete("/{id:long}/members/{memberId:long}", async (long id, long memberId, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            var t = await db.Teams.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
+            if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change members.");
+            var m = await db.TeamMembers.FirstOrDefaultAsync(x => x.Id == memberId && x.TeamId == id, ct) ?? throw new NotFoundException("The membership");
+            db.TeamMembers.Remove(m);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -308,13 +318,22 @@ public static class TeamEndpoints
         return list;
     }
 
-    private static Check MemberCheck(MemberInput i) => new Check().Text("teamRole", i.TeamRole, 100, "Team role").Text("skills", i.Skills, 1000, "Skills").Text("productFamiliarity", i.ProductFamiliarity, 1000, "Product familiarity");
-
-    private static void ApplyMember(TeamMember m, MemberInput i)
+    /// <summary>
+    /// A53: the team role comes from the configurable list (Administration → Configuration → Team member roles; a retired role stays on a
+    /// member who has it) and product familiarity is a comma-separated list of configured product codes.
+    /// </summary>
+    private static async Task ApplyMemberAsync(TeamMember m, MemberInput i, Check check, HubDbContext db, CancellationToken ct)
     {
-        m.TeamRole = Text.Clean(i.TeamRole);
+        check.Text("skills", i.Skills, 1000, "Skills");
+        var role = await new LookupService(db).CheckAsync(check, "teamRole", LookupLists.TeamMemberRole, i.TeamRole, "the team role", m.TeamRole, ct);
+        var codes = (i.ProductFamiliarity ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var known = codes.Count == 0 ? [] : await db.Products.AsNoTracking().Where(p => codes.Contains(p.Code)).Select(p => p.Code).ToListAsync(ct);
+        var unknown = codes.Where(c => !known.Contains(c, StringComparer.OrdinalIgnoreCase)).ToList();
+        if (unknown.Count > 0) check.Add("productFamiliarity", $"Select products from the list ({string.Join(", ", unknown)} is not a configured product).");
+        check.ThrowIfAny();
+        m.TeamRole = role;
         m.Skills = Text.Clean(i.Skills);
-        m.ProductFamiliarity = Text.Clean(i.ProductFamiliarity);
+        m.ProductFamiliarity = known.Count == 0 ? null : string.Join(", ", codes.Select(c => known.First(k => string.Equals(k, c, StringComparison.OrdinalIgnoreCase))));
         m.IsActive = i.IsActive;
     }
 

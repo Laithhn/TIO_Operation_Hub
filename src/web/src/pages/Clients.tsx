@@ -8,7 +8,7 @@ import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState,
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
-import { DocumentsPanel, HistoryPanel, ReviewPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
+import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsPanel } from './Attachments';
 import { MyNotesPanel } from './Notes';
 import { ClientContracts } from './Contracts';
@@ -252,7 +252,7 @@ export function ClientDetail() {
             <DL items={[
               ['Project manager', <Person u={c.owner} gap="Not assigned" />],
               ['Project team', c.team.length === 0 ? <span className="muted">Not recorded</span> : <ul className="plain">{c.team.map(t => <li key={t.userId}>{t.name}{!t.isActive && ' (inactive)'} <span className="muted">· {t.role}</span></li>)}</ul>],
-              ['Last meaningful review', <When v={c.lastReviewedAt} />], ['Freshness', <FreshnessBadge f={c.freshness} />], ['Operational state', <StatusBadge value={c.status} />]
+              ['Last reviewed', <When v={c.lastReviewedAt} />], ['Freshness', <FreshnessBadge f={c.freshness} />], ['Operational state', <StatusBadge value={c.status} />]
             ]} />
           </Panel>
           {o && <Panel title="At a glance">
@@ -280,7 +280,7 @@ export function ClientDetail() {
         )}
         <Tabs value={tab} onChange={setTab} tabs={[
           { key: 'structure', label: 'Regions & environments' }, { key: 'contracts', label: 'Contracts & SLAs' }, { key: 'cases', label: 'Cases' }, { key: 'commitments', label: 'Commitments' }, { key: 'escalations', label: 'Escalations' }, { key: 'infra', label: 'Infrastructure' },
-          { key: 'projects', label: 'Projects' }, { key: 'contacts', label: 'Contacts & responsibilities' }, { key: 'docs', label: 'Reviews & documents' }, { key: 'files', label: 'Attachments' }, { key: 'notes', label: 'My notes' }, { key: 'history', label: 'History' }
+          { key: 'projects', label: 'Projects' }, { key: 'contacts', label: 'Contacts & responsibilities' }, { key: 'files', label: 'Attachments' }, { key: 'notes', label: 'My notes' }, { key: 'history', label: 'History' }
         ]} />
         {!o && <StateMessage kind="loading" />}
         {o && tab === 'structure' && (<>
@@ -335,10 +335,6 @@ export function ClientDetail() {
             ]} />
           </Panel>
         </>))}
-        {tab === 'docs' && (<div className="cols">
-          <ReviewPanel recordType="Client" recordId={Number(id)} scopes={['Record', 'Contacts']} canReview={canEng && full} />
-          <DocumentsPanel recordType="Client" recordId={Number(id)} canEdit={canEng && full} />
-        </div>)}
         {tab === 'notes' && <MyNotesPanel clientId={Number(id)} />}
         {tab === 'files' && <AttachmentsPanel recordType="Client" recordId={Number(id)} canEdit={canEng} />}
         {tab === 'history' && <HistoryPanel entityType="Client" entityId={Number(id)} />}

@@ -150,13 +150,7 @@ public sealed class DataQualityEngine(HubDbContext db, FreshnessService fresh, H
             .Select(c => new { c.Id, c.ClientId, c.ResponsibleTeamId, c.Ref, c.Title, c.OwnerUserId, c.CoordinatorUserId }).ToListAsync(ct))
             list.Add(new(Rule.UnknownEnvironment, RecordTypes.Case, c.Id, c.ClientId, null, c.ClientId is null ? c.ResponsibleTeamId : null, $"{c.Ref} · {c.Title}", "The affected environment is not yet identified.", c.OwnerUserId ?? c.CoordinatorUserId, "Identify the affected environment."));
 
-        var hosts = await settings.ListAsync(SettingKeys.ApprovedLinkHosts, ct);
-        var vault = await settings.GetAsync(SettingKeys.VaultReferencePrefix, "vault://", ct);
-        foreach (var d in await db.DocumentReferences.AsNoTracking().Select(d => new { d.Id, d.ClientId, d.EnvironmentId, d.TeamId, d.Title, d.Kind, d.Reference, d.OwnerUserId }).ToListAsync(ct))
-        {
-            var problem = d.Kind == DocumentKind.Link ? LinkGuard.Problem(d.Reference, hosts) : LinkGuard.VaultProblem(d.Reference, vault);
-            if (problem is not null) list.Add(new(Rule.InvalidReference, "DocumentReference", d.Id, d.ClientId, d.EnvironmentId, d.ClientId is null ? d.TeamId : null, d.Title, "The stored reference no longer meets the approved link or vault format.", d.OwnerUserId, "Replace the reference with an approved one."));
-        }
+        // A52: document references were removed from the application, so their link check no longer runs (open items resolve on the next scan).
         return list;
     }
 

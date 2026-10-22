@@ -1014,6 +1014,42 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         .SelectMany(t => t.GetProperties().Where(p => p.GetCustomAttribute<TechnicalDetailAttribute>() is not null).Select(p => $"{EntityName(t)}.{p.Name}"))
         .ToHashSet();
 
+    /// <summary>
+    /// A52: the separate "Meaningful reviews" records were removed from the application, so a person saving a record now confirms it:
+    /// a changed client, contact, region, project, installation or server is reviewed now, a changed environment has its record,
+    /// inventory and dependency reviews refreshed, and adding, changing or removing a server, installation or component refreshes
+    /// its environment's inventory review. Cases, commitments and contracts keep their own progress and update rules.
+    /// </summary>
+    private async Task MarkReviewedOnEditAsync(DateTimeOffset now, CancellationToken ct)
+    {
+        // A condition report is not an inventory review, and creation is already the baseline, so only real edits count.
+        static bool Changed(EntityEntry e) => e.State == EntityState.Modified && e.Properties.Any(p => p.IsModified
+            && p.Metadata.Name is not (nameof(Entity.UpdatedAt) or nameof(Entity.UpdatedById)) && !p.Metadata.Name.StartsWith("Condition", StringComparison.Ordinal));
+        var envIds = new HashSet<long>();
+        foreach (var e in ChangeTracker.Entries().ToList())
+        {
+            if (e.State is not (EntityState.Added or EntityState.Modified or EntityState.Deleted)) continue;
+            var edited = Changed(e);
+            switch (e.Entity)
+            {
+                case Client x when edited: x.LastReviewedAt = now; if (x.NextReviewAt < now) x.NextReviewAt = null; break;
+                case Contact x when edited: x.LastReviewedAt = now; break;
+                case Region x when edited: x.LastReviewedAt = now; break;
+                case Project x when edited: x.LastReviewedAt = now; break;
+                case ClientEnvironment x when edited:
+                    x.LastReviewedAt = x.InventoryReviewedAt = x.DependenciesReviewedAt = now;
+                    if (x.NextReviewAt < now) x.NextReviewAt = null;
+                    break;
+                case Installation x: if (edited) x.LastReviewedAt = now; envIds.Add(x.EnvironmentId); break;
+                case Asset x: if (edited) x.VerifiedAt = now; if (x.EnvironmentId is { } ae) envIds.Add(ae); break;
+                case Component x: if (x.EnvironmentId is { } ce) envIds.Add(ce); break;
+            }
+        }
+        if (envIds.Count == 0) return;
+        foreach (var env in await Environments.IgnoreQueryFilters().Where(x => envIds.Contains(x.Id)).ToListAsync(ct))
+            env.InventoryReviewedAt = now;
+    }
+
     public override int SaveChanges(bool acceptAllChangesOnSuccess) => SaveChangesAsync(acceptAllChangesOnSuccess).GetAwaiter().GetResult();
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
@@ -1022,6 +1058,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         var userId = user.UserId;
         // A38: new assignments become notifications for the people concerned (written once the records have their ids).
         var notices = Modules.Notifications.AssignmentNotices.Collect(ChangeTracker, userId);
+        if (userId is not null) await MarkReviewedOnEditAsync(now, ct);
         foreach (var entry in ChangeTracker.Entries<Entity>())
         {
             if (entry.State == EntityState.Added)

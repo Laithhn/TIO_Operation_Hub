@@ -217,6 +217,7 @@ public static class LookupUsage
             LookupLists.ComponentRole => await db.Components.IgnoreQueryFilters().GroupBy(x => x.Role).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.BoundaryArea => await db.Boundaries.IgnoreQueryFilters().GroupBy(x => x.Area).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.TeamRole => await db.ClientTeamMembers.GroupBy(x => x.Role).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.TeamMemberRole => await db.TeamMembers.Where(x => x.TeamRole != null).GroupBy(x => x.TeamRole!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             // An escalation channel counts where an escalation or a logged communication uses it.
             LookupLists.EscalationChannel => (await db.Escalations.IgnoreQueryFilters().Select(x => x.Channel)
                     .Concat(db.EscalationEvents.Where(x => x.Channel != null && x.Type == Escalations.EscalationEventType.Communication).Select(x => x.Channel!)).ToListAsync(ct))

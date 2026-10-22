@@ -8,7 +8,7 @@ import { ActionDialog, ArchiveDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, DataTable, Dialog, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, FreshnessBadge, type FreshnessT, Menu, FormSection, QuantityInput, DeleteAction } from '../ui/kit';
 import { InfraSummary, type Infra } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
-import { DocumentsPanel, HistoryPanel, ReviewPanel, toNum, useClientOptions, useProductOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
+import { HistoryPanel, toNum, useClientOptions, useProductOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsPanel } from './Attachments';
 
 export function InstallationDialog({ environmentId, clientId, onClose }: { environmentId: number; clientId: number; onClose: () => void }) {
@@ -347,7 +347,6 @@ export function InstallationDetail() {
           { key: 'o', header: 'Owner', render: c => <Person u={c.owner} /> }, { key: 'del', header: '', className: 'row-actions', render: c => <DeleteAction path={`/components/${c.id}`} what={`component ${c.name}`} /> }
         ]} />
       </Panel>
-      <div className="cols"><ReviewPanel recordType="Installation" recordId={i.id} scopes={['Record']} canReview={canEng} /><DocumentsPanel recordType="Installation" recordId={i.id} canEdit={canEng} /></div>
       <AttachmentsPanel recordType="Installation" recordId={i.id} canEdit={canEng} />
       {dialog === 'version' && <ActionDialog title="Confirm version change" path={`/installations/${i.id}/version`} version={i.etag} onClose={() => setDialog(null)} submitLabel="Confirm version"
         intro="Version changes need a reason and evidence; old and new values are kept. A downgrade alone is not treated as a rollback."
@@ -459,7 +458,6 @@ export function AssetDetail() {
         ]} />
       </Panel>
       <Panel title="Firewall rules (from and to this server)" pad={false}><FirewallRulesPanel assetId={a.id} clientId={a.environment.clientId} /></Panel>
-      <div className="cols"><ReviewPanel recordType="Asset" recordId={a.id} scopes={['Record']} canReview={canEng} /><DocumentsPanel recordType="Asset" recordId={a.id} canEdit={canEng} /></div>
       <AttachmentsPanel recordType="Asset" recordId={a.id} canEdit={canEng} />
       <HistoryPanel entityType="Asset" entityId={a.id} />
       {dialog === 'edit' && <AssetDialog environmentId={a.environment.id} clientId={a.environment.clientId} asset={a} onClose={() => setDialog(null)} />}

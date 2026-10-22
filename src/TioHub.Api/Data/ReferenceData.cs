@@ -21,6 +21,7 @@ public static class ReferenceData
         [LookupLists.ProjectPhase] = [("Requested", null), ("Approved", null), ("Deployed", null)],
         [LookupLists.BoundaryArea] = [("Application", null), ("Database", null), ("Operating system", null), ("Network", null), ("Backup", null), ("Monitoring", null)],
         [LookupLists.OsFamily] = [("Windows Server", null), ("Linux", null), ("Other", null)],
+        [LookupLists.TeamMemberRole] = [("Team lead", null), ("Senior engineer", null), ("Engineer", null), ("Support engineer", null), ("Developer", null), ("Analyst", null)],
         [LookupLists.PriorityGuidance] = [
             ("Critical", "Proposed: service down for a client; criteria to be agreed before the pilot."),
             ("High", "Proposed: significant degradation; criteria to be agreed before the pilot."),
@@ -57,6 +58,10 @@ public static class ReferenceData
             for (var i = 0; i < values.Length; i++)
                 if (!have.Contains((list, values[i].Code)))
                     db.LookupValues.Add(new LookupValue { ListName = list, Code = values[i].Code, Label = values[i].Code, Description = values[i].Description, SortOrder = (i + 1) * 10 });
+        // A53: team roles typed before the list existed become list values, so they can still be chosen.
+        var typed = await db.TeamMembers.Where(m => m.TeamRole != null).Select(m => m.TeamRole!).Distinct().ToListAsync(ct);
+        foreach (var (role, i) in typed.Where(r => !have.Contains((LookupLists.TeamMemberRole, r)) && !Lookups[LookupLists.TeamMemberRole].Any(v => v.Code == r)).Select((r, i) => (r, i)))
+            db.LookupValues.Add(new LookupValue { ListName = LookupLists.TeamMemberRole, Code = role, Label = role, SortOrder = 100 + i * 10 });
 
         if (!await db.JiraInstances.AnyAsync(ct))
         {

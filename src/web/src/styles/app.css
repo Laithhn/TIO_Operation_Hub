@@ -722,3 +722,4 @@ table.grid th button{white-space:nowrap}
 .dash .viz-panel .panel-body{overflow-x:auto}
 @media (max-width:760px){.dash .viz-grid,.dash .viz-grid.three{grid-template-columns:1fr}.dash .viz-grid .span-2{grid-column:auto}}
 .pay-amounts thead th{white-space:normal;vertical-align:bottom}
+.row-actions{display:inline-flex;gap:12px}

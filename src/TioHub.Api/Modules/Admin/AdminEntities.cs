@@ -38,7 +38,10 @@ public static class LookupLists
     /// <summary>A41: the channels an escalation arrives or is raised through (e-mail, formal letter, verbal, Jira…).</summary>
     public const string EscalationChannel = "EscalationChannel";
 
-    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel];
+    /// <summary>A53: roles of the members of an internal team (Teams), separate from the client project team roles.</summary>
+    public const string TeamMemberRole = "TeamMemberRole";
+
+    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole];
 
     /// <summary>The category enum of each type list.</summary>
     public static readonly Dictionary<string, Type> Categories = new()

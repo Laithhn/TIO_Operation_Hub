@@ -64,6 +64,8 @@ public static class Cascade
         // A47: private notes are never listed or counted for someone else; a deleted client or project only clears their link (database rule).
         typeof(Notes.Notebook), typeof(Notes.NoteSection), typeof(Notes.NotePage), typeof(Notes.NoteFile)];
     /// <summary>Tables that point at any record by type name and id.</summary>
+    // A52: retired features — their rows are still removed with the record but no longer listed in the dialog.
+    private static readonly HashSet<Type> NotListed = [typeof(Review), typeof(DocumentReference)];
     private static readonly Type[] Polymorphic = [typeof(Review), typeof(DocumentReference), typeof(DataQualityItem), typeof(HandoverItem), typeof(Attachments.Attachment)];
 
     private static readonly string[] LabelColumns = ["Ref", "Code", "Name", "Title", "InstanceName", "Label", "Area", "Purpose", "IssueKey", "Role"];
@@ -184,7 +186,7 @@ public static class Cascade
     private static async Task<List<Group>> GroupsAsync(HubDbContext db, Plan plan, CancellationToken ct)
     {
         var groups = new List<Group>();
-        foreach (var t in plan.Order.Where(t => t != plan.Root))
+        foreach (var t in plan.Order.Where(t => t != plan.Root && !NotListed.Contains(t.ClrType)))
         {
             var n = await db.Database.SqlQueryRaw<int>($"SELECT COUNT(*) AS [Value] FROM {Table(t)} x WHERE {Owned(plan, t)}").SingleAsync(ct);
             if (n == 0) continue;

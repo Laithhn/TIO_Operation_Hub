@@ -20,5 +20,7 @@ EXEC (N'DENY UPDATE, DELETE ON SCHEMA::[audit] TO [' + @login + N']');
 EXEC (N'GRANT UPDATE ON SCHEMA::[work] TO [' + @login + N']');
 EXEC (N'GRANT UPDATE ON SCHEMA::[teams] TO [' + @login + N']');
 -- Schema changes are applied by the DBA with 01-schema.sql, not by the application.
-EXEC (N'DENY ALTER ON DATABASE::[' + DB_NAME() + N'] TO [' + @login + N']');
+-- EXEC() accepts only variables and literals, so the database name is read into a variable first.
+DECLARE @db sysname = DB_NAME();
+EXEC (N'DENY ALTER ON DATABASE::[' + @db + N'] TO [' + @login + N']');
 GO

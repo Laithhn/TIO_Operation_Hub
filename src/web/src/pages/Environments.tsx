@@ -10,7 +10,7 @@ import {
   StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction } from '../ui/kit';
 import { BoundaryPerson, type BoundaryRow } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
-import { DocumentsPanel, HistoryPanel, ReviewPanel, toNum, useClientOptions } from './common';
+import { HistoryPanel, toNum, useClientOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 import { AssetDialog, CloneDialog, InstallationDialog } from './Inventory';
 
@@ -186,14 +186,14 @@ export function EnvironmentDetail() {
           <DL items={[
             ['Reported condition', <ConditionBadge c={e.condition} />], ['Reason', e.conditionReason ?? <span className="muted">—</span>], ['Observed', <When v={e.condition.observedAt} />],
             ['Inventory review', <FreshnessBadge f={e.freshness.inventory} />], ['Firewall rules review', <FreshnessBadge f={e.freshness.dependencies} />], ['Record review', <FreshnessBadge f={e.freshness.record} />],
-            ['Last meaningful review', <When v={e.lastReviewedAt} />]
+            ['Last reviewed', <When v={e.lastReviewedAt} />]
           ]} />
           <p className="hint" style={{ marginTop: 8 }}>Condition is manually reported, not live monitoring. A condition report never refreshes the inventory review.</p>
         </Panel>
       </div>
       <Tabs value={tab} onChange={setTab} tabs={[
         { key: 'apps', label: `Applications (${o?.installations.length ?? '…'})` }, { key: 'assets', label: `Servers & assets (${o?.assets.length ?? '…'})` }, { key: 'work', label: 'Work' },
-        { key: 'network', label: `Firewall rules${o ? ` (${o.network.firewallRuleCount})` : ''}` }, { key: 'conditions', label: 'Condition history' }, { key: 'reviews', label: 'Reviews & documents' }, { key: 'files', label: 'Attachments' }, { key: 'quality', label: 'Data quality' }, { key: 'history', label: 'History' }
+        { key: 'network', label: `Firewall rules${o ? ` (${o.network.firewallRuleCount})` : ''}` }, { key: 'conditions', label: 'Condition history' }, { key: 'files', label: 'Attachments' }, { key: 'quality', label: 'Data quality' }, { key: 'history', label: 'History' }
       ]} />
       {!o && <StateMessage kind="loading" />}
       {o && tab === 'apps' && (o.installations.length === 0 ? <StateMessage kind="none">No application installations recorded.</StateMessage> : o.installations.map(i => (
@@ -231,7 +231,6 @@ export function EnvironmentDetail() {
           ]} />
         </Panel>
       )}
-      {tab === 'reviews' && <div className="cols"><ReviewPanel recordType="Environment" recordId={e.id} scopes={['Inventory', 'Dependencies', 'Record']} canReview={e.canEdit} /><DocumentsPanel recordType="Environment" recordId={e.id} canEdit={e.canEdit} /></div>}
       {o && tab === 'quality' && (
         <Panel title="Open data-quality items" pad={false}>
           <DataTable rowKey={d => d.id} rows={o.dataQuality} columns={[

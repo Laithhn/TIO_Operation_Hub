@@ -90,12 +90,12 @@ public static class PortfolioData
         var itd = T("ITD", "ITD Office IT", leadOps, "Office IT, help desk and internal platforms.");
         await db.SaveChangesAsync(ct);
         void M(Team t, string key, string role, string skills, string products) => db.TeamMembers.Add(new TeamMember { TeamId = t.Id, UserId = Id(key), TeamRole = role, Skills = skills, ProductFamiliarity = products });
-        M(ops, "lead", "Lead", "Coordination, SLA", "PSOP, ViRRM, PSO-Lite"); M(ops, "engineer", "Engineer", "On-site support", "PSOP, ViRRM, ViDPP");
+        M(ops, "lead", "Team lead", "Coordination, SLA", "PSOP, ViRRM, PSO-Lite"); M(ops, "engineer", "Engineer", "On-site support", "PSOP, ViRRM, ViDPP");
         M(ops, "e01", "Engineer", "On-site support, Windows Server", "PSOP, ViITS"); M(ops, "e02", "Engineer", "Remote support", "PSOP, PSCO, ViITS");
         M(ops, "e03", "Engineer", "Hybrid support, networking", "PSOP, PSCO, EB"); M(ops, "e04", "Engineer", "On-site support", "PSOP, PSCO");
         M(ops, "engineer2", "Engineer", "Operations", "PSOP, ViRRM, ViDPP"); M(ops, "e05", "Engineer", "Operations", "PSOP, ViRRM"); M(ops, "e06", "DevOps", "DevOps, SQL Server", "PSOP, ViDPP");
         M(ops, "e07", "Engineer", "Operations", "PSOP"); M(ops, "e08", "Engineer", "Remote support", "PSOP, ViTIP"); M(ops, "former", "Engineer", "On-site support", "PSOP, PSCO");
-        M(del, "lead2", "Lead", "Delivery management", "ViITS, ViTIP"); M(del, "e09", "Engineer", "Implementation", "ViITS, ANPR Pool"); M(del, "e11", "Engineer", "Implementation", "ViTIP");
+        M(del, "lead2", "Team lead", "Delivery management", "ViITS, ViTIP"); M(del, "e09", "Engineer", "Implementation", "ViITS, ANPR Pool"); M(del, "e11", "Engineer", "Implementation", "ViTIP");
         M(tA, "e12", "Lead developer", ".NET, SQL", "PSOP, ViDPP"); M(tA, "e13", "Developer", "Integration", "PSOP"); M(tA1, "lead3", "Lead", ".NET Core", "PSOP 3, PSO-Lite"); M(tA1, "e10", "Developer", "Security", "PSOP 3");
         M(tB, "e09", "Developer", "ViITS", "ViITS"); M(tD, "e14", "Developer", "ViRRM", "ViRRM, ViCLM"); M(tC, "e11", "Developer", "ViISM", "ViISM, ViACE"); M(tE, "e13", "Developer", "Big data", "ViSDB");
         M(tX, "e06", "Developer", "Docker", "ViDPP, Smart File Manager"); M(itd, "e14", "Administrator", "Network, help desk", "ViESP");
@@ -505,8 +505,6 @@ public static class PortfolioData
         H(null, leadOps, leadDel, now.AddDays(3), "Ops + IT-support activities cover during leave (coverage plan)", "ViESP hiring request; help-desk queue", HandoverStatus.PendingAcknowledgment,
             (RecordTypes.Case, cases.First(k => k.Title.StartsWith("ViESP")).Id, "ViESP needs a backend developer"));
 
-        db.DocumentReferences.Add(new DocumentReference { RecordType = RecordTypes.Client, RecordId = tah.Id, ClientId = tah.Id, Kind = DocumentKind.Link, Title = "Tahakom SLA runbook (demo)", Reference = "https://docs.example.com/demo/tahakom-sla", OwnerUserId = leadDel.Id });
-        db.DocumentReferences.Add(new DocumentReference { RecordType = RecordTypes.Client, RecordId = mdj.Id, ClientId = mdj.Id, Kind = DocumentKind.Link, Title = "IT infrastructure requirements document (demo)", Reference = "https://docs.example.com/demo/madar-dijla-infra", OwnerUserId = Id("e08") });
 
         // Deactivated engineer keeps NARSA ownership → reassignment queue.
         former.IsActive = false; former.DeactivatedAt = now.AddDays(-4); former.DeactivationReason = "Left the team (demo)";

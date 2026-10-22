@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { get, post, qs, type UserRef } from '../api';
+import { get, post, put, qs, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label } from '../format';
-import { useCan, useForm, useMe, useRefresh } from '../hooks';
+import { useCan, useForm, useLookup, useMe, useReference, useRefresh } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
-import { Badge, DataTable, Dialog, DL, FormError, PageHead, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { AttachmentsPanel } from './Attachments';
 import { RecordLink } from './common';
 
@@ -49,11 +49,55 @@ function TeamDialog({ onClose }: { onClose: () => void }) {
   );
 }
 
-type TeamDto = { id: number; code: string; name: string; lead?: UserRef; manager?: UserRef; leadUserId?: number; members: { id: number; userId: number; name: string; userActive: boolean; timeZone: string; teamRole?: string; skills?: string; productFamiliarity?: string; isActive: boolean }[] };
+type TeamDto = { id: number; code: string; name: string; lead?: UserRef; manager?: UserRef; leadUserId?: number; members: { id: number; userId: number; name: string; userActive: boolean; timeZone: string; teamRole?: string; skills?: string; productFamiliarity?: string; isActive: boolean; version: string }[] };
 type Assign = {
   people: { userId: number; name: string; active: boolean; timeZone: string; teamRole?: string; openCases: number; waiting: number; overdue: number; backupFor: number; openCommitments: number }[];
   unassigned: { id: number; ref: string; title: string; priority: string; nextAction: string }[]; coverageGaps: { id: number; ref: string; title: string; priority: string }[]; note: string;
 };
+
+type Member = TeamDto['members'][number];
+
+/** A53: add or edit a membership — role from the configured list, product familiarity from the configured products. */
+function MemberDialog({ teamId, member, onClose }: { teamId: string; member?: Member; onClose: () => void }) {
+  const roles = useLookup('TeamMemberRole', member?.teamRole);
+  const products = (useReference().data?.products ?? []).filter(p => p.isActive);
+  const codes = new Set(products.map(p => p.code.toLowerCase()));
+  const had = (member?.productFamiliarity ?? '').split(',').map(x => x.trim()).filter(Boolean);
+  const f = useForm({ userId: member ? String(member.userId) : '', teamRole: member?.teamRole ?? '', skills: member?.skills ?? '', isActive: member?.isActive ?? true,
+    products: had });
+  // The product list may still be loading when the dialog opens: keep the saved codes and match them once it is there.
+  const known = (c: string) => codes.has(c.toLowerCase());
+  const dropped = products.length ? f.values.products.filter(c => !known(c)) : [];
+  const isOn = (code: string) => f.values.products.some(c => c.toLowerCase() === code.toLowerCase());
+  const refresh = useRefresh();
+  const toast = useToast();
+  const toggle = (code: string) => f.set('products', isOn(code) ? f.values.products.filter(x => x.toLowerCase() !== code.toLowerCase()) : [...f.values.products, code]);
+  const save = async () => {
+    const body = { userId: Number(f.values.userId) || null, teamRole: f.values.teamRole || null, skills: f.values.skills, productFamiliarity: f.values.products.filter(known).join(', '), isActive: f.values.isActive };
+    const ok = await f.submit(async () => { if (member) await put(`/teams/${teamId}/members/${member.id}`, body, member.version); else await post(`/teams/${teamId}/members`, body); return true; });
+    if (ok) { toast(member ? 'Membership saved.' : 'Member added.'); refresh(); onClose(); }
+  };
+  return (
+    <Dialog title={member ? `Edit ${member.name}` : 'Add member'} onClose={onClose}>
+      <FormError error={f.error} fields={['userId', 'teamRole', 'skills', 'productFamiliarity']} />
+      <div className="form-grid">
+        {member ? <Field label="Person">{() => <div className="field-static">{member.name}</div>}</Field>
+          : <div className="wide"><UserPicker label="Person" required value={f.values.userId ? Number(f.values.userId) : null} onChange={v => f.set('userId', v ? String(v) : '')} error={f.fieldError('userId')} empty="— Select —" /></div>}
+        <SelectInput label="Team role" value={f.values.teamRole} onChange={v => f.set('teamRole', v)} options={roles.map(r => ({ value: r.code, label: r.label }))}
+          error={f.fieldError('teamRole')} hint="Roles are configured under Administration → Configuration → Team member roles." />
+        <TextInput label="Skills" wide value={f.values.skills} onChange={v => f.set('skills', v)} error={f.fieldError('skills')} />
+        <Field label="Product familiarity" wide error={f.fieldError('productFamiliarity')} hint={products.length === 0 ? 'No products are configured yet (Products).' : 'Select the products this person knows.'}>
+          {(fid, desc) => <><div className="day-chips" role="group" aria-label="Product familiarity" id={fid} aria-describedby={desc}>
+            {products.map(p => <button type="button" key={p.id} aria-pressed={isOn(p.code)} title={p.name} onClick={() => toggle(p.code)}>{p.code}</button>)}
+          </div>
+          {dropped.length > 0 && <div className="hint">Not configured products, removed when saved: {dropped.join(', ')}</div>}</>}
+        </Field>
+        {member && <Checkbox label="Active membership" checked={f.values.isActive} onChange={v => f.set('isActive', v)} />}
+      </div>
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{member ? 'Save' : 'Add member'}</button></div>
+    </Dialog>
+  );
+}
 
 export function TeamDetail() {
   const { id } = useParams();
@@ -62,6 +106,8 @@ export function TeamDetail() {
   const a = useQuery({ queryKey: ['assignments', id], queryFn: () => get<Assign>(`/teams/${id}/assignments`) });
   const canManage = me.businessRole === 'Manager';
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Member | null>(null);
+  const [removing, setRemoving] = useState<Member | null>(null);
   return (
     <QueryState q={t}>{t.data && (<>
       <PageHead title={t.data.name} crumbs={[{ to: '/teams', label: 'Teams' }, { label: t.data.code }]} sub={<>Lead <Person u={t.data.lead} gap="none" /> · Manager <Person u={t.data.manager} gap="none" /></>}
@@ -70,7 +116,11 @@ export function TeamDetail() {
         <DataTable rowKey={m => m.id} rows={t.data.members} columns={[
           { key: 'n', header: 'Person', render: m => <>{m.name}{!m.userActive && <> <Badge tone="bad">Deactivated</Badge></>}</> }, { key: 'r', header: 'Team role', render: m => m.teamRole },
           { key: 's', header: 'Skills', render: m => m.skills }, { key: 'p', header: 'Product familiarity', render: m => m.productFamiliarity }, { key: 'tz', header: 'Working time zone', render: m => m.timeZone },
-          { key: 'a', header: 'Membership', render: m => m.isActive ? 'Active' : 'Inactive' }
+          { key: 'a', header: 'Membership', render: m => m.isActive ? 'Active' : 'Inactive' },
+          ...(canManage ? [{ key: 'x', header: '', className: 'nowrap', render: (m: Member) => <span className="row-actions">
+            <button className="linkbtn" onClick={() => setEditing(m)} aria-label={`Edit ${m.name}`}>Edit</button>
+            <button className="linkbtn danger-link" onClick={() => setRemoving(m)} aria-label={`Remove ${m.name}`}>Remove</button>
+          </span> }] : [])
         ]} />
       </Panel>
       {a.data && (<>
@@ -88,9 +138,9 @@ export function TeamDetail() {
         </div>
         <AttachmentsPanel recordType="Team" recordId={Number(id)} canEdit={canManage} />
       </>)}
-      {open && <ActionDialog title="Add member" path={`/teams/${id}/members`} onClose={() => setOpen(false)} submitLabel="Add member"
-        fields={[{ name: 'userId', label: 'Person', kind: 'user', required: true }, { name: 'teamRole', label: 'Team role' }, { name: 'skills', label: 'Skills' }, { name: 'productFamiliarity', label: 'Product familiarity' }]}
-        transform={v => ({ userId: Number(v.userId) || null, teamRole: v.teamRole, skills: v.skills, productFamiliarity: v.productFamiliarity, isActive: true })} />}
+      {open && <MemberDialog teamId={id!} onClose={() => setOpen(false)} />}
+      {editing && <MemberDialog teamId={id!} member={editing} onClose={() => setEditing(null)} />}
+      {removing && <ConfirmDelete path={`/teams/${id}/members/${removing.id}`} what={`${removing.name}'s membership`} onClose={() => setRemoving(null)} />}
     </>)}</QueryState>
   );
 }

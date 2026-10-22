@@ -1,6 +1,6 @@
 # Deployment, configuration, backup, restore and rollback
 
-This guide covers a Windows Server + IIS + SQL Server deployment. Everything named here is fictional until the owners supply real hosts.
+This guide covers a Windows Server + IIS + SQL Server deployment. For a step-by-step installation with the scripts in `deploy\`, start with `DEPLOYMENT-GUIDE.md`. Everything named here is fictional until the owners supply real hosts.
 No secrets are needed in configuration: the application signs in to SQL Server with its Windows identity.
 
 ## 1. Prerequisites

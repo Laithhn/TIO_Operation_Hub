@@ -22,7 +22,8 @@ const loadAtlas = () => atlas ??= import('world-atlas/countries-50m.json').then(
 });
 
 const esc = (s: string) => s.replace(/[&<>"']/g, c => `&#${c.charCodeAt(0)};`);
-const CLIENT_ZOOM = 4;
+// Without an opened country, client markers appear only past the zoom the map opens at (at most 5), so they never cover the country badges there.
+const CLIENT_ZOOM = 6;
 
 // Badge anchor: centroid of the country's largest polygon (keeps overseas territories from pulling it into the sea).
 function largest(f: Geo): GeoJSON.Geometry {
@@ -191,7 +192,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
     const m = map.current, g = clientLayer.current;
     if (!m || !g || !features) return;
     g.clearLayers();
-    if (zoom < CLIENT_ZOOM) return;
+    if (!sel && zoom < CLIENT_ZOOM) return;
     const groups = new Map<string, MapClientPoint[]>();
     for (const c of clients) {
       if (!c.country) continue;
@@ -255,7 +256,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
         </div>
         <div className="map-hint">
           {!wheel ? 'Click the map to zoom with the mouse wheel; drag to move' : 'Mouse-wheel zoom on'}
-          {showClients && zoom < CLIENT_ZOOM && ' · zoom in or open a country to see each client'}
+          {showClients && !sel && zoom < CLIENT_ZOOM && ' · open a country (or zoom in) to see each client'}
         </div>
         {!features && <div className="osm-loading"><span className="spin" /> Loading map…</div>}
       </div>

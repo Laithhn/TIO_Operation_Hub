@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
 import { useCan, useDebounced, useEnum, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
-import { ActionDialog, UserPicker } from '../ui/pickers';
+import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
@@ -166,7 +166,7 @@ export function CaseForm() {
           <TextInput label="Next action" required wide value={v.nextAction} onChange={x => f.set('nextAction', x)} error={f.fieldError('nextAction')} />
           <TextInput label={`Next review (${me.timeZone})`} required type="datetime-local" value={v.nextReviewAt} onChange={x => f.set('nextReviewAt', x)} error={f.fieldError('nextReviewAt')} />
           {isNew && <TextInput label="Due (optional)" type="datetime-local" value={v.dueLocal} onChange={x => f.set('dueLocal', x)} error={f.fieldError('dueLocal')} hint="Without a deadline the case is listed separately, never as overdue." />}
-          {isNew && v.dueLocal && <TextInput label="Due time zone (IANA)" required value={v.dueTimeZone} onChange={x => f.set('dueTimeZone', x)} error={f.fieldError('dueTimeZone')} />}
+          {isNew && v.dueLocal && <TimeZoneSelect label="Due time zone" required value={v.dueTimeZone} onChange={x => f.set('dueTimeZone', x)} error={f.fieldError('dueTimeZone')} />}
           <AffectedPicker clientId={cid} value={v.affected} onChange={x => f.set('affected', x)} error={f.fieldError('affected.environmentIds') ?? f.fieldError('affected.assetIds')} />
           {!isNew && <TextInput label="Change note (kept in the timeline)" wide value={v.changeNote} onChange={x => f.set('changeNote', x)} />}
         </div>
@@ -218,7 +218,7 @@ export function CaseDetail() {
             ['Impact', c.impactSummary], ['Progress', c.progressSummary ?? <span className="muted">No progress recorded</span>],
             ['Next action', c.nextAction], ['Next review', <><When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</>],
             ['Due', c.dueAt ? <>{c.dueLocal} <span className="muted">({c.dueTimeZone})</span></> : <span className="muted">No deadline</span>],
-            ['Last meaningful review', <><When v={c.lastReviewedAt} /> <FreshnessBadge f={c.freshness} /></>]
+            ['Last progress update', <><When v={c.lastReviewedAt} /> <FreshnessBadge f={c.freshness} /></>]
           ]} />
         </Panel>
         <Panel title="Age and waiting">
@@ -273,7 +273,7 @@ export function CaseDetail() {
         fields={[{ name: 'ownerUserId', label: 'Owner', kind: 'user', clientId: c.client?.id, teamId: c.team?.id }, { name: 'backupOwnerUserId', label: 'Backup owner', kind: 'user', clientId: c.client?.id, teamId: c.team?.id }, { name: 'reason', label: 'Reason' }]}
         transform={v => ({ ownerUserId: toNum(v.ownerUserId) ?? (me.businessRole === 'Engineer' ? me.id : null), backupOwnerUserId: toNum(v.backupOwnerUserId) ?? c.backupOwner?.id ?? null, reason: v.reason || null })} />}
       {dialog === 'start' && <ActionDialog {...common} title="Start work" path={`/cases/${id}/start`} submitLabel="Start" fields={[{ name: 'progressSummary', label: 'Progress (optional)', kind: 'textarea' }]} transform={v => ({ progressSummary: v.progressSummary || null })} />}
-      {dialog === 'progress' && <ActionDialog {...common} title="Record progress (meaningful review)" path={`/cases/${id}/progress`} submitLabel="Save progress"
+      {dialog === 'progress' && <ActionDialog {...common} title="Record progress" path={`/cases/${id}/progress`} submitLabel="Save progress"
         fields={[{ name: 'progressSummary', label: 'Progress summary', kind: 'textarea', required: true }, { name: 'nextAction', label: 'Next action', required: true }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }]}
         transform={v => ({ progressSummary: v.progressSummary, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt) })} />}
       {dialog === 'wait' && <ActionDialog {...common} title="Set waiting" path={`/cases/${id}/waiting`} submitLabel="Set waiting" intro="Waiting is separate from status. Deadlines continue to run."
@@ -285,8 +285,8 @@ export function CaseDetail() {
         transform={v => ({ progressSummary: v.progressSummary, validationRequest: v.validationRequest || null, nextAction: v.nextAction || null, nextReviewAt: v.nextReviewAt ? fromLocalInput(v.nextReviewAt) : null })} />}
       {dialog === 'resume' && <ActionDialog {...common} title="Return to work" path={`/cases/${id}/resume`} submitLabel="Return to In progress" fields={[{ name: 'reason', label: 'Why validation did not pass', kind: 'textarea', required: true }]} />}
       {dialog === 'close' && <CloseDialog c={c} canException={p.canAuthorizeEvidenceException} onClose={close} />}
-      {dialog === 'due' && <ActionDialog {...common} title="Change due date" path={`/cases/${id}/due`} submitLabel="Save due date" intro="Due-date changes need a reason and are kept in the timeline. Leave the date empty and tick nothing to remove the deadline."
-        fields={[{ name: 'dueLocal', label: 'New due (local time)', kind: 'datetime' }, { name: 'dueTimeZone', label: 'Time zone (IANA)', hint: `For example ${me.timeZone}` }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]}
+      {dialog === 'due' && <ActionDialog {...common} title="Change due date" path={`/cases/${id}/due`} initial={{ dueTimeZone: c.dueTimeZone ?? me.timeZone }} submitLabel="Save due date" intro="Due-date changes need a reason and are kept in the timeline. Leave the date empty and tick nothing to remove the deadline."
+        fields={[{ name: 'dueLocal', label: 'New due (local time)', kind: 'datetime' }, { name: 'dueTimeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]}
         transform={v => ({ dueLocal: v.dueLocal || null, dueTimeZone: v.dueTimeZone || c.dueTimeZone || me.timeZone, clear: !v.dueLocal, reason: v.reason })} />}
       {dialog === 'cancel' && <ActionDialog {...common} title="Cancel case" danger path={`/cases/${id}/cancel`} submitLabel="Cancel case" intro="Links and history are kept." fields={[{ name: 'reason', label: 'Cancellation reason', kind: 'textarea', required: true }]} />}
       {dialog === 'reopen' && <ActionDialog {...common} title="Reopen case" path={`/cases/${id}/reopen`} submitLabel="Reopen to Triaged" intro="The earlier closure or cancellation stays in history. Ownership is rechecked."

@@ -37,6 +37,7 @@ Copy-Item "$root\database\*.sql" "$out\database"
 Copy-Item "$root\docs\*" "$out\docs" -Recurse
 Copy-Item "$root\deploy\*" "$out\deploy"
 Copy-Item "$root\README.md" $out
+Copy-Item "$root\docs\DEPLOYMENT-GUIDE.md" $out
 
 $zip = "$root\release\TioHub-$version.zip"
 if (Test-Path $zip) { Remove-Item $zip }

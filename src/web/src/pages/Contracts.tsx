@@ -7,7 +7,7 @@ import { useCan, useEnum, useForm, useLeaveGuard, useMe, useRefresh, useUrlState
 import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
-import { DocumentsPanel, HistoryPanel, ReviewPanel, toNum, useClientOptions } from './common';
+import { HistoryPanel, toNum, useClientOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 import { MyNotesPanel } from './Notes';
 
@@ -186,10 +186,6 @@ export function ContractDetail() {
           <Panel title="Covered environments">
             {c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
           </Panel>
-        </div>
-        <div className="cols">
-          <ReviewPanel recordType="Contract" recordId={c.id} scopes={['Record']} canReview={c.permissions.canEdit} />
-          <DocumentsPanel recordType="Contract" recordId={c.id} canEdit={c.permissions.canEdit} />
         </div>
         <AttachmentsPanel recordType="Contract" recordId={c.id} canEdit={c.permissions.canEdit} title="Contract and SLA documents" />
         <HistoryPanel entityType="Contract" entityId={c.id} />

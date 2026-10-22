@@ -65,7 +65,7 @@ public static class DevelopmentData
         db.Teams.AddRange(ops, app);
         await db.SaveChangesAsync(ct);
         db.TeamMembers.AddRange(
-            new TeamMember { TeamId = ops.Id, UserId = lead.Id, TeamRole = "Lead", Skills = "Coordination", ProductFamiliarity = "PSOP, ViTIS" },
+            new TeamMember { TeamId = ops.Id, UserId = lead.Id, TeamRole = "Team lead", Skills = "Coordination", ProductFamiliarity = "PSOP, ViTIS" },
             new TeamMember { TeamId = ops.Id, UserId = eng1.Id, TeamRole = "Engineer", Skills = "Windows Server, SQL", ProductFamiliarity = "PSOP" },
             new TeamMember { TeamId = ops.Id, UserId = eng2.Id, TeamRole = "Engineer", Skills = "Linux, networking", ProductFamiliarity = "ViTIS" },
             new TeamMember { TeamId = app.Id, UserId = former.Id, TeamRole = "Engineer", Skills = "Application support", ProductFamiliarity = "PSOP" });
@@ -220,8 +220,6 @@ public static class DevelopmentData
             new ResponsibilityBoundary { ClientId = nta.Id, Area = "Network", Party = ResponsibleParty.CustomerIT, Organization = "NTA IT (fictional)", CoordinatorUserId = eng1.Id },
             new ResponsibilityBoundary { ClientId = nta.Id, Area = "Application", Party = ResponsibleParty.TIO },
             new ResponsibilityBoundary { ClientId = hcp.Id, Area = "Backup", Party = ResponsibleParty.Unknown, CoordinatorUserId = eng2.Id, Notes = "To be confirmed with HCP IT" });
-        db.DocumentReferences.Add(new DocumentReference { RecordType = RecordTypes.Environment, RecordId = r1Prod.Id, ClientId = nta.Id, EnvironmentId = r1Prod.Id, Kind = DocumentKind.Link, Title = "R1 Production runbook (demo)", Reference = "https://docs.example.com/demo/nta-r1-runbook", OwnerUserId = eng1.Id });
-        db.DocumentReferences.Add(new DocumentReference { RecordType = RecordTypes.Asset, RecordId = db01.Id, ClientId = nta.Id, EnvironmentId = r1Prod.Id, Kind = DocumentKind.VaultReference, Title = "DB service account (vault reference)", Reference = "vault://demo/nta/r1/db01-service", OwnerUserId = eng1.Id });
         await db.SaveChangesAsync(ct);
 
         // Cases in several states.

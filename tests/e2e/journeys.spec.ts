@@ -1182,3 +1182,64 @@ test.describe('Contract terms and storage settings (A48, A49)', () => {
     await expect(panel).toContainText(`${old} files per upload`);
   });
 });
+
+test.describe('Teams, time zones and retired sections (A52, A53)', () => {
+  test('a team member gets a listed role and configured products, is edited and removed', async ({ page }) => {
+    const code = unique('TM').replace(/[^A-Z0-9]/gi, '').slice(-8).toUpperCase();
+    await page.goto('/teams');
+    await page.getByRole('button', { name: '+ New Team' }).click();
+    const nd = page.getByRole('dialog');
+    await nd.getByLabel('Code').fill(code);
+    await nd.getByLabel('Name').fill(`Fictional team ${code}`);
+    await nd.getByRole('button', { name: /Save|Create/ }).click();
+    await page.getByRole('link', { name: code, exact: true }).click();
+    await page.getByRole('button', { name: '+ Member' }).click();
+    const dlg = page.getByRole('dialog', { name: 'Add member' });
+    await dlg.getByLabel('Person').selectOption({ index: 1 });
+    const role = dlg.getByLabel('Team role');
+    await expect(role.locator('option', { hasText: 'Support engineer' })).toHaveCount(1);
+    await role.selectOption('Support engineer');
+    const products = dlg.getByRole('group', { name: 'Product familiarity' });
+    const first = products.getByRole('button').first();
+    const product = (await first.textContent())!.trim();
+    await first.click();
+    await expect(first).toHaveAttribute('aria-pressed', 'true');
+    await dlg.getByRole('button', { name: 'Add member' }).click();
+    await expect(dlg).toBeHidden();
+    const row = page.getByRole('row', { name: /Support engineer/ });
+    await expect(row).toContainText(product);
+    // Edit: another role, no products.
+    await row.getByRole('button', { name: /^Edit / }).click();
+    const ed = page.getByRole('dialog');
+    await ed.getByLabel('Team role').selectOption('Engineer');
+    await ed.getByRole('group', { name: 'Product familiarity' }).getByRole('button', { name: product, exact: true }).click();
+    await ed.getByRole('button', { name: 'Save' }).click();
+    await expect(ed).toBeHidden();
+    const edited = page.getByRole('row', { name: /Engineer/ }).filter({ has: page.getByRole('button', { name: /^Remove / }) });
+    await expect(edited).not.toContainText(product);
+    // Remove the membership.
+    await edited.getByRole('button', { name: /^Remove / }).click();
+    await page.getByRole('dialog').getByRole('button', { name: /^Delete/ }).click();
+    await expect(page.getByRole('button', { name: /^Remove / })).toHaveCount(0);
+    // The role list is configurable.
+    await page.goto('/admin/config');
+    await expect(page.getByRole('link', { name: /Team member roles/ })).toBeVisible();
+  });
+
+  test('time zones are chosen from lists and the review and reference sections are gone', async ({ page }) => {
+    await page.goto('/cases/new');
+    await page.getByLabel('Due (optional)').fill('2027-01-15T10:00');
+    const zone = page.getByLabel('Due time zone');
+    await expect(zone).toHaveJSProperty('tagName', 'SELECT');
+    await zone.selectOption('Asia/Dubai');
+    await expect(page.getByText('Due time zone (IANA)')).toHaveCount(0);
+    // No "Meaningful reviews" or "Document references" on a client page, an environment page or a contract page.
+    await page.goto('/clients');
+    await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).first().click();
+    await expect(page.getByRole('tab', { name: 'Reviews & documents' })).toHaveCount(0);
+    for (const t of await page.getByRole('tab').all()) {
+      await t.click();
+      await expect(page.getByRole('heading', { name: /Meaningful reviews|Document references/ })).toHaveCount(0);
+    }
+  });
+});

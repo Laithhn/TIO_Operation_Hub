@@ -48,7 +48,7 @@ if (string.Equals(authMode, "Development", StringComparison.OrdinalIgnoreCase))
 {
     // Unsafe outside a developer machine or the automated tests: refuse to start rather than run silently.
     if (!(env.IsDevelopment() || env.IsEnvironment("Testing")))
-        throw new InvalidOperationException("Auth:Mode=Development is only allowed in the Development and Testing environments. Configure Windows sign-in.");
+        throw new InvalidOperationException("Auth:Mode=Development is only allowed in the Development and Testing environments. Configure Forms or Windows sign-in.");
     builder.Services.AddAuthentication(DevAuthHandler.SchemeName)
         .AddScheme<AuthenticationSchemeOptions, DevAuthHandler>(DevAuthHandler.SchemeName, _ => { });
 }

@@ -6,7 +6,7 @@ import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../for
 import { useCan, useEnum, useForm, useLeaveGuard, useMe, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
-import { HistoryPanel, ReviewPanel, toNum, useClientOptions, useTeamOptions } from './common';
+import { HistoryPanel, toNum, useClientOptions, useTeamOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 
 const typeLabel = (t: string) => (t === 'RecordedContractualDeadline' ? 'Recorded deadline' : label(t));
@@ -126,7 +126,7 @@ export function CommitmentDetail() {
           <DL items={[
             ['Scope', c.client ? <Link to={`/clients/${c.client.id}`}>{c.client.code} · {c.client.name}</Link> : `Internal · ${c.team?.name}`], ['Owner', <Person u={c.owner} />],
             ['Type', c.typeLabel], ['Linked case', c.case ? <Link to={`/cases/${c.case.id}`}>{c.case.ref} · {c.case.title}</Link> : 'None'], ['Project', c.project ? `${c.project.code} · ${c.project.name}` : 'None'],
-            ['Next review', <When v={c.nextReviewAt} />], ['Last meaningful review', <When v={c.lastReviewedAt} />]
+            ['Next review', <When v={c.nextReviewAt} />], ['Last reviewed', <When v={c.lastReviewedAt} />]
           ]} />
         </Panel>
         <Panel title="Deadlines and outcome">
@@ -146,10 +146,10 @@ export function CommitmentDetail() {
           <div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul>
       </Panel>
       <AttachmentsPanel recordType="Commitment" recordId={c.id} canEdit={c.permissions.canEdit} />
-      <div className="cols"><ReviewPanel recordType="Commitment" recordId={c.id} scopes={['Record']} canReview={c.permissions.canEdit} /><HistoryPanel entityType="Commitment" entityId={c.id} /></div>
+      <HistoryPanel entityType="Commitment" entityId={c.id} />
       {dialog === 'revise' && <ActionDialog title="Revise deadline" path={`/commitments/${id}/revise`} version={c.version} onClose={close} submitLabel="Revise" intro="The original and every earlier deadline are kept."
         initial={{ dueLocal: toLocalInput(c.currentDueAt).length ? c.currentDueLocal.slice(0, 16).replace(' ', 'T') : '', timeZone: c.timeZone }}
-        fields={[{ name: 'dueLocal', label: 'New deadline (local time)', kind: 'datetime', required: true }, { name: 'timeZone', label: 'Time zone (IANA)', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
+        fields={[{ name: 'dueLocal', label: 'New deadline (local time)', kind: 'datetime', required: true }, { name: 'timeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
       {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro="Completion after the deadline stays Completed, with a derived late result. The time cannot be in the future or before creation."
         initial={{ completedAt: toLocalInput(new Date().toISOString()) }}
         fields={[{ name: 'completedAt', label: 'Fulfilled at', kind: 'datetime', required: true }, { name: 'evidence', label: 'Evidence or reference', kind: 'textarea', required: true }]}
