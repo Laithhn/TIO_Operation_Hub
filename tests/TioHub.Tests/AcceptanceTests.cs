@@ -2240,3 +2240,76 @@ public class AC57_VersionReleaseNotesAndFeatures(HubFactory hub) : Scenario(hub)
         Assert.Null(after.First(f => Id(f) == Id(dup))!["introducedIn"]?.GetValue<string>());
     }
 }
+
+[Collection("hub")]
+public class AC60_OperationsCommandCenter(HubFactory hub) : Scenario(hub)
+{
+    /// <summary>A60: command-center figures, period handling, the action queue's new kinds and severities, and the access boundary.</summary>
+    [Fact]
+    public async Task Command_center_measures_risk_targets_and_attention_from_real_records()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var e = await Hub.As(HubFactory.Engineer);
+        var viewer = await Hub.As("DEV\\" + U("norole").ToLowerInvariant()); // an account with no role at all
+        var c = await NewClient();
+        var env = await NewEnv(c, "Production");
+
+        // Access and input checks: an account without a business role sees no dashboard figures.
+        Assert.Equal(HttpStatusCode.Forbidden, (await viewer.Get("/dashboard/command-center")).Status);
+        Assert.NotNull((await m.Get("/dashboard/command-center?period=century")).Error("period"));
+        Assert.NotNull((await m.Get("/dashboard/command-center?period=custom")).Error("from"));
+
+        // Nothing yet for the new client: rates are not invented.
+        var empty = (await m.Get($"/dashboard/command-center?clientId={c}&period=7d")).Body!;
+        Assert.Equal(0, empty["cases"]!["openCount"]!.GetValue<int>());
+        Assert.Equal(0, empty["cases"]!["adherence"]!["measured"]!.GetValue<int>());
+        Assert.Equal(0, empty["escalations"]!["response"]!["measured"]!.GetValue<int>());
+        Assert.Equal("day", empty["period"]!["unit"]!.GetValue<string>());
+        Assert.InRange(empty["cases"]!["trend"]!.AsArray().Count, 7, 8);
+
+        // A case due within 24 hours, an escalation past its response target, an unavailable environment.
+        var local = TimeZoneInfo.ConvertTime(DateTimeOffset.UtcNow.AddHours(3), TimeZoneInfo.FindSystemTimeZoneById("Asia/Riyadh"));
+        var dueSoon = await NewCase(c, dueLocal: local.ToString("yyyy-MM-ddTHH:mm"));
+        var esc = await e.Create("/escalations", new
+        {
+            clientId = c, title = "Outage letter (fictional)", direction = "Received", channel = "FormalLetter", priority = "Critical", level = 2,
+            counterpart = new { name = "Fictional Director", email = "director@example.com" },
+            receivedAt = DateTimeOffset.UtcNow.AddHours(-6), ownerUserId = e.UserId, responseDueAt = DateTimeOffset.UtcNow.AddHours(-1), resolutionDueAt = DateTimeOffset.UtcNow.AddDays(2), caseId = dueSoon
+        });
+        await m.Create($"/environments/{env}/conditions", new { condition = "Unavailable", reason = "Database down (fictional)", evidence = "Monitoring screenshot", observedAt = DateTimeOffset.UtcNow.AddMinutes(-10) });
+
+        var cc = (await m.Get($"/dashboard/command-center?clientId={c}&period=today")).Body!;
+        Assert.Equal(1, cc["cases"]!["risk"]!["approaching"]!.GetValue<int>());
+        Assert.True(cc["cases"]!["openedInPeriod"]!.GetValue<int>() >= 1);
+        var es = cc["escalations"]!;
+        Assert.Equal(1, es["active"]!.GetValue<int>());
+        Assert.Equal(1, es["overdue"]!.GetValue<int>());
+        Assert.Equal(2, es["highestLevel"]!.GetValue<int>());
+        Assert.Equal(1, es["response"]!["measured"]!.GetValue<int>());
+        Assert.Equal(0, es["response"]!["met"]!.GetValue<int>());
+        Assert.Equal(0, es["resolution"]!["measured"]!.GetValue<int>()); // still running: not counted either way
+        var att = es["attention"]!.AsArray().Single()!;
+        Assert.Equal("response", att["missed"]!.GetValue<string>());
+        Assert.Equal(dueSoon, att["caseId"]!.GetValue<long>());
+        var envRow = cc["environments"]!.AsArray().Single()!;
+        Assert.Equal("Unavailable", envRow["condition"]!.GetValue<string>());
+
+        // The action queue: each item has a severity; the new kinds appear with the right one.
+        var actions = (await m.Get($"/dashboard/actions?clientId={c}")).Body!["items"]!.AsArray();
+        string Sev(string cat) => actions.First(a => a!["category"]!.GetValue<string>() == cat)!["severity"]!.GetValue<string>();
+        Assert.Equal("High", Sev("CaseDueSoon"));
+        Assert.Equal("Critical", Sev("EscalationOverdue"));
+        Assert.Equal("Critical", Sev("EnvironmentCondition"));
+        Assert.Equal("High", actions.First(a => a!["category"]!.GetValue<string>() == "CaseDueSoon")!["priority"]!.GetValue<string>());
+        Assert.All(actions, a => Assert.Contains(a!["severity"]!.GetValue<string>(), new[] { "Critical", "High", "Medium", "Low" }));
+        Assert.Equal(HttpStatusCode.OK, (await m.Get($"/cases?due=24h&clientId={c}")).Status);
+        Assert.Single((await m.Get($"/cases?due=24h&clientId={c}")).Body!["items"]!.AsArray());
+
+        // Acknowledging late still counts as a missed response target; "my work" narrows to the owner.
+        var mine = (await e.Get($"/dashboard/command-center?clientId={c}&ownerId={e.UserId}")).Body!;
+        Assert.Equal(1, mine["escalations"]!["active"]!.GetValue<int>());
+        var others = (await m.Get($"/dashboard/command-center?clientId={c}&ownerId={m.UserId}")).Body!;
+        Assert.Equal(0, others["escalations"]!["active"]!.GetValue<int>());
+        Assert.NotNull(esc);
+    }
+}

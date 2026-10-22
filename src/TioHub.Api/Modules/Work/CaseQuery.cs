@@ -47,6 +47,8 @@ public static class CaseQuery
             "overdue" => q.Where(c => c.DueAt != null && c.DueAt < now),
             "none" => q.Where(c => c.DueAt == null),
             "upcoming" => q.Where(c => c.DueAt != null && c.DueAt >= now && c.DueAt <= horizon),
+            // A60: the next 24 hours (the command center's "approaching" bucket).
+            "24h" => q.Where(c => c.DueAt != null && c.DueAt >= now && c.DueAt <= now.AddHours(24)),
             _ => q
         };
         if (f.Waiting == true) q = q.Where(c => c.WaitingReason != null);

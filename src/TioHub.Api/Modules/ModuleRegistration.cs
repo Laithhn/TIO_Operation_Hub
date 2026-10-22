@@ -31,6 +31,7 @@ public static class ModuleRegistration
         services.AddScoped<DataQualityEngine>();
         services.AddScoped<Dashboard>();
         services.AddScoped<Insights>();
+        services.AddScoped<CommandCenter>();
         services.AddHostedService<DataQualityScanner>();
         services.AddHostedService<Notifications.NotificationScanner>();
         return services;

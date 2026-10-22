@@ -50,7 +50,14 @@ function slot(i: number, n: number): [number, number] {
   return [(col - (cols - 1) / 2) * w, (row - (rows - 1) / 2) * h];
 }
 
-export type MapMetric ={ key: string; label: string; value: (d: CountryDatum) => number; alert?: (d: CountryDatum) => boolean };
+/** Runs fn now, or when a running zoom animation ends: layers added mid-animation keep the positions of the old zoom. */
+function whenSettled(m: L.Map, fn: () => void): (() => void) | undefined {
+  if (!(m as unknown as { _animatingZoom?: boolean })._animatingZoom) { fn(); return undefined; }
+  m.once('zoomend', fn);
+  return () => { m.off('zoomend', fn); };
+}
+
+export type MapMetric = { key: string; label: string; value: (d: CountryDatum) => number; alert?: (d: CountryDatum) => boolean };
 export type MapClientPoint = {
   id: number; code: string; name: string; country?: string | null; parentClientId?: number | null; environments: number; servers: number;
   openCases: number; overdueCases: number; openCommitments: number; overdueCommitments: number; activeContracts: number; renewalAttention: number;
@@ -91,14 +98,33 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
   const mine = useMemo(() => (features ?? []).filter(f => byName.has(f.properties.name)), [features, byName]);
   const mineRef = useRef(mine);
   mineRef.current = mine;
+  // True while a flight (flyTo/flyToBounds) is under way; it ends with moveend.
+  const flying = useRef(false);
+  const fly = (m: L.Map, go: () => void) => { flying.current = true; m.once('moveend', () => { flying.current = false; }); go(); };
   const fitClients = (animate = true) => {
     const m = map.current;
     if (!m) return;
     const list = mineRef.current;
-    if (list.length === 0) { m.setView([20, 15], 1.5); return; }
+    if (list.length === 0) { m.setView([20, 15], 1.5, { animate }); return; }
     const b = L.geoJSON({ type: 'FeatureCollection', features: list } as never).getBounds();
-    if (animate) m.flyToBounds(b, { padding: [28, 28], maxZoom: 5, duration: 0.6 }); else m.fitBounds(b, { padding: [28, 28], maxZoom: 5 });
+    // Without animate:false Leaflet still animates a zoom change of fewer than four levels.
+    if (animate) fly(m, () => m.flyToBounds(b, { padding: [28, 28], maxZoom: 5, duration: 0.6 }));
+    else m.fitBounds(b, { padding: [28, 28], maxZoom: 5, animate: false });
   };
+
+  // Fit on first draw; fly to the selected country, or back to all client countries when cleared.
+  // Declared before the drawing effects so that, after a selection, they already know a flight has started.
+  const first = useRef(true);
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !features) return;
+    const f = sel ? mine.find(x => x.properties.name === sel) : undefined;
+    const bounds = f ? L.geoJSON(largest(f) as never).getBounds() : null;
+    if (bounds && first.current) m.fitBounds(bounds, { padding: [40, 40], maxZoom: 6, animate: false });
+    else if (bounds) fly(m, () => m.flyToBounds(bounds, { padding: [40, 40], maxZoom: 6, duration: 0.7 }));
+    else fitClients(!first.current);
+    first.current = false;
+  }, [features, sel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Create the map, base layers and controls once.
   useEffect(() => {
@@ -135,7 +161,10 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
     });
     m.setView([20, 30], 2);
     map.current = m;
-    return () => { m.remove(); map.current = null; };
+    // Leaflet does not notice when its box changes size (page layout settling, window resize).
+    const ro = new ResizeObserver(() => m.invalidateSize({ pan: false }));
+    ro.observe(el.current);
+    return () => { ro.disconnect(); m.remove(); map.current = null; };
   }, [tileUrl, attribution]);
 
   // Full screen: the frame covers the window; Esc leaves.
@@ -149,88 +178,89 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
 
   // Country shading and value badges for the chosen figure.
   useEffect(() => {
-    const g = shading.current;
-    if (!map.current || !g || !features) return;
-    g.clearLayers();
-    const tip = (name: string, d: CountryRow) =>
-      `<b>${esc(name)}</b><div class="osm-tip-v"><b>${metric.value(d)}</b> ${esc(metric.label.toLowerCase())}</div>` +
-      `<div>${d.clients} client(s): ${esc(d.clientCodes.join(', '))}</div><div>${d.environments} environment(s)${d.servers !== undefined ? `, ${d.servers} server(s)` : ''}</div>` +
-      `<div>${d.openCases} open case(s)${d.overdueCases ? `, <b class="t-bad">${d.overdueCases} overdue</b>` : ''}</div>` +
-      `<div>${d.openCommitments} open commitment(s)${d.overdueCommitments ? `, <b class="t-bad">${d.overdueCommitments} overdue</b>` : ''}</div>` +
-      (d.activeContracts !== undefined ? `<div>${d.activeContracts} active contract(s)</div>` : '') + `<div class="muted">Click for the clients in ${esc(name)}</div>`;
-    for (const f of mine) {
-      const d = byName.get(f.properties.name)!;
-      const v = metric.value(d);
-      const isSel = f.properties.name === sel;
-      const toggle = () => fns.current.onSelect(isSel ? null : d.country);
-      const base = { color: isSel ? '#0c1b37' : '#ffffff', weight: isSel ? 2.5 : 1, fillColor: v > 0 ? RAMP[step(v)] : '#c9ced6', fillOpacity: isSel ? 0.75 : 0.6 };
-      L.geoJSON(f as never, { style: base })
-        .bindTooltip(tip(f.properties.name, d), { sticky: true, className: 'osm-tip' }).on('click', toggle)
-        .on('mouseover', e => (e.target as L.GeoJSON).setStyle({ fillOpacity: 0.85, weight: 2 }))
-        .on('mouseout', e => (e.target as L.GeoJSON).setStyle(base))
-        .addTo(g);
-      const alert = metric.alert?.(d) ?? (d.overdueCases + d.overdueCommitments > 0);
-      const name = `${f.properties.name}: ${v} ${metric.label.toLowerCase()}. Show its clients`;
-      L.marker(anchor(f), {
-        keyboard: true, title: name, riseOnHover: true,
-        icon: L.divIcon({
-          className: '', iconSize: [30, 30], iconAnchor: [15, 15],
-          html: `<span class="osm-badge${isSel ? ' sel' : ''}">${v}${alert ? `<i style="background:${STATUS.critical}" aria-hidden="true"></i>` : ''}</span>`
-        })
-      }).bindTooltip(tip(f.properties.name, d), { direction: 'top', offset: [0, -14], className: 'osm-tip' }).on('click', toggle)
-        // The badge text is only the value; give the keyboard button its full name.
-        .on('add', e => {
-          const btn = (e.target as L.Marker).getElement();
-          btn?.setAttribute('aria-label', name);
-          btn?.addEventListener('keydown', k => { if (k.key === 'Enter' || k.key === ' ') { k.preventDefault(); toggle(); } });
-        }).addTo(g);
-    }
+    const m = map.current, g = shading.current;
+    if (!m || !g || !features) return;
+    const draw = () => {
+      g.clearLayers();
+      const tip = (name: string, d: CountryRow) =>
+        `<b>${esc(name)}</b><div class="osm-tip-v"><b>${metric.value(d)}</b> ${esc(metric.label.toLowerCase())}</div>` +
+        `<div>${d.clients} client(s): ${esc(d.clientCodes.join(', '))}</div><div>${d.environments} environment(s)${d.servers !== undefined ? `, ${d.servers} server(s)` : ''}</div>` +
+        `<div>${d.openCases} open case(s)${d.overdueCases ? `, <b class="t-bad">${d.overdueCases} overdue</b>` : ''}</div>` +
+        `<div>${d.openCommitments} open commitment(s)${d.overdueCommitments ? `, <b class="t-bad">${d.overdueCommitments} overdue</b>` : ''}</div>` +
+        (d.activeContracts !== undefined ? `<div>${d.activeContracts} active contract(s)</div>` : '') + `<div class="muted">Click for the clients in ${esc(name)}</div>`;
+      for (const f of mine) {
+        const d = byName.get(f.properties.name)!;
+        const v = metric.value(d);
+        const isSel = f.properties.name === sel;
+        const toggle = () => fns.current.onSelect(isSel ? null : d.country);
+        const base = { color: isSel ? '#0c1b37' : '#ffffff', weight: isSel ? 2.5 : 1, fillColor: v > 0 ? RAMP[step(v)] : '#c9ced6', fillOpacity: isSel ? 0.75 : 0.6 };
+        L.geoJSON(f as never, { style: base })
+          .bindTooltip(tip(f.properties.name, d), { sticky: true, className: 'osm-tip' }).on('click', toggle)
+          .on('mouseover', e => (e.target as L.GeoJSON).setStyle({ fillOpacity: 0.85, weight: 2 }))
+          .on('mouseout', e => (e.target as L.GeoJSON).setStyle(base))
+          .addTo(g);
+        const alert = metric.alert?.(d) ?? (d.overdueCases + d.overdueCommitments > 0);
+        const name = `${f.properties.name}: ${v} ${metric.label.toLowerCase()}. Show its clients`;
+        L.marker(anchor(f), {
+          keyboard: true, title: name, riseOnHover: true,
+          icon: L.divIcon({
+            className: '', iconSize: [30, 30], iconAnchor: [15, 15],
+            html: `<span class="osm-badge${isSel ? ' sel' : ''}">${v}${alert ? `<i style="background:${STATUS.critical}" aria-hidden="true"></i>` : ''}</span>`
+          })
+        }).bindTooltip(tip(f.properties.name, d), { direction: 'top', offset: [0, -14], className: 'osm-tip' }).on('click', toggle)
+          // The badge text is only the value; give the keyboard button its full name.
+          .on('add', e => {
+            const btn = (e.target as L.Marker).getElement();
+            btn?.setAttribute('aria-label', name);
+            btn?.addEventListener('keydown', k => { if (k.key === 'Enter' || k.key === ' ') { k.preventDefault(); toggle(); } });
+          }).addTo(g);
+      }
+    };
+    return whenSettled(m, draw);
   }, [features, mine, byName, sel, metric]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Client markers: a ring around the country's centre, laid out in screen pixels for the current zoom.
+  // Redrawn once per finished zoom (Leaflet's zoomend), never in the middle of an animation, so an open popup is not
+  // replaced right after it opens.
   useEffect(() => {
     const m = map.current, g = clientLayer.current;
     if (!m || !g || !features) return;
-    g.clearLayers();
-    if (!sel && zoom < CLIENT_ZOOM) return;
-    const groups = new Map<string, MapClientPoint[]>();
-    for (const c of clients) {
-      if (!c.country) continue;
-      const k = normalizeCountry(c.country);
-      if (!groups.has(k)) groups.set(k, []);
-      groups.get(k)!.push(c);
-    }
-    // With a country opened, only its clients (neighbouring grids would overlap); otherwise every client country in view.
-    for (const f of sel ? mine.filter(x => x.properties.name === sel) : mine) {
-      const list = groups.get(f.properties.name) ?? [];
-      if (list.length === 0) continue;
-      const centre = m.project(anchor(f), zoom);
-      list.forEach((c, i) => {
-        const pos = m.unproject(centre.add(slot(i, list.length)), zoom);
-        const st = clientState(c);
-        const popup = `<div class="osm-pop"><div class="osm-pop-h"><b>${esc(c.code)}</b> <span class="muted">${esc(c.name)}</span></div>` +
-          (c.parentClientId ? '<div class="muted">Sub-client</div>' : '') +
-          `<div class="osm-pop-grid"><span><b>${c.environments}</b> env.</span><span><b>${c.servers}</b> servers</span><span><b>${c.openCases}</b> open cases</span>` +
-          `<span><b>${c.openCommitments}</b> commitments</span><span><b>${c.activeContracts}</b> contracts</span></div>` +
-          `<div class="osm-pop-state t-${st.tone}">${esc(st.label)}</div><a href="/clients/${c.id}" data-client="${c.id}">Open ${esc(c.code)} →</a></div>`;
-        L.marker(pos, {
-          keyboard: true, title: `${c.code}: ${c.name}. ${st.label}`, riseOnHover: true, zIndexOffset: 500,
-          icon: L.divIcon({ className: '', iconSize: null as unknown as L.PointExpression, html: `<span class="osm-client t-${st.tone}"><i aria-hidden="true"></i>${esc(c.code)}</span>` })
-        }).bindPopup(popup, { className: 'osm-popup', offset: [0, -6], maxWidth: 280 }).addTo(g);
-      });
-    }
-  }, [features, mine, clients, zoom, showClients, sel]);
-
-  // Fit on first draw; fly to the selected country, or back to all client countries when cleared.
-  const first = useRef(true);
-  useEffect(() => {
-    const m = map.current;
-    if (!m || !features) return;
-    const f = sel ? mine.find(x => x.properties.name === sel) : undefined;
-    if (f) m.flyToBounds(L.geoJSON(largest(f) as never).getBounds(), { padding: [40, 40], maxZoom: 6, duration: first.current ? 0 : 0.7 });
-    else fitClients(!first.current);
-    first.current = false;
-  }, [features, sel]); // eslint-disable-line react-hooks/exhaustive-deps
+    const draw = () => {
+      const zoom = m.getZoom();
+      g.clearLayers();
+      if (!sel && zoom < CLIENT_ZOOM) return;
+      const groups = new Map<string, MapClientPoint[]>();
+      for (const c of clients) {
+        if (!c.country) continue;
+        const k = normalizeCountry(c.country);
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k)!.push(c);
+      }
+      // With a country opened, only its clients (neighbouring grids would overlap); otherwise every client country in view.
+      for (const f of sel ? mine.filter(x => x.properties.name === sel) : mine) {
+        const list = groups.get(f.properties.name) ?? [];
+        if (list.length === 0) continue;
+        const centre = m.project(anchor(f), zoom);
+        list.forEach((c, i) => {
+          const pos = m.unproject(centre.add(slot(i, list.length)), zoom);
+          const st = clientState(c);
+          const popup = `<div class="osm-pop"><div class="osm-pop-h"><b>${esc(c.code)}</b> <span class="muted">${esc(c.name)}</span></div>` +
+            (c.parentClientId ? '<div class="muted">Sub-client</div>' : '') +
+            `<div class="osm-pop-grid"><span><b>${c.environments}</b> env.</span><span><b>${c.servers}</b> servers</span><span><b>${c.openCases}</b> open cases</span>` +
+            `<span><b>${c.openCommitments}</b> commitments</span><span><b>${c.activeContracts}</b> contracts</span></div>` +
+            `<div class="osm-pop-state t-${st.tone}">${esc(st.label)}</div><a href="/clients/${c.id}" data-client="${c.id}">Open ${esc(c.code)} →</a></div>`;
+          L.marker(pos, {
+            keyboard: true, title: `${c.code}: ${c.name}. ${st.label}`, riseOnHover: true, zIndexOffset: 500,
+            icon: L.divIcon({ className: '', iconSize: null as unknown as L.PointExpression, html: `<span class="osm-client t-${st.tone}"><i aria-hidden="true"></i>${esc(c.code)}</span>` })
+          }).bindPopup(popup, { className: 'osm-popup', offset: [0, -6], maxWidth: 280 }).addTo(g);
+        });
+      }
+    };
+    m.on('zoomend', draw);
+    // While a flight is under way the markers are drawn when it lands (zoomend), not at the zoom it starts from.
+    if (!flying.current && !(m as unknown as { _animatingZoom?: boolean })._animatingZoom) draw();
+    return () => { m.off('zoomend', draw); };
+  }, [features, mine, clients, showClients, sel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const unmatched = features ? data.filter(d => !features.some(f => f.properties.name === normalizeCountry(d.country))) : [];
   const legend = max <= RAMP.length ? Array.from({ length: max }, (_, i) => ({ c: RAMP[i], t: String(i + 1) }))

@@ -13,8 +13,9 @@ namespace TioHub.Api.Modules.Reporting;
 
 public sealed record DashboardQuery(long? ClientId, long? TeamId, long? OwnerId, long? ProductId, string? Country, DateTimeOffset? AsOf, string? Category);
 
+/// <summary>One action-list row. A60: Severity (Critical, High, Medium, Low) orders the command center queue; Priority is the record's own priority when it has one.</summary>
 public sealed record ActionItem(string Category, string RecordType, long RecordId, string Reference, string Title, long? ClientId, string? ClientCode,
-    string Owner, string Reason, string? NextAction, DateTimeOffset? DueAt, string Link);
+    string Owner, string Reason, string? NextAction, DateTimeOffset? DueAt, string Link, string Severity = "Medium", string? Priority = null);
 
 /// <summary>
 /// DAS-01…05: measures and the action list. Every count is produced by the same filter as its drilldown, at one evaluation time,
@@ -22,7 +23,24 @@ public sealed record ActionItem(string Category, string RecordType, long RecordI
 /// </summary>
 public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessService fresh)
 {
-    public static readonly string[] Categories = ["Unassigned", "Waiting", "ReviewOverdue", "OverdueCase", "OverdueCommitment", "ApproachingCommitment", "StaleReview", "CoverageGap", "DataQuality", "ContractRenewal", "PaymentDue"];
+    public static readonly string[] Categories = ["Unassigned", "Waiting", "ReviewOverdue", "OverdueCase", "CaseDueSoon", "OverdueCommitment", "ApproachingCommitment", "StaleReview", "CoverageGap",
+        "DataQuality", "ContractRenewal", "PaymentDue", "EscalationOverdue", "EnvironmentCondition"];
+
+    /// <summary>A60: how urgent each kind of item is; overdue Critical/High work and service outages come first.</summary>
+    public static string SeverityOf(ActionItem a) => a.Category switch
+    {
+        "OverdueCase" => a.Priority is "Critical" or "High" ? "Critical" : "High",
+        "CaseDueSoon" => a.Priority is "Critical" ? "Critical" : "High",
+        "EscalationOverdue" => "Critical",
+        "EnvironmentCondition" => a.Reason.StartsWith("Unavailable") ? "Critical" : "High",
+        "OverdueCommitment" => "High",
+        "PaymentDue" => a.Reason.StartsWith("Payment overdue") ? "High" : "Medium",
+        // Ended but still Active, or the notice deadline has passed (ContractQuery.Reason).
+        "ContractRenewal" => a.Reason.StartsWith("Ended") || a.Reason.Contains("has passed") ? "High" : "Medium",
+        "Unassigned" => a.Priority is "Critical" or "High" ? "High" : "Medium",
+        "CoverageGap" or "ApproachingCommitment" => "Medium",
+        _ => "Low"
+    };
 
     public async Task<object> MeasuresAsync(DashboardQuery p, CancellationToken ct)
     {
@@ -101,7 +119,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         {
             if (!Want(category)) return;
             var rows = await CaseQuery.Apply(db.Cases.AsNoTracking(), f, now, days, policy, db, prios).Select(CaseEndpoints.Row(now, policy)).ToListAsync(ct);
-            list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Case, r.Id, r.Ref, r.Title, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), r.NextAction, r.DueAt, $"/cases/{r.Id}")));
+            list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Case, r.Id, r.Ref, r.Title, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), r.NextAction, r.DueAt, $"/cases/{r.Id}", Priority: r.Priority.ToString())));
         }
         async Task AddCommitments(string category, CommitmentFilter f, Func<CommitmentEndpoints.CommitmentRow, string> reason)
         {
@@ -114,6 +132,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         await AddCases("Waiting", baseCase with { Waiting = true }, r => $"Waiting on {r.WaitingReason} since {r.WaitingSince:yyyy-MM-dd}");
         await AddCases("ReviewOverdue", baseCase with { ReviewOverdue = true }, r => $"Next review was due {r.NextReviewAt:yyyy-MM-dd HH:mm} UTC");
         await AddCases("OverdueCase", baseCase with { Due = "overdue" }, r => $"Due {r.DueAt:yyyy-MM-dd HH:mm} UTC");
+        await AddCases("CaseDueSoon", baseCase with { Due = "24h" }, r => $"Due within 24 hours ({r.DueAt:yyyy-MM-dd HH:mm} UTC)");
         await AddCommitments("OverdueCommitment", baseCom with { Due = "overdue" }, r => $"Due {r.CurrentDueAt:yyyy-MM-dd HH:mm} UTC ({r.TimeZone})");
         await AddCommitments("ApproachingCommitment", baseCom with { Due = "upcoming" }, r => $"Due within {days} days");
         await AddCases("StaleReview", baseCase with { Stale = true }, _ => "No meaningful review within the policy period");
@@ -171,7 +190,32 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
                     x.Status == PaymentStatus.Invoiced ? "Follow up the invoice; record Paid with the date when received" : "Invoice the client, then record the payment",
                     x.DueDate?.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc), $"/contracts/{x.ContractId}")));
         }
-        return list;
+        if (Want("EscalationOverdue") && p.TeamId is null)
+        {
+            // A60: active escalations past their response target (still Open) or their resolution target.
+            var eq = Escalations.EscalationQuery.Apply(db.Escalations.AsNoTracking(), new Escalations.EscalationFilter(ClientId: p.ClientId, OwnerId: p.OwnerId, ProductId: p.ProductId, Country: p.Country, Overdue: true), now, db);
+            list.AddRange((await eq.Select(e => new { e.Id, e.Ref, e.Title, e.ClientId, code = e.Client!.Code, owner = e.Owner!.DisplayName, e.Level, e.Priority, e.Status, e.ResponseDueAt, e.ResolutionDueAt }).ToListAsync(ct))
+                .Select(e =>
+                {
+                    var responseLate = e.Status == Escalations.EscalationStatus.Open && e.ResponseDueAt < now;
+                    var due = responseLate ? e.ResponseDueAt : e.ResolutionDueAt;
+                    return new ActionItem("EscalationOverdue", "Escalation", e.Id, e.Ref, e.Title, e.ClientId, e.code, e.owner,
+                        $"Level {e.Level} · {(responseLate ? "response" : "resolution")} target passed", responseLate ? "Acknowledge and respond to the client" : "Resolve, or agree a new target", due, $"/escalations/{e.Id}", Priority: e.Priority.ToString());
+                }));
+        }
+        if (Want("EnvironmentCondition") && p.TeamId is null)
+        {
+            // A60: environments reported Degraded or Unavailable (manual condition reports, not live monitoring).
+            var envQ = db.Environments.AsNoTracking().Where(e => (e.Condition == Condition.Degraded || e.Condition == Condition.Unavailable) && db.Clients.Any(c => c.Id == e.ClientId));
+            if (p.ClientId is not null) envQ = envQ.Where(e => e.ClientId == p.ClientId);
+            if (p.ProductId is not null) envQ = envQ.Where(e => db.Installations.Any(i => i.EnvironmentId == e.Id && i.ProductId == p.ProductId));
+            if (!string.IsNullOrWhiteSpace(p.Country)) envQ = p.Country == "Unknown" ? envQ.Where(e => e.Client!.CountryUnknown) : envQ.Where(e => e.Client!.Country == p.Country);
+            if (p.OwnerId is not null) envQ = envQ.Where(e => e.OwnerUserId == p.OwnerId || e.BackupOwnerUserId == p.OwnerId);
+            list.AddRange((await envQ.Select(e => new { e.Id, e.Name, e.ClientId, code = e.Client!.Code, owner = e.Owner == null ? null : e.Owner.DisplayName, e.Condition, e.ConditionReason, e.ConditionObservedAt }).ToListAsync(ct))
+                .Select(e => new ActionItem("EnvironmentCondition", RecordTypes.Environment, e.Id, e.code, e.Name, e.ClientId, e.code, e.owner ?? "Unassigned",
+                    $"{e.Condition} (reported){(e.ConditionReason is null ? "" : $" — {e.ConditionReason}")}", "Restore the service and report the condition", e.ConditionObservedAt, $"/environments/{e.Id}")));
+        }
+        return list.Select(a => a with { Severity = SeverityOf(a) }).ToList();
     }
 
     public static string RecordLink(string type, long id) => type switch
@@ -196,6 +240,15 @@ public static class DashboardEndpoints
         {
             access.RequireBusiness();
             return Results.Ok(await insights.BuildAsync(p, ct));
+        });
+        // A60: the Operations Command Center's period and attention figures (period = today, 7d, 30d, quarter or custom with from/to).
+        g.MapGet("/command-center", async ([AsParameters] DashboardQuery p, string? period, DateTimeOffset? from, DateTimeOffset? to, CommandCenter cc, HubAccess access, CancellationToken ct) =>
+        {
+            access.RequireBusiness();
+            if (period is not null && !CommandCenter.Periods.Contains(period)) throw new ValidationException("period", "Unknown reporting period.");
+            if (period == "custom" && (from is null || to is null || from >= to)) throw new ValidationException("from", "Give a start before the end for a custom period.");
+            if (period == "custom" && to - from > TimeSpan.FromDays(731)) throw new ValidationException("to", "A custom period can cover at most two years.");
+            return Results.Ok(await cc.BuildAsync(p, period, from, to, access.Me, ct));
         });
         g.MapGet("/actions", async ([AsParameters] DashboardQuery p, Dashboard dash, HubAccess access, CancellationToken ct) =>
         {

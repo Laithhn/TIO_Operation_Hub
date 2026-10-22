@@ -10,7 +10,7 @@ import { NotesWorkspace } from './pages/Notes';
 import { ConfigHome, ConfigListPage } from './pages/Configuration';
 import { ContractDetail, ContractForm, ContractList, ProjectDetail } from './pages/Contracts';
 import { ActionList } from './pages/Actions';
-import { Dashboard } from './pages/Dashboard';
+import { ClientMap, Dashboard } from './pages/Dashboard';
 import { MicroserviceDetail, ProductDetail, ProductForm, ProductList } from './pages/Products';
 import { ChangePasswordPage, LoginPage } from './pages/SignIn';
 import { EnvironmentDetail, EnvironmentForm, EnvironmentList } from './pages/Environments';
@@ -38,6 +38,12 @@ function Home() {
   return <Dashboard />;
 }
 
+function MapHome() {
+  const me = useMe().data!;
+  if (!me.businessRole) return me.isAdministrator ? <Navigate to="/admin/users" replace /> : <NoAccess />;
+  return <ClientMap />;
+}
+
 function NoAccess() {
   return (<>
     <PageHead title="No business access" />
@@ -55,6 +61,7 @@ export const router = createBrowserRouter([
   {
     path: '/', element: <Root />, children: [
       { index: true, element: <Home /> },
+      { path: 'map', element: <MapHome /> },
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'data-quality', element: <DataQuality /> },

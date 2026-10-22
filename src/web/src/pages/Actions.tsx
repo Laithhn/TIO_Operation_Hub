@@ -9,7 +9,8 @@ type Action = { category: string; recordType: string; recordId: number; referenc
 
 const CATS: Record<string, string> = {
   Unassigned: 'Unassigned', Waiting: 'Waiting / blocked', ReviewOverdue: 'Review overdue', OverdueCase: 'Overdue cases', OverdueCommitment: 'Overdue commitments',
-  ApproachingCommitment: 'Approaching', StaleReview: 'Stale reviews', CoverageGap: 'Coverage gaps', DataQuality: 'Data quality', ContractRenewal: 'Contract renewals', PaymentDue: 'Payments due'
+  ApproachingCommitment: 'Approaching', StaleReview: 'Stale reviews', CoverageGap: 'Coverage gaps', DataQuality: 'Data quality', ContractRenewal: 'Contract renewals', PaymentDue: 'Payments due',
+  CaseDueSoon: 'Due within 24 h', EscalationOverdue: 'Escalations past target', EnvironmentCondition: 'Environments down'
 };
 
 // Operational follow-up list (moved off the executive overview so the overview stays fully visual).

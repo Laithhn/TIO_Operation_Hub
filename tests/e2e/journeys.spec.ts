@@ -213,6 +213,7 @@ test.describe('Sub-clients and copying between regions', () => {
     // The main client lists it.
     await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).first().click();
     const subs = page.locator('section.panel', { has: page.getByRole('heading', { name: /Sub-clients/ }) });
+    await subs.getByLabel('Filter rows').fill(alias);
     await expect(subs.getByRole('row', { name: new RegExp(alias) })).toContainText('Mara Okafor');
     await page.screenshot({ path: 'test-results/visual-subclients-1600.png', fullPage: true });
     await page.goto(`/clients?q=${alias}`);
@@ -319,6 +320,8 @@ test.describe('Sub-clients and copying between regions', () => {
     await expect(heading).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'R2', exact: true })).toBeVisible();
     await page.getByRole('tab', { name: /Servers & assets/ }).click();
+    // Earlier runs left copies in R1, so the copied environment has more than one page of servers.
+    await page.getByLabel('Filter rows').first().fill(`nta-r2${tag}-db01`);
     await expect(page.getByRole('link', { name: `nta-r2${tag}-db01` })).toBeVisible();
   });
 });
@@ -410,6 +413,8 @@ test.describe('Configuration', () => {
     await dlg.getByLabel('Behaves as').selectOption({ label: 'Physical server — Counted as a physical server' });
     await dlg.getByRole('button', { name: 'Add', exact: true }).click();
     await expect(dlg).toBeHidden();
+    // Earlier runs add server types too; the table pages at 25 rows, so narrow it first.
+    await page.getByLabel('Filter rows').fill(name);
     await expect(page.getByRole('row', { name: new RegExp(name) })).toContainText('Physical server');
     await page.screenshot({ path: 'test-results/visual-config-server-types-1600.png', fullPage: true });
     // The old single page now leads to the overview.
@@ -433,6 +438,7 @@ test.describe('Configuration', () => {
     await form.getByRole('button', { name: 'Add server' }).click();
     await expect(form).toBeHidden();
     await page.getByRole('tab', { name: /Servers & assets/ }).click();
+    await page.getByLabel('Filter rows').first().fill(server);
     await expect(page.getByRole('row', { name: new RegExp(server) })).toContainText(name);
   });
 });
@@ -585,7 +591,10 @@ test.describe('Microservices', () => {
     });
     await page.goto(`/installations/${inst}`);
     const panel = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Microservice deployment' }) });
-    await panel.getByRole('row', { name: /nta-r1-app01/ }).getByRole('button', { name: 'Choose microservices' }).click();
+    // Earlier runs left copies such as nta-r1-app01-x in the environment: narrow the table and take the original.
+    await panel.getByLabel('Filter rows').fill('nta-r1-app01');
+    // The row has no accessible name once many microservices are listed in it, so it is found by its server link.
+    await panel.getByRole('row').filter({ has: page.getByRole('link', { name: 'nta-r1-app01', exact: true }) }).getByRole('button', { name: 'Choose microservices' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel(new RegExp(`PSOP\.Importer${tag}\.Microservice`)).check();
     await dialog.getByLabel(new RegExp(`PSOP\.PlateLookup${tag}\.Microservice`)).check();
@@ -638,7 +647,7 @@ test.describe('Dashboard visualizations', () => {
 
   test('executive overview: KPI band, OpenStreetMap filter and table views', async ({ page }) => {
     await page.goto('/');
-    await expect(page.getByRole('heading', { level: 1, name: 'Executive overview' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Operations Command Center' })).toBeVisible();
     // Every KPI is a link whose number equals its drilldown; the action list is a separate page.
     const openCases = page.getByRole('link', { name: /^Open cases: \d+/ });
     await expect(openCases).toBeVisible();
@@ -646,7 +655,9 @@ test.describe('Dashboard visualizations', () => {
     await openCases.click();
     await expect(page).toHaveURL(/\/cases\?/);
     await expect(page.getByText(new RegExp(`Records :- ${Math.min(n, 15)} OF ${n}`))).toBeVisible();
-    await page.goto('/');
+    // A59: the map has its own page; a country opens the overview filtered to it.
+    await page.goto('/map');
+    await expect(page.getByRole('heading', { level: 1, name: 'Client map' })).toBeVisible();
     const map = page.getByRole('group', { name: /OpenStreetMap of clients by country/ });
     await expect(map).toBeVisible({ timeout: 15000 });
     await expect(map.getByText('© OpenStreetMap contributors')).toBeVisible();
@@ -656,21 +667,25 @@ test.describe('Dashboard visualizations', () => {
     const side = page.getByRole('complementary', { name: 'Clients in Saudi Arabia' });
     await expect(side).toBeVisible();
     await expect(side.getByRole('link').first()).toBeVisible();
-    await side.getByRole('button', { name: 'Filter dashboard to Saudi Arabia' }).click();
-    await expect(page).toHaveURL(/country=Saudi/);
+    await side.getByRole('link', { name: 'Show the overview for Saudi Arabia' }).click();
+    await expect(page).toHaveURL(/\/\?.*country=Saudi/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Operations Command Center' })).toBeVisible();
     await expect(page.getByLabel('Country', { exact: true })).toHaveValue('Saudi Arabia');
-    await expect(page.getByRole('button', { name: /Clear country filter/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Reset filters' })).toBeVisible();
+    await expect(page.getByRole('group', { name: /OpenStreetMap of clients by country/ })).toHaveCount(0);
     const panel = page.locator('section.viz-panel', { has: page.getByRole('heading', { name: 'Open cases by status' }) });
     const toggle = panel.getByRole('button', { name: 'Table view' });
     await toggle.click();
     await expect(toggle).toHaveAttribute('aria-pressed', 'true');
     await expect(panel.locator('table')).toContainText('Pending validation');
-    // The map figure can be switched; contracts and SLAs have their own charts.
-    await page.getByRole('group', { name: 'Map figure' }).getByRole('button', { name: 'Contracts' }).click();
-    await expect(page.getByLabel('Active contracts per country')).toBeVisible();
+    // Contracts and SLAs have their own charts; the map figure is switched on the map page.
     await expect(page.getByRole('heading', { name: 'Contracts & SLAs' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'SLA targets by priority' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Active contracts ending, next 12 months' })).toBeVisible();
+    await page.screenshot({ path: 'test-results/visual-dashboard-1600.png', fullPage: true });
+    await page.getByRole('link', { name: 'Client map' }).first().click();
+    await page.getByRole('group', { name: 'Map figure' }).getByRole('button', { name: 'Contracts' }).click();
+    await expect(page.getByLabel('Active contracts per country')).toBeVisible();
     await page.screenshot({ path: 'test-results/visual-dashboard-map-1600.png', fullPage: true });
     await page.getByRole('link', { name: 'Action list' }).first().click();
     await expect(page.getByRole('heading', { level: 1, name: 'Action list' })).toBeVisible();
@@ -681,10 +696,10 @@ test.describe('Dashboard visualizations', () => {
     await page.goto('/');
     const nav = page.getByRole('navigation', { name: 'Dashboard sections' });
     await expect(nav.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'true');
-    // The strip lists what is overdue or due, each item opening its list (or says all clear).
-    const strip = page.getByRole('region', { name: 'Needs attention' });
+    // The attention queue lists what needs action now, each row opening its record (or says all clear).
+    const strip = page.getByRole('region', { name: 'Needs immediate attention' });
     await expect(strip).toBeVisible();
-    const first = strip.getByRole('link').first();
+    const first = strip.getByRole('link', { name: /^Open / }).first();
     if (await first.count()) {
       const href = await first.getAttribute('href');
       expect(href).toMatch(/^\//);
@@ -694,7 +709,9 @@ test.describe('Dashboard visualizations', () => {
     await expect(page.getByRole('heading', { name: 'Contracts & SLAs' })).toBeInViewport();
     await expect(nav.getByRole('link', { name: 'Contracts & SLAs' })).toHaveAttribute('aria-current', 'true');
     // Leaflet map: base maps and overlays, scale, full screen.
-    await nav.getByRole('link', { name: 'Map' }).click();
+    await expect(nav.getByRole('link', { name: 'Map' })).toHaveCount(0);
+    await page.getByRole('link', { name: 'Client map' }).first().click();
+    await expect(page).toHaveURL(/\/map/);
     const map = page.getByRole('group', { name: /OpenStreetMap of clients by country/ });
     await expect(map).toBeVisible({ timeout: 15000 });
     await expect(page.locator('.leaflet-control-layers')).toBeAttached();
@@ -711,7 +728,7 @@ test.describe('Dashboard visualizations', () => {
     const code = (await page.getByRole('complementary', { name: 'Clients in Saudi Arabia' }).locator('.map-client b').first().textContent())!.trim();
     const marker = page.locator('.osm-client').filter({ hasText: new RegExp(`^${code}$`) });
     await expect(marker).toBeInViewport({ timeout: 10000 });
-    await page.locator('#map').screenshot({ path: 'test-results/visual-dashboard-leaflet-clients.png' });
+    await page.locator('.map-panel').screenshot({ path: 'test-results/visual-dashboard-leaflet-clients.png' });
     await marker.click();
     await page.locator('.osm-pop a').click();
     await expect(page).toHaveURL(/\/clients\/\d+$/);
@@ -762,6 +779,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await page.getByRole('button', { name: '+ Add' }).click();
     await page.getByRole('dialog').getByLabel('Name').fill(label);
     await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByLabel('Filter rows').fill(label);
     await expect(page.getByRole('row', { name: new RegExp(label) })).toBeVisible();
     // Filter box, header sort and CSV export.
     await page.getByPlaceholder('Filter rows…').fill(label);
@@ -791,6 +809,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await dlg.getByLabel('Name', { exact: true }).fill('E2E temporary team');
     await dlg.getByRole('button', { name: 'Create team' }).click();
     await expect(dlg).toBeHidden();
+    await page.getByLabel('Filter rows').fill(code);
     await expect(page.getByRole('row', { name: new RegExp(code) })).toBeVisible();
     await page.getByRole('button', { name: `Delete team ${code}` }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
@@ -867,6 +886,8 @@ test.describe('Escalations (A41)', () => {
     await page.getByRole('button', { name: '+ Add' }).click();
     await page.getByRole('dialog').getByLabel('Name').fill(channel);
     await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click();
+    // Earlier runs add channels too; the table pages at 25 rows, so narrow it first.
+    await page.getByLabel('Filter rows').fill(channel);
     await expect(page.getByRole('row', { name: new RegExp(channel) })).toBeVisible();
 
     await page.goto('/escalations/new');
@@ -907,8 +928,10 @@ test.describe('Escalations (A41)', () => {
     await page.getByRole('link', { name: 'DEMO-NTA' }).first().click();
     await page.getByRole('tab', { name: 'Escalations' }).click();
     await page.getByLabel('Status').selectOption('all');
+    await page.getByLabel('Filter rows').first().fill(title);
     await expect(page.getByRole('row', { name: new RegExp(title) })).toContainText('Resolved');
     await page.goto('/admin/config/escalation-channels');
+    await page.getByLabel('Filter rows').fill(channel);
     await page.getByRole('button', { name: `Delete ${channel}` }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByRole('dialog').getByRole('alert')).toContainText(/is used by/);
@@ -1152,7 +1175,7 @@ test.describe('Contract terms and storage settings (A48, A49)', () => {
     await expect(row).toContainText('in 5 day(s)');
     await expect(page.getByRole('heading', { name: 'Payment reminders' })).toBeVisible();
     await page.goto('/');
-    await expect(page.getByRole('link', { name: /^Payments due: \d+/ })).toBeVisible();
+    await expect(page.getByRole('link', { name: /^Overdue payments: \d+/ })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Contract payments' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Next payments' })).toBeVisible();
   });
@@ -1339,5 +1362,51 @@ test.describe('Version release notes and project teams from Teams (A57, A58)', (
     const before = await page.getByRole('button', { name: /^Remove team member/ }).count();
     await page.getByRole('button', { name: '+ Team member' }).click();
     await expect(page.getByRole('button', { name: /^Remove team member/ })).toHaveCount(before + 1);
+  });
+});
+
+test.describe('Operations Command Center (A60)', () => {
+  test('period, my work, reset, the attention queue and the sections work on real records', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByRole('heading', { level: 1, name: 'Operations Command Center' })).toBeVisible();
+    await expect(page.getByText(/Last refreshed/)).toBeVisible();
+    // Eight figures, each a link to its list.
+    for (const name of ['Clients', 'Open cases', 'Targets met (period)', 'Open commitments', 'Active escalations', 'Active contracts', 'Overdue payments', 'Environment health'])
+      await expect(page.getByRole('link', { name: new RegExp(`^${name.replace(/[()]/g, '\\$&')}: `) })).toBeVisible();
+
+    // The attention queue: severity first, filter by issue type, rows open their record.
+    const queue = page.getByRole('region', { name: 'Needs immediate attention' });
+    const firstSeverity = queue.locator('tbody tr').first().locator('td').first();
+    await expect(firstSeverity).toContainText(/Critical|High|Medium/);
+    const chip = queue.getByRole('group', { name: 'Issue type' }).getByRole('button').nth(1);
+    if (await chip.count()) {
+      const label = (await chip.textContent())!.replace(/\s*\d+$/, '').trim();
+      await chip.click();
+      await expect(chip).toHaveAttribute('aria-pressed', 'true');
+      for (const kind of await queue.locator('.cc-kind').allTextContents()) expect(kind.toLowerCase()).toBe(label.toLowerCase());
+      await chip.click();
+    }
+
+    // Reporting period: custom range shows dates; My work and Reset.
+    await page.getByLabel('Reporting period').selectOption('custom');
+    await expect(page.getByLabel('From', { exact: true })).toBeVisible();
+    await page.getByLabel('From', { exact: true }).fill('2026-01-01');
+    await page.getByLabel('To', { exact: true }).fill('2026-03-31');
+    await expect(page.getByRole('heading', { name: /Cases opened and closed — the chosen dates/ })).toBeVisible();
+    await page.getByRole('group', { name: 'Show' }).getByRole('button', { name: 'My work' }).click();
+    await expect(page).toHaveURL(/view=mine/);
+    await expect(page.getByText(/filter\(s\) active/)).toBeVisible();
+    await page.getByRole('button', { name: 'Reset filters' }).click();
+    await expect(page.getByLabel('Reporting period')).toHaveValue('30d');
+    await expect(page.getByText(/filter\(s\) active/)).toHaveCount(0);
+
+    // Sections: contract health tiles, the honest SLA statement, environment health, data quality.
+    await expect(page.locator('[aria-label="Contract health"]').getByRole('link')).toHaveCount(6);
+    await expect(page.getByText('Measured SLA compliance is not yet available.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Environments not reported healthy' })).toBeVisible();
+    const dq = page.locator('section#quality');
+    await expect(dq.getByRole('columnheader', { name: 'Severity' })).toBeVisible();
+    const rule = dq.getByRole('link', { name: /^Open / }).first();
+    if (await rule.count()) { await rule.click(); await expect(page).toHaveURL(/\/data-quality\?rule=/); }
   });
 });

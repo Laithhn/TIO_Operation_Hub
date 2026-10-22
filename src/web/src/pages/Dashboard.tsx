@@ -3,14 +3,14 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
-import { useMe, useUrlState } from '../hooks';
+import { useCan, useMe, useUrlState } from '../hooks';
 import {
-  CAT, Columns, Donut, HBars, Kpi, normalizeCountry, RAMP, SERIES, SlaMatrix, STATUS, TrendLines, VizPanel, fmtMinutes,
+  CAT, Columns, Donut, HBars, Kpi, normalizeCountry, PartBar, RAMP, SERIES, SlaMatrix, STATUS, TrendLines, VizPanel, fmtMinutes,
   type CountryDatum, type SlaRow
 } from '../ui/charts';
 import { Icon } from '../ui/Icon';
 import type { MapMetric } from '../ui/LeafletMap';
-import { Badge, PageHead, SelectInput, StateMessage } from '../ui/kit';
+import { Badge, DataTable, PageHead, SelectInput, StateMessage, TextInput } from '../ui/kit';
 import { useClientOptions, useProductOptions, useTeamOptions } from './common';
 
 const LeafletMap = lazy(() => import('../ui/LeafletMap'));
@@ -42,6 +42,28 @@ type Payments = {
   summary: { reminderDays: number; overdue: PayPart; due: PayPart; upcoming: PayPart };
   byMonth: BarT[]; amountsByMonth: { currency: string; overdue: number; months: number[] }[]; next: PayNext[];
 };
+type Pt = { key: string; label: string; a: number; b: number };
+type EscRow = {
+  id: number; ref: string; title: string; clientId: number; client: string; caseId?: number | null; caseRef?: string | null; level: number; owner: string; receivedAt: string;
+  responseDueAt?: string | null; resolutionDueAt?: string | null; status: string; overdue: boolean; overdueBy?: number | null; missed?: string | null;
+};
+type EnvRow = { id: number; name: string; clientId: number; client: string; condition: string; conditionReason?: string | null; conditionObservedAt?: string | null; owner?: string | null; products: string[] };
+/** A60: GET /dashboard/command-center — period figures and attention lists. */
+type CC = {
+  evaluatedAt: string; note: string; period: { from: string; to: string; unit: string; name: string };
+  cases: { openCount: number; criticalHigh: number; risk: { breached: number; approaching: number; withinTarget: number; noDeadline: number }; openedInPeriod: number; closedInPeriod: number;
+    adherence: { measured: number; onTime: number }; trend: Pt[] };
+  escalations?: { active: number; overdue: number; highestLevel: number | null; averageAgeDays: number | null; receivedInPeriod: number; response: { measured: number; met: number };
+    resolution: { measured: number; met: number }; trend: Pt[]; attention: EscRow[] } | null;
+  contracts?: { within30: number; within60: number; within90: number; expired: number; unknownEnd: number } | null;
+  payments?: { open: number; withoutAmount: number; overdueByClient: { clientId: number; client: string; count: number; amounts: { currency: string; amount: number }[] }[] } | null;
+  environments: EnvRow[];
+};
+type ActionRow = {
+  category: string; recordType: string; recordId: number; reference: string; title: string; clientId?: number | null; clientCode?: string | null; owner: string; reason: string;
+  nextAction?: string | null; dueAt?: string | null; link: string; severity: string; priority?: string | null;
+};
+
 /** Per-country figures for the map, with servers and contracts added from the per-client rows. */
 type MapDatum = CountryDatum & { servers: number; activeContracts: number; renewalAttention: number };
 
@@ -56,7 +78,6 @@ const RENEWAL_OF: Record<string, string> = { expired: STATUS.critical, due: STAT
 const CONTRACT_STATUS_OF: Record<string, string> = { Active: CAT[0], Draft: CAT[2], Ended: STATUS.neutral, Terminated: CAT[1] };
 const SUPPORT_OF: Record<string, string> = { Remote: CAT[0], OnSite: CAT[1], Hybrid: CAT[2], Unknown: STATUS.neutral };
 const tableOf = (rows: BarT[], col = 'Count') => ({ columns: ['Category', col], rows: rows.map(r => [r.label, r.value]) });
-const weekLabel = (iso: string) => new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', timeZone: 'UTC' }).format(new Date(iso + 'T00:00:00Z'));
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 const METRICS: (MapMetric & { short: string })[] = [
@@ -67,43 +88,147 @@ const METRICS: (MapMetric & { short: string })[] = [
   { key: 'contracts', label: 'Active contracts', short: 'Contracts', value: d => (d as MapDatum).activeContracts ?? 0, alert: d => ((d as MapDatum).renewalAttention ?? 0) > 0 }
 ];
 
-function KpiBand({ dash, d }: { dash: Dash; d: InsightsT }) {
+const rate = (met: number, measured: number) => (measured ? `${Math.round((met / measured) * 100)} %` : null);
+const PERIOD_LABEL: Record<string, string> = { today: 'today', '7d': 'the last 7 days', '30d': 'the last 30 days', quarter: 'this quarter', custom: 'the chosen dates' };
+
+/** Hours (from now) as "3 d 4 h" / "5 h" / "20 min". */
+function span(ms: number) {
+  const m = Math.round(Math.abs(ms) / 60000);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  if (h < 48) return `${h} h`;
+  return `${Math.floor(h / 24)} d ${h % 24} h`;
+}
+function dueText(iso?: string | null) {
+  if (!iso) return <span className="muted">No date</span>;
+  const ms = new Date(iso).getTime() - Date.now();
+  return ms < 0 ? <span className="t-bad"><b>{span(ms)}</b> overdue</span> : <span className={ms < 86400000 ? 't-warn' : undefined}>due in {span(ms)}</span>;
+}
+
+/** A60: the eight executive figures — each opens its list; nothing is shown that the data cannot support. */
+function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
   const m = (k: string) => [...dash.cases, ...dash.commitments].find(x => x.key === k)!;
   const openCases = m('openCases'), overdueCases = m('overdueCases'), openComs = m('openCommitments'), overdueComs = m('overdueCommitments'), upcoming = m('upcomingCommitments');
-  const urgent = d.cases.byPriority.filter(p => p.key === 'Critical' || p.key === 'High').reduce((s, p) => s + p.value, 0);
   const clients = d.countries.rows.reduce((s, r) => s + r.clients, 0) + d.countries.unknownCountryClients;
+  const env = (k: string) => d.environments.condition.find(c => c.key === k)?.value ?? 0;
   const envTotal = d.environments.condition.reduce((s, c) => s + c.value, 0);
-  const attention = d.environments.condition.filter(c => c.key === 'Degraded' || c.key === 'Unavailable').reduce((s, c) => s + c.value, 0);
   const cd = d.contractDetail;
-  const renewal = d.contracts.renewal.filter(r => r.key === 'expired' || r.key === 'due').reduce((s, r) => s + r.value, 0);
+  const renewalDue = d.contracts.renewal.find(r => r.key === 'due')?.value ?? 0;
+  const review = (cc.contracts?.expired ?? 0) + (cc.contracts?.unknownEnd ?? 0);
+  const e = cc.escalations;
+  const pay = d.payments?.summary;
+  const resp = e ? rate(e.response.met, e.response.measured) : null;
+  const reso = e ? rate(e.resolution.met, e.resolution.measured) : null;
+  const adh = rate(cc.cases.adherence.onTime, cc.cases.adherence.measured);
+  // All measured targets of the period together: escalation response and resolution, and case due dates.
+  const metAll = (e ? e.response.met + e.resolution.met : 0) + cc.cases.adherence.onTime;
+  const measuredAll = (e ? e.response.measured + e.resolution.measured : 0) + cc.cases.adherence.measured;
+  const amounts = (x?: PayPart) => x?.amounts.map(a => fmtMoney(a.amount, a.currency)).join(' + ') ?? '';
   return (
-    <div className="kpis kpis-wide">
-      <Kpi hero icon={<Icon name="clients" size={18} />} label="Clients" value={clients} to="/clients"
-        context={<>{d.countries.rows.length} countr{d.countries.rows.length === 1 ? 'y' : 'ies'}{d.countries.unknownCountryClients ? `, ${d.countries.unknownCountryClients} unknown` : ''}</>} />
-      <Kpi icon={<Icon name="case" size={18} />} label="Open cases" value={openCases.value} to={openCases.drilldown} part={urgent} of={openCases.value} partLabel={`${urgent} critical or high priority`} />
-      <Kpi icon={<Icon name="case" size={18} />} label="Overdue cases" value={overdueCases.value} to={overdueCases.drilldown} tone={overdueCases.value ? 'critical' : undefined}
-        part={overdueCases.value} of={openCases.value} partLabel={`${pct(overdueCases.value, openCases.value)} % of open cases`} />
-      <Kpi icon={<Icon name="commitment" size={18} />} label="Open commitments" value={openComs.value} to={openComs.drilldown} part={upcoming.value} of={openComs.value} partLabel={`${upcoming.value} due in the next ${dash.upcomingDays} days`} />
-      <Kpi icon={<Icon name="commitment" size={18} />} label="Overdue commitments" value={overdueComs.value} to={overdueComs.drilldown} tone={overdueComs.value ? 'critical' : undefined}
-        part={overdueComs.value} of={openComs.value} partLabel={`${pct(overdueComs.value, openComs.value)} % of open commitments`} />
-      {d.escalations && <Kpi icon={<Icon name="escalation" size={18} />} label="Active escalations" value={d.escalations.active} to="/escalations" tone={d.escalations.overdue ? 'critical' : undefined}
-        part={d.escalations.overdue} of={d.escalations.active} partLabel={d.escalations.overdue ? `${d.escalations.overdue} past a response or resolution target` : 'None overdue'} />}
-      {cd && <Kpi icon={<Icon name="list" size={18} />} label="Active contracts" value={cd.active} to="/contracts?status=Active" tone={renewal ? 'warning' : undefined}
-        part={renewal} of={cd.active} partLabel={renewal ? `${renewal} expired or due for renewal` : 'None due for renewal'} context={`${cd.withSla} with SLA targets`} />}
-      {d.payments && <PaymentKpi p={d.payments} />}
-      <Kpi icon={<Icon name="server" size={18} />} label="Environments needing attention" value={attention} to="/environments" tone={attention ? 'warning' : undefined}
-        part={attention} of={envTotal} partLabel={`Degraded or unavailable, of ${envTotal}`} context={d.environments.needsVerification ? `${d.environments.needsVerification} need verification` : undefined} />
+    <div className="kpis cc-kpis">
+      <Kpi icon={<Icon name="clients" size={18} />} label="Clients" value={clients} to="/clients"
+        context={<>{d.countries.rows.length} countr{d.countries.rows.length === 1 ? 'y' : 'ies'}{d.countries.unknownCountryClients ? `, ${d.countries.unknownCountryClients} without a country` : ''}</>} />
+      <Kpi icon={<Icon name="case" size={18} />} label="Open cases" value={openCases.value} to={openCases.drilldown} tone={overdueCases.value ? 'critical' : undefined}
+        part={overdueCases.value} of={openCases.value} partLabel={overdueCases.value ? `${overdueCases.value} overdue` : 'None overdue'}
+        context={`${cc.cases.criticalHigh} critical or high priority`} />
+      <Kpi icon={<Icon name="dashboard" size={18} />} label="Targets met (period)" value={rate(metAll, measuredAll) ?? 'Not available'} to="/escalations?status=all"
+        tone={cc.cases.risk.approaching ? 'warning' : undefined}
+        partLabel={e ? `Escalation response ${resp ?? 'n/a'} · resolution ${reso ?? 'n/a'}` : undefined}
+        context={<>Case due dates met: {adh ?? 'n/a'}{cc.cases.risk.approaching ? ` · ${cc.cases.risk.approaching} case(s) due within 24 h` : ''}</>} />
+      <Kpi icon={<Icon name="commitment" size={18} />} label="Open commitments" value={openComs.value} to={openComs.drilldown} tone={overdueComs.value ? 'critical' : undefined}
+        part={overdueComs.value} of={openComs.value} partLabel={overdueComs.value ? `${overdueComs.value} overdue` : 'None overdue'}
+        context={`${upcoming.value} due in the next ${dash.upcomingDays} days`} />
+      {e && <Kpi icon={<Icon name="escalation" size={18} />} label="Active escalations" value={e.active} to="/escalations" tone={e.overdue ? 'critical' : undefined}
+        part={e.overdue} of={e.active} partLabel={e.overdue ? `${e.overdue} past a target` : 'None past a target'}
+        context={e.highestLevel ? `Highest active level: ${e.highestLevel}` : 'No active escalation'} />}
+      {cd && <Kpi icon={<Icon name="list" size={18} />} label="Active contracts" value={cd.active} to="/contracts?status=Active" tone={renewalDue || review ? 'warning' : undefined}
+        part={renewalDue} of={cd.active} partLabel={renewalDue ? `${renewalDue} due for renewal` : 'None due for renewal'}
+        context={review ? `${review} need review (ended but Active, or no end date)` : 'None need review'} />}
+      {pay && <Kpi icon={<Icon name="report" size={18} />} label="Overdue payments" value={pay.overdue.count} to="/notifications?show=payments&state=overdue"
+        tone={pay.overdue.count ? 'critical' : undefined}
+        partLabel={pay.overdue.count ? (pay.overdue.amounts.length ? amounts(pay.overdue) : 'Amounts not recorded') : 'None overdue'}
+        context={`${pay.due.count} due within ${pay.reminderDays} days`} />}
+      <Kpi icon={<Icon name="server" size={18} />} label="Environment health" value={`${env('Healthy')} / ${envTotal}`} to="/environments"
+        tone={env('Unavailable') ? 'critical' : env('Degraded') ? 'warning' : undefined}
+        partLabel={`healthy · ${env('Degraded')} degraded · ${env('Unavailable')} unavailable`}
+        context={`${env('Unknown')} not reported (unknown) · manually reported`} />
     </div>
   );
 }
 
-/** A39: interactive map — metric switch, country selection with its clients beside the map, filter and zoom. */
-function Geography({ countries, filtered, onFilter }: { countries: InsightsT['countries']; filtered: string; onFilter: (c: string) => void }) {
+const SEVERITY_RANK: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+const SEVERITY_TONE: Record<string, 'bad' | 'warn' | 'info' | 'neutral'> = { Critical: 'bad', High: 'warn', Medium: 'info', Low: 'neutral' };
+const QUEUE: Record<string, string> = {
+  OverdueCase: 'Overdue case', CaseDueSoon: 'Case due within 24 h', EscalationOverdue: 'Escalation past target', EnvironmentCondition: 'Environment degraded or down',
+  OverdueCommitment: 'Overdue commitment', PaymentDue: 'Payment', ContractRenewal: 'Contract renewal', Unassigned: 'Unassigned case'
+};
+type QueueRow = ActionRow & { also: string[] };
+
+/** A60: one queue of what needs action now, from the action list — most severe and earliest due first, one row per record. */
+function ActionCenter({ params }: { params: Record<string, string> }) {
+  const q = useQuery({ queryKey: ['actions', params], queryFn: () => get<{ items: ActionRow[] }>(`/dashboard/actions${qs(params)}`), placeholderData: keepPreviousData });
+  const [cat, setCat] = useState('');
+  const [all, setAll] = useState(false);
+  const rows = useMemo(() => {
+    const items = (q.data?.items ?? []).filter(i => QUEUE[i.category] && (i.category !== 'Unassigned' || i.severity === 'High'));
+    const byRecord = new Map<string, QueueRow>();
+    for (const i of [...items].sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])) {
+      const key = `${i.recordType}:${i.recordId}`;
+      const have = byRecord.get(key);
+      if (!have) byRecord.set(key, { ...i, also: [] });
+      else if (have.category !== i.category && !have.also.includes(QUEUE[i.category])) have.also.push(QUEUE[i.category]);
+    }
+    return [...byRecord.values()].sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]
+      || (a.dueAt ? new Date(a.dueAt).getTime() : Infinity) - (b.dueAt ? new Date(b.dueAt).getTime() : Infinity));
+  }, [q.data]);
+  const counts = useMemo(() => rows.reduce<Record<string, number>>((m, r) => ({ ...m, [r.category]: (m[r.category] ?? 0) + 1 }), {}), [rows]);
+  const shown = rows.filter(r => !cat || r.category === cat);
+  const visible = all ? shown : shown.slice(0, 8);
+  const critical = rows.filter(r => r.severity === 'Critical').length;
+  return (
+    <section className="dash-band" id="attention" aria-labelledby="attention-h">
+      <div className="band-head">
+        <span className="band-ic" aria-hidden="true"><Icon name="bell" size={16} /></span>
+        <h2 className="band-title" id="attention-h">Needs immediate attention</h2>
+        <span className="hint">{q.isLoading ? 'Loading…' : rows.length === 0 ? 'Nothing is overdue, due within 24 hours or down — all clear.' : `${rows.length} item(s) · ${critical} critical`}</span>
+      </div>
+      <section className="panel cc-queue">
+        {rows.length > 0 && (
+          <div className="cc-chips" role="group" aria-label="Issue type">
+            <button aria-pressed={!cat} onClick={() => setCat('')}>All <b>{rows.length}</b></button>
+            {Object.keys(QUEUE).filter(k => counts[k]).map(k => (
+              <button key={k} aria-pressed={cat === k} onClick={() => setCat(cat === k ? '' : k)}>{QUEUE[k]} <b>{counts[k]}</b></button>
+            ))}
+          </div>
+        )}
+        <DataTable<QueueRow> rowKey={r => `${r.recordType}:${r.recordId}`} rows={visible} loading={q.isLoading} error={q.error} tools={false} pageSize={50} empty="none"
+          caption="Needs immediate attention" columns={[
+            { key: 'p', header: 'Priority', render: r => <><Badge tone={SEVERITY_TONE[r.severity] ?? 'neutral'}>{r.severity}</Badge>{r.priority && <span className="hint pay-sub">{r.priority} priority</span>}</> },
+            { key: 'i', header: 'Issue', render: r => <><span className="cc-kind">{QUEUE[r.category]}</span><Link to={r.link}><b>{r.reference}</b></Link> <span className="cc-title">{r.title}</span></> },
+            { key: 'c', header: 'Client', render: r => r.clientId ? <Link to={`/clients/${r.clientId}`}>{r.clientCode ?? 'Client'}</Link> : <span className="muted">Internal</span> },
+            { key: 'o', header: 'Owner', render: r => r.owner === 'Unassigned' ? <Badge tone="warn">Unassigned</Badge> : r.owner },
+            { key: 'd', header: 'Age / due', className: 'nowrap', render: r => dueText(r.dueAt) },
+            { key: 's', header: 'Status', render: r => <>{r.reason}{r.also.length > 0 && <span className="hint">also: {r.also.join(', ')}</span>}</> },
+            { key: 'a', header: 'Action', className: 'nowrap', render: r => <Link className="btn btn-sm" to={r.link} title={r.nextAction ?? undefined} aria-label={`Open ${r.reference}`}>Open</Link> }
+          ]} />
+        <div className="cc-queue-foot">
+          {shown.length > 8 && <button className="linkbtn" onClick={() => setAll(v => !v)}>{all ? 'Show the top 8' : `Show all ${shown.length}`}</button>}
+          <Link to={`/actions${qs(params)}`}>Open the full action list</Link>
+          <span className="hint">Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record; other warnings on it are listed under Status.</span>
+        </div>
+      </section>
+    </section>
+  );
+}
+
+/** A39: interactive map/** A39: interactive map — metric switch, country selection with its clients beside the map, filter and zoom. */
+/** A59: the map page — the overview is opened for a country instead of filtering in place. */
+function Geography({ countries, overviewFor, initial }: { countries: InsightsT['countries']; overviewFor: (country: string) => string; initial?: string }) {
   const me = useMe().data!;
   const tiles = me.app.map;
   const nav = useNavigate();
   const [metricKey, setMetricKey] = useState('clients');
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(initial || null);
   const metric = METRICS.find(x => x.key === metricKey)!;
   // Servers and contracts per country, summed from the per-client rows.
   const data: MapDatum[] = useMemo(() => countries.rows.map(r => {
@@ -115,7 +240,7 @@ function Geography({ countries, filtered, onFilter }: { countries: InsightsT['co
   const ranked = [...data].sort((a, b) => metric.value(b) - metric.value(a) || b.clients - a.clients);
   const max = Math.max(1, ...ranked.map(metric.value));
   return (
-    <section className="map-panel panel" id="map">
+    <section className="map-panel panel">
       <div className="map-main">
         <div className="panel-head" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0 }}>Client footprint</h2>
@@ -157,14 +282,13 @@ function Geography({ countries, filtered, onFilter }: { countries: InsightsT['co
               ))}
             </div>
             <div className="map-side-actions">
-              {filtered !== sel.country ? <button className="btn btn-primary" onClick={() => onFilter(sel.country)}>Filter dashboard to {sel.country}</button>
-                : <button className="btn" onClick={() => onFilter('')}>Clear country filter</button>}
+              <Link className="btn btn-primary" to={overviewFor(sel.country)}>Show the overview for {sel.country}</Link>
               <Link className="btn" to={`/clients${qs({ country: sel.country })}`}>Open client list</Link>
             </div>
           </>
         ) : (
           <>
-            <div className="map-side-head"><h3>Countries by {metric.label.toLowerCase()}</h3>{filtered && <button className="linkbtn" onClick={() => onFilter('')}>Clear filter ({filtered})</button>}</div>
+            <div className="map-side-head"><h3>Countries by {metric.label.toLowerCase()}</h3></div>
             <div className="map-side-body">
               {ranked.length === 0 && <p className="muted" style={{ padding: 12 }}>No records entered.</p>}
               {ranked.map(c => {
@@ -195,11 +319,24 @@ function Band({ id, icon, title, hint, children }: { id: string; icon: string; t
   );
 }
 
-function CaseCharts({ d, age }: { d: InsightsT; age: Dash['caseAge'] }) {
-  const trend = d.cases.trend.map(t => ({ label: weekLabel(t.weekStart), a: t.opened, b: t.closed }));
+function CaseCharts({ d, age, cc }: { d: InsightsT; age: Dash['caseAge']; cc: CC }) {
+  const r = cc.cases.risk;
+  const risk: BarT[] = [
+    { key: 'breached', label: 'Past due', value: r.breached, link: '/cases?due=overdue' },
+    { key: 'approaching', label: 'Due within 24 h', value: r.approaching, link: '/cases?due=24h' },
+    { key: 'within', label: 'Due later', value: r.withinTarget, link: null },
+    { key: 'none', label: 'No due date', value: r.noDeadline, link: '/cases?due=none' }
+  ];
+  const RISK_OF: Record<string, string> = { breached: STATUS.critical, approaching: STATUS.warning, within: STATUS.good, none: STATUS.neutral };
+  const trend = cc.cases.trend.map(t => ({ label: t.label, a: t.a, b: t.b }));
+  const adh = rate(cc.cases.adherence.onTime, cc.cases.adherence.measured);
   return (
-    <Band id="cases" icon="case" title="Cases">
+    <Band id="cases" icon="case" title="Cases and commitments" hint={<>{cc.cases.openCount} open now · {cc.cases.openedInPeriod} opened and {cc.cases.closedInPeriod} closed in {PERIOD_LABEL[cc.period.name]}</>}>
       <div className="viz-grid three">
+        <VizPanel title="Deadline risk of open cases" sub={<>By the case due date (not a contractual SLA measurement). Due dates met by cases closed in the period: <b>{adh ?? 'not available'}</b>{adh && ` (${cc.cases.adherence.measured} closed with a due date)`}.</>}
+          table={tableOf(risk, 'Open cases')}>
+          <PartBar data={risk} colorOf={b => RISK_OF[b.key] ?? STATUS.neutral} unit="open cases" />
+        </VizPanel>
         <VizPanel title="Open cases by priority" sub="Darker = more urgent. Click a slice for the list." table={tableOf(d.cases.byPriority)}>
           <Donut data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key] ?? RAMP[1]} centerLabel="open cases" />
         </VizPanel>
@@ -210,8 +347,12 @@ function CaseCharts({ d, age }: { d: InsightsT; age: Dash['caseAge'] }) {
           sub={<>Average {age.averageDays ?? '—'}{age.averageDays !== null && ' days'}, oldest {age.oldestDays ?? '—'}{age.oldestDays !== null && ' days'}.</>}>
           <Columns data={d.cases.age} unit="case(s)" height={140} />
         </VizPanel>
-        <VizPanel title="Cases opened and closed per week" sub={d.cases.trendNote} table={{ columns: ['Week of', 'Opened', 'Closed'], rows: trend.map(t => [t.label, t.a, t.b]) }}>
+        <VizPanel title={`Cases opened and closed — ${PERIOD_LABEL[cc.period.name]}`} sub={`Per ${cc.period.unit}, in your time zone.`}
+          table={{ columns: ['Period', 'Opened', 'Closed'], rows: trend.map(t => [t.label, t.a, t.b]) }}>
           <TrendLines data={trend} aLabel="Opened" bLabel="Closed" />
+        </VizPanel>
+        <VizPanel title="Open commitments by deadline" sub="Deadline in force compared with now." table={tableOf(d.commitments, 'Open commitments')}>
+          <Columns data={d.commitments} colorOf={b => (b.key === 'overdue' ? STATUS.critical : SERIES.blue)} unit="commitment(s)" height={140} />
         </VizPanel>
       </div>
     </Band>
@@ -222,59 +363,70 @@ function CaseCharts({ d, age }: { d: InsightsT; age: Dash['caseAge'] }) {
 const ESC_STATUS_OF: Record<string, string> = { Open: RAMP[4], Acknowledged: RAMP[2], InProgress: RAMP[1], Resolved: CAT[2], Closed: STATUS.neutral, Withdrawn: CAT[1] };
 const LEVEL_OF: Record<string, string> = { '1': RAMP[1], '2': RAMP[3], '3': RAMP[4] };
 
-/** A41: escalations by channel, status, level and month received. */
-function EscalationCharts({ d }: { d: InsightsT }) {
+/** A41/A60: escalations — measured target results, the attention list, level, status, channel and volume in the period. */
+function EscalationCharts({ d, cc }: { d: InsightsT; cc: CC }) {
   const nav = useNavigate();
   const x = d.escalations;
-  if (!x) return null;
+  const e = cc.escalations;
+  if (!x || !e) return null;
+  const vol = e.trend.map(t => ({ key: t.key, label: t.label, value: t.a, link: null }));
   return (
-    <Band id="escalations" icon="escalation" title="Escalations" hint={<>{x.total} escalation(s) in view · {x.active} active · {x.overdue} overdue</>}>
+    <Band id="escalations" icon="escalation" title="Escalations"
+      hint={<>{e.active} active · {e.overdue} past a target · average age {e.averageAgeDays ?? '—'}{e.averageAgeDays !== null && ' days'} · {e.receivedInPeriod} received in {PERIOD_LABEL[cc.period.name]}</>}>
+      <section className="panel" aria-labelledby="esc-att-h">
+        <div className="panel-head" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <h2 id="esc-att-h" style={{ margin: 0 }}>Escalation attention list</h2>
+          <span className="hint" style={{ marginLeft: 'auto' }}>Targets met in the period — response {rate(e.response.met, e.response.measured) ?? 'not available'} ({e.response.measured} measured), resolution {rate(e.resolution.met, e.resolution.measured) ?? 'not available'} ({e.resolution.measured} measured)</span>
+        </div>
+        <DataTable<EscRow> rowKey={r => r.id} rows={e.attention} tools={false} empty="none" caption="Escalation attention list" columns={[
+          { key: 'r', header: 'Escalation', render: r => <><Link to={`/escalations/${r.id}`}><b>{r.ref}</b></Link> <span className="cc-title">{r.title}</span></> },
+          { key: 'c', header: 'Client', render: r => <Link to={`/clients/${r.clientId}`}>{r.client}</Link> },
+          { key: 'k', header: 'Related case', render: r => r.caseId ? <Link to={`/cases/${r.caseId}`}>{r.caseRef}</Link> : <span className="muted">—</span> },
+          { key: 'l', header: 'Level', className: 'num', render: r => r.level },
+          { key: 'o', header: 'Owner', render: r => r.owner },
+          { key: 'd', header: 'Raised', className: 'nowrap', render: r => fmtDate(r.receivedAt) },
+          { key: 't', header: 'Target', className: 'nowrap', render: r => r.overdue ? <span className="t-bad"><b>{span((r.overdueBy ?? 0) * 3600000)}</b> past {r.missed}</span>
+            : dueText(r.status === 'Open' && r.responseDueAt ? r.responseDueAt : r.resolutionDueAt) },
+          { key: 's', header: 'Status', render: r => <StatusText v={r.status} /> }
+        ]} />
+      </section>
       <div className="viz-grid three">
-        <VizPanel title="Escalations by channel" sub="All escalations in view; click a bar for the list." table={tableOf(x.byChannel, 'Escalations')}
-          actions={<button className="linkbtn" onClick={() => nav('/escalations?status=all')}>All escalations</button>}>
-          <HBars data={x.byChannel} unit="escalation(s)" empty="No escalations recorded." />
+        <VizPanel title="Active escalations by level" sub="Level 3 is the highest." table={tableOf(x.byLevel, 'Active')}>
+          <Columns data={x.byLevel} colorOf={b => LEVEL_OF[b.key] ?? RAMP[1]} unit="active escalation(s)" height={140} />
         </VizPanel>
         <VizPanel title="Escalations by status" table={tableOf(x.byStatus, 'Escalations')}>
           <Donut data={x.byStatus.map(b => ({ ...b, label: b.key === 'InProgress' ? 'In progress' : b.label }))} colorOf={b => ESC_STATUS_OF[b.key] ?? STATUS.neutral} centerLabel="escalations" />
         </VizPanel>
-        <VizPanel title="Active escalations by level" sub="Level 3 is the highest." table={tableOf(x.byLevel, 'Active')}>
-          <Columns data={x.byLevel} colorOf={b => LEVEL_OF[b.key] ?? RAMP[1]} unit="active escalation(s)" height={140} />
-        </VizPanel>
-        <VizPanel title="Escalations received per month" sub="Last 6 months, by received date." table={tableOf(x.received, 'Received')}>
-          <Columns data={x.received} unit="escalation(s)" height={140} />
+        <VizPanel title={`Escalations received — ${PERIOD_LABEL[cc.period.name]}`} sub={`Per ${cc.period.unit}.`} table={tableOf(vol, 'Received')}
+          actions={<button className="linkbtn" onClick={() => nav('/escalations?status=all')}>All escalations</button>}>
+          <Columns data={vol} unit="escalation(s)" height={140} />
         </VizPanel>
       </div>
     </Band>
   );
 }
 
-const amounts = (p: PayPart) => p.amounts.map(a => fmtMoney(a.amount, a.currency)).join(' + ');
+const StatusText = ({ v }: { v: string }) => <>{v === 'InProgress' ? 'In progress' : v}</>;
+
 const PAY_STATE: Record<string, { label: string; tone: 'bad' | 'warn' | 'info' | 'good' | 'neutral' }> = {
   overdue: { label: 'Overdue', tone: 'bad' }, due: { label: 'Due soon', tone: 'warn' }, upcoming: { label: 'Scheduled', tone: 'info' },
   paid: { label: 'Paid', tone: 'good' }, waived: { label: 'Waived', tone: 'neutral' }, closed: { label: 'Contract terminated', tone: 'neutral' }
 };
 
-/** A50: payments overdue or due within the reminder window. */
-function PaymentKpi({ p }: { p: Payments }) {
-  const s = p.summary;
-  const n = s.overdue.count + s.due.count;
-  return (
-    <Kpi icon={<Icon name="report" size={18} />} label="Payments due" value={n} to="/notifications?show=payments" tone={s.overdue.count ? 'critical' : n ? 'warning' : undefined}
-      part={s.overdue.count} of={n} partLabel={s.overdue.count ? `${s.overdue.count} overdue${s.overdue.amounts.length ? ` (${amounts(s.overdue)})` : ''}` : 'None overdue'}
-      context={s.due.count ? `${s.due.count} due within ${s.reminderDays} days${s.due.amounts.length ? `: ${amounts(s.due)}` : ''}` : `None due within ${s.reminderDays} days`} />
-  );
-}
-
 /** A50: contract payments — open payments by month due, amounts per currency (never added across currencies) and the next payments. */
-function PaymentCharts({ d }: { d: InsightsT }) {
+function PaymentCharts({ d, cc }: { d: InsightsT; cc: CC }) {
   const nav = useNavigate();
   const p = d.payments;
+  const extra = cc.payments;
   if (!p) return null;
   const s = p.summary;
   const months = p.byMonth.slice(1).map(b => b.label);
   const open = s.overdue.count + s.due.count + s.upcoming.count;
   return (
     <Band id="payments" icon="report" title="Contract payments" hint={<>{open} open payment(s) · {s.overdue.count} overdue · {s.due.count} due within {s.reminderDays} days (setting <i>Contracts.PaymentReminderDays</i>)</>}>
+      {extra && extra.withoutAmount > 0 && (
+        <p className="cc-warn" role="note"><Icon name="report" size={14} /> {extra.withoutAmount} of {extra.open} open payment(s) have no amount recorded, so the amounts below are incomplete. Add them on the contracts' payment terms.</p>
+      )}
       <div className="viz-grid three">
         <VizPanel title="Open payments by month due" sub="Pending or invoiced payments; overdue ones are shown first. Click Overdue for the list." table={tableOf(p.byMonth, 'Payments')}
           actions={<button className="linkbtn" onClick={() => nav('/notifications?show=payments&state=open')}>All open payments</button>}>
@@ -315,18 +467,42 @@ function PaymentCharts({ d }: { d: InsightsT }) {
             </ul>
           )}
         </VizPanel>
+        <VizPanel title="Overdue payments by client" sub="Amounts per currency; never added across currencies."
+          table={{ columns: ['Client', 'Overdue payments', 'Amounts'], rows: (extra?.overdueByClient ?? []).map(c => [c.client, c.count, c.amounts.map(a => fmtMoney(a.amount, a.currency)).join(' + ') || 'not recorded']) }}>
+          {(extra?.overdueByClient.length ?? 0) === 0 ? <div className="viz-empty">No overdue payments.</div> : (
+            <ul className="pay-next">
+              {extra!.overdueByClient.map(c => (
+                <li key={c.clientId}>
+                  <span className="pay-date"><Link to={`/clients/${c.clientId}`}>{c.client}</Link></span>
+                  <span className="pay-what">{c.count} overdue</span>
+                  <span className="pay-amt">{c.amounts.map(a => fmtMoney(a.amount, a.currency)).join(' + ') || <span className="muted">amount not recorded</span>}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </VizPanel>
       </div>
     </Band>
   );
 }
 
-function ContractCharts({ d }: { d: InsightsT }) {
+function ContractCharts({ d, cc }: { d: InsightsT; cc: CC }) {
   const nav = useNavigate();
   const cd = d.contractDetail;
   if (!cd) return <Band id="contracts" icon="list" title="Contracts & SLAs"><p className="hint">Contract charts are shown when the dashboard is not filtered by team.</p></Band>;
   const expiring = cd.expiries.reduce((s, b) => s + b.value, 0);
   return (
     <Band id="contracts" icon="list" title="Contracts & SLAs" hint={<>{cd.total} contract(s) in view · {cd.active} active · {cd.withSla} with SLA targets ({pct(cd.withSla, cd.active)} %)</>}>
+      {cc.contracts && (
+        <div className="cc-tiles" aria-label="Contract health">
+          <Link to="/contracts?status=Active" className="cc-tile"><b>{cd.active}</b><span>active</span></Link>
+          <Link to="/contracts?renewal=due" className={`cc-tile${cc.contracts.within30 ? ' warn' : ''}`}><b>{cc.contracts.within30}</b><span>ending within 30 days</span></Link>
+          <Link to="/contracts?renewal=due" className="cc-tile"><b>{cc.contracts.within60}</b><span>ending in 31–60 days</span></Link>
+          <Link to="/contracts?renewal=due" className="cc-tile"><b>{cc.contracts.within90}</b><span>ending in 61–90 days</span></Link>
+          <Link to="/contracts?renewal=expired" className={`cc-tile${cc.contracts.expired ? ' bad' : ''}`}><b>{cc.contracts.expired}</b><span>ended but still Active</span></Link>
+          <Link to="/contracts?renewal=unknownEnd" className={`cc-tile${cc.contracts.unknownEnd ? ' warn' : ''}`}><b>{cc.contracts.unknownEnd}</b><span>no end date recorded</span></Link>
+        </div>
+      )}
       <div className="viz-grid three">
         <VizPanel title="Contracts by status" table={tableOf(cd.byStatus, 'Contracts')} actions={<button className="linkbtn" onClick={() => nav('/contracts')}>Register</button>}>
           <Donut data={cd.byStatus} colorOf={b => CONTRACT_STATUS_OF[b.key] ?? STATUS.neutral} centerLabel="contracts" />
@@ -349,80 +525,84 @@ function ContractCharts({ d }: { d: InsightsT }) {
           <HBars data={cd.onSiteByClient} unit="engineer(s)" empty="No active contract requires on-site engineers." />
         </VizPanel>
         <div className="span-2">
-          <VizPanel title="SLA targets by priority" sub="Recorded targets of active contracts (median across contracts; the fastest is shown when it differs). Targets are recorded terms, not measured SLA results."
+          <VizPanel title="SLA targets by priority (configured contractual targets)" sub="Configured targets of active contracts (median across contracts; the fastest is shown when it differs). These are contractual terms, not achieved results."
             table={{ columns: ['Priority', 'Contracts', 'Response median', 'Response fastest', 'Resolution median', 'Resolution fastest'], rows: cd.sla.map(r => [r.priority, r.contracts, fmtMinutes(r.responseMedian), fmtMinutes(r.responseFastest), fmtMinutes(r.resolutionMedian), fmtMinutes(r.resolutionFastest)]) }}>
             <SlaMatrix rows={cd.sla} activeContracts={cd.active} />
           </VizPanel>
         </div>
+        <section className="panel viz-panel cc-sla">
+          <div className="panel-head"><h2>Measured SLA compliance</h2></div>
+          <div className="panel-body">
+            <p><b>Measured SLA compliance is not yet available.</b></p>
+            <p className="hint">Cases record their due date but not the time of the first response, and a case is not linked to the SLA targets of its contract, so contractual response and resolution compliance cannot be computed. What is measured today: escalation response and resolution against their own targets, and case due dates met — both under <i>Targets met</i> at the top.</p>
+          </div>
+        </section>
       </div>
     </Band>
   );
 }
 
-function OperationsCharts({ d, deferred }: { d: InsightsT; deferred: string }) {
+const DQ_SEVERITY: Record<string, string> = {
+  MissingOwner: 'High', UnknownEnvironment: 'High', StaleReview: 'Medium', ConditionNeedsVerification: 'Medium', CountryUnknown: 'Medium', UnknownVersion: 'Medium'
+};
+
+/** A60: service and environment health — reported condition, the environments that are not healthy, product coverage. */
+function HealthCharts({ d, cc }: { d: InsightsT; cc: CC }) {
   const nav = useNavigate();
   const condition = d.environments.condition.map(c => ({ ...c, glyph: GLYPH[c.key] }));
   return (
-    <Band id="operations" icon="server" title="Commitments, environments and products">
+    <Band id="health" icon="server" title="Service & environment health" hint="Manually reported condition — not live monitoring. Unknown is never counted as healthy.">
       <div className="viz-grid three">
-        <VizPanel title="Open commitments by deadline" sub="Deadline in force compared with now. Recorded deadlines are not SLA results." table={tableOf(d.commitments, 'Open commitments')}>
-          <Columns data={d.commitments} colorOf={b => (b.key === 'overdue' ? STATUS.critical : SERIES.blue)} unit="commitment(s)" height={140} />
-        </VizPanel>
         <VizPanel title="Environments by reported condition" table={tableOf(d.environments.condition, 'Environments')}
-          sub={<>Manually reported, not live monitoring.{d.environments.needsVerification > 0 && <b> {d.environments.needsVerification} need verification.</b>}</>}>
+          sub={<>{d.environments.needsVerification > 0 ? <b>{d.environments.needsVerification} report(s) need verification.</b> : 'All reports are recent.'}</>}>
           <Donut data={condition} colorOf={b => STATUS_OF[b.key] ?? STATUS.neutral} centerLabel="environments" />
         </VizPanel>
-        <VizPanel title="Open data-quality items by rule" table={tableOf(d.dataQuality, 'Open items')}>
-          <HBars data={d.dataQuality} unit="item(s)" empty="No open data-quality items in this filter." />
-        </VizPanel>
-        <VizPanel title="Product coverage" sub="Distinct environments per product."
+        <div className="span-2">
+          <section className="panel viz-panel" aria-labelledby="env-att-h">
+            <div className="panel-head"><h2 id="env-att-h">Environments not reported healthy</h2></div>
+            <DataTable<EnvRow> rowKey={r => r.id} rows={cc.environments} tools={false} empty="none" caption="Environments not reported healthy" columns={[
+              { key: 'c', header: 'Client', render: r => <Link to={`/clients/${r.clientId}`}>{r.client}</Link> },
+              { key: 'p', header: 'Products', render: r => r.products.join(', ') || <span className="muted">—</span> },
+              { key: 'e', header: 'Environment', render: r => <Link to={`/environments/${r.id}`}>{r.name}</Link> },
+              { key: 'h', header: 'Reported health', render: r => <><Badge tone={r.condition === 'Unavailable' ? 'bad' : r.condition === 'Degraded' ? 'warn' : 'neutral'}>{GLYPH[r.condition]} {r.condition === 'Unknown' ? 'Unknown (no report)' : r.condition}</Badge>{r.conditionReason && <span className="hint">{r.conditionReason}</span>}</> },
+              { key: 'u', header: 'Last update', className: 'nowrap', render: r => r.conditionObservedAt ? fmtDateTime(r.conditionObservedAt) : <span className="muted">Never</span> },
+              { key: 'o', header: 'Owner', render: r => r.owner ?? <Badge tone="warn">Unassigned</Badge> },
+              { key: 'a', header: '', className: 'nowrap', render: r => <Link className="btn btn-sm" to={`/environments/${r.id}`} aria-label={`Open environment ${r.name} of ${r.client}`}>Open</Link> }
+            ]} />
+          </section>
+        </div>
+        <VizPanel title="Product coverage" sub="Distinct environments per product; unknown installed versions in brackets."
           actions={<button className="linkbtn" onClick={() => nav('/versions')}>Version matrix</button>}
           table={{ columns: ['Product', 'Environments', 'Installations', 'Unknown version'], rows: d.products.map(p => [p.product, p.environments, p.installations, p.unknownVersion]) }}>
           <HBars data={d.products.slice(0, 8).map(p => ({ key: String(p.productId), label: p.unknownVersion ? `${p.product} (${p.unknownVersion} unknown version)` : p.product, value: p.environments, link: p.link }))}
             unit="environment(s)" empty="No installations recorded." />
         </VizPanel>
       </div>
-      <p className="hint" style={{ margin: '0 0 var(--gap)' }}>{deferred}</p>
     </Band>
   );
 }
 
-type Attention = { n: number; text: string; to: string; tone: 'bad' | 'warn' };
-
-/** A51: what needs a decision now, in one line — each item opens its list. */
-function AttentionStrip({ dash, d }: { dash: Dash; d: InsightsT }) {
-  const m = (k: string) => [...dash.cases, ...dash.commitments].find(x => x.key === k)!;
-  const r = (k: string) => d.contracts.renewal.find(x => x.key === k);
-  const env = (k: string) => d.environments.condition.find(x => x.key === k);
-  const pay = d.payments?.summary;
-  const items: Attention[] = [
-    { n: m('overdueCases').value, text: 'overdue case(s)', to: m('overdueCases').drilldown, tone: 'bad' },
-    { n: m('overdueCommitments').value, text: 'overdue commitment(s)', to: m('overdueCommitments').drilldown, tone: 'bad' },
-    { n: d.escalations?.overdue ?? 0, text: 'escalation(s) past a target', to: '/escalations', tone: 'bad' },
-    { n: pay?.overdue.count ?? 0, text: 'overdue payment(s)', to: '/notifications?show=payments&state=overdue', tone: 'bad' },
-    { n: r('expired')?.value ?? 0, text: 'contract(s) ended but still Active', to: r('expired')?.link ?? '/contracts', tone: 'bad' },
-    { n: env('Unavailable')?.value ?? 0, text: 'environment(s) unavailable', to: '/environments', tone: 'bad' },
-    { n: r('due')?.value ?? 0, text: 'contract(s) due for renewal', to: r('due')?.link ?? '/contracts', tone: 'warn' },
-    { n: pay?.due.count ?? 0, text: `payment(s) due within ${pay?.reminderDays ?? 14} days`, to: '/notifications?show=payments&state=due', tone: 'warn' },
-    { n: env('Degraded')?.value ?? 0, text: 'environment(s) degraded', to: '/environments', tone: 'warn' }
-  ].filter(x => x.n > 0) as Attention[];
+/** A60: data-quality rules as a work list — count, severity and the affected records. */
+function QualityCharts({ d, deferred }: { d: InsightsT; deferred: string }) {
+  const rows = [...d.dataQuality].sort((a, b) => SEVERITY_RANK[DQ_SEVERITY[a.key] ?? 'Low'] - SEVERITY_RANK[DQ_SEVERITY[b.key] ?? 'Low'] || b.value - a.value);
   return (
-    <section className="attention" aria-label="Needs attention">
-      <span className="attention-h"><Icon name="bell" size={16} /> Needs attention</span>
-      {items.length === 0 ? <span className="attention-ok">Nothing is overdue or due — all clear.</span> : (
-        <ul>
-          {items.map(x => (
-            <li key={x.text}><Link className={`att att-${x.tone}`} to={x.to}><b>{x.n}</b> {x.text}</Link></li>
-          ))}
-        </ul>
-      )}
-    </section>
+    <Band id="quality" icon="quality" title="Data quality" hint="Open items found by the data-quality rules; each count is the records the rule lists.">
+      <section className="panel">
+        <DataTable<BarT> rowKey={r => r.key} rows={rows} tools={false} empty="none" caption="Open data-quality items by rule" columns={[
+          { key: 'r', header: 'Rule', render: r => r.link ? <Link to={r.link}>{r.label}</Link> : r.label },
+          { key: 'n', header: 'Affected records', className: 'num', render: r => r.value },
+          { key: 's', header: 'Severity', render: r => <Badge tone={SEVERITY_TONE[DQ_SEVERITY[r.key] ?? 'Low']}>{DQ_SEVERITY[r.key] ?? 'Low'}</Badge> },
+          { key: 'a', header: '', className: 'nowrap', render: r => r.link && <Link className="btn btn-sm" to={r.link} aria-label={`Open ${r.label} items`}>Open</Link> }
+        ]} />
+      </section>
+      <p className="hint" style={{ margin: '8px 0 var(--gap)' }}>{deferred} Comparison with the previous period is not shown: the hub keeps no history of these figures yet.</p>
+    </Band>
   );
 }
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview' }, { id: 'map', label: 'Map' }, { id: 'cases', label: 'Cases' }, { id: 'escalations', label: 'Escalations' },
-  { id: 'contracts', label: 'Contracts & SLAs' }, { id: 'payments', label: 'Payments' }, { id: 'operations', label: 'Operations' }
+  { id: 'overview', label: 'Overview' }, { id: 'attention', label: 'Attention' }, { id: 'cases', label: 'Cases' }, { id: 'escalations', label: 'Escalations' },
+  { id: 'contracts', label: 'Contracts & SLAs' }, { id: 'payments', label: 'Payments' }, { id: 'health', label: 'Health' }, { id: 'quality', label: 'Data quality' }
 ];
 
 /** A51: sticky section navigation; the section in view is highlighted. */
@@ -451,27 +631,41 @@ function DashNav() {
   );
 }
 
+/** A60 (owner request, 22 Oct 2026): the Executive overview as an Operations Command Center. */
 export function Dashboard() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ clientId: '', teamId: '', productId: '', country: '' });
-  const params = { clientId: f.clientId, teamId: f.teamId, productId: f.productId, country: f.country };
+  const canManage = useCan('Manage');
+  // Role default: people without the Manage right start on their own work; the TIO Manager starts on everything they can see.
+  const defaults = { clientId: '', teamId: '', productId: '', country: '', period: '30d', from: '', to: '', view: canManage ? 'all' : 'mine' };
+  const [f, set] = useUrlState(defaults);
+  const mine = f.view === 'mine';
+  const params = { clientId: f.clientId, teamId: f.teamId, productId: f.productId, country: f.country, ownerId: mine ? String(me.id) : '' };
+  const custom = f.period === 'custom';
+  const range = custom && f.from && f.to && f.from <= f.to
+    ? { from: new Date(`${f.from}T00:00:00`).toISOString(), to: new Date(new Date(`${f.to}T00:00:00`).getTime() + 86400000).toISOString() } : null;
+  const periodParams = { period: custom ? (range ? 'custom' : '30d') : f.period, from: range?.from ?? '', to: range?.to ?? '' };
   const dash = useQuery({ queryKey: ['dashboard', params], queryFn: () => get<Dash>(`/dashboard${qs(params)}`), placeholderData: keepPreviousData });
   const insights = useQuery({ queryKey: ['insights', params], queryFn: () => get<InsightsT>(`/dashboard/insights${qs(params)}`), placeholderData: keepPreviousData });
+  const cc = useQuery({ queryKey: ['command-center', params, periodParams], queryFn: () => get<CC>(`/dashboard/command-center${qs({ ...params, ...periodParams })}`), placeholderData: keepPreviousData });
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const products = useProductOptions();
   const countries = insights.data?.countries;
   const countryOptions = [...(countries?.rows ?? []).map(c => c.country), ...(countries?.unknownCountryClients ? ['Unknown'] : [])].map(c => ({ value: c, label: c }));
-  const filtered = !!(f.clientId || f.teamId || f.productId || f.country);
+  const active = [f.clientId, f.teamId, f.productId, f.country].filter(Boolean).length + (f.period !== '30d' ? 1 : 0) + (f.view !== defaults.view ? 1 : 0);
   const qc = useQueryClient();
-  const refreshing = dash.isFetching || insights.isFetching;
+  const refreshing = dash.isFetching || insights.isFetching || cc.isFetching;
+  const linkParams = { clientId: f.clientId, teamId: f.teamId, productId: f.productId, country: f.country };
   return (
     <div className="dash">
-      <PageHead title="Executive overview" sub={dash.data && <>As of {fmtDateTime(dash.data.evaluatedAt)} ({me.timeZone}). Only records you are authorized to see; every figure opens its list.</>}
+      <PageHead title="Operations Command Center"
+        sub={<>Real-time visibility into customer operations, service performance, and operational risks.{' '}
+          {cc.data && <span className="cc-fresh">Last refreshed {fmtDateTime(cc.data.evaluatedAt)} ({me.timeZone}) · only records you are authorized to see.</span>}</>}
         actions={<>
-          <button className="btn" onClick={() => { qc.invalidateQueries({ queryKey: ['dashboard'] }); qc.invalidateQueries({ queryKey: ['insights'] }); }} disabled={refreshing}>
+          <button className="btn" onClick={() => qc.invalidateQueries({ predicate: q => ['dashboard', 'insights', 'command-center', 'actions'].includes(String(q.queryKey[0])) })} disabled={refreshing}>
             {refreshing ? <><span className="spin" /> Refreshing…</> : 'Refresh'}
           </button>
+          <Link className="btn" to={`/map${qs(linkParams)}`}>Client map</Link>
           <Link className="btn btn-primary" to={`/actions${qs(params)}`}>Action list</Link>
         </>} />
       <div className="toolbar dash-filters">
@@ -479,22 +673,67 @@ export function Dashboard() {
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
         <SelectInput label="Country" value={f.country} onChange={v => set({ country: v })} options={countryOptions} empty="All countries" />
-        {filtered && <button className="btn" style={{ alignSelf: 'flex-end' }} onClick={() => set({ clientId: '', teamId: '', productId: '', country: '' })}>Clear filters</button>}
+        <SelectInput label="Reporting period" value={f.period} onChange={v => set({ period: v })} empty={null}
+          options={[{ value: 'today', label: 'Today' }, { value: '7d', label: 'Last 7 days' }, { value: '30d', label: 'Last 30 days' }, { value: 'quarter', label: 'This quarter' }, { value: 'custom', label: 'Custom range' }]} />
+        {custom && <>
+          <TextInput label="From" type="date" value={f.from} onChange={v => set({ from: v })} />
+          <TextInput label="To" type="date" value={f.to} onChange={v => set({ to: v })} error={f.from && f.to && f.from > f.to ? 'The end is before the start.' : undefined} />
+        </>}
+        <div className="field cc-view">
+          <span className="flabel">Show</span>
+          <div className="seg" role="group" aria-label="Show">
+            <button aria-pressed={!mine} onClick={() => set({ view: 'all' })}>All I can see</button>
+            <button aria-pressed={mine} onClick={() => set({ view: 'mine' })}>My work</button>
+          </div>
+        </div>
+        {active > 0 && <div className="cc-active"><span className="chip">{active} filter(s) active</span>
+          <button className="btn" onClick={() => set(defaults)}>Reset filters</button></div>}
       </div>
+      <p className="hint cc-scope">The reporting period applies to opened, closed and received figures and to targets met; open, overdue and due figures are always as of now.</p>
       <DashNav />
-      {(dash.isLoading || insights.isLoading) && <StateMessage kind="loading" />}
+      {(dash.isLoading || insights.isLoading || cc.isLoading) && <StateMessage kind="loading" />}
+      {(dash.error || insights.error || cc.error) && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       <section id="overview" aria-label="Key figures">
-        {dash.data && insights.data && <AttentionStrip dash={dash.data} d={insights.data} />}
-        {dash.data && insights.data && <KpiBand dash={dash.data} d={insights.data} />}
+        {dash.data && insights.data && cc.data && <KpiGrid dash={dash.data} d={insights.data} cc={cc.data} />}
+        {mine && <p className="hint" style={{ margin: '-4px 0 var(--gap)' }}>My work: cases, commitments, escalations, payments and environments you own. Contract figures need the whole view.</p>}
       </section>
-      {countries && <Geography countries={countries} filtered={f.country} onFilter={c => set({ country: c })} />}
-      {insights.data && dash.data && <>
-        <CaseCharts d={insights.data} age={dash.data.caseAge} />
-        <EscalationCharts d={insights.data} />
-        <ContractCharts d={insights.data} />
-        <PaymentCharts d={insights.data} />
-        <OperationsCharts d={insights.data} deferred={dash.data.deferred} />
+      <ActionCenter params={params} />
+      {insights.data && dash.data && cc.data && <>
+        <CaseCharts d={insights.data} age={dash.data.caseAge} cc={cc.data} />
+        <EscalationCharts d={insights.data} cc={cc.data} />
+        <ContractCharts d={insights.data} cc={cc.data} />
+        <PaymentCharts d={insights.data} cc={cc.data} />
+        <HealthCharts d={insights.data} cc={cc.data} />
+        <QualityCharts d={insights.data} deferred={dash.data.deferred} />
       </>}
+    </div>
+  );
+}
+
+/** A59 (owner request, 22 Oct 2026): the client map on its own page; client, team and product filters as on the overview. */
+export function ClientMap() {
+  const me = useMe().data!;
+  const [f, set] = useUrlState({ clientId: '', teamId: '', productId: '', country: '' });
+  const params = { clientId: f.clientId, teamId: f.teamId, productId: f.productId };
+  const insights = useQuery({ queryKey: ['insights', params], queryFn: () => get<InsightsT>(`/dashboard/insights${qs(params)}`), placeholderData: keepPreviousData });
+  const clients = useClientOptions();
+  const teams = useTeamOptions();
+  const products = useProductOptions();
+  const filtered = !!(f.clientId || f.teamId || f.productId);
+  const countries = insights.data?.countries;
+  const total = countries ? countries.rows.reduce((s, r) => s + r.clients, 0) + countries.unknownCountryClients : 0;
+  return (
+    <div className="dash map-page">
+      <PageHead title="Client map" sub={insights.data && <>{total} client(s) in {countries!.rows.length} countr{countries!.rows.length === 1 ? 'y' : 'ies'} · as of {fmtDateTime(insights.data.evaluatedAt)} ({me.timeZone}). Click a country for its clients.</>}
+        actions={<Link className="btn btn-primary" to={`/${qs(params)}`}>Executive overview</Link>} />
+      <div className="toolbar dash-filters">
+        <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
+        <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
+        <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
+        {filtered && <button className="btn" style={{ alignSelf: 'flex-end' }} onClick={() => set({ clientId: '', teamId: '', productId: '' })}>Clear filters</button>}
+      </div>
+      {insights.isLoading && <StateMessage kind="loading" />}
+      {countries && <Geography countries={countries} initial={f.country} overviewFor={c => `/${qs({ ...params, country: c })}`} />}
     </div>
   );
 }

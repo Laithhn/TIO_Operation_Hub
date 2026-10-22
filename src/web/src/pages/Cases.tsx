@@ -36,7 +36,7 @@ export function CaseList() {
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
         <SelectInput label="Owner" value={f.unassigned ? 'none' : f.ownerId} onChange={v => v === 'none' ? set({ unassigned: 'true', ownerId: '' }) : set({ ownerId: v, unassigned: '' })} options={[{ value: String(me.id), label: 'Me' }, { value: 'none', label: 'Unassigned' }]} empty="Anyone" />
-        <SelectInput label="Deadline" value={f.due} onChange={v => set({ due: v })} options={[{ value: 'overdue', label: 'Overdue' }, { value: 'upcoming', label: 'Due soon' }, { value: 'none', label: 'No deadline' }]} empty="Any" />
+        <SelectInput label="Deadline" value={f.due} onChange={v => set({ due: v })} options={[{ value: 'overdue', label: 'Overdue' }, { value: '24h', label: 'Due within 24 hours' }, { value: 'upcoming', label: 'Due soon' }, { value: 'none', label: 'No deadline' }]} empty="Any" />
         <SelectInput label="Attention" value={f.waiting ? 'waiting' : f.reviewOverdue ? 'review' : f.stale ? 'stale' : f.coverageGap ? 'coverage' : ''}
           onChange={v => set({ waiting: v === 'waiting' ? 'true' : '', reviewOverdue: v === 'review' ? 'true' : '', stale: v === 'stale' ? 'true' : '', coverageGap: v === 'coverage' ? 'true' : '' })}
           options={[{ value: 'waiting', label: 'Waiting' }, { value: 'review', label: 'Next review passed' }, { value: 'stale', label: 'Stale review' }, { value: 'coverage', label: 'No backup (coverage policy)' }]} empty="Any" />

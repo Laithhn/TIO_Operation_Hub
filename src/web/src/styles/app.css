@@ -730,3 +730,43 @@ table.grid th button{white-space:nowrap}
 /* A58: add a whole team to a client's project team */
 .team-from{display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-top:8px}
 .team-from .field{margin:0;min-width:220px}
+
+/* A59: the client map page — the map uses the window height */
+.map-page .osm{height:calc(100vh - 330px);min-height:460px}
+.map-page .map-side{max-height:calc(100vh - 230px)}
+
+/* ---------- A60: Operations Command Center ---------- */
+.dash .cc-kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.dash .cc-kpis .kpi{padding:12px 14px 13px}
+.dash .cc-kpis .kpi-v{font-size:28px}
+@media (max-width:1250px){.dash .cc-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.dash .cc-kpis{grid-template-columns:1fr}}
+.cc-fresh{display:inline-block;color:var(--muted)}
+.dash .t-bad{color:var(--bad)}
+.dash .t-warn{color:var(--warn)}
+.cc-view .seg{height:30px}
+.cc-view .seg button{padding:4px 12px;font-size:12.5px}
+.cc-active{display:flex;align-items:center;gap:8px;align-self:flex-end}
+.cc-queue{padding:0}
+.cc-chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.cc-chips button{border:1px solid var(--line-strong);background:var(--surface);border-radius:999px;padding:3px 11px;font-size:12px;color:var(--fg-2);cursor:pointer}
+.cc-chips button b{margin-left:4px;color:var(--navy)}
+.cc-chips button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.cc-chips button[aria-pressed="true"] b{color:#fff}
+.cc-kind{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.cc-title{color:var(--fg-2)}
+.cc-queue-foot{display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:8px 12px;border-top:1px solid var(--line);font-size:12.5px}
+.cc-queue-foot .hint{flex:1 1 320px;margin:0}
+.cc-tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.cc-tile{display:flex;flex-direction:column;gap:2px;background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line-strong);border-radius:var(--dash-radius,8px);padding:10px 12px;color:var(--fg);text-decoration:none}
+.cc-tile:hover{text-decoration:none;box-shadow:0 2px 8px rgba(12,27,55,.1)}
+.cc-tile b{font-size:22px;color:var(--navy);font-variant-numeric:tabular-nums}
+.cc-tile span{font-size:12px;color:var(--fg-2)}
+.cc-tile.warn{border-left-color:var(--warn)}
+.cc-tile.bad{border-left-color:var(--bad)}
+@media (max-width:1100px){.cc-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:620px){.cc-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.cc-warn{display:flex;align-items:center;gap:8px;background:var(--warn-soft);color:var(--warn);border:1px solid #f0dca8;border-radius:8px;padding:8px 12px;margin:0 0 var(--gap);font-size:12.5px}
+.cc-sla .panel-body p{margin:0 0 8px}
+.cc-scope{margin:-4px 0 8px}
+.cc-view .seg button{white-space:nowrap}
