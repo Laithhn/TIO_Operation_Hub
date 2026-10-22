@@ -82,8 +82,10 @@ if (-not $DatabaseOnly) {
   $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
   if ($admin) { Ok 'Running elevated' } else { Fail 'Run this script in an elevated PowerShell (Run as administrator).' }
   if (Get-Service W3SVC -ErrorAction SilentlyContinue) { Ok 'IIS (W3SVC) installed' } else { Fail 'IIS is not installed (Server Manager: Web Server (IIS) role).' }
-  $ancm = Join-Path $env:windir 'System32\inetsrv\aspnetcorev2.dll'
-  if (Test-Path $ancm) { Ok 'ASP.NET Core Module V2 installed' } else { Fail 'ASP.NET Core Hosting Bundle 10.0.x is not installed (ASP.NET Core Module V2 missing). Install it from Microsoft, then run "iisreset".' }
+  # The Hosting Bundle installs the module under Program Files and records it in the registry (not in System32\inetsrv).
+  $ancm = (Test-Path (Join-Path $env:ProgramFiles 'IIS\Asp.Net Core Module\V2\aspnetcorev2.dll')) -or
+          (Test-Path 'HKLM:\SOFTWARE\Microsoft\IIS Extensions\IIS AspNetCore Module V2')
+  if ($ancm) { Ok 'ASP.NET Core Module V2 installed' } else { Fail 'ASP.NET Core Hosting Bundle 10.0.x is not installed (ASP.NET Core Module V2 missing). Install it from Microsoft, then run "iisreset".' }
   $runtimes = if (Get-Command dotnet -ErrorAction SilentlyContinue) { & dotnet --list-runtimes 2>$null } else { @() }
   if ($runtimes | Where-Object { $_ -match '^Microsoft\.AspNetCore\.App 10\.' }) { Ok 'ASP.NET Core runtime 10 installed' }
   else { Fail 'ASP.NET Core runtime 10.0.x not found (it is part of the Hosting Bundle).' }
