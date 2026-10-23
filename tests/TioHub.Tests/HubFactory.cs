@@ -32,6 +32,9 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // A46: attachment files of this test run go to their own temporary folder, 1 MB maximum so the limit can be tested.
         builder.UseSetting("Attachments:Path", AttachmentRoot);
         builder.UseSetting("Attachments:MaxFileMB", "1");
+        // A62: export files of this test run go next to the attachments; scheduled runs are triggered by the tests themselves.
+        builder.UseSetting("Reporting:Path", Path.Combine(AttachmentRoot, "exports"));
+        builder.UseSetting("Reporting:SchedulerMinutes", "0");
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
     }
 

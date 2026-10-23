@@ -1474,3 +1474,83 @@ test.describe('Measured SLA compliance (A61)', () => {
     await page.screenshot({ path: 'test-results/visual-sla-cases-1600.png', fullPage: true });
   });
 });
+
+test.describe('Reporting Center (A62)', () => {
+  test('find a report, validate filters, preview, export a CSV with chosen columns, see it in the history and schedule it', async ({ page }) => {
+    await page.goto('/reports');
+    await expect(page.getByRole('heading', { level: 1, name: 'Reporting Center' })).toBeVisible();
+    await expect(page.getByText('Generate operational reports, analyze performance, and manage data exports.')).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Reporting Center' }).first()).toBeVisible();
+    for (const k of ['Available reports', 'Exports generated today', 'Scheduled reports', 'Failed exports']) await expect(page.getByText(k, { exact: true })).toBeVisible();
+
+    // Catalog: categories and search.
+    await expect(page.getByRole('heading', { name: 'Operational intelligence' })).toBeVisible();
+    await page.getByPlaceholder('Search reports').fill('aging');
+    await expect(page.locator('.rc-card')).toHaveCount(1);
+    await expect(page.locator('.rc-card')).toContainText('Case aging & backlog report');
+    await page.getByPlaceholder('Search reports').fill('');
+    await page.getByRole('group', { name: 'Category' }).getByRole('button', { name: /^Technical/ }).click();
+    await expect(page.locator('.rc-card')).toHaveCount(3);
+    await page.getByRole('group', { name: 'Category' }).getByRole('button', { name: /^All/ }).click();
+
+    // Configure the cases report: the date range is checked before anything is sent.
+    await page.getByRole('button', { name: 'Configure Cases report' }).click();
+    await page.getByLabel('Client', { exact: true }).selectOption({ label: 'DEMO-NTA · Northwind Transit Authority (fictional)' });
+    await page.getByLabel('Status', { exact: true }).selectOption('all');
+    await page.getByLabel('Created from').fill('2026-10-02');
+    await page.getByLabel('Created to').fill('2026-10-01');
+    await expect(page.getByText('The end date is before the start date.')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Apply filters and preview/ })).toBeDisabled();
+    await page.getByLabel('Created from').fill('');
+    await page.getByLabel('Created to').fill('');
+    await expect(page.getByLabel('Filters in force')).toContainText('Client: DEMO-NTA');
+    await page.getByRole('button', { name: /Apply filters and preview/ }).click();
+    const preview = page.locator('section.panel', { has: page.getByRole('heading', { name: '2 · Preview' }) });
+    await expect(preview).toContainText(/\d+ matching row\(s\)/);
+    await expect(preview.getByRole('columnheader', { name: 'Reference' })).toBeVisible();
+    await expect(preview).toContainText('Client = DEMO-NTA');
+
+    // Export options: PDF is visibly unavailable; drop one column; generate and download the CSV.
+    await expect(page.getByLabel('PDF')).toBeDisabled();
+    await page.getByText(/^Columns: \d+ of \d+/).click();
+    await page.locator('.rc-col-list li', { hasText: 'Jira keys' }).getByRole('checkbox').uncheck();
+    await expect(page.getByText(/Columns: \d+ of \d+ in the export \(changed\)/)).toBeVisible();
+    await page.getByRole('button', { name: 'Generate CSV' }).click();
+    const result = page.locator('section.panel', { has: page.getByRole('heading', { name: '4 · Result' }) });
+    await expect(result).toContainText('Completed');
+    await expect(result).toContainText(/tio-hub-cases-\d{8}-\d{4}\.csv/);
+    const [file] = await Promise.all([page.waitForEvent('download'), result.getByRole('button', { name: 'Download' }).click()]);
+    expect(file.suggestedFilename()).toMatch(/^tio-hub-cases-.*\.csv$/);
+    const text = await (await import('node:fs/promises')).readFile((await file.path())!, 'utf8');
+    expect(text).toContain('TIO Operations Hub export,Cases report');
+    expect(text).not.toContain('Column: Jira keys');
+
+    // History: the export is listed with its details and audit reference.
+    await result.getByRole('button', { name: 'View in export history' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Export details' });
+    await expect(dialog).toContainText('Cases report');
+    await expect(dialog).toContainText('Audit reference');
+    await dialog.getByRole('button', { name: 'Close' }).click();
+    await expect(page.getByRole('table', { name: 'Export history' }).locator('tbody tr').first()).toContainText('Cases report');
+
+    // Schedule: create, pause, delete.
+    await page.getByRole('tab', { name: 'Scheduled reports' }).click();
+    await page.getByRole('button', { name: '+ Schedule report' }).click();
+    const name = unique('E2E weekly cases');
+    const sd = page.getByRole('dialog', { name: 'Schedule a report' });
+    await sd.getByLabel('Name').fill(name);
+    await sd.getByLabel('Frequency').selectOption('Weekly');
+    await sd.getByLabel('On', { exact: true }).selectOption('Sunday');
+    await sd.getByLabel('Time', { exact: true }).fill('07:30');
+    await sd.getByRole('button', { name: 'Create schedule' }).click();
+    await expect(sd).toBeHidden();
+    const row = page.locator('tbody tr', { hasText: name });
+    await expect(row).toContainText('Every Sunday at 07:30');
+    await row.getByRole('button', { name: 'Pause' }).click();
+    await expect(row).toContainText('Paused');
+    await row.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('dialog', { name: 'Delete scheduled report' }).getByRole('button', { name: 'Delete schedule' }).click();
+    await expect(row).toHaveCount(0);
+    await page.screenshot({ path: 'test-results/visual-reporting-center-1600.png', fullPage: true });
+  });
+});

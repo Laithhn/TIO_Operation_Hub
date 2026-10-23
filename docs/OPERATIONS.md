@@ -42,6 +42,12 @@ Schema changes in later releases: developers add an EF Core migration and regene
 - A background sweep re-evaluates running obligations every `Sla:SweepMinutes` minutes (default 5; `0` switches it off; figures still show a passed deadline as breached at once). Failures are logged and retried at the next interval.
 - After the upgrade, link open client cases to their contract from the case page (*Link contract*) where the SLA should be measured; nothing is linked automatically.
 
+### Reporting Center files and schedules (2.29.0)
+
+- Generated export files are stored in `app\App_Data\exports` (setting `Reporting:Path`) and deleted after `Reporting:RetentionDays` days (default 14); the export history keeps the record (*Expired*). Include the folder in the file backup only if kept files must survive a restore; they can always be generated again.
+- `Reporting:MaxRows` (default 100 000) limits one export; `Reporting:SchedulerMinutes` (default 1, `0` = off) is how often due schedules run and expired files are removed. Scheduler failures are logged and retried at the next interval.
+- The `ReportingCenter` migration only adds the `reporting` schema (export jobs, schedules, recipients, presets). The application identity needs read/write there like on the other schemas; `02-app-login.sql` grants database-wide read/write, so nothing changes for the DBA.
+
 ## 4. Application (IIS)
 
 1. Unzip the release into e.g. `D:\Apps\TioHub\app`. Create an IIS site bound to HTTPS only, app pool “No Managed Code”, identity = the gMSA.

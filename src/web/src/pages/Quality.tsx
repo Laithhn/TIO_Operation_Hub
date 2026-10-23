@@ -2,10 +2,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, label } from '../format';
-import { useCan, useEnum, useMe, useRefresh, useUrlState } from '../hooks';
-import { ActionDialog, TimeZoneSelect } from '../ui/pickers';
-import { DataTable, PageHead, Pager, Panel, Person, SelectInput, StatusBadge, TextInput, useToast } from '../ui/kit';
-import { RecordLink, useClientOptions, useProductOptions, useTeamOptions } from './common';
+import { useCan, useMe, useRefresh, useUrlState } from '../hooks';
+import { ActionDialog } from '../ui/pickers';
+import { DataTable, PageHead, Pager, Panel, Person, SelectInput, StatusBadge, useToast } from '../ui/kit';
+import { RecordLink, useClientOptions } from './common';
 
 type Item = { id: number; rule: string; recordType: string; recordId: number; recordLabel: string; detail: string; clientId?: number; clientCode?: string; coordinator?: UserRef; nextAction?: string; nextReviewAt?: string; status: string; openedAt: string; resolvedAt?: string; resolutionEvidence?: string; version: string };
 
@@ -45,50 +45,6 @@ export function DataQuality() {
         initial={{ coordinatorUserId: edit.coordinator ? String(edit.coordinator.id) : '', nextAction: edit.nextAction ?? '' }}
         fields={[{ name: 'coordinatorUserId', label: 'Accountable coordinator', kind: 'user', required: true, clientId: edit.clientId }, { name: 'nextAction', label: 'Next action', required: true }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime' }]}
         transform={v => ({ coordinatorUserId: Number(v.coordinatorUserId) || null, nextAction: v.nextAction, nextReviewAt: v.nextReviewAt ? fromLocalInput(v.nextReviewAt) : null })} version={edit.version} />}
-    </>
-  );
-}
-
-export function Reports() {
-  const me = useMe().data!;
-  const clients = useClientOptions();
-  const teams = useTeamOptions();
-  const products = useProductOptions();
-  const statuses = useEnum('CaseStatus');
-  const [f, setF] = useState({ clientId: '', teamId: '', ownerId: '', productId: '', createdFrom: '', createdTo: '', completedFrom: '', completedTo: '', status: '', timeZone: me.timeZone });
-  const set = (k: keyof typeof f, v: string) => setF(p => ({ ...p, [k]: v }));
-  const base = { clientId: f.clientId, teamId: f.teamId, ownerId: f.ownerId, productId: f.productId, timeZone: f.timeZone };
-  const iso = (d: string) => (d ? new Date(d + 'T00:00:00Z').toISOString() : '');
-  if (!me.grants.export) return <><PageHead title="Reports and exports" /><div className="state-msg restricted">Exporting needs the separate Export permission.</div></>;
-  return (
-    <>
-      <PageHead title="Reports and exports" sub="CSV exports contain only rows you are authorized to see, with generation time, time zone, filters and column definitions. Every export is logged and audited." />
-      <Panel title="Filters">
-        <div className="form-grid">
-          <SelectInput label="Client" value={f.clientId} onChange={v => set('clientId', v)} options={clients} empty="All authorized" />
-          <SelectInput label="Team" value={f.teamId} onChange={v => set('teamId', v)} options={teams} empty="All teams" />
-          <SelectInput label="Product" value={f.productId} onChange={v => set('productId', v)} options={products} empty="All products" />
-          <SelectInput label="Owner" value={f.ownerId} onChange={v => set('ownerId', v)} options={[{ value: String(me.id), label: 'Me' }]} empty="Anyone" />
-          <TextInput label="Created from (cases)" type="date" value={f.createdFrom} onChange={v => set('createdFrom', v)} />
-          <TextInput label="Created to (cases)" type="date" value={f.createdTo} onChange={v => set('createdTo', v)} />
-          <SelectInput label="Case status" value={f.status} onChange={v => set('status', v)} options={[{ value: 'all', label: 'All' }, ...statuses.map(s => ({ value: s, label: label(s) }))]} empty="Open" />
-          <TextInput label="Completed from (commitments)" type="date" value={f.completedFrom} onChange={v => set('completedFrom', v)} />
-          <TextInput label="Completed to (commitments)" type="date" value={f.completedTo} onChange={v => set('completedTo', v)} />
-          <TimeZoneSelect label="Time zone for timestamps" value={f.timeZone} onChange={v => set('timeZone', v)} hint="Used in the export." />
-        </div>
-      </Panel>
-      <Panel title="Exports">
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-          <button className="btn btn-primary" onClick={() => exportCsv('cases', { ...base, status: f.status, createdFrom: iso(f.createdFrom), createdTo: iso(f.createdTo) })}>Cases</button>
-          <button className="btn btn-primary" onClick={() => exportCsv('commitments', { ...base, status: f.completedFrom || f.completedTo ? 'Completed' : '', completedFrom: iso(f.completedFrom), completedTo: iso(f.completedTo) })}>Commitments</button>
-          <button className="btn btn-primary" onClick={() => exportCsv('actions', base)}>Action list</button>
-          <button className="btn btn-primary" onClick={() => exportCsv('environments', base)}>Environments</button>
-          <button className="btn btn-primary" onClick={() => exportCsv('versions', base)}>Version matrix</button>
-          <button className="btn btn-primary" onClick={() => exportCsv('assets', base)}>Assets</button>
-          <button className="btn btn-primary" onClick={() => exportCsv('data-quality', base)}>Data quality</button>
-        </div>
-        <p className="hint" style={{ marginTop: 10 }}>On-time delivery rates and capacity reports belong to the Next release and are not offered.</p>
-      </Panel>
     </>
   );
 }

@@ -109,6 +109,11 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<AppSetting> Settings => Set<AppSetting>();
     public DbSet<AuditEntry> AuditEntries => Set<AuditEntry>();
     public DbSet<ExportLog> ExportLogs => Set<ExportLog>();
+    // A62: Reporting Center
+    public DbSet<Modules.Reporting.ExportJob> ExportJobs => Set<Modules.Reporting.ExportJob>();
+    public DbSet<Modules.Reporting.ReportSchedule> ReportSchedules => Set<Modules.Reporting.ReportSchedule>();
+    public DbSet<Modules.Reporting.ReportScheduleRecipient> ReportScheduleRecipients => Set<Modules.Reporting.ReportScheduleRecipient>();
+    public DbSet<Modules.Reporting.ReportPreset> ReportPresets => Set<Modules.Reporting.ReportPreset>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder b)
     {
@@ -954,6 +959,54 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Filters).HasMaxLength(2000);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId);
         });
+        // ---- A62: Reporting Center ----
+        m.Entity<Modules.Reporting.ExportJob>(e =>
+        {
+            e.ToTable("ExportJob", "reporting");
+            e.HasIndex(x => x.AuditId).IsUnique();
+            e.HasIndex(x => new { x.UserId, x.RequestedAt });
+            e.HasIndex(x => new { x.Status, x.ExpiresAt });
+            e.HasIndex(x => x.ScheduleId);
+            e.Property(x => x.Report).HasMaxLength(60);
+            e.Property(x => x.ReportName).HasMaxLength(120);
+            e.Property(x => x.FiltersJson).HasMaxLength(4000);
+            e.Property(x => x.FilterSummary).HasMaxLength(2000);
+            e.Property(x => x.ColumnsJson).HasMaxLength(2000);
+            e.Property(x => x.TimeZone).HasMaxLength(64);
+            e.Property(x => x.FileName).HasMaxLength(200);
+            e.Property(x => x.StoredPath).HasMaxLength(300);
+            e.Property(x => x.Error).HasMaxLength(1000);
+            e.Property(x => x.Source).HasMaxLength(40);
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+        });
+        m.Entity<Modules.Reporting.ReportSchedule>(e =>
+        {
+            e.ToTable("ReportSchedule", "reporting");
+            e.HasIndex(x => new { x.IsActive, x.NextRunAt });
+            e.HasIndex(x => x.OwnerUserId);
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.Report).HasMaxLength(60);
+            e.Property(x => x.FiltersJson).HasMaxLength(4000);
+            e.Property(x => x.FilterSummary).HasMaxLength(2000);
+            e.Property(x => x.TimeZone).HasMaxLength(64);
+            e.Property(x => x.LastOutcome).HasMaxLength(200);
+            e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
+            e.HasMany(x => x.Recipients).WithOne().HasForeignKey(r => r.ScheduleId);
+        });
+        m.Entity<Modules.Reporting.ReportScheduleRecipient>(e =>
+        {
+            e.ToTable("ReportScheduleRecipient", "reporting");
+            e.HasIndex(x => new { x.ScheduleId, x.UserId }).IsUnique();
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+        });
+        m.Entity<Modules.Reporting.ReportPreset>(e =>
+        {
+            e.ToTable("ReportPreset", "reporting");
+            e.HasIndex(x => new { x.UserId, x.Report, x.Name }).IsUnique();
+            e.Property(x => x.Report).HasMaxLength(60);
+            e.Property(x => x.Name).HasMaxLength(80);
+            e.Property(x => x.FiltersJson).HasMaxLength(4000);
+        });
 
         // ---- shared conventions ----
         foreach (var et in m.Model.GetEntityTypes().ToList())
@@ -1014,7 +1067,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     // ---------- Save: stamps and audit in the same transaction (NFR-03, atomic business changes) ----------
 
     private static readonly HashSet<Type> NotAudited =
-        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
+        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
     private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
     private static readonly HashSet<string> QuietProperties =
         [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope"];

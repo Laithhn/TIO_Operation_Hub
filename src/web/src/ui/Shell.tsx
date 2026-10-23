@@ -25,7 +25,7 @@ const SECTIONS: Section[] = [
     { to: '/actions', label: 'Action list', icon: 'list' },
     { to: '/notifications', label: 'Notifications', icon: 'bell' },
     { to: '/data-quality', label: 'Data quality', icon: 'quality' },
-    { to: '/reports', label: 'Reports & exports', icon: 'report', show: m => m.grants.export },
+    { to: '/reports', label: 'Reporting Center', icon: 'report', show: m => m.grants.export },
     // Engineers read the change history here; the TIO Manager has it under Administration.
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => !m.isAdministrator && m.grants.audit }
   ] },

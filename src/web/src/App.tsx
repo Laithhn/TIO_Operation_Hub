@@ -17,7 +17,8 @@ import { EnvironmentDetail, EnvironmentForm, EnvironmentList } from './pages/Env
 import { AssetDetail, AssetList, ComponentDetail, InstallationDetail, VersionMatrix } from './pages/Inventory';
 import { FirewallRuleList } from './pages/Firewall';
 import { NotificationsPage } from './pages/Notifications';
-import { DataQuality, Reports } from './pages/Quality';
+import { DataQuality } from './pages/Quality';
+import { Reports } from './pages/Reports';
 import { HandoverDetail, HandoverList, ReassignmentQueue, TeamDetail, TeamList } from './pages/Teams';
 import { ErrorBox, PageHead, StateMessage } from './ui/kit';
 import { Shell } from './ui/Shell';

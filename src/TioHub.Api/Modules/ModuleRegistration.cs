@@ -35,6 +35,11 @@ public static class ModuleRegistration
         services.AddHostedService<DataQualityScanner>();
         services.AddHostedService<Notifications.NotificationScanner>();
         services.AddHostedService<Work.SlaSweep>();
+        // A62: Reporting Center
+        services.AddOptions<ReportingOptions>().BindConfiguration("Reporting");
+        services.AddSingleton<ExportStore>();
+        services.AddScoped<ExportService>();
+        services.AddHostedService<ReportScheduler>();
         return services;
     }
 
@@ -65,6 +70,7 @@ public static class ModuleRegistration
         api.MapDashboardEndpoints();
         api.MapOverviewEndpoints();
         api.MapSearchExportEndpoints();
+        api.MapReportingEndpoints();
         api.MapAdminEndpoints();
         return api;
     }

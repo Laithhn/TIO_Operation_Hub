@@ -9,7 +9,7 @@ One dependable operational view of TIO's clients (with or without regions), thei
 | Front end | React 18 + TypeScript + Vite + TanStack Query (`src/web`), built into the API's `wwwroot` |
 | Tests | xUnit unit + SQL Server acceptance tests (`tests/TioHub.Tests`), Playwright browser journeys in Microsoft Edge (`tests/e2e`) |
 
-The hub never calls Jira, vaults, client systems or messaging: Jira tickets are stored as manual references only. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61).
+The hub never calls Jira, vaults, client systems or messaging: Jira tickets are stored as manual references only. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
 
 ## Documents
 

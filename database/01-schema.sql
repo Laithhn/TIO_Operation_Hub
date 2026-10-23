@@ -6101,3 +6101,190 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    IF SCHEMA_ID(N'reporting') IS NULL EXEC(N'CREATE SCHEMA [reporting];');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE TABLE [reporting].[ExportJob] (
+        [Id] bigint NOT NULL IDENTITY,
+        [AuditId] uniqueidentifier NOT NULL,
+        [UserId] bigint NOT NULL,
+        [Report] nvarchar(60) NOT NULL,
+        [ReportName] nvarchar(120) NOT NULL,
+        [Format] nvarchar(40) NOT NULL,
+        [FiltersJson] nvarchar(4000) NOT NULL,
+        [FilterSummary] nvarchar(2000) NOT NULL,
+        [ColumnsJson] nvarchar(2000) NULL,
+        [TimeZone] nvarchar(64) NOT NULL,
+        [Status] nvarchar(40) NOT NULL,
+        [RequestedAt] datetimeoffset NOT NULL,
+        [StartedAt] datetimeoffset NULL,
+        [CompletedAt] datetimeoffset NULL,
+        [RowCount] int NULL,
+        [FileSize] bigint NULL,
+        [FileName] nvarchar(200) NULL,
+        [StoredPath] nvarchar(300) NULL,
+        [ExpiresAt] datetimeoffset NULL,
+        [Error] nvarchar(1000) NULL,
+        [Source] nvarchar(40) NOT NULL,
+        [ScheduleId] bigint NULL,
+        [RetryOfId] bigint NULL,
+        CONSTRAINT [PK_ExportJob] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ExportJob_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE TABLE [reporting].[ReportPreset] (
+        [Id] bigint NOT NULL IDENTITY,
+        [UserId] bigint NOT NULL,
+        [Report] nvarchar(60) NOT NULL,
+        [Name] nvarchar(80) NOT NULL,
+        [FiltersJson] nvarchar(4000) NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_ReportPreset] PRIMARY KEY ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE TABLE [reporting].[ReportSchedule] (
+        [Id] bigint NOT NULL IDENTITY,
+        [OwnerUserId] bigint NOT NULL,
+        [Name] nvarchar(120) NOT NULL,
+        [Report] nvarchar(60) NOT NULL,
+        [FiltersJson] nvarchar(4000) NOT NULL,
+        [FilterSummary] nvarchar(2000) NOT NULL,
+        [Format] nvarchar(40) NOT NULL,
+        [Frequency] nvarchar(40) NOT NULL,
+        [DayOfWeek] int NULL,
+        [DayOfMonth] int NULL,
+        [TimeOfDay] time NOT NULL,
+        [TimeZone] nvarchar(64) NOT NULL,
+        [IsActive] bit NOT NULL,
+        [NextRunAt] datetimeoffset NOT NULL,
+        [LastRunAt] datetimeoffset NULL,
+        [LastOutcome] nvarchar(200) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_ReportSchedule] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ReportSchedule_User_OwnerUserId] FOREIGN KEY ([OwnerUserId]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE TABLE [reporting].[ReportScheduleRecipient] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ScheduleId] bigint NOT NULL,
+        [UserId] bigint NOT NULL,
+        CONSTRAINT [PK_ReportScheduleRecipient] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ReportScheduleRecipient_ReportSchedule_ScheduleId] FOREIGN KEY ([ScheduleId]) REFERENCES [reporting].[ReportSchedule] ([Id]),
+        CONSTRAINT [FK_ReportScheduleRecipient_User_UserId] FOREIGN KEY ([UserId]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ExportJob_AuditId] ON [reporting].[ExportJob] ([AuditId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE INDEX [IX_ExportJob_ScheduleId] ON [reporting].[ExportJob] ([ScheduleId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE INDEX [IX_ExportJob_Status_ExpiresAt] ON [reporting].[ExportJob] ([Status], [ExpiresAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE INDEX [IX_ExportJob_UserId_RequestedAt] ON [reporting].[ExportJob] ([UserId], [RequestedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ReportPreset_UserId_Report_Name] ON [reporting].[ReportPreset] ([UserId], [Report], [Name]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE INDEX [IX_ReportSchedule_IsActive_NextRunAt] ON [reporting].[ReportSchedule] ([IsActive], [NextRunAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE INDEX [IX_ReportSchedule_OwnerUserId] ON [reporting].[ReportSchedule] ([OwnerUserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ReportScheduleRecipient_ScheduleId_UserId] ON [reporting].[ReportScheduleRecipient] ([ScheduleId], [UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    CREATE INDEX [IX_ReportScheduleRecipient_UserId] ON [reporting].[ReportScheduleRecipient] ([UserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261022153342_ReportingCenter'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261022153342_ReportingCenter', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
