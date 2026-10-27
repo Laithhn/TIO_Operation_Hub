@@ -1,15 +1,11 @@
 import { expect, test, type Page } from '@playwright/test';
+import { VT_ROW, VT_CELL, VT_HEADER, exactText, openColumnFilter, vtHeader, vtTable } from './vtTable';
 
 const unique = (p: string) => `${p}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
 async function signInAs(page: Page, account: string) {
   const baseURL = test.info().project.use.baseURL as string;
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(account), url: baseURL }]);
-}
-
-/** Column filters live in a popover opened from the column header (2.31). */
-async function openColumnFilter(page: Page, header: string) {
-  await page.locator('table.grid').first().getByRole('columnheader', { name: new RegExp(`^${header}\\b`) }).locator('button.grid-filter-trigger').click();
 }
 
 async function confirmDialog(page: Page, button: string) {
@@ -24,29 +20,33 @@ test.describe('Shell and visual language', () => {
     await page.goto('/clients');
     await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Clients' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { level: 1, name: 'Clients' })).toBeVisible();
-    const clientTable = page.locator('table.grid').first();
-    const aliasHeader = clientTable.getByRole('columnheader', { name: /Alias/ });
-    await expect(aliasHeader.locator('button.grid-filter-trigger')).toBeVisible();
-    await aliasHeader.locator('button.grid-filter-trigger').click();
+    // VtWebGuiFramework 4 table standard: a Toolbar above the framework DataTable carries the controls (the column
+    // filters are in its Filter card); a header cell sorts on click and shows the framework's sort arrow.
+    const clientTable = vtTable(page);
+    await expect(clientTable.locator('[class*="dataTable__dataTable"]')).toBeVisible();
+    await openColumnFilter(page);
     await expect(page.getByLabel('Search clients by name or alias')).toBeVisible();
-    await aliasHeader.locator('button.grid-filter-trigger').click();
-    await aliasHeader.locator('button.grid-sort').click();
-    await expect(aliasHeader).toHaveAttribute('aria-sort', 'ascending');
-    await aliasHeader.locator('button.grid-sort').click();
-    await expect(aliasHeader).toHaveAttribute('aria-sort', 'descending');
+    await page.keyboard.press('Escape');
+    await expect(page.getByLabel('Search clients by name or alias')).toBeHidden();
+    const aliasHeader = vtHeader(clientTable, /^Alias/);
+    await aliasHeader.click();
+    await expect(page).toHaveURL(/sort=code/);
+    await expect(aliasHeader.locator('svg')).toHaveCount(1);
+    const firstAsc = await clientTable.locator(VT_CELL + '[data-col="code"]').first().innerText();
+    await aliasHeader.click();
+    await expect(page).toHaveURL(/sort=-code/);
+    await expect(clientTable.locator(VT_CELL + '[data-col="code"]').first()).not.toHaveText(firstAsc);
     await expect(page.getByText(/Records :- \d+ OF \d+/)).toBeVisible();
     await expect(page.locator('footer.status')).toContainText('User : DEV\\manager');
-    // VtWebGuiFramework 3.6.1 frame (owner decision 27 Oct 2026: framework tokens in full): primary #001e46 header,
-    // 17px root, light marker block under the active primary link, bulge marker in the first sidebar.
-    const hdr = await page.locator('header.hdr').evaluate(e => getComputedStyle(e).backgroundColor);
-    expect(hdr).toBe('rgb(0, 30, 70)');
+    // VtWebGuiFramework 4.0 frame (owner decisions 27 Oct 2026): primary #001e46 header 50px high, 17px root, the
+    // framework's glass lens behind the active primary menu node, its glass drop beside the active first-sidebar node.
+    const hdr = await page.locator('header.hdr').evaluate(e => [getComputedStyle(e).backgroundColor, e.getBoundingClientRect().height]);
+    expect(hdr).toEqual(['rgb(0, 30, 70)', 50]);
     expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe('17px');
     const activeLink = page.getByRole('navigation', { name: 'Main' }).locator('a[aria-current="page"]');
-    await expect(activeLink).toHaveClass(/primaryLink__active/);
-    await expect(activeLink).toHaveCSS('color', 'rgb(0, 30, 70)');
-    const marker = await page.getByRole('navigation', { name: 'Main' }).locator('[class*="marker__marker"]').evaluate(e => getComputedStyle(e).backgroundColor);
-    expect(marker).toBe('rgb(250, 251, 252)');
-    await expect(page.locator('aside.side [class*="marker__marker"] circle')).toHaveCount(1);
+    await expect(activeLink).toHaveClass(/menuNode__menuNode/);
+    await expect(page.getByRole('navigation', { name: 'Main' }).locator('svg[class*="marker__dynamicMarker"]')).toHaveCount(1);
+    await expect(page.locator('aside.side [class*="marker__marker"]')).toHaveCount(1);
     await expect(page.locator('#viMainToolbar h1')).toHaveText('Clients');
     await page.screenshot({ path: 'test-results/visual-clients-1600.png' });
     await page.goto('/');
@@ -76,18 +76,17 @@ test.describe('Shell and visual language', () => {
 
   test('table column filters suggest values and match a typed prefix immediately', async ({ page }) => {
     await page.goto('/admin/users');
-    const table = page.locator('table.grid').first();
-    const accountHeader = table.getByRole('columnheader', { name: /Account/ });
-    await accountHeader.locator('button.grid-filter-trigger').click();
+    const table = vtTable(page);
+    await openColumnFilter(page);
     const value = page.getByLabel('Filter value for Account');
     await expect(value).toBeVisible();
     const listId = await value.getAttribute('list');
     const suggestions = await page.locator(`#${listId} option`).evaluateAll(options => options.map(option => (option as HTMLOptionElement).value));
     expect(suggestions).toContain('DEV\\manager');
     await value.fill('DEV\\m');
-    await expect(table.locator('tbody tr')).toHaveCount(1);
-    await expect(table.locator('tbody tr').first()).toContainText('DEV\\manager');
-    await accountHeader.locator('button.grid-filter-trigger').click();
+    await expect(table.locator(VT_ROW)).toHaveCount(1);
+    await expect(table.locator(VT_ROW).first()).toContainText('DEV\\manager');
+    await page.keyboard.press('Escape');
   });
 
   test('keyboard: skip link first, "/" search palette, Escape closes, visible focus', async ({ page }) => {
@@ -270,10 +269,10 @@ test.describe('Sub-clients and copying between regions', () => {
     await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).first().click();
     const subs = page.locator('section.panel', { has: page.getByRole('heading', { name: /Sub-clients/ }) });
     await subs.getByLabel('Filter rows').fill(alias);
-    await expect(subs.getByRole('row', { name: new RegExp(alias) })).toContainText('Mara Okafor');
+    await expect(subs.locator(VT_ROW).filter({ hasText: new RegExp(alias) })).toContainText('Mara Okafor');
     await page.screenshot({ path: 'test-results/visual-subclients-1600.png', fullPage: true });
     await page.goto(`/clients?q=${alias}`);
-    await expect(page.getByRole('row').filter({ has: page.getByRole('link', { name: alias, exact: true }) })).toContainText('Sub-client of DEMO-NTA');
+    await expect(page.locator(VT_ROW).filter({ has: page.getByRole('link', { name: alias, exact: true }) })).toContainText('Sub-client of DEMO-NTA');
   });
 
   test('copy a server from region R1 to region R2', async ({ page }) => {
@@ -389,14 +388,14 @@ test.describe('Projects and contracts', () => {
     await page.goto('/projects');
     await expect(page.getByRole('heading', { level: 1, name: 'Projects & contracts' })).toBeVisible();
     await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Clients' })).toHaveAttribute('aria-current', 'page');
-    await expect(page.getByRole('row', { name: /DEMO-NTA-OPS/ })).toContainText('need renewal attention');
+    await expect(page.locator(VT_ROW).filter({ hasText: /DEMO-NTA-OPS/ })).toContainText('need renewal attention');
 
     // The contract register is the second view of the same area.
     await page.getByRole('tab', { name: 'Contract register' }).click();
     await expect(page).toHaveURL(/\/contracts$/);
     await openColumnFilter(page, 'Ref');
     await page.getByLabel('Search contracts').fill('NTA support');
-    const ntaRow = page.getByRole('row', { name: /NTA support and maintenance agreement/ });
+    const ntaRow = page.locator(VT_ROW).filter({ hasText: /NTA support and maintenance agreement/ });
     await expect(ntaRow.getByText('Renewal due')).toBeVisible();
     await expect(ntaRow.getByRole('link', { name: 'DEMO-NTA-OPS' })).toBeVisible();
 
@@ -405,7 +404,7 @@ test.describe('Projects and contracts', () => {
     await page.getByRole('link', { name: 'HCP rollout' }).click();
     await expect(page.getByRole('heading', { level: 1 })).toContainText('DEMO-HCP-RO');
     const contracts = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Contracts & SLAs' }) });
-    await expect(contracts.getByRole('row', { name: /HCP rollout support/ })).toContainText('Critical: 1 h / 8 h');
+    await expect(contracts.locator(VT_ROW).filter({ hasText: /HCP rollout support/ })).toContainText('Critical: 1 h / 8 h');
     await page.getByRole('link', { name: '+ Contract' }).click();
     const title = unique('E2E support contract');
     await expect(page.getByLabel('Project')).toHaveValue(/\d+/);
@@ -427,7 +426,7 @@ test.describe('Projects and contracts', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText(title);
     await expect(page.getByText('End date unknown').first()).toBeVisible();
     const sla = page.locator('section.panel', { has: page.getByRole('heading', { name: 'SLA targets (recorded)' }) });
-    await expect(sla.getByRole('row', { name: /Critical\s+1 h\s+4 h/ })).toBeVisible();
+    await expect(sla.locator(VT_ROW).filter({ hasText: /Critical\s+1 h\s+4 h/ })).toBeVisible();
     await expect(sla).toContainText('measured against the target');
     await expect(page.locator('section.panel', { has: page.getByRole('heading', { name: 'Covered products (from the project)' }) })).toContainText('ViTIS');
     await page.screenshot({ path: 'test-results/visual-contract-1600.png', fullPage: true });
@@ -436,7 +435,7 @@ test.describe('Projects and contracts', () => {
     await page.getByRole('link', { name: 'DEMO-HCP-RO', exact: true }).click();
     // Earlier runs add contracts here; the table pages at 25 rows, so narrow it first.
     await contracts.getByLabel('Filter rows').fill(title);
-    const added = contracts.getByRole('row', { name: new RegExp(title) });
+    const added = contracts.locator(VT_ROW).filter({ hasText: new RegExp(title) });
     await expect(added).toContainText('End date unknown');
     await expect(added).toContainText('Critical: 1 h / 4 h');
     await page.screenshot({ path: 'test-results/visual-project-1600.png', fullPage: true });
@@ -447,7 +446,7 @@ test.describe('Ease of use', () => {
   test('rows open their record, quick create and search from the header', async ({ page }) => {
     await page.goto('/clients?q=DEMO-NTA');
     // A click anywhere on the row (not only on the link) opens the client.
-    await page.getByRole('row').filter({ has: page.getByRole('link', { name: 'DEMO-NTA', exact: true }) }).getByRole('cell').nth(2).click();
+    await page.locator(VT_ROW).filter({ has: page.getByRole('link', { name: 'DEMO-NTA', exact: true }) }).locator(VT_CELL).nth(2).click();
     await expect(page).toHaveURL(/\/clients\/\d+$/);
     await page.getByRole('button', { name: '+ New' }).click();
     await expect(page.getByRole('menuitem', { name: 'Case' })).toBeVisible();
@@ -465,7 +464,7 @@ test.describe('Configuration', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Configuration' })).toBeVisible();
     await page.getByRole('main').getByRole('link', { name: 'Server types' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Server types' })).toBeVisible();
-    await expect(page.getByRole('row', { name: /Virtual machine \(VM\)/ })).toBeVisible();
+    await expect(page.locator(VT_ROW).filter({ hasText: /Virtual machine \(VM\)/ })).toBeVisible();
     await page.getByRole('button', { name: '+ Add' }).click();
     const dlg = page.getByRole('dialog');
     await dlg.getByLabel('Name').fill(name);
@@ -474,7 +473,7 @@ test.describe('Configuration', () => {
     await expect(dlg).toBeHidden();
     // Earlier runs add server types too; the table pages at 25 rows, so narrow it first.
     await page.getByLabel('Filter rows').fill(name);
-    await expect(page.getByRole('row', { name: new RegExp(name) })).toContainText('Physical server');
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(name) })).toContainText('Physical server');
     await page.screenshot({ path: 'test-results/visual-config-server-types-1600.png', fullPage: true });
     // The old single page now leads to the overview.
     await page.goto('/admin/reference');
@@ -498,7 +497,7 @@ test.describe('Configuration', () => {
     await expect(form).toBeHidden();
     await page.getByRole('tab', { name: /Servers & assets/ }).click();
     await page.getByLabel('Filter rows').first().fill(server);
-    await expect(page.getByRole('row', { name: new RegExp(server) })).toContainText(name);
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(server) })).toContainText(name);
   });
 });
 
@@ -565,11 +564,11 @@ test.describe('Access (roles and rights)', () => {
     await page.screenshot({ path: 'test-results/visual-rights-1600.png', fullPage: true });
     // The Roles page lists it with its rights; an unused role is deleted there.
     await page.goto('/admin/roles');
-    const row = page.getByRole('row', { name: new RegExp(name) });
+    const row = page.locator(VT_ROW).filter({ hasText: new RegExp(name) });
     await expect(row).toContainText('Change history');
     await row.getByRole('button', { name: 'Delete' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete role' }).click();
-    await expect(page.getByRole('row', { name: new RegExp(name) })).toHaveCount(0);
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(name) })).toHaveCount(0);
   });
 
   test('Operation Engineer works on all clients but has no Administration or client creation', async ({ page }) => {
@@ -608,8 +607,8 @@ test.describe('Access (roles and rights)', () => {
     await page.getByLabel('Feature name').fill('Bulk import');
     await page.getByLabel('Module', { exact: true }).selectOption({ label: 'IMPORTER · Importer' });
     await page.getByRole('button', { name: 'Save feature' }).click();
-    await expect(page.getByRole('row', { name: /Bulk import\s+IMPORTER/ })).toBeVisible();
-    await expect(page.getByRole('row', { name: /IMPORTER · Importer/ })).toContainText('1');
+    await expect(page.locator(VT_ROW).filter({ hasText: /Bulk import\s+IMPORTER/ })).toBeVisible();
+    await expect(page.locator(VT_ROW).filter({ hasText: /IMPORTER · Importer/ })).toContainText('1');
     // A microservice with a version and its release notes.
     await page.getByRole('button', { name: '+ Microservice' }).click();
     await page.getByLabel('Microservice name').fill(`${code}.Importer.Microservice`);
@@ -656,12 +655,12 @@ test.describe('Microservices', () => {
     // Earlier runs left copies such as nta-r1-app01-x in the environment: narrow the table and take the original.
     await panel.getByLabel('Filter rows').fill('nta-r1-app01');
     // The row has no accessible name once many microservices are listed in it, so it is found by its server link.
-    await panel.getByRole('row').filter({ has: page.getByRole('link', { name: 'nta-r1-app01', exact: true }) }).getByRole('button', { name: 'Choose microservices' }).click();
+    await panel.locator(VT_ROW).filter({ has: page.getByRole('link', { name: 'nta-r1-app01', exact: true }) }).getByRole('button', { name: 'Choose microservices' }).click();
     const dialog = page.getByRole('dialog');
     await dialog.getByLabel(new RegExp(`PSOP\.Importer${tag}\.Microservice`)).check();
     await dialog.getByLabel(new RegExp(`PSOP\.PlateLookup${tag}\.Microservice`)).check();
     await dialog.getByRole('button', { name: 'Save' }).click();
-    const row = panel.getByRole('row', { name: /nta-r1-app01/ });
+    const row = panel.locator(VT_ROW).filter({ hasText: /nta-r1-app01/ });
     await expect(row).toContainText(`PSOP.Importer${tag}.Microservice`);
     await expect(row).toContainText(`PSOP.PlateLookup${tag}.Microservice`);
     await page.screenshot({ path: 'test-results/visual-deployment-1600.png', fullPage: true });
@@ -684,18 +683,18 @@ test.describe('Microservices', () => {
     await page.goto(`/installations/${inst}`);
     // Earlier runs add servers here; the table pages at 25 rows, so narrow it first.
     await panel.getByLabel('Filter rows').fill(`wf${tag}`.toLowerCase());
-    const wfRow = panel.getByRole('row', { name: new RegExp(`nta-r1-wf${tag}`, 'i') });
+    const wfRow = panel.locator(VT_ROW).filter({ hasText: new RegExp(`nta-r1-wf${tag}`, 'i') });
     await expect(wfRow).toContainText(`PSOP.Importer${tag}.Microservice · 2.1.0`);
 
     // On the server page: the hosted microservices with their version, changed in place.
     await wfRow.getByRole('link', { name: new RegExp(`nta-r1-wf${tag}`, 'i') }).click();
     const hostedPanel = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Hosted microservices' }) });
-    await expect(hostedPanel.getByRole('row', { name: new RegExp(`PSOP\\.Importer${tag}`) })).toContainText('2.1.0');
+    await expect(hostedPanel.locator(VT_ROW).filter({ hasText: new RegExp(`PSOP\\.Importer${tag}`) })).toContainText('2.1.0');
     await hostedPanel.getByRole('button', { name: 'Edit hosted microservices' }).click();
     await page.getByRole('dialog').getByLabel(`PSOP.Importer${tag}.Microservice deployed version`).selectOption({ label: '2.2.0' });
     await page.getByRole('dialog').getByRole('button', { name: 'Save' }).click();
     await expect(page.getByRole('dialog')).toBeHidden();
-    await expect(hostedPanel.getByRole('row', { name: new RegExp(`PSOP\\.Importer${tag}`) })).toContainText('2.2.0');
+    await expect(hostedPanel.locator(VT_ROW).filter({ hasText: new RegExp(`PSOP\\.Importer${tag}`) })).toContainText('2.2.0');
     await page.screenshot({ path: 'test-results/visual-server-microservices-1600.png', fullPage: true });
   });
 });
@@ -743,7 +742,7 @@ test.describe('Dashboard visualizations', () => {
       const reference = await fetch('/api/v1/reference').then(r => r.json());
       return reference.enumLabels.CaseStatus.PendingValidation as string;
     });
-    await expect(panel.locator('table')).toContainText(pendingValidationLabel);
+    await expect(panel.locator('[data-vt-table]')).toContainText(pendingValidationLabel);
     // Contracts and SLAs have their own charts; the map figure is switched on the map page.
     await expect(page.getByRole('heading', { name: 'Contracts & SLAs' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'SLA targets by priority' })).toBeVisible();
@@ -763,7 +762,7 @@ test.describe('Dashboard visualizations', () => {
     const nav = page.getByRole('navigation', { name: 'Dashboard sections' });
     await expect(nav.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'true');
     // The attention queue lists what needs action now, each row opening its record (or says all clear).
-    const strip = page.getByRole('region', { name: 'Needs immediate attention' });
+    const strip = page.locator('section#attention');
     await expect(strip).toBeVisible();
     const first = strip.getByRole('link', { name: /^Open / }).first();
     if (await first.count()) {
@@ -826,7 +825,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await dlg.getByRole('button', { name: 'Save rule' }).click();
     await expect(dlg).toBeHidden();
     await page.getByLabel('Search', { exact: true }).fill(purpose);
-    const row = page.getByRole('row', { name: new RegExp(purpose) });
+    const row = page.locator(VT_ROW).filter({ hasText: new RegExp(purpose) });
     await expect(row).toContainText('9182, 10000-10010');
     await expect(row).toContainText('Both ways');
     // The server page lists the rules from and to it.
@@ -835,7 +834,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await page.goto(`/firewall-rules?q=${encodeURIComponent(purpose)}`);
     await page.getByRole('button', { name: /^Delete rule nta-r1-app01/ }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
-    await expect(page.getByRole('row', { name: new RegExp(purpose) })).toHaveCount(0);
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(purpose) })).toHaveCount(0);
   });
 
   test('every table filters, sorts, pages and exports; configuration values are deleted from the table', async ({ page }) => {
@@ -846,7 +845,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await page.getByRole('dialog').getByLabel('Name').fill(label);
     await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click();
     await page.getByLabel('Filter rows').fill(label);
-    await expect(page.getByRole('row', { name: new RegExp(label) })).toBeVisible();
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(label) })).toBeVisible();
     // Filter box, header sort and CSV export.
     await page.getByPlaceholder('Filter rows…').fill(label);
     await expect(page.getByText('1 of')).toBeVisible();
@@ -854,12 +853,14 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await page.getByRole('button', { name: 'Export CSV' }).click();
     expect((await download).suggestedFilename()).toMatch(/\.csv$/);
     await page.getByPlaceholder('Filter rows…').fill('');
-    await page.getByRole('columnheader', { name: /^Name\b/ }).locator('button.grid-sort').click();
-    await expect(page.getByRole('columnheader', { name: /Name/ })).toHaveAttribute('aria-sort', 'ascending');
+    const nameHeader = page.locator(VT_HEADER).filter({ hasText: /^Name\b/ });
+    await nameHeader.click();
+    // The framework header cell shows its sort arrow (ARROWUP for ascending).
+    await expect(nameHeader.locator('svg')).toHaveCount(1);
     // Unused values delete straight from the table; values in use are refused with the reason.
     await page.getByRole('button', { name: `Delete ${label}` }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
-    await expect(page.getByRole('row', { name: new RegExp(label) })).toHaveCount(0);
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(label) })).toHaveCount(0);
     await page.goto('/admin/config/environment-types');
     await page.getByRole('button', { name: 'Delete Production' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
@@ -876,10 +877,10 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await dlg.getByRole('button', { name: 'Create team' }).click();
     await expect(dlg).toBeHidden();
     await page.getByLabel('Filter rows').fill(code);
-    await expect(page.getByRole('row', { name: new RegExp(code) })).toBeVisible();
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(code) })).toBeVisible();
     await page.getByRole('button', { name: `Delete team ${code}` }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
-    await expect(page.getByRole('row', { name: new RegExp(code) })).toHaveCount(0);
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(code) })).toHaveCount(0);
   });
 
   test('a responsibility boundary names any person with separate contact details', async ({ page }) => {
@@ -900,7 +901,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await dlg.getByLabel('Email').fill('lina.haddad@example.org');
     await dlg.getByRole('button', { name: 'Save' }).click();
     await expect(dlg).toBeHidden();
-    const row = page.getByRole('row', { name: /Lina Haddad \(fictional\)/ }).last();
+    const row = page.locator(VT_ROW).filter({ hasText: /Lina Haddad \(fictional\)/ }).last();
     await expect(row).toContainText('lina.haddad@example.org');
     await expect(row).toContainText('+971 4 555 0100');
     await row.getByRole('button', { name: /^Delete responsibility boundary/ }).click();
@@ -948,13 +949,13 @@ test.describe('Escalations (A41)', () => {
     // Channels are a configuration list.
     await page.goto('/admin/config/escalation-channels');
     await expect(page.getByRole('heading', { level: 1, name: 'Escalation channels' })).toBeVisible();
-    await expect(page.getByRole('row', { name: /Formal letter/ })).toBeVisible();
+    await expect(page.locator(VT_ROW).filter({ hasText: /Formal letter/ })).toBeVisible();
     await page.getByRole('button', { name: '+ Add' }).click();
     await page.getByRole('dialog').getByLabel('Name').fill(channel);
     await page.getByRole('dialog').getByRole('button', { name: 'Add', exact: true }).click();
     // Earlier runs add channels too; the table pages at 25 rows, so narrow it first.
     await page.getByLabel('Filter rows').fill(channel);
-    await expect(page.getByRole('row', { name: new RegExp(channel) })).toBeVisible();
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(channel) })).toBeVisible();
 
     await page.goto('/escalations/new');
     await page.getByLabel('Client', { exact: true }).selectOption({ label: 'DEMO-NTA · Northwind Transit Authority (fictional)' });
@@ -995,7 +996,7 @@ test.describe('Escalations (A41)', () => {
     await page.getByRole('tab', { name: 'Escalations' }).click();
     await page.getByLabel('Status').selectOption('all');
     await page.getByLabel('Filter rows').first().fill(title);
-    await expect(page.getByRole('row', { name: new RegExp(title) })).toContainText('Resolved');
+    await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(title) })).toContainText('Resolved');
     await page.goto('/admin/config/escalation-channels');
     await page.getByLabel('Filter rows').fill(channel);
     await page.getByRole('button', { name: `Delete ${channel}` }).click();
@@ -1046,7 +1047,7 @@ test.describe('Delete with dependencies and time zones (A43, A44)', () => {
 
   test('time zones are picked from a list; the default offers this computer\'s zone', async ({ page }) => {
     await page.goto('/admin/settings');
-    await page.getByRole('row', { name: /DefaultTimeZone/ }).getByRole('button', { name: 'Edit' }).click();
+    await page.locator(VT_ROW).filter({ hasText: /DefaultTimeZone/ }).getByRole('button', { name: 'Edit' }).click();
     const dlg = page.getByRole('dialog');
     const zone = dlg.getByLabel('Default time zone');
     expect(await zone.locator('option').count()).toBeGreaterThan(300);
@@ -1055,7 +1056,7 @@ test.describe('Delete with dependencies and time zones (A43, A44)', () => {
     await dlg.getByRole('button', { name: /Use this computer's time zone/ }).click();
     await expect(zone).toHaveValue(pc);
     await dlg.getByRole('button', { name: 'Save' }).click();
-    await expect(page.getByRole('row', { name: /DefaultTimeZone/ })).toContainText(pc.replace(/_/g, ' '));
+    await expect(page.locator(VT_ROW).filter({ hasText: /DefaultTimeZone/ })).toContainText(pc.replace(/_/g, ' '));
     // The commitment form uses the same list.
     await page.goto('/commitments/new');
     await expect(page.getByLabel('Original time zone').locator('option').nth(5)).toBeAttached();
@@ -1078,7 +1079,7 @@ test.describe('Attachments (A46)', () => {
     await panel.getByLabel('Description of the files (optional)').fill('Taken during the site visit (fictional)');
     await panel.getByRole('button', { name: 'Upload 2 file(s)' }).click();
     await expect(panel.getByRole('link', { name })).toBeVisible();
-    await expect(panel.getByRole('row').filter({ hasText: name })).toContainText('Taken during the site visit');
+    await expect(panel.locator(VT_ROW).filter({ hasText: name })).toContainText('Taken during the site visit');
     const download = page.waitForEvent('download');
     await panel.getByRole('link', { name }).click();
     expect((await download).suggestedFilename()).toBe(name);
@@ -1235,7 +1236,7 @@ test.describe('Contract terms and storage settings (A48, A49)', () => {
     await expect(page.getByRole('heading', { name: 'Contract payments' })).toBeVisible();
     await page.getByRole('group', { name: 'Payment state' }).getByRole('button', { name: /^Due within 14 days/ }).click();
     await page.getByLabel('Filter rows').fill(title);
-    const row = page.getByRole('row', { name: new RegExp(title) });
+    const row = page.locator(VT_ROW).filter({ hasText: new RegExp(title) });
     await expect(row).toContainText('57,500.00 AED');
     await expect(row).toContainText('Due soon');
     await expect(row).toContainText('in 5 day(s)');
@@ -1295,7 +1296,7 @@ test.describe('Teams, time zones and retired sections (A52, A53)', () => {
     await expect(first).toHaveAttribute('aria-pressed', 'true');
     await dlg.getByRole('button', { name: 'Add member' }).click();
     await expect(dlg).toBeHidden();
-    const row = page.getByRole('row', { name: /Support engineer/ });
+    const row = page.locator(VT_ROW).filter({ hasText: /Support engineer/ });
     await expect(row).toContainText(product);
     // Edit: another role, no products.
     await row.getByRole('button', { name: /^Edit / }).click();
@@ -1304,7 +1305,7 @@ test.describe('Teams, time zones and retired sections (A52, A53)', () => {
     await ed.getByRole('group', { name: 'Product familiarity' }).getByRole('button', { name: product, exact: true }).click();
     await ed.getByRole('button', { name: 'Save' }).click();
     await expect(ed).toBeHidden();
-    const edited = page.getByRole('row', { name: /Engineer/ }).filter({ has: page.getByRole('button', { name: /^Remove / }) });
+    const edited = page.locator(VT_ROW).filter({ hasText: /Engineer/ }).filter({ has: page.getByRole('button', { name: /^Remove / }) });
     await expect(edited).not.toContainText(product);
     // Remove the membership.
     await edited.getByRole('button', { name: /^Remove / }).click();
@@ -1326,8 +1327,10 @@ test.describe('Teams, time zones and retired sections (A52, A53)', () => {
     await page.goto('/clients');
     await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).first().click();
     await expect(page.getByRole('tab', { name: 'Reviews & documents' })).toHaveCount(0);
+    // Tabs beyond the visible part of the framework TabBar lie under its edge shader (users reach them with its scroll
+    // buttons), so the tab is activated by its click handler directly.
     for (const t of await page.getByRole('tab').all()) {
-      await t.click();
+      await t.dispatchEvent('click');
       await expect(page.getByRole('heading', { name: /Meaningful reviews|Document references/ })).toHaveCount(0);
     }
   });
@@ -1378,7 +1381,7 @@ test.describe('Product parts edit and delete (A56)', () => {
       return r.find((p: { code: string }) => p.code === 'PSOP').id as number;
     });
     await page.goto(`/products/${id}`);
-    const row = page.getByRole('row').filter({ has: page.getByRole('button', { name: /^Delete version / }) }).filter({ hasNot: page.getByRole('cell', { name: '0', exact: true }) }).first();
+    const row = page.locator(VT_ROW).filter({ has: page.getByRole('button', { name: /^Delete version / }) }).filter({ hasNot: page.locator(VT_CELL).filter({ hasText: exactText('0') }) }).first();
     await row.getByRole('button', { name: /^Delete version / }).click();
     const dlg = page.getByRole('dialog');
     await dlg.getByRole('button', { name: /^Delete/ }).click();
@@ -1408,13 +1411,13 @@ test.describe('Version release notes and project teams from Teams (A57, A58)', (
     await expect(dlg.getByRole('group', { name: 'New features to add' })).toContainText('Duplicate check');
     await dlg.getByRole('button', { name: 'Add version' }).click();
     await expect(dlg).toBeHidden();
-    const row = page.getByRole('row', { name: /^3\.0/ });
+    const row = page.locator(VT_ROW).filter({ hasText: /^3\.0/ });
     await expect(row).toContainText('Bulk import, Duplicate check');
     await row.getByRole('button', { name: 'Release notes of 3.0' }).click();
     await expect(page.getByRole('dialog')).toContainText('Fixes the login timeout');
     await expect(page.getByRole('dialog')).toContainText('Duplicate check');
     await page.getByRole('dialog').locator('.form-actions').getByRole('button', { name: 'Close' }).click();
-    await expect(page.getByRole('row', { name: /^Duplicate check/ })).toContainText('3.0');
+    await expect(page.locator(VT_ROW).filter({ hasText: /^Duplicate check/ })).toContainText('3.0');
   });
 
   test('a new client takes a whole team from Teams into its project team', async ({ page }) => {
@@ -1441,8 +1444,8 @@ test.describe('Operations Command Center (A60)', () => {
       await expect(page.getByRole('link', { name: new RegExp(`^${name.replace(/[()]/g, '\\$&')}: `) })).toBeVisible();
 
     // The attention queue: severity first, filter by issue type, rows open their record.
-    const queue = page.getByRole('region', { name: 'Needs immediate attention' });
-    const firstSeverity = queue.locator('tbody tr').first().locator('td').first();
+    const queue = page.locator('section#attention');
+    const firstSeverity = queue.locator(VT_ROW).first().locator(VT_CELL).first();
     await expect(firstSeverity).toContainText(/Critical|High|Medium/);
     const chip = queue.getByRole('group', { name: 'Issue type' }).getByRole('button').nth(1);
     if (await chip.count()) {
@@ -1472,7 +1475,7 @@ test.describe('Operations Command Center (A60)', () => {
     await expect(page.locator('[aria-label="Contractual SLA figures"]').getByRole('link')).toHaveCount(5);
     await expect(page.getByRole('heading', { name: 'Environments not reported healthy' })).toBeVisible();
     const dq = page.locator('section#quality');
-    await expect(dq.getByRole('columnheader', { name: 'Severity' })).toBeVisible();
+    await expect(dq.locator(VT_HEADER).filter({ hasText: 'Severity' })).toBeVisible();
     const rule = dq.getByRole('link', { name: /^Open / }).first();
     if (await rule.count()) { await rule.click(); await expect(page).toHaveURL(/\/data-quality\?rule=/); }
   });
@@ -1501,14 +1504,14 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(sla.getByRole('link', { name: /^CT-/ })).toBeVisible();
     await expect(sla).toContainText('High priority');
     await expect(sla).toContainText('later contract edits do not change it');
-    await expect(sla.getByRole('row', { name: /First response/ })).toContainText(/Pending|Not measurable/);
-    await expect(sla.getByRole('row', { name: /Resolution/ })).toContainText(/Pending|Not measurable/);
+    await expect(sla.locator(VT_ROW).filter({ hasText: /First response/ })).toContainText(/Pending|Not measurable/);
+    await expect(sla.locator(VT_ROW).filter({ hasText: /Resolution/ })).toContainText(/Pending|Not measurable/);
 
     // The first response is recorded once.
     await sla.getByRole('button', { name: 'Record first response' }).click();
     await page.getByRole('dialog').getByLabel('Channel').selectOption('Email');
     await confirmDialog(page, 'Record response');
-    await expect(sla.getByRole('row', { name: /First response/ })).not.toContainText('Not yet recorded');
+    await expect(sla.locator(VT_ROW).filter({ hasText: /First response/ })).not.toContainText('Not yet recorded');
     await expect(sla.getByRole('button', { name: 'Record first response' })).toHaveCount(0);
     await page.getByRole('tab', { name: 'Timeline' }).click();
     await expect(page.locator('.timeline').getByText('First response', { exact: true })).toBeVisible();
@@ -1520,10 +1523,11 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(page).toHaveURL(/contractId=\d+/);
     await openColumnFilter(page, 'Ref');
     await page.getByLabel('Search cases').fill(title);
-    const row = page.locator('tbody tr', { hasText: title });
+    const row = page.locator(VT_ROW).filter({ hasText: title });
     await expect(row).toBeVisible();
     await expect(row.getByTitle('Response')).toBeVisible();
-    await page.getByLabel('Contractual SLA').selectOption('noContract');
+    await page.keyboard.press('Escape');
+    await page.getByLabel('Contractual SLA', { exact: true }).selectOption('noContract');
     await expect(row).toHaveCount(0);
 
     // Dashboard: the band shows the definition and denominators; a tile opens the matching cases.
@@ -1534,7 +1538,7 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(band.getByText('Response compliance')).toBeVisible();
     await band.getByRole('link', { name: /Overall \(both met\)/ }).click();
     await expect(page).toHaveURL(/\/cases\?.*sla=withContract/);
-    await expect(page.getByLabel('Contractual SLA')).toHaveValue('withContract');
+    await expect(page.getByLabel('Contractual SLA', { exact: true })).toHaveValue('withContract');
     await expect(page.getByText(/Opened from/)).toBeVisible();
     await page.screenshot({ path: 'test-results/visual-sla-cases-1600.png', fullPage: true });
   });
@@ -1572,7 +1576,7 @@ test.describe('Reporting Center (A62)', () => {
     await page.getByRole('button', { name: /Apply filters and preview/ }).click();
     const preview = page.locator('section.panel', { has: page.getByRole('heading', { name: '2 · Preview' }) });
     await expect(preview).toContainText(/\d+ matching row\(s\)/);
-    await expect(preview.getByRole('columnheader', { name: /^Reference\b/ })).toBeVisible();
+    await expect(preview.locator(VT_HEADER).filter({ hasText: /^Reference\b/ })).toBeVisible();
     await expect(preview).toContainText('Client = DEMO-NTA');
 
     // Unchanged filters must still issue a fresh preview request.
@@ -1601,7 +1605,7 @@ test.describe('Reporting Center (A62)', () => {
     await expect(dialog).toContainText('Cases report');
     await expect(dialog).toContainText('Audit reference');
     await dialog.locator('.form-actions').getByRole('button', { name: 'Close', exact: true }).click();
-    await expect(page.getByRole('table', { name: 'Export history' }).locator('tbody tr').first()).toContainText('Cases report');
+    await expect(page.getByRole('region', { name: 'Export history' }).locator(VT_ROW).first()).toContainText('Cases report');
 
     // Schedule: create, pause, delete.
     await page.getByRole('tab', { name: 'Scheduled reports' }).click();
@@ -1614,7 +1618,7 @@ test.describe('Reporting Center (A62)', () => {
     await sd.getByLabel('Time', { exact: true }).fill('07:30');
     await sd.getByRole('button', { name: 'Create schedule' }).click();
     await expect(sd).toBeHidden();
-    const row = page.locator('tbody tr', { hasText: name });
+    const row = page.locator(VT_ROW).filter({ hasText: name });
     await expect(row).toContainText('Every Sunday at 07:30');
     await row.getByRole('button', { name: 'Pause' }).click();
     await expect(row).toContainText('Paused');

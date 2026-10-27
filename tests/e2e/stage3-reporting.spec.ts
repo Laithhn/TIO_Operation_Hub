@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { VT_CELL, exactText } from './vtTable';
 
 type Lookup = { id: number; listName: string; code: string; label: string; description?: string | null; sortOrder: number; isRetired: boolean; category?: string | null; version: string };
 const unique = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9).toUpperCase()}`;
@@ -62,7 +63,7 @@ test('case reporting uses configured status labels and submits an explicit not-w
     const statusChart = page.locator('section.viz-panel').filter({ has: page.getByRole('heading', { name: 'Open cases by status', exact: true }) });
     await expect(statusChart.getByText(renamed, { exact: true })).toBeVisible();
     await statusChart.getByRole('button', { name: 'Table view', exact: true }).click();
-    await expect(statusChart.getByRole('cell', { name: renamed, exact: true })).toBeVisible();
+    await expect(statusChart.locator(VT_CELL).filter({ hasText: exactText(renamed) })).toBeVisible();
     await report(page, 'Cases report');
     await page.getByLabel('Client', { exact: true }).selectOption(String(client.id));
     const status = page.getByLabel('Status', { exact: true });
@@ -76,7 +77,7 @@ test('case reporting uses configured status labels and submits an explicit not-w
     await expect(page.getByLabel('Filters in force').getByText(/^no$/i)).toBeVisible();
     const request = await preview(page, 'cases');
     expect(request.filters).toMatchObject({ clientId: String(client.id), status: 'New', waiting: 'false' });
-    const table = page.getByRole('table', { name: 'Preview of Cases report', exact: true });
+    const table = page.getByRole('region', { name: 'Preview of Cases report', exact: true });
     await expect(table).toContainText(includedTitle);
     await expect(table).not.toContainText(excludedTitle);
     await expect(table).toContainText(renamed);
@@ -107,7 +108,7 @@ for (const scenario of [
     await expect(page.getByLabel('Filters in force')).toContainText(renamed);
     const request = await preview(page, scenario.key);
     expect(request.filters).toMatchObject({ clientId: String(client.id), type: original.code });
-    const table = page.getByRole('table', { name: `Preview of ${scenario.report}`, exact: true });
+    const table = page.getByRole('region', { name: `Preview of ${scenario.report}`, exact: true });
     await expect(table).toContainText(recordName);
     await expect(table).toContainText(renamed);
   });

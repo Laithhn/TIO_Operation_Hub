@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { VT_ROW, VT_CELL, exactText, openColumnFilter } from './vtTable';
 
 type Lookup = { id: number; listName: string; code: string; label: string; description?: string | null; sortOrder: number; isRetired: boolean; category?: string | null; version: string };
 const unique = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 9).toUpperCase()}`;
@@ -23,10 +24,6 @@ async function signedIn(page: Page) {
   await page.goto('/clients');
   await expect(page.getByRole('heading', { name: 'Clients', exact: true })).toBeVisible();
   return api<{ id: number }>(page, '/me');
-}
-/** Column filters live in a popover opened from the column header (2.31). */
-async function openColumnFilter(page: Page, header: string) {
-  await page.locator('table.grid').first().getByRole('columnheader', { name: new RegExp(`^${header}\\b`) }).locator('button.grid-filter-trigger').click();
 }
 async function client(page: Page, ownerUserId: number) {
   return api<{ id: number }>(page, '/clients', { code: unique('CFG'), name: unique('Configuration client'), country: 'Oman', status: 'Active', ownerUserId });
@@ -74,7 +71,7 @@ test('reported-condition configuration changes labels only, including an unrepor
   try {
     await renameThroughConfiguration(page, 'reported-conditions', 'Reported conditions', original, newLabel);
     await page.goto(`/environments?clientId=${organization.id}`);
-    await expect(page.getByRole('row').filter({ hasText: 'Label environment' })).toContainText(newLabel);
+    await expect(page.locator(VT_ROW).filter({ hasText: 'Label environment' })).toContainText(newLabel);
     await page.goto(`/environments/${environment.id}`);
     await expect(page.getByText(newLabel, { exact: true })).toBeVisible();
     await expect(page.getByText('Unknown', { exact: true }).first()).toBeVisible(); // Other Unknown-valued fields retain their meaning.
@@ -84,8 +81,8 @@ test('reported-condition configuration changes labels only, including an unrepor
     await page.goto(`/?clientId=${organization.id}`);
     const chart = page.locator('section.viz-panel').filter({ has: page.getByRole('heading', { name: 'Environments by reported condition', exact: true }) });
     await chart.getByRole('button', { name: 'Table view', exact: true }).click();
-    await expect(chart.getByRole('cell', { name: newLabel, exact: true })).toBeVisible();
-    await expect(page.getByRole('table', { name: 'Environments not reported healthy', exact: true }).getByRole('row').filter({ hasText: 'Label environment' })).toContainText(`${newLabel} (no report)`);
+    await expect(chart.locator(VT_CELL).filter({ hasText: exactText(newLabel) })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Environments not reported healthy', exact: true }).locator(VT_ROW).filter({ hasText: 'Label environment' })).toContainText(`${newLabel} (no report)`);
   } finally {
     await updateLookup(page, original, { label: original.label });
   }
@@ -113,7 +110,7 @@ test('case-status configuration updates case labels without renaming cancelled c
     await page.goto(`/cases?clientId=${organization.id}&status=Cancelled`);
     await openColumnFilter(page, 'Status');
     await expect(page.getByLabel('Filter by status', { exact: true }).locator('option[value="Cancelled"]')).toHaveText(newLabel);
-    await expect(page.getByRole('row').filter({ hasText: 'Label case' })).toContainText(newLabel);
+    await expect(page.locator(VT_ROW).filter({ hasText: 'Label case' })).toContainText(newLabel);
     await page.goto(`/commitments/${commitment.id}`);
     await expect(page.locator('.page-head .sub')).toContainText('Cancelled');
     await expect(page.getByText(newLabel, { exact: true })).toHaveCount(0);

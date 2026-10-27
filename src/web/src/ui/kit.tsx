@@ -7,7 +7,7 @@ import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
 import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
 import { createPortal } from 'react-dom';
-import { Icon as VtIcon, Spinner, TabBar, TabBarTitleItem } from '../vt';
+import { Button, Card, ColumnsSelectionCard, DataTable as DataTableVt, Icon as VtIcon, Spinner, TabBar, TabBarTitleItem, Toolbar, ToolbarContrItem } from '../vt';
 
 // ---------- page structure ----------
 
@@ -273,38 +273,44 @@ function downloadCsv(name: string, header: string[], rows: string[][]) {
 }
 
 /**
- * The hub's table. Owner request (20 Oct 2026): every table can be filtered, sorted, paged and exported. Lists paged by the server keep
- * their server-side sort and filters (and export the rows on the page); every other table filters, sorts and pages in the browser.
+ * The hub's table on the VtWebGuiFramework 4 standard (owner decision 27 Oct 2026). Owner request (20 Oct 2026): every table
+ * can be filtered, sorted, paged and exported. Lists paged by the server keep their server-side sort and filters (and export
+ * the rows on the page); every other table filters, sorts and pages in the browser.
+ *
+ * Framework standard, as in the framework's DataTable example: a Toolbar above the table carries the controls (row search,
+ * the Filter card with the column filters, the ColumnsSelectionCard, export); the framework DataTable shows the rows; a
+ * header cell sorts its column on click and shows the framework's sort arrows (the rows are sorted here, outside the table).
  */
+const HEADER_ID = '__header';
+const COLUMN_GROUPS = ['CG0'];
+const ROW_LAYOUT = { id: 'row', rows: [{ autoHeight: true, height: 30, cells: [] as string[] }] };
+
 export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
   sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
 }) {
   const nav = useNavigate();
   const me = useMe().data;
-  const tableId = useId().replace(/:/g, '');
+  const tableId = 'vt-table-' + useId().replace(/[^a-zA-Z0-9]/g, '');
   const server = !!onSort;
   const [q, setQ] = useState('');
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
   const [filterOperators, setFilterOperators] = useState<Record<string, TextFilterOperator>>({});
-  const [openFilter, setOpenFilter] = useState<string | null>(null);
-  const filterPopover = useRef<HTMLDivElement>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [showColumns, setShowColumns] = useState(false);
+  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const filterButton = useRef<HTMLSpanElement>(null);
+  const columnsButton = useRef<HTMLSpanElement>(null);
   const [csort, setCsort] = useState<{ key: string; desc: boolean } | null>(null);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(initialSize);
   const textCols = columns.filter(c => nodeText(c.header).trim().length > 0);
-  useEffect(() => {
-    if (!openFilter) return;
-    const dismiss = (event: MouseEvent) => { if (!filterPopover.current?.contains(event.target as Node)) setOpenFilter(null); };
-    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpenFilter(null); };
-    document.addEventListener('mousedown', dismiss);
-    document.addEventListener('keydown', escape);
-    return () => { document.removeEventListener('mousedown', dismiss); document.removeEventListener('keydown', escape); };
-  }, [openFilter]);
   // Text of each row, computed once per render for filter, sort and export.
   const prepared = useMemo(() => (rows ?? []).map(r => ({ r, text: Object.fromEntries(columns.map(c => [c.key, nodeText(c.render(r))])) as Record<string, string> })), [rows, columns]);
   const suggestions = useMemo(() => columns.map(c => [...new Set(prepared.map(x => x.text[c.key]?.trim()).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).slice(0, 300)), [columns, prepared]);
   const needle = q.trim().toLowerCase();
+  const isFiltered = (k: string) => !!columnFilters[k]?.trim() || (filterOperators[k] ?? 'starts') !== 'starts';
+  const activeFilters = columns.filter(c => !c.filter && isFiltered(c.key)).length;
   const filtered = prepared.filter(x => (!needle || Object.values(x.text).some(t => t.toLowerCase().includes(needle))) &&
     columns.every(c => {
       const value = columnFilters[c.key] ?? '';
@@ -326,85 +332,135 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   useEffect(() => { setPage(1); }, [needle, rows]);
   const exportRows = () => downloadCsv(exportName ?? caption ?? document.title.split(' · ')[0] ?? 'table', textCols.map(c => nodeText(c.header)),
     sorted.map(x => textCols.map(c => x.text[c.key] ?? '')));
+  const byKey = useMemo(() => new Map(shown.map(x => [String(rowKey(x.r)), x.r])), [shown, rowKey]);
+  const visibleCols = columns.filter(c => !hidden[c.key]);
+
+  // Sorting: server-sorted lists send their sort key; every other column sorts in the browser. Arrows: framework sortOrder.
+  const sortState = (c: Column<T>) => {
+    const serverActive = server && !!c.sort && sort?.replace('-', '') === c.sort;
+    const desc = serverActive ? !!sort?.startsWith('-') : !!csort?.desc;
+    const active = serverActive || (csort?.key === c.key && !serverActive);
+    const sortable = nodeText(c.header).trim().length > 0 && (server ? (!!c.sort || (rows?.length ?? 0) > 1) : (rows?.length ?? 0) > 1);
+    return { serverActive, desc, active, sortable };
+  };
+  const toggleSort = (c: Column<T>) => {
+    const s = sortState(c);
+    if (server && c.sort) onSort!(s.serverActive && !s.desc ? `-${c.sort}` : c.sort!);
+    else setCsort(s.active ? { key: c.key, desc: !csort!.desc } : { key: c.key, desc: false });
+  };
+
+  // Framework DataTable model: one column per visible hub column, one dataset layout, a frozen header dataset.
+  const vtColumns = useMemo(() => visibleCols.map(c => ({ autoWidth: true, width: c.className?.includes('num') ? 60 : 80 })), [visibleCols]);
+  const layout = useMemo(() => ({ ...ROW_LAYOUT, rows: [{ ...ROW_LAYOUT.rows[0], cells: visibleCols.map(c => c.key) }] }), [visibleCols]);
+  // As the framework's DataTable example: columns and dataset layout handed over per column group / dataset.
+  const getColumns = useCallback(() => vtColumns, [vtColumns]);
+  const getLayout = useCallback(() => layout, [layout]);
+  const cellIterator = ({ datasetId, cellId }: { datasetId: string | number; cellId: string }) => {
+    const c = visibleCols.find(x => x.key === cellId);
+    if (!c) return undefined;
+    const align = c.className?.includes('num') ? { justifySelf: 'end' as const, textAlign: 'right' as const } : {};
+    if (datasetId === HEADER_ID) {
+      const s = sortState(c);
+      return {
+        alignSelf: 'center' as const, ...align, label: nodeText(c.header) || ' ',
+        ...(s.active && { sortOrder: s.desc ? 'desc' as const : 'asc' as const }),
+        ...(s.sortable && { onClick: () => toggleSort(c) })
+      };
+    }
+    const r = byKey.get(String(datasetId));
+    return r === undefined ? undefined : { alignSelf: 'center' as const, ...align, content: <span className="vt-cell" data-col={c.key}>{c.render(r)}<span className="sr"> </span></span> };
+  };
   // Ease of use: a click anywhere on a row opens its record (the row's first link); links, buttons and fields keep their own behaviour.
-  const openRow = (e: React.MouseEvent<HTMLTableRowElement>) => {
-    const t = e.target as HTMLElement;
-    if (t.closest('a,button,input,select,textarea,label,summary') || window.getSelection()?.toString()) return;
-    const a = e.currentTarget.querySelector<HTMLAnchorElement>('a[href]');
+  const openRow = ({ datasetId, event }: { datasetId: string | number; event: React.MouseEvent<HTMLDivElement> }) => {
+    if (datasetId === HEADER_ID) return;
+    const t = event.target as HTMLElement;
+    if (t.closest('a,button,[role="button"],input,select,textarea,label,summary') || window.getSelection()?.toString()) return;
+    const a = (event.currentTarget as HTMLElement).querySelector<HTMLAnchorElement>('a[href]');
     if (!a) return;
     const href = a.getAttribute('href')!;
-    if (e.ctrlKey || e.metaKey || e.button === 1) window.open(href, '_blank', 'noopener');
+    if (event.ctrlKey || event.metaKey || event.button === 1) window.open(href, '_blank', 'noopener');
     else if (href.startsWith('/')) nav(href); else a.click();
   };
-  const showTools = tools && !loading && !error && (rows?.length ?? 0) > 0;
+  const datasetPartIterator = ({ datasetId }: { datasetId: string | number }) => ({
+    cellIterator,
+    ...(datasetId === HEADER_ID ? { backgroundColor: 'offWhite' as const } : { onClick: openRow })
+  });
+
+  const hasRows = !loading && !error && (rows?.length ?? 0) > 0;
+  const showTools = tools && hasRows;
+  const clearFilters = () => { setColumnFilters({}); setFilterOperators({}); };
+  // The framework table virtualizes inside its own box; the box is sized to the page of rows so that every row is laid out.
+  const boxHeight = shown.length ? `min(70vh, ${(shown.length + 1) * 3.2 + 1}rem)` : '3.4rem';
   return (
-    <div className={`panel table-wrap${tableWrapClassName ? ` ${tableWrapClassName}` : ''}`}>
-      {/* The toolbar stays outside the table so it is not announced or counted as a table row. */}
+    <div className={`panel vt-table${tableWrapClassName ? ` ${tableWrapClassName}` : ''}${tableClassName ? ` ${tableClassName}` : ''}`}
+      role="region" aria-label={caption ?? 'Table'} data-vt-table={tableId}>
       {showTools && (
-        <div className="table-tools">
-          <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
-            aria-label="Filter rows" />
-          <span className="muted table-count">{needle ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
-          {me?.grants.export && <button className="btn btn-sm" onClick={exportRows} title={server ? 'Rows on this page, as shown' : 'All rows that match the filter'}>Export CSV</button>}
-        </div>
+        <Toolbar alignItems="center" paddingTop="xs" paddingBottom="xs" paddingLeft="normal" paddingRight="normal">
+          <ToolbarContrItem columnGap="small" alignItems="center">
+            <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
+              aria-label="Filter rows" />
+            <span className="muted table-count">{needle || activeFilters ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle || activeFilters ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
+          </ToolbarContrItem>
+          <ToolbarContrItem justifySelf="end" columnGap="small" alignItems="center">
+            <Button ref={filterButton} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
+              onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />
+            <Button ref={columnsButton} type="bare" icon="COLUMNSELECT" text="Columns" onClick={() => { setShowFilters(false); setShowColumns(v => !v); }} />
+            {me?.grants.export && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={exportRows} />}
+          </ToolbarContrItem>
+        </Toolbar>
       )}
-      <table className={`grid${tableClassName ? ` ${tableClassName}` : ''}`}>
-        {caption && <caption className="sr">{caption}</caption>}
-        <thead>
-          <tr>
-            {columns.map(c => {
-              const serverActive = server && !!c.sort && sort?.replace('-', '') === c.sort;
-              const desc = serverActive ? sort?.startsWith('-') : csort?.desc;
-              const clientActive = csort?.key === c.key && !serverActive;
-              const sortable = nodeText(c.header).trim().length > 0 && (server ? (!!c.sort || (rows?.length ?? 0) > 1) : (rows?.length ?? 0) > 1);
-              const active = serverActive || clientActive;
-              const click = () => server && c.sort
-                ? onSort!(serverActive && !desc ? `-${c.sort}` : c.sort!)
-                : setCsort(clientActive ? { key: c.key, desc: !csort!.desc } : { key: c.key, desc: false });
-              const filterable = !!c.filter || nodeText(c.header).trim().length > 0;
-              const hasFilter = !!columnFilters[c.key]?.trim() || (filterOperators[c.key] ?? 'starts') !== 'starts';
+      {showFilters && (
+        <Card width={420} anchorElemRef={filterButton} padding="small" rowGap="small" scrollBarV
+          onClickBeside={() => setShowFilters(false)} onPressEscape={() => setShowFilters(false)} onMoveAnchorElem={() => setShowFilters(false)}>
+          <div className="vt-filter-card" role="group" aria-label={`${caption ?? 'Table'} filters`}>
+            {columns.filter(c => !!c.filter || nodeText(c.header).trim().length > 0).map(c => {
               const headerName = nodeText(c.header).trim() || 'column';
               const suggestionId = `${tableId}-filter-${c.key}`;
               const columnSuggestions = suggestions[columns.indexOf(c)] ?? [];
               return (
-                <th key={c.key} className={c.className} aria-sort={active ? (desc ? 'descending' : 'ascending') : undefined} scope="col">
-                  <div className="grid-head-cell">
-                    {sortable ? <button className={`grid-sort${active ? ' active' : ''}`} onClick={click} title={active ? `Sorted ${desc ? 'descending' : 'ascending'}; click to sort ${desc ? 'ascending' : 'descending'}` : 'Click to sort ascending'}>
-                      <span>{c.header}</span><span className="grid-sort-indicator" aria-hidden="true">{active ? (desc ? '↓' : '↑') : <span className="grid-sort-muted">↕</span>}</span>
-                    </button> : <span className="grid-heading-label">{c.header}</span>}
-                    {filterable && <button className={`grid-filter-trigger${hasFilter ? ' active' : ''}`} aria-label="Column filter" aria-description={`${openFilter === c.key ? 'Close' : 'Open'} filter for ${headerName}`} title={`Filter ${headerName}`} aria-expanded={openFilter === c.key} onClick={() => setOpenFilter(openFilter === c.key ? null : c.key)}>
-                      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 3.5h15l-5.8 6.4v5.4l-3.4 1.7V9.9L2.5 3.5Z" /></svg>
-                    </button>}
-                  </div>
-                  {openFilter === c.key && <div ref={filterPopover} className="grid-filter-popover" role="group" aria-label={`${headerName} filter`}>
-                    {c.filter ? <div className="grid-custom-filter">{isValidElement(c.filter) && c.filter.type === 'input' ? <>
-                      {cloneElement(c.filter as ReactElement<InputHTMLAttributes<HTMLInputElement>>, { list: suggestionId })}
-                      <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
-                    </> : c.filter}</div> : <>
-                      <select className="input grid-filter-operator" aria-label={`${headerName} filter operator`} value={filterOperators[c.key] ?? 'starts'} onChange={e => setFilterOperators(f => ({ ...f, [c.key]: e.target.value as TextFilterOperator }))}>
-                        {TEXT_FILTER_OPERATORS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
-                      </select>
-                      {(filterOperators[c.key] ?? 'starts') !== 'empty' && <input autoFocus className="input grid-filter-value" aria-label={`Filter value for ${headerName}`} placeholder="Enter the value" list={suggestionId} value={columnFilters[c.key] ?? ''} onChange={e => setColumnFilters(f => ({ ...f, [c.key]: e.target.value }))} />}
-                      <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
-                    </>}
-                    {!c.filter ? <div className="grid-filter-actions">
-                      <button className="btn btn-primary btn-sm" onClick={() => setOpenFilter(null)}>Filter</button>
-                      <button className="btn btn-sm" onClick={() => { setColumnFilters(f => { const next = { ...f }; delete next[c.key]; return next; }); setFilterOperators(f => { const next = { ...f }; delete next[c.key]; return next; }); setOpenFilter(null); }}>Clear</button>
-                    </div> : <div className="grid-filter-actions"><button className="btn btn-sm" onClick={() => setOpenFilter(null)}>Close</button></div>}
+                <div key={c.key} className="vt-filter-row">
+                  <span className="flabel">{headerName}</span>
+                  {c.filter ? <div className="grid-custom-filter">{isValidElement(c.filter) && c.filter.type === 'input' ? <>
+                    {cloneElement(c.filter as ReactElement<InputHTMLAttributes<HTMLInputElement>>, { list: suggestionId })}
+                    <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
+                  </> : c.filter}</div> : <div className="vt-filter-pair">
+                    <select className="input grid-filter-operator" aria-label={`${headerName} filter operator`} value={filterOperators[c.key] ?? 'starts'} onChange={e => setFilterOperators(f => ({ ...f, [c.key]: e.target.value as TextFilterOperator }))}>
+                      {TEXT_FILTER_OPERATORS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
+                    </select>
+                    {(filterOperators[c.key] ?? 'starts') !== 'empty' && <input className="input grid-filter-value" aria-label={`Filter value for ${headerName}`} placeholder="Enter the value" list={suggestionId} value={columnFilters[c.key] ?? ''} onChange={e => setColumnFilters(f => ({ ...f, [c.key]: e.target.value }))} />}
+                    <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
                   </div>}
-                </th>
+                </div>
               );
             })}
-          </tr>
-        </thead>
-        <tbody>
-          {loading && <tr className="state"><td colSpan={columns.length}><span className="spin" /> Loading…</td></tr>}
-          {!loading && !!error && <tr className="state"><td colSpan={columns.length}><ErrorBox error={error} /></td></tr>}
-          {!loading && !error && rows?.length === 0 && <tr className="state"><td colSpan={columns.length}>{EMPTY_TEXT[empty]}</td></tr>}
-          {!loading && !error && (rows?.length ?? 0) > 0 && shown.length === 0 && <tr className="state"><td colSpan={columns.length}>{EMPTY_TEXT.nomatch}</td></tr>}
-          {!loading && !error && shown.map(({ r }) => <tr key={rowKey(r)} onClick={openRow}>{columns.map(c => <td key={c.key} className={c.className}>{c.render(r)}</td>)}</tr>)}
-        </tbody>
-      </table>
+            <div className="grid-filter-actions">
+              <Button type="tinted" text="Clear" onClick={clearFilters} />
+              <Button type="filled" text="Close" onClick={() => setShowFilters(false)} />
+            </div>
+          </div>
+        </Card>
+      )}
+      {showColumns && (
+        <ColumnsSelectionCard width={300} anchorElemRef={columnsButton} title="Columns" searchBox
+          columns={columns.map(c => ({ autoWidth: true, hidden: !!hidden[c.key], ...(nodeText(c.header).trim() ? {} : { selection: 'hidden' as const }) }))}
+          columnsLabels={columns.map(c => nodeText(c.header).trim() || c.key)}
+          onChangeColumns={({ columns: next }: { columns: { hidden?: boolean }[] }) => setHidden(Object.fromEntries(columns.map((c, i) => [c.key, !!next[i]?.hidden])))}
+          onClose={() => setShowColumns(false)} />
+      )}
+      {loading && <div className="vt-table-state"><StateMessage kind="loading" /></div>}
+      {!loading && !!error && <div className="vt-table-state"><ErrorBox error={error} /></div>}
+      {/* The header row stays visible above an empty table, as before; the empty-state text follows it. */}
+      {!loading && !error && !!rows && (
+        <div className="vt-table-box" style={{ height: boxHeight }}>
+          <DataTableVt id={tableId} backgroundColor="offWhite" columns={getColumns} datasetLayout={getLayout} columnGroupIds={COLUMN_GROUPS}
+            freezedDatasetIds={{ top: [HEADER_ID] }} datasetIds={shown.map(x => String(rowKey(x.r)))}
+            datasetPartIterator={datasetPartIterator} resetTable={`${needle}|${cur}|${size}|${localSort?.key}|${localSort?.desc}|${sort}`}
+            columnGap="normal" datasetPaddingLeft="normal" datasetPaddingRight="normal" defaultColumnWidth={80} defaultRowHeight={30}
+            expandTableTopBottomFactor={50} expandTableLeftRightFactor={20} />
+        </div>
+      )}
+      {!loading && !error && rows?.length === 0 && <div className="vt-table-state"><StateMessage kind={empty} /></div>}
+      {hasRows && shown.length === 0 && <div className="vt-table-state"><StateMessage kind="nomatch" /></div>}
       {showTools && !server && sorted.length > Math.min(size, 25) && (
         <nav className="pager table-pager" aria-label={`${caption ?? 'Table'} pages`}>
           <span>{(cur - 1) * size + 1} – {Math.min(cur * size, sorted.length)} of {sorted.length}</span>
@@ -419,6 +475,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
     </div>
   );
 }
+
 
 /** A37: a small "Delete" action for a table row or a page, with confirmation; shown only with the Delete records right. */
 export function DeleteAction({ path, what, onDone, button, afterTo }: { path: string; what: string; onDone?: () => void; button?: boolean; afterTo?: string }) {

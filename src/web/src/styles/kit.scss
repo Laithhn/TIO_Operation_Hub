@@ -219,3 +219,15 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
   }
   .g { padding: vt.spacePx(xs) vt.spacePx(normal) vt.spacePx(xxs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: vt.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
 }
+
+// ---------- tables on the framework DataTable (ui/kit.tsx DataTable): Toolbar, Filter card, ColumnsSelectionCard ----------
+.vt-table { display: flex; flex-direction: column; min-width: 0; overflow: visible;
+  .table-search { width: 260px; }
+  .table-count { white-space: nowrap; }
+}
+.vt-table-box { position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); min-height: 3.4rem; min-width: 0; }
+.vt-table-state { padding: vt.spacePx(small) vt.spacePx(normal); }
+.vt-cell { display: block; min-width: 0; overflow-wrap: anywhere; }
+.vt-filter-card { display: grid; gap: vt.spacePx(small); max-height: 60vh; }
+.vt-filter-row { display: grid; grid-template-columns: 9rem 1fr; gap: vt.spacePx(xs); align-items: center; }
+.vt-filter-pair { display: grid; grid-template-columns: 11rem 1fr; gap: vt.spacePx(xs); }

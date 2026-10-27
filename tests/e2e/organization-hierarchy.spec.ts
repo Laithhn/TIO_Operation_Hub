@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { VT_ROW, VT_CELL, exactText } from './vtTable';
 
 type Organization = { id: number; name: string; clientId?: number };
 type Relationship = { id: number; parentOrganizationId: number; childOrganizationId: number; relationshipType?: string; version: string };
@@ -174,15 +175,15 @@ test.describe('Optional contextual organization structures', () => {
     await openStructure(page, client.id);
     await expect(page.locator('.org-diagram').getByText('Shared organization · 2 parents')).toHaveCount(2);
     await page.getByLabel('Organization view').selectOption('table');
-    const organizationsTable = page.getByRole('table', { name: 'Organizations in this context' });
-    const row = organizationsTable.getByRole('row').filter({ has: page.getByRole('cell', { name: organization.name, exact: true }) });
-    await expect(row.getByRole('cell').nth(1)).toContainText(alternate.name);
-    await expect(row.getByRole('cell').nth(1)).toContainText(roleB.label);
+    const organizationsTable = page.getByRole('region', { name: 'Organizations in this context' });
+    const row = organizationsTable.locator(VT_ROW).filter({ has: page.locator(VT_CELL).filter({ hasText: exactText(organization.name) }) });
+    await expect(row.locator(VT_CELL).nth(1)).toContainText(alternate.name);
+    await expect(row.locator(VT_CELL).nth(1)).toContainText(roleB.label);
     await page.getByLabel('Organization context').selectOption(String(project.id));
-    await expect(page.getByRole('table', { name: 'Organization relationships' }).getByRole('row')).toHaveCount(2);
-    await expect(page.getByRole('table', { name: 'Organization relationships' })).toContainText(roleB.label);
+    await expect(page.getByRole('region', { name: 'Organization relationships' }).locator(VT_ROW)).toHaveCount(1);
+    await expect(page.getByRole('region', { name: 'Organization relationships' })).toContainText(roleB.label);
     await page.getByLabel('Organization context').selectOption('');
-    await expect(page.getByRole('table', { name: 'Organization relationships' }).getByRole('row')).toHaveCount(4);
+    await expect(page.getByRole('region', { name: 'Organization relationships' }).locator(VT_ROW)).toHaveCount(3);
   });
 
   test('read-only graph flags hide mutations while keeping the accessible table available', async ({ page }) => {
@@ -197,7 +198,7 @@ test.describe('Optional contextual organization structures', () => {
     await expect(page.getByRole('button', { name: '+ Add Organization Relationship' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Add child', exact: true })).toHaveCount(0);
     await page.getByLabel('Organization view').selectOption('table');
-    await expect(page.getByRole('table', { name: 'Organizations in this context' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Organizations in this context' })).toBeVisible();
     await page.getByRole('button', { name: 'Organization directory', exact: true }).click();
     await expect(page.getByRole('button', { name: '+ Create independent organization' })).toHaveCount(0);
   });

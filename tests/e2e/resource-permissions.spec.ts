@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { VT_ROW } from './vtTable';
 
 const unique = (prefix: string) => `${prefix}-${Math.random().toString(36).slice(2, 10)}`;
 async function api<T>(page: Page, path: string, body?: unknown, method = body === undefined ? 'GET' : 'POST', version?: string): Promise<T> {
@@ -132,7 +133,7 @@ test.describe('Resource permissions in application actions', () => {
     await page.goto('/clients');
     await page.locator('aside').getByRole('link', { name: 'Archived records', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Archived records', exact: true })).toBeVisible();
-    const archived = page.getByRole('row').filter({ hasText: code });
+    const archived = page.locator(VT_ROW).filter({ hasText: code });
     await expect(archived).toBeVisible();
     await expect(archived.getByRole('button', { name: 'Restore', exact: true })).toHaveCount(0);
     await expect(page.getByLabel('Record type', { exact: true }).locator('option[value="Contract"]')).toHaveCount(1);
