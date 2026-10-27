@@ -163,7 +163,7 @@ upgrade into an isolated database first (OPERATIONS.md section 7).
 | Sign-in page loops on HTTP | Forms sign-in needs HTTPS for its secure cookie |
 | Uploads fail | The pool identity needs modify rights on the attachment folder; large files need `maxAllowedContentLength` in `web.config` |
 | Map without background | Browsers cannot reach the tile server — allow it, set an internal tile server, or set `MapTileUrl` to empty |
-| "Error - Report Manager" / `/Reports/Pages/Folder.aspx` instead of a hub page | SQL Server Reporting Services on the same server reserves `http(s)://+:<port>/Reports/` with http.sys, and that reservation wins over the IIS site for every path under `/Reports`. After the GUI fixes of 27 Oct 2026 (decision A69) the Reporting Center is at `/reporting-center` (old `/reports` links are redirected inside the hub). If the error still appears, check `netsh http show urlacl` and open the Reporting Center from the hub's menu; do not remove the SSRS reservation without its owner's approval |
+| "Error - Report Manager" / `/Reports/Pages/Folder.aspx` instead of a hub page | SQL Server Reporting Services on the same server reserves `http(s)://+:<port>/Reports/` with http.sys, and that reservation wins over the IIS site for every path under `/Reports`. From 2.36.0 (decision A69) the Reporting Center is at `/reporting-center` (old `/reports` links are redirected inside the hub). If the error still appears, check `netsh http show urlacl` and open the Reporting Center from the hub's menu; do not remove the SSRS reservation without its owner's approval |
 
 ## 10. Security checklist
 
