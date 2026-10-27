@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { get, post, put, qs, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label } from '../format';
-import { useCan, useForm, useLookup, useMe, useReference, useRefresh } from '../hooks';
+import { usePermission, useForm, useLookup, useReference, useRefresh } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { AttachmentsPanel } from './Attachments';
@@ -13,7 +13,7 @@ type TeamRow = { id: number; code: string; name: string; description?: string; i
 
 export function TeamList() {
   const q = useQuery({ queryKey: ['teams'], queryFn: () => get<TeamRow[]>('/teams') });
-  const canManage = useCan('Manager');
+  const canManage = usePermission('Teams', 'Create');
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -101,10 +101,9 @@ function MemberDialog({ teamId, member, onClose }: { teamId: string; member?: Me
 
 export function TeamDetail() {
   const { id } = useParams();
-  const me = useMe().data!;
   const t = useQuery({ queryKey: ['team', id], queryFn: () => get<TeamDto>(`/teams/${id}`) });
   const a = useQuery({ queryKey: ['assignments', id], queryFn: () => get<Assign>(`/teams/${id}/assignments`) });
-  const canManage = me.businessRole === 'Manager';
+  const canManage = usePermission('Teams', 'Coordinate');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [removing, setRemoving] = useState<Member | null>(null);
@@ -136,7 +135,7 @@ export function TeamDetail() {
           <Panel title={`Unassigned team cases (${a.data.unassigned.length})`}>{a.data.unassigned.length === 0 ? <StateMessage kind="none">No unassigned cases.</StateMessage> : <ul className="timeline">{a.data.unassigned.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /><div className="when">{c.nextAction}</div></li>)}</ul>}</Panel>
           <Panel title={`Coverage gaps (${a.data.coverageGaps.length})`}>{a.data.coverageGaps.length === 0 ? <StateMessage kind="none">No coverage gaps under the configured policy.</StateMessage> : <ul className="timeline">{a.data.coverageGaps.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /> — no active backup owner</li>)}</ul>}</Panel>
         </div>
-        <AttachmentsPanel recordType="Team" recordId={Number(id)} canEdit={canManage} />
+        <AttachmentsPanel recordType="Team" recordId={Number(id)} />
       </>)}
       {open && <MemberDialog teamId={id!} onClose={() => setOpen(false)} />}
       {editing && <MemberDialog teamId={id!} member={editing} onClose={() => setEditing(null)} />}
@@ -150,7 +149,7 @@ type HandoverRow = { id: number; ref: string; status: string; effectiveAt: strin
 export function HandoverList() {
   const [status, setStatus] = useState('');
   const q = useQuery({ queryKey: ['handovers', status], queryFn: () => get<HandoverRow[]>(`/handovers${qs({ status })}`) });
-  const canLead = useCan('Manager');
+  const canLead = usePermission('Teams', 'Coordinate');
   const [open, setOpen] = useState(false);
   return (
     <>

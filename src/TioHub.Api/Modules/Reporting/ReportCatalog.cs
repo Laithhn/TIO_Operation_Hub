@@ -231,19 +231,43 @@ public static class ReportCatalog
             Key = "environments", Name = "Environments report", Category = Technical, Icon = "server",
             Description = "Environments with type, criticality, hosting, owners, coverage gaps and the last reported condition.",
             Filters = [Client, Product, new("type", "Environment type", FilterKind.Text, Hint: "As configured, e.g. Production."),
-                new("criticality", "Criticality", FilterKind.Select, Options: Names<Criticality>()), new("ownerId", "Technical owner", FilterKind.Owner, true)],
-            ListKeys = ["regionId"],
-            Query = (x, ct) =>
+                new("criticality", "Criticality", FilterKind.Select, Options: Names<Criticality>()), new("ownerId", "Technical owner", FilterKind.Owner, true),
+                new("condition", "Reported condition", FilterKind.Select, true, Names<Condition>()), new("direct", "Direct under client only", FilterKind.Bool, true),
+                new("freshness", "Review state", FilterKind.Select, true, ["stale", "needsVerification"]), new("q", "Environment or client contains", FilterKind.Text, true)],
+            ListKeys = ["regionId", "country"],
+            Query = async (x, ct) =>
             {
-                var q = x.Db.Environments.AsNoTracking().AsQueryable();
+                var q = x.Db.Environments.AsNoTracking().Where(e => x.Db.Clients.Any(c => c.Id == e.ClientId));
                 if (x.L("clientId") is { } cid) q = q.Where(e => e.ClientId == cid);
                 if (x.L("regionId") is { } rid) q = q.Where(e => e.RegionId == rid);
+                if (x.B("direct") == true) q = q.Where(e => e.RegionId == null);
+                if (x.S("country") is { } country) q = country == "Unknown" ? q.Where(e => e.Client!.CountryUnknown) : q.Where(e => e.Client!.Country == country);
                 if (x.L("productId") is { } pid) q = q.Where(e => x.Db.Installations.Any(i => i.EnvironmentId == e.Id && i.ProductId == pid));
                 if (x.S("type") is { } t) q = q.Where(e => e.Type == t);
                 if (x.E<Criticality>("criticality") is { } cr) q = q.Where(e => e.Criticality == cr);
+                if (x.E<Condition>("condition") is { } condition) q = q.Where(e => e.Condition == condition);
                 if (x.L("ownerId") is { } oid) q = q.Where(e => e.OwnerUserId == oid || e.BackupOwnerUserId == oid);
-                return Task.FromResult(q.OrderBy(e => e.Client!.Code).ThenBy(e => e.Name).Select(e => new EnvRow(e.Client!.Code, e.Region == null ? null : e.Region.Code, e.Name, e.Type, e.Criticality.ToString(), e.Hosting.ToString(),
-                    e.Owner == null ? null : e.Owner.DisplayName, e.BackupOwner == null ? null : e.BackupOwner.DisplayName, e.BackupGapReason, e.ConditionObservedAt == null ? "Unknown" : e.Condition.ToString(), e.ConditionObservedAt, e.InventoryReviewedAt)));
+                if (x.S("q") is { } text) q = q.Where(e => e.Name.Contains(text) || e.Client!.Name.Contains(text) || e.Client.Code.Contains(text));
+                if (x.S("freshness") is { } freshness)
+                {
+                    var policies = await x.Fresh.PoliciesAsync(ct);
+                    if (freshness == "stale")
+                    {
+                        var policy = policies.GetValueOrDefault((RecordTypes.Environment, ReviewScope.Inventory));
+                        var hasAge = policy?.MaxAgeDays is not null;
+                        var cutoff = hasAge ? x.Now.AddDays(-policy!.MaxAgeDays!.Value) : DateTimeOffset.MinValue;
+                        var useNext = policy?.UsesNextReviewDate == true;
+                        q = q.Where(e => (hasAge && (e.InventoryReviewedAt ?? e.CreatedAt) < cutoff) || (useNext && e.NextReviewAt < x.Now));
+                    }
+                    else if (freshness == "needsVerification")
+                    {
+                        var days = policies.GetValueOrDefault((RecordTypes.Environment, ReviewScope.Condition))?.MaxAgeDays;
+                        var cutoff = days is { } age ? x.Now.AddDays(-age) : DateTimeOffset.MinValue;
+                        q = q.Where(e => days != null && e.Condition != Condition.Unknown && e.ConditionObservedAt < cutoff);
+                    }
+                }
+                return q.OrderBy(e => e.Client!.Code).ThenBy(e => e.Name).ThenBy(e => e.Id).Select(e => new EnvRow(e.Client!.Code, e.Region == null ? null : e.Region.Code, e.Name, e.Type, e.Criticality.ToString(), e.Hosting.ToString(),
+                    e.Owner == null ? null : e.Owner.DisplayName, e.BackupOwner == null ? null : e.BackupOwner.DisplayName, e.BackupGapReason, e.ConditionObservedAt == null ? "Unknown" : e.Condition.ToString(), e.ConditionObservedAt, e.InventoryReviewedAt));
             },
             Cols = [
                 new("Client", "Client alias", r => r.Client), new("Region", "Region code; empty = direct-client environment (valid)", r => r.Region), new("Environment", "Name", r => r.Name),
@@ -256,11 +280,17 @@ public static class ReportCatalog
         {
             Key = "versions", Name = "Version matrix report", Category = Technical, Icon = "matrix",
             Description = "Installed product versions per client and environment, with deployment date and the last confirmation.",
-            Filters = [Client, Product, new("unknownVersion", "Unknown version only", FilterKind.Bool), new("q", "Instance or product contains", FilterKind.Text, true)],
+            Filters = [Client, Product, new("unknownVersion", "Unknown version only", FilterKind.Bool), new("q", "Instance or product contains", FilterKind.Text, true),
+                new("environmentType", "Environment type", FilterKind.Text, true), new("country", "Country", FilterKind.Text, true)],
             ListKeys = ["regionId", "environmentId"],
-            Query = (x, ct) => Task.FromResult(Catalogue.CatalogueEndpoints.Filter(x.Db.Installations.AsNoTracking(), x.L("clientId"), x.L("regionId"), x.L("environmentId"), x.L("productId"), null, x.B("unknownVersion"), x.S("q"))
-                .OrderBy(i => i.Environment!.Client!.Code).ThenBy(i => i.Environment!.Name).Select(i => new VerRow(i.Environment!.Client!.Code, i.Environment.Region == null ? null : i.Environment.Region.Code, i.Environment.Name,
-                    i.Product!.Code, i.InstanceName, i.ProductVersion == null ? "Unknown" : i.ProductVersion.Version, i.DeployedOn, i.LastReviewedAt))),
+            Query = (x, ct) =>
+            {
+                var q = Catalogue.CatalogueEndpoints.Filter(x.Db.Installations.AsNoTracking(), x.L("clientId"), x.L("regionId"), x.L("environmentId"), x.L("productId"), null, x.B("unknownVersion"), x.S("q"));
+                if (x.S("environmentType") is { } type) q = q.Where(i => i.Environment!.Type == type);
+                if (x.S("country") is { } country) q = country == "Unknown" ? q.Where(i => i.Environment!.Client!.CountryUnknown) : q.Where(i => i.Environment!.Client!.Country == country);
+                return Task.FromResult(q.OrderBy(i => i.Environment!.Client!.Code).ThenBy(i => i.Environment!.Name).ThenBy(i => i.Id).Select(i => new VerRow(i.Environment!.Client!.Code, i.Environment.Region == null ? null : i.Environment.Region.Code, i.Environment.Name,
+                    i.Product!.Code, i.InstanceName, i.ProductVersion == null ? "Unknown" : i.ProductVersion.Version, i.DeployedOn, i.LastReviewedAt)));
+            },
             Cols = [
                 new("Client", "Client alias", r => r.Client), new("Region", "Region; empty = direct", r => r.Region), new("Environment", "Environment", r => r.Env),
                 new("Product", "Product code", r => r.Product), new("Instance", "Named installation", r => r.Instance), new("Version", "Product-specific version or Unknown", r => r.Version),
@@ -341,11 +371,13 @@ public static class ReportCatalog
                 var rows = await (await Cases(x, f, ct)).Where(c => c.Status != CaseStatus.Cancelled).OrderBy(c => c.Id).Select(c => new
                 {
                     c.Ref, c.Title, client = c.Client == null ? null : c.Client.Code, contract = c.Contract == null ? null : c.Contract.Ref, c.Priority, team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name,
-                    owner = c.Owner == null ? null : c.Owner.DisplayName, c.CreatedAt, c.ResponseDueAt, c.FirstResponseAt, c.ResponseSlaStatus, c.ResolutionDueAt, c.ResolvedAt, c.ResolutionSlaStatus
+                    owner = c.Owner == null ? null : c.Owner.DisplayName, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CreatedAt,
+                    c.ResponseDueAt, c.FirstResponseAt, c.ResponseSlaStatus, c.ResolutionDueAt, c.ResolvedAt, c.ResolutionSlaStatus
                 }).ToListAsync(ct);
                 return rows.Select(r => new SlaRow(r.Ref, r.Title, r.client, r.contract, r.Priority.ToString(), r.team, r.owner ?? "Unassigned", r.CreatedAt,
                     r.ResponseDueAt, r.FirstResponseAt, CaseSla.Now(r.ResponseSlaStatus, r.ResponseDueAt, x.Now), r.ResolutionDueAt, r.ResolvedAt, CaseSla.Now(r.ResolutionSlaStatus, r.ResolutionDueAt, x.Now),
-                    (r.ResponseSlaStatus == SlaState.Pending && r.ResponseDueAt >= x.Now && r.ResponseDueAt <= x.Now.AddHours(24)) || (r.ResolutionSlaStatus == SlaState.Pending && r.ResolutionDueAt >= x.Now && r.ResolutionDueAt <= x.Now.AddHours(24)))).ToList();
+                    (r.ResponseSlaStatus == SlaState.Pending && r.ResponseDueAt >= x.Now && r.ResponseDueAt <= x.Now.AddHours(24)) || (r.ResolutionSlaStatus == SlaState.Pending && r.ResolutionDueAt >= x.Now && r.ResolutionDueAt <= x.Now.AddHours(24)),
+                    r.ClientId, r.ResponsibleTeamId, r.OwnerUserId)).ToList();
             },
             Summarize = (x, rows) =>
             {
@@ -354,18 +386,18 @@ public static class ReportCatalog
                 var breached = rows.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached);
                 var metrics = new List<ReportMetric>
                 {
-                    new("Cases measured", rows.Count.ToString(CultureInfo.InvariantCulture), "Client cases linked to a contract (not cancelled)."),
+                    new("Contract-linked cases", rows.Count.ToString(CultureInfo.InvariantCulture), "Client cases linked to a contract (not cancelled), including pending and not measurable obligations."),
                     new("Response compliance", Pct(Met(rows.Select(r => r.Response)), Measured(rows.Select(r => r.Response))), $"Met ÷ (met + breached) = {Met(rows.Select(r => r.Response))} of {Measured(rows.Select(r => r.Response))}; pending and not measurable excluded."),
                     new("Resolution compliance", Pct(Met(rows.Select(r => r.Resolution)), Measured(rows.Select(r => r.Resolution))), $"Met ÷ (met + breached) = {Met(rows.Select(r => r.Resolution))} of {Measured(rows.Select(r => r.Resolution))}."),
                     new("Breached cases", breached.ToString(CultureInfo.InvariantCulture), "Response or resolution breached (a pending obligation past its deadline counts as breached).", breached > 0 ? "bad" : null),
                     new("At risk", rows.Count(r => r.AtRisk).ToString(CultureInfo.InvariantCulture), "Pending with a deadline within the next 24 hours.", rows.Any(r => r.AtRisk) ? "warn" : null),
                     new("Not measurable", rows.Count(r => r.Response == SlaState.NotMeasurable || r.Resolution == SlaState.NotMeasurable).ToString(CultureInfo.InvariantCulture), "No target for the priority, incomplete support calendar, or opened before responses were recorded.")
                 };
-                List<object?[]> By(Func<SlaRow, string?> key) => rows.GroupBy(r => key(r) ?? "—").OrderByDescending(g => g.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached)).ThenBy(g => g.Key)
-                    .Select(g => new object?[] { g.Key, g.Count(), Pct0(Met(g.Select(r => r.Response)), Measured(g.Select(r => r.Response))), Pct0(Met(g.Select(r => r.Resolution)), Measured(g.Select(r => r.Resolution))),
+                List<object?[]> By(Func<SlaRow, long?> key, Func<SlaRow, string?> label) => rows.GroupBy(key).OrderByDescending(g => g.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached)).ThenBy(g => label(g.First())).ThenBy(g => g.Key)
+                    .Select(g => new object?[] { label(g.First()) ?? "—", g.Count(), Pct0(Met(g.Select(r => r.Response)), Measured(g.Select(r => r.Response))), Pct0(Met(g.Select(r => r.Resolution)), Measured(g.Select(r => r.Resolution))),
                         g.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached), g.Count(r => r.AtRisk) }).ToList();
                 string[] cols = ["", "Cases", "Response", "Resolution", "Breached", "At risk"];
-                return (metrics, [new("By client", ["Client", .. cols[1..]], By(r => r.Client)), new("By team", ["Team", .. cols[1..]], By(r => r.Team)), new("By owner", ["Owner", .. cols[1..]], By(r => r.Owner))]);
+                return (metrics, [new("By client", ["Client", .. cols[1..]], By(r => r.ClientId, r => r.Client)), new("By team", ["Team", .. cols[1..]], By(r => r.TeamId, r => r.Team)), new("By owner", ["Owner", .. cols[1..]], By(r => r.OwnerId, r => r.Owner))]);
             },
             Cols = [
                 new("Reference", "Case reference", r => r.Ref), new("Title", "Case title", r => r.Title), new("Client", "Client alias", r => r.Client), new("Contract", "Contract whose SLA applies", r => r.Contract),
@@ -397,14 +429,14 @@ public static class ReportCatalog
                 var metrics = new List<ReportMetric>
                 {
                     new("Commitments", live.Count.ToString(CultureInfo.InvariantCulture), $"Not cancelled ({rows.Count - live.Count} cancelled, excluded)."),
-                    new("Completed", done.Count.ToString(CultureInfo.InvariantCulture), "Completed with evidence."),
+                    new("Completed", done.Count.ToString(CultureInfo.InvariantCulture), "Completed commitments; optional comments do not affect this count."),
                     new("On-time completion", Pct(onTime, done.Count), $"Completed by the deadline in force ÷ completed = {onTime} of {done.Count}."),
                     new("Overdue", live.Count(r => r.Overdue).ToString(CultureInfo.InvariantCulture), "Open with the deadline in force passed.", live.Any(r => r.Overdue) ? "bad" : null),
                     new("Open, not yet due", live.Count(r => r.Status == CommitmentStatus.Open && !r.Overdue).ToString(CultureInfo.InvariantCulture), "Open and still within the deadline.")
                 };
-                List<object?[]> By(Func<CommitmentEndpoints.CommitmentRow, string?> key) => live.GroupBy(r => key(r) ?? "—").OrderBy(g => g.Key)
-                    .Select(g => new object?[] { g.Key, g.Count(), g.Count(r => r.Status == CommitmentStatus.Completed), Pct0(g.Count(r => r.CompletedLate == false && r.Status == CommitmentStatus.Completed), g.Count(r => r.Status == CommitmentStatus.Completed)), g.Count(r => r.Overdue) }).ToList();
-                return (metrics, [new("By team", ["Team", "Commitments", "Completed", "On time", "Overdue"], By(r => r.TeamName)), new("By client", ["Client", "Commitments", "Completed", "On time", "Overdue"], By(r => r.ClientCode ?? "Internal"))]);
+                List<object?[]> By(Func<CommitmentEndpoints.CommitmentRow, long?> key, Func<CommitmentEndpoints.CommitmentRow, string?> label) => live.GroupBy(key).OrderBy(g => label(g.First())).ThenBy(g => g.Key)
+                    .Select(g => new object?[] { label(g.First()) ?? "—", g.Count(), g.Count(r => r.Status == CommitmentStatus.Completed), Pct0(g.Count(r => r.CompletedLate == false && r.Status == CommitmentStatus.Completed), g.Count(r => r.Status == CommitmentStatus.Completed)), g.Count(r => r.Overdue) }).ToList();
+                return (metrics, [new("By team", ["Team", "Commitments", "Completed", "On time", "Overdue"], By(r => r.TeamId, r => r.TeamName)), new("By client", ["Client", "Commitments", "Completed", "On time", "Overdue"], By(r => r.ClientId, r => r.ClientCode ?? "Internal"))]);
             },
             Cols = [
                 new("Reference", "Commitment reference", r => r.Ref), new("Description", "Promise", r => r.Description), new("Client", "Client alias; empty for internal", r => r.ClientCode),
@@ -424,12 +456,12 @@ public static class ReportCatalog
                 var rows = await (await Cases(x, f, ct)).OrderBy(c => c.CreatedAt).Select(c => new
                 {
                     c.Ref, c.Title, client = c.Client == null ? "Internal" : c.Client.Code, c.Priority, c.Status, owner = c.Owner == null ? null : c.Owner.DisplayName,
-                    team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, c.CreatedAt, c.DueAt
+                    team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, c.ClientId, c.OwnerUserId, c.CreatedAt, c.DueAt
                 }).ToListAsync(ct);
                 return rows.Select(r =>
                 {
                     var age = (int)Math.Floor((x.Now - r.CreatedAt).TotalDays);
-                    return new AgingRow(r.Ref, r.Title, r.client, r.Priority.ToString(), r.Status.ToString(), r.owner ?? "Unassigned", r.team, r.CreatedAt, age, Bucket(age), r.DueAt, r.DueAt < x.Now);
+                    return new AgingRow(r.Ref, r.Title, r.client, r.Priority.ToString(), r.Status.ToString(), r.owner ?? "Unassigned", r.team, r.CreatedAt, age, Bucket(age), r.DueAt, r.DueAt < x.Now, r.ClientId, r.OwnerUserId);
                 }).ToList();
             },
             Summarize = (x, rows) =>
@@ -438,7 +470,7 @@ public static class ReportCatalog
                 {
                     new("Open cases", rows.Count.ToString(CultureInfo.InvariantCulture), "Cases not closed or cancelled."),
                     new("Overdue", rows.Count(r => r.Overdue).ToString(CultureInfo.InvariantCulture), "Due date passed.", rows.Any(r => r.Overdue) ? "bad" : null),
-                    new("Unassigned", rows.Count(r => r.Owner == "Unassigned").ToString(CultureInfo.InvariantCulture), "No accountable owner.", rows.Any(r => r.Owner == "Unassigned") ? "warn" : null),
+                    new("Unassigned", rows.Count(r => r.OwnerId == null).ToString(CultureInfo.InvariantCulture), "No accountable owner.", rows.Any(r => r.OwnerId == null) ? "warn" : null),
                     new("Average age", rows.Count == 0 ? "Not available" : $"{Math.Round(rows.Average(r => r.AgeDays), 1).ToString(CultureInfo.InvariantCulture)} days", "Since creation."),
                     new("Older than 90 days", rows.Count(r => r.AgeDays > 90).ToString(CultureInfo.InvariantCulture), "Long-running backlog.", rows.Any(r => r.AgeDays > 90) ? "warn" : null)
                 };
@@ -446,8 +478,8 @@ public static class ReportCatalog
                 return (metrics, [
                     new("Age buckets", ["Age", "Open cases", "Overdue"], buckets.Select(b => new object?[] { b, rows.Count(r => r.Bucket == b), rows.Count(r => r.Bucket == b && r.Overdue) }).ToList()),
                     new("By priority", ["Priority", "Open cases", "Overdue", "Over 30 days"], Enum.GetNames<Priority>().Select(p => new object?[] { p, rows.Count(r => r.Priority == p), rows.Count(r => r.Priority == p && r.Overdue), rows.Count(r => r.Priority == p && r.AgeDays > 30) }).ToList()),
-                    new("By owner", ["Owner", "Open cases", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.Owner).OrderByDescending(g => g.Count()).Select(g => new object?[] { g.Key, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList()),
-                    new("By client", ["Client", "Open cases", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.Client).OrderByDescending(g => g.Count()).Select(g => new object?[] { g.Key, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList())]);
+                    new("By owner", ["Owner", "Open cases", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.OwnerId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Owner, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList()),
+                    new("By client", ["Client", "Open cases", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.ClientId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Client, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList())]);
             },
             Cols = [
                 new("Reference", "Case reference", r => r.Ref), new("Title", "Case title", r => r.Title), new("Client", "Client alias or Internal", r => r.Client), new("Priority", "Priority", r => r.Priority),
@@ -464,29 +496,39 @@ public static class ReportCatalog
             Load = async (x, ct) =>
             {
                 var cases = await (await Cases(x, new CaseFilter(ClientId: x.L("clientId"), ProductId: x.L("productId"), TeamId: x.L("teamId")), ct))
-                    .Select(c => new { team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, owner = c.Owner == null ? null : c.Owner.DisplayName, c.Priority, overdue = c.DueAt < x.Now }).ToListAsync(ct);
+                    .Select(c => new { TeamId = c.ResponsibleTeamId, team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name,
+                        OwnerId = c.OwnerUserId, owner = c.Owner == null ? null : c.Owner.DisplayName, c.Priority, overdue = c.DueAt < x.Now }).ToListAsync(ct);
                 var coms = await CommitmentQuery.Apply(x.Db.Commitments.AsNoTracking(), new CommitmentFilter(ClientId: x.L("clientId"), TeamId: x.L("teamId"), ProductId: x.L("productId")), x.Now, await x.Settings.UpcomingDaysAsync(ct), x.Db)
-                    .Select(c => new { team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, owner = c.Owner == null ? null : c.Owner.DisplayName, overdue = c.CurrentDueAt < x.Now }).ToListAsync(ct);
-                var keys = cases.Select(c => (c.team, c.owner)).Concat(coms.Select(c => (c.team, c.owner))).Distinct();
-                return keys.Select(k => new WorkloadRow(k.team ?? "No team", k.owner ?? "Unassigned",
-                        cases.Count(c => c.team == k.team && c.owner == k.owner), cases.Count(c => c.team == k.team && c.owner == k.owner && c.overdue),
-                        cases.Count(c => c.team == k.team && c.owner == k.owner && c.Priority is Priority.Critical or Priority.High),
-                        coms.Count(c => c.team == k.team && c.owner == k.owner), coms.Count(c => c.team == k.team && c.owner == k.owner && c.overdue)))
-                    .OrderBy(r => r.Team).ThenByDescending(r => r.Cases + r.Commitments).ToList();
+                    .Select(c => new { TeamId = c.ResponsibleTeamId, team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name,
+                        OwnerId = c.OwnerUserId, owner = c.Owner == null ? null : c.Owner.DisplayName, overdue = c.CurrentDueAt < x.Now }).ToListAsync(ct);
+                var caseGroups = cases.GroupBy(c => (c.TeamId, c.OwnerId)).ToDictionary(g => g.Key, g => g.ToList());
+                var commitmentGroups = coms.GroupBy(c => (c.TeamId, c.OwnerId)).ToDictionary(g => g.Key, g => g.ToList());
+                var keys = caseGroups.Keys.Concat(commitmentGroups.Keys).Distinct();
+                return keys.Select(k =>
+                    {
+                        var assignedCases = caseGroups.GetValueOrDefault(k) ?? [];
+                        var assignedCommitments = commitmentGroups.GetValueOrDefault(k) ?? [];
+                        return new WorkloadRow(k.TeamId, assignedCases.FirstOrDefault()?.team ?? assignedCommitments.FirstOrDefault()?.team ?? "No team",
+                            k.OwnerId, assignedCases.FirstOrDefault()?.owner ?? assignedCommitments.FirstOrDefault()?.owner ?? "Unassigned",
+                            assignedCases.Count, assignedCases.Count(c => c.overdue), assignedCases.Count(c => c.Priority is Priority.Critical or Priority.High),
+                            assignedCommitments.Count, assignedCommitments.Count(c => c.overdue));
+                    })
+                    .OrderBy(r => r.Team).ThenBy(r => r.TeamId).ThenByDescending(r => r.Cases + r.Commitments).ThenBy(r => r.OwnerId).ToList();
             },
             Summarize = (x, rows) =>
             {
-                var owners = rows.Where(r => r.Owner != "Unassigned").ToList();
+                var assigned = rows.Where(r => r.OwnerId != null).ToList();
+                var ownerCount = assigned.Select(r => r.OwnerId).Distinct().Count();
                 var metrics = new List<ReportMetric>
                 {
                     new("Open cases", rows.Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Assigned and unassigned."),
                     new("Open commitments", rows.Sum(r => r.Commitments).ToString(CultureInfo.InvariantCulture), "Open promises."),
                     new("Overdue work", (rows.Sum(r => r.OverdueCases) + rows.Sum(r => r.OverdueCommitments)).ToString(CultureInfo.InvariantCulture), "Overdue cases plus overdue commitments.", rows.Any(r => r.OverdueCases + r.OverdueCommitments > 0) ? "bad" : null),
-                    new("Unassigned cases", rows.Where(r => r.Owner == "Unassigned").Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Cases without an owner.", rows.Any(r => r.Owner == "Unassigned" && r.Cases > 0) ? "warn" : null),
-                    new("Average per owner", owners.Count == 0 ? "Not available" : Math.Round(owners.Average(r => (double)(r.Cases + r.Commitments)), 1).ToString(CultureInfo.InvariantCulture), "Open cases and commitments per named owner and team.")
+                    new("Unassigned cases", rows.Where(r => r.OwnerId == null).Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Cases without an owner.", rows.Any(r => r.OwnerId == null && r.Cases > 0) ? "warn" : null),
+                    new("Average per owner", ownerCount == 0 ? "Not available" : Math.Round((double)assigned.Sum(r => r.Cases + r.Commitments) / ownerCount, 1).ToString(CultureInfo.InvariantCulture), "Assigned open cases and commitments divided by distinct accountable owners across teams; unassigned work excluded.")
                 };
                 return (metrics, [new("By team", ["Team", "Open cases", "Overdue cases", "Critical/High", "Open commitments", "Overdue commitments"],
-                    rows.GroupBy(r => r.Team).OrderBy(g => g.Key).Select(g => new object?[] { g.Key, g.Sum(r => r.Cases), g.Sum(r => r.OverdueCases), g.Sum(r => r.CriticalHigh), g.Sum(r => r.Commitments), g.Sum(r => r.OverdueCommitments) }).ToList())]);
+                    rows.GroupBy(r => r.TeamId).OrderBy(g => g.First().Team).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Team, g.Sum(r => r.Cases), g.Sum(r => r.OverdueCases), g.Sum(r => r.CriticalHigh), g.Sum(r => r.Commitments), g.Sum(r => r.OverdueCommitments) }).ToList())]);
             },
             Cols = [
                 new("Team", "Responsible team", r => r.Team), new("Owner", "Owner or Unassigned", r => r.Owner), new("Open cases", "Cases not closed or cancelled", r => r.Cases),
@@ -549,8 +591,8 @@ public static class ReportCatalog
     public sealed record AssetRow(string Client, string Env, string Name, string Type, string? Role, string Lifecycle, string? Zone, decimal? Cpu, string? CpuUnit, decimal? Ram, string? RamUnit, string? Os, DateTimeOffset? Verified);
     public sealed record DqRow(string Rule, string Type, string Label, string Detail, string? Coordinator, string? Next, string Status, DateTimeOffset Opened);
     public sealed record SlaRow(string Ref, string Title, string? Client, string? Contract, string Priority, string? Team, string Owner, DateTimeOffset Created,
-        DateTimeOffset? ResponseDue, DateTimeOffset? Responded, SlaState Response, DateTimeOffset? ResolutionDue, DateTimeOffset? Resolved, SlaState Resolution, bool AtRisk);
-    public sealed record AgingRow(string Ref, string Title, string Client, string Priority, string Status, string Owner, string? Team, DateTimeOffset Created, int AgeDays, string Bucket, DateTimeOffset? Due, bool Overdue);
-    public sealed record WorkloadRow(string Team, string Owner, int Cases, int OverdueCases, int CriticalHigh, int Commitments, int OverdueCommitments);
+        DateTimeOffset? ResponseDue, DateTimeOffset? Responded, SlaState Response, DateTimeOffset? ResolutionDue, DateTimeOffset? Resolved, SlaState Resolution, bool AtRisk, long? ClientId, long? TeamId, long? OwnerId);
+    public sealed record AgingRow(string Ref, string Title, string Client, string Priority, string Status, string Owner, string? Team, DateTimeOffset Created, int AgeDays, string Bucket, DateTimeOffset? Due, bool Overdue, long? ClientId, long? OwnerId);
+    public sealed record WorkloadRow(long? TeamId, string Team, long? OwnerId, string Owner, int Cases, int OverdueCases, int CriticalHigh, int Commitments, int OverdueCommitments);
     public sealed record HealthRow(string Code, string Name, int OpenCases, int OverdueCases, int OverdueCommitments, int Escalations, int OverdueEscalations, int DataQuality, string? ResponseRate, string? ResolutionRate, int SlaBreaches);
 }

@@ -1,10 +1,12 @@
 using System.Linq.Expressions;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Modules.Admin;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Shared;
 using TioHub.Api.Security;
+using TioHub.Api.Modules.Work;
 
 namespace TioHub.Api.Modules.Contracts;
 
@@ -71,11 +73,13 @@ public static class ContractEndpoints
     public sealed record MilestoneInput(long? Id, string? Phase, string? Description, int? CompletionPercent, DateOnly? Date);
     public sealed record FeeInput(long? Id, string? Description, string? Unit, decimal? Quantity, decimal? UnitPrice);
     public sealed record PaymentInput(long? Id, string? Condition, decimal? Percentage, decimal? Amount, DateOnly? DueDate, PaymentStatus? Status, DateOnly? PaidOn, string? Notes);
+    public sealed record PenaltyClauseInput(long? Id, string? Name, PenaltyTrigger? Trigger, PenaltyCalculation? Calculation, decimal? FixedAmount, decimal? Percentage, decimal? ReferenceAmount, decimal? MonthlyCap, string? BillingTimeZone);
+    public sealed record PenaltyReasonInput(string? Reason);
     public sealed record ContractInput(long? ClientId, long? ProjectId, string? Title, string? ContractReference, string? Type, ContractStatus? Status, long? OwnerUserId,
         DateOnly? StartDate, DateOnly? EndDate, RenewalTerms? RenewalTerms, int? NoticeDays, SupportModel? SupportModel, string? SupportHours, string? SupportTimeZone,
         int? OnSiteEngineersRequired, string? Coverage, string? Obligations, List<long>? EnvironmentIds, List<SlaTargetInput>? SlaTargets,
         bool? Support24x7 = null, List<string>? SupportDays = null, TimeOnly? SupportFrom = null, TimeOnly? SupportTo = null, string? Currency = null,
-        List<MilestoneInput>? Milestones = null, List<FeeInput>? Fees = null, List<PaymentInput>? Payments = null, bool? SlaPauseWhileWaitingOnCustomer = null);
+        List<MilestoneInput>? Milestones = null, List<FeeInput>? Fees = null, List<PaymentInput>? Payments = null, bool? SlaPauseWhileWaitingOnCustomer = null, List<PenaltyClauseInput>? PenaltyClauses = null);
 
     public static void MapContractEndpoints(this RouteGroupBuilder api)
     {
@@ -116,7 +120,7 @@ public static class ContractEndpoints
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             access.RequireBusiness();
-            var c = await db.Contracts.AsNoTracking().Include(x => x.Client).Include(x => x.Owner).Include(x => x.Environments).Include(x => x.SlaTargets)
+            var c = await db.Contracts.AsNoTracking().Include(x => x.Client).Include(x => x.Owner).Include(x => x.Environments).Include(x => x.SlaTargets).Include(x => x.PenaltyClauses)
                 .Include(x => x.Milestones).Include(x => x.Fees).Include(x => x.Payments).AsSplitQuery()
                 .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
             var now = DateTimeOffset.UtcNow;
@@ -125,7 +129,8 @@ public static class ContractEndpoints
             var project = await db.Projects.IgnoreQueryFilters(["Archive"]).AsNoTracking().Where(x => x.Id == c.ProjectId)
                 .Select(x => new { x.Id, x.Code, x.Name, x.Status }).FirstOrDefaultAsync(ct);
             var productIds = await db.ProjectProducts.AsNoTracking().Where(pp => pp.ProjectId == c.ProjectId).Select(pp => pp.ProductId).ToListAsync(ct);
-            var maintain = access.Me.SeesClient(c.ClientId) && access.Me.Can(Role.Engineer);
+            var maintain = access.Me.SeesClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.Maintain);
+            var archive = access.Me.SeesClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.ArchiveRestore);
             var state = ContractQuery.State(c, now);
             return ctx.WithETag(c, new
             {
@@ -150,9 +155,10 @@ public static class ContractEndpoints
                 environments = await db.Environments.AsNoTracking().Where(e => envIds.Contains(e.Id))
                     .Select(e => new { e.Id, e.Name, e.Type, region = e.Region == null ? null : e.Region.Code }).ToListAsync(ct),
                 slaTargets = c.SlaTargets.OrderBy(t => t.Priority).Select(t => new { t.Id, t.Priority, t.ResponseMinutes, t.ResolutionMinutes, t.Basis, t.Notes }),
+                penaltyClauses = c.PenaltyClauses.OrderBy(t => t.Id).Select(t => new { t.Id, t.Name, t.Trigger, t.Calculation, t.FixedAmount, t.Percentage, t.ReferenceAmount, t.MonthlyCap, t.BillingTimeZone, currency = c.Currency }),
                 slaNote = "Targets as the contract states them. Cases linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects cases linked afterwards.",
                 c.LastReviewedAt, c.CreatedAt, c.UpdatedAt,
-                permissions = new { canEdit = maintain, canArchive = access.Me.HasRight(Right.Archive) && access.Me.SeesClient(c.ClientId) }
+                permissions = new { canEdit = maintain, canArchive = archive }
             });
         });
 
@@ -161,7 +167,7 @@ public static class ContractEndpoints
             if (input.ProjectId is null) throw new ValidationException("projectId", "Select the project this contract belongs to.");
             var project = await db.Projects.FirstOrDefaultAsync(x => x.Id == input.ProjectId, ct) ?? throw new ValidationException("projectId", "Select an existing project.");
             if (input.ClientId is not null && input.ClientId != project.ClientId) throw new ValidationException("projectId", "Select a project of the contract's client.");
-            access.RequireEngineerFor(project.ClientId);
+            access.RequireEngineerFor(project.ClientId, resource: ResourcePermissions.Contracts);
             var c = new Contract { ClientId = project.ClientId, ProjectId = project.Id };
             await ApplyAsync(c, input, db, access, ct);
             c.LastReviewedAt = clock.GetUtcNow();
@@ -172,9 +178,9 @@ public static class ContractEndpoints
 
         g.MapPut("/{id:long}", async (long id, ContractInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            var c = await db.Contracts.Include(x => x.Environments).Include(x => x.SlaTargets).Include(x => x.Milestones).Include(x => x.Fees).Include(x => x.Payments).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct)
+            var c = await db.Contracts.Include(x => x.Environments).Include(x => x.SlaTargets).Include(x => x.Milestones).Include(x => x.Fees).Include(x => x.Payments).Include(x => x.PenaltyClauses).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct)
                 ?? throw new NotFoundException("The contract");
-            access.RequireMaintain(c.ClientId, null, c.OwnerUserId);
+            access.RequireMaintain(ResourcePermissions.Contracts, c.ClientId, null, c.OwnerUserId);
             db.ExpectVersion(ctx, c);
             await ApplyAsync(c, input, db, access, ct);
             // Saving the contract after checking it against the document counts as a review.
@@ -186,7 +192,7 @@ public static class ContractEndpoints
         g.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Contracts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
-            access.RequireArchiveFor(c.ClientId);
+            access.RequireArchiveFor(c.ClientId, resource: ResourcePermissions.Contracts);
             db.ExpectVersion(ctx, c);
             if (c.Status == ContractStatus.Active) throw new ValidationException("reason", "An Active contract cannot be archived. Record it as Ended or Terminated first.");
             var reason = Rules.RequireReason(input.Reason);
@@ -195,6 +201,116 @@ public static class ContractEndpoints
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
+
+        g.MapGet("/{id:long}/penalty-assessments", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
+        {
+            access.RequireBusiness();
+            var contract = await db.Contracts.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.ClientId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The contract");
+            if (!access.Me.SeesClient(contract.ClientId)) throw new NotFoundException("The contract");
+            var rows = await db.PenaltyAssessments.AsNoTracking().Where(x => x.ContractId == id).OrderByDescending(x => x.BillingMonth).ThenBy(x => x.ClauseId).ToListAsync(ct);
+            return Results.Ok(rows.Select(x => new { x.Id, x.ClauseId, x.TermsKey, x.BillingMonth, x.UncappedAmount, x.Amount, x.BreachCount, x.BreachIdentitiesJson, x.Currency, x.CalculatedAt,
+                x.ReviewedAt, x.ReviewedById, x.ReviewReason, terms = PenaltyRules.TryReadAssessmentTerms(x.TermsSnapshotJson),
+                reviewState = x.ReviewState, version = Convert.ToBase64String(x.RowVersion) }));
+        });
+
+        g.MapPost("/{id:long}/penalty-assessments/recalculate", async (long id, PenaltyReasonInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            var contract = await db.Contracts.Include(x => x.PenaltyClauses).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
+            access.RequireLeadFor(contract.ClientId, resource: ResourcePermissions.Contracts);
+            var reason = Rules.RequireReason(input.Reason);
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            await LockPenaltyAssessmentsAsync(id, db, ct);
+            var cases = await db.Cases.AsNoTracking().Where(x => x.ContractId == id && x.Status != CaseStatus.Cancelled && x.PenaltyTermsSnapshotJson != null)
+                .Select(x => new { x.Id, x.PenaltyTermsSnapshotJson, x.ResponseSlaStatus, x.ResponseDueAt, x.FirstResponseAt, x.ResolutionSlaStatus, x.ResolutionDueAt, x.ResolvedAt }).ToListAsync(ct);
+            var now = clock.GetUtcNow();
+            var computed = new List<(PenaltyClauseSnapshot Terms, string TermsKey, PenaltyMonthResult Month)>();
+            var assessed = new List<(PenaltyAssessment Row, PenaltyClauseSnapshot Terms, PenaltyMonthResult Month)>();
+            // Split each case snapshot into its clauses before grouping: editing another clause or a display name must not reset this clause's cap.
+            var clauseCases = cases.SelectMany(c => (JsonSerializer.Deserialize<PenaltyClauseSnapshot[]>(c.PenaltyTermsSnapshotJson!) ?? [])
+                .Select(term => new { Case = c, Terms = term, TermsKey = PenaltyRules.TermsKey(term) }));
+            foreach (var clauseGroup in clauseCases.GroupBy(x => x.TermsKey))
+            {
+                var term = clauseGroup.First().Terms;
+                var breaches = clauseGroup.Select(item =>
+                {
+                    var x = item.Case;
+                    var response = term.Trigger == PenaltyTrigger.ResponseSlaBreached;
+                    var state = response ? CaseSla.Now(x.ResponseSlaStatus, x.ResponseDueAt, now) : CaseSla.Now(x.ResolutionSlaStatus, x.ResolutionDueAt, now);
+                    var due = response ? x.ResponseDueAt : x.ResolutionDueAt;
+                    var actual = response ? x.FirstResponseAt : x.ResolvedAt;
+                    return state == SlaState.Breached ? new PenaltyBreach($"{x.Id}:{term.Trigger}", due ?? actual ?? now) : null;
+                }).OfType<PenaltyBreach>().ToArray();
+                if (breaches.Length == 0) continue;
+                var clause = new ContractPenaltyClause { Id = term.Id, Calculation = term.Calculation, FixedAmount = term.FixedAmount, Percentage = term.Percentage,
+                    ReferenceAmount = term.ReferenceAmount, MonthlyCap = term.MonthlyCap, BillingTimeZone = term.BillingTimeZone };
+                computed.AddRange(PenaltyRules.Calculate(clause, breaches, term.Currency).Select(m => (term, clauseGroup.Key, m)));
+            }
+            var previous = await db.PenaltyAssessments.Where(x => x.ContractId == id).OrderBy(x => x.Id).ToListAsync(ct);
+            var current = new HashSet<PenaltyAssessment>();
+            foreach (var item in computed)
+            {
+                var identitiesJson = JsonSerializer.Serialize(item.Month.BreachIdentities);
+                if (identitiesJson.Length > 4000)
+                    throw new ValidationException("penaltyAssessments", "This clause and billing month exceed the current assessment capacity. No assessments were changed. Contact support to extend the assessment storage.");
+                var matches = previous.Where(x => x.ClauseId == item.Terms.Id && x.BillingMonth == item.Month.Month).ToList();
+                var row = matches.FirstOrDefault(x => x.TermsKey == item.TermsKey)
+                    // Older releases keyed the whole snapshot array. Reuse one matching legacy row; supersede the others below.
+                    ?? matches.FirstOrDefault(x => PenaltyRules.TryReadAssessmentTerms(x.TermsSnapshotJson) is { } terms && PenaltyRules.TermsKey(terms) == item.TermsKey);
+                if (row is null)
+                {
+                    row = new PenaltyAssessment { ContractId = id, ClauseId = item.Terms.Id, BillingMonth = item.Month.Month, TermsKey = item.TermsKey };
+                    db.PenaltyAssessments.Add(row);
+                }
+                var changed = row.TermsKey != item.TermsKey || row.Currency != item.Month.Currency || row.BreachCount != item.Month.BreachCount
+                    || row.Amount != item.Month.Amount || row.UncappedAmount != item.Month.UncappedAmount || row.BreachIdentitiesJson != identitiesJson;
+                row.TermsKey = item.TermsKey;
+                row.TermsSnapshotJson = JsonSerializer.Serialize(item.Terms);
+                row.Amount = item.Month.Amount; row.UncappedAmount = item.Month.UncappedAmount; row.BreachCount = item.Month.BreachCount;
+                row.BreachIdentitiesJson = identitiesJson; row.Currency = item.Month.Currency; row.CalculatedAt = now;
+                if (changed) { row.ReviewedAt = null; row.ReviewedById = null; row.ReviewReason = null; }
+                current.Add(row);
+                assessed.Add((row, item.Terms, item.Month));
+            }
+            // Corrections, cancellation, unlinking and billing-period moves must withdraw old charges as well as upsert new ones.
+            // Keep the assessment and audited before/after values; a zero-breach row is visibly superseded and cannot be confirmed.
+            foreach (var old in previous.Where(x => !current.Contains(x)))
+            {
+                if (old.BreachCount == 0 && old.Amount == 0 && old.UncappedAmount == 0 && old.ReviewedAt is null) continue;
+                old.Amount = 0; old.UncappedAmount = 0; old.BreachCount = 0; old.BreachIdentitiesJson = "[]"; old.CalculatedAt = now;
+                old.ReviewedAt = null; old.ReviewedById = null; old.ReviewReason = null;
+            }
+            db.AuditReason = $"Penalty assessments recalculated: {reason}";
+            await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return Results.Ok(assessed.Select(x => new { x.Row.Id, x.Terms.Name, x.Terms.Trigger, x.Month.Month, x.Row.UncappedAmount, x.Row.Amount, x.Row.Currency, x.Row.BreachCount, reviewState = x.Row.ReviewState }));
+        });
+
+        g.MapPost("/{id:long}/penalty-assessments/{assessmentId:long}/confirm", async (long id, long assessmentId, PenaltyReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            var contract = await db.Contracts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
+            access.RequireLeadFor(contract.ClientId, resource: ResourcePermissions.Contracts);
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            await LockPenaltyAssessmentsAsync(id, db, ct);
+            var row = await db.PenaltyAssessments.FirstOrDefaultAsync(x => x.Id == assessmentId && x.ContractId == id, ct) ?? throw new NotFoundException("The penalty assessment");
+            db.ExpectVersion(ctx, row);
+            if (row.BreachCount == 0) throw new ValidationException("assessmentId", "A superseded assessment cannot be confirmed. Recalculate the current breaches first.");
+            var reason = Rules.RequireReason(input.Reason);
+            row.ReviewedAt = clock.GetUtcNow(); row.ReviewedById = access.Me.UserId; row.ReviewReason = reason;
+            db.AuditReason = $"Penalty assessment confirmed: {reason}";
+            await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            return Results.NoContent();
+        });
+    }
+
+    private static Task LockPenaltyAssessmentsAsync(long contractId, HubDbContext db, CancellationToken ct)
+    {
+        var resource = $"TioHub:PenaltyAssessments:{contractId}";
+        return db.Database.ExecuteSqlInterpolatedAsync($"""
+            DECLARE @result int;
+            EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=10000;
+            IF @result < 0 THROW 51000, 'Penalty assessments are busy. Retry the operation.', 1;
+            """, ct);
     }
 
     public sealed record ContractExport(string Ref, string Title, string? ContractReference, string ClientCode, string ProjectCode, string Type, ContractStatus Status, string? Owner,
@@ -224,7 +340,7 @@ public static class ContractEndpoints
         // A contract always belongs to a project of its client; it may move between that client's projects.
         if (i.ProjectId is null) check.Add("projectId", "Select the project this contract belongs to.");
         else if (!await db.Projects.AnyAsync(p => p.Id == i.ProjectId && p.ClientId == c.ClientId, ct)) check.Add("projectId", "Select a project of the contract's client.");
-        access.CheckOwnerChange(check, "ownerUserId", c.Id == 0 ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId);
+        access.CheckOwnerChange(check, "ownerUserId", c.Id == 0 ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Contracts);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, c.ClientId, null, "the owner", ct);
         var envIds = (i.EnvironmentIds ?? []).Distinct().ToList();
         if (envIds.Count > 0 && await db.Environments.CountAsync(e => envIds.Contains(e.Id) && e.ClientId == c.ClientId, ct) != envIds.Count) check.Add("environmentIds", "Select environments of the same client.");
@@ -241,6 +357,19 @@ public static class ContractEndpoints
                  .Text(f, t.Notes, 500, $"Row {n + 1} notes");
         }
         if (targets.Where(t => t.Priority is not null).GroupBy(t => t.Priority).Any(g => g.Count() > 1)) check.Add("slaTargets", "Enter one target row per priority.");
+        var penalties = i.PenaltyClauses;
+        if (penalties is not null)
+            for (var n = 0; n < penalties.Count; n++)
+            {
+                var p = penalties[n]; var f = $"penaltyClauses[{n}]";
+                check.Text(f, p.Name, 150, $"the name of penalty clause {n + 1}", required: true)
+                    .When(p.Trigger is null, f, $"Penalty clause {n + 1}: choose a breach trigger.")
+                    .When(p.Calculation is null, f, $"Penalty clause {n + 1}: choose a calculation.")
+                    .When(p.Calculation == PenaltyCalculation.FixedPerBreach && (p.FixedAmount is null or < 0), f, $"Penalty clause {n + 1}: enter a non-negative fixed amount.")
+                    .When(p.Calculation == PenaltyCalculation.PercentagePerBreach && (p.Percentage is null or < 0 or > 100 || p.ReferenceAmount is null or <= 0), f, $"Penalty clause {n + 1}: enter a percentage from 0 to 100 and a positive reference amount.")
+                    .When(p.MonthlyCap is < 0, f, $"Penalty clause {n + 1}: the monthly cap cannot be negative.")
+                    .When(p.MonthlyCap is not null && Zones.Find(p.BillingTimeZone) is null, f, $"Penalty clause {n + 1}: choose a valid billing time zone when a monthly cap is used.");
+            }
         // A49: support days and hours, or round the clock.
         var days = SupportDays.None;
         foreach (var d in i.SupportDays ?? [])
@@ -273,6 +402,7 @@ public static class ContractEndpoints
         }
         if (payments.Sum(x => x.Percentage ?? 0) > 100) check.Add("payments", "The payment percentages add up to more than 100 %.");
         var currency = Text.Clean(i.Currency)?.ToUpperInvariant();
+        if (penalties is { Count: > 0 } && currency is null) check.Add("currency", "Select the contract currency before adding penalty clauses.");
         if (currency is not null && !System.Text.RegularExpressions.Regex.IsMatch(currency, "^[A-Z]{3}$")) check.Add("currency", "Select the currency (a three-letter code such as AED or USD).");
         if (currency is null && (fees.Any(x => x.UnitPrice is not null) || payments.Any(x => x.Amount is not null))) check.Add("currency", "Select the currency of the amounts.");
         check.ThrowIfAny();
@@ -305,6 +435,15 @@ public static class ContractEndpoints
             row.SortOrder = n; row.Condition = x.Condition!.Trim(); row.Percentage = x.Percentage; row.Amount = x.Amount; row.DueDate = x.DueDate;
             row.Status = x.Status ?? PaymentStatus.Pending; row.PaidOn = row.Status == PaymentStatus.Paid ? x.PaidOn : null; row.Notes = Text.Clean(x.Notes);
         });
+        if (penalties is not null)
+            Sync(c.PenaltyClauses, penalties, m => m.Id, x => x.Id, (row, x, _) =>
+            {
+                row.Name = x.Name!.Trim(); row.Trigger = x.Trigger!.Value; row.Calculation = x.Calculation!.Value;
+                row.FixedAmount = row.Calculation == PenaltyCalculation.FixedPerBreach ? x.FixedAmount : null;
+                row.Percentage = row.Calculation == PenaltyCalculation.PercentagePerBreach ? x.Percentage : null;
+                row.ReferenceAmount = row.Calculation == PenaltyCalculation.PercentagePerBreach ? x.ReferenceAmount : null;
+                row.MonthlyCap = x.MonthlyCap; row.BillingTimeZone = x.MonthlyCap is null ? null : Text.Clean(x.BillingTimeZone);
+            });
         c.OnSiteEngineersRequired = i.OnSiteEngineersRequired;
         c.Coverage = Text.Clean(i.Coverage);
         c.Obligations = Text.Clean(i.Obligations);

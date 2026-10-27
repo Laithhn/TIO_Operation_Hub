@@ -3,7 +3,7 @@ import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
-import { useCan, useMe, useUrlState } from '../hooks';
+import { useCan, useEnumLabel, useMe, useUrlState } from '../hooks';
 import {
   CAT, Columns, Donut, HBars, Kpi, normalizeCountry, PartBar, RAMP, SERIES, SlaMatrix, STATUS, TrendLines, VizPanel, fmtMinutes,
   type CountryDatum, type SlaRow
@@ -118,7 +118,7 @@ function dueText(iso?: string | null) {
 /** A60: the eight executive figures — each opens its list; nothing is shown that the data cannot support. */
 function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
   const m = (k: string) => [...dash.cases, ...dash.commitments].find(x => x.key === k)!;
-  const openCases = m('openCases'), overdueCases = m('overdueCases'), openComs = m('openCommitments'), overdueComs = m('overdueCommitments'), upcoming = m('upcomingCommitments');
+  const openCases = m('openCases'), overdueCases = m('overdueCases'), openComs = m('openCommitments'), upcoming = m('upcomingCommitments');
   const clients = d.countries.rows.reduce((s, r) => s + r.clients, 0) + d.countries.unknownCountryClients;
   const env = (k: string) => d.environments.condition.find(c => c.key === k)?.value ?? 0;
   const envTotal = d.environments.condition.reduce((s, c) => s + c.value, 0);
@@ -149,9 +149,9 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
         to="/cases?sla=withContract&status=all" tone={cc.sla.breachedOpen ? 'critical' : cc.sla.approaching ? 'warning' : undefined}
         partLabel={`Response ${cc.sla.response.rate ?? 'n/a'}${cc.sla.response.rate !== null ? ' %' : ''} · resolution ${cc.sla.resolution.rate ?? 'n/a'}${cc.sla.resolution.rate !== null ? ' %' : ''}`}
         context={<>{cc.sla.response.measured + cc.sla.resolution.measured} obligation(s) measured{cc.sla.breachedOpen ? ` · ${cc.sla.breachedOpen} open case(s) breached` : ''}</>} />
-      <Kpi icon={<Icon name="commitment" size={18} />} label="Open commitments" value={openComs.value} to={openComs.drilldown} tone={overdueComs.value ? 'critical' : undefined}
-        part={overdueComs.value} of={openComs.value} partLabel={overdueComs.value ? `${overdueComs.value} overdue` : 'None overdue'}
-        context={`${upcoming.value} due in the next ${dash.upcomingDays} days`} />
+      <Kpi icon={<Icon name="commitment" size={18} />} label="Upcoming commitments" value={upcoming.value} to={upcoming.drilldown} tone={upcoming.value ? 'critical' : undefined} valueTone="critical"
+        partLabel={`${openComs.value} open commitments`}
+        context={<strong className="critical-text">Due in the next {dash.upcomingDays} days</strong>} />
       {e && <Kpi icon={<Icon name="escalation" size={18} />} label="Active escalations" value={e.active} to="/escalations" tone={e.overdue ? 'critical' : undefined}
         part={e.overdue} of={e.active} partLabel={e.overdue ? `${e.overdue} past a target` : 'None past a target'}
         context={e.highestLevel ? `Highest active level: ${e.highestLevel}` : 'No active escalation'} />}
@@ -334,6 +334,8 @@ function Band({ id, icon, title, hint, children }: { id: string; icon: string; t
 }
 
 function CaseCharts({ d, age, cc }: { d: InsightsT; age: Dash['caseAge']; cc: CC }) {
+  const caseStatusLabel = useEnumLabel('CaseStatus');
+  const byStatus = d.cases.byStatus.map(c => ({ ...c, label: caseStatusLabel(c.key) }));
   const r = cc.cases.risk;
   const risk: BarT[] = [
     { key: 'breached', label: 'Past due', value: r.breached, link: '/cases?due=overdue' },
@@ -354,8 +356,8 @@ function CaseCharts({ d, age, cc }: { d: InsightsT; age: Dash['caseAge']; cc: CC
         <VizPanel title="Open cases by priority" sub="Darker = more urgent. Click a slice for the list." table={tableOf(d.cases.byPriority)}>
           <Donut data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key] ?? RAMP[1]} centerLabel="open cases" />
         </VizPanel>
-        <VizPanel title="Open cases by status" sub="Waiting is tracked separately; it is not a status." table={tableOf(d.cases.byStatus)}>
-          <HBars data={d.cases.byStatus} unit="case(s)" empty="No open cases." />
+        <VizPanel title="Open cases by status" sub="Waiting is tracked separately; it is not a status." table={tableOf(byStatus)}>
+          <HBars data={byStatus} unit="case(s)" empty="No open cases." />
         </VizPanel>
         <VizPanel title="Age of open cases" table={tableOf(d.cases.age, 'Open cases')}
           sub={<>Average {age.averageDays ?? '—'}{age.averageDays !== null && ' days'}, oldest {age.oldestDays ?? '—'}{age.oldestDays !== null && ' days'}.</>}>
@@ -449,22 +451,12 @@ function PaymentCharts({ d, cc }: { d: InsightsT; cc: CC }) {
         <VizPanel title="Amounts due by currency" sub="Overdue and the next six months. Each currency is totalled on its own."
           table={{ columns: ['Currency', 'Overdue', ...months], rows: p.amountsByMonth.map(a => [a.currency || '—', fmtMoney(a.overdue), ...a.months.map(m => fmtMoney(m))]) }}>
           {p.amountsByMonth.length === 0 ? <div className="viz-empty">No amounts recorded on open payments.</div> : (
-            <table className="pay-amounts">
-              <thead><tr><th scope="col">Currency</th><th scope="col">Overdue</th><th scope="col">Due within {s.reminderDays} days</th><th scope="col">Next 6 months</th></tr></thead>
-              <tbody>
-                {p.amountsByMonth.map(a => {
-                  const due = s.due.amounts.find(x => x.currency === a.currency)?.amount ?? 0;
-                  return (
-                    <tr key={a.currency}>
-                      <th scope="row">{a.currency || '—'}</th>
-                      <td className={a.overdue ? 'pay-bad' : 'muted'}>{fmtMoney(a.overdue)}</td>
-                      <td className={due ? 'pay-warn' : 'muted'}>{fmtMoney(due)}</td>
-                      <td>{fmtMoney(a.months.reduce((x, y) => x + y, 0))}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <DataTable caption="Amounts due by currency" rows={p.amountsByMonth} rowKey={a => a.currency} tools={false} tableClassName="pay-amounts" columns={[
+              { key: 'currency', header: 'Currency', render: a => a.currency || '—' },
+              { key: 'overdue', header: 'Overdue', className: 'num', render: a => <span className={a.overdue ? 'pay-bad' : 'muted'}>{fmtMoney(a.overdue)}</span> },
+              { key: 'due', header: `Due within ${s.reminderDays} days`, className: 'num', render: a => { const due = s.due.amounts.find(x => x.currency === a.currency)?.amount ?? 0; return <span className={due ? 'pay-warn' : 'muted'}>{fmtMoney(due)}</span>; } },
+              { key: 'next', header: 'Next 6 months', className: 'num', render: a => fmtMoney(a.months.reduce((x, y) => x + y, 0)) }
+            ]} />
           )}
         </VizPanel>
         <VizPanel title="Next payments" sub="The earliest open payments by due date."
@@ -613,26 +605,24 @@ function SlaCharts({ cc, scope, slaContractId, slaPriority, onFilter }: {
           <VizPanel title="By contract" sub="Contracts with the most breaches first (top 10)."
             table={{ columns: ['Contract', 'Client', 'Cases', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byContract.map(k => [k.contractRef, k.client ?? '', k.cases, k.response.met, k.response.measured, k.resolution.met, k.resolution.measured]) }}>
             {s.byContract.length === 0 ? <div className="viz-empty">No case opened in the period is linked to a contract.</div> : (
-              <table className="grid">
-                <thead><tr><th>Contract</th><th>Client</th><th className="num">Cases</th><th>Response</th><th>Resolution</th><th className="num">Breached</th></tr></thead>
-                <tbody>{s.byContract.map(k => (
-                  <tr key={k.contractId}>
-                    <td><Link to={`/contracts/${k.contractId}`}>{k.contractRef}</Link> <span className="hint">{k.title}</span></td><td>{k.client}</td>
-                    <td className="num"><Link to={link('withContract', { contractId: String(k.contractId) })}>{k.cases}</Link></td>
-                    <td>{rateText(k.response)} <span className="hint">({ratio(k.response)})</span></td><td>{rateText(k.resolution)} <span className="hint">({ratio(k.resolution)})</span></td>
-                    <td className="num">{k.breached ? <Link className="err" to={link('responseBreached', { contractId: String(k.contractId) })}>{k.breached}</Link> : 0}</td>
-                  </tr>))}</tbody>
-              </table>)}
+              <DataTable caption="SLA results by contract" rows={s.byContract} rowKey={k => k.contractId} tools={false} columns={[
+                { key: 'contract', header: 'Contract', render: k => <><Link to={`/contracts/${k.contractId}`}>{k.contractRef}</Link> <span className="hint">{k.title}</span></> },
+                { key: 'client', header: 'Client', render: k => k.client },
+                { key: 'cases', header: 'Cases', className: 'num', render: k => <Link to={link('withContract', { contractId: String(k.contractId) })}>{k.cases}</Link> },
+                { key: 'response', header: 'Response', render: k => <>{rateText(k.response)} <span className="hint">({ratio(k.response)})</span></> },
+                { key: 'resolution', header: 'Resolution', render: k => <>{rateText(k.resolution)} <span className="hint">({ratio(k.resolution)})</span></> },
+                { key: 'breached', header: 'Breached', className: 'num', render: k => k.breached ? <Link className="err" to={link('responseBreached', { contractId: String(k.contractId) })}>{k.breached}</Link> : 0 }
+              ]} />)}
           </VizPanel>
         </div>
         <VizPanel title="By priority" sub="Each case is measured against the target for its priority."
           table={{ columns: ['Priority', 'Cases', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byPriority.map(p => [p.priority, p.cases, p.response.met, p.response.measured, p.resolution.met, p.resolution.measured]) }}>
-          <table className="grid">
-            <thead><tr><th>Priority</th><th className="num">Cases</th><th>Response</th><th>Resolution</th></tr></thead>
-            <tbody>{s.byPriority.map(p => (
-              <tr key={p.priority}><td>{p.priority}</td><td className="num">{p.cases ? <Link to={link('withContract', { priority: p.priority })}>{p.cases}</Link> : 0}</td>
-                <td>{rateText(p.response)} <span className="hint">({ratio(p.response)})</span></td><td>{rateText(p.resolution)} <span className="hint">({ratio(p.resolution)})</span></td></tr>))}</tbody>
-          </table>
+          <DataTable caption="SLA results by priority" rows={s.byPriority} rowKey={p => p.priority} tools={false} columns={[
+            { key: 'priority', header: 'Priority', render: p => p.priority },
+            { key: 'cases', header: 'Cases', className: 'num', render: p => p.cases ? <Link to={link('withContract', { priority: p.priority })}>{p.cases}</Link> : 0 },
+            { key: 'response', header: 'Response', render: p => <>{rateText(p.response)} <span className="hint">({ratio(p.response)})</span></> },
+            { key: 'resolution', header: 'Resolution', render: p => <>{rateText(p.resolution)} <span className="hint">({ratio(p.resolution)})</span></> }
+          ]} />
         </VizPanel>
       </div>
     </Band>
@@ -646,11 +636,12 @@ const DQ_SEVERITY: Record<string, string> = {
 /** A60: service and environment health — reported condition, the environments that are not healthy, product coverage. */
 function HealthCharts({ d, cc }: { d: InsightsT; cc: CC }) {
   const nav = useNavigate();
-  const condition = d.environments.condition.map(c => ({ ...c, glyph: GLYPH[c.key] }));
+  const conditionLabel = useEnumLabel('Condition');
+  const condition = d.environments.condition.map(c => ({ ...c, label: conditionLabel(c.key), glyph: GLYPH[c.key] }));
   return (
     <Band id="health" icon="server" title="Service & environment health" hint="Manually reported condition — not live monitoring. Unknown is never counted as healthy.">
       <div className="viz-grid three">
-        <VizPanel title="Environments by reported condition" table={tableOf(d.environments.condition, 'Environments')}
+        <VizPanel title="Environments by reported condition" table={tableOf(condition, 'Environments')}
           sub={<>{d.environments.needsVerification > 0 ? <b>{d.environments.needsVerification} report(s) need verification.</b> : 'All reports are recent.'}</>}>
           <Donut data={condition} colorOf={b => STATUS_OF[b.key] ?? STATUS.neutral} centerLabel="environments" />
         </VizPanel>
@@ -661,7 +652,7 @@ function HealthCharts({ d, cc }: { d: InsightsT; cc: CC }) {
               { key: 'c', header: 'Client', render: r => <Link to={`/clients/${r.clientId}`}>{r.client}</Link> },
               { key: 'p', header: 'Products', render: r => r.products.join(', ') || <span className="muted">—</span> },
               { key: 'e', header: 'Environment', render: r => <Link to={`/environments/${r.id}`}>{r.name}</Link> },
-              { key: 'h', header: 'Reported health', render: r => <><Badge tone={r.condition === 'Unavailable' ? 'bad' : r.condition === 'Degraded' ? 'warn' : 'neutral'}>{GLYPH[r.condition]} {r.condition === 'Unknown' ? 'Unknown (no report)' : r.condition}</Badge>{r.conditionReason && <span className="hint">{r.conditionReason}</span>}</> },
+              { key: 'h', header: 'Reported health', render: r => <><Badge tone={r.condition === 'Unavailable' ? 'bad' : r.condition === 'Degraded' ? 'warn' : 'neutral'}>{GLYPH[r.condition]} {conditionLabel(r.condition)}{r.condition === 'Unknown' ? ' (no report)' : ''}</Badge>{r.conditionReason && <span className="hint">{r.conditionReason}</span>}</> },
               { key: 'u', header: 'Last update', className: 'nowrap', render: r => r.conditionObservedAt ? fmtDateTime(r.conditionObservedAt) : <span className="muted">Never</span> },
               { key: 'o', header: 'Owner', render: r => r.owner ?? <Badge tone="warn">Unassigned</Badge> },
               { key: 'a', header: '', className: 'nowrap', render: r => <Link className="btn btn-sm" to={`/environments/${r.id}`} aria-label={`Open environment ${r.name} of ${r.client}`}>Open</Link> }

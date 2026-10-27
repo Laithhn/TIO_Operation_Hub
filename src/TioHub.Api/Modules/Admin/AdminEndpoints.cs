@@ -18,6 +18,7 @@ public static class AdminEndpoints
     public sealed record UserInput(string? AccountName, string? DisplayName, string? Email, string? WorkingTimeZone, string[]? Roles, bool AllClients, bool AllInternal,
         bool Export, bool TechnicalDetail, bool Audit, ScopeInput[]? Scopes, long? RoleId = null);
     public sealed record DeactivateInput(string? Reason);
+    public sealed record DeleteUserInput(string? Reason);
     public sealed record MappingInput(string? GroupName, Role? Role, bool AllClients, bool AllInternal, bool Export, bool TechnicalDetail, bool Audit, ScopeInput[]? Scopes);
     /// <summary>A34: <c>Code</c> is optional (made from the label); <c>Category</c> is required for type lists and fixed once created.</summary>
     public sealed record LookupInput(string? ListName, string? Code, string? Label, string? Description, int SortOrder, bool IsRetired, string? Category = null);
@@ -27,7 +28,7 @@ public static class AdminEndpoints
     public sealed record RestoreInput(string? Reason);
     public sealed record CodeCorrectionInput(string? NewCode, string? Reason);
 
-    private static readonly string[] ArchivableTypes = [RecordTypes.Client, RecordTypes.Region, RecordTypes.Project, RecordTypes.Contact, RecordTypes.Environment, RecordTypes.Installation, RecordTypes.Asset, RecordTypes.Component];
+    private static readonly string[] ArchivableTypes = [RecordTypes.Client, RecordTypes.Region, RecordTypes.Project, RecordTypes.Contract, RecordTypes.Contact, RecordTypes.Environment, RecordTypes.Installation, RecordTypes.Asset, RecordTypes.Component];
 
     public static void MapAdminEndpoints(this RouteGroupBuilder api)
     {
@@ -102,6 +103,32 @@ public static class AdminEndpoints
             UserResolver.InvalidateAll(cache);
             return Results.NoContent();
         });
+        g.MapDelete("/users/{id:long}", async (long id, [Microsoft.AspNetCore.Mvc.FromBody] DeleteUserInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        {
+            me.RequireAdministrator();
+            if (id == me.UserId) throw new ValidationException("reason", "You cannot delete your own account.");
+            var u = await db.Users.Include(x => x.Roles).Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
+            db.ExpectVersion(ctx, u);
+            var reason = Rules.RequireReason(input.Reason);
+
+            // Keep business and audit history attached to its original person. Only remove an account
+            // when no retained record points to it; use deactivation for users with recorded activity.
+            db.UserCredentials.RemoveRange(await db.UserCredentials.Where(c => c.UserId == id).ToListAsync(ct));
+            db.Notifications.RemoveRange(await db.Notifications.Where(n => n.UserId == id).ToListAsync(ct));
+            db.Users.Remove(u);
+            db.AuditReason = reason;
+            try
+            {
+                await db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException)
+            {
+                db.ChangeTracker.Clear();
+                throw new ConflictException("This user is still referenced by retained records or history. Deactivate the account to keep its history and remove access.");
+            }
+            UserResolver.InvalidateAll(cache);
+            return Results.NoContent();
+        });
         // Identity-only list of scope targets so access can be assigned; no business detail.
         g.MapGet("/scope-targets", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
@@ -160,6 +187,7 @@ public static class AdminEndpoints
         g.MapPost("/lookups/{list}/order", async (string list, OrderInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             me.RequireAdministrator();
+            if (LookupLists.IsFixedWorkflowLabel(list)) throw new ValidationException("ids", "Condition and case-status values keep their built-in workflow order.");
             var rows = await db.LookupValues.Where(l => l.ListName == list).ToListAsync(ct);
             var ids = (input.Ids ?? []).ToList();
             if (ids.Count != rows.Count || rows.Any(r => !ids.Contains(r.Id))) throw new ValidationException("ids", "Send every value of the list once, in the new order.");
@@ -172,6 +200,7 @@ public static class AdminEndpoints
             me.RequireAdministrator();
             var check = new Check().Text("label", input.Label, 150, "the name", true).Text("description", input.Description, 1000, "Description");
             if (input.ListName is null || !LookupLists.All.Contains(input.ListName)) check.Add("listName", "Select a reference list.");
+            if (LookupLists.IsFixedWorkflowLabel(input.ListName)) throw new ValidationException("listName", "Condition and case-status values are fixed; only their display labels can be changed.");
             var typed = input.ListName is not null && LookupLists.Categories.TryGetValue(input.ListName, out var categoryEnum) ? categoryEnum : null;
             if (typed is not null && (input.Category is null || !Enum.GetNames(typed).Contains(input.Category))) check.Add("category", "Choose how this type behaves (its category).");
             // The code is stored on records: made from the name when not given (letters and digits), unique in the list.
@@ -199,6 +228,14 @@ public static class AdminEndpoints
             // Codes are stored on records; changing one would silently reinterpret history.
             if ((input.Code ?? "").Trim() != l.Code) throw new ValidationException("code", "Codes keep their historical meaning. Retire this value and add a new one.");
             new Check().Text("label", input.Label, 150, "the name", true).Text("description", input.Description, 1000, "Description").ThrowIfAny();
+            if (LookupLists.IsFixedWorkflowLabel(l.ListName))
+            {
+                if (input.IsRetired || input.SortOrder != l.SortOrder || Text.Clean(input.Description) != l.Description)
+                    throw new ValidationException("label", "Only the display label can be changed for a fixed workflow value.");
+                l.Label = input.Label!.Trim();
+                await db.SaveChangesAsync(ct);
+                return Results.NoContent();
+            }
             // Forms need at least one active value of a type list.
             if (input.IsRetired && !l.IsRetired && LookupLists.Categories.ContainsKey(l.ListName) && !await db.LookupValues.AnyAsync(x => x.ListName == l.ListName && x.Id != l.Id && !x.IsRetired, ct))
                 throw new ValidationException("isRetired", "Keep at least one active value in this list.");
@@ -311,7 +348,7 @@ public static class AdminEndpoints
         g.MapPost("/archived/{recordType}/{id:long}/restore", async (string recordType, long id, RestoreInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             if (!ArchivableTypes.Contains(recordType)) throw new NotFoundException("The record type");
-            access.Me.RequireRight(Right.Archive);
+            access.Me.RequirePermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.ArchiveRestore);
             var reason = Rules.RequireReason(input.Reason, "reason", "the restore reason");
             string[] f = [HubDbContext.ArchiveFilter];
             IArchivable item;

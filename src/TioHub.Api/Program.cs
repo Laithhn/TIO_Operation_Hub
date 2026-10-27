@@ -111,6 +111,8 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
     if (config.GetValue("Database:ApplyMigrationsOnStartup", false))
         await db.Database.MigrateAsync();
+    // Stop before seeding, backfills, or hosted services touch a schema from an older release.
+    (await DatabaseReadiness.CheckAsync(db, CancellationToken.None)).RequireReady();
     if (config.GetValue("Database:SeedReferenceData", true))
         await ReferenceData.SeedAsync(db);
     if (config.GetValue("Database:SeedDevelopmentData", false))
@@ -177,7 +179,10 @@ app.Use(async (ctx, next) =>
 
 app.MapGet("/api/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous().ExcludeFromDescription();
 app.MapGet("/api/health/ready", async (HubDbContext db, CancellationToken ct) =>
-    await db.Database.CanConnectAsync(ct) ? Results.Ok(new { status = "ready" }) : Results.Json(new { status = "database unreachable" }, statusCode: 503))
+{
+    var readiness = await DatabaseReadiness.CheckAsync(db, ct);
+    return Results.Json(new { status = readiness.Status }, statusCode: readiness.Ready ? 200 : 503);
+})
     .AllowAnonymous().ExcludeFromDescription();
 app.MapOpenApi("/openapi/{documentName}.json");
 

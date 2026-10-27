@@ -5,6 +5,7 @@ using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Inventory;
 using TioHub.Api.Modules.Shared;
+using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Firewall;
 
@@ -114,7 +115,7 @@ public static partial class FirewallEndpoints
         {
             var r = await db.FirewallRules.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
             access.Me.RequireGrant(Grant.TechnicalDetail);
-            access.RequireMaintain(r.ClientId, null);
+            access.RequireMaintain(ResourcePermissions.Other, r.ClientId, null);
             // Deleted straight from the table: no version check (nothing else changes on a rule while it is removed).
             db.FirewallRules.Remove(r);
             await db.SaveChangesAsync(ct);
@@ -142,7 +143,7 @@ public static partial class FirewallEndpoints
         if (i.DestinationAssetId is not null && dst is null) check.Add("destinationAssetId", "Select a server you can access.");
         if (src is not null && dst is not null && src.ClientId != dst.ClientId) check.Add("destinationAssetId", "Both servers must belong to the same client.");
         check.ThrowIfAny();
-        access.RequireMaintain(src!.ClientId, null);
+        access.RequireMaintain(ResourcePermissions.Other, src!.ClientId, null);
         r.ClientId = src.ClientId;
         r.EnvironmentId = src.EnvironmentId;
         r.SourceAssetId = src.Id;
@@ -154,3 +155,4 @@ public static partial class FirewallEndpoints
         r.Notes = Text.Clean(i.Notes);
     }
 }
+

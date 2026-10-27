@@ -1,10 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { createContext, isValidElement, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
+import { cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError, del, get, type UserRef } from '../api';
-import { useMe } from '../hooks';
+import { useMe, useReference } from '../hooks';
 import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
+import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
 
 // ---------- page structure ----------
 
@@ -104,9 +105,11 @@ const STATUS_TONE: Record<string, 'good' | 'warn' | 'bad' | 'info' | 'neutral'> 
   Current: 'good', Stale: 'bad', NotYetReviewed: 'neutral', NoPolicy: 'warn', NotApplicable: 'neutral',
   Met: 'good', Breached: 'bad', Pending: 'info', NotMeasurable: 'warn'
 };
-export function StatusBadge({ value }: { value?: string | null }) {
+export function StatusBadge({ value, displayLabel, enumName }: { value?: string | null; displayLabel?: string; enumName?: 'CaseStatus' | 'Condition' }) {
+  const labels = useReference().data?.enumLabels;
   if (!value) return <Unknown />;
-  return <Badge tone={STATUS_TONE[value] ?? 'neutral'}>{label(value)}</Badge>;
+  const workflowLabel = enumName ? labels?.[enumName]?.[value] : undefined;
+  return <Badge tone={STATUS_TONE[value] ?? 'neutral'}>{displayLabel ?? workflowLabel ?? label(value)}</Badge>;
 }
 
 export type FreshnessT = { state: string; lastReviewedAt?: string | null; dueAt?: string | null; rule: string };
@@ -119,10 +122,10 @@ export function FreshnessBadge({ f }: { f?: FreshnessT | null }) {
 
 export type ConditionT = { reported: string; observedAt?: string | null; needsVerification: boolean; display: string };
 export function ConditionBadge({ c }: { c?: ConditionT | null }) {
-  if (!c || !c.observedAt) return <Badge tone="neutral">Unknown</Badge>;
+  if (!c || !c.observedAt) return <StatusBadge value="Unknown" enumName="Condition" />;
   return (
     <span title={`Manually reported ${fmtDateTime(c.observedAt)} — not live monitoring`} style={{ display: 'inline-flex', gap: 4, flexWrap: 'wrap' }}>
-      <StatusBadge value={c.reported} />
+      <StatusBadge value={c.reported} enumName="Condition" />
       {c.needsVerification && <Badge tone="warn">Needs verification</Badge>}
     </span>
   );
@@ -206,6 +209,28 @@ export function QuantityInput({ label: text, value, onChange, unit, onUnit, unit
 
 export type Column<T> = { key: string; header: ReactNode; render: (row: T) => ReactNode; sort?: string; className?: string; filter?: ReactNode };
 
+type TextFilterOperator = 'starts' | 'ends' | 'contains' | 'equal' | 'empty' | 'not-starts' | 'not-ends' | 'not-contains' | 'not-equal';
+const TEXT_FILTER_OPERATORS: { value: TextFilterOperator; label: string }[] = [
+  { value: 'starts', label: 'Starts With' }, { value: 'ends', label: 'Ends With' }, { value: 'contains', label: 'Contains' },
+  { value: 'equal', label: 'Equal' }, { value: 'empty', label: 'Empty' }, { value: 'not-starts', label: 'Does Not Start With' },
+  { value: 'not-ends', label: 'Does Not End With' }, { value: 'not-contains', label: 'Does Not Contain' }, { value: 'not-equal', label: 'Not Equal' }
+];
+
+function matchesTextFilter(text: string, value: string, operator: TextFilterOperator) {
+  const a = text.trim().toLocaleLowerCase(), b = value.trim().toLocaleLowerCase();
+  switch (operator) {
+    case 'starts': return a.startsWith(b);
+    case 'ends': return a.endsWith(b);
+    case 'contains': return a.includes(b);
+    case 'equal': return a === b;
+    case 'empty': return a.length === 0;
+    case 'not-starts': return !a.startsWith(b);
+    case 'not-ends': return !a.endsWith(b);
+    case 'not-contains': return !a.includes(b);
+    case 'not-equal': return a !== b;
+  }
+}
+
 /** Plain text of a rendered cell (for client-side filter, sort and CSV export). */
 export function nodeText(n: ReactNode): string {
   if (n === null || n === undefined || typeof n === 'boolean') return '';
@@ -235,31 +260,51 @@ function downloadCsv(name: string, header: string[], rows: string[][]) {
 
 /**
  * The hub's table. Owner request (20 Oct 2026): every table can be filtered, sorted, paged and exported. Lists paged by the server keep
- * their server-side sort, filter row and pager (and export the rows on the page); every other table filters, sorts and pages in the browser.
+ * their server-side sort and filters (and export the rows on the page); every other table filters, sorts and pages in the browser.
  */
-export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25 }: {
+export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
-  sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number;
+  sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
 }) {
-  const hasFilters = columns.some(c => c.filter);
   const nav = useNavigate();
   const me = useMe().data;
+  const tableId = useId().replace(/:/g, '');
   const server = !!onSort;
   const [q, setQ] = useState('');
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+  const [filterOperators, setFilterOperators] = useState<Record<string, TextFilterOperator>>({});
+  const [openFilter, setOpenFilter] = useState<string | null>(null);
+  const filterPopover = useRef<HTMLDivElement>(null);
   const [csort, setCsort] = useState<{ key: string; desc: boolean } | null>(null);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(initialSize);
   const textCols = columns.filter(c => nodeText(c.header).trim().length > 0);
+  useEffect(() => {
+    if (!openFilter) return;
+    const dismiss = (event: MouseEvent) => { if (!filterPopover.current?.contains(event.target as Node)) setOpenFilter(null); };
+    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') setOpenFilter(null); };
+    document.addEventListener('mousedown', dismiss);
+    document.addEventListener('keydown', escape);
+    return () => { document.removeEventListener('mousedown', dismiss); document.removeEventListener('keydown', escape); };
+  }, [openFilter]);
   // Text of each row, computed once per render for filter, sort and export.
   const prepared = useMemo(() => (rows ?? []).map(r => ({ r, text: Object.fromEntries(columns.map(c => [c.key, nodeText(c.render(r))])) as Record<string, string> })), [rows, columns]);
+  const suggestions = useMemo(() => columns.map(c => [...new Set(prepared.map(x => x.text[c.key]?.trim()).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).slice(0, 300)), [columns, prepared]);
   const needle = q.trim().toLowerCase();
-  const filtered = needle ? prepared.filter(x => Object.values(x.text).some(t => t.toLowerCase().includes(needle))) : prepared;
-  const sorted = !server && csort ? [...filtered].sort((x, y) => {
-    const a = x.text[csort.key] ?? '', b = y.text[csort.key] ?? '';
+  const filtered = prepared.filter(x => (!needle || Object.values(x.text).some(t => t.toLowerCase().includes(needle))) &&
+    columns.every(c => {
+      const value = columnFilters[c.key] ?? '';
+      const op = filterOperators[c.key] ?? 'starts';
+      return (value.trim() || op === 'empty')
+        ? matchesTextFilter(x.text[c.key] ?? '', value, op) : true;
+    }));
+  const localSort = server ? csort && !columns.find(c => c.key === csort.key)?.sort ? csort : null : csort;
+  const sorted = localSort ? [...filtered].sort((x, y) => {
+    const a = x.text[localSort.key] ?? '', b = y.text[localSort.key] ?? '';
     const na = Number(a.replace(/[^\d.-]/g, '')), nb = Number(b.replace(/[^\d.-]/g, ''));
     const cmp = a !== '' && b !== '' && !isNaN(na) && !isNaN(nb) && /^\s*-?[\d.,]+/.test(a) && /^\s*-?[\d.,]+/.test(b)
       ? na - nb : a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' });
-    return csort.desc ? -cmp : cmp;
+    return localSort.desc ? -cmp : cmp;
   }) : filtered;
   const pages = server ? 1 : Math.max(1, Math.ceil(sorted.length / size));
   const cur = Math.min(page, pages);
@@ -279,7 +324,8 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   };
   const showTools = tools && !loading && !error && (rows?.length ?? 0) > 0;
   return (
-    <div className="panel table-wrap">
+    <div className={`panel table-wrap${tableWrapClassName ? ` ${tableWrapClassName}` : ''}`}>
+      {/* The toolbar stays outside the table so it is not announced or counted as a table row. */}
       {showTools && (
         <div className="table-tools">
           <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
@@ -288,27 +334,54 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
           {me?.grants.export && <button className="btn btn-sm" onClick={exportRows} title={server ? 'Rows on this page, as shown' : 'All rows that match the filter'}>Export CSV</button>}
         </div>
       )}
-      <table className="grid">
+      <table className={`grid${tableClassName ? ` ${tableClassName}` : ''}`}>
         {caption && <caption className="sr">{caption}</caption>}
         <thead>
           <tr>
             {columns.map(c => {
-              const serverActive = server && sort?.replace('-', '') === c.sort;
-              const desc = server ? sort?.startsWith('-') : csort?.desc;
-              const clientActive = !server && csort?.key === c.key;
-              const sortable = server ? !!c.sort : nodeText(c.header).trim().length > 0 && (rows?.length ?? 0) > 1;
+              const serverActive = server && !!c.sort && sort?.replace('-', '') === c.sort;
+              const desc = serverActive ? sort?.startsWith('-') : csort?.desc;
+              const clientActive = csort?.key === c.key && !serverActive;
+              const sortable = nodeText(c.header).trim().length > 0 && (server ? (!!c.sort || (rows?.length ?? 0) > 1) : (rows?.length ?? 0) > 1);
               const active = serverActive || clientActive;
-              const click = () => server ? onSort!(serverActive && !desc ? `-${c.sort}` : c.sort!) : setCsort(clientActive && !csort!.desc ? { key: c.key, desc: true } : clientActive ? null : { key: c.key, desc: false });
+              const click = () => server && c.sort
+                ? onSort!(serverActive && !desc ? `-${c.sort}` : c.sort!)
+                : setCsort(clientActive ? { key: c.key, desc: !csort!.desc } : { key: c.key, desc: false });
+              const filterable = !!c.filter || nodeText(c.header).trim().length > 0;
+              const hasFilter = !!columnFilters[c.key]?.trim() || (filterOperators[c.key] ?? 'starts') !== 'starts';
+              const headerName = nodeText(c.header).trim() || 'column';
+              const suggestionId = `${tableId}-filter-${c.key}`;
+              const columnSuggestions = suggestions[columns.indexOf(c)] ?? [];
               return (
                 <th key={c.key} className={c.className} aria-sort={active ? (desc ? 'descending' : 'ascending') : undefined} scope="col">
-                  {sortable ? (
-                    <button onClick={click}>{c.header}{active && <span aria-hidden="true">{desc ? '▾' : '▴'}</span>}</button>
-                  ) : c.header}
+                  <div className="grid-head-cell">
+                    {sortable ? <button className={`grid-sort${active ? ' active' : ''}`} onClick={click} title={active ? `Sorted ${desc ? 'descending' : 'ascending'}; click to sort ${desc ? 'ascending' : 'descending'}` : 'Click to sort ascending'}>
+                      <span>{c.header}</span><span className="grid-sort-indicator" aria-hidden="true">{active ? (desc ? '↓' : '↑') : <span className="grid-sort-muted">↕</span>}</span>
+                    </button> : <span className="grid-heading-label">{c.header}</span>}
+                    {filterable && <button className={`grid-filter-trigger${hasFilter ? ' active' : ''}`} aria-label="Column filter" aria-description={`${openFilter === c.key ? 'Close' : 'Open'} filter for ${headerName}`} title={`Filter ${headerName}`} aria-expanded={openFilter === c.key} onClick={() => setOpenFilter(openFilter === c.key ? null : c.key)}>
+                      <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M2.5 3.5h15l-5.8 6.4v5.4l-3.4 1.7V9.9L2.5 3.5Z" /></svg>
+                    </button>}
+                  </div>
+                  {openFilter === c.key && <div ref={filterPopover} className="grid-filter-popover" role="group" aria-label={`${headerName} filter`}>
+                    {c.filter ? <div className="grid-custom-filter">{isValidElement(c.filter) && c.filter.type === 'input' ? <>
+                      {cloneElement(c.filter as ReactElement<InputHTMLAttributes<HTMLInputElement>>, { list: suggestionId })}
+                      <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
+                    </> : c.filter}</div> : <>
+                      <select className="input grid-filter-operator" aria-label={`${headerName} filter operator`} value={filterOperators[c.key] ?? 'starts'} onChange={e => setFilterOperators(f => ({ ...f, [c.key]: e.target.value as TextFilterOperator }))}>
+                        {TEXT_FILTER_OPERATORS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
+                      </select>
+                      {(filterOperators[c.key] ?? 'starts') !== 'empty' && <input autoFocus className="input grid-filter-value" aria-label={`Filter value for ${headerName}`} placeholder="Enter the value" list={suggestionId} value={columnFilters[c.key] ?? ''} onChange={e => setColumnFilters(f => ({ ...f, [c.key]: e.target.value }))} />}
+                      <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
+                    </>}
+                    {!c.filter ? <div className="grid-filter-actions">
+                      <button className="btn btn-primary btn-sm" onClick={() => setOpenFilter(null)}>Filter</button>
+                      <button className="btn btn-sm" onClick={() => { setColumnFilters(f => { const next = { ...f }; delete next[c.key]; return next; }); setFilterOperators(f => { const next = { ...f }; delete next[c.key]; return next; }); setOpenFilter(null); }}>Clear</button>
+                    </div> : <div className="grid-filter-actions"><button className="btn btn-sm" onClick={() => setOpenFilter(null)}>Close</button></div>}
+                  </div>}
                 </th>
               );
             })}
           </tr>
-          {hasFilters && <tr className="filters">{columns.map(c => <td key={c.key}>{c.filter}</td>)}</tr>}
         </thead>
         <tbody>
           {loading && <tr className="state"><td colSpan={columns.length}><span className="spin" /> Loading…</td></tr>}
@@ -338,7 +411,7 @@ export function DeleteAction({ path, what, onDone, button, afterTo }: { path: st
   const me = useMe().data;
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
-  if (!me?.rights?.includes('Delete')) return null;
+  if (!canDeletePath(me, path)) return null;
   return (
     <>
       <button className={button ? 'btn btn-danger-outline' : 'linkbtn danger-link'} onClick={e => { e.stopPropagation(); setOpen(true); }} aria-label={`Delete ${what}`}>Delete</button>
@@ -355,6 +428,7 @@ type DepPreview = { label: string; total: number; delete: DepGroup[]; unlink: De
 const errText = (e: unknown) => (e instanceof ApiError ? [e.detail ?? e.title, ...Object.values(e.errors ?? {}).flat()].join(' ') : (e as Error).message);
 
 export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; what: string; onClose: () => void; onDone?: () => void }) {
+  const me = useMe().data;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [understood, setUnderstood] = useState(false);
@@ -369,6 +443,9 @@ export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; w
   const deps = useQuery({ queryKey: ['dependents', depPath], queryFn: () => get<DepPreview>(depPath!), enabled: cascade, staleTime: 0, gcTime: 0 });
   const d = deps.data;
   const hasDeps = !!d && (d.total > 0 || d.unlink.length > 0);
+  const canCascade = canDeletePath(me, path) && !!d &&
+    d.delete.filter(g => g.main).every(g => hasPermission(me, resourceForRecord(g.type), 'Delete')) &&
+    d.unlink.filter(g => g.main).every(g => hasPermission(me, resourceForRecord(g.type), 'Maintain'));
   const finish = async (msg: string) => { toast(msg); onClose(); onDone?.(); await qc.invalidateQueries(); };
   const go = async () => {
     setBusy(true); setError(null);
@@ -411,7 +488,7 @@ export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; w
                       return (
                         <li key={key}>
                           {it.link ? <Link to={it.link} target="_blank" rel="noopener">{it.label}</Link> : <span>{it.label}</span>}
-                          {it.deletePath && <button className="linkbtn danger-link" disabled={itemBusy !== null} onClick={() => deleteItem(g, it)} aria-label={`Delete ${it.label}`}>{itemBusy === key ? 'Deleting…' : 'Delete'}</button>}
+                          {it.deletePath && canDeletePath(me, it.deletePath) && <button className="linkbtn danger-link" disabled={itemBusy !== null} onClick={() => deleteItem(g, it)} aria-label={`Delete ${it.label}`}>{itemBusy === key ? 'Deleting…' : 'Delete'}</button>}
                           {itemError[key] && <div className="err">{itemError[key]}</div>}
                         </li>
                       );
@@ -430,11 +507,12 @@ export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; w
           <label className="check" style={{ marginTop: 10 }}><input type="checkbox" checked={understood} onChange={e => setUnderstood(e.target.checked)} /> I understand that {what} and the {d.total} record(s) listed above are deleted permanently.</label>
         </>
       )}
+      {hasDeps && !canCascade && <p className="notice">Deleting this structure needs Delete permission for each affected record type and Edit permission for records that will be unlinked.</p>}
       {error && <div className="notice bad" role="alert">{error}</div>}
       <div className="form-actions">
         <button className="btn" onClick={onClose}>Cancel</button>
         {d && hasDeps
-          ? <button className="btn btn-danger" disabled={busy || !understood} onClick={goAll}>{busy ? 'Deleting…' : `Delete everything (${d.total + 1})`}</button>
+          ? <button className="btn btn-danger" disabled={busy || !understood || !canCascade} onClick={goAll}>{busy ? 'Deleting…' : `Delete everything (${d.total + 1})`}</button>
           : <button className="btn btn-danger" disabled={busy || (cascade && deps.isLoading)} onClick={go}>{busy ? 'Deleting…' : 'Delete'}</button>}
       </div>
     </Dialog>
@@ -503,10 +581,10 @@ export function SelectInput({ label: l, value, onChange, options, required, erro
   );
 }
 
-export function Checkbox({ label: l, checked, onChange, hint }: { label: ReactNode; checked: boolean; onChange: (v: boolean) => void; hint?: string }) {
+export function Checkbox({ label: l, checked, onChange, hint, disabled }: { label: ReactNode; checked: boolean; onChange: (v: boolean) => void; hint?: string; disabled?: boolean }) {
   return (
     <div className="field">
-      <label className="check"><input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} /> {l}</label>
+      <label className="check"><input type="checkbox" disabled={disabled} checked={checked} onChange={e => onChange(e.target.checked)} /> {l}</label>
       {hint && <div className="hint">{hint}</div>}
     </div>
   );

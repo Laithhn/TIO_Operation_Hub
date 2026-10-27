@@ -196,13 +196,13 @@ public static partial class AttachmentEndpoints
         // Multipart upload: recordType, recordId, description (optional) and one or more "files".
         g.MapPost("", async (HttpRequest req, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Engineer);
+            access.Me.RequirePermission(ResourcePermissions.Other, ResourcePermissions.Maintain);
             if (!req.HasFormContentType) throw new ValidationException("files", "Send the files as a multipart form.");
             var form = await req.ReadFormAsync(ct);
             var type = form["recordType"].ToString();
             if (!long.TryParse(form["recordId"], out var recordId)) throw new ValidationException("recordId", "Say which record the files belong to.");
             var target = await ResolveAsync(db, type, recordId, ct) ?? throw new NotFoundException("The record");
-            access.RequireMaintain(target.ClientId, target.TeamId);
+            access.RequireMaintain(ResourcePermissions.Other, target.ClientId, target.TeamId);
             var description = Text.Clean(form["description"].ToString());
             var check = new Check().Text("description", description, 500, "Description");
             var files = form.Files.GetFiles("files");
@@ -259,7 +259,7 @@ public static partial class AttachmentEndpoints
         g.MapPut("/{id:long}", async (long id, DescriptionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            access.RequireMaintain(a.ClientId, a.TeamId);
+            access.RequireMaintain(ResourcePermissions.Other, a.ClientId, a.TeamId);
             new Check().Text("description", input.Description, 500, "Description").ThrowIfAny();
             a.Description = Text.Clean(input.Description);
             await db.SaveChangesAsync(ct);
@@ -269,9 +269,9 @@ public static partial class AttachmentEndpoints
         g.MapDelete("/{id:long}", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            if (!(a.UploadedById == access.Me.UserId && access.Me.Can(Role.Engineer)) && !access.Me.HasRight(Right.Delete))
+            if (!(a.UploadedById == access.Me.UserId && access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.Maintain)) && !access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.Delete))
                 throw new ForbiddenException("Only the person who uploaded the file, or someone with the Delete records right, can remove it.");
-            access.RequireMaintain(a.ClientId, a.TeamId);
+            if (!access.Me.SeesScope(a.ClientId, a.TeamId)) throw new NotFoundException("The file");
             db.Attachments.Remove(a);
             db.AuditReason = $"File {a.FileName} removed";
             await db.SaveChangesAsync(ct);
@@ -282,3 +282,4 @@ public static partial class AttachmentEndpoints
 
     public sealed record DescriptionInput(string? Description);
 }
+

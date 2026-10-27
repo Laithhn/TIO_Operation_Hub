@@ -58,8 +58,9 @@ public static class SearchExportEndpoints
             ExportService.RequireExport(me);
             var def = ReportCatalog.Find(report) ?? throw new NotFoundException("The report");
             var raw = ctx.Request.Query.ToDictionary(kv => kv.Key, kv => (string?)kv.Value.ToString());
-            var f = await svc.ValidateAsync(def, raw, strict: false, ct);
-            var job = await svc.ExportAsync(def, f, ExportFormat.Csv, null, svc.ZoneOf(raw.GetValueOrDefault("timeZone")), "List export", null, null, ct);
+            var zone = svc.ZoneOf(raw.GetValueOrDefault("timeZone"));
+            var f = await svc.ValidateAsync(def, raw, strict: false, ct, zone);
+            var job = await svc.ExportAsync(def, f, ExportFormat.Csv, null, zone, "List export", null, null, ct);
             if (job.Status != ExportStatus.Completed || job.StoredPath is null)
                 return Results.Problem(statusCode: StatusCodes.Status422UnprocessableEntity, title: "The export could not be generated", detail: job.Error);
             return Results.File(store.Open(job.StoredPath)!, "text/csv; charset=utf-8", job.FileName);

@@ -39,6 +39,16 @@ public class AppRole : Entity
     public Right Rights { get; set; }
     public string? Key { get; set; }
     public bool IsLocked => Key == "Manager";
+    public List<RolePermission> Permissions { get; set; } = [];
+}
+
+/// <summary>A resource/action permission granted to a role (A63).</summary>
+public class RolePermission
+{
+    public long AppRoleId { get; set; }
+    public AppRole? AppRole { get; set; }
+    public string Resource { get; set; } = "";
+    public string Action { get; set; } = "";
 }
 
 /// <summary>One client, project or internal-team scope grant.</summary>

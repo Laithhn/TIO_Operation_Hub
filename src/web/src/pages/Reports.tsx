@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ApiError, del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
-import { useMe, useUrlState } from '../hooks';
+import { useEnumLabel, useMe, useTypes, useUrlState } from '../hooks';
 import { Kpi } from '../ui/charts';
 import { Icon } from '../ui/Icon';
 import { TimeZoneSelect } from '../ui/pickers';
@@ -41,6 +41,16 @@ const CATEGORY_HINT: Record<string, string> = {
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const STATUS_TONE: Record<string, 'good' | 'warn' | 'bad' | 'info' | 'neutral'> = { Completed: 'good', Failed: 'bad', Processing: 'info', Pending: 'info', Expired: 'neutral' };
 const TZ_KEY = 'tiohub.reports.timeZone';
+const reversedCalendarDays = (from?: string, to?: string) => !!from && !!to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from > to;
+const typeListForFilter = (report: string, key: string) => key === 'environmentType' && report === 'versions' ? 'EnvironmentType' : key === 'type' ? ({ environments: 'EnvironmentType', assets: 'AssetType' } as Record<string, string>)[report] : undefined;
+function optionText(report: string, key: string, value: string, caseName: (code: string) => string, conditionName: (code: string) => string) {
+  if (value === 'all') return 'All';
+  if (value === 'open') return 'Open';
+  if (value === 'done') return report === 'commitments' ? 'Completed or cancelled' : `${caseName('Closed')} or ${caseName('Cancelled')}`;
+  if (report === 'cases' && key === 'status') return caseName(value);
+  if (report === 'environments' && key === 'condition') return conditionName(value);
+  return label(value);
+}
 
 const size = (n?: number | null) => n === null || n === undefined ? '—' : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`;
 const apiError = (e: unknown) => e instanceof ApiError ? e : null;
@@ -59,12 +69,13 @@ function useReportZone(): [string, (z: string) => void] {
 }
 
 /** Downloads an export through the authorized endpoint; errors (expired, not found) become a message, never a broken page. */
-async function download(job: Pick<ExportJob, 'id' | 'fileName'>, toast: (t: string, bad?: boolean) => void) {
+async function download(job: Pick<ExportJob, 'id' | 'fileName'>, toast: (t: string, bad?: boolean) => void, onUnavailable?: () => void) {
   const res = await fetch(`/api/v1/reports/exports/${job.id}/download`, { credentials: 'same-origin' });
   if (!res.ok) {
     let msg = `The file could not be downloaded (${res.status}).`;
     try { const p = await res.json(); msg = p.detail || p.title || msg; } catch { /* not JSON */ }
     toast(msg, true);
+    if (res.status === 410) onUnavailable?.();
     return;
   }
   const blob = await res.blob();
@@ -86,6 +97,9 @@ function useAssignable() {
 
 /** The filters of one report, generated from its definition. Advanced ones sit in a collapsible section. */
 function FilterFields({ def, values, onChange, errors }: { def: ReportDef; values: Values; onChange: (k: string, v: string) => void; errors: Record<string, string> }) {
+  const T = useTypes();
+  const caseStatusLabel = useEnumLabel('CaseStatus');
+  const conditionLabel = useEnumLabel('Condition');
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const products = useProductOptions();
@@ -94,18 +108,21 @@ function FilterFields({ def, values, onChange, errors }: { def: ReportDef; value
   const userOptions: Option[] = [{ value: String(me.id), label: 'Me' }, ...(users.data ?? []).filter(u => u.id !== me.id).map(u => ({ value: String(u.id), label: u.name }))];
   // A range end before its start is shown at once; the server checks it again.
   const local: Record<string, string> = {};
-  for (const f of def.filters) if (f.rangeEnd && values[f.key] && values[f.rangeEnd] && values[f.key] > values[f.rangeEnd]) local[f.rangeEnd] = 'The end date is before the start date.';
+  for (const f of def.filters) if (f.rangeEnd && reversedCalendarDays(values[f.key], values[f.rangeEnd])) local[f.rangeEnd] = 'The end date is before the start date.';
   const field = (f: FilterDef) => {
     const err = local[f.key] ?? errors[f.key];
     const v = values[f.key] ?? '';
     const set = (x: string) => onChange(f.key, x);
+    const typeList = typeListForFilter(def.key, f.key);
+    if (typeList) return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={T.filterOptions(typeList)} empty="All types" error={err} />;
+    if (def.key === 'cases' && f.key === 'waiting') return <SelectInput key={f.key} label="Waiting" value={v} onChange={set} options={[{ value: 'true', label: 'Waiting only' }, { value: 'false', label: 'Not waiting' }]} empty="All" error={err} />;
     switch (f.kind) {
       case 'Client': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={clients} empty="All authorized" error={err} hint={f.hint ?? undefined} />;
       case 'Team': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={teams} empty="All teams" error={err} />;
       case 'Product': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={products} empty="All products" error={err} />;
       case 'Owner': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={userOptions} empty="Anyone" error={err} />;
       case 'Date': return <TextInput key={f.key} label={f.label} type="date" value={v} onChange={set} error={err} hint={f.hint ?? undefined} />;
-      case 'Select': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={(f.options ?? []).map(o => ({ value: o, label: o === 'all' ? 'All' : o === 'open' ? 'Open' : o === 'done' ? 'Closed or cancelled' : label(o) }))} empty="Any" error={err} hint={f.hint ?? undefined} />;
+      case 'Select': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={(f.options ?? []).map(o => ({ value: o, label: optionText(def.key, f.key, o, caseStatusLabel, conditionLabel) }))} empty="Any" error={err} hint={f.hint ?? undefined} />;
       case 'Bool': return <div className="field" key={f.key}><span className="flabel">&nbsp;</span><label className="check"><input type="checkbox" checked={v === 'true'} onChange={e => set(e.target.checked ? 'true' : '')} /> {f.label}</label>{err && <div className="err">{err}</div>}</div>;
       default: return <TextInput key={f.key} label={f.label} value={v} onChange={set} error={err} hint={f.hint ?? undefined} maxLength={200} />;
     }
@@ -128,6 +145,9 @@ function FilterFields({ def, values, onChange, errors }: { def: ReportDef; value
 
 /** Chips for the filters in force, each removable. */
 function FilterChips({ def, values, onRemove }: { def: ReportDef; values: Values; onRemove: (k: string) => void }) {
+  const T = useTypes();
+  const caseStatusLabel = useEnumLabel('CaseStatus');
+  const conditionLabel = useEnumLabel('Condition');
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const products = useProductOptions();
@@ -138,13 +158,16 @@ function FilterChips({ def, values, onRemove }: { def: ReportDef; values: Values
   const text = (f: FilterDef) => {
     const v = values[f.key];
     const from = (o: Option[]) => o.find(x => x.value === v)?.label ?? v;
+    const typeList = typeListForFilter(def.key, f.key);
+    if (typeList) return T.name(typeList, v);
+    if (def.key === 'environments' && f.key === 'condition') return conditionLabel(v);
     switch (f.kind) {
       case 'Client': return from(clients);
       case 'Team': return from(teams);
       case 'Product': return from(products);
       case 'Owner': return v === String(me.id) ? 'Me' : (users.data ?? []).find(u => String(u.id) === v)?.name ?? `#${v}`;
-      case 'Bool': return 'yes';
-      case 'Select': return v === 'all' ? 'All' : label(v);
+      case 'Bool': return v === 'false' ? 'no' : 'yes';
+      case 'Select': return optionText(def.key, f.key, v, caseStatusLabel, conditionLabel);
       default: return v;
     }
   };
@@ -198,6 +221,9 @@ function Catalog({ reports, onOpen, search, setSearch, category, setCategory, se
 /* --------------------------------------------------------- configure → export -------------------------------------------------------- */
 
 function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; onBack: () => void; onHistory: (id: number) => void; initial?: Values }) {
+  const T = useTypes();
+  const caseStatusLabel = useEnumLabel('CaseStatus');
+  const conditionLabel = useEnumLabel('Condition');
   const toast = useToast();
   const qc = useQueryClient();
   const [zone, setZone] = useReportZone();
@@ -216,7 +242,7 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
   useEffect(() => { setDraft(initial ?? {}); setApplied(null); setJob(null); setCols(def.columns.map(c => c.key)); setFormat('csv'); }, [def.key]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const clean = (v: Values) => Object.fromEntries(Object.entries(v).filter(([, x]) => x !== '' && x !== undefined));
-  const invalidRange = def.filters.some(f => f.rangeEnd && draft[f.key] && draft[f.rangeEnd] && draft[f.key] > draft[f.rangeEnd]);
+  const invalidRange = def.filters.some(f => f.rangeEnd && reversedCalendarDays(draft[f.key], draft[f.rangeEnd]));
   const preview = useQuery({
     queryKey: ['report-preview', def.key, applied, page, pageSize, zone],
     queryFn: () => post<Preview>(`/reports/${def.key}/preview`, { filters: applied, page, pageSize, timeZone: zone }),
@@ -224,7 +250,12 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
   });
   const errors = filterErrors(preview.error);
   const dirty = applied !== null && JSON.stringify(clean(draft)) !== JSON.stringify(applied);
-  const apply = () => { if (invalidRange) return; setApplied(clean(draft)); setPage(1); setJob(null); };
+  const apply = () => {
+    if (invalidRange) return;
+    if (applied !== null && !dirty && page === 1) void preview.refetch();
+    else { setApplied(clean(draft)); setPage(1); }
+    setJob(null);
+  };
   const reset = () => { setDraft({}); setApplied(null); setJob(null); };
   const activeCount = Object.values(clean(draft)).length;
 
@@ -261,6 +292,16 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
   const toggle = (k: string, on: boolean) => setCols(c => on ? [...c, k] : c.filter(x => x !== k));
   const step = job ? 4 : applied ? 3 : 1;
   const p = preview.data;
+  const displayCell = (key: string, value: unknown) => {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    const text = String(value);
+    if (key === 'status' && ['cases', 'case-aging'].includes(def.key)) return caseStatusLabel(text);
+    if (def.key === 'environments' && key === 'reported-condition') return conditionLabel(text);
+    const typeList: Record<string, string> = { cases: 'CaseType', environments: 'EnvironmentType', assets: 'AssetType', contracts: 'ContractType' };
+    if (key === 'type' && typeList[def.key]) return T.name(typeList[def.key], text);
+    return text;
+  };
 
   return (
     <>
@@ -314,21 +355,17 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
               <div className="rc-breakdowns">
                 {p.breakdowns.map(b => (
                   <div key={b.title} className="rc-breakdown"><h3>{b.title}</h3>
-                    {b.rows.length === 0 ? <p className="hint">No rows.</p> : <table className="grid"><thead><tr>{b.columns.map(c => <th key={c}>{c}</th>)}</tr></thead>
-                      <tbody>{b.rows.slice(0, 12).map((r, i) => <tr key={i}>{r.map((v, j) => <td key={j} className={typeof v === 'number' ? 'num' : ''}>{v === null ? '—' : String(v)}</td>)}</tr>)}</tbody></table>}
+                    {b.rows.length === 0 ? <p className="hint">No rows.</p> : <DataTable<{ id: number; values: (string | number | boolean | null)[] }> caption={b.title} rows={b.rows.slice(0, 12).map((values, id) => ({ id, values }))} rowKey={r => r.id} tools={false}
+                      columns={b.columns.map((header, index) => ({ key: `c${index}`, header, className: b.rows.some(r => typeof r[index] === 'number') ? 'num' : undefined, render: r => r.values[index] === null ? '—' : String(r.values[index]) }))} />}
                     {b.rows.length > 12 && <p className="hint">{b.rows.length - 12} more in the export.</p>}
                   </div>
                 ))}
               </div>
             )}
             {p.total === 0 ? <StateMessage kind="nomatch">No rows match these filters.</StateMessage> : (
-              <div className="table-wrap rc-preview">
-                <table className="grid">
-                  <caption className="sr">Preview of {p.report.name}</caption>
-                  <thead><tr>{p.columns.map(c => <th key={c.key} title={c.definition}>{c.header}</th>)}</tr></thead>
-                  <tbody>{p.rows.map((r, i) => <tr key={i}>{r.map((v, j) => <td key={j} className={typeof v === 'number' ? 'num' : ''}>{v === null ? '' : typeof v === 'boolean' ? (v ? 'Yes' : 'No') : String(v)}</td>)}</tr>)}</tbody>
-                </table>
-              </div>
+              <DataTable<{ id: number; values: (string | number | boolean | null)[] }> caption={`Preview of ${p.report.name}`} rows={p.rows.map((values, id) => ({ id, values }))} rowKey={r => r.id} tools={false} tableWrapClassName="rc-preview"
+                columns={p.columns.map((column, index) => ({ key: column.key, header: <span title={column.definition}>{column.header}</span>, className: p.rows.some(r => typeof r[index] === 'number') ? 'num' : undefined,
+                  render: r => displayCell(column.key, r.values[index]) }))} />
             )}
             {p.total > 0 && <Pager page={p.page} pageSize={p.pageSize} total={p.total} onPage={setPage} onSize={s => { setPageSize(Math.min(100, s)); setPage(1); }} />}
             {p.total > p.limit && <div className="notice warn">{p.total.toLocaleString()} rows match; one export holds at most {p.limit.toLocaleString()}. Narrow the filters before exporting.</div>}
@@ -448,7 +485,10 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
           { key: 'status', header: 'Status', sort: 'status', render: r => <><Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{r.status}</Badge>{r.status === 'Failed' && r.error && <div className="hint err rc-err">{r.error}</div>}</> },
           { key: 'size', header: 'File size', className: 'num', render: r => size(r.fileSize) },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">
-            {r.canDownload && <button className="linkbtn" onClick={() => download(r, toast)}>Download</button>}
+            {r.canDownload && <button className="linkbtn" onClick={() => download(r, toast, () => {
+              void qc.invalidateQueries({ queryKey: ['report-history'] });
+              void qc.invalidateQueries({ queryKey: ['report-export', r.id] });
+            })}>Download</button>}
             <button className="linkbtn" onClick={() => setDetails(r.id)}>Details</button>
             {r.canRetry && <button className="linkbtn" onClick={() => retry(r)}>Retry</button>}</span> }
         ]} />

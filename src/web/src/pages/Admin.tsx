@@ -1,3 +1,4 @@
+import { hasPermission, resourceForRecord } from '../permissions';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -20,8 +21,9 @@ type Targets = { clients: { id: number; code: string; name: string; archived: bo
 
 // A31: configurable roles and rights (Administration → Roles, Rights).
 type RightDef = { key: string; label: string; description: string };
-type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; rights: string[]; userCount: number; version: string };
-const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ rights: RightDef[]; roles: RoleDef[] }>('/admin/roles') });
+type PermissionDef = { key: string; resource: string; resourceLabel: string; action: string; actionLabel: string; description: string };
+type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; rights: string[]; permissions: string[]; userCount: number; version: string };
+const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ rights: RightDef[]; permissions: PermissionDef[]; roles: RoleDef[] }>('/admin/roles') });
 
 type SignInState = { userId: number; state: 'Active' | 'TemporaryPassword' | 'Locked'; lockedUntil?: string; changedAt: string };
 
@@ -35,6 +37,7 @@ export function AdminUsers() {
   const targets = useQuery({ queryKey: ['scope-targets'], queryFn: () => get<Targets>('/admin/scope-targets') });
   const [edit, setEdit] = useState<UserRow | 'new' | null>(null);
   const [deact, setDeact] = useState<UserRow | null>(null);
+  const [remove, setRemove] = useState<UserRow | null>(null);
   return (
     <AdminOnly>
       <PageHead title="Users and access" sub="Each user holds one role; what a role may do is set on the Rights page."
@@ -53,15 +56,38 @@ export function AdminUsers() {
         { key: 'x', header: '', render: u => <span className="nowrap">
           {forms && u.id !== me.id && u.isActive && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>{stateOf(u.id) ? 'Reset password' : 'Set password'}</button>}
           <button className="linkbtn" onClick={() => setDeact(u)}>{u.isActive ? 'Deactivate' : 'Reactivate'}</button>
+          {u.id !== me.id && <> · <button className="linkbtn danger-link" onClick={() => setRemove(u)}>Delete</button></>}
         </span> }
       ]} />
       {edit && targets.data && <UserDialog user={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)}
         onCreated={forms ? (u => setPw({ ...u, first: true })) : undefined} />}
       {pw && <PasswordDialog user={pw} onClose={() => setPw(null)} />}
+      {remove && <DeleteUserDialog user={remove} onClose={() => setRemove(null)} />}
       {deact && <ActionDialog title={deact.isActive ? `Deactivate ${deact.displayName}` : `Reactivate ${deact.displayName}`} danger={deact.isActive} path={`/admin/users/${deact.id}/${deact.isActive ? 'deactivate' : 'reactivate'}`} version={deact.version}
         intro={deact.isActive ? 'History and identity are kept. Their active records appear in the reassignment queue; nothing is reassigned automatically. Active sessions lose access immediately.' : undefined}
         fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} submitLabel={deact.isActive ? 'Deactivate' : 'Reactivate'} onClose={() => setDeact(null)} />}
     </AdminOnly>
+  );
+}
+
+function DeleteUserDialog({ user, onClose }: { user: UserRow; onClose: () => void }) {
+  const f = useForm({ reason: '' });
+  const toast = useToast();
+  const refresh = useRefresh();
+  const remove = async () => {
+    const ok = await f.submit(async v => {
+      await del(`/admin/users/${user.id}`, user.version, { reason: v.reason });
+      return true;
+    });
+    if (ok) { toast('User deleted.'); refresh(); onClose(); }
+  };
+  return (
+    <Dialog title={`Delete ${user.displayName}`} onClose={onClose}>
+      <p>The account and its sign-in details will be deleted. The account cannot be deleted while retained records or audit history refer to it; deactivate it to preserve that history.</p>
+      <FormError error={f.error} fields={['reason']} />
+      <TextInput label="Reason" required multiline value={f.values.reason} onChange={v => f.set('reason', v)} error={f.fieldError('reason')} maxLength={500} />
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-danger" disabled={f.busy || !f.values.reason.trim()} onClick={remove}>Delete user</button></div>
+    </Dialog>
   );
 }
 
@@ -177,8 +203,10 @@ export function AdminRoles() {
         { key: 'n', header: 'Role', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>}</> },
         { key: 'd', header: 'Description', render: r => r.description ?? <span className="muted">—</span> },
         { key: 'u', header: 'Users', className: 'num', render: r => r.userCount },
-        { key: 'r', header: 'Rights', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">View only</span>
-          : r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k).join(', ') },
+        { key: 'r', header: 'Rights', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length + r.permissions.length === 0 ? <span className="muted">View only</span>
+          : [...r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k), ...r.permissions.map(k => {
+            const p = d?.permissions.find(x => x.key === k); return p ? `${p.resourceLabel}: ${p.actionLabel}` : k;
+          })].join(', ') },
         { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}>Edit</button>{!r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)}>Delete</button></>}</> }
       ]} />
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
@@ -202,13 +230,24 @@ export function AdminRights() {
   // The tick shows at once; it is undone if the save fails.
   const [pending, setPending] = useState<Record<string, boolean>>({});
   const d = q.data;
-  const toggle = async (r: RoleDef, key: string, on: boolean) => {
+  const matrixRows = d ? [
+    { key: 'view-records', label: 'View clients & records', description: 'Every role', resourcePermission: false, always: true },
+    ...d.rights.map(x => ({ ...x, resourcePermission: false, always: false })),
+    ...d.permissions.map(x => ({ key: x.key, label: `${x.resourceLabel}: ${x.actionLabel}`, description: x.description, resourcePermission: true, always: false }))
+  ] : [];
+  const toggle = async (r: RoleDef, key: string, on: boolean, resourcePermission = false) => {
     setBusy(`${r.id}-${key}`);
     setPending(p => ({ ...p, [`${r.id}-${key}`]: on }));
     try {
-      await put(`/admin/roles/${r.id}`, { name: r.name, description: r.description ?? null, rights: on ? [...r.rights, key] : r.rights.filter(k => k !== key) }, r.version);
+      await put(`/admin/roles/${r.id}`, {
+        name: r.name, description: r.description ?? null,
+        rights: resourcePermission ? r.rights : on ? [...r.rights, key] : r.rights.filter(k => k !== key),
+        permissions: resourcePermission ? on ? [...r.permissions, key] : r.permissions.filter(k => k !== key) : r.permissions
+      }, r.version);
       await refresh();
-      toast(`${r.name}: ${d?.rights.find(x => x.key === key)?.label ?? key} ${on ? 'granted' : 'removed'}.`);
+      const permission = d?.permissions.find(x => x.key === key);
+      const label0 = resourcePermission && permission ? `${permission.resourceLabel}: ${permission.actionLabel}` : d?.rights.find(x => x.key === key)?.label ?? key;
+      toast(`${r.name}: ${label0} ${on ? 'granted' : 'removed'}.`);
     } catch (e) { toast((e as Error).message); await refresh(); }
     finally { setBusy(null); setPending(p => { const n = { ...p }; delete n[`${r.id}-${key}`]; return n; }); }
   };
@@ -218,26 +257,19 @@ export function AdminRights() {
         actions={<Link className="btn" to="/admin/roles">Manage roles</Link>} />
       {!d ? <StateMessage kind="loading" /> : (
         <Panel pad={false}>
-          <div className="table-wrap">
-            <table className="grid rights-matrix">
-              <caption className="sr-only">Rights per role</caption>
-              <thead><tr><th>Right</th>{d.roles.map(r => <th key={r.id} className="c">{r.name}<div className="hint">{r.userCount} user(s){r.key ? ' · built-in' : ''}</div></th>)}</tr></thead>
-              <tbody>
-                <tr><td>View clients &amp; records<div className="hint">Every role</div></td>{d.roles.map(r => <td key={r.id} className="c" aria-label={`${r.name}: yes`}>✔</td>)}</tr>
-                {d.rights.map(x => (
-                  <tr key={x.key}><td>{x.label}<div className="hint">{x.description}</div></td>
-                    {d.roles.map(r => {
-                      const on = r.isLocked || (pending[`${r.id}-${x.key}`] ?? r.rights.includes(x.key));
-                      return <td key={r.id} className="c">
-                        <input type="checkbox" className="right-box" checked={on} disabled={r.isLocked || busy !== null} onChange={e => toggle(r, x.key, e.target.checked)}
-                          aria-label={`${x.label} for ${r.name}`} title={r.isLocked ? 'The TIO Manager role always keeps every right' : undefined} />
-                        {busy === `${r.id}-${x.key}` && <span className="spin" />}
-                      </td>;
-                    })}</tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {/* One page: the matrix is edited as a whole (55+ rows since resource permissions). */}
+          <DataTable caption="Rights per role" rows={matrixRows} rowKey={r => r.key} tableClassName="rights-matrix" pageSize={Math.max(25, matrixRows.length)} columns={[
+            { key: 'right', header: 'Right', render: r => <><span>{r.label}</span><div className="hint">{r.description}</div></> },
+            ...d.roles.map(role => ({ key: `role-${role.id}`, header: <span title={`${role.userCount} user(s)${role.key ? ' · built-in' : ''}`}>{role.name}</span>, className: 'c', render: (right: typeof matrixRows[number]) => {
+              if (right.always) return <><span className="sr">Allowed</span>✔</>;
+              const values = right.resourcePermission ? role.permissions : role.rights;
+              const on = role.isLocked || (pending[`${role.id}-${right.key}`] ?? values.includes(right.key));
+              return <><span className="sr">{on ? 'Allowed' : 'Not allowed'}</span>
+                <input type="checkbox" className="right-box" checked={on} disabled={role.isLocked || busy !== null} onChange={e => toggle(role, right.key, e.target.checked, right.resourcePermission)}
+                  aria-label={`${right.label} for ${role.name}`} title={role.isLocked ? 'The TIO Manager role always keeps every right' : undefined} />
+                {busy === `${role.id}-${right.key}` && <span className="spin" />}</>;
+            } }))
+          ]} />
         </Panel>
       )}
     </AdminOnly>
@@ -250,9 +282,9 @@ function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => vo
   const refresh = useRefresh();
   const nav = useNavigate();
   const save = async () => {
-    // A new role starts with Edit and Export; its rights are then set on the Rights page.
+    // New roles start with view access only; an administrator grants actions explicitly on the Rights page.
     const ok = await f.submit(async v => {
-      const body = { ...v, rights: role?.rights ?? ['Edit', 'Export'] };
+      const body = { ...v, rights: role?.rights ?? [], permissions: role?.permissions ?? [] };
       if (role) await put(`/admin/roles/${role.id}`, body, role.version); else await post('/admin/roles', body);
       return true;
     });
@@ -281,16 +313,17 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
   const list = fixedList ?? picked;
   const [edit, setEdit] = useState<LookupRow | 'new' | null>(null);
   const lists = [...new Set((q.data ?? []).map(l => l.listName))];
+  const fixedWorkflow = list === 'ConditionLabel' || list === 'CaseStatusLabel';
   return (
     <AdminOnly>
-      <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />
+      <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={!fixedWorkflow && <button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />
       {!fixedList && <div className="toolbar"><SelectInput label="List" value={list} onChange={setList} options={lists.map(l => ({ value: l, label: label(l) }))} empty="All lists" /></div>}
       <DataTable<LookupRow> rowKey={l => l.id} rows={q.data?.filter(l => !list || l.listName === list)} loading={q.isLoading} error={q.error} columns={[
         { key: 'l', header: 'List', render: l => label(l.listName) }, { key: 'c', header: 'Code', render: l => <span className="mono">{l.code}</span> }, { key: 'b', header: 'Label', render: l => l.label },
         { key: 'd', header: 'Description', render: l => l.description }, { key: 's', header: 'Order', className: 'num', render: l => l.sortOrder },
-        { key: 'r', header: 'Status', render: l => l.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'e', header: '', render: l => <button className="linkbtn" onClick={() => setEdit(l)}>Edit</button> }, { key: 'del', header: '', className: 'row-actions', render: l => <DeleteAction path={`/admin/lookups/${l.id}`} what={`${l.label}`} /> }
+        { key: 'r', header: 'Status', render: l => fixedWorkflow ? <Badge tone="good">Fixed workflow value</Badge> : l.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'e', header: '', render: l => <button className="linkbtn" onClick={() => setEdit(l)}>Edit</button> }, ...(!fixedWorkflow ? [{ key: 'del', header: '', className: 'row-actions', render: (l: LookupRow) => <DeleteAction path={`/admin/lookups/${l.id}`} what={`${l.label}`} /> }] : [])
       ]} />
-      {edit === 'new' && (fixedList
+      {edit === 'new' && (fixedWorkflow ? null : fixedList
         ? <ActionDialog title="New network zone" path="/admin/lookups" onClose={() => setEdit(null)} submitLabel="Add zone"
             fields={[{ name: 'label', label: 'Zone name', required: true }, { name: 'description', label: 'Description' }, { name: 'sortOrder', label: 'Sort order' }]}
             transform={v => ({ listName: fixedList, code: v.label.trim(), label: v.label, description: v.description, sortOrder: Number(v.sortOrder) || 100, isRetired: false })} />
@@ -299,8 +332,8 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
             transform={v => ({ ...v, sortOrder: Number(v.sortOrder) || 100, isRetired: false })} />)}
       {edit && edit !== 'new' && <ActionDialog title={`Edit ${edit.code}`} path={`/admin/lookups/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={{ label: edit.label, description: edit.description ?? '', sortOrder: String(edit.sortOrder), isRetired: edit.isRetired ? 'yes' : '' }}
-        fields={[{ name: 'label', label: 'Label', required: true }, { name: 'description', label: 'Description' }, { name: 'sortOrder', label: 'Sort order' }, { name: 'isRetired', label: 'Retired', kind: 'select', options: [{ value: 'yes', label: 'Retired' }] }]}
-        transform={v => ({ listName: edit.listName, code: edit.code, label: v.label, description: v.description, sortOrder: Number(v.sortOrder) || 0, isRetired: v.isRetired === 'yes' })} />}
+        fields={fixedWorkflow ? [{ name: 'label', label: 'Display label', required: true }] : [{ name: 'label', label: 'Label', required: true }, { name: 'description', label: 'Description' }, { name: 'sortOrder', label: 'Sort order' }, { name: 'isRetired', label: 'Retired', kind: 'select', options: [{ value: 'yes', label: 'Retired' }] }]}
+        transform={v => fixedWorkflow ? ({ listName: edit.listName, code: edit.code, label: v.label, description: edit.description, sortOrder: edit.sortOrder, isRetired: edit.isRetired }) : ({ listName: edit.listName, code: edit.code, label: v.label, description: v.description, sortOrder: Number(v.sortOrder) || 0, isRetired: v.isRetired === 'yes' })} />}
     </AdminOnly>
   );
 }
@@ -396,16 +429,17 @@ export function AdminAudit() {
 type Archived = { recordType: string; id: number; label: string; clientId?: number; archivedAt: string; archiveReason?: string; version: string };
 
 export function AdminArchived() {
+  const me = useMe().data;
   const [type, setType] = useState('');
   const q = useQuery({ queryKey: ['archived', type], queryFn: () => get<Archived[]>(`/admin/archived${qs({ recordType: type })}`) });
   const [restore, setRestore] = useState<Archived | null>(null);
   return (
     <>
-      <PageHead title="Archived records" sub="Archived records keep their history and links. Restore needs a Team Lead or Manager role in the record's scope; client aliases stay reserved." />
-      <div className="toolbar"><SelectInput label="Record type" value={type} onChange={setType} options={['Client', 'Region', 'Project', 'Contact', 'Environment', 'Installation', 'Asset', 'Component'].map(t => ({ value: t, label: t }))} empty="All" /></div>
+      <PageHead title="Archived records" sub="Archived records keep their history and links. Restore needs Archive and restore permission for the record type within its scope; client aliases stay reserved." />
+      <div className="toolbar"><SelectInput label="Record type" value={type} onChange={setType} options={['Client', 'Region', 'Project', 'Contract', 'Contact', 'Environment', 'Installation', 'Asset', 'Component'].map(t => ({ value: t, label: t }))} empty="All" /></div>
       <DataTable<Archived> rowKey={a => `${a.recordType}-${a.id}`} rows={q.data} loading={q.isLoading} error={q.error} empty={type ? 'nomatch' : 'none'} columns={[
         { key: 't', header: 'Type', render: a => a.recordType }, { key: 'l', header: 'Record', render: a => a.label }, { key: 'w', header: 'Archived', render: a => fmtDateTime(a.archivedAt) },
-        { key: 'r', header: 'Reason', render: a => a.archiveReason }, { key: 'x', header: '', render: a => <button className="linkbtn" onClick={() => setRestore(a)}>Restore</button> }
+        { key: 'r', header: 'Reason', render: a => a.archiveReason }, { key: 'x', header: '', render: a => hasPermission(me, resourceForRecord(a.recordType), 'ArchiveRestore') && <button className="linkbtn" onClick={() => setRestore(a)}>Restore</button> }
       ]} />
       {restore && <ActionDialog title={`Restore ${restore.recordType}`} path={`/admin/archived/${restore.recordType}/${restore.id}/restore`} onClose={() => setRestore(null)} submitLabel="Restore"
         intro="Restore re-checks scope, parent records and name conflicts." fields={[{ name: 'reason', label: 'Restore reason', kind: 'textarea', required: true }]} />}

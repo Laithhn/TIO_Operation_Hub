@@ -210,12 +210,14 @@ public static class AccessCalculator
         var mappedKeys = matched.Where(m => m.Role is not null).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).Distinct().ToList();
         var roleIds = user.Roles.Select(r => r.AppRoleId).ToList();
         var held = roleIds.Count == 0 && mappedKeys.Count == 0 ? []
-            : await db.AppRoles.AsNoTracking().Where(r => roleIds.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key))).ToListAsync(ct);
+            : await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => roleIds.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key))).ToListAsync(ct);
         var roles = held.Select(r => r.Name).Order().ToArray();
         var rights = held.Aggregate(Right.None, (a, r) => a | (r.IsLocked ? BuiltInRoles.All : r.Rights));
+        var permissions = held.SelectMany(r => r.IsLocked ? ResourcePermissions.All : r.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)))
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
         // One TIO team: any role sees every client and internal team (owner decision, 19 Oct 2026); grants follow the rights.
         if (roles.Length > 0)
-            return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights,
+            return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights, permissions,
                 (rights.HasFlag(Right.Export) ? Grant.Export : 0) | (rights.HasFlag(Right.TechnicalDetail) ? Grant.TechnicalDetail : 0) | (rights.HasFlag(Right.Audit) ? Grant.Audit : 0),
                 true, [], [], [], [], true, []);
         var scopes = user.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId))
@@ -232,7 +234,7 @@ public static class AccessCalculator
             projectClientIds = await db.Projects.IgnoreQueryFilters().Where(p => projectIds.Contains(p.Id)).Select(p => p.ClientId).Distinct().ToArrayAsync(ct);
             projectEnvIds = await db.Environments.IgnoreQueryFilters().Where(e => e.ProjectId != null && projectIds.Contains(e.ProjectId.Value)).Select(e => e.Id).ToArrayAsync(ct);
         }
-        return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, Right.None, grants,
+        return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, Right.None, [], grants,
             allClients, clientIds, projectIds, projectClientIds, projectEnvIds, allInternal, teamIds);
     }
 }

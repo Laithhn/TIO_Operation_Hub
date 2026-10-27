@@ -48,6 +48,7 @@ public static class ModuleRegistration
         api.MapAuthEndpoints();
         api.MapMeEndpoints();
         api.MapClientEndpoints();
+        api.MapOrganizationEndpoints();
         api.MapEnvironmentEndpoints();
         api.MapCatalogueEndpoints();
         api.MapInventoryEndpoints();

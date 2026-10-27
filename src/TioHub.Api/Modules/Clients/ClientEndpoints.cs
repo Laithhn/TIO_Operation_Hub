@@ -18,7 +18,8 @@ public static partial class ClientEndpoints
     /// </summary>
     /// <summary>A29: <c>ParentClientId</c> makes the client a sub-client of a main client (null = main client); <c>Team</c> null leaves the project team unchanged.</summary>
     public sealed record ClientInput(string? Code, string? Name, string? Country, ClientStatus? Status, long? OwnerUserId, DateTimeOffset? NextReviewAt,
-        long? ParentClientId = null, List<TeamMemberInput>? Team = null);
+        long? ParentClientId = null, List<TeamMemberInput>? Team = null,
+        List<OrganizationEndpoints.InitialRelationshipInput>? OrganizationRelationships = null);
     public sealed record TeamMemberInput(long? UserId, string? Role);
 
     public sealed record RegionInput(string? Code, string? Name, long? OwnerUserId, string? Description);
@@ -108,19 +109,22 @@ public static partial class ClientEndpoints
 
         g.MapPost("", async (ClientInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Manager);
+            access.Me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Create);
             if (!access.Me.AllClients) throw new ForbiddenException("Creating a client needs access to all clients, so the new client stays visible to you. Ask the TIO Manager.");
             var c = new Client();
             await ApplyClientAsync(c, input, db, access, isNew: true, ct);
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
             db.Clients.Add(c);
             await db.SaveChangesAsync(ct);
+            await OrganizationEndpoints.AddInitialAsync(c, input.OrganizationRelationships, db, access, ct);
+            await tx.CommitAsync(ct);
             return Results.Created($"/api/v1/clients/{c.Id}", new { c.Id, c.Code });
         });
 
         g.MapPut("/{id:long}", async (long id, ClientInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Clients.Include(x => x.Team).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireMaintain(c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await ApplyClientAsync(c, input, db, access, isNew: false, ct);
             await db.SaveChangesAsync(ct);
@@ -131,7 +135,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireArchiveFor(c.Id);
+            access.RequireArchiveFor(c.Id, resource: ResourcePermissions.Structure);
             db.ExpectVersion(ctx, c);
             var reason = Rules.RequireReason(input.Reason, "reason", "the archive reason");
             if (await db.Clients.AnyAsync(s => s.ParentClientId == id, ct))
@@ -141,7 +145,7 @@ public static partial class ClientEndpoints
             {
                 if (string.IsNullOrWhiteSpace(input.ExceptionReason))
                     throw new ValidationException("Active records remain.", new Dictionary<string, string[]> { ["exceptionReason"] = [$"{active.Describe()} remain. A TIO Manager must record an exception reason to archive anyway."] });
-                if (!access.Me.HasRight(Right.Archive) || !access.Me.IsManager) throw new ForbiddenException("Archiving a client with active records needs the Archive and Manage rights.");
+                access.Me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate);
                 reason = $"{reason} — Manager exception: {Rules.RequireReason(input.ExceptionReason, "exceptionReason", "the exception reason")}";
             }
             Rules.Archive(c, access.Me, DateTimeOffset.UtcNow, reason);
@@ -172,7 +176,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/regions", async (long id, RegionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireLeadFor(client.Id);
+            access.RequireCreateFor(ResourcePermissions.Structure, client.Id);
             var r = new Region { ClientId = id };
             await ApplyRegionAsync(r, input, db, access, ct);
             db.Regions.Add(r);
@@ -197,7 +201,7 @@ public static partial class ClientEndpoints
         rg.MapPut("/{id:long}", async (long id, RegionInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var r = await db.Regions.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The region");
-            access.RequireLeadFor(r.ClientId);
+            access.RequireMaintain(ResourcePermissions.Structure, r.ClientId, null);
             db.ExpectVersion(ctx, r);
             await ApplyRegionAsync(r, input, db, access, ct);
             await db.SaveChangesAsync(ct);
@@ -207,7 +211,7 @@ public static partial class ClientEndpoints
         rg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var r = await db.Regions.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The region");
-            access.RequireArchiveFor(r.ClientId);
+            access.RequireArchiveFor(r.ClientId, resource: ResourcePermissions.Structure);
             db.ExpectVersion(ctx, r);
             var reason = Rules.RequireReason(input.Reason);
             var active = await db.Environments.IgnoreQueryFilters().CountAsync(e => e.RegionId == id && e.ArchivedAt == null, ct);
@@ -276,9 +280,9 @@ public static partial class ClientEndpoints
                 p.LastReviewedAt, p.CreatedAt, p.UpdatedAt,
                 permissions = new
                 {
-                    canEdit = access.Me.SeesClient(p.ClientId) && access.Me.Can(Role.Engineer),
-                    canAddContract = access.Me.SeesClient(p.ClientId) && access.Me.Can(Role.Engineer),
-                    canArchive = access.Me.HasRight(Right.Archive) && access.Me.SeesClient(p.ClientId)
+                    canEdit = access.Me.SeesClient(p.ClientId) && access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Maintain),
+                    canAddContract = access.Me.SeesClient(p.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.Create),
+                    canArchive = access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.ArchiveRestore) && access.Me.SeesClient(p.ClientId)
                 }
             });
         });
@@ -286,7 +290,7 @@ public static partial class ClientEndpoints
         {
             if (input.ClientId is null) throw new ValidationException("clientId", "Select the client.");
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == input.ClientId, ct) ?? throw new NotFoundException("The client");
-            access.RequireLeadFor(client.Id);
+            access.RequireCreateFor(ResourcePermissions.Structure, client.Id);
             var p = new Project { ClientId = client.Id };
             await ApplyProjectAsync(p, input, db, access, ct);
             db.Projects.Add(p);
@@ -296,7 +300,7 @@ public static partial class ClientEndpoints
         pg.MapPut("/{id:long}", async (long id, ProjectInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var p = await db.Projects.Include(x => x.Products).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The project");
-            access.RequireMaintain(p.ClientId, null, p.OwnerUserId);
+            access.RequireMaintain(ResourcePermissions.Structure, p.ClientId, null, p.OwnerUserId);
             db.ExpectVersion(ctx, p);
             await ApplyProjectAsync(p, input, db, access, ct);
             await db.SaveChangesAsync(ct);
@@ -305,7 +309,7 @@ public static partial class ClientEndpoints
         pg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var p = await db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The project");
-            access.RequireArchiveFor(p.ClientId);
+            access.RequireArchiveFor(p.ClientId, resource: ResourcePermissions.Structure);
             db.ExpectVersion(ctx, p);
             if (await db.Contracts.AnyAsync(c => c.ProjectId == id && c.Status == ContractStatus.Active, ct))
                 throw new ValidationException("reason", "This project has an Active contract. Record the contract as Ended or Terminated before archiving the project.");
@@ -329,7 +333,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/contacts", async (long id, ContactInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireMaintain(client.Id, null, client.OwnerUserId, client.CoordinatorUserId);
+            access.RequireEngineerFor(client.Id, resource: ResourcePermissions.Other);
             var c = new Contact { ClientId = id };
             await ApplyContactAsync(c, input, db, ct);
             db.Contacts.Add(c);
@@ -341,7 +345,7 @@ public static partial class ClientEndpoints
         {
             var c = await db.Contacts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contact");
             var client = await db.Clients.FirstAsync(x => x.Id == c.ClientId, ct);
-            access.RequireMaintain(c.ClientId, null, client.OwnerUserId, client.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Other, c.ClientId, null, client.OwnerUserId, client.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await ApplyContactAsync(c, input, db, ct);
             await db.SaveChangesAsync(ct);
@@ -351,7 +355,7 @@ public static partial class ClientEndpoints
         {
             var c = await db.Contacts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contact");
             var client = await db.Clients.FirstAsync(x => x.Id == c.ClientId, ct);
-            access.RequireMaintain(c.ClientId, null, client.OwnerUserId, client.CoordinatorUserId);
+            access.RequireArchiveFor(c.ClientId, resource: ResourcePermissions.Other);
             db.ExpectVersion(ctx, c);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(c, access.Me, DateTimeOffset.UtcNow, reason);
@@ -379,7 +383,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/boundaries", async (long id, BoundaryInput input, HubDbContext db, HubAccess access, LookupService lookups, CancellationToken ct) =>
         {
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireMaintain(client.Id, null, client.OwnerUserId, client.CoordinatorUserId);
+            access.RequireEngineerFor(client.Id, resource: ResourcePermissions.Other);
             var b = new ResponsibilityBoundary { ClientId = id };
             await ApplyBoundaryAsync(b, input, db, access, lookups, ct);
             db.Boundaries.Add(b);
@@ -400,7 +404,7 @@ public static partial class ClientEndpoints
         bg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var b = await db.Boundaries.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The responsibility boundary");
-            access.RequireArchiveFor(b.ClientId);
+            access.RequireArchiveFor(b.ClientId, resource: ResourcePermissions.Other);
             db.ExpectVersion(ctx, b);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(b, access.Me, DateTimeOffset.UtcNow, reason);
@@ -457,7 +461,7 @@ public static partial class ClientEndpoints
         var status = i.Status ?? (isNew ? ClientStatus.Opportunity : c.Status);
         if (status == ClientStatus.Archived) check.Add("status", "Use Archive to archive a client.");
         if (i.OwnerUserId is null) check.Add("ownerUserId", "Select the project manager (the team member managing this client).");
-        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId);
+        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Structure);
         // A new client has no scope grants yet; the project manager must at least hold an active business role. Later changes also check scope.
         if (isNew)
         {
@@ -531,7 +535,7 @@ public static partial class ClientEndpoints
              .Text("name", i.Name, 150, "the region name", required: true)
              .Text("description", i.Description, 2000, "Description")
              .When(i.OwnerUserId is null, "ownerUserId", "Select the accountable region owner.");
-        access.CheckOwnerChange(check, "ownerUserId", r.Id == 0 ? i.OwnerUserId : r.OwnerUserId, i.OwnerUserId);
+        access.CheckOwnerChange(check, "ownerUserId", r.Id == 0 ? i.OwnerUserId : r.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Structure);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, r.ClientId, null, "the owner", ct);
         check.ThrowIfAny();
         if (code != r.Code && await db.Regions.IgnoreQueryFilters().AnyAsync(x => x.ClientId == r.ClientId && x.Code == code && x.Id != r.Id, ct))
@@ -554,7 +558,7 @@ public static partial class ClientEndpoints
              .When(i.Status == ProjectStatus.Archived, "status", "Use Archive to archive a project.")
              .When(i.ServiceStart is not null && i.ServiceEnd is not null && i.ServiceEnd < i.ServiceStart, "serviceEnd", "The service end is before the start.");
         if (i.ClientId is not null && p.Id != 0 && i.ClientId != p.ClientId) check.Add("clientId", "A project cannot move to another client.");
-        access.CheckOwnerChange(check, "ownerUserId", p.Id == 0 ? i.OwnerUserId : p.OwnerUserId, i.OwnerUserId);
+        access.CheckOwnerChange(check, "ownerUserId", p.Id == 0 ? i.OwnerUserId : p.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Structure);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, p.ClientId, null, "the owner", ct);
         var productIds = (i.ProductIds ?? []).Distinct().ToList();
         if (productIds.Count > 0 && await db.Products.CountAsync(x => productIds.Contains(x.Id), ct) != productIds.Count) check.Add("productIds", "Select products from the catalogue.");

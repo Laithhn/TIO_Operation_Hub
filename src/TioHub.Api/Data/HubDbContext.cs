@@ -36,7 +36,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public bool AllInternal => user.AllInternal;
     public List<long> TeamIds => user.TeamIds;
     public long Me => user.UserId ?? -1;
-    public bool IsLead => user.IsLead;
+    public bool CoordinatesTeams => user.HasPermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
     public bool AnyInternal => user.AllInternal || user.TeamIds.Count > 0;
     public bool Biz => user.HasBusinessRole;
 
@@ -49,10 +49,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<UserCredential> UserCredentials => Set<UserCredential>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AppRole> AppRoles => Set<AppRole>();
+    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<UserScope> UserScopes => Set<UserScope>();
     public DbSet<GroupMapping> GroupMappings => Set<GroupMapping>();
     public DbSet<GroupMappingScope> GroupMappingScopes => Set<GroupMappingScope>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<OrganizationRelationship> OrganizationRelationships => Set<OrganizationRelationship>();
     public DbSet<Region> Regions => Set<Region>();
     public DbSet<ClientTeamMember> ClientTeamMembers => Set<ClientTeamMember>();
     public DbSet<Project> Projects => Set<Project>();
@@ -88,6 +91,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<ContractEnvironment> ContractEnvironments => Set<ContractEnvironment>();
     public DbSet<SlaTarget> SlaTargets => Set<SlaTarget>();
+    public DbSet<ContractPenaltyClause> ContractPenaltyClauses => Set<ContractPenaltyClause>();
+    public DbSet<PenaltyAssessment> PenaltyAssessments => Set<PenaltyAssessment>();
     public DbSet<Commitment> Commitments => Set<Commitment>();
     public DbSet<CommitmentEvent> CommitmentEvents => Set<CommitmentEvent>();
     public DbSet<Escalation> Escalations => Set<Escalation>();
@@ -125,6 +130,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     protected override void OnModelCreating(ModelBuilder m)
     {
+        m.ConfigureOrganizations(this);
         m.HasSequence<int>("CaseNumbers", "work").StartsAt(1001);
         m.HasSequence<int>("CommitmentNumbers", "work").StartsAt(1001);
         m.HasSequence<int>("EscalationNumbers", "work").StartsAt(1001);
@@ -160,7 +166,15 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Key).HasMaxLength(20);
             e.HasIndex(x => x.Key).IsUnique().HasFilter("[Key] IS NOT NULL");
             e.Property(x => x.Rights).HasConversion<int>();
+            e.HasMany(x => x.Permissions).WithOne(x => x.AppRole).HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Cascade);
             e.Ignore(x => x.IsLocked);
+        });
+        m.Entity<RolePermission>(e =>
+        {
+            e.ToTable("AppRolePermission", "iam");
+            e.HasKey(x => new { x.AppRoleId, x.Resource, x.Action });
+            e.Property(x => x.Resource).HasMaxLength(40);
+            e.Property(x => x.Action).HasMaxLength(40);
         });
         // Forms sign-in only: one credential per user, never audited automatically and never projected by any endpoint.
         m.Entity<UserCredential>(e =>
@@ -555,6 +569,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.ResponseSlaStatus, x.ResponseDueAt });
             e.HasIndex(x => new { x.ResolutionSlaStatus, x.ResolutionDueAt });
             e.Property(x => x.SlaTimeZone).HasMaxLength(64);
+            e.Property(x => x.PenaltyTermsSnapshotJson).HasMaxLength(8000);
             e.Property(x => x.SlaContractRef).HasMaxLength(20);
             e.Property(x => x.SlaNote).HasMaxLength(300);
             e.Property(x => x.SlaSupportDays).HasConversion<int>();
@@ -670,6 +685,32 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Notes).HasMaxLength(500);
             e.HasIndex(x => new { x.ContractId, x.Priority }).IsUnique();
         });
+        m.Entity<ContractPenaltyClause>(e =>
+        {
+            e.ToTable("ContractPenaltyClause", "contracts");
+            e.Property(x => x.Name).HasMaxLength(150);
+            e.Property(x => x.Trigger).HasConversion<string>().HasMaxLength(40);
+            e.Property(x => x.Calculation).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.FixedAmount).HasPrecision(18, 4);
+            e.Property(x => x.Percentage).HasPrecision(5, 2);
+            e.Property(x => x.ReferenceAmount).HasPrecision(18, 4);
+            e.Property(x => x.MonthlyCap).HasPrecision(18, 4);
+            e.Property(x => x.BillingTimeZone).HasMaxLength(64);
+            e.HasIndex(x => x.ContractId);
+        });
+        m.Entity<PenaltyAssessment>(e =>
+        {
+            e.ToTable("PenaltyAssessment", "contracts");
+            e.Property(x => x.TermsKey).HasMaxLength(64);
+            e.Property(x => x.TermsSnapshotJson).HasMaxLength(2000);
+            e.Property(x => x.UncappedAmount).HasPrecision(18, 4);
+            e.Property(x => x.Amount).HasPrecision(18, 4);
+            e.Property(x => x.BreachIdentitiesJson).HasMaxLength(4000);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.ReviewReason).HasMaxLength(1000);
+            e.Ignore(x => x.ReviewState);
+            e.HasIndex(x => new { x.ContractId, x.ClauseId, x.BillingMonth, x.TermsKey }).IsUnique();
+        });
 
         // ---- commitments ----
         m.Entity<Commitment>(e =>
@@ -781,7 +822,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ExceptionFollowUpOwnerId);
             e.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.HandoverId);
             e.HasQueryFilter(ScopeFilter, x => Sys || x.OutgoingOwnerId == Me || x.ReceivingOwnerId == Me
-                || (IsLead && ((x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value))) || (x.ClientId == null && AnyInternal))));
+                || (CoordinatesTeams && ((x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value))) || (x.ClientId == null && AnyInternal))));
         });
         m.Entity<HandoverItem>(e =>
         {
@@ -1053,6 +1094,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         foreach (var fk in m.Model.FindEntityType(typeof(Modules.Notes.NotePage))!.GetForeignKeys().Where(f => f.PrincipalEntityType.ClrType == typeof(Client) || f.PrincipalEntityType.ClrType == typeof(Project)))
             fk.DeleteBehavior = DeleteBehavior.SetNull;
         m.Entity<ContractEnvironment>().HasOne<Contract>().WithMany(c => c.Environments).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
+        m.Entity<ContractPenaltyClause>().HasOne<Contract>().WithMany(c => c.PenaltyClauses).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
+        m.Entity<PenaltyAssessment>().HasOne<Contract>().WithMany().HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.Restrict);
         m.Entity<SlaTarget>().HasOne<Contract>().WithMany(c => c.SlaTargets).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
         m.Entity<ContractMilestone>().HasOne<Contract>().WithMany(c => c.Milestones).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
         m.Entity<ContractFee>().HasOne<Contract>().WithMany(c => c.Fees).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
@@ -1118,6 +1161,10 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
     {
+        // Every client has one canonical organization identity, including clients created by demo seeders.
+        foreach (var client in ChangeTracker.Entries<Client>().Where(e => e.State == EntityState.Added).Select(e => e.Entity).ToList())
+            if (!ChangeTracker.Entries<Organization>().Any(o => ReferenceEquals(o.Entity.Client, client)))
+                Organizations.Add(new Organization { Client = client });
         var now = clock.GetUtcNow();
         var userId = user.UserId;
         // A38: new assignments become notifications for the people concerned (written once the records have their ids).
@@ -1283,6 +1330,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     private static string? LabelOf(object entity) => entity switch
     {
         Client c => $"{c.Code} · {c.Name}",
+        Organization o => o.Client?.Name ?? o.Name,
+        OrganizationRelationship r => $"{r.ParentOrganizationId} → {r.ChildOrganizationId}",
         Region r => $"{r.Code} · {r.Name}",
         Project p => $"{p.Code} · {p.Name}",
         Contact c => c.Name,

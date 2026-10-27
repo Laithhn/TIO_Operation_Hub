@@ -40,8 +40,12 @@ public static class LookupLists
 
     /// <summary>A53: roles of the members of an internal team (Teams), separate from the client project team roles.</summary>
     public const string TeamMemberRole = "TeamMemberRole";
+    public const string ConditionLabel = "ConditionLabel";
+    public const string CaseStatusLabel = "CaseStatusLabel";
+    public const string OrganizationRelationshipType = "OrganizationRelationshipType";
+    public static bool IsFixedWorkflowLabel(string? list) => list is ConditionLabel or CaseStatusLabel;
 
-    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole];
+    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole, ConditionLabel, CaseStatusLabel, OrganizationRelationshipType];
 
     /// <summary>The category enum of each type list.</summary>
     public static readonly Dictionary<string, Type> Categories = new()

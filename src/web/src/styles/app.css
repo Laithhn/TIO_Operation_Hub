@@ -119,11 +119,25 @@ textarea.input{height:auto;min-height:70px;padding:6px 8px;resize:vertical;line-
 .panel-head .actions{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
 .panel-body{padding:12px}
 .table-wrap{overflow-x:auto}
-table.grid{width:100%;border-collapse:collapse;font-size:12px}
-.grid th{text-align:left;font-weight:700;font-size:12px;color:var(--fg);padding:9px 8px 8px;white-space:nowrap;border-bottom:1px solid var(--line-strong);background:var(--surface)}
-.grid th button{border:0;background:none;padding:0;font-weight:700;display:inline-flex;gap:4px;align-items:center}
-.grid tr.filters td{padding:5px 8px 6px;border-bottom:2px solid var(--line-strong)}
-.grid td{padding:4px 8px;height:var(--row-h);border-bottom:1px solid var(--line);vertical-align:middle}
+table.grid{width:100%;border-collapse:collapse;font-size:13.5px}
+.grid th{text-align:left;font-weight:700;font-size:14px;color:var(--fg);padding:0;white-space:nowrap;border-bottom:1px solid var(--line-strong);background:var(--surface);position:relative}
+.grid-head-cell{min-height:44px;padding:7px 10px;display:flex;align-items:center;gap:8px}
+.grid-sort,.grid-heading-label{min-width:0;display:inline-flex;align-items:center;gap:5px;color:inherit;font:inherit}
+.grid-sort{border:0;background:none;padding:0;cursor:pointer;text-align:left}
+.grid-sort:hover,.grid-sort:focus-visible{color:var(--link)}
+.grid-sort-indicator{font-size:14px;line-height:1;color:var(--link);font-weight:700}
+.grid-sort-muted{color:var(--muted);opacity:.72}
+.grid-filter-trigger{width:22px;height:22px;display:inline-grid;place-items:center;margin-left:auto;padding:3px;border:0;border-radius:3px;background:transparent;color:var(--muted);cursor:pointer;flex:0 0 auto}
+.grid-filter-trigger svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round}
+.grid-filter-trigger:hover,.grid-filter-trigger:focus-visible,.grid-filter-trigger.active{color:var(--link);background:var(--info-soft)}
+.grid-filter-popover{position:absolute;z-index:55;top:calc(100% + 2px);left:0;width:220px;min-width:220px;padding:10px;background:var(--surface);border:1px solid var(--line);border-radius:4px;box-shadow:0 8px 24px rgba(20,30,50,.18);white-space:normal;font-weight:400}
+.grid-filter-operator,.grid-filter-value{width:100%;height:30px;padding:4px 8px;font-size:12px}
+.grid-filter-value{margin-top:8px}
+.grid-custom-filter>*{width:100%;min-width:0}
+.grid-custom-filter .input{height:30px;padding:4px 8px;font-size:12px}
+.grid-filter-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:10px}
+.grid-filter-actions .btn-primary{background:var(--link);border-color:var(--link);color:#fff}
+.grid td{padding:5px 10px;height:var(--row-h);border-bottom:1px solid var(--line);vertical-align:middle}
 .grid tbody tr:hover td{background:var(--row-hover)}
 .grid td.num,.grid th.num{text-align:right}
 .grid .state td{text-align:center;color:var(--muted);padding:22px 8px}
@@ -252,11 +266,14 @@ label.right-pick{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-
 .kpi-l{font-size:12px;font-weight:600;color:var(--fg-2);display:flex;align-items:center;gap:5px}
 .kpi-glyph{font-size:10px}
 .kpi-v{font-size:34px;line-height:1.1;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+.kpi.value-critical:not(.hero) .kpi-v{color:var(--bad)}
+.kpi.value-warning:not(.hero) .kpi-v{color:var(--warn)}
 .kpi.hero .kpi-v{font-size:48px}
 .kpi-meter{display:block;height:6px;background:#e4e6ea;border-radius:3px;overflow:hidden;margin-top:4px}
 .kpi-meter>span{display:block;height:100%;border-radius:3px}
 .kpi-p{font-size:11.5px;color:var(--fg-2)}
 .kpi-c{font-size:11.5px;color:var(--muted)}
+.critical-text{color:var(--bad);font-weight:700}
 .band-title{font-size:13px;font-weight:700;color:var(--navy);margin:4px 0 8px;text-transform:uppercase;letter-spacing:.04em}
 .viz-grid.three{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
 @media (min-width:1280px){.viz-grid.three{grid-template-columns:repeat(4,minmax(0,1fr))}}
@@ -388,7 +405,8 @@ ul.config-links a{font-weight:600}
 .table-tools .btn{margin-left:auto}
 .btn-sm{padding:3px 10px;font-size:12px}
 .table-pager{border-top:1px solid var(--line)}
-table.grid th button{white-space:nowrap}
+table.grid th .grid-sort{white-space:nowrap}
+@media(max-width:640px){.grid-filter-popover{width:min(220px,calc(100vw - 40px));min-width:190px}}
 .danger-link{color:var(--bad)!important}
 .btn-danger-outline{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line))}
 .btn-danger-outline:hover{background:color-mix(in srgb,var(--bad) 10%,transparent)}

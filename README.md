@@ -60,6 +60,20 @@ Development sign-in is refused at start-up in any environment other than Develop
 Front-end hot reload (API running): `cd src/web && npm run dev` → http://localhost:5173.
 On networks that block `registry.npmjs.org`, the committed `.npmrc` files use `registry.npmjs.com` (same official registry).
 
+### Running Claude Code and Codex side by side
+
+`AGENTS.md` is the shared engineering guide; `CLAUDE.md` imports it. Use a separate Git worktree/branch for each tool, and start each instance with `build/Start-Dev.ps1` so it gets its own database and ports. The instance name is part of the LocalDB name, so Claude and Codex can migrate their own copies independently.
+
+Start the API in one PowerShell session. For Codex use:
+
+```powershell
+.\build\Start-Dev.ps1 -Instance Codex
+```
+
+For Claude, use `-Instance Claude -ApiPort 5194 -WebPort 5174`. Start each web client in another PowerShell session with the matching command plus `-Web`, such as `build/Start-Dev.ps1 -Instance Claude -ApiPort 5194 -WebPort 5174 -Web`; for Codex, use `build/Start-Dev.ps1 -Instance Codex -Web`. API tests create a unique database per test; Playwright creates a unique database per run. Set `TIOHUB_E2E_PORT` to a different value (for example `5196`) when running Playwright from both tools at once, and `TIOHUB_E2E_SQL` if using a test SQL Server instead of LocalDB.
+
+Create production packages only from the intended Git commit with `build/Build-Release.ps1`; that script is the release source of truth and includes the matching API, built web client, migration script, deployment guide, and `BUILD-INFO.txt` with source commit and dirty-tree status. Review the version, commit, working-tree status and SHA-256 together before distributing the package. `CLAUDE.md` imports `AGENTS.md`, so contributor rules have one source of truth; product design and behavior decisions live in `docs/DECISIONS.md` and `docs/`.
+
 ## Tests
 
 ```bash

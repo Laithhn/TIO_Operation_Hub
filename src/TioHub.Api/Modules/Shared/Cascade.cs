@@ -58,9 +58,16 @@ public static class Cascade
         [typeof(ResponsibilityBoundary)] = "boundaries", [typeof(Team)] = "teams"
     };
     private static readonly HashSet<string> NoOwnPage = ["contacts", "boundaries", "volumes", "firewall-rules"];
+    // Domain records with independent permissions, including records without a standalone delete route.
+    private static readonly HashSet<string> IndependentRecords =
+    [
+        nameof(Client), nameof(Region), nameof(Project), nameof(Contract), nameof(ClientEnvironment), nameof(Asset),
+        nameof(Installation), nameof(Component), nameof(Volume), nameof(SharedStorage), nameof(Case), nameof(Commitment),
+        nameof(Escalation), nameof(Contact), nameof(ResponsibilityBoundary), nameof(Team), nameof(Handover), "FirewallRule"
+    ];
 
     /// <summary>Never deleted: the audit trail and logs.</summary>
-    private static readonly HashSet<Type> Never = [typeof(AuditEntry), typeof(ExportLog), typeof(Notifications.Notification),
+    private static readonly HashSet<Type> Never = [typeof(AuditEntry), typeof(ExportLog), typeof(Notifications.Notification), typeof(Organization),
         // A47: private notes are never listed or counted for someone else; a deleted client or project only clears their link (database rule).
         typeof(Notes.Notebook), typeof(Notes.NoteSection), typeof(Notes.NotePage), typeof(Notes.NoteFile)];
     /// <summary>Tables that point at any record by type name and id.</summary>
@@ -106,7 +113,10 @@ public static class Cascade
                     if (fk.Properties.Count != 1 || !owned.Contains(fk.PrincipalEntityType) || fk.PrincipalEntityType == t) continue;
                     var prop = fk.Properties[0];
                     var scope = fk.PrincipalEntityType == root && kind.ScopeColumn == prop.Name;
-                    if (!fk.IsRequired && !scope) continue;
+                    // A project owns its contextual edges. Clearing ProjectId would promote them into the client-wide graph.
+                    var contextOwned = t.ClrType == typeof(OrganizationRelationship) && fk.PrincipalEntityType.ClrType == typeof(Project)
+                        && prop.Name == nameof(OrganizationRelationship.ProjectId);
+                    if (!fk.IsRequired && !scope && !contextOwned) continue;
                     var parentKey = fk.PrincipalKey.Properties[0];
                     var edge = new Edge(t, Col(t, prop), fk.PrincipalEntityType, Col(fk.PrincipalEntityType, parentKey));
                     if (plan.Edges.Any(x => x.Child == t && x.Column == edge.Column && x.Parent == edge.Parent)) continue;
@@ -240,28 +250,43 @@ public static class Cascade
 
     public static async Task<Preview> PreviewAsync(HubDbContext db, UserContext me, string path, long id, CancellationToken ct)
     {
-        me.RequireRight(Right.Delete);
         var kind = KindOf(path);
+        me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
         var (label, _) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await CollectAsync(db, plan, id, ct);
         var del = await GroupsAsync(db, plan, ct);
         var unlink = await UnlinkGroupsAsync(db, plan, ct);
+        RequireDependentPermissions(me, del, unlink);
         await tx.RollbackAsync(ct);
         return new Preview(label, del.Sum(g => g.Count), del, unlink);
     }
 
     public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct)
     {
-        me.RequireRight(Right.Delete);
         var kind = KindOf(path);
+        me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
         var (label, clientId) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Range locks keep new descendants and optional references from appearing between authorization and mutation.
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        // Take application locks before reading edges, matching graph writers' lock order.
+        if (plan.Order.Any(t => t.ClrType == typeof(Project)))
+        {
+            var projects = await db.Projects.IgnoreQueryFilters().Where(p => p.ClientId == clientId)
+                .OrderBy(p => p.ClientId).ThenBy(p => p.Id).Select(p => new { p.Id, p.ClientId }).ToListAsync(ct);
+            foreach (var project in projects)
+                await OrganizationEndpoints.LockContextAsync(project.ClientId, project.Id, db, ct);
+        }
         await CollectAsync(db, plan, id, ct);
-        var summary = (await GroupsAsync(db, plan, ct)).ToDictionary(g => g.Label, g => g.Count);
-        var unlinked = (await UnlinkGroupsAsync(db, plan, ct)).ToDictionary(g => g.Label, g => g.Count);
+        var deletedGroups = await GroupsAsync(db, plan, ct);
+        var unlinkedGroups = await UnlinkGroupsAsync(db, plan, ct);
+        RequireDependentPermissions(me, deletedGroups, unlinkedGroups);
+        var summary = deletedGroups.ToDictionary(g => g.Label, g => g.Count);
+        var unlinked = unlinkedGroups.ToDictionary(g => g.Label, g => g.Count);
+        if (kind.Entity == typeof(Client))
+            await OrganizationEndpoints.PreserveClientIdentityAsync(id, db, ct);
         // Files of every attachment that goes (attached to a removed record, or owned through its client) — removed from disk after the commit.
         var att = db.Model.FindEntityType(typeof(Attachments.Attachment))!;
         var paths = new List<string>();
@@ -287,6 +312,15 @@ public static class Cascade
         await tx.CommitAsync(ct);
         files.Delete(paths.Distinct());
         return Results.Ok(new { deleted = summary.Values.Sum() + 1, unlinked = unlinked.Values.Sum() });
+    }
+
+    private static void RequireDependentPermissions(UserContext me, List<Group> deleted, List<Group> unlinked)
+    {
+        // History and link cleanup inherit the owning record's permission; independent business records keep their own rights.
+        foreach (var group in deleted.Where(g => IndependentRecords.Contains(g.Type)))
+            me.RequirePermission(ResourcePermissions.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), ResourcePermissions.Delete);
+        foreach (var group in unlinked.Where(g => IndependentRecords.Contains(g.Type)))
+            me.RequirePermission(ResourcePermissions.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), ResourcePermissions.Maintain);
     }
 
     public static void MapCascadeEndpoints(this RouteGroupBuilder api)

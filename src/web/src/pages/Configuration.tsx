@@ -8,9 +8,13 @@ import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Panel, SelectI
 // A34: system configuration, one page per list (owner request, 20 Oct 2026: no single "reference lists" page).
 
 type Category = { value: string; label: string; hint: string };
-export type ConfigList = { slug: string; list: string; title: string; group: string; about: string; usedBy: string; categories?: Category[] };
+export type ConfigList = { slug: string; list: string; title: string; group: string; about: string; usedBy: string; categories?: Category[]; labelOnly?: boolean };
 
 export const CONFIG_LISTS: ConfigList[] = [
+  { slug: 'reported-conditions', list: 'ConditionLabel', group: 'Clients & environments', title: 'Reported conditions', usedBy: 'condition reports', labelOnly: true,
+    about: 'Change the display labels of the built-in reported conditions. Their codes, order and operational meaning stay fixed.' },
+  { slug: 'organization-relationship-types', list: 'OrganizationRelationshipType', group: 'Clients & environments', title: 'Organization relationship types', usedBy: 'organization relationships',
+    about: 'Optional business roles such as Contractor, Supplier or Partner. Roles belong to each relationship and never fix its hierarchy level.' },
   { slug: 'environment-types', list: 'EnvironmentType', group: 'Clients & environments', title: 'Environment types', usedBy: 'environments',
     about: 'Offered when creating an environment. Each type behaves like its category, for example "Pre-production" behaves like Staging.',
     categories: [
@@ -48,6 +52,8 @@ export const CONFIG_LISTS: ConfigList[] = [
       { value: 'ProblemFollowUp', label: 'Problem follow-up', hint: 'Root cause work' }, { value: 'MaintenanceCoordination', label: 'Maintenance coordination', hint: 'Planned work' },
       { value: 'Improvement', label: 'Improvement', hint: 'Make something better' }, { value: 'RiskFollowUp', label: 'Risk follow-up', hint: 'Track a risk' }
     ] },
+  { slug: 'case-statuses', list: 'CaseStatusLabel', group: 'Contracts & cases', title: 'Case statuses', usedBy: 'cases', labelOnly: true,
+    about: 'Change the display labels of the built-in case statuses. The case lifecycle, transitions and stored codes stay fixed.' },
   { slug: 'escalation-channels', list: 'EscalationChannel', group: 'Contracts & cases', title: 'Escalation channels', usedBy: 'escalations and their logged communications',
     about: 'How escalations arrive or are raised and how replies go out, for example e-mail, formal letter, verbal or Jira. The hub records the channel and its reference; it never sends anything.' },
   { slug: 'team-member-roles', list: 'TeamMemberRole', group: 'Teams', title: 'Team member roles', usedBy: 'team members',
@@ -78,13 +84,13 @@ export function ConfigHome() {
   const count = (list: string) => (q.data ?? []).filter(r => r.listName === list && !r.isRetired).length;
   return (
     <AdminOnly>
-      <PageHead title="Configuration" sub="What the forms offer. Each list has its own page; changes apply at once, and retired values stay on the records that use them." />
+      <PageHead title="Configuration" sub="What the forms offer. Each list has its own page; changes apply at once. Workflow labels can be renamed; retired configurable values stay on the records that use them." />
       <div className="config-grid">
         {groups.map(g => (
           <Panel key={g} title={g}>
             <ul className="config-links">
               {CONFIG_LISTS.filter(c => c.group === g).map(c => (
-                <li key={c.slug}><Link to={`/admin/config/${c.slug}`}>{c.title}</Link> <span className="muted">· {q.data ? `${count(c.list)} active` : '…'}</span><div className="hint">{c.about}</div></li>
+                <li key={c.slug}><Link to={`/admin/config/${c.slug}`}>{c.title}</Link> <span className="muted">· {q.data ? `${count(c.list)} ${c.labelOnly ? 'fixed values' : 'active'}` : '…'}</span><div className="hint">{c.about}</div></li>
               ))}
             </ul>
           </Panel>
@@ -102,7 +108,7 @@ export function ConfigListPage() {
   const { slug } = useParams();
   const cfg = CONFIG_LISTS.find(c => c.slug === slug);
   const q = useValues();
-  const usage = useQuery({ queryKey: ['admin-lookup-usage', cfg?.list], queryFn: () => get<Record<string, number>>(`/admin/lookups/${cfg!.list}/usage`), enabled: !!cfg });
+  const usage = useQuery({ queryKey: ['admin-lookup-usage', cfg?.list], queryFn: () => get<Record<string, number>>(`/admin/lookups/${cfg!.list}/usage`), enabled: !!cfg && !cfg.labelOnly });
   const [edit, setEdit] = useState<Row | 'new' | null>(null);
   const [showRetired, setShowRetired] = useState(false);
   const toast = useToast();
@@ -121,20 +127,21 @@ export function ConfigListPage() {
   return (
     <AdminOnly>
       <PageHead title={cfg.title} crumbs={[{ to: '/admin/config', label: 'Configuration' }, { label: cfg.title }]} sub={cfg.about}
-        actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>+ Add</button>} />
-      <div className="toolbar"><Checkbox label={`Show retired (${all.filter(r => r.isRetired).length})`} checked={showRetired} onChange={setShowRetired} /></div>
+        actions={!cfg.labelOnly && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ Add</button>} />
+      {!cfg.labelOnly && <div className="toolbar"><Checkbox label={`Show retired (${all.filter(r => r.isRetired).length})`} checked={showRetired} onChange={setShowRetired} /></div>}
       <DataTable<Row> rowKey={r => r.id} rows={rows} loading={q.isLoading} error={q.error} caption={cfg.title} columns={[
-        { key: 'o', header: 'Order', render: r => <span className="nowrap order-btns">
+        ...(cfg.labelOnly ? [{ key: 'code', header: 'Workflow code', render: (r: Row) => <span className="mono">{r.code}</span> }] : [{ key: 'o', header: 'Order', render: (r: Row) => <span className="nowrap order-btns">
           <button className="linkbtn" aria-label={`Move ${r.label} up`} onClick={() => move(r, -1)} disabled={all.indexOf(r) === 0}>▲</button>
-          <button className="linkbtn" aria-label={`Move ${r.label} down`} onClick={() => move(r, 1)} disabled={all.indexOf(r) === all.length - 1}>▼</button></span> },
-        { key: 'n', header: 'Name', render: r => <button className="linkbtn" onClick={() => setEdit(r)}>{r.label}</button> },
-        { key: 'd', header: 'Description', render: r => r.description ?? <span className="muted">—</span> },
+          <button className="linkbtn" aria-label={`Move ${r.label} down`} onClick={() => move(r, 1)} disabled={all.indexOf(r) === all.length - 1}>▼</button></span> }]),
+        { key: 'n', header: cfg.labelOnly ? 'Display label' : 'Name', render: r => <button className="linkbtn" onClick={() => setEdit(r)}>{r.label}</button> },
+        ...(!cfg.labelOnly ? [{ key: 'd', header: 'Description', render: (r: Row) => r.description ?? <span className="muted">—</span> }] : []),
         ...(cfg.categories ? [{ key: 'c', header: 'Behaves as', render: (r: Row) => <span className="chip">{catLabel(r.category)}</span> }] : []),
-        { key: 'u', header: `In use (${cfg.usedBy})`, className: 'num', render: r => usage.data ? (usage.data[r.code] ?? 0) : '…' },
-        { key: 's', header: 'Status', render: r => r.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/admin/lookups/${r.id}`} what={`${r.label}`} /> }
+        ...(!cfg.labelOnly ? [{ key: 'u', header: `In use (${cfg.usedBy})`, className: 'num', render: (r: Row) => usage.data ? (usage.data[r.code] ?? 0) : '…' }] : []),
+        { key: 's', header: 'Status', render: r => cfg.labelOnly ? <Badge>Fixed workflow value</Badge> : r.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> },
+        ...(!cfg.labelOnly ? [{ key: 'del', header: '', className: 'row-actions', render: (r: Row) => <DeleteAction path={`/admin/lookups/${r.id}`} what={`${r.label}`} /> }] : [])
       ]} />
-      <p className="hint" style={{ marginTop: 8 }}>Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.</p>
-      {edit && <ValueDialog cfg={cfg} row={edit === 'new' ? null : edit} inUse={edit !== 'new' && !!usage.data?.[edit.code]} onClose={() => setEdit(null)} />}
+      <p className="hint" style={{ marginTop: 8 }}>{cfg.labelOnly ? 'Only display labels can be changed. All built-in values remain available and keep their workflow meaning.' : 'Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.'}</p>
+      {edit && (!cfg.labelOnly || edit !== 'new') && <ValueDialog cfg={cfg} row={edit === 'new' ? null : edit} inUse={edit !== 'new' && !!usage.data?.[edit.code]} onClose={() => setEdit(null)} />}
     </AdminOnly>
   );
 }
@@ -145,21 +152,24 @@ function ValueDialog({ cfg, row, inUse, onClose }: { cfg: ConfigList; row: Row |
   const refresh = useRefresh();
   const save = async () => {
     const v = f.values;
-    const body = { listName: cfg.list, code: row?.code ?? null, label: v.label, description: v.description || null, sortOrder: row?.sortOrder ?? 0, isRetired: !v.active, category: v.category || null };
+    const body = cfg.labelOnly && row
+      ? { listName: row.listName, code: row.code, label: v.label, description: row.description ?? null, sortOrder: row.sortOrder, isRetired: row.isRetired, category: row.category ?? null }
+      : { listName: cfg.list, code: row?.code ?? null, label: v.label, description: v.description || null, sortOrder: row?.sortOrder ?? 0, isRetired: !v.active, category: v.category || null };
     const ok = await f.submit(() => (row ? put(`/admin/lookups/${row.id}`, body, row.version) : post('/admin/lookups', body)).then(() => true));
     if (ok) { toast(row ? 'Saved; the new name shows everywhere.' : `${v.label} added.`); refresh(); onClose(); }
   };
   return (
     <Dialog title={row ? `Edit ${row.label}` : `Add to ${cfg.title.toLowerCase()}`} onClose={onClose}>
-      <FormError error={f.error} fields={['label', 'description', 'category', 'isRetired']} />
+      <FormError error={f.error} fields={cfg.labelOnly ? ['label'] : ['label', 'description', 'category', 'isRetired']} />
       <div className="form-grid">
-        <TextInput label="Name" required wide value={f.values.label} onChange={v => f.set('label', v)} error={f.fieldError('label')} maxLength={150} />
-        <TextInput label="Description" wide multiline value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} />
+        {cfg.labelOnly && row && <TextInput label="Workflow code" wide value={row.code} onChange={() => {}} disabled hint="The code and its workflow meaning remain fixed." />}
+        <TextInput label={cfg.labelOnly ? 'Display label' : 'Name'} required wide value={f.values.label} onChange={v => f.set('label', v)} error={f.fieldError('label')} maxLength={150} />
+        {!cfg.labelOnly && <TextInput label="Description" wide multiline value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} />}
         {cfg.categories && (row
           ? <TextInput label="Behaves as" wide value={cfg.categories.find(c => c.value === row.category)?.label ?? row.category ?? ''} onChange={() => {}} disabled hint="Fixed once created, so totals and reports stay consistent." />
           : <SelectInput label="Behaves as" required wide value={f.values.category} onChange={v => f.set('category', v)} error={f.fieldError('category')}
               options={cfg.categories.map(c => ({ value: c.value, label: `${c.label} — ${c.hint}` }))} empty="— Select —" />)}
-        {row && <Checkbox label="Active (offered on forms)" checked={f.values.active} onChange={v => f.set('active', v)}
+        {!cfg.labelOnly && row && <Checkbox label="Active (offered on forms)" checked={f.values.active} onChange={v => f.set('active', v)}
           hint={inUse && !f.values.active ? 'Records that use it keep it; it is no longer offered for new records.' : undefined} />}
       </div>
       {f.fieldError('isRetired') && <div className="err">{f.fieldError('isRetired')}</div>}

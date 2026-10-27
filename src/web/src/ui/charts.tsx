@@ -1,5 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { DataTable } from './kit';
 
 // Chart kit for the dashboard. Rules (validated, see docs/DESIGN-RULES.md):
 // magnitude = one blue ramp; trend = categorical slots 1–2 with a legend + direct end labels;
@@ -174,8 +175,8 @@ export function VizPanel({ title, sub, table, children, actions }: { title: stri
       <div className="panel-body">
         {sub && <p className="hint" style={{ marginBottom: 8 }}>{sub}</p>}
         {asTable ? (
-          <table className="grid"><thead><tr>{table.columns.map(c => <th key={c}>{c}</th>)}</tr></thead>
-            <tbody>{table.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={typeof c === 'number' ? 'num' : undefined}>{c}</td>)}</tr>)}</tbody></table>
+          <DataTable<{ id: number; values: (string | number)[] }> caption={title} rows={table.rows.map((values, id) => ({ id, values }))} rowKey={r => r.id} tools={false}
+            columns={table.columns.map((header, index) => ({ key: `c${index}`, header, className: table.rows.some(r => typeof r[index] === 'number') ? 'num' : undefined, render: r => r.values[index] }))} />
         ) : children}
       </div>
     </section>
@@ -201,14 +202,14 @@ export const normalizeCountry = (c: string) => ALIASES[c.trim().toLowerCase()] ?
 // ---------- executive KPI tile ----------
 // A headline number with an optional meter (part of a whole, same blue track) and a context line.
 // The whole tile is a link to the list whose total equals the number.
-export function Kpi({ value, label, context, part, of, partLabel, tone, to, hero, icon }: {
-  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode;
+export function Kpi({ value, label, context, part, of, partLabel, tone, valueTone, to, hero, icon }: {
+  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; valueTone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode;
 }) {
   const nav = useNavigate();
   const pct = part !== undefined && of ? Math.min(100, (part / of) * 100) : null;
   const fill = tone === 'critical' ? STATUS.critical : tone === 'warning' ? STATUS.warning : SERIES.blue;
   return (
-    <div className={`kpi${hero ? ' hero' : ''}${to ? ' link' : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
+    <div className={`kpi${hero ? ' hero' : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
       onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
       aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${to ? '. Open list' : ''}`}>
       <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}<span className="kpi-name">{label}</span>{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
@@ -317,26 +318,17 @@ export type SlaRow = { priority: string; contracts: number; responseMedian?: num
 export function SlaMatrix({ rows, activeContracts }: { rows: SlaRow[]; activeContracts: number }) {
   const maxR = Math.max(1, ...rows.map(r => r.responseMedian ?? 0)), maxS = Math.max(1, ...rows.map(r => r.resolutionMedian ?? 0));
   if (rows.every(r => r.contracts === 0)) return <div className="viz-empty">No SLA targets recorded on active contracts.</div>;
-  const cell = (v: number | null | undefined, fast: number | null | undefined, max: number, color: string) => (
-    <td>
-      <div className="sla-cell">
-        <span className="sla-track"><span style={{ width: v ? `max(${(v / max) * 100}%, 3px)` : 0, background: color }} /></span>
-        <span className="sla-v">{fmtMinutes(v)}</span>
-      </div>
-      {fast !== null && fast !== undefined && fast !== v && <div className="hint">fastest {fmtMinutes(fast)}</div>}
-    </td>
-  );
-  return (
-    <table className="grid sla-matrix">
-      <thead><tr><th>Priority</th><th className="num">Contracts with a target</th><th>Response (median)</th><th>Resolution (median)</th></tr></thead>
-      <tbody>{rows.map(r => (
-        <tr key={r.priority}>
-          <td><b>{r.priority}</b></td>
-          <td className="num">{r.contracts} <span className="muted">of {activeContracts}</span></td>
-          {cell(r.responseMedian, r.responseFastest, maxR, RAMP[2])}
-          {cell(r.resolutionMedian, r.resolutionFastest, maxS, CAT[1])}
-        </tr>
-      ))}</tbody>
-    </table>
-  );
+  const cell = (v: number | null | undefined, fast: number | null | undefined, max: number, color: string) => <>
+    <div className="sla-cell">
+      <span className="sla-track"><span style={{ width: v ? `max(${(v / max) * 100}%, 3px)` : 0, background: color }} /></span>
+      <span className="sla-v">{fmtMinutes(v)}</span>
+    </div>
+    {fast !== null && fast !== undefined && fast !== v && <div className="hint">fastest {fmtMinutes(fast)}</div>}
+  </>;
+  return <DataTable<SlaRow> caption="SLA targets per priority" rows={rows} rowKey={r => r.priority} tableClassName="sla-matrix" columns={[
+    { key: 'priority', header: 'Priority', render: r => <b>{r.priority}</b> },
+    { key: 'contracts', header: 'Contracts with a target', className: 'num', render: r => <>{r.contracts} <span className="muted">of {activeContracts}</span></> },
+    { key: 'response', header: 'Response (median)', render: r => cell(r.responseMedian, r.responseFastest, maxR, RAMP[2]) },
+    { key: 'resolution', header: 'Resolution (median)', render: r => cell(r.resolutionMedian, r.resolutionFastest, maxS, CAT[1]) }
+  ]} />;
 }

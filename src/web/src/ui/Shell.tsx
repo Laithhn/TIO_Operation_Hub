@@ -1,3 +1,4 @@
+import { hasPermission, hasAnyPermission } from '../permissions';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { get } from '../api';
@@ -12,8 +13,7 @@ type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m
 type Section = { key: string; label: string; to: string; match: RegExp; show?: (m: Me) => boolean; side: Item[]; bare?: boolean };
 
 const biz = (m: Me) => !!m.businessRole;
-const lead = (m: Me) => m.rights.includes('Manage');
-const eng = (m: Me) => m.rights.includes('Edit');
+const action = (resource: string, operation: string) => (m: Me) => hasPermission(m, resource, operation);
 const tech = (m: Me) => biz(m) && m.grants.technicalDetail;
 const admin = (m: Me) => m.isAdministrator;
 
@@ -30,7 +30,7 @@ const SECTIONS: Section[] = [
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => !m.isAdministrator && m.grants.audit }
   ] },
   // Environments and everything installed in them belong to a client, so they live only under Clients.
-  { key: 'clients', label: 'Clients', to: '/clients', match: /^\/(clients|regions|projects|contracts|environments|installations|versions|assets|components|firewall-rules|infrastructure)/, show: biz, side: [
+  { key: 'clients', label: 'Clients', to: '/clients', match: /^\/(clients|regions|projects|contracts|environments|installations|versions|assets|components|firewall-rules|infrastructure|admin\/archived)/, show: biz, side: [
     { to: '/clients', label: 'All clients', icon: 'clients', end: true },
     // A27: contracts and their SLA terms belong to a project.
     { to: '/projects', label: 'Projects & contracts', icon: 'project', children: [
@@ -43,19 +43,20 @@ const SECTIONS: Section[] = [
       { to: '/assets', label: 'Assets & totals' },
       { to: '/firewall-rules', label: 'Firewall rules', show: tech }
     ] },
-    { to: '/clients/new', label: 'New client', icon: 'plus', show: lead }
+    { to: '/clients/new', label: 'New client', icon: 'plus', show: action('ClientStructure', 'Create') },
+    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
   ] },
   { key: 'products', label: 'Products', to: '/products', match: /^\/(products|microservices)/, show: biz, side: [
     { to: '/products', label: 'All products', icon: 'app', end: true },
-    { to: '/products/new', label: 'New product', icon: 'plus', show: eng }
+    { to: '/products/new', label: 'New product', icon: 'plus', show: action('Products', 'Create') }
   ] },
   { key: 'cases', label: 'Cases', to: '/cases', match: /^\/cases/, show: biz, side: [
     { to: '/cases', label: 'All cases', icon: 'case', end: true },
-    { to: '/cases/new', label: 'New case', icon: 'plus', show: eng }
+    { to: '/cases/new', label: 'New case', icon: 'plus', show: action('Cases', 'Create') }
   ] },
   { key: 'commitments', label: 'Commitments', to: '/commitments', match: /^\/commitments/, show: biz, side: [
     { to: '/commitments', label: 'All commitments', icon: 'commitment', end: true },
-    { to: '/commitments/new', label: 'New commitment', icon: 'plus', show: eng }
+    { to: '/commitments/new', label: 'New commitment', icon: 'plus', show: action('Commitments', 'Create') }
   ] },
   // A47: personal notes, for every signed-in user.
   { key: 'notes', label: 'Notes', to: '/notes', match: /^\/notes/, show: () => true, bare: true, side: [
@@ -64,7 +65,7 @@ const SECTIONS: Section[] = [
   // A41: escalation management.
   { key: 'escalations', label: 'Escalations', to: '/escalations', match: /^\/escalations/, show: biz, side: [
     { to: '/escalations', label: 'All escalations', icon: 'escalation', end: true },
-    { to: '/escalations/new', label: 'New escalation', icon: 'plus', show: eng },
+    { to: '/escalations/new', label: 'New escalation', icon: 'plus', show: action('OtherOperations', 'Create') },
     { to: '/admin/config/escalation-channels', label: 'Escalation channels', icon: 'list', show: m => m.isAdministrator }
   ] },
   { key: 'teams', label: 'Teams', to: '/teams', match: /^\/(teams|handovers|reassignment)/, show: biz, side: [
@@ -81,8 +82,10 @@ const SECTIONS: Section[] = [
     { to: '/admin/config', label: 'Configuration', icon: 'list', show: admin, children: [
       { to: '/admin/config', label: 'Overview', end: true },
       { to: '/admin/config/environment-types', label: 'Environment types' },
+      { to: '/admin/config/reported-conditions', label: 'Reported conditions' },
       { to: '/admin/config/responsibility-areas', label: 'Responsibility areas' },
       { to: '/admin/config/team-roles', label: 'Project team roles' },
+      { to: '/admin/config/organization-relationship-types', label: 'Organization relationship types' },
       { to: '/admin/config/server-types', label: 'Server types' },
       { to: '/admin/config/server-roles', label: 'Server roles' },
       { to: '/admin/config/network-zones', label: 'Network zones' },
@@ -91,6 +94,7 @@ const SECTIONS: Section[] = [
       { to: '/admin/config/component-roles', label: 'Component roles' },
       { to: '/admin/config/contract-types', label: 'Contract types' },
       { to: '/admin/config/case-types', label: 'Case types' },
+      { to: '/admin/config/case-statuses', label: 'Case statuses' },
       { to: '/admin/config/escalation-channels', label: 'Escalation channels' },
       { to: '/admin/config/priority-guidance', label: 'Priority guidance' }
     ] },
@@ -100,7 +104,7 @@ const SECTIONS: Section[] = [
       { to: '/admin/jira', label: 'Jira instances' }
     ] },
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => m.grants.audit || m.isAdministrator },
-    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: lead }
+    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
   ] }
 ];
 
@@ -154,13 +158,13 @@ export function Shell({ children }: { children: ReactNode }) {
             </select>
           )}
           {me && <Menu label="+ New" title="Create a record" items={[
-            { label: 'Client', to: '/clients/new', hidden: !lead(me) },
-            { label: 'Environment', to: '/environments/new', hidden: !eng(me) },
-            { label: 'Case', to: '/cases/new', hidden: !eng(me) },
-            { label: 'Commitment', to: '/commitments/new', hidden: !eng(me) },
-            { label: 'Escalation', to: '/escalations/new', hidden: !eng(me) },
+            { label: 'Client', to: '/clients/new', hidden: !hasPermission(me, 'ClientStructure', 'Create') },
+            { label: 'Environment', to: '/environments/new', hidden: !hasPermission(me, 'Environments', 'Create') },
+            { label: 'Case', to: '/cases/new', hidden: !hasPermission(me, 'Cases', 'Create') },
+            { label: 'Commitment', to: '/commitments/new', hidden: !hasPermission(me, 'Commitments', 'Create') },
+            { label: 'Escalation', to: '/escalations/new', hidden: !hasPermission(me, 'OtherOperations', 'Create') },
             { label: 'Note', to: '/notes' },
-            { label: 'Product', to: '/products/new', hidden: !eng(me) }
+            { label: 'Product', to: '/products/new', hidden: !hasPermission(me, 'Products', 'Create') }
           ]} />}
           {me && <NotificationBell />}
           <button className="hdr-search" onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">

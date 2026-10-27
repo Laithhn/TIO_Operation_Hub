@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useCan, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
+import { usePermission, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DeleteAction, DL, FormError, FormSection, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When } from '../ui/kit';
 import { ContactCard, ContactFields, contactFrom, contactOut, HistoryPanel, toNum, useClientOptions } from './common';
@@ -70,7 +70,7 @@ export function EscalationTable({ clientId, caseId, compact }: { clientId?: numb
 }
 
 export function EscalationList() {
-  const canEng = useCan('Engineer');
+  const canEng = usePermission('OtherOperations', 'Create');
   return (
     <>
       <PageHead title="Escalations" sub="Client matters raised above normal handling, by e-mail, formal letter, verbally, through Jira or any other configured channel. Each has an accountable owner, a level and response and resolution targets."
@@ -100,7 +100,7 @@ export function EscalationForm() {
   const refresh = useRefresh();
   const clients = useClientOptions();
   const ch = useChannels();
-  const canLead = useCan('Manager');
+  const canLead = usePermission('OtherOperations', 'Coordinate');
   const existing = useQuery({ queryKey: ['escalation', id], queryFn: () => get<Dto>(`/escalations/${id}`), enabled: !isNew });
   const f = useForm({
     clientId: sp.get('clientId') ?? '', title: '', description: '', direction: 'Received', channel: '', channelReference: '', priority: 'High', level: '1',
@@ -223,7 +223,7 @@ export function EscalationDetail() {
           </li>))}
         </ul>
       </Panel>
-      <AttachmentsPanel recordType="Escalation" recordId={e.id} canEdit={e.permissions.canEdit} title="Letters, e-mails and other files" />
+      <AttachmentsPanel recordType="Escalation" recordId={e.id} title="Letters, e-mails and other files" />
       <HistoryPanel entityType="Escalation" entityId={e.id} />
       {dialog === 'log' && <ActionDialog title="Log communication" path={`/escalations/${id}/communications`} onClose={close} submitLabel="Log"
         intro="Record what was sent or received and through which channel. A reply to an open escalation acknowledges it. The hub does not send anything."

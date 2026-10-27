@@ -48,6 +48,17 @@ Schema changes in later releases: developers add an EF Core migration and regene
 - `Reporting:MaxRows` (default 100 000) limits one export; `Reporting:SchedulerMinutes` (default 1, `0` = off) is how often due schedules run and expired files are removed. Scheduler failures are logged and retried at the next interval.
 - The `ReportingCenter` migration only adds the `reporting` schema (export jobs, schedules, recipients, presets). The application identity needs read/write there like on the other schemas; `02-app-login.sql` grants database-wide read/write, so nothing changes for the DBA.
 
+### Resource permissions, SLA penalties and workflow labels (A63)
+
+- Apply the `ResourcePermissionMatrix`, `ContractPenaltyClauses` and `PenaltyAssessmentSnapshots` migrations with the regenerated idempotent `database/01-schema.sql` before deploying the matching application. The permission migration converts current role rights into resource/action rows; the locked TIO Manager receives every action and cross-cutting right.
+- The penalty migrations add contract clause terms, case-time snapshots and auditable monthly assessments. Penalty assessments are indicative only and do not create credits or payments. The application identity needs ordinary read/write access to the new `contracts` and `iam` tables; no schema permission is needed at runtime.
+- Condition and case-status configuration rows are seeded by the application. Administrators can change their display labels; their codes and workflow meaning stay fixed.
+- Production remains `Database__ApplyMigrationsOnStartup=false`. A DBA applies the schema script before the application files, following the backup and rollback procedure above.
+
+### Optional organizational structures (A64)
+
+Apply OptionalOrganizationGraph before deploying the matching application. It creates canonical organization identities for existing clients (including archived clients), adds independent organizations and contextual edges, and preserves all client records/IDs. It does not infer contractor relationships or alter existing sub-client grouping. OrganizationRelationshipType is an extensible configuration list. See ORGANIZATION-HIERARCHY.md for endpoints, limits, concurrency and access rules. Graph responses retain archived participants for authorized cleanup; new links to archived clients are refused.
+
 ## 4. Application (IIS)
 
 1. Unzip the release into e.g. `D:\Apps\TioHub\app`. Create an IIS site bound to HTTPS only, app pool “No Managed Code”, identity = the gMSA.
@@ -72,11 +83,12 @@ Schema changes in later releases: developers add an EF Core migration and regene
 | `Database__ApplyMigrationsOnStartup` | `false` (the DBA applies scripts) |
 | `Database__SeedDevelopmentData` | `false` — the app refuses to start with `true` outside Development/Testing |
 | `Quality__ScanMinutes` | Data-quality re-evaluation interval (default 5) |
+| `Notifications__ScanMinutes` | Alert refresh interval in minutes (default 15); active alerts reappear until their source condition is resolved |
 
 4. First sign-in, **Forms**: on start the app finds no administrator with a password and writes a random one-time code to `App_Data\setup-code.txt` (the log says so, without the code). A server administrator opens the hub, enters the code and chooses the first administrator account and password; the file is deleted. That administrator then creates users under **Administration → Users & access** and issues each a temporary password (**Set password**), which the person must replace at first sign-in. Forgotten passwords: an administrator issues a new temporary password (this also clears a lock and ends the person's sessions). An administrator cannot reset their own password there — they use **Change password**; if the only administrator is locked out, wait for the lock to expire or have a DBA remove that account's row from `iam.UserCredential`, restart, and repeat the setup.
 
    First sign-in, **Windows**: the bootstrap administrator opens **Administration → Users & access** and **Group mappings**, maps the organization groups to roles, scopes and grants, sets **Jira instances** approved hosts, **Settings → ApprovedLinkHosts**, and confirms the **Review policies**. Then remove the bootstrap entry.
-5. Health endpoints for monitoring the hub itself: `/api/health/live` and `/api/health/ready` (database reachable). The OpenAPI document is at `/openapi/v1.json` (signed-in users only).
+5. Health endpoints for monitoring the hub itself: `/api/health/live` and `/api/health/ready`. Readiness requires database access and every application migration in `[admin].[__EFMigrationsHistory]`; an unavailable database or missing migration returns 503 without connection details. Startup performs the same read-only check before reference seeding, backfills or background services and refuses to serve an older schema. Apply the release's `database/01-schema.sql` through the approved DBA process, then restart. Readiness never applies migrations. Install/upgrade scripts fail verification rather than report success when readiness fails. The OpenAPI document is at `/openapi/v1.json` (signed-in users only).
 6. Logs: `logs/tiohub-YYYYMMDD.log` (31 days) plus console/IIS stdout. Logs contain request path, status and duration — never request bodies or query strings.
 
 ## 5. Backup (NFR-07)

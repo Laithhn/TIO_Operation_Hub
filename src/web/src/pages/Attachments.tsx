@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
 import { ApiError, del, get, qs, upload, type UserRef } from '../api';
 import { fmtDateTime } from '../format';
-import { useCan, useMe, useRefresh } from '../hooks';
+import { usePermission, useMe, useRefresh } from '../hooks';
 import { Icon } from '../ui/Icon';
-import { Panel, StateMessage, useToast } from '../ui/kit';
+import { DataTable, Panel, StateMessage, useToast } from '../ui/kit';
 
 /** A46: files attached to a record. The files are kept on the server's disk (configured folder); only their details are in the database. */
 type Attachment = { id: number; fileName: string; contentType: string; sizeBytes: number; sha256: string; description?: string; createdAt: string; uploadedBy?: UserRef; uploadedById?: number };
@@ -12,9 +12,10 @@ type Limits = { maxFileMB: number; maxFilesPerUpload: number; extensions: string
 
 export const fmtSize = (b: number) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
 
-export function AttachmentsPanel({ recordType, recordId, canEdit, title = 'Attachments' }: { recordType: string; recordId: number; canEdit: boolean; title?: string }) {
+export function AttachmentsPanel({ recordType, recordId, scopeAllowed = true, title = 'Attachments' }: { recordType: string; recordId: number; scopeAllowed?: boolean; title?: string }) {
   const me = useMe().data!;
-  const canDeleteAny = useCan('Delete');
+  const canEdit = usePermission('OtherOperations', 'Maintain') && scopeAllowed;
+  const canDeleteAny = usePermission('OtherOperations', 'Delete') && scopeAllowed;
   const q = useQuery({ queryKey: ['attachments', recordType, recordId], queryFn: () => get<Attachment[]>(`/attachments${qs({ recordType, recordId })}`) });
   const limits = useQuery({ queryKey: ['attachment-limits'], queryFn: () => get<Limits>('/attachments/limits'), staleTime: 10 * 60_000 });
   const [picked, setPicked] = useState<File[]>([]);
@@ -89,18 +90,12 @@ export function AttachmentsPanel({ recordType, recordId, canEdit, title = 'Attac
         </div>
       )}
       {q.isLoading ? <StateMessage kind="loading" /> : files.length === 0 ? <div className="panel-body"><StateMessage kind="none">No files attached.</StateMessage></div> : (
-        <table className="grid">
-          <caption className="sr">{title}</caption>
-          <thead><tr><th>File</th><th className="num">Size</th><th>Uploaded</th><th /></tr></thead>
-          <tbody>{files.map(a => (
-            <tr key={a.id}>
-              <td><a href={`/api/v1/attachments/${a.id}/download`} download={a.fileName}>{a.fileName}</a>{a.description && <div className="hint">{a.description}</div>}</td>
-              <td className="num nowrap">{fmtSize(a.sizeBytes)}</td>
-              <td className="nowrap">{fmtDateTime(a.createdAt)}<div className="hint">{a.uploadedBy?.name ?? '—'}</div></td>
-              <td className="row-actions">{((a.uploadedById === me.id && canEdit) || canDeleteAny) && <button className="linkbtn danger-link" onClick={() => remove(a)} aria-label={`Remove ${a.fileName}`}>Remove</button>}</td>
-            </tr>))}
-          </tbody>
-        </table>
+        <DataTable<Attachment> caption={title} rowKey={a => a.id} rows={files} columns={[
+          { key: 'file', header: 'File', render: a => <><a href={`/api/v1/attachments/${a.id}/download`} download={a.fileName}>{a.fileName}</a>{a.description && <div className="hint">{a.description}</div>}</> },
+          { key: 'size', header: 'Size', className: 'num nowrap', render: a => fmtSize(a.sizeBytes) },
+          { key: 'uploaded', header: 'Uploaded', className: 'nowrap', render: a => <>{fmtDateTime(a.createdAt)}<div className="hint">{a.uploadedBy?.name ?? '—'}</div></> },
+          { key: 'actions', header: '', className: 'row-actions', render: a => ((a.uploadedById === me.id && canEdit) || canDeleteAny) && <button className="linkbtn danger-link" onClick={() => remove(a)} aria-label={`Remove ${a.fileName}`}>Remove</button> }
+        ]} />
       )}
     </Panel>
   );

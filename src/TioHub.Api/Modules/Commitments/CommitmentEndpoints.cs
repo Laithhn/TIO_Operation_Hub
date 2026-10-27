@@ -29,6 +29,7 @@ public static class CommitmentQuery
         {
             null or "" or "open" => q.Where(c => c.Status == CommitmentStatus.Open),
             "all" => q,
+            "done" => q.Where(c => c.Status == CommitmentStatus.Completed || c.Status == CommitmentStatus.Cancelled),
             _ when Enum.TryParse<CommitmentStatus>(f.Status, true, out var s) => q.Where(c => c.Status == s),
             _ => q
         };
@@ -64,13 +65,15 @@ public static class CommitmentEndpoints
         var g = api.MapGroup("/commitments").WithTags("Commitments");
 
         g.MapGet("", async (long? clientId, long? teamId, long? ownerId, WorkScope? scope, CommitmentType? type, string? status, string? due, bool? late, bool? stale, long? projectId, long? caseId, string? q,
-            DateTimeOffset? completedFrom, DateTimeOffset? completedTo, bool? deactivatedOwner, string? country, long? productId, DateTimeOffset? asOf, string? sort, int? page, int? pageSize,
+            DateTimeOffset? completedFrom, DateTimeOffset? completedTo, bool? deactivatedOwner, string? country, long? productId, DateTimeOffset? asOf, string? sort, int? page, int? pageSize, int? upcomingDays,
             HubDbContext db, HubAccess access, HubSettings settings, CancellationToken ct) =>
         {
             access.RequireBusiness();
             var now = asOf ?? DateTimeOffset.UtcNow;
+            var windowDays = upcomingDays ?? await settings.UpcomingDaysAsync(ct);
+            if (windowDays is < 1 or > 90) throw new ValidationException("upcomingDays", "Choose a value from 1 to 90 days.");
             var f = new CommitmentFilter(clientId, teamId, ownerId, scope, type, status, due, late, stale, projectId, caseId, q, completedFrom, completedTo, deactivatedOwner, country, productId);
-            var query = CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, await settings.UpcomingDaysAsync(ct), db);
+            var query = CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, windowDays, db);
             var keys = new Dictionary<string, Expression<Func<Commitment, object?>>> { ["due"] = c => c.CurrentDueAt, ["ref"] = c => c.Id, ["status"] = c => c.Status, ["client"] = c => c.Client!.Code, ["owner"] = c => c.Owner!.DisplayName };
             return Results.Ok(await query.SortBy(sort, keys, "due").Select(Row(now)).ToPagedAsync(PageQuery.From(page, pageSize), ct));
         });
@@ -85,7 +88,7 @@ public static class CommitmentEndpoints
             var caseRef = c.CaseId is null ? null : await db.Cases.AsNoTracking().Where(x => x.Id == c.CaseId).Select(x => new { x.Id, x.Ref, x.Title }).FirstOrDefaultAsync(ct);
             var project = c.ProjectId is null ? null : await db.Projects.AsNoTracking().Where(x => x.Id == c.ProjectId).Select(x => new { x.Id, x.Code, x.Name }).FirstOrDefaultAsync(ct);
             var coordinator = await access.UserRefAsync(c.CoordinatorUserId, ct);
-            var maintain = access.Me.SeesScope(c.ClientId, c.ResponsibleTeamId) && access.Me.Can(Role.Engineer);
+            var maintain = access.Me.SeesScope(c.ClientId, c.ResponsibleTeamId) && access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.Maintain);
             return ctx.WithETag(c, new
             {
                 c.Id, c.Ref, c.Scope, c.Description, c.Type, c.Status, c.TimeZone,
@@ -106,7 +109,7 @@ public static class CommitmentEndpoints
 
         g.MapPost("", async (CommitmentInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Engineer);
+            access.Me.RequirePermission(ResourcePermissions.Commitments, ResourcePermissions.Create);
             var now = clock.GetUtcNow();
             var check = new Check();
             check.When(input.Scope is null, "scope", "Select Client-related or Internal.")
@@ -119,7 +122,7 @@ public static class CommitmentEndpoints
             if (input.Scope == WorkScope.Internal && input.ResponsibleTeamId is null) check.Add("responsibleTeamId", "Select the internal team scope.");
             if (input.ClientId is not null && !access.Me.HasClient(input.ClientId.Value)) check.Add("clientId", "Select a client you can access.");
             if (input.Scope == WorkScope.Internal && input.ResponsibleTeamId is not null && !access.Me.SeesInternal(input.ResponsibleTeamId)) check.Add("responsibleTeamId", "You have no internal scope for this team.");
-            if (input.OwnerUserId is not null && input.OwnerUserId != access.Me.UserId && !access.Me.IsLead) check.Add("ownerUserId", "Only the TIO Manager can make someone else the owner. Choose yourself.");
+            if (input.OwnerUserId is not null && input.OwnerUserId != access.Me.UserId && !access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.Coordinate)) check.Add("ownerUserId", "Commitment coordination permission is required to assign someone else. Choose yourself.");
             await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, input.ClientId, input.ResponsibleTeamId, "the owner", ct);
             await access.CheckAssignableAsync(check, "coordinatorUserId", input.CoordinatorUserId, input.ClientId, input.ResponsibleTeamId, "the coordinator", ct);
             await CheckLinksAsync(check, db, input.ClientId, input.ResponsibleTeamId, input.CaseId, input.ProjectId, ct);
@@ -141,11 +144,11 @@ public static class CommitmentEndpoints
         g.MapPut("/{id:long}", async (long id, CommitmentUpdateInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             var check = new Check().Text("description", input.Description, 2000, "the description", true).When(input.Type is null, "type", "Select the type.")
                 .When(input.OwnerUserId is null, "ownerUserId", "Select the accountable owner.").Text("responsibleOrganization", input.ResponsibleOrganization, 150, "Responsible organization");
-            access.CheckOwnerChange(check, "ownerUserId", c.OwnerUserId, input.OwnerUserId);
+            access.CheckOwnerChange(check, "ownerUserId", c.OwnerUserId, input.OwnerUserId, resource: ResourcePermissions.Commitments);
             await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, c.ClientId, c.ResponsibleTeamId, "the owner", ct);
             await access.CheckAssignableAsync(check, "coordinatorUserId", input.CoordinatorUserId, c.ClientId, c.ResponsibleTeamId, "the coordinator", ct);
             await CheckLinksAsync(check, db, c.ClientId, c.ResponsibleTeamId, input.CaseId, input.ProjectId, ct);
@@ -172,7 +175,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/revise", async (long id, ReviseInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("dueLocal", "Only open commitments can be revised. Reopen it first.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reason for the revision");
@@ -191,22 +194,22 @@ public static class CommitmentEndpoints
             return Results.NoContent();
         });
 
-        // COM-03 / Section 5.4: completion needs a time (not before creation, not in the future) and evidence. Late stays Completed with a derived result.
+        // Completion time is allowed before creation for backfilled records, but cannot precede the deadline or be in the future.
         g.MapPost("/{id:long}/complete", async (long id, CompleteInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("completedAt", "Only open commitments can be completed.");
             var now = clock.GetUtcNow();
             var check = new Check().When(input.CompletedAt is null, "completedAt", "Enter when the commitment was fulfilled.")
                 .When(input.CompletedAt > now.AddMinutes(1), "completedAt", "The completion time cannot be in the future.")
-                .When(input.CompletedAt < c.CreatedAt, "completedAt", "The completion time cannot be before the commitment was created.")
-                .Text("evidence", input.Evidence, 1000, "the completion evidence or reference", true);
+                .When(input.CompletedAt < c.CurrentDueAt, "completedAt", "The completion time cannot be before the commitment deadline.")
+                .Text("evidence", input.Evidence, 1000, "the completion evidence or reference");
             check.ThrowIfAny();
             c.Status = CommitmentStatus.Completed;
             c.CompletedAt = input.CompletedAt;
-            c.CompletionEvidence = input.Evidence!.Trim();
+            c.CompletionEvidence = Text.Clean(input.Evidence);
             c.DueAtCompletion = c.CurrentDueAt;
             c.CompletedLate = input.CompletedAt > c.CurrentDueAt;
             c.LastReviewedAt = now;
@@ -218,7 +221,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/cancel", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("reason", "Only open commitments can be cancelled.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the cancellation reason");
@@ -235,7 +238,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/reopen", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             if (c.Status == CommitmentStatus.Open) throw new ValidationException("reason", "The commitment is already open.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reopening reason");
@@ -256,12 +259,12 @@ public static class CommitmentEndpoints
 
     public sealed record CommitmentRow(long Id, string Ref, WorkScope Scope, string Description, CommitmentType Type, CommitmentStatus Status, long? ClientId, string? ClientCode,
         string? TeamName, long? OwnerUserId, string? OwnerName, bool OwnerDeactivated, DateTimeOffset OriginalDueAt, DateTimeOffset CurrentDueAt, string TimeZone,
-        int RevisionCount, DateTimeOffset? CompletedAt, bool? CompletedLate, bool Overdue, DateTimeOffset? NextReviewAt);
+        int RevisionCount, DateTimeOffset? CompletedAt, bool? CompletedLate, bool Overdue, DateTimeOffset? NextReviewAt, long? TeamId = null);
 
     public static Expression<Func<Commitment, CommitmentRow>> Row(DateTimeOffset now) => c => new CommitmentRow(c.Id, c.Ref, c.Scope, c.Description, c.Type, c.Status,
         c.ClientId, c.Client == null ? null : c.Client.Code, c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, c.OwnerUserId, c.Owner == null ? null : c.Owner.DisplayName,
         c.Owner != null && !c.Owner.IsActive, c.OriginalDueAt, c.CurrentDueAt, c.TimeZone, c.RevisionCount, c.CompletedAt, c.CompletedLate,
-        c.Status == CommitmentStatus.Open && c.CurrentDueAt < now, c.NextReviewAt);
+        c.Status == CommitmentStatus.Open && c.CurrentDueAt < now, c.NextReviewAt, c.ResponsibleTeamId);
 
     /// <summary>Derived outcome separate from status (COM-03).</summary>
     public static string Timeliness(Commitment c, DateTimeOffset now) => c.Status switch

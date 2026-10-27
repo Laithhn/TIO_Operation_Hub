@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { get, qs, type Paged } from '../api';
 import { fmtDateTime } from '../format';
-import { useCan, useMe, useReference } from '../hooks';
+import { useMe, useReference } from '../hooks';
 import { DataTable, Panel, StateMessage, TextInput, type Option } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 
@@ -50,10 +50,6 @@ export function Changes({ json }: { json?: string | null }) {
   let d: Record<string, [unknown, unknown]> = {};
   try { d = JSON.parse(json); } catch { return <span className="mono">{json}</span>; }
   return <span style={{ fontSize: 11.5 }}>{Object.entries(d).map(([k, v]) => <div key={k}><b>{k}</b>: {String(v?.[0] ?? '∅')} → {String(v?.[1] ?? '∅')}</div>)}</span>;
-}
-
-export function CanEdit({ children }: { children: React.ReactNode }) {
-  return useCan('Engineer') ? <>{children}</> : null;
 }
 
 export function RecordLink({ type, id, children }: { type: string; id: number; children: React.ReactNode }) {

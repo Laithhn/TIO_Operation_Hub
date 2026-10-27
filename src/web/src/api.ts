@@ -78,7 +78,7 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
 export const get = <T>(path: string) => api<T>(path);
 export const post = <T = unknown>(path: string, body?: unknown, version?: string) => api<T>(path, { method: 'POST', body: body ?? {}, version });
 export const put = <T = unknown>(path: string, body: unknown, version?: string) => api<T>(path, { method: 'PUT', body, version });
-export const del = <T = unknown>(path: string, version?: string) => api<T>(path, { method: 'DELETE', version });
+export const del = <T = unknown>(path: string, version?: string, body?: unknown) => api<T>(path, { method: 'DELETE', version, body });
 
 /** A46: multipart upload (the browser sets the boundary); same antiforgery header and error handling as the JSON calls. */
 export async function upload<T = unknown>(path: string, form: FormData): Promise<T> {

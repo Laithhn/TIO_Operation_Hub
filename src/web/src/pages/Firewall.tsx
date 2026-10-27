@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { get, post, put, qs, type Paged } from '../api';
-import { useCan, useForm, useMe, useRefresh, useUrlState } from '../hooks';
+import { usePermission, useForm, useMe, useRefresh, useUrlState } from '../hooks';
 import { Badge, DataTable, DeleteAction, Dialog, FormError, PageHead, Pager, SelectInput, StateMessage, TextInput, useToast, type Column } from '../ui/kit';
 import { toNum, useClientOptions } from './common';
 
@@ -43,14 +43,15 @@ export function FirewallRuleList() {
   const me = useMe().data!;
   const q = useQuery({ queryKey: ['firewall-rules', f], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs(f)}`), enabled: me.grants.technicalDetail });
   const clients = useClientOptions();
-  const canEng = useCan('Engineer');
+  const canEng = usePermission('OtherOperations', 'Maintain');
+  const canCreate = usePermission('OtherOperations', 'Create');
   const [edit, setEdit] = useState<RuleRow | 'new' | null>(null);
   const filtered = !!(f.clientId || f.protocol || f.q);
   return (
     <>
       <PageHead title="Firewall rules" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/environments', label: 'Environments' }, { label: 'Firewall rules' }]}
         sub="The allowed communication between servers: source, destination, ports, protocol, direction and purpose. Recorded configuration, not a live firewall export."
-        actions={canEng && me.grants.technicalDetail && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New rule</button>} />
+        actions={canCreate && me.grants.technicalDetail && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New rule</button>} />
       <TechGate>
         <div className="toolbar">
           <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v, page: '1' })} options={clients} empty="All authorized clients" />
@@ -69,13 +70,14 @@ export function FirewallRuleList() {
 /** Rules of one environment or touching one server, for the environment tab and the server page. */
 export function FirewallRulesPanel({ environmentId, assetId, clientId }: { environmentId?: number; assetId?: number; clientId: number }) {
   const me = useMe().data!;
-  const canEng = useCan('Engineer');
+  const canEng = usePermission('OtherOperations', 'Maintain');
+  const canCreate = usePermission('OtherOperations', 'Create');
   const [edit, setEdit] = useState<RuleRow | 'new' | null>(null);
   const q = useQuery({ queryKey: ['firewall-rules', { environmentId, assetId }], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs({ environmentId, assetId, pageSize: 200 })}`), enabled: me.grants.technicalDetail });
   if (!me.grants.technicalDetail) return <StateMessage kind="restricted">Firewall rules need the Technical detail right.</StateMessage>;
   return (
     <>
-      {canEng && <div className="toolbar"><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New firewall rule</button></div>}
+      {canCreate && <div className="toolbar"><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New firewall rule</button></div>}
       <DataTable<RuleRow> caption="Firewall rules" rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} columns={ruleColumns(canEng ? r => setEdit(r) : null, false)} />
       {edit && <RuleDialog rule={edit === 'new' ? null : edit} clientId={clientId} sourceAssetId={assetId} onClose={() => setEdit(null)} />}
     </>

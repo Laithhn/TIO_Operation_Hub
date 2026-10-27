@@ -15,6 +15,7 @@ public static class ReferenceData
 {
     private static readonly Dictionary<string, (string Code, string? Description)[]> Lookups = new()
     {
+        [LookupLists.OrganizationRelationshipType] = [("Client", null), ("Contractor", null), ("Subcontractor", null), ("Sub-subcontractor", null), ("Supplier", null), ("Partner", null), ("Consultant", null), ("Vendor", null), ("Service Provider", null), ("Other", null)],
         [LookupLists.ComponentRole] = [("Web", null), ("Application", null), ("Database", null), ("Import", null), ("Workflow", null), ("ANPR", null), ("Media", null), ("Reporting", null), ("Monitoring", null), ("Other", null)],
         [LookupLists.AssetRole] = [("Application server", null), ("Web server", null), ("Database server", null), ("Listener", null), ("Load balancer", null), ("Storage", null), ("Other", null)],
         [LookupLists.NetworkZone] = [("DMZ", null), ("Internal", null), ("Management", null), ("Client LAN", null)],
@@ -26,7 +27,9 @@ public static class ReferenceData
             ("Critical", "Proposed: service down for a client; criteria to be agreed before the pilot."),
             ("High", "Proposed: significant degradation; criteria to be agreed before the pilot."),
             ("Normal", "Proposed: limited impact; criteria to be agreed before the pilot."),
-            ("Low", "Proposed: no customer impact; criteria to be agreed before the pilot.")]
+            ("Low", "Proposed: no customer impact; criteria to be agreed before the pilot.")],
+        [LookupLists.ConditionLabel] = [("Unknown", null), ("Healthy", null), ("Degraded", null), ("Unavailable", null)],
+        [LookupLists.CaseStatusLabel] = [("New", null), ("Triaged", null), ("InProgress", null), ("PendingValidation", null), ("Closed", null), ("Cancelled", null)]
     };
 
     private static readonly (string Key, string Value, string Description)[] Settings =
