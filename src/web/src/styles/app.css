@@ -452,7 +452,7 @@ table.grid th .grid-sort{white-space:nowrap}
 
 /* sticky section navigation */
 /* Section navigation styled as the VtWebGuiFramework TabBar (title items, primary marker line under the current one). */
-.dash-nav{position:sticky;top:calc(-1 * var(--space-s));z-index:40;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;background:var(--bg);
+.dash-nav{position:sticky;top:calc(-1 * var(--space-s));z-index:40;display:flex;gap:0;overflow-x:auto;scrollbar-width:none;background:var(--bg);box-shadow:0 6px 8px -6px rgba(55,70,80,.25);
   padding:var(--space-xxs) 0 0;margin:0 0 var(--space-xs);border-bottom:1px solid var(--navy)}
 .dash-nav::-webkit-scrollbar{display:none}
 .dash-nav a{white-space:nowrap;padding:var(--space-xxs) var(--space-s);font-size:var(--fs);font-weight:600;color:var(--fg-2);text-decoration:none;border-bottom:4px solid transparent}

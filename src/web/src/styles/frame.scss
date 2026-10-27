@@ -24,7 +24,9 @@ body .hub-app.hub-app {
       ". viAreaFooter .";
   }
 }
-body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini) minmax(0, 1fr) 0; }
+@media (min-width: 901px) {
+  body.side-mini .hub-app.hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini) minmax(0, 1fr) 0; }
+}
 
 .skip {
   position: absolute; left: -9999px; top: 0; z-index: 100;
@@ -84,16 +86,24 @@ body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini)
     border: 1px solid vt.layout(dividerColor, soft); background: vt.color(offWhite); color: vt.color(primary); cursor: pointer;
   }
 }
-body.side-mini .side {
-  [class*="title__title"] p, [class*="menuNode__caption"], [class*="menuNode__isSubmenuNode"] { display: none; }
-  .side-collapse svg { transform: rotate(180deg); }
+@media (min-width: 901px) {
+  // Collapsed: the framework's first sidebar has a fixed width (layout firstSidebar.width), so it is narrowed here to the
+  // collapsed grid column; only the menu icons remain, centred.
+  body.side-mini .side {
+    width: var(--side-mini);
+    overflow: hidden;
+    [class*="title__title"], [class*="menuNode__caption"], [class*="menuNode__isSubmenuNode"] { display: none; }
+    [class*="menuNode__link"] { grid-template-columns: 1fr; justify-items: center; padding-left: 0; padding-right: vt.spacePx(small); }
+    .side-collapse { right: 50%; transform: translateX(50%); }
+    .side-collapse svg { transform: rotate(180deg); }
+  }
 }
 
 // ---------- main scope ----------
 .content {
   overflow: auto;
   min-width: 0;
-  background: vt.color(lightGray);
+  background: vt.color("lightGray");
   padding: vt.spacePx(normal) vt.spacePx(large) vt.spacePx(large);
   outline: none;
 }
@@ -124,7 +134,8 @@ body.side-mini .side {
 // ---------- tablet / phone: the first sidebar becomes an off-canvas drawer ----------
 .scrim-nav { display: none; }
 @media (max-width: 900px) {
-  .hub-app.with-sidebar, body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
+  // same specificity as the column rules above, so the drawer layout wins on narrow screens
+  body .hub-app.hub-app.with-sidebar, body.side-mini .hub-app.hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
   .hdr .menu-btn { display: inline-flex; align-items: center; }
   .hub-app.bare .hdr .menu-btn { display: none; }
   .hdr [class*="headerLogo__headerLogo"] { min-width: auto; flex: none; padding: 0 vt.spacePx(small); }

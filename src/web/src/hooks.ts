@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBlocker, useSearchParams } from 'react-router';
 import { ApiError, get } from './api';
 import { label } from './format';
@@ -121,12 +121,16 @@ export function useForm<T extends Record<string, unknown>>(initial: T) {
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const dirty = useMemo(() => JSON.stringify(values) !== JSON.stringify(base), [values, base]);
+  // The tab-close guard reads a ref: a successful submit clears it at once, so a page that navigates right after
+  // saving (location.assign, e.g. sign-in) is not asked "Leave site?" before React has re-rendered.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
 
   useEffect(() => {
-    const h = (e: BeforeUnloadEvent) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } };
+    const h = (e: BeforeUnloadEvent) => { if (dirtyRef.current) { e.preventDefault(); e.returnValue = ''; } };
     window.addEventListener('beforeunload', h);
     return () => window.removeEventListener('beforeunload', h);
-  }, [dirty]);
+  }, []);
 
   const set = useCallback(<K extends keyof T>(k: K, v: T[K]) => setValues(p => ({ ...p, [k]: v })), []);
   const reset = useCallback((v: T) => { setValues(v); setBase(v); setError(null); }, []);
@@ -136,6 +140,7 @@ export function useForm<T extends Record<string, unknown>>(initial: T) {
     setError(null);
     try {
       const r = await fn(values);
+      dirtyRef.current = false;
       setBase(values);
       return r;
     } catch (e) {

@@ -645,10 +645,10 @@ export function Reports() {
           <button className="btn btn-primary" onClick={() => { setU({ tab: 'catalog', report: '' }); setTimeout(() => searchRef.current?.focus(), 50); }}>+ New report</button>
         </>} />
       <div className="kpis rc-kpis" aria-label="Reporting summary">
-        <Kpi icon={<Icon name="report" size={18} />} label="Available reports" value={s?.availableReports ?? '—'} context="Reports you can generate with your access" />
-        <Kpi icon={<Icon name="download" size={18} />} label="Exports generated today" value={s?.exportsToday ?? '—'} context="Your completed exports since midnight" to="/reports?tab=history" />
-        <Kpi icon={<Icon name="history" size={18} />} label="Scheduled reports" value={s?.scheduledReports ?? '—'} context="Your active schedules" to="/reports?tab=schedules" />
-        <Kpi icon={<Icon name="bell" size={18} />} label="Failed exports" value={s?.failedExports ?? '—'} tone={s?.failedExports ? 'warning' : undefined} context="Yours, last 30 days" to="/reports?tab=history" />
+        <Kpi icon={<Icon name="report" size={18} />} accent="primary" label="Available reports" value={s?.availableReports ?? '—'} context="Reports you can generate with your access" />
+        <Kpi icon={<Icon name="download" size={18} />} accent="attention" label="Exports generated today" value={s?.exportsToday ?? '—'} context="Your completed exports since midnight" to="/reports?tab=history" />
+        <Kpi icon={<Icon name="history" size={18} />} accent="green" label="Scheduled reports" value={s?.scheduledReports ?? '—'} context="Your active schedules" to="/reports?tab=schedules" />
+        <Kpi icon={<Icon name="bell" size={18} />} accent="red" label="Failed exports" value={s?.failedExports ?? '—'} tone={s?.failedExports ? 'warning' : undefined} context="Yours, last 30 days" to="/reports?tab=history" />
       </div>
       {s && <p className="hint rc-policy">Exports contain only rows you are authorized to see, with the generation time, time zone, filters and column definitions. Files are kept for {s.retentionDays} days and only you can download yours; every export is audited. One export holds at most {s.maxRows.toLocaleString()} rows.</p>}
       <Tabs value={u.tab} onChange={k => setU({ tab: k, report: '', export: '' })} tabs={[{ key: 'catalog', label: 'Report catalog' }, { key: 'history', label: 'Export history' }, { key: 'schedules', label: 'Scheduled reports' }]} />

@@ -205,14 +205,16 @@ export const normalizeCountry = (c: string) => ALIASES[c.trim().toLowerCase()] ?
 // ---------- executive KPI tile ----------
 // A headline number with an optional meter (part of a whole, same blue track) and a context line.
 // The whole tile is a link to the list whose total equals the number.
-export function Kpi({ value, label, context, part, of, partLabel, tone, valueTone, to, hero, icon }: {
-  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; valueTone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode;
+/** Accent colours of the KPI tiles: VtWebGuiFramework colours (primary, attention, calmingGreen, attentionHigh, signalError, structureSilver). */
+export type KpiAccent = 'primary' | 'attention' | 'green' | 'amber' | 'red' | 'silver';
+export function Kpi({ value, label, context, part, of, partLabel, tone, valueTone, to, hero, icon, accent = 'primary' }: {
+  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; valueTone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode; accent?: KpiAccent;
 }) {
   const nav = useNavigate();
   const pct = part !== undefined && of ? Math.min(100, (part / of) * 100) : null;
   const fill = tone === 'critical' ? STATUS.critical : tone === 'warning' ? STATUS.warning : SERIES.blue;
   return (
-    <div className={`kpi${hero ? ' hero' : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
+    <div className={`kpi accent-${tone === 'critical' ? 'red' : tone === 'warning' ? 'amber' : accent}${hero ? ' hero' : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
       onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
       aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${to ? '. Open list' : ''}`}>
       <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>

@@ -14,14 +14,14 @@
   --attention-high: #{vt.color(attentionHigh)};
 
   // surfaces (dashboard canvas, sidebar / toolbar / sections)
-  --bg: #{vt.color(lightGray)};
+  --bg: #{vt.color("lightGray")};
   --strip: #{vt.color(offWhite)};
   --surface: #{vt.color(offWhite)};
   --surface-2: #{vt.color(paleGray)};
   --row-hover: #{vt.colorA(structureSilver, 0.08)};
 
   // lines
-  --line: #{vt.color(lightGray)};
+  --line: #{vt.color("lightGray")};
   --line-strong: #{vt.layout(dividerColor, soft)};
 
   // text (typo colours, dark theme = on light backgrounds)

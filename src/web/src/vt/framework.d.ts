@@ -12,7 +12,7 @@ declare module '@vt/*' {
     Button: any, Input: any, SelectBox: any, TabBar: any, TabBarTitleItem: any, Icon: any, Spinner: any, ValueField: any,
     ColumnsSelectionCard: any, DataTable: any, Section: any, Toolbar: any, ToolbarContrItem: any, Card: any,
     getIconPath: any, iconExists: any, viewbox: any, Marker: any,
-    i18nSlice: any, storageSlice: any, configureReduxStore: (config: Element) => any;
+    i18nSlice: any, storageSlice: any, getViewportDims: () => unknown, throttle: (f: () => void, ms: number) => () => void, setViewportDimensions: (d: unknown) => any, configureReduxStore: (config: Element) => any;
 }
 declare module '*.xml?raw' { const s: string; export default s; }
 declare module '*.svg?raw' { const s: string; export default s; }

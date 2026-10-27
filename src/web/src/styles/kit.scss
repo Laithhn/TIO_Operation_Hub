@@ -9,7 +9,7 @@ $control: vt.layout(controls, heightDefault);
 
 // ---------- base (framework assets/styles/index.scss sets the reset, html 17px and Open Sans) ----------
 html, body { height: 100%; }
-body { background: vt.color(lightGray); color: vt.typo(color, dark, normal); font-size: vt.typo(fontSize, small); line-height: vt.typo(lineHeight, normal); -webkit-font-smoothing: antialiased; }
+body { background: vt.color("lightGray"); color: vt.typo(color, dark, normal); font-size: vt.typo(fontSize, small); line-height: vt.typo(lineHeight, normal); -webkit-font-smoothing: antialiased; }
 h1, h2, h3 { color: vt.typo(color, dark, normal); }
 a { color: vt.typo(color, dark, attention); text-decoration: none; }
 a:hover { text-decoration: underline; }
@@ -99,7 +99,7 @@ textarea.input { height: auto; min-height: 76px; padding: vt.spacePx(xs); resize
 
 // ---------- sections (components/layouts/section + toolbar title "title" set) ----------
 .panel { background: vt.color(offWhite); margin-bottom: vt.spacePx(normal); box-shadow: vt.layout(controls, surface, contact, dark); }
-.panel-head { display: flex; align-items: center; gap: vt.spacePx(small); min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(normal); border-bottom: 1px solid vt.color(lightGray); flex-wrap: wrap;
+.panel-head { display: flex; align-items: center; gap: vt.spacePx(small); min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(normal); border-bottom: 1px solid vt.color("lightGray"); flex-wrap: wrap;
   h2 { @include vt.typoSet(title, $disabled: false); }
   .actions { margin-left: auto; display: flex; gap: vt.spacePx(xs); flex-wrap: wrap; align-items: center; }
 }
@@ -122,11 +122,11 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
 .grid-filter-value { margin-top: vt.spacePx(xs); }
 .grid-custom-filter > * { width: 100%; min-width: 0; }
 .grid-filter-actions { display: flex; justify-content: flex-end; gap: vt.spacePx(xs); margin-top: vt.spacePx(small); }
-.grid td { padding: vt.spacePx(xxs) vt.spacePx(small); height: #{$control + 4}px; border-bottom: 1px solid vt.color(lightGray); vertical-align: middle; }
+.grid td { padding: vt.spacePx(xxs) vt.spacePx(small); height: #{$control + 4}px; border-bottom: 1px solid vt.color("lightGray"); vertical-align: middle; }
 .grid tbody tr:hover td { background: vt.colorA(structureSilver, 0.08); }
 .grid td.num, .grid th.num { text-align: right; }
 .grid .state td { text-align: center; color: vt.typo(color, dark, weak); padding: vt.spacePx(normal) vt.spacePx(xs); }
-.pager { display: flex; align-items: center; gap: vt.spacePx(normal); background: vt.color(offWhite); padding: vt.spacePx(xs) vt.spacePx(normal); border-top: 1px solid vt.color(lightGray); color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); flex-wrap: wrap;
+.pager { display: flex; align-items: center; gap: vt.spacePx(normal); background: vt.color(offWhite); padding: vt.spacePx(xs) vt.spacePx(normal); border-top: 1px solid vt.color("lightGray"); color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); flex-wrap: wrap;
   .right { margin-left: auto; display: flex; align-items: center; gap: vt.spacePx(small); }
   select { height: 24px; border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; background: transparent; padding: 0 vt.spacePx(xxs); }
   button { border: 0; color: vt.typo(color, dark, normal); font-weight: vt.typo(fontWeight, semibold); text-transform: uppercase; font-size: vt.typo(fontSize, xs);
@@ -136,7 +136,7 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
 
 // ---------- status markers (indicators/statusMarker colours: calmingGreen OK, attentionHigh warning, signalError error) ----------
 .badge { display: inline-flex; align-items: center; gap: vt.spacePx(xxs); padding: 0 vt.spacePx(xs); font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); line-height: 1.8; white-space: nowrap; color: vt.typo(color, dark, normal); background: vt.color(paleGray);
-  &::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: vt.color(gray); flex: none; }
+  &::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: vt.color("gray"); flex: none; }
   &.good { background: vt.colorA(calmingGreen, 0.16); &::before { background: vt.color(calmingGreen); } }
   &.warn { background: vt.colorA(attentionHigh, 0.16); &::before { background: vt.color(attentionHigh); } }
   &.bad { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); &::before { background: vt.color(signalError); } }
@@ -146,7 +146,7 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
   .badge-marker { display: inline-flex; line-height: 0; > span { display: inline-flex; } }
 }
 .vt-spinner { display: inline-flex; line-height: 0; }
-.chip { display: inline-block; padding: 0 vt.spacePx(xs); background: vt.color(lightGray); font-size: vt.typo(fontSize, xs); white-space: nowrap; color: vt.typo(color, dark, normal); }
+.chip { display: inline-block; padding: 0 vt.spacePx(xs); background: vt.color("lightGray"); font-size: vt.typo(fontSize, xs); white-space: nowrap; color: vt.typo(color, dark, normal); }
 .state-msg { display: flex; gap: vt.spacePx(xs); align-items: flex-start; padding: vt.spacePx(small); font-size: vt.typo(fontSize, small); background: vt.color(paleGray); color: vt.typo(color, dark, weak);
   &.restricted { background: vt.colorA(attentionHigh, 0.16); color: vt.typo(color, dark, normal); }
   &.error { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); }
@@ -167,7 +167,7 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
 
 // ---------- tabular (layouts/tabular, LINE style: label column, value column, divider lines) ----------
 .dl { display: grid; grid-template-columns: minmax(160px, max-content) 1fr; font-size: vt.typo(fontSize, small);
-  dt, dd { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color(lightGray); }
+  dt, dd { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color("lightGray"); }
   dt { @include vt.typoSet(label, $disabled: false); padding-right: vt.spacePx(normal); }
   dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 }
@@ -181,7 +181,7 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
   }
 }
 .timeline { list-style: none; margin: 0; padding: 0;
-  li { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color(lightGray); font-size: vt.typo(fontSize, small); }
+  li { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color("lightGray"); font-size: vt.typo(fontSize, small); }
   .when { color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); }
 }
 .tree { list-style: none; margin: 0; padding: 0;
@@ -193,7 +193,7 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
   .field { width: 200px; }
 }
 // spinner (helpers/spinner, circle)
-.spin { width: 16px; height: 16px; border: 2px solid vt.color(lightGray); border-top-color: vt.color(attention); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
+.spin { width: 16px; height: 16px; border: 2px solid vt.color("lightGray"); border-top-color: vt.color(attention); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 // ---------- dialogs (popups/dialog + card: dimmed background, level-3 shadow, toolbar header), notifications, search ----------
@@ -231,3 +231,23 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
 .vt-filter-card { display: grid; gap: vt.spacePx(small); max-height: 60vh; }
 .vt-filter-row { display: grid; grid-template-columns: 9rem 1fr; gap: vt.spacePx(xs); align-items: center; }
 .vt-filter-pair { display: grid; grid-template-columns: 11rem 1fr; gap: vt.spacePx(xs); }
+
+// ---------- KPI tiles (ui/charts.tsx Kpi): coloured surfaces in the framework colours ----------
+// Each tile carries an accent: a tinted ground, a solid band on the leading edge and a filled icon tile.
+.kpi {
+  &.accent-primary { --kpi-accent: #{vt.color(primary)}; --kpi-tint: #{vt.colorA(primary, 0.1)}; }
+  &.accent-attention { --kpi-accent: #{vt.typo(color, dark, attention)}; --kpi-tint: #{vt.colorA(attention, 0.17)}; }
+  &.accent-green { --kpi-accent: #{vt.color(calmingGreen)}; --kpi-tint: #{vt.colorA(calmingGreen, 0.2)}; }
+  &.accent-amber { --kpi-accent: #{vt.color(attentionHigh)}; --kpi-tint: #{vt.colorA(attentionHigh, 0.18)}; }
+  &.accent-red { --kpi-accent: #{vt.color(signalError)}; --kpi-tint: #{vt.colorA(signalError, 0.11)}; }
+  &.accent-silver { --kpi-accent: #{vt.color(structureSilver)}; --kpi-tint: #{vt.colorA(structureSilver, 0.12)}; }
+}
+.kpi:not(.hero)[class*="accent-"], .dash .kpi:not(.hero)[class*="accent-"] {
+  background: linear-gradient(var(--kpi-tint), var(--kpi-tint)), vt.color(offWhite);
+  border: 0; border-left: 5px solid var(--kpi-accent);
+  border-radius: vt.layoutPx(modwins, borderRadius);
+  box-shadow: vt.layout(controls, surface, contact, dark);
+  .kpi-ic { background: var(--kpi-accent); color: vt.color(offWhite); border-radius: vt.spacePx(xs); svg { fill: currentColor; } }
+  .kpi-meter > span { background: var(--kpi-accent) !important; }
+  &.link:hover { background: linear-gradient(var(--kpi-tint), var(--kpi-tint)), linear-gradient(var(--kpi-tint), var(--kpi-tint)), vt.color(offWhite); }
+}
