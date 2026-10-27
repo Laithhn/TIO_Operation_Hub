@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
@@ -696,24 +696,36 @@ const SECTIONS = [
 /** A51: sticky section navigation; the section in view is highlighted. */
 function DashNav() {
   const [active, setActive] = useState('overview');
+  // A clicked section stays current while the smooth scroll runs (sections near the end cannot reach the top);
+  // the user's own scrolling (wheel, touch, keys) hands control back to the position tracking.
+  const pinned = useRef<string | null>(null);
   useEffect(() => {
     // The current section is the last one whose top has passed under the sticky bar.
     const onScroll = () => {
+      if (pinned.current) { setActive(pinned.current); return; }
       let cur = SECTIONS[0].id;
+      const limit = (document.getElementById('main')?.getBoundingClientRect().top ?? 0) + 60;
       for (const x of SECTIONS) {
         const top = document.getElementById(x.id)?.getBoundingClientRect().top;
-        if (top !== undefined && top <= 140) cur = x.id;
+        if (top !== undefined && top <= limit) cur = x.id;
       }
       setActive(cur);
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    // The VtWebGuiFramework frame scrolls the main scope (#main), not the window.
+    const scroller: HTMLElement | Window = document.getElementById('main') ?? window;
+    const release = () => { pinned.current = null; };
+    scroller.addEventListener('scroll', onScroll, { passive: true });
+    for (const ev of ['wheel', 'touchstart', 'keydown'] as const) scroller.addEventListener(ev, release, { passive: true });
+    return () => {
+      scroller.removeEventListener('scroll', onScroll);
+      for (const ev of ['wheel', 'touchstart', 'keydown'] as const) scroller.removeEventListener(ev, release);
+    };
   }, []);
   return (
     <nav className="dash-nav" aria-label="Dashboard sections">
       {SECTIONS.map(x => (
         <a key={x.id} href={`#${x.id}`} aria-current={active === x.id ? 'true' : undefined}
-          onClick={e => { e.preventDefault(); document.getElementById(x.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setActive(x.id); }}>{x.label}</a>
+          onClick={e => { e.preventDefault(); pinned.current = x.id; document.getElementById(x.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); setActive(x.id); }}>{x.label}</a>
       ))}
     </nav>
   );

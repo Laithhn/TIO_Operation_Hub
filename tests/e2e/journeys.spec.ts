@@ -36,20 +36,29 @@ test.describe('Shell and visual language', () => {
     await expect(aliasHeader).toHaveAttribute('aria-sort', 'descending');
     await expect(page.getByText(/Records :- \d+ OF \d+/)).toBeVisible();
     await expect(page.locator('footer.status')).toContainText('User : DEV\\manager');
+    // VtWebGuiFramework 3.6.1 frame (owner decision 27 Oct 2026: framework tokens in full): primary #001e46 header,
+    // 17px root, light marker block under the active primary link, bulge marker in the first sidebar.
     const hdr = await page.locator('header.hdr').evaluate(e => getComputedStyle(e).backgroundColor);
-    expect(hdr).toBe('rgb(12, 27, 55)');
-    const active = await page.locator('.topnav a[aria-current="page"]').evaluate(e => getComputedStyle(e).backgroundColor);
-    expect(active).toBe('rgb(245, 245, 246)');
+    expect(hdr).toBe('rgb(0, 30, 70)');
+    expect(await page.evaluate(() => getComputedStyle(document.documentElement).fontSize)).toBe('17px');
+    const activeLink = page.getByRole('navigation', { name: 'Main' }).locator('a[aria-current="page"]');
+    await expect(activeLink).toHaveClass(/primaryLink__active/);
+    await expect(activeLink).toHaveCSS('color', 'rgb(0, 30, 70)');
+    const marker = await page.getByRole('navigation', { name: 'Main' }).locator('[class*="marker__marker"]').evaluate(e => getComputedStyle(e).backgroundColor);
+    expect(marker).toBe('rgb(250, 251, 252)');
+    await expect(page.locator('aside.side [class*="marker__marker"] circle')).toHaveCount(1);
+    await expect(page.locator('#viMainToolbar h1')).toHaveText('Clients');
     await page.screenshot({ path: 'test-results/visual-clients-1600.png' });
     await page.goto('/');
     // The dashboard's section menu is the only navigation to its other pages (map, actions, reports, data quality).
     await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' })).toBeVisible();
     const upcoming = page.locator('.kpi').filter({ hasText: 'Upcoming commitments' });
     await expect(upcoming).toContainText('Due in the next 14 days');
-    await expect(upcoming.locator('.kpi-v')).toHaveCSS('font-weight', '700');
-    await expect(upcoming.locator('.kpi-v')).toHaveCSS('color', 'rgb(180, 35, 47)');
+    // The KPI number is a framework ValueField in the signalError value colour.
+    const kpiValue = upcoming.locator('.kpi-v [class*="valueField__value__"]');
+    await expect(kpiValue).toHaveCSS('color', 'rgb(176, 0, 32)');
     await expect(upcoming.locator('.critical-text')).toHaveCSS('font-weight', '700');
-    await expect(upcoming.locator('.critical-text')).toHaveCSS('color', 'rgb(180, 35, 47)');
+    await expect(upcoming.locator('.critical-text')).toHaveCSS('color', 'rgb(176, 0, 32)');
     await page.screenshot({ path: 'test-results/visual-dashboard-1600.png' });
     await page.goto('/environments/1');
     await expect(page.getByText('Condition and freshness (separately scoped)')).toBeVisible();

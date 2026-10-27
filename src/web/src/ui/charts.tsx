@@ -1,13 +1,16 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DataTable } from './kit';
+import { Enums, ValueField } from '../vt';
 
 // Chart kit for the dashboard. Rules (validated, see docs/DESIGN-RULES.md):
 // magnitude = one blue ramp; trend = categorical slots 1–2 with a legend + direct end labels;
 // reported condition = reserved status colours, always with a text label; text never wears the series colour.
-export const SERIES = { blue: '#2a78d6', orange: '#eb6834' };
-export const RAMP = ['#86b6ef', '#3987e5', '#256abf', '#184f95', '#0d366b'];
-export const STATUS = { good: '#0ca30c', warning: '#fab219', critical: '#d03b3b', neutral: '#a3a7b0' };
+// VtWebGuiFramework palette: series = attention (dark-text variant, >= 3:1 on offWhite) and attentionHigh; status = the framework
+// signal colours (calmingGreen, attentionHigh, signalError) used by StatusMarker; magnitude ramp = attention towards primary.
+export const SERIES = { blue: '#007db3', orange: '#e6932b' };
+export const RAMP = ['#80d9ff', '#1abbff', '#007db3', '#00507a', '#001e46'];
+export const STATUS = { good: '#5dae95', warning: '#e6932b', critical: '#b00020', neutral: '#a4abb0' };
 
 export type Bar = { key: string; label: string; value: number; link?: string | null };
 
@@ -212,8 +215,12 @@ export function Kpi({ value, label, context, part, of, partLabel, tone, valueTon
     <div className={`kpi${hero ? ' hero' : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
       onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
       aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${to ? '. Open list' : ''}`}>
-      <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}<span className="kpi-name">{label}</span>{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
-      <span className="kpi-v">{value}</span>
+      <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
+      {/* VtWebGuiFramework ValueField: label as title, the number in the XL value size, signal colour for critical/warning values. */}
+      <span className="kpi-v">
+        <ValueField title={label} value={value} valueSize={hero ? Enums.ValueSize.XXL : Enums.ValueSize.XL}
+          darkTheme={!!hero} valueColor={valueTone === 'critical' ? Enums.ValueColor.SIGNAL_ERROR : valueTone === 'warning' ? Enums.ValueColor.SIGNAL_WARNING : Enums.ValueColor.NONE} noWrap />
+      </span>
       {pct !== null && (
         <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>
       )}
@@ -254,7 +261,7 @@ export function PartBar({ data, colorOf, unit }: { data: (Bar & { glyph?: string
 }
 
 // ---------- A39: categorical slots (fixed order, never cycled) ----------
-export const CAT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+export const CAT = ['#007db3', '#e6932b', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
 // ---------- A39: donut (part-to-whole, at most ~6 slices) ----------
 export function Donut({ data, colorOf, unit, centerLabel, size = 148 }: {

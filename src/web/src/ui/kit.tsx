@@ -7,7 +7,7 @@ import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
 import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
 import { createPortal } from 'react-dom';
-import { TabBar, TabBarTitleItem } from '../vt';
+import { Enums, Spinner, StatusMarker, TabBar, TabBarTitleItem } from '../vt';
 
 // ---------- page structure ----------
 
@@ -57,7 +57,7 @@ const EMPTY_TEXT: Record<EmptyKind, string> = {
 };
 
 export function StateMessage({ kind, children }: { kind: EmptyKind | 'error' | 'loading'; children?: ReactNode }) {
-  if (kind === 'loading') return <div className="state-msg" role="status"><span className="spin" /> Loading…</div>;
+  if (kind === 'loading') return <div className="state-msg" role="status"><span className="vt-spinner" aria-hidden="true"><Spinner dim={20} /></span> Loading…</div>;
   const cls = kind === 'restricted' ? 'state-msg restricted' : kind === 'error' ? 'state-msg error' : 'state-msg';
   return <div className={cls} role={kind === 'error' ? 'alert' : undefined}>{children ?? (kind === 'error' ? 'Something went wrong.' : EMPTY_TEXT[kind])}</div>;
 }
@@ -98,8 +98,16 @@ export function FormError({ error, fields }: { error: ApiError | null; fields?: 
 
 // ---------- badges ----------
 
+const MARKER_STATE = { good: 'OK', warn: 'WARNING', bad: 'ERROR' } as const;
+/** Status text with the VtWebGuiFramework StatusMarker glyph (OK / warning / error); informational and neutral states keep a plain dot. */
 export function Badge({ tone = 'neutral', children }: { tone?: 'good' | 'warn' | 'bad' | 'info' | 'neutral'; children: ReactNode }) {
-  return <span className={`badge ${tone}`}>{children}</span>;
+  const state = tone in MARKER_STATE ? MARKER_STATE[tone as keyof typeof MARKER_STATE] : null;
+  return (
+    <span className={`badge ${tone}${state ? ' marked' : ''}`}>
+      {state && <span className="badge-marker" aria-hidden="true"><StatusMarker status={Enums.SystemState[state]} size={14} /></span>}
+      {children}
+    </span>
+  );
 }
 
 const STATUS_TONE: Record<string, 'good' | 'warn' | 'bad' | 'info' | 'neutral'> = {

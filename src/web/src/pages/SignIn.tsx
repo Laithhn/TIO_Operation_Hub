@@ -6,6 +6,7 @@ import { useForm } from '../hooks';
 import { Logo, Icon } from '../ui/Icon';
 import { FormError, StateMessage, TextInput } from '../ui/kit';
 import { computerZone } from '../ui/pickers';
+import { cx, frameCss } from '../vt/frame';
 
 // Forms sign-in screens (Security/AuthEndpoints.cs). They render outside the application shell.
 
@@ -14,10 +15,12 @@ type AuthConfig = { mode: string; setupRequired: boolean; passwordRule: string }
 /** Only same-site relative paths are followed after sign-in (no open redirect). */
 const safeReturn = (v: string | null) => (v && v.startsWith('/') && !v.startsWith('//') && !v.startsWith('/login') ? v : '/');
 
+/** VtWebGuiFramework frame header and footer around a card laid out like the framework's Login popup (title, fields, actions). */
 function AuthFrame({ title, sub, children }: { title: string; sub?: ReactNode; children: ReactNode }) {
+  const f = frameCss;
   return (
     <div className="auth-page">
-      <header className="hdr auth-hdr"><span className="logo"><Logo /><span>VITRONIC</span></span></header>
+      <header className={cx(f.header.header, 'hdr auth-hdr')}><span className={f.logo.logo}><Logo /></span></header>
       <main className="auth-main" id="main">
         <section className="auth-card" aria-labelledby="auth-title">
           <div className="auth-product">TIO Operations Hub</div>
@@ -26,7 +29,7 @@ function AuthFrame({ title, sub, children }: { title: string; sub?: ReactNode; c
           {children}
         </section>
       </main>
-      <footer className="status"><span>© Vitronic</span><span className="app">TIO Operations Hub</span></footer>
+      <footer className={cx(f.footer.footer, 'status')}><span>© VITRONIC</span><span className="app">TIO Operations Hub</span></footer>
     </div>
   );
 }

@@ -107,11 +107,19 @@ body.side-mini .side {
   .env-badge { padding: 0 defines.spacePx(xxs); background: defines.color(attentionHigh); color: defines.color(primary); font-weight: defines.typo(fontWeight, semibold); }
 }
 
+// ---------- phone: primary links keep the room; "+ New" (also in every section sidebar) and the dev switch step aside ----------
+@media (max-width: 600px) {
+  .hdr .hdr-right > :has(> .hdr-select), .hdr .hdr-right > :has(> .menu) { display: none; }
+  .hdr [class*="logo__logo"] svg { width: 92px; }
+  .hdr .hdr-right [class*="secondaryLink__secondaryLink"] { padding-left: defines.spacePx(xxxs); padding-right: defines.spacePx(xxxs); }
+}
+
 // ---------- tablet / phone: the first sidebar becomes an off-canvas drawer ----------
 .scrim-nav { display: none; }
 @media (max-width: 900px) {
   .hub-app.with-sidebar, body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
   .hdr .menu-btn { display: inline-flex; align-items: center; }
+  .hub-app.bare .hdr .menu-btn { display: none; }
   .hdr [class*="logo__logo"] { min-width: auto; flex: none; padding: 0 defines.spacePx(xs); }
   .side {
     position: fixed; left: 0; top: defines.layoutPx(header, height); bottom: 0;

@@ -142,7 +142,10 @@ table.grid { width: 100%; border-collapse: collapse; font-size: defines.typo(fon
   &.bad { background: defines.colorA(signalError, 0.1); color: defines.color(signalError); &::before { background: defines.color(signalError); } }
   &.info { background: defines.colorA(attention, 0.14); &::before { background: defines.color(attention); } }
   &.neutral { color: defines.typo(color, dark, weak); }
+  &.marked::before { display: none; }
+  .badge-marker { display: inline-flex; line-height: 0; > span { display: inline-flex; } }
 }
+.vt-spinner { display: inline-flex; line-height: 0; }
 .chip { display: inline-block; padding: 0 defines.spacePx(xxs); background: defines.color(lightGray); font-size: defines.typo(fontSize, xs); white-space: nowrap; color: defines.typo(color, dark, normal); }
 .state-msg { display: flex; gap: defines.spacePx(xxs); align-items: flex-start; padding: defines.spacePx(xs); font-size: defines.typo(fontSize, small); background: defines.color(paleGray); color: defines.typo(color, dark, weak);
   &.restricted { background: defines.colorA(attentionHigh, 0.16); color: defines.typo(color, dark, normal); }

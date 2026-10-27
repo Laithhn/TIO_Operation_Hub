@@ -1,3 +1,5 @@
+> **Superseded for the look (2.34, DECISIONS A68):** the frontend now follows VtWebGuiFramework 3.6.1. Tokens, frame, controls and icons are described in [FRONTEND-ARCHITECTURE.md](FRONTEND-ARCHITECTURE.md). The rules below for empty states, validation messages, status text labels and chart semantics still apply; the colours and geometry below are historical.
+
 # Design rules derived from the reference screenshot
 
 Reference: VITS "Wanted Plate Management" screen, captured at about 2000 × 722 px (desktop, 1:1 CSS pixels assumed).

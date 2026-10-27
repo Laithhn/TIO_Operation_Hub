@@ -193,7 +193,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
         const v = metric.value(d);
         const isSel = f.properties.name === sel;
         const toggle = () => fns.current.onSelect(isSel ? null : d.country);
-        const base = { color: isSel ? '#0c1b37' : '#ffffff', weight: isSel ? 2.5 : 1, fillColor: v > 0 ? RAMP[step(v)] : '#c9ced6', fillOpacity: isSel ? 0.75 : 0.6 };
+        const base = { color: isSel ? '#001e46' : '#fafbfc', weight: isSel ? 2.5 : 1, fillColor: v > 0 ? RAMP[step(v)] : '#c9ced6', fillOpacity: isSel ? 0.75 : 0.6 };
         L.geoJSON(f as never, { style: base })
           .bindTooltip(tip(f.properties.name, d), { sticky: true, className: 'osm-tip' }).on('click', toggle)
           .on('mouseover', e => (e.target as L.GeoJSON).setStyle({ fillOpacity: 0.85, weight: 2 }))

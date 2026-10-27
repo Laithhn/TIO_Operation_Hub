@@ -52,6 +52,7 @@
   --fs-md: #{defines.typo(fontSize, normal)};
   --fs-title: #{defines.typo(fontSize, semilarge)};
   --fs-headline: #{defines.typo(fontSize, large)};
+  --fs-xl: #{defines.typo(fontSize, xl)};
 
   // geometry
   --hdr: #{defines.layoutPx(header, height)};
