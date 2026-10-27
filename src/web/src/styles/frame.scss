@@ -39,8 +39,11 @@ body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini)
   .hdr-right { flex: none; }
   nav[aria-label="Main"]::-webkit-scrollbar { display: none; }
   .menu-btn { display: none; }
-  button, a { font: inherit; }
+  // Only the family: the font shorthand would also reset line-height, which centres the primary links (frame primaryLink).
+  button, a { font-family: inherit; }
   button[class] { background: none; border: 0; }
+  nav[aria-label="Main"] { align-items: stretch; }
+  nav[aria-label="Main"] > a { display: flex; align-items: center; }
   .hdr-select {
     height: defines.layoutPx(controls, heightDefault);
     padding: 0 defines.spacePx(xxs);
