@@ -1,0 +1,60 @@
+@use "assets/styles/defines";
+
+.tabularValueItem {
+  display: grid;
+  grid-template-areas: "label value";
+  gap: 0 defines.spacePx(xs);
+  grid-auto-flow: column;
+  align-items: baseline;
+
+  &.tabularStyleIsLine {
+    border-bottom: defines.layout(components, dividerBorderDark);
+  }
+
+  &.tabularStyleIsBackground {
+    background: defines.color(lightGray);
+  }
+
+  &.withHint {
+    grid-template-areas: "label hint value";
+  }
+
+  &.withSubLabel {
+    grid-template-areas: "label value" "subLabel value";
+  }
+
+  &.withHintAndSubLabel {
+    grid-template-areas: "label hint value" "subLabel subLabel value";
+  }
+
+  .label {
+    grid-area: label;
+    @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+  }
+
+  .hint {
+    grid-area: hint;
+    @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+  }
+
+  .subLabel {
+    grid-area: subLabel;
+    @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+  }
+
+  .value {
+    grid-area: value;
+    justify-self: end;
+    text-align: right;
+
+    @include defines.typoSet(value, $darkTheme: false, $noWrap: false, $noOverflow: false);
+  }
+}
+
+body[dir="rtl"] {
+  .gridTabluarItem {
+    .value {
+      text-align: left;
+    }
+  }
+}

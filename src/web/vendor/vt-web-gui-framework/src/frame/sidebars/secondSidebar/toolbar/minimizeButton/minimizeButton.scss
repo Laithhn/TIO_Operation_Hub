@@ -1,0 +1,85 @@
+@use "sass:math";
+@use "assets/styles/defines";
+
+$width: defines.layout(controls, heightDefault);
+$height : defines.layout(controls, heightLarge);
+$leftRightAdjust: math.div((defines.layout(controls, iconDimDefault) - $width), 2);
+$topAdjust: math.div((defines.layout(mainToolbar, height) - $height), 2) + 2; // move 2 pixels to the bottom to simulate baseline alignment
+$bottomAdjust: math.div((defines.layout(mainToolbar, height) - $height), 2) - 2; // we need this to reach the total height of the main toolbar (margin top + height + margin bottom)
+$translateX: -$width - $leftRightAdjust - defines.layout(mostLeftRightPadding);
+$translateY1: defines.space(small) - $topAdjust - 1;
+$translateY2: $translateY1 + defines.layout(mainToolbar, height);
+
+
+.minimizeButton {
+  width: #{$width}px;
+  height: #{$height}px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin: #{$topAdjust}px 0 #{$bottomAdjust}px #{$leftRightAdjust}px;
+  background: defines.layout(sidebars, background);
+  outline: none;
+  fill: defines.typo(color, dark, normal);
+  cursor: pointer;
+  user-select: none;
+  transition: transform defines.layoutMs(defaultAnimationTimeMs) ease;
+
+  &:focus { outline: none; }
+  &::-moz-focus-inner { border: 0; }
+
+  svg {
+    transition: transform defines.layoutMs(defaultAnimationTimeMs) ease;
+  }
+
+  &.minimized {
+    border:  1px solid defines.layout(sidebars, borderColor);
+    border-radius: defines.layoutPx(components, borderRadius) 0 0 defines.layoutPx(components, borderRadius);
+
+    svg {
+      transform: rotate(180deg);
+    }
+
+    &:not(.isDashboard) {
+      transform: translateX(#{$translateX}px);
+    }
+
+    &.isDashboard {
+      &:not(.besideDefaultMainToolbar) {
+        transform: translate(#{$translateX}px, #{$translateY1}px);
+      }
+
+      &.besideDefaultMainToolbar {
+        transform: translate(#{$translateX}px, #{$translateY2}px);
+      }
+    }
+  }
+}
+
+body[dir='rtl'] {
+  .minimizeButton {
+    margin: #{$topAdjust}px #{$leftRightAdjust}px #{$bottomAdjust}px 0;
+
+    &.minimized {
+      border-radius: 0 defines.layoutPx(components, borderRadius) defines.layoutPx(components, borderRadius) 0;
+
+      svg {
+        transform: rotate(-180deg);
+      }
+
+      &:not(.isDashboard) {
+        transform: translateX(#{-$translateX}px);
+      }
+
+      &.isDashboard {
+        &:not(.besideDefaultMainToolbar) {
+          transform: translate(#{-$translateX}px, #{$translateY1}px);
+        }
+
+        &.besideDefaultMainToolbar {
+          transform: translate(#{-$translateX}px, #{$translateY2}px);
+        }
+      }
+    }
+  }
+}

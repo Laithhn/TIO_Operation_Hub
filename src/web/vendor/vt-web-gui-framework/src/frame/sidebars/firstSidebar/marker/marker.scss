@@ -1,0 +1,30 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.marker {
+  position: absolute;
+  right: 0;
+  top: -#{math.div(map.get(localDefines.$marker, height), 2)}px;
+}
+
+.line {
+  stroke: defines.layout(sidebars, borderColor);
+  fill: none;
+}
+
+.circle {
+   fill: defines.color(primary);
+}
+
+body[dir="rtl"] {
+  .marker {
+    left: 0;
+    right: auto;
+
+    svg {
+      transform: scale(-1);
+    }
+  }
+}

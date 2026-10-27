@@ -1,0 +1,25 @@
+@use "assets/styles/defines";
+
+.preview {
+  display: grid;
+  gap: defines.spacePx(small);
+
+  &:not(.isMobile) {
+    grid-template-columns: defines.layoutPx(controls, heightLarge) 1fr defines.layoutPx(controls, heightLarge);
+  }
+}
+
+.previewContrWrapper {
+  overflow: hidden;
+}
+
+.previewContr {
+  height: 100%;
+  display: inline-flex;
+  align-items: flex-end;
+
+  &.center {
+    display: flex;
+    justify-content: center;
+  }
+}

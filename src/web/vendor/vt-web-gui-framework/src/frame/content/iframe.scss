@@ -1,0 +1,16 @@
+@use "assets/styles/defines";
+
+.iframe {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: defines.layout(article, background);
+  opacity: 1;
+
+  &.fadeOut {
+    opacity: 0;
+    transition: opacity #{defines.system(contentChangeFadeOutTimeMs)}ms ease;
+  }
+}

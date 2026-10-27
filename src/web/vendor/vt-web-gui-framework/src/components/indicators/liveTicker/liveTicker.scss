@@ -1,0 +1,10 @@
+.liveTicker {
+  &.asGrid {
+    display: grid;
+  }
+
+  &.asFlex {
+    display: flex;
+    flex-flow: column;
+  }
+}

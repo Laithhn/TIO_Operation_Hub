@@ -1,0 +1,157 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+$height: defines.layout(controls, heightDefault);
+$heightLarge: defines.layout(controls, heightLarge);
+$iconSize: map.get(localDefines.$raisedButtons, iconSize);
+$iconSizeLarge: map.get(localDefines.$raisedButtons, iconSizeLarge);
+
+@keyframes animBusy {
+  0%, 100% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -4%) 30%, defines.color(attention) 31%, defines.color(attention) 100%); }
+  5%, 95% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -4%) 32%, defines.color(attention) 33%, defines.color(attention) 100%); }
+  10%, 90% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -4.5%) 37%, defines.color(attention) 38%, defines.color(attention) 100%); }
+  15%, 85% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -5%) 43%, defines.color(attention) 44%, defines.color(attention) 100%); }
+  20%, 80% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -6%) 51%, defines.color(attention) 52%, defines.color(attention) 100%); }
+  25%, 75% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -8%) 62%, defines.color(attention) 63%, defines.color(attention) 100%); }
+  30%, 70% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -11%) 73%, defines.color(attention) 74%, defines.color(attention) 100%); }
+  35%, 65% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -15%) 81%, defines.color(attention) 82%, defines.color(attention) 100%); }
+  40%, 60% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -19%) 87%, defines.color(attention) 88%, defines.color(attention) 100%); }
+  45%, 55% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -21.5%) 92%, defines.color(attention) 93%, defines.color(attention) 100%); }
+  50% { background: radial-gradient(circle at center, color.scale(defines.color(attention), $lightness: -22%) 94%, defines.color(attention) 95%, defines.color(attention) 100%); }
+}
+
+.raisedButton {
+  min-width: 88px;
+  display: inline-grid;
+  grid-auto-flow: column;
+  place-content: center;
+  align-items: center;
+  background: defines.color(primary);
+  outline:  none;
+  font-size: defines.typo(fontSize, small);
+  font-weight: defines.typo(fontWeight, semibold);
+  color: defines.typo(color, light, normal);
+  fill: defines.typo(color, light, normal);
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background defines.layoutMs(controls, animationTimeMs) ease,
+    color defines.layoutMs(controls, animationTimeMs) ease,
+    fill defines.layoutMs(controls, animationTimeMs) ease,
+    transform #{math.div(defines.layout(controls, animationTimeMs), 2)}ms linear;
+
+  &:hover, &:focus {
+    &:not(.disabled):not(.active) {
+      background: defines.color(impulseGreen);
+      color: defines.typo(color, dark, normal);
+      fill: defines.typo(color, dark, normal);
+
+      &.highlightWeak {
+        border: 2px solid defines.color(impulseGreen);
+        background: defines.color(offWhite);
+      }
+    }
+  }
+
+  .text {
+    align-self: baseline;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  &:not(.large) {
+    height: #{$height}px;
+    column-gap: defines.spacePx(xxs);
+    padding: 0 defines.spacePx(xs);
+
+    &.disabled, &.highlightWeak {
+      padding: 0 #{defines.space(xs) - 2}px;
+    }
+
+    svg {
+      width: #{$iconSize}px;
+      height: #{$iconSize}px;
+    }
+  }
+
+  &.large {
+    height: #{$heightLarge}px;
+    column-gap: defines.spacePx(xs);
+    padding: 0 defines.spacePx(small);
+
+    &.disabled, &.highlightWeak {
+      padding: 0 #{defines.space(small) - 2}px;
+    }
+
+    svg {
+      width: #{$iconSizeLarge}px;
+      height: #{$iconSizeLarge}px;
+    }
+  }
+
+  &.disabled {
+    border: 2px solid defines.layout(controls, color, dark, disabled);
+    background: none;
+    box-shadow: none;
+    color: defines.typo(color, dark, extraWeak);
+    fill: defines.typo(color, dark, extraWeak);
+    cursor: default;
+  }
+
+  &.busy {
+    box-shadow: defines.layout(boxShadow, level2);
+    color: defines.typo(color, dark, normal);
+    fill: defines.typo(color, dark, normal);
+    cursor: default;
+    animation: animBusy 1.6s infinite;
+  }
+
+  &.active {
+    background: defines.color(attention);
+    color: defines.typo(color, dark, normal);
+    fill: defines.typo(color, dark, normal);
+    cursor: default;
+  }
+
+  &.highlightWeak {
+    border: 2px solid defines.color(primary);
+    background: defines.color(offWhite);
+    color: defines.typo(color, dark, normal);
+    fill: defines.typo(color, dark, normal);
+  }
+
+  &.highlightAttention {
+    color: defines.typo(color, light, attention);
+    fill: defines.typo(color, light, attention);
+  }
+
+  &.highlightAttentionHigh {
+    color: defines.typo(color, light, attentionHigh);
+    fill: defines.typo(color, light, attentionHigh);
+  }
+
+  &.highlightSignalOk {
+    background: defines.color(calmingGreen);
+    color: defines.typo(color, dark, normal);
+    fill: defines.typo(color, dark, normal);
+  }
+
+  &.highlightSignalWarning {
+    background: defines.color(attentionHigh);
+    color: defines.typo(color, dark, normal);
+    fill: defines.typo(color, dark, normal);
+  }
+
+  &.highlightSignalError {
+    background: defines.color(signalError);
+  }
+
+  &.runClickAnim {
+    transform: translateY(2px);
+  }
+}

@@ -1,0 +1,16 @@
+export default [
+  'justifySelf',
+  'visible',
+  'gridTemplateRows',
+  'gridTemplateColumns',
+  'gridTemplateAreas',
+  'gap',
+  'rowGap',
+  'columnGap',
+  'placeContent',
+  'alignContent',
+  'justifyContent',
+  'placeItems',
+  'alignItems',
+  'justifyItems',
+];

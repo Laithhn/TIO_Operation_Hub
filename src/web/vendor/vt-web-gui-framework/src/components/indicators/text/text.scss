@@ -1,0 +1,7 @@
+@use "assets/styles/defines";
+
+.monotype {
+  font-family: 'Source Code Pro', monospace !important;
+}
+
+@include defines.allTypoSets();

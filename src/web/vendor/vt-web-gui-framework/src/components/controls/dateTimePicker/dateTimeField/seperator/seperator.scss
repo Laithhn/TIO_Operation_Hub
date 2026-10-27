@@ -1,0 +1,14 @@
+@use "sass:map";
+@use "../../defines.js" as localDefines;
+
+.seperator {
+  padding: 0 1px;
+}
+
+.spacer {
+  width: #{map.get(localDefines.$dateTimePicker, formatTabWidth)}px;
+
+  &.dense {
+    width: #{map.get(localDefines.$dateTimePicker, formatTabWidthDense)}px;
+  }
+}

@@ -1,0 +1,28 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "components/helpers/noticeForControls/controlLineAndNotice";
+@use "./defines.js" as localDefines;
+
+$innerHeight: map.get(localDefines.$selectBox, innerHeight);
+$borderHeight: 1;
+$errorBorderHeight: 2;
+$marginTop: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
+$marginBottom: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
+
+.selectBox {
+  position: relative;
+  display: inline-grid;
+  grid-auto-flow: column;
+  column-gap: #{map.get(localDefines.$selectBox, gapBetweenTextAndIcon)}px;
+  justify-content: space-between;
+  margin: ($marginTop + px) 0 0;
+  outline: none;
+  cursor: pointer;
+
+  @include controlLineAndNotice.controlLineAndNotice($innerHeight, $marginBottom);
+
+  &.disabled, &.inactive {
+    cursor: default;
+  }
+}

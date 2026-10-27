@@ -1,0 +1,72 @@
+@use "sass:math";
+@use "assets/styles/defines";
+
+.flatButton {
+  height: defines.layoutPx(controls, heightDefault);
+  display: inline-flex;
+  padding: 0 #{defines.space(xxs) - 2}px;
+  border: 2px solid transparent;
+  margin: 0 (-(defines.spacePx(xxs)));
+  background: none;
+  outline: none;
+  font-size: defines.typo(fontSize, small);
+  font-weight: defines.typo(fontWeight, semibold);
+  line-height: #{defines.layout(controls, heightDefault) - 4}px;
+  color: defines.typo(color, dark, normal);
+  white-space: nowrap;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  transition:
+    border-color defines.layoutMs(controls, animationTimeMs) ease,
+    transform #{math.div(defines.layout(controls, animationTimeMs), 2)}ms linear;
+
+  &:hover, &:focus {
+    &:not(.disabled) {
+      border-color: defines.color(impulseGreen);
+    }
+  }
+
+  &.disabled {
+    color: defines.typo(color, dark, extraWeak);
+    cursor: default;
+
+    &.darkTheme {
+      color: defines.typo(color, light, extraWeak);
+    }
+  }
+
+  &.highlightWeak {
+    color: defines.typo(color, dark, weak);
+
+    &.darkTheme {
+      color: defines.typo(color, light, weak);
+    }
+  }
+
+  &.highlightAttention {
+    color: defines.typo(color, dark, attention);
+
+    &.darkTheme {
+      color: defines.typo(color, light, attention);
+    }
+  }
+
+  &.highlightAttentionHigh {
+    color: defines.typo(color, dark, attentionHigh);
+
+    &.darkTheme {
+      color: defines.typo(color, light, attentionHigh);
+    }
+  }
+
+  &.darkTheme {
+    color: defines.typo(color, light, normal);
+  }
+
+  &.runClickAnim {
+    transform: translateY(2px);
+  }
+}

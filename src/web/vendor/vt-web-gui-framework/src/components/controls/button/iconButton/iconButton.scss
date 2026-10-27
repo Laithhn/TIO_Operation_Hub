@@ -1,0 +1,125 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+$dim: map.get(localDefines.$iconButtons, dim);
+$dimLarge: map.get(localDefines.$iconButtons, dimLarge);
+$iconSize: map.get(localDefines.$iconButtons, iconSize);
+$iconSizeLarge: map.get(localDefines.$iconButtons, iconSizeLarge);
+
+.iconButton {
+  display: inline-grid;
+  grid-auto-flow: column;
+  place-content: center;
+  align-items: center;
+  background: none;
+  outline: none;
+  fill: defines.typo(color, dark, normal);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    all defines.layoutMs(defaultAnimationTimeMs) ease,
+    background defines.layoutMs(controls, animationTimeMs) ease,
+    fill defines.layoutMs(controls, animationTimeMs) ease,
+    transform #{math.div(defines.layout(controls, animationTimeMs), 2)}ms linear;
+
+  &:hover, &:focus {
+    &:not(.disabled) {
+      background: defines.color(impulseGreen);
+      fill: defines.typo(color, dark, normal);
+
+      &.darkTheme {
+        fill: defines.typo(color, dark, normal);
+      }
+    }
+  }
+
+  svg {
+    transition:
+      width defines.layoutMs(defaultAnimationTimeMs) ease,
+      height defines.layoutMs(defaultAnimationTimeMs) ease;
+  }
+
+  span {
+    align-self: baseline;
+    visibility: hidden;
+  }
+
+  &:not(.large) {
+    width: $dim + px;
+    height: $dim + px;
+    border-radius: #{math.div($dim, 2)}px;
+    margin: 0 -#{math.div(($dim - $iconSize), 2)}px;
+
+    svg {
+      width: #{$iconSize}px;
+      height: #{$iconSize}px;
+    }
+
+    span {
+      width: #{math.div($dim, 2)}px;
+      margin-left: -#{math.div($dim, 2)}px;
+      line-height: #{$dim}px;
+    }
+  }
+
+  &.large {
+    width: #{$dimLarge}px;
+    height: #{$dimLarge}px;
+    border-radius: #{math.div($dimLarge, 2)}px;
+    margin: 0 -#{math.div(($dimLarge - $iconSizeLarge), 2)}px;
+
+    svg {
+      width: #{$iconSizeLarge}px;
+      height: #{$iconSizeLarge}px;
+    }
+
+    span {
+      width: #{math.div($dimLarge, 2)}px;
+      margin-left: -#{math.div($dimLarge, 2)}px;
+      line-height: #{$dimLarge}px;
+    }
+  }
+
+  &.disabled {
+    fill: defines.typo(color, dark, extraWeak);
+    cursor: default;
+
+    &.darkTheme {
+      fill: defines.typo(color, light, extraWeak);
+    }
+  }
+
+  &.highlightWeak {
+    fill: defines.typo(color, dark, weak);
+
+    &.darkTheme {
+      fill: defines.typo(color, light, weak);
+    }
+  }
+
+  &.highlightAttention {
+    fill: defines.typo(color, dark, attention);
+
+    &.darkTheme {
+      fill: defines.typo(color, light, attention);
+    }
+  }
+
+  &.highlightAttentionHigh {
+    fill: defines.typo(color, dark, attentionHigh);
+
+    &.darkTheme {
+      fill: defines.typo(color, light, attentionHigh);
+    }
+  }
+
+  &.darkTheme {
+    fill: defines.typo(color, light, normal);
+  }
+
+  &.runClickAnim {
+    transform: translateY(2px);
+  }
+}

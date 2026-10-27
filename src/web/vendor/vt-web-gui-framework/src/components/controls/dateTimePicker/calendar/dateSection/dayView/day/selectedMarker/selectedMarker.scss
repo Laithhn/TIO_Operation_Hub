@@ -1,0 +1,8 @@
+@use "assets/styles/defines";
+
+.selectedMarker {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: defines.color(calmingGreen);
+}

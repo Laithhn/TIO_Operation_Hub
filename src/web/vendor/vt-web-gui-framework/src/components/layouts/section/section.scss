@@ -1,0 +1,38 @@
+@use "assets/styles/defines";
+
+.section {
+  display: grid;
+  transition: background 0.1s ease;
+
+  &.darkTheme {
+    p, h1, h2, h3, h4, h5, dl, ul, ol, table {
+      color: defines.typo(color, light, normal);
+    }
+
+    mark {
+      background: defines.color(offWhite);
+    }
+
+    hr {
+      border-bottom: defines.layout(components, dividerBorderLight);
+    }
+
+    a {
+      color: defines.typo(color, light, normal);
+      fill: defines.typo(color, light, normal);
+
+      &:visited {
+        color: defines.typo(color, light, normal);
+        fill: defines.typo(color, light, normal);
+      }
+    }
+  }
+
+  &.overflowHidden {
+    overflow: hidden;
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,50 @@
+@use "assets/styles/defines";
+
+.header {
+  display: grid;
+  grid-auto-flow: column;
+  column-gap: defines.spacePx(large);
+  justify-content: space-between;
+  align-items: center;
+
+  .title {
+    @include defines.typoSet(headline, $darkTheme: true, $disabled: false, $noWrap: false, $noOverflow: true);
+    height: 42px; // caution: value determined by the height of the headline
+    transform-origin: top;
+    transition: all defines.layoutMs(defaultAnimationTimeMs) ease;
+  }
+
+  .subtitle {
+    display: flex;
+    column-gap: defines.spacePx(small);
+    @include defines.typoSet(valueSmall, $darkTheme: true, $disabled: false, $noWrap: false, $noOverflow: true);
+  }
+
+  .controlsCntr {
+    display: grid;
+    grid-auto-flow: column;
+    column-gap: defines.spacePx(large);
+  }
+
+  .controlsSubCntr {
+    display: grid;
+    grid-auto-flow: column;
+    column-gap: defines.spacePx(small);
+    align-items: center;
+  }
+
+  &.isExpanded {
+    .title {
+      height: 0;
+      transform: scaleY(0);
+    }
+
+    .controlsCntr {
+      column-gap: defines.spacePx(medium);
+    }
+
+    .controlsSubCntr {
+      column-gap: defines.spacePx(xs);
+    }
+  }
+}

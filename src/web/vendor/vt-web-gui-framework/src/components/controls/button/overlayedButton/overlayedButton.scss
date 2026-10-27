@@ -1,0 +1,83 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+$dim: map.get(localDefines.$overlayedButtons, dim);
+$dimLarge: map.get(localDefines.$overlayedButtons, dimLarge);
+$iconSize: map.get(localDefines.$overlayedButtons, iconSize);
+$iconSizeLarge: map.get(localDefines.$overlayedButtons, iconSizeLarge);
+
+.overlayedButton {
+  position: absolute;
+  display: inline-grid;
+  place-content: center;
+  align-items: center;
+  box-shadow: defines.layout(boxShadow, level2);
+  background: defines.color(offWhite);
+  outline: none;
+  fill: defines.typo(color, dark, normal);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    all defines.layoutMs(defaultAnimationTimeMs) ease,
+    background defines.layoutMs(controls, animationTimeMs) ease,
+    fill defines.layoutMs(controls, animationTimeMs) ease,
+    transform #{math.div(defines.layout(controls, animationTimeMs), 2)}ms linear;
+
+  &:hover, &:focus {
+    &:not(.disabled) {
+      background: defines.color(impulseGreen);
+      fill: defines.typo(color, dark, normal);
+    }
+  }
+
+  svg {
+    transition:
+      width defines.layoutMs(defaultAnimationTimeMs) ease,
+      height defines.layoutMs(defaultAnimationTimeMs) ease;
+  }
+
+  &:not(.large) {
+    width: #{$dim}px;
+    height: #{$dim}px;
+    border-radius: #{math.div($dim, 2)}px;
+
+    svg {
+      width: #{$iconSize}px;
+      height: #{$iconSize}px;
+    }
+  }
+
+  &.large {
+    width: #{$dimLarge}px;
+    height: #{$dimLarge}px;
+    border-radius: #{math.div($dimLarge, 2)}px;
+
+    svg {
+      width: #{$iconSizeLarge}px;
+      height: #{$iconSizeLarge}px;
+    }
+  }
+
+  &.disabled {
+    fill: defines.typo(color, dark, extraWeak);
+    cursor: default;
+  }
+
+  &.highlightWeak {
+    fill: defines.typo(color, dark, weak);
+  }
+
+  &.highlightAttention {
+    background: defines.color(attention);
+  }
+
+  &.highlightAttentionHigh {
+    background: defines.color(attentionHigh);
+  }
+
+  &.runClickAnim {
+    transform: translateY(2px);
+  }
+}

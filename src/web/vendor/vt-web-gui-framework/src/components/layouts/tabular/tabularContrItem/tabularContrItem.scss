@@ -1,0 +1,13 @@
+@use "assets/styles/defines";
+
+.tabularContrItem {
+  display: grid;
+
+  &.tabularStyleIsLine {
+    border-bottom: defines.layout(components, dividerBorderDark);
+  }
+
+  &.tabularStyleIsBackground {
+    background: defines.color(lightGray);
+  }
+}

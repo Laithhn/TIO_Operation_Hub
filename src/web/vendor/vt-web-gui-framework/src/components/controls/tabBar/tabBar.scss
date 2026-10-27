@@ -1,0 +1,25 @@
+@use "assets/styles/defines";
+
+.tabBarWrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.tabBar {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+
+  &:not(.isVertical) {
+    width: 100%;
+
+    &:not(.isOverflow) {
+      justify-content: space-around;
+    }
+  }
+
+  &.isVertical {
+    height: 100%;
+    flex-direction: column;
+  }
+}

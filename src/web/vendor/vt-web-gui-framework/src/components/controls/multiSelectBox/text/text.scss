@@ -1,0 +1,21 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+$innerHeight: map.get(localDefines.$multiSelectBox, innerHeight);
+
+.text {
+  align-self: baseline;
+  text-align: start;
+
+  &:not(.noSelection) {
+    @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
+    line-height: #{$innerHeight + 1}px; // reset line-height of the type set, plus one pixel as sleazy factor
+  }
+
+  &.noSelection {
+    @include defines.typoSet(hint, $noWrap: true, $noOverflow: true);
+    line-height: #{$innerHeight + 1}px; //reset line-height of the type set,  plus one pixel as sleazy factor
+    font-style: italic;
+  }
+}

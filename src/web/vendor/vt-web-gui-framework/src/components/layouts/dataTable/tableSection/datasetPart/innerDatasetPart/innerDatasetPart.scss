@@ -1,0 +1,20 @@
+@use "assets/styles/defines";
+
+.innerDatasetPart {
+  display: grid;
+  align-items: center; // do not stretch by default because of staying able to measure the cells
+  justify-items: start; // do not stretch by default because of staying able to measure the cells
+
+  &.endLine {
+    border-right: 1px solid defines.layout(sidebars, borderColor);
+  }
+}
+
+body[dir='rtl'] {
+  .innerDatasetPart {
+    &.endLine {
+      border-left: 1px solid defines.layout(sidebars, borderColor);
+      border-right: 0 none;
+    }
+  }
+}

@@ -1,0 +1,22 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../../../../defines.js" as localDefines;
+
+.option {
+  width: 100%;
+  height: #{defines.layout(controls, heightDefault) + 2}px;
+  padding: 0 #{map.get(localDefines.$selectBoxOption, paddingRight)}px 0 #{map.get(localDefines.$selectBoxOption, paddingLeft)}px;
+  @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
+  text-align: start;
+  line-height: #{defines.layout(controls, heightDefault) + 2}px;
+  cursor: pointer;
+  user-select: none;
+
+  &.typoDisabled {
+    cursor: default;
+  }
+
+  &.italic {
+    font-style: italic;
+  }
+}

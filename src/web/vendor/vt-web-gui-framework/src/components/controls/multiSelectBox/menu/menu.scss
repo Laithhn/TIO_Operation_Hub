@@ -1,0 +1,35 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.menu {
+  position: absolute;
+  display: grid;
+  grid-template-rows: #{map.get(localDefines.$multiSelectBox, innerHeight)}px 1fr;
+  row-gap: #{map.get(localDefines.$multiSelectBoxMenu, gapBetweenHeaderAndOptions)}px;
+  padding: #{map.get(localDefines.$multiSelectBoxMenu, paddingTop)}px 0 #{map.get(localDefines.$multiSelectBoxMenu, paddingBottom)}px 0;
+  margin: 0 -#{map.get(localDefines.$multiSelectBoxOption, paddingRight)}px 0 0;
+  background: defines.color(offWhite);
+  box-shadow: defines.layout(boxShadow, level2);
+  opacity: 0;
+  overflow: hidden;
+  transition: opacity defines.layoutMs(fadeInOutTimeMs) ease;
+
+  &.show {
+    opacity: 1;
+  }
+
+  &:not(.showAllOrNoneCheckbox) {
+    grid-template-rows: 1fr;
+  }
+
+  &.showAllOrNoneCheckbox {
+    grid-template-rows: #{map.get(localDefines.$multiSelectBox, innerHeight)}px 1fr;
+  }
+}
+
+body[dir="rtl"] {
+  .menu {
+    margin: 0 0 0 -#{map.get(localDefines.$multiSelectBoxOption, paddingLeft)}px;
+  }
+}

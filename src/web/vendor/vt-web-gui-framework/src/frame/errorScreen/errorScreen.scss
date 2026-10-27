@@ -1,0 +1,43 @@
+@use "assets/styles/defines";
+
+.errorScreen {
+  width: 100%;
+  height: 100%;
+  padding: defines.spacePx(medium);
+  opacity: 1;
+
+  &.fadeOut {
+    opacity: 0;
+    transition: opacity #{defines.system(contentChangeFadeOutTimeMs)}ms ease;
+  }
+
+  h2 {
+    margin: 0 0 defines.spacePx(xl);
+    font-size: defines.typo(fontSize, xl);
+    font-weight: defines.typo(fontWeight, bold);
+    color: defines.typo(color, dark, normal);
+    line-height: defines.typo(lineHeight, small);
+  }
+
+  p {
+    font-size: defines.typo(fontSize, normal);
+    font-weight: defines.typo(fontWeight, normal);
+    color: defines.typo(color, dark, normal);
+    line-height: defines.typo(lineHeight, normal);
+    white-space: pre-wrap;
+
+    &.subTitle {
+      margin: -(defines.spacePx(large)) 0 defines.spacePx(xl);
+    }
+
+    &.message {
+      padding: defines.spacePx(xs);
+      margin: 0 (-(defines.spacePx(xs))) defines.spacePx(large) (-(defines.spacePx(xs)));
+      background: defines.color(attentionHigh);
+    }
+
+    &.version {
+      font-size: defines.typo(fontSize, small);
+    }
+  }
+}

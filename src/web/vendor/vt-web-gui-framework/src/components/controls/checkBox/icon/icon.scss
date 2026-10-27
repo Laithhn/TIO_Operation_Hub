@@ -1,0 +1,170 @@
+@use "sass:math";
+@use 'assets/styles/defines';
+@use "../defines.js" as localDefines;
+
+$dim: defines.layout(controls, heightDefault);
+$dimLarge: defines.layout(controls, heightLarge);
+$iconJustificationMargin: math.div((localDefines.$iconSize - $dim), 2);
+$iconJustificationMarginLarge: math.div((localDefines.$iconSizeLarge - $dimLarge), 2);
+
+.icon {
+  display: inline-grid;
+  grid-auto-flow: column;
+  place-content: center;
+  align-items: center;
+
+  span {
+    align-self: baseline;
+  }
+
+  path {
+    transition: fill defines.layoutMs(controls, animationTimeMs) ease;
+  }
+
+  &:not(.darkTheme) {
+    path:last-child {
+      fill: defines.color(offWhite);
+    }
+  }
+
+  &.darkTheme {
+   path:last-child {
+      fill: defines.color(primary);
+    }
+  }
+
+  &:not(.error):not(.disabled) {
+    &:not(.darkTheme) {
+      path:first-child {
+        fill: defines.color(primary);
+      }
+    }
+    &.darkTheme {
+      path:first-child {
+        fill: defines.color(offWhite);
+      }
+    }
+  }
+
+  &.error {
+    &:not(.darkTheme) {
+      path:first-child {
+        fill: defines.typo(color, dark, attentionHigh);
+      }
+    }
+    &.darkTheme {
+       path:first-child {
+        fill: defines.typo(color, light, attentionHigh);
+      }
+    }
+  }
+
+  &.disabled {
+    &:not(.darkTheme) {
+      path:first-child {
+        fill: defines.layout(controls, color, dark, disabled);
+      }
+    }
+    &.darkTheme {
+      path:first-child {
+        fill: defines.layout(controls, color, light, disabled);
+      }
+    }
+  }
+
+  &:hover, &.focus {
+    &:not(.disabled) {
+      path:first-child {
+        fill: defines.color(impulseGreen) !important;
+      }
+    }
+  }
+
+  &.textFirst:not(.withoutText) {
+    grid-column-start: 2;
+  }
+
+  // normal icon size
+  &:not(.large) {
+    width: $dim + px;
+    height: $dim + px;
+    border-radius: #{math.div($dim, 2)}px;
+    margin: 0 defines.spacePx(xxs) 0 #{$iconJustificationMargin}px;
+
+    span {
+      width: #{math.div($dim, 2)}px;
+      margin-left: -#{math.div($dim, 2)}px;
+      line-height: #{$dim}px;
+    }
+
+    &.withoutText {
+      margin: 0 #{$iconJustificationMargin}px;
+    }
+
+    &.textFirst:not(.withoutText) {
+      margin: 0 #{$iconJustificationMargin}px 0 defines.spacePx(xxs);
+    }
+  }
+
+  // large icon size
+  &.large {
+    width: #{$dimLarge}px;
+    height: #{$dimLarge}px;
+    border-radius: #{math.div($dimLarge, 2)}px;
+    margin: 0 defines.spacePx(xxs) 0 #{$iconJustificationMarginLarge}px;
+
+    span {
+      width: #{math.div($dimLarge, 2)}px;
+      margin-left: -#{math.div($dimLarge, 2)}px;
+      line-height: #{$dimLarge}px;
+    }
+
+    &.withoutText {
+      margin: 0 #{$iconJustificationMarginLarge}px;
+    }
+
+    &.textFirst:not(.withoutText) {
+      margin: 0 #{$iconJustificationMarginLarge}px 0 defines.spacePx(xxs);
+    }
+  }
+}
+
+body[dir='rtl'] {
+  .icon {
+    // normal icon size
+    &:not(.large) {
+      margin: 0 #{$iconJustificationMargin}px 0 defines.spacePx(xxs);
+
+      span {
+        margin-left: 0;
+        margin-right: -#{math.div($dim, 2)}px;
+      }
+
+      &.withoutText {
+        margin: 0 #{$iconJustificationMargin}px;
+      }
+
+      &.textFirst:not(.withoutText) {
+        margin: 0 defines.spacePx(xxs) 0 #{$iconJustificationMargin}px;
+      }
+    }
+
+    // large icon size
+    &.large {
+      margin: 0 #{$iconJustificationMarginLarge}px 0 defines.spacePx(xxs);
+
+      span {
+        margin-left: 0;
+        margin-right: -#{math.div($dimLarge, 2)}px;
+      }
+
+      &.withoutText {
+        margin: 0 #{$iconJustificationMarginLarge}px;
+      }
+
+      &.textFirst:not(.withoutText) {
+        margin: 0 defines.spacePx(xxs) 0 #{$iconJustificationMarginLarge}px;
+      }
+    }
+  }
+}

@@ -1,0 +1,49 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+
+.burgerIcon {
+  height: defines.layoutPx(header, height);
+  outline:  none;
+  padding: #{math.div((defines.layout(header, height) - defines.layout(header, iconSize)), 2)}px #{defines.layoutPx(mostLeftRightPadding)};
+  fill: defines.typo(color, light, normal);
+  cursor: pointer;
+  transition:
+    background defines.layoutMs(defaultAnimationTimeMs) ease,
+    fill defines.layoutMs(defaultAnimationTimeMs) ease;
+
+  path {
+    transition: transform defines.layoutMs(defaultAnimationTimeMs);
+
+    &:first-child {
+      transform-origin: center 6px;
+    }
+
+    &:nth-child(2) {
+      transform-origin: center;
+    }
+
+    &:last-child {
+      transform-origin: center 18px;
+    }
+  }
+
+  &.active {
+    background: defines.color(offWhite);
+    fill: defines.typo(color, dark, normal);
+
+    path {
+      &:first-child {
+        transform: translateY(6px) rotate(135deg);
+      }
+
+      &:nth-child(2) {
+        transform: scaleX(0);
+      }
+
+      &:last-child {
+        transform: translateY(-6px) rotate(-135deg);
+      }
+    }
+  }
+}

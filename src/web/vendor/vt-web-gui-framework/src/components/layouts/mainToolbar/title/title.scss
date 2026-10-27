@@ -1,0 +1,30 @@
+@use "assets/styles/defines";
+
+.title {
+  display: grid;
+  grid-auto-flow: column;
+  gap: defines.spacePx(xs);
+  align-items: baseline;
+
+  .titleText {
+    font-weight: defines.typo(fontWeight, bold);
+    line-height: defines.typo(lineHeight, normal);
+    color: defines.typo(color, dark, normal);
+  }
+
+  .subTitleText {
+    @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+  }
+
+  &:not(.inModwin) {
+    .titleText {
+      font-size: defines.typo(fontSize, large);
+    }
+  }
+
+  &.inModwin {
+    .titleText {
+      font-size: defines.typo(fontSize, large);
+    }
+  }
+}

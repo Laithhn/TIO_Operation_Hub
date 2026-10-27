@@ -1,0 +1,14 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../../defines.js" as localDefines;
+
+.marker {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: #{defines.layout(controls, heightDefault) + 2}px;
+  background: defines.colorA(structureSilver, 0.18);
+  cursor: pointer;
+  transition: transform #{map.get(localDefines.$selectBoxMenu, moveMenuAnimationTimeMs)}ms ease;
+}

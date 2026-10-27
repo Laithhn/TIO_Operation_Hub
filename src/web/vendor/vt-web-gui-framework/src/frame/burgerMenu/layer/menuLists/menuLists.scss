@@ -1,0 +1,18 @@
+@use "assets/styles/defines";
+
+.menuLists {
+  position: relative;
+  flex-grow: 1;
+}
+
+.scrollContr {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  row-gap: defines.spacePx(small);
+}

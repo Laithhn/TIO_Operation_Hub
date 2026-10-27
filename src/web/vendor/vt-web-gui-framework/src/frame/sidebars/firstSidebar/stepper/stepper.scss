@@ -1,0 +1,15 @@
+@use "sass:map";
+@use "sass:math";
+@use "../defines.js" as localDefines;
+
+.stepper {
+  position: relative;
+  width: calc(100% + #{math.div(map.get(localDefines.$marker, width), 2) + 1}px);
+  padding: 0 #{math.div(map.get(localDefines.$marker, width), 2) + 1}px 0 0;
+}
+
+body[dir="rtl"] {
+  .stepper {
+    padding: 0 0 0 #{math.div(map.get(localDefines.$marker, width), 2) + 1}px;
+  }
+}

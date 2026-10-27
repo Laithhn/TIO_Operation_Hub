@@ -1,0 +1,22 @@
+@use "assets/styles/defines";
+
+.incDecControls {
+  display: grid;
+  align-content: center;
+}
+
+.incIcon {
+  @include defines.typoSet(valueSmall, $noWrap: false, $noOverflow: false);
+
+  &.clickable {
+    cursor: pointer;
+  }
+}
+
+.decIcon {
+  @include defines.typoSet(valueSmall, $noWrap: false, $noOverflow: false);
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

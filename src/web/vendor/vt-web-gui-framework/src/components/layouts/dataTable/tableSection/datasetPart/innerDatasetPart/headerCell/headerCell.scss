@@ -1,0 +1,19 @@
+@use "assets/styles/defines";
+
+.headerCell {
+  display: flex;
+  column-gap: defines.spacePx(xxxs); // ToDo: erst ab Chrome 84 und Edge 84 verfügbar!
+  align-items: center;
+
+  &.reverse {
+    flex-direction: row-reverse;
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+}
+
+.label {
+  @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+}

@@ -1,0 +1,46 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../../../../defines.js" as localDefines;
+
+$dayHeight: map.get(localDefines.$calendar, dateSection, dayHeight);
+$todayCircleDiameter: map.get(localDefines.$calendar, dateSection, todayCircleDiameter);
+$todayCircleWidth: map.get(localDefines.$calendar, dateSection, todayCircleWidth);
+
+.day {
+  position: relative;
+  outline: none;
+  cursor: pointer;
+
+  .number {
+    position: absolute;
+    width: $todayCircleDiameter + px;
+    top: #{math.div(($dayHeight - $todayCircleDiameter), 2)}px;
+    height: #{$todayCircleDiameter}px;
+    display: inline-block;
+    border-radius: #{math.div($todayCircleDiameter, 2)}px;
+    @include defines.typoSet(valueSmall);
+    line-height: #{$todayCircleDiameter - 1}px;
+    text-align: center;
+    user-select: none;
+
+    &.today {
+      border: #{$todayCircleWidth}px solid defines.color(calmingGreen);
+      line-height: #{$todayCircleDiameter - ($todayCircleWidth * 2) - 1}px;
+
+      &.selected {
+        border-color: defines.color(offWhite);
+      }
+    }
+  }
+
+  &:focus {
+    .number {
+      background: defines.layout(controls, color, dark, backgroundFocus);
+
+      &.selected {
+        background: defines.layout(controls, color, light, backgroundFocus);
+      }
+    }
+  }
+}

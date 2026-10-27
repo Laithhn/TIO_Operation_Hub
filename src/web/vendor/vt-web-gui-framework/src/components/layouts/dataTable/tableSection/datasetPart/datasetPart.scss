@@ -1,0 +1,39 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../../defines.js" as localDefines;
+
+.datasetPart {
+  position: absolute;
+  left: 0;
+  width: 1000000px;
+  top: 0;
+  display: flex;
+  justify-content: start;
+  align-items: start;
+  padding-right: #{map.get(localDefines.$datasetPart, paddingRight)}px;
+  padding-left: #{map.get(localDefines.$datasetPart, paddingLeft)}px;
+  background: map.get(localDefines.$datasetPart, backgroundColor);
+
+  &.topLine {
+    border-top: defines.layout(components, dividerBorderDark);
+  }
+
+  &.bottomLine {
+    border-bottom: defines.layout(components, dividerBorderDark);
+  }
+
+  &.hasFocus {
+    background: map.get(localDefines.$datasetPart, backgroundColorFocus) !important;
+  }
+
+  &.clickable {
+    cursor: pointer;
+  }
+}
+
+body[dir="rtl"] {
+  .datasetPart {
+    left: auto;
+    right: 0;
+  }
+}

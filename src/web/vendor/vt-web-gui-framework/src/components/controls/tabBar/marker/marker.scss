@@ -1,0 +1,55 @@
+@use "assets/styles/defines";
+
+.marker {
+  position: absolute;
+
+  &.enableAnimation {
+    transition-duration: defines.layoutMs(defaultAnimationTimeMs);
+    transition-timing-function: ease;
+  }
+
+  &.isPosTop, &.isPosBottom {
+    left: 0;
+    transition-property: width, transform;
+  }
+
+  &.isPosTop {
+    bottom: 0;
+  }
+
+  &.isPosBottom {
+    top: 0;
+  }
+
+  &.isPosLeft, &.isPosRight {
+    top: 0;
+    transition-property: height, transform;
+  }
+
+  &.isPosLeft {
+    right: 0;
+  }
+
+  &.isPosRight {
+    left: 0;
+  }
+}
+
+body[dir='rtl'] {
+  .marker {
+    &.isPosTop, &.isPosBottom {
+      left: auto;
+      right: 0;
+    }
+
+    &.isPosLeft {
+      left: 0;
+      right: auto;
+    }
+
+    &.isPosRight {
+      left: auto;
+      right: 0;
+    }
+  }
+}

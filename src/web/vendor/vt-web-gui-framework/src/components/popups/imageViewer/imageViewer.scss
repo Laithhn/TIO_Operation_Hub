@@ -1,0 +1,88 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "./defines.js" as localDefines;
+
+.imageViewer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity #{localDefines.$showHideTransitionTimeMs}ms ease-in-out;
+
+  &.visible {
+    opacity: 1;
+  }
+}
+
+.backgroundImage {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: defines.colorA(primaryMidnight, 0.95);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+
+  // At the moment backdrop-filter is only supported at Firefox if options
+  // layout.css.backdrop-filter.enabled and gfx.webrender.all are set to true in about:config.
+  // Chrome supports the backdrop-filter.
+  @supports (backdrop-filter: blur(30px)) {
+    &::before {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backdrop-filter: blur(30px);
+    }
+  }
+
+  @supports not (backdrop-filter: blur(30px)) {
+    background-image: none !important;
+  }
+}
+
+.contr {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: grid;
+  transition: all defines.layoutMs(defaultAnimationTimeMs) ease;
+
+  &:not(.isMobile) {
+    top: 0;
+
+    &:not(.isExpanded) {
+      bottom: 0;
+      grid-template-rows: #{map.get(localDefines.$header, height)}px 1fr #{map.get(localDefines.$previewImages, heightTotal)}px;
+      row-gap: #{map.get(localDefines.$contr, rowGap)}px;
+      padding: #{map.get(localDefines.$contr, padding)}px;
+    }
+
+    &.isExpanded {
+      bottom: #{- map.get(localDefines.$contr, rowGapExpanded) - map.get(localDefines.$previewImages, heightTotal)}px;
+      grid-template-rows: #{map.get(localDefines.$header, heightExpanded)}px 1fr #{map.get(localDefines.$previewImages, heightTotal)}px;
+      row-gap: #{map.get(localDefines.$contr, rowGapExpanded)}px;
+      padding: #{map.get(localDefines.$contr, paddingExpanded)}px;
+    }
+  }
+
+  &.isMobile {
+    grid-template-rows: #{map.get(localDefines.$header, heightExpanded)}px 1fr #{map.get(localDefines.$previewImages, heightTotal)}px;
+
+    &:not(.isExpanded) {
+      top: 0;
+      bottom: 0;
+      row-gap: #{map.get(localDefines.$contr, rowGapMobile)}px;
+      padding: #{map.get(localDefines.$contr, paddingMobile)}px;
+    }
+
+    &.isExpanded {
+      top:  #{- map.get(localDefines.$contr, rowGapMobileExpanded) - map.get(localDefines.$header, heightExpanded)}px;
+      bottom: #{- map.get(localDefines.$contr, rowGapMobileExpanded) - map.get(localDefines.$previewImages, heightTotal)}px;
+      row-gap: #{map.get(localDefines.$contr, rowGapMobileExpanded)}px;
+      padding: #{map.get(localDefines.$contr, paddingMobileExpanded)}px;
+    }
+  }
+}

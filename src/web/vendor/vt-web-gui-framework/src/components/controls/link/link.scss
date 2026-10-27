@@ -1,0 +1,12 @@
+@use "assets/styles/defines";
+
+
+.linkExternalIcon {
+  margin: 0 0 0 defines.spacePx(xxxs);
+}
+
+body[dir="rtl"] {
+  .linkExternalIcon {
+    margin: 0 defines.spacePx(xxs) 0 0;
+  }
+}

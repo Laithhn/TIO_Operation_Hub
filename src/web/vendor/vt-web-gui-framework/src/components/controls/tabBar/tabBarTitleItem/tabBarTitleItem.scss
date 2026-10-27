@@ -1,0 +1,27 @@
+@use "assets/styles/defines";
+
+.tabBarTitleItem {
+  position: relative; // otherwise the marker will be placed above the item
+  display: grid;
+  grid-template-columns: max-content;
+  justify-content: center;
+  align-content: center;
+  padding: defines.spacePx(xs);
+  outline: none;
+  cursor: pointer;
+
+  &.disabled {
+    cursor: default;
+  }
+
+  .title {
+    @include defines.typoSet(value, $darkTheme: null, $disabled: null, $noWrap: false, $noOverflow: false);
+    font-weight: defines.typo(fontWeight, semibold);
+    text-align: center;
+  }
+
+  .subTitle {
+    @include defines.typoSet(hint, $darkTheme: null, $disabled: null, $noWrap: false, $noOverflow: false);
+    text-align: center;
+  }
+}

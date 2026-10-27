@@ -1,0 +1,17 @@
+@use "assets/styles/defines";
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.circle {
+  border-style: solid;
+  border-color: defines.typo(color, dark, weak) defines.typo(color, dark, weak) transparent transparent;
+  border-radius: 50%;
+  animation: rotate 1s infinite linear;
+
+  &.darkTheme {
+    border-color: defines.typo(color, light, normal) defines.typo(color, light, normal) transparent transparent;
+  }
+}

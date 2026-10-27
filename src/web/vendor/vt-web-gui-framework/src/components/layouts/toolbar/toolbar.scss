@@ -1,0 +1,19 @@
+@use "assets/styles/defines";
+
+.toolbar {
+  display: grid;
+  grid-auto-flow: column;
+  column-gap: defines.spacePx(xs);
+
+  &:not(.withToggleButton) {
+    grid-template-columns: 1fr;
+  }
+
+  &.withToggleButton {
+    grid-template-columns: auto 1fr;
+  }
+
+  &.withLine {
+    border-bottom: defines.layout(components, dividerBorderDark);
+  }
+}

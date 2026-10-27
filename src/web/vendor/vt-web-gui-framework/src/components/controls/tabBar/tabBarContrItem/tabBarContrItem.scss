@@ -1,0 +1,10 @@
+.tabBarContrItem {
+  position: relative; // otherwise the marker will be placed above the item
+  display: grid;
+  outline: none;
+  cursor: pointer;
+
+  &.disabled {
+    cursor: default;
+  }
+}

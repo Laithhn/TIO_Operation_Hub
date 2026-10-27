@@ -1,0 +1,13 @@
+@use 'assets/styles/defines';
+
+.text {
+  text-align: start;
+
+  &:not(.textAsLabel) {
+    @include defines.typoSet(valueSmall);
+  }
+
+  &.textAsLabel {
+    @include defines.typoSet(label);
+  }
+}

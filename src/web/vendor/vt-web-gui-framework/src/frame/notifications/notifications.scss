@@ -1,0 +1,8 @@
+@use "assets/styles/defines";
+
+.notifications {
+  grid-area: viAreaNotifications;
+  display: flex;
+  flex-direction: column-reverse;
+  padding: defines.layoutPx(notifications, padding);
+}

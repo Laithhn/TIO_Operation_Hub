@@ -1,0 +1,34 @@
+@use "sass:map";
+@use "../defines.js" as localDefines;
+
+.shader {
+  position: absolute;
+
+  &.top {
+    left: 0;
+    width: 100%;
+    top: 0;
+    height: #{map.get(localDefines.$shader, dimTop)}px;
+  }
+
+  &.bottom {
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    height: #{map.get(localDefines.$shader, dimBottom)}px;
+  }
+
+  &.left {
+    left: 0;
+    width: #{map.get(localDefines.$shader, dimLeft)}px;
+    top: 0;
+    height: 100%;
+  }
+
+  &.right {
+    right: 0;
+    width: #{map.get(localDefines.$shader, dimRight)}px;
+    top: 0;
+    height: 100%;
+  }
+}

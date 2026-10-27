@@ -1,0 +1,35 @@
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.image {
+  position: relative;
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  overflow: hidden;
+  transition: opacity #{math.div(localDefines.$imageChangeTransitionTimeMs, 2)}ms ease-in-out;
+
+  &.fadeOut {
+    opacity: 0;
+  }
+
+  img {
+    position: absolute;
+    box-shadow: defines.layout(boxShadow, level2);
+    touch-action: none;
+  }
+
+  &.isSelectable {
+    img {
+      cursor: pointer;
+    }
+  }
+
+  &:not(.scaleImage) {
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
+}

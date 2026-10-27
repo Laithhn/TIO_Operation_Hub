@@ -1,0 +1,27 @@
+@use "assets/styles/defines";
+
+.card {
+  position: absolute;
+  background: defines.color(offWhite);
+  box-shadow: defines.layout(boxShadow, level3);
+  opacity: 0;
+  transition: opacity defines.layoutMs(fadeInOutTimeMs) ease;
+
+  &.clickable {
+    cursor: pointer;
+  }
+
+  &.show {
+    opacity: 1;
+  }
+
+  &.smallShadow {
+    box-shadow: defines.layout(boxShadow, level2);
+  }
+}
+
+.innerCard {
+  width: 100%;
+  height: 100%;
+  display: grid;
+}

@@ -1,0 +1,37 @@
+@use "assets/styles/defines";
+
+@keyframes animClick {
+  0% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.4) 0%, defines.colorA(darkGray, 0.3) 1%, defines.colorA(darkGray, 0.3) 100%); }
+  10% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.43) 10%, defines.colorA(darkGray, 0.3) 11%, defines.colorA(darkGray, 0.3) 100%); }
+  20% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.47) 24%, defines.colorA(darkGray, 0.3) 25%, defines.colorA(darkGray, 0.3) 100%); }
+  30% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.52) 41%, defines.colorA(darkGray, 0.3) 42%, defines.colorA(darkGray, 0.3) 100%); }
+  40% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.56) 60%, defines.colorA(darkGray, 0.3) 61%, defines.colorA(darkGray, 0.3) 100%); }
+  50% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.59) 82%, defines.colorA(darkGray, 0.3) 83%, defines.colorA(darkGray, 0.3) 100%); }
+  60% { background: radial-gradient(circle at center, defines.colorA(darkGray, 0.6) 99%, defines.colorA(darkGray, 0.3) 100%, defines.colorA(darkGray, 0.3) 100%); }
+  61% { background: defines.colorA(darkGray, 0.6); }
+  100% { background: defines.colorA(darkGray, 0.6); }
+}
+
+.windowControlButton {
+  height: 100%;
+  display: inline-flex;
+  justify-content: center;
+  padding: 0 defines.layoutPx(mostLeftRightPadding);
+  background: none;
+  outline: none;
+  fill: defines.typo(color, light, normal);
+  cursor: pointer;
+  transition: background 0.1s linear;
+
+  &:hover {
+    background: defines.colorA(darkGray, 0.3);
+  }
+
+  svg {
+    align-self: center;
+  }
+
+  &.runClickAnim {
+    animation: animClick defines.layoutMs(defaultAnimationTimeMs) ease forwards;
+  }
+}

@@ -1,0 +1,107 @@
+// -------------------------------------------------------------------------------------------------
+// Main font
+// -------------------------------------------------------------------------------------------------
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Open Sans'), local('OpenSans-Regular'),
+       url('./../fonts/OpenSans-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Open Sans Italic'), local('OpenSans-Italic'),
+       url('./../fonts/OpenSans-Italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Open Sans SemiBold'), local('OpenSans-SemiBold'),
+       url('./../fonts/OpenSans-SemiBold.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-weight: 600;
+  src: local('Open Sans SemiBold Italic'), local('OpenSans-SemiBoldItalic'),
+       url('./../fonts/OpenSans-SemiBoldItalic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Open Sans Bold'), local('OpenSans-Bold'),
+       url('./../fonts/OpenSans-Bold.woff2') format('woff2');
+}
+
+
+// -------------------------------------------------------------------------------------------------
+// Additional arabic font
+// -------------------------------------------------------------------------------------------------
+
+@font-face {
+  font-family: 'Noto Sans Arabic';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Noto Sans Arabic'), local('NotoSansArabic-Regular'),
+       url('./../fonts/NotoSansArabic-Regular.woff2') format('woff2'),
+}
+
+@font-face {
+  font-family: 'Noto Sans Arabic';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Noto Sans Arabic 600'), local('NotoSansArabic-600'),
+       url('./../fonts/NotoSansArabic-600.woff2') format('woff2'),
+}
+
+@font-face {
+  font-family: 'Noto Sans Arabic';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Noto Sans Arabic 700'), local('NotoSansArabic-700'),
+       url('./../fonts/NotoSansArabic-700.woff2') format('woff2'),
+}
+
+
+// -------------------------------------------------------------------------------------------------
+// Additional monotype font
+// -------------------------------------------------------------------------------------------------
+
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Source Code Pro'), local('SourceCodePro-Regular'),
+       url('./../fonts/SourceCodePro-Regular.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Source Code Pro';
+  font-style: normal;
+  font-weight: 600;
+  src: local('Source Code Pro SemiBold'), local('SourceCodePro-SemiBold'),
+       url('./../fonts/SourceCodePro-SemiBold.woff2') format('woff2');
+}
+
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  font-family: 'Open Sans', 'Noto Sans Arabic', Arial, sans-serif;
+}
+
+html {
+  font-size: 17px;
+  overflow: hidden;
+}

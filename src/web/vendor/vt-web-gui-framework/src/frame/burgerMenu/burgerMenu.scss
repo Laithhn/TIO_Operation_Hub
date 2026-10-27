@@ -1,0 +1,25 @@
+@use "assets/styles/defines";
+@use "./defines.js" as localDefines;
+
+$width: defines.layout(sidebars, firstSidebarWidth) + defines.layout(header, iconSize) + (defines.layout(mostLeftRightPadding) * 2);
+
+.burgerMenu {
+  position: relative;
+  width: #{$width}px;
+  grid-area: viAreaBurgerMenu;
+  box-shadow: 0 0 20px rgba(0, 0, 0, .19), 0 0 6px rgba(0, 0, 0, .23);
+  clip-path: inset(0 -30px 0 0);
+  transform: translateX(#{-$width}px);
+  transition: transform #{localDefines.$showHideAnimationTimeMs}ms ease;
+
+  &.show {
+    transform: translateX(0) !important;
+  }
+}
+
+body[dir='rtl'] {
+  .burgerMenu {
+    clip-path: inset(0 0 0 -30px);
+    transform: translateX(#{$width}px);
+  }
+}

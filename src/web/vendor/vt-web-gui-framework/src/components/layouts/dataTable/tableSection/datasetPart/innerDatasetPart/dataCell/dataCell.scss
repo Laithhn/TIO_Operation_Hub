@@ -1,0 +1,18 @@
+@use "assets/styles/defines";
+
+.innerContrComplex {
+  display: grid;
+}
+
+.innerContrSimple {
+  @include defines.typoSet(value, $noWrap: false, $noOverflow: false);
+}
+
+.outerContr {
+  place-self: stretch;
+  display: grid;
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

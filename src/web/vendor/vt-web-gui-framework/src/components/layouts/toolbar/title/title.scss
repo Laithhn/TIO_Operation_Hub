@@ -1,0 +1,35 @@
+@use "assets/styles/defines";
+
+.title {
+  display: flex;
+  align-items: baseline;
+
+  &.centerTitle {
+    justify-self: center;
+  }
+
+  .titleText {
+    &:not(.titleTypeIsTitle):not(.titleTypeIsLabel) {
+      @include defines.typoSet(headline, $disabled: false, $noWrap: false, $noOverflow: false);
+    }
+    &.titleTypeIsTitle {
+      @include defines.typoSet(title, $disabled: false, $noWrap: false, $noOverflow: false);
+    }
+    &.titleTypeIsLabel {
+      @include defines.typoSet(label, $disabled: false, $noWrap: false, $noOverflow: false);
+    }
+  }
+
+  .subTitleText {
+    margin: 0 0 0 defines.spacePx(xs);
+    @include defines.typoSet(hint, $disabled: false, $noWrap: false, $noOverflow: false);
+  }
+}
+
+body[dir='rtl'] {
+  .title {
+    .subTitleText {
+      margin: 0 defines.spacePx(xs) 0 0;
+    }
+  }
+}

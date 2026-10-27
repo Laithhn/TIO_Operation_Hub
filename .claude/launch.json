@@ -6,6 +6,18 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "src/TioHub.Api", "--launch-profile", "http"],
       "port": 5094
+    },
+    {
+      "name": "tio-hub-claude",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "$env:ASPNETCORE_ENVIRONMENT='Development'; & ./build/Start-Dev.ps1 -Instance Claude -ApiPort 5194"],
+      "port": 5194
+    },
+    {
+      "name": "tio-web-claude",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "$env:Path = (Resolve-Path ./.tools/node).Path + ';' + $env:Path; $env:TIOHUB_API_URL='http://127.0.0.1:5194'; $env:TIOHUB_WEB_PORT='5174'; Set-Location src/web; npm run dev -- --host 127.0.0.1"],
+      "port": 5174
     }
   ]
 }

@@ -1,0 +1,34 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../../defines.js" as localDefines;
+
+.previewImage {
+  height: #{map.get(localDefines.$previewImages, height)}px;
+  border: #{map.get(localDefines.$previewImages, borderWidth)}px solid transparent;
+  margin: 0 #{math.div(map.get(localDefines.$previewImages, columnGap), 2)}px;
+  outline: none;
+  cursor: pointer;
+  transform-origin: bottom;
+  transition:
+    border-color #{localDefines.$imageChangeTransitionTimeMs}ms ease-in-out,
+    transform #{localDefines.$imageChangeTransitionTimeMs}ms ease-in-out;
+
+  &:focus { outline: none; }
+  &::-moz-focus-inner { border: 0; }
+
+  &.selected {
+    border-color: defines.color(active);
+    transform: translateY(#{map.get(localDefines.$previewImages, translateY)}px) scale(map.get(localDefines.$previewImages, scale));
+  }
+
+  &:not(.selected) {
+    &:hover {
+      transform: translateY(#{map.get(localDefines.$previewImages, translateY)}px);
+    }
+  }
+
+  img {
+    height: 100%;
+  }
+}

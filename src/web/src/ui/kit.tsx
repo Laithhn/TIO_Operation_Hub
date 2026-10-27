@@ -6,12 +6,16 @@ import { useMe, useReference } from '../hooks';
 import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
 import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
+import { createPortal } from 'react-dom';
+import { TabBar, TabBarTitleItem } from '../vt';
 
 // ---------- page structure ----------
 
+/** The page's main toolbar (VtWebGuiFramework MainToolbar): rendered into the frame's #viMainToolbar slot when present. */
 export function PageHead({ title, sub, crumbs, actions }: { title: ReactNode; sub?: ReactNode; crumbs?: { to?: string; label: string }[]; actions?: ReactNode }) {
   useEffect(() => { if (typeof title === 'string') document.title = `${title} · TIO Operations Hub`; }, [title]);
-  return (
+  const slot = typeof document !== 'undefined' ? document.getElementById('viMainToolbar') : null;
+  const head = (
     <div className="page-head">
       {crumbs && crumbs.length > 0 && (
         <nav className="crumbs" aria-label="Breadcrumb">
@@ -30,6 +34,7 @@ export function PageHead({ title, sub, crumbs, actions }: { title: ReactNode; su
       {actions && <div className="actions">{actions}</div>}
     </div>
   );
+  return slot ? createPortal(head, slot) : head;
 }
 
 export function Panel({ title, actions, children, pad = true }: { title?: ReactNode; actions?: ReactNode; children: ReactNode; pad?: boolean }) {
@@ -635,10 +640,21 @@ export const useToast = () => useContext(ToastCtx);
 
 // ---------- misc ----------
 
+/** VtWebGuiFramework TabBar. The wrapper adds what the framework item lacks: aria-selected and Enter/Space activation. */
 export function Tabs({ tabs, value, onChange }: { tabs: { key: string; label: ReactNode }[]; value: string; onChange: (k: string) => void }) {
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    root.current?.querySelectorAll<HTMLElement>('[role="tab"]').forEach((el, i) => el.setAttribute('aria-selected', String(tabs[i]?.key === value)));
+  });
+  const onKeyDown = (e: { key: string; target: EventTarget; preventDefault(): void }) => {
+    const t = e.target as HTMLElement;
+    if (t.getAttribute('role') === 'tab' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.click(); }
+  };
   return (
-    <div className="tabs" role="tablist">
-      {tabs.map(t => <button key={t.key} role="tab" aria-selected={t.key === value} onClick={() => onChange(t.key)}>{t.label}</button>)}
+    <div className="vt-tabs" ref={root} onKeyDown={onKeyDown}>
+      <TabBar selectedId={value}>
+        {tabs.map(t => <TabBarTitleItem key={t.key} id={t.key} title={nodeText(t.label)} onClick={() => onChange(t.key)} />)}
+      </TabBar>
     </div>
   );
 }

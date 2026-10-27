@@ -1,0 +1,5 @@
+.contentScope {
+  display: grid;
+  align-self: end;
+  background: inherit; // avoid using the background of dashboard.scss
+}

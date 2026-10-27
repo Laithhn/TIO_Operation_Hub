@@ -1,5 +1,5 @@
 import { hasPermission, hasAnyPermission } from '../permissions';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { get } from '../api';
 import { useMe, type Me } from '../hooks';
@@ -7,6 +7,7 @@ import { signOut } from '../pages/SignIn';
 import { Menu } from './kit';
 import { NotificationBell } from '../pages/Notifications';
 import { Icon, Logo } from './Icon';
+import { cx, frameCss, PrimaryLinksMarker, SidebarMarker, SidebarTitle } from '../vt/frame';
 
 type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m: Me) => boolean; children?: Item[] };
 /** bare: the page uses the whole width (no section menu), for full-screen workspaces such as Notes. */
@@ -109,15 +110,22 @@ const SECTIONS: Section[] = [
 ];
 
 const DEV_USERS = ['DEV\\manager', 'DEV\\lead', 'DEV\\engineer', 'DEV\\engineer2', 'DEV\\viewer', 'DEV\\admin'];
-
+// The application frame follows VtWebGuiFramework (src/vt/frame.tsx): header with logo, primary links and secondary links;
+// first sidebar with title, entries and the active marker; main toolbar slot (#viMainToolbar, filled by PageHead); main scope; footer.
 export function Shell({ children }: { children: ReactNode }) {
   const me = useMe().data;
   const loc = useLocation();
   const [navOpen, setNavOpen] = useState(false);
   const [mini, setMini] = useState(() => { try { return localStorage.getItem('tiohub.side-mini') === '1'; } catch { return false; } });
   const [palette, setPalette] = useState(false);
+  // MainToolbar portals into #viMainToolbar, so pages render once the frame is in the DOM.
+  const [framed, setFramed] = useState(false);
+  useLayoutEffect(() => setFramed(true), []);
+  const primaryLinks = useRef<HTMLElement>(null);
+  const submenu = useRef<HTMLDivElement>(null);
   const visible = useMemo(() => me ? SECTIONS.filter(s => (s.show?.(me) ?? true) && s.side.some(i => i.show?.(me) ?? true)) : [], [me]);
   const section = visible.find(s => s.match.test(loc.pathname)) ?? visible[0];
+  const withSidebar = !section?.bare;
 
   useEffect(() => { setNavOpen(false); }, [loc.pathname]);
   useEffect(() => { document.body.classList.toggle('nav-open', navOpen); document.body.classList.toggle('side-mini', mini); }, [navOpen, mini]);
@@ -134,30 +142,51 @@ export function Shell({ children }: { children: ReactNode }) {
   const toggleMini = () => { const n = !mini; setMini(n); try { localStorage.setItem('tiohub.side-mini', n ? '1' : '0'); } catch { /* storage blocked */ } };
   const switchDev = (acct: string) => { document.cookie = `tiohub-dev-user=${encodeURIComponent(acct)}; path=/; SameSite=Strict`; window.location.href = '/'; };
   const currentDev = decodeURIComponent(document.cookie.match(/tiohub-dev-user=([^;]+)/)?.[1] ?? '') || me?.account;
+  const forms = me?.app.authMode.toLowerCase() === 'forms';
+  const f = frameCss;
 
-  const renderItem = (i: Item) => (
-    <div key={i.to + i.label}>
-      <NavLink to={i.to} end={i.end ?? !i.children}>{i.icon && <Icon name={i.icon} />}<span>{i.label}</span></NavLink>
-      {i.children && me && <div className="subs">{i.children.filter(c => c.show?.(me) ?? true).map(c => <NavLink key={c.to} to={c.to} end={c.end}><span>{c.label}</span></NavLink>)}</div>}
+  const entry = (i: Item) => (
+    <div key={i.to + i.label} className={f.entry.entry}>
+      <NavLink to={i.to} end={i.end ?? !i.children} title={mini ? i.label : undefined}
+        className={({ isActive }) => cx(f.entry.link, i.icon && f.entry.hasIcon, isActive && f.entry.active)}>
+        {i.icon && <Icon name={i.icon} size={20} />}
+        <span className={f.entry.caption}>{i.label}</span>
+      </NavLink>
+      {i.children && me && i.children.filter(c => c.show?.(me) ?? true).map(c => (
+        <div key={c.to} className={f.entry.entry}>
+          <NavLink to={c.to} end={c.end} className={({ isActive }) => cx(f.entry.link, f.entry.isSubEntry, isActive && f.entry.active)}>
+            <span className={f.entry.line} />
+            <span className={f.entry.caption}>{c.label}</span>
+          </NavLink>
+        </div>
+      ))}
     </div>
   );
 
   return (
-    <>
+    <div className={cx(f.app.app, f.app.withFooter, 'hub-app', withSidebar ? 'with-sidebar' : 'bare')}>
       <a className="skip" href="#main">Skip to content</a>
-      <header className="hdr">
-        <button className="hdr-btn menu-btn" onClick={() => setNavOpen(true)} aria-label="Open section menu"><Icon name="menu" size={18} /></button>
-        <Link className="logo" to="/" aria-label="TIO Operations Hub home"><Logo /><span>VITRONIC</span></Link>
-        <nav className="topnav" aria-label="Main">
-          {visible.map(s => <Link key={s.key} to={s.to} aria-current={s.key === section?.key ? 'page' : undefined}>{s.label}</Link>)}
-        </nav>
-        <div className="hdr-right">
+      <header className={cx(f.header.header, 'hdr')}>
+        <button className={cx(f.secondaryLink.secondaryLink, 'menu-btn')} onClick={() => setNavOpen(true)} aria-label="Open section menu"><Icon name="menu" size={24} /></button>
+        <Link className={f.logo.logo} to="/" aria-label="TIO Operations Hub home"><Logo /></Link>
+        <div className={f.primaryHeader.primaryHeader}>
+          <nav ref={primaryLinks} className={f.primaryLinks.primaryLinks} aria-label="Main">
+            <PrimaryLinksMarker container={primaryLinks} activeKey={section?.key} />
+            {visible.map(s => (
+              <Link key={s.key} to={s.to} aria-current={s.key === section?.key ? 'page' : undefined}
+                className={cx(f.primaryLink.primaryLink, s.key === section?.key && f.primaryLink.active)}>{s.label}</Link>
+            ))}
+          </nav>
+        </div>
+        <div className={cx(f.secondaryHeader.secondaryHeader, 'hdr-right')}>
           {me?.app.devSignIn && (
-            <select className="hdr-select" aria-label="Development sign-in: switch demo user" value={currentDev} onChange={e => switchDev(e.target.value)} title="Development only — fictional demo users">
-              {DEV_USERS.map(u => <option key={u} value={u}>{u}</option>)}
-            </select>
+            <div className={f.secondaryHeader.secondaryHeaderContr}>
+              <select className="hdr-select" aria-label="Development sign-in: switch demo user" value={currentDev} onChange={e => switchDev(e.target.value)} title="Development only — fictional demo users">
+                {DEV_USERS.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
           )}
-          {me && <Menu label="+ New" title="Create a record" items={[
+          {me && <div className={f.secondaryHeader.secondaryHeaderContr}><Menu label="+ New" title="Create a record" items={[
             { label: 'Client', to: '/clients/new', hidden: !hasPermission(me, 'ClientStructure', 'Create') },
             { label: 'Environment', to: '/environments/new', hidden: !hasPermission(me, 'Environments', 'Create') },
             { label: 'Case', to: '/cases/new', hidden: !hasPermission(me, 'Cases', 'Create') },
@@ -165,38 +194,44 @@ export function Shell({ children }: { children: ReactNode }) {
             { label: 'Escalation', to: '/escalations/new', hidden: !hasPermission(me, 'OtherOperations', 'Create') },
             { label: 'Note', to: '/notes' },
             { label: 'Product', to: '/products/new', hidden: !hasPermission(me, 'Products', 'Create') }
-          ]} />}
-          {me && <NotificationBell />}
-          <button className="hdr-search" onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
-            <Icon name="search" size={15} /><span>Search…</span><kbd>/</kbd>
+          ]} /></div>}
+          <button className={f.secondaryLink.secondaryLink} onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
+            <Icon name="search" size={24} />
           </button>
-          {me?.app.authMode.toLowerCase() === 'forms'
-            ? <Link className="hdr-btn" to="/account/password" title={`${me.displayName} · ${me.roleLabels.join(', ')} · Change password`} aria-label={`Signed in as ${me.displayName}. Change password`}><Icon name="user" size={18} /></Link>
-            : <span className="hdr-btn" title={me ? `${me.displayName} · ${me.roleLabels.join(', ')}` : ''}><Icon name="user" size={18} title={me ? `Signed in as ${me.displayName}` : undefined} /></span>}
-          {me?.app.authMode.toLowerCase() === 'forms' && <button className="hdr-btn" onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="signout" size={18} /></button>}
+          {me && <NotificationBell />}
+          {forms
+            ? <Link className={f.secondaryLink.secondaryLink} to="/account/password" title={`${me!.displayName} · ${me!.roleLabels.join(', ')} · Change password`} aria-label={`Signed in as ${me!.displayName}. Change password`}><Icon name="user" size={24} /></Link>
+            : <span className={f.secondaryLink.secondaryLink} title={me ? `${me.displayName} · ${me.roleLabels.join(', ')}` : ''}><Icon name="user" size={24} title={me ? `Signed in as ${me.displayName}` : undefined} /></span>}
+          {forms && <button className={f.secondaryLink.secondaryLink} onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="signout" size={24} /></button>}
         </div>
       </header>
-      <div className="frame">
-        {!section?.bare && <aside className="side" aria-label="Section menu">
-          <div className="side-title">TIO Operations<br />Hub</div>
-          <nav className="side-nav">{section && me && section.side.filter(i => i.show?.(me) ?? true).map(renderItem)}</nav>
-          <button className="side-collapse" onClick={toggleMini} aria-label={mini ? 'Expand menu' : 'Collapse menu'}><Icon name="chevron" size={14} /></button>
-        </aside>}
-        <div className="scrim-nav" onClick={() => setNavOpen(false)} />
-        <main className="content" id="main" tabIndex={-1}>{children}</main>
-      </div>
-      <footer className="status">
-        <span>© Vitronic</span>
+      <div id="viMainToolbar" className={f.app.mainToolbar} />
+      {withSidebar && (
+        <aside className={cx(f.firstSidebar.firstSidebar, f.firstSidebar.withTitle, 'side')} aria-label="Section menu">
+          <SidebarTitle>TIO Operations Hub</SidebarTitle>
+          <div className={f.primarySubmenu.primarySubmenuWrapper}>
+            <nav ref={submenu} className={cx(f.primarySubmenu.primarySubmenu, 'side-nav')}>
+              {section && me && section.side.filter(i => i.show?.(me) ?? true).map(entry)}
+              <SidebarMarker container={submenu} path={loc.pathname} />
+            </nav>
+          </div>
+          <button className="side-collapse" onClick={toggleMini} aria-label={mini ? 'Expand menu' : 'Collapse menu'}><Icon name="chevron" size={16} /></button>
+        </aside>
+      )}
+      <div className="scrim-nav" onClick={() => setNavOpen(false)} />
+      <main className={cx(f.mainScope.mainScope, 'content')} id="main" tabIndex={-1}>{framed && children}</main>
+      <footer className={cx(f.footer.footer, 'status')}>
+        <span>© VITRONIC</span>
         <span className="app">TIO Operations Hub&nbsp;&nbsp;{me?.app.version}</span>
         <span className="center">User : {me?.account}{me ? ` · ${me.roleLabels.join(', ')}` : ''}</span>
         <span className="right">
           {me?.app.environmentName && me.app.environmentName !== 'Production' && <span className="env-badge">{me.app.environmentName}</span>}
           <span>Times: {me?.timeZone}</span>
-          <span style={{ display: 'inline-flex', gap: 5, alignItems: 'center' }}><Icon name="online" size={14} />Server Online</span>
+          <span className="online"><Icon name="online" size={16} />Server Online</span>
         </span>
       </footer>
       {palette && <SearchPalette onClose={() => setPalette(false)} />}
-    </>
+    </div>
   );
 }
 

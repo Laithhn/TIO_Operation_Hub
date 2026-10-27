@@ -1,0 +1,28 @@
+@use "assets/styles/defines";
+
+.screen {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: 100%;
+  display: grid;
+  place-content: center;
+
+  &:not(.exclusive) {
+    pointer-events: none;
+  }
+
+  &.visible {
+    background: defines.layout(dimmedBackground);
+  }
+}
+
+.dialog {
+  min-height: 0;
+  display: grid;
+  border-radius: defines.layoutPx(components, borderRadius);
+  box-shadow: defines.layout(boxShadow, level4);
+  transition: background 0.1s ease;
+  pointer-events: all;
+}

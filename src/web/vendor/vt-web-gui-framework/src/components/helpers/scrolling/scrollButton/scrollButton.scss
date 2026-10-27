@@ -1,0 +1,185 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+$dim: map.get(localDefines.$scrollButton, dim);
+
+.shader {
+  position: absolute;
+  opacity: 0;
+  display: grid;
+  pointer-events: none;
+  transition: opacity defines.layoutMs(defaultAnimationTimeMs) ease;
+
+  &.show {
+    opacity: 1; // showing has to be done by opacity to prevent clicking the menu below in the moment the button disapears
+    cursor: pointer;
+  }
+
+  &.scrollUp, &.scrollDown {
+    left: 0;
+    width: 100%;
+    height: #{$dim}px;
+  }
+
+  &.scrollUp {
+    top: 0;
+  }
+
+  &.scrollDown {
+    bottom: 0;
+  }
+
+  &.scrollLeft, &.scrollRight {
+    width: #{$dim}px;
+    top: 0;
+    height: 100%;
+  }
+
+  &.scrollLeft {
+    left: 0;
+  }
+
+  &.scrollRight {
+    right: 0;
+  }
+}
+
+.scrollButton {
+  width: #{$dim}px;
+  height: #{$dim}px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-width: 1px;
+  outline: none;
+  pointer-events: auto;
+
+  &:hover, &:focus {
+    &:not(.disabled) {
+      padding: none;
+      border-color: defines.color(impulseGreen);
+      border-width: 2px;
+    }
+  }
+
+  &:not(.darkTheme) {
+    border-color: defines.layout(sidebars, borderColor);
+    fill: defines.typo(color, dark, normal);
+  }
+
+  &.darkTheme {
+    border-color: defines.color(offWhite);
+    fill: defines.typo(color, light, normal);
+  }
+
+  &.scrollUp, &.scrollDown {
+    &.buttonPosStart {
+      justify-self: start;
+      padding-right: 1px;
+      border-right-style: solid;
+    }
+
+    &.buttonPosCenter {
+      justify-self: center;
+      padding-right: 1px;
+      padding-left: 1px;
+      border-right-style: solid;
+      border-left-style: solid;
+    }
+
+    &.buttonPosEnd {
+      justify-self: end;
+      padding-left: 1px;
+      border-left-style: solid;
+    }
+  }
+
+  &.scrollUp {
+    padding-bottom: 1px;
+    border-bottom-style: solid;
+  }
+
+  &.scrollDown {
+    padding-top: 1px;
+    border-top-style: solid;
+  }
+
+  &.scrollLeft, &.scrollRight {
+    &.buttonPosStart {
+      align-self: start;
+      padding-bottom: 1px;
+      border-bottom-style: solid;
+    }
+
+    &.buttonPosCenter {
+      align-self: center;
+      padding-top: 1px;
+      padding-bottom: 1px;
+      border-top-style: solid;
+      border-bottom-style: solid;
+    }
+
+    &.buttonPosEnd {
+      align-self: end;
+      padding-top: 1px;
+      border-top-style: solid;
+    }
+  }
+
+  &.scrollLeft {
+    padding-right: 1px;
+    border-right-style: solid;
+  }
+
+  &.scrollRight {
+    padding-left: 1px;
+    border-left-style: solid;
+  }
+}
+
+body[dir="rtl"] {
+  .shader {
+    &.scrollLeft {
+      left: auto;
+      right: 0;
+    }
+
+    &.scrollRight {
+      left: 0;
+      right: auto;
+    }
+  }
+
+  .scrollButton {
+    &.scrollUp, &.scrollDown {
+      &.buttonPosStart {
+        padding-left: 1px;
+        padding-right: 0;
+        border-left-style: solid;
+        border-right-style: none;
+      }
+
+      &.buttonPosEnd {
+        padding-left: 0;
+        padding-right: 1px;
+        border-left-style: none;
+        border-right-style: solid;
+      }
+    }
+
+    &.scrollLeft {
+      padding-left: 1px;
+      padding-right: 0;
+      border-left-style: solid;
+      border-right-style: none;
+    }
+
+    &.scrollRight {
+      padding-left: 0;
+      padding-right: 1px;
+      border-left-style: none;
+      border-right-style: solid;
+    }
+  }
+}

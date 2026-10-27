@@ -1,0 +1,13 @@
+.contr {
+  position: relative;
+}
+
+.image {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

@@ -1,0 +1,126 @@
+// Hub additions to the VtWebGuiFramework frame (src/vt/frame.tsx, ui/Shell.tsx): the grid areas that the framework's
+// App component computes, the collapsible / off-canvas first sidebar, header controls and the footer line.
+// Values come from the framework defines; the frame's own look comes from its CSS modules.
+@use "assets/styles/defines";
+
+.hub-app {
+  // frame/app: rows header · main toolbar · main scope · footer
+  &.with-sidebar {
+    grid-template-columns: 0 defines.layoutPx(sidebars, firstSidebarWidth) minmax(0, 1fr) 0;
+    grid-template-areas:
+      ". viAreaHeader viAreaHeader ."
+      "viAreaBurgerMenu viAreaFirstSidebar viAreaMainToolbar viAreaNotifications"
+      "viAreaBurgerMenu viAreaFirstSidebar viAreaMainScope viAreaNotifications"
+      ". viAreaFooter viAreaFooter .";
+  }
+  &.bare {
+    grid-template-columns: 0 minmax(0, 1fr) 0;
+    grid-template-areas:
+      ". viAreaHeader ."
+      "viAreaBurgerMenu viAreaMainToolbar viAreaNotifications"
+      "viAreaBurgerMenu viAreaMainScope viAreaNotifications"
+      ". viAreaFooter .";
+  }
+}
+body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini) minmax(0, 1fr) 0; }
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  &:focus { left: defines.spacePx(xs); top: defines.spacePx(xxs); padding: defines.spacePx(xxs) defines.spacePx(xs); background: defines.color(offWhite); color: defines.color(primary); }
+}
+
+// ---------- header ----------
+.hdr {
+  position: relative;
+  z-index: 20;
+  // Primary links scroll horizontally when they do not fit, so the secondary links stay visible.
+  [class*="primaryHeader__primaryHeader"] { min-width: 0; }
+  nav[aria-label="Main"] { overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+  .hdr-right { flex: none; }
+  nav[aria-label="Main"]::-webkit-scrollbar { display: none; }
+  .menu-btn { display: none; }
+  button, a { font: inherit; }
+  button[class] { background: none; border: 0; }
+  .hdr-select {
+    height: defines.layoutPx(controls, heightDefault);
+    padding: 0 defines.spacePx(xxs);
+    border: 0;
+    border-bottom: 1px solid defines.typo(color, light, weak);
+    background: transparent;
+    color: defines.typo(color, light, normal);
+    font-size: defines.typo(fontSize, small);
+    option { color: defines.color(primary); }
+  }
+  // "+ New" menu trigger in the header, as a flat dark-theme button
+  .menu > .btn {
+    background: transparent; color: defines.typo(color, light, normal); border-color: defines.typo(color, light, weak);
+    &:hover { background: defines.layout(controls, color, light, backgroundFocus); }
+  }
+  svg.ic { fill: defines.typo(color, light, normal); }
+  .bell-btn { height: defines.layoutPx(header, height); padding: 0 defines.layoutPx(mostLeftRightPadding); color: defines.typo(color, light, normal); }
+}
+@media (max-width: 1700px) {
+  .hdr nav[aria-label="Main"] > a { padding: 0 defines.spacePx(xs); font-size: defines.typo(fontSize, small); }
+}
+
+// ---------- first sidebar ----------
+.side {
+  position: relative;
+  overflow: visible;
+  z-index: 5;
+  .side-nav { overflow-y: auto; overflow-x: hidden; }
+  svg.ic { fill: currentColor; }
+  .side-collapse {
+    position: absolute; right: defines.spacePx(xxs); bottom: defines.spacePx(xxs);
+    width: defines.spacePx(small); height: defines.spacePx(small);
+    display: grid; place-items: center;
+    border: 1px solid defines.layout(sidebars, borderColor); background: defines.color(offWhite); color: defines.color(primary); cursor: pointer;
+  }
+}
+body.side-mini .side {
+  [class*="title__title"] p, [class*="entry__caption"], [class*="entry__isSubEntry"] { display: none; }
+  .side-collapse svg { transform: rotate(180deg); }
+}
+
+// ---------- main scope ----------
+.content {
+  overflow: auto;
+  min-width: 0;
+  background: defines.layout(dashboard, background);
+  padding: defines.spacePx(small) defines.spacePx(medium) defines.spacePx(medium);
+  outline: none;
+}
+
+// ---------- footer ----------
+.status {
+  grid-auto-flow: column;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  column-gap: defines.spacePx(small);
+  min-height: defines.spacePx(medium);
+  padding: 0 defines.layoutPx(mostLeftRightPadding);
+  color: defines.typo(color, light, normal);
+  font-size: defines.typo(fontSize, xs);
+  .center { text-align: center; }
+  .right { display: inline-flex; gap: defines.spacePx(small); align-items: center; }
+  .online { display: inline-flex; gap: defines.spacePx(xxxs); align-items: center; svg { fill: defines.color(calmingGreen); } }
+  .env-badge { padding: 0 defines.spacePx(xxs); background: defines.color(attentionHigh); color: defines.color(primary); font-weight: defines.typo(fontWeight, semibold); }
+}
+
+// ---------- tablet / phone: the first sidebar becomes an off-canvas drawer ----------
+.scrim-nav { display: none; }
+@media (max-width: 900px) {
+  .hub-app.with-sidebar, body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
+  .hdr .menu-btn { display: inline-flex; align-items: center; }
+  .hdr [class*="logo__logo"] { min-width: auto; flex: none; padding: 0 defines.spacePx(xs); }
+  .side {
+    position: fixed; left: 0; top: defines.layoutPx(header, height); bottom: 0;
+    width: defines.layoutPx(sidebars, firstSidebarWidth);
+    transform: translateX(-105%); transition: transform defines.layoutMs(defaultAnimationTimeMs) ease; z-index: 40;
+    .side-collapse { display: none; }
+  }
+  body.nav-open .side { transform: none; }
+  body.nav-open .scrim-nav { display: block; position: fixed; inset: defines.layoutPx(header, height) 0 0 0; background: defines.layout(dimmedBackground); z-index: 30; }
+  .content { padding: defines.spacePx(xs); }
+  .status { grid-template-columns: 1fr; grid-auto-flow: row; padding: defines.spacePx(xxxs) defines.spacePx(xs); .app, .center { display: none; } }
+}

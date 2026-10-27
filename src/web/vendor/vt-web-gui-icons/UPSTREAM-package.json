@@ -1,0 +1,24 @@
+{
+  "name": "vtwebguiicons",
+  "version": "2.4.0",
+  "productName": "VtWebGuiIcons",
+  "description": "Collection of icon images for VITRONIC GUIs",
+  "keywords": [],
+  "author": "VITRONIC GmbH",
+  "license": "ISC",
+  "private": true,
+  "scripts": {},
+  "dependencies": {
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.24.5",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsx-a11y": "^6.8.0",
+    "eslint-plugin-react": "^7.34.1",
+    "eslint-plugin-react-hooks": "^4.6.2"
+  },
+  "false": {}
+}

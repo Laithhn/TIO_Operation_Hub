@@ -1,0 +1,12 @@
+@use "assets/styles/defines";
+
+@keyframes blink {
+  from, to { color: transparent; }
+  50% { color: structureSilver;}
+}
+
+.cursor {
+  font-family: 'Source Code Pro', monospace !important;
+  @include defines.typoSet(value, $disabled: false, $noWrap: false, $noOverflow: false);
+  animation: 1s blink step-end infinite;
+}

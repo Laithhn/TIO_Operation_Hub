@@ -1,0 +1,33 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.marker {
+  position: absolute;
+  top: #{defines.layout(header, height) - map.get(localDefines.$marker, topOffset)}px;
+  left: -#{math.div(map.get(localDefines.$marker, width), 2)}px;
+  opacity: 0;
+
+  &.fadeIn {
+    opacity: 1;
+    transition: opacity #{localDefines.$animationTimeMs * 0.2}ms ease #{localDefines.$animationTimeMs * 0.8}ms;
+  }
+
+  &.fadeOut {
+    opacity: 0;
+    transition: opacity #{localDefines.$animationTimeMs * 0.4}ms ease;
+  }
+
+  &.enableAnimation {
+    transition: transform #{localDefines.$animationTimeMs}ms ease-in-out;
+  }
+}
+
+.background {
+  fill: defines.color(offWhite);
+}
+
+.circle {
+   fill: defines.color(primary);
+}

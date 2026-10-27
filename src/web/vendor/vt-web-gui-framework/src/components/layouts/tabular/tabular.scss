@@ -1,0 +1,28 @@
+@use "assets/styles/defines";
+
+.tabular {
+  display: flex;
+  flex-direction: column;
+
+  &.tabularStyleIsLine {
+    &.noLastLine > :last-child {
+      border-bottom: 0 none;
+    }
+  }
+
+  &.tabularStyleIsBackground {
+    & > :not(:last-child) {
+      margin-bottom: defines.spacePx(xxs);
+    }
+
+    & > :first-child {
+      border-top-left-radius: defines.layoutPx(components, borderRadius);
+      border-top-right-radius: defines.layoutPx(components, borderRadius);
+    }
+
+    & > :last-child {
+      border-bottom-right-radius: defines.layoutPx(components, borderRadius);
+      border-bottom-left-radius: defines.layoutPx(components, borderRadius);
+    }
+  }
+}

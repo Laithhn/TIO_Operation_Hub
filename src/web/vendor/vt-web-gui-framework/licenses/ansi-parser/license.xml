@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xml-stylesheet type="text/xsl" href="license.xsl"?>
+<!DOCTYPE vitronic_license_info [
+<!ELEMENT vi_package_name (#PCDATA)>
+<!ELEMENT vi_developer_name (#PCDATA)>
+<!ELEMENT download_date (#PCDATA)>
+<!ELEMENT download_url (#PCDATA)>
+<!ELEMENT download_imprint (#PCDATA)>
+<!ELEMENT library (#PCDATA)>
+<!ELEMENT version (#PCDATA)>
+<!ELEMENT manufacturer (#PCDATA)>
+<!ELEMENT manufacturer_url (#PCDATA)>
+<!ELEMENT manufacturer_package (#PCDATA)>
+<!ELEMENT license_model (#PCDATA)>
+<!ELEMENT license_url (#PCDATA)>
+<!ELEMENT license_text (#PCDATA)>
+<!ELEMENT alternative_licenses (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+<!ELEMENT external_package (vi_package_name, vi_developer_name, download_date, download_url, download_imprint, manufacturer, manufacturer_url, manufacturer_package, version, license_model, license_url, license_text, alternative_licenses?, description?)>
+]>
+<vitronic_license_info>
+  <external_package>
+    <vi_package_name>VtWebGuiFramework</vi_package_name>
+    <vi_developer_name>Marco Stolz</vi_developer_name>
+    <download_date>11.06.2015</download_date>
+    <download_url>https://github.com/IonicaBizau/node-ansi-parser</download_url>
+    <download_imprint>© 2018 GitHub Inc.</download_imprint>
+    <manufacturer>Ionică Bizău</manufacturer>
+    <manufacturer_url>https://ionicabizau.net/</manufacturer_url>
+    <manufacturer_package>ansi-parser</manufacturer_package>
+    <version>3.2.8</version>
+    <license_model>MIT</license_model>
+    <license_url>https://opensource.org/licenses/MIT</license_url>
+    <license_text>license.txt</license_text>
+    <alternative_licenses />
+    <description>Parse strings containing ANSI style characters.</description>
+  </external_package>
+</vitronic_license_info>

@@ -1,0 +1,10 @@
+@use "assets/styles/defines";
+
+.iconForControls {
+  align-self: center;
+  @include defines.typoSet(valueSmall, $noWrap: false, $noOverflow: false);
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

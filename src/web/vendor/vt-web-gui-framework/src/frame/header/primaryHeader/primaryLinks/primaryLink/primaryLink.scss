@@ -1,0 +1,27 @@
+@use "assets/styles/defines";
+
+.primaryLink, .primaryDisabledLink {
+  position: relative;
+  padding: 0 defines.spacePx(small);
+  font-size: defines.typo(fontSize, normal);
+  font-weight: defines.typo(fontWeight, normal);
+  line-height: defines.layoutPx(header, height);
+  white-space: nowrap;
+}
+
+.primaryLink {
+  outline: none;
+  color: defines.typo(color, light, normal);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color defines.layoutMs(defaultAnimationTimeMs) ease;
+
+  &.active {
+    color: defines.typo(color, dark, normal);
+  }
+}
+
+.primaryDisabledLink {
+  color: defines.typo(color, light, extraWeak);
+  cursor: default;
+}

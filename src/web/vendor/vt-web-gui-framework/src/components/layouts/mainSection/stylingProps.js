@@ -1,0 +1,18 @@
+export default [
+  'relativePosition',
+  'gridTemplateRows',
+  'gridTemplateColumns',
+  'gridTemplateAreas',
+  'gridAutoFlow',
+  'gridAutoRows',
+  'gridAutoColumns',
+  'gap',
+  'rowGap',
+  'columnGap',
+  'placeContent',
+  'alignContent',
+  'justifyContent',
+  'placeItems',
+  'alignItems',
+  'justifyItems',
+];

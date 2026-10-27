@@ -1,0 +1,218 @@
+// Shared component styles of the hub kit (ui/kit.tsx, ui/pickers.tsx and the plain class names used by pages),
+// specified after the VtWebGuiFramework 3.6.1 controls and native-element styles. Each block names its framework source.
+// Native elements (<button>, <input>, <select>, <table>, <dialog>-like popups) are kept for keyboard, form and
+// assistive-technology semantics; their look follows the framework components listed.
+@use "sass:math";
+@use "assets/styles/defines";
+
+$control: defines.layout(controls, heightDefault);
+
+// ---------- base (framework assets/styles/index.scss sets the reset, html 17px and Open Sans) ----------
+html, body { height: 100%; }
+body { background: defines.layout(dashboard, background); color: defines.typo(color, dark, normal); font-size: defines.typo(fontSize, small); line-height: defines.typo(lineHeight, normal); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { color: defines.typo(color, dark, normal); }
+a { color: defines.typo(color, dark, attention); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; }
+:focus-visible { outline: 2px solid defines.typo(color, dark, attention); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mono { font-family: 'Source Code Pro', ui-monospace, Consolas, monospace; font-size: .95em; }
+.muted { color: defines.typo(color, dark, weak); }
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+.nowrap { white-space: nowrap; }
+.ic { flex: none; display: block; }
+strong, b { font-weight: defines.typo(fontWeight, bold); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+// ---------- main toolbar (components/layouts/mainToolbar + title): page title, sub title, actions ----------
+.page-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: defines.spacePx(xxs) defines.spacePx(small);
+  width: 100%; min-height: defines.layoutPx(mainToolbar, height); padding: defines.spacePx(xxs) defines.spacePx(medium);
+  background: defines.layout(mainToolbar, background); border-bottom: 1px solid defines.layout(sidebars, borderColor);
+  h1 { font-size: defines.typo(fontSize, large); font-weight: defines.typo(fontWeight, bold); line-height: defines.typo(lineHeight, small); color: defines.typo(color, dark, normal); }
+  .sub { @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
+  .actions { margin-left: auto; display: flex; gap: defines.spacePx(xs); flex-wrap: wrap; align-items: center; }
+  .crumbs { width: 100%; }
+}
+.crumbs { display: flex; gap: defines.spacePx(xxs); font-size: defines.typo(fontSize, xs); color: defines.typo(color, dark, weak); flex-wrap: wrap;
+  a { color: defines.typo(color, dark, weak); }
+  span[aria-hidden] { color: defines.typo(color, dark, extraWeak); }
+}
+
+// ---------- buttons (components/controls/button: RaisedButton = .btn-primary, FlatButton = .btn / .linkbtn) ----------
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: defines.spacePx(xxs);
+  height: #{$control}px; padding: 0 #{defines.space(xs) - 2}px;
+  border: 2px solid defines.layout(controls, color, dark, disabled); background: transparent;
+  font-size: defines.typo(fontSize, small); font-weight: defines.typo(fontWeight, semibold); color: defines.typo(color, dark, normal); fill: currentColor;
+  text-transform: uppercase; white-space: nowrap; user-select: none;
+  transition: border-color defines.layoutMs(controls, animationTimeMs) ease, background defines.layoutMs(controls, animationTimeMs) ease;
+  &:hover:not(:disabled), &:focus-visible { border-color: defines.color(impulseGreen); text-decoration: none; }
+  &:disabled { color: defines.typo(color, dark, extraWeak); cursor: not-allowed; }
+  svg { width: defines.layoutPx(controls, iconDimDefault); height: defines.layoutPx(controls, iconDimDefault); }
+}
+.btn-primary {
+  min-width: 88px; padding: 0 defines.spacePx(xs); border: 0;
+  background: defines.color(primary); color: defines.typo(color, light, normal);
+  &:hover:not(:disabled), &:focus-visible { background: defines.color(impulseGreen); color: defines.typo(color, dark, normal); }
+  &:disabled { border: 2px solid defines.layout(controls, color, dark, disabled); background: none; color: defines.typo(color, dark, extraWeak); padding: 0 #{defines.space(xs) - 2}px; }
+}
+.btn-danger { border: 0; background: defines.color(signalError); color: defines.typo(color, light, normal);
+  &:hover:not(:disabled), &:focus-visible { background: defines.color(signalError); color: defines.typo(color, light, normal); filter: brightness(1.15); }
+}
+.btn-danger-outline { border-color: defines.color(signalError); color: defines.color(signalError); }
+.btn-ghost { border-color: transparent; }
+.btn-sm { height: 24px; padding: 0 defines.spacePx(xxs); font-size: defines.typo(fontSize, xs); }
+.linkbtn {
+  border: 0; padding: 0; color: defines.typo(color, dark, attention); font-weight: defines.typo(fontWeight, semibold); font-size: defines.typo(fontSize, small);
+  &:hover { text-decoration: underline; }
+  &:disabled { color: defines.typo(color, dark, extraWeak); cursor: not-allowed; text-decoration: none; }
+}
+.danger-link { color: defines.color(signalError); }
+
+// ---------- inputs (components/controls/input, selectBox: underline control, notice line below) ----------
+.input {
+  width: 100%; height: #{$control}px; padding: 0 defines.spacePx(xxs);
+  border: 0; border-bottom: defines.layout(components, dividerBorderDark);
+  background: defines.layout(controls, color, dark, backgroundInput);
+  font-size: defines.typo(fontSize, small); color: defines.typo(color, dark, normal);
+  &::placeholder { color: defines.typo(color, dark, extraWeak); }
+  &:hover:not(:disabled), &:focus { outline: none; border-bottom-color: defines.color(impulseGreen); background: defines.layout(controls, color, dark, backgroundFocus); }
+  &:disabled { color: defines.typo(color, dark, extraWeak); border-bottom-color: defines.layout(controls, color, dark, disabled); }
+}
+select.input { padding-right: defines.spacePx(small); }
+textarea.input { height: auto; min-height: 76px; padding: defines.spacePx(xxs); resize: vertical; line-height: defines.typo(lineHeight, normal); }
+.field { display: flex; flex-direction: column; gap: defines.spacePx(xxxs); min-width: 0; }
+.field > label, .flabel { @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
+.req::after { content: " *"; color: defines.color(signalError); }
+.hint { @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); font-size: defines.typo(fontSize, xs); }
+.err { font-size: defines.typo(fontSize, xs); color: defines.color(signalError); font-weight: defines.typo(fontWeight, semibold); }
+.field.invalid .input { border-bottom: 2px solid defines.color(attentionHigh); }
+.check { display: inline-flex; align-items: center; gap: defines.spacePx(xxs); font-size: defines.typo(fontSize, small); cursor: pointer;
+  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: defines.color(primary); }
+}
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: defines.spacePx(xs) defines.spacePx(small);
+  .wide { grid-column: 1 / -1; }
+}
+.form-actions { display: flex; gap: defines.spacePx(xs); justify-content: flex-end; margin-top: defines.spacePx(small); flex-wrap: wrap; }
+
+// ---------- sections (components/layouts/section + toolbar title "title" set) ----------
+.panel { background: defines.color(offWhite); margin-bottom: defines.spacePx(small); box-shadow: defines.layout(boxShadow, level1); }
+.panel-head { display: flex; align-items: center; gap: defines.spacePx(xs); min-height: defines.spacePx(large); padding: defines.spacePx(xxs) defines.spacePx(small); border-bottom: 1px solid defines.color(lightGray); flex-wrap: wrap;
+  h2 { @include defines.typoSet(title, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
+  .actions { margin-left: auto; display: flex; gap: defines.spacePx(xxs); flex-wrap: wrap; align-items: center; }
+}
+.panel-body { padding: defines.spacePx(xs) defines.spacePx(small) defines.spacePx(small); }
+.table-wrap { overflow-x: auto; }
+
+// ---------- tables (assets/styles/_nativeElements table + layouts/dataTable header cells) ----------
+table.grid { width: 100%; border-collapse: collapse; font-size: defines.typo(fontSize, small); }
+.grid th { text-align: left; font-weight: defines.typo(fontWeight, semibold); color: defines.typo(color, dark, normal); padding: 0; white-space: nowrap; border-bottom: defines.layout(components, dividerBorderDark); background: defines.color(offWhite); position: relative; }
+.grid-head-cell { min-height: defines.spacePx(large); padding: defines.spacePx(xxs) defines.spacePx(xs); display: flex; align-items: center; gap: defines.spacePx(xxs); }
+.grid-sort, .grid-heading-label { min-width: 0; display: inline-flex; align-items: center; gap: defines.spacePx(xxxs); color: inherit; font: inherit; }
+.grid-sort { border: 0; padding: 0; text-align: left; &:hover, &:focus-visible { color: defines.typo(color, dark, attention); } }
+.grid-sort-indicator { line-height: 1; color: defines.typo(color, dark, attention); font-weight: defines.typo(fontWeight, bold); }
+.grid-sort-muted { color: defines.typo(color, dark, extraWeak); }
+.grid-filter-trigger { width: 24px; height: 24px; display: inline-grid; place-items: center; margin-left: auto; padding: 3px; border: 0; color: defines.typo(color, dark, weak); flex: 0 0 auto;
+  svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+  &:hover, &:focus-visible, &.active { color: defines.typo(color, dark, attention); background: defines.layout(controls, color, dark, backgroundFocus); }
+}
+.grid-filter-popover { position: absolute; z-index: 55; top: calc(100% + 2px); left: 0; width: 240px; padding: defines.spacePx(xs); background: defines.color(offWhite); box-shadow: defines.layout(boxShadow, level2); white-space: normal; font-weight: defines.typo(fontWeight, normal); }
+.grid-filter-value { margin-top: defines.spacePx(xxs); }
+.grid-custom-filter > * { width: 100%; min-width: 0; }
+.grid-filter-actions { display: flex; justify-content: flex-end; gap: defines.spacePx(xxs); margin-top: defines.spacePx(xs); }
+.grid td { padding: defines.spacePx(xxxs) defines.spacePx(xs); height: #{$control + 4}px; border-bottom: 1px solid defines.color(lightGray); vertical-align: middle; }
+.grid tbody tr:hover td { background: defines.layout(controls, color, dark, backgroundFocus); }
+.grid td.num, .grid th.num { text-align: right; }
+.grid .state td { text-align: center; color: defines.typo(color, dark, weak); padding: defines.spacePx(small) defines.spacePx(xxs); }
+.pager { display: flex; align-items: center; gap: defines.spacePx(small); background: defines.color(offWhite); padding: defines.spacePx(xxs) defines.spacePx(small); border-top: 1px solid defines.color(lightGray); color: defines.typo(color, dark, weak); font-size: defines.typo(fontSize, xs); flex-wrap: wrap;
+  .right { margin-left: auto; display: flex; align-items: center; gap: defines.spacePx(xs); }
+  select { height: 24px; border: 0; border-bottom: defines.layout(components, dividerBorderDark); background: transparent; padding: 0 defines.spacePx(xxxs); }
+  button { border: 0; color: defines.typo(color, dark, normal); font-weight: defines.typo(fontWeight, semibold); text-transform: uppercase; font-size: defines.typo(fontSize, xs);
+    &:disabled { color: defines.typo(color, dark, extraWeak); cursor: default; }
+  }
+}
+
+// ---------- status markers (indicators/statusMarker colours: calmingGreen OK, attentionHigh warning, signalError error) ----------
+.badge { display: inline-flex; align-items: center; gap: defines.spacePx(xxxs); padding: 0 defines.spacePx(xxs); font-size: defines.typo(fontSize, xs); font-weight: defines.typo(fontWeight, semibold); line-height: 1.8; white-space: nowrap; color: defines.typo(color, dark, normal); background: defines.color(paleGray);
+  &::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: defines.color(gray); flex: none; }
+  &.good { background: defines.colorA(calmingGreen, 0.16); &::before { background: defines.color(calmingGreen); } }
+  &.warn { background: defines.colorA(attentionHigh, 0.16); &::before { background: defines.color(attentionHigh); } }
+  &.bad { background: defines.colorA(signalError, 0.1); color: defines.color(signalError); &::before { background: defines.color(signalError); } }
+  &.info { background: defines.colorA(attention, 0.14); &::before { background: defines.color(attention); } }
+  &.neutral { color: defines.typo(color, dark, weak); }
+}
+.chip { display: inline-block; padding: 0 defines.spacePx(xxs); background: defines.color(lightGray); font-size: defines.typo(fontSize, xs); white-space: nowrap; color: defines.typo(color, dark, normal); }
+.state-msg { display: flex; gap: defines.spacePx(xxs); align-items: flex-start; padding: defines.spacePx(xs); font-size: defines.typo(fontSize, small); background: defines.color(paleGray); color: defines.typo(color, dark, weak);
+  &.restricted { background: defines.colorA(attentionHigh, 0.16); color: defines.typo(color, dark, normal); }
+  &.error { background: defines.colorA(signalError, 0.1); color: defines.color(signalError); }
+}
+.notice { padding: defines.spacePx(xxs) defines.spacePx(xs); background: defines.colorA(attention, 0.12); border-left: 4px solid defines.color(attention); font-size: defines.typo(fontSize, small); margin-bottom: defines.spacePx(xs);
+  &.warn { background: defines.colorA(attentionHigh, 0.14); border-left-color: defines.color(attentionHigh); }
+  &.bad { background: defines.colorA(signalError, 0.08); border-left-color: defines.color(signalError); color: defines.color(signalError); }
+}
+
+// ---------- value fields / tiles (indicators/valueField: title label + large value) ----------
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: defines.spacePx(xxs); }
+.tile { background: defines.color(offWhite); padding: defines.spacePx(xs); display: flex; flex-direction: column; gap: defines.spacePx(xxxs); color: defines.typo(color, dark, normal); box-shadow: defines.layout(boxShadow, level1);
+  &:hover { background: defines.color(paleGray); text-decoration: none; }
+  .v { font-size: defines.typo(fontSize, xl); font-weight: defines.typo(fontWeight, normal); line-height: defines.typo(lineHeight, small); font-variant-numeric: tabular-nums; }
+  .l { @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
+  .d { @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); font-size: defines.typo(fontSize, xs); }
+}
+
+// ---------- tabular (layouts/tabular, LINE style: label column, value column, divider lines) ----------
+.dl { display: grid; grid-template-columns: minmax(160px, max-content) 1fr; font-size: defines.typo(fontSize, small);
+  dt, dd { padding: defines.spacePx(xxs) 0; border-bottom: 1px solid defines.color(lightGray); }
+  dt { @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); padding-right: defines.spacePx(small); }
+  dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+}
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: defines.spacePx(small); }
+
+// ---------- tab bar (controls/tabBar: title items, marker line under the selected tab) ----------
+.tabs { display: flex; gap: 0; border-bottom: defines.layout(components, dividerBorderDark); margin-bottom: defines.spacePx(xs); flex-wrap: wrap;
+  button { border: 0; padding: defines.spacePx(xxs) defines.spacePx(small); font-size: defines.typo(fontSize, small); font-weight: defines.typo(fontWeight, semibold); color: defines.typo(color, dark, weak); border-bottom: 4px solid transparent; margin-bottom: -1px;
+    &:hover { color: defines.typo(color, dark, normal); }
+    &[aria-selected="true"] { color: defines.typo(color, dark, normal); border-bottom-color: defines.color(primary); }
+  }
+}
+.timeline { list-style: none; margin: 0; padding: 0;
+  li { padding: defines.spacePx(xxs) 0; border-bottom: 1px solid defines.color(lightGray); font-size: defines.typo(fontSize, small); }
+  .when { color: defines.typo(color, dark, weak); font-size: defines.typo(fontSize, xs); }
+}
+.tree { list-style: none; margin: 0; padding: 0;
+  li { padding: defines.spacePx(xxxs) 0; }
+  ul { list-style: none; margin: 0 0 0 defines.spacePx(small); padding: 0 0 0 defines.spacePx(xs); border-left: 1px solid defines.layout(sidebars, borderColor); }
+}
+// toolbar (layouts/toolbar) for filter rows above tables
+.toolbar { display: flex; gap: defines.spacePx(xs); flex-wrap: wrap; align-items: flex-end; margin-bottom: defines.spacePx(xs);
+  .field { width: 200px; }
+}
+// spinner (helpers/spinner, circle)
+.spin { width: 16px; height: 16px; border: 2px solid defines.color(lightGray); border-top-color: defines.color(attention); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ---------- dialogs (popups/dialog + card: dimmed background, level-3 shadow, toolbar header), notifications, search ----------
+.scrim { position: fixed; inset: 0; background: defines.layout(dimmedBackground); z-index: 80; display: flex; align-items: flex-start; justify-content: center; padding: 6vh defines.spacePx(small); overflow-y: auto; }
+.dialog { background: defines.color(offWhite); width: min(680px, 100%); box-shadow: defines.layout(boxShadow, level3);
+  &.wide { width: min(960px, 100%); }
+  header { display: flex; align-items: center; min-height: defines.spacePx(large); padding: defines.spacePx(xxs) defines.spacePx(small); border-bottom: defines.layout(components, dividerBorderDark);
+    h2 { @include defines.typoSet(title, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
+    button { margin-left: auto; }
+  }
+  .body { padding: defines.spacePx(small); }
+}
+// frame/notifications: dark notification cards bottom right
+.toasts { position: fixed; right: defines.spacePx(xs); bottom: calc(#{defines.spacePx(medium)} + #{defines.spacePx(xs)}); display: flex; flex-direction: column; gap: defines.spacePx(xxs); z-index: 90; }
+.toast { background: defines.color(primary); color: defines.typo(color, light, normal); padding: defines.spacePx(xs) defines.spacePx(small); font-size: defines.typo(fontSize, small); box-shadow: defines.layout(boxShadow, level2); max-width: 400px;
+  &.bad { background: defines.color(signalError); }
+}
+.palette { width: min(660px, 100%);
+  input { border: 0; border-bottom: defines.layout(components, dividerBorderDark); width: 100%; padding: defines.spacePx(xs) defines.spacePx(small); font-size: defines.typo(fontSize, normal); background: transparent; &:focus { outline: none; border-bottom-color: defines.color(impulseGreen); } }
+  ul { list-style: none; margin: 0; padding: defines.spacePx(xxxs) 0; max-height: 55vh; overflow: auto; }
+  li a { display: block; padding: defines.spacePx(xxs) defines.spacePx(small); color: defines.typo(color, dark, normal);
+    &[aria-selected="true"], &:hover { background: defines.layout(controls, color, dark, backgroundFocus); text-decoration: none; }
+  }
+  .g { padding: defines.spacePx(xxs) defines.spacePx(small) defines.spacePx(xxxs); font-size: defines.typo(fontSize, xs); color: defines.typo(color, dark, weak); font-weight: defines.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
+}

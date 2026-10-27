@@ -1,0 +1,43 @@
+@use "assets/styles/defines";
+
+@keyframes stretch {
+  0%, 48%, 100% { transform: scaleY(0.4); }
+  24% { transform: scaleY(1.0); }
+}
+
+.spinner {
+  display: inline-grid;
+  grid-auto-flow: column;
+
+  span:not(.text) {
+    background: defines.typo(color, dark, weak);
+    animation: stretch 1.0s infinite ease-in-out;
+
+    &.bar2 {
+      animation-delay: -0.9s;
+    }
+
+    &.bar3 {
+      animation-delay: -0.8s;
+    }
+
+    &.bar4 {
+      animation-delay: -0.7s;
+    }
+
+    &.bar5 {
+      animation-delay: -0.6s;
+    }
+  }
+
+  .text {
+    align-self: baseline;
+    visibility: hidden;
+  }
+
+  &.darkTheme {
+    span:not(.text) {
+      background: defines.typo(color, light, normal);
+    }
+  }
+}

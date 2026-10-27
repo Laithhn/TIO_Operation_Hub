@@ -1,0 +1,63 @@
+@use "assets/styles/defines";
+
+.statusMarker {
+  display: inline-flex;
+
+  svg {
+    transform-origin: center;
+  }
+
+  span {
+    align-self: baseline;
+    visibility: hidden;
+  }
+
+  .symbol {
+    transform-origin: 12px 7.5px;
+  }
+
+  &.ok {
+    .background {
+      fill: defines.color(calmingGreen);
+    }
+    .symbol {
+      fill: defines.typo(color, light, normal);
+    }
+  }
+
+  &.warning {
+    .background {
+      fill: defines.color(attentionHigh);
+    }
+    .symbol {
+      fill: defines.typo(color, dark, normal);
+    }
+  }
+
+  &.error {
+    .background {
+      fill: defines.color(signalError);
+    }
+    .symbol {
+      fill: defines.typo(color, light, normal);
+    }
+  }
+
+  &.unknown {
+    .background {
+      fill: defines.color(darkGray);
+    }
+    .symbol {
+      fill: defines.typo(color, light, normal);
+    }
+  }
+
+  &.inactive {
+    .background {
+      fill: defines.color(gray);
+    }
+    .symbol {
+      fill: defines.typo(color, dark, extraWeak);
+    }
+  }
+}

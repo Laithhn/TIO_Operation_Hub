@@ -1,0 +1,25 @@
+@use "assets/styles/defines";
+
+.tabularDescItem {
+  @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+
+  &.tabularStyleIsLine {
+    border-bottom: defines.layout(components, dividerBorderDark);
+
+    &:not(.spaceBefore) {
+      padding-top: defines.spacePx(xxxs);
+    }
+
+    &:not(.spaceAfter) {
+      padding-bottom: defines.spacePx(xxxs);
+    }
+  }
+
+  &.spaceBefore {
+    padding-top: defines.spacePx(small);
+  }
+
+  &.spaceAfter {
+    padding-bottom: defines.spacePx(small);
+  }
+}

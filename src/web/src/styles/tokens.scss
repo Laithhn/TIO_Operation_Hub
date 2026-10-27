@@ -1,0 +1,76 @@
+// Hub design tokens, taken from VtWebGuiFramework 3.6.1 (vendor/vt-web-gui-framework/src/assets/defines/index.js)
+// through the framework's own Sass functions. Owner decision 27 Oct 2026: framework tokens in full (primary #001e46),
+// framework density as shipped (html 17px, 28px controls, 46px header, 60px main toolbar, 180px first sidebar, no radius).
+// The custom-property names are the hub's historical ones so that page styles keep working; their values are the framework's.
+@use "assets/styles/defines";
+
+:root {
+  // brand / chrome
+  --navy: #{defines.color(primary)};
+  --navy-2: #{defines.color(primaryMidnight)};
+  --navy-3: #{defines.color(structureSilver)};
+  --on-navy: #{defines.color(offWhite)};
+  --attention: #{defines.color(attention)};
+  --attention-high: #{defines.color(attentionHigh)};
+
+  // surfaces (dashboard canvas, sidebar / toolbar / sections)
+  --bg: #{defines.layout(dashboard, background)};
+  --strip: #{defines.layout(sidebars, background)};
+  --surface: #{defines.color(offWhite)};
+  --surface-2: #{defines.color(paleGray)};
+  --row-hover: #{defines.layout(controls, color, dark, backgroundFocus)};
+
+  // lines
+  --line: #{defines.color(lightGray)};
+  --line-strong: #{defines.layout(sidebars, borderColor)};
+
+  // text (typo colours, dark theme = on light backgrounds)
+  --fg: #{defines.typo(color, dark, normal)};
+  --fg-2: #{defines.typo(color, dark, weak)};
+  --muted: #{defines.typo(color, dark, weak)};
+  --link: #{defines.typo(color, dark, attention)};
+
+  // status: framework signal colours; text stays readable (labels always accompany the colour)
+  --good: #{defines.color(calmingGreen)};
+  --good-text: #{defines.typo(color, dark, normal)};
+  --good-soft: #{defines.colorA(calmingGreen, 0.18)};
+  --warn: #{defines.typo(color, dark, attentionHigh)};
+  --warn-soft: #{defines.colorA(attentionHigh, 0.18)};
+  --bad: #{defines.color(signalError)};
+  --bad-soft: #{defines.colorA(signalError, 0.1)};
+  --info: #{defines.color(primary)};
+  --info-soft: #{defines.colorA(attention, 0.14)};
+  --focus: #{defines.typo(color, dark, attention)};
+
+  // type
+  --font: 'Open Sans', 'Noto Sans Arabic', Arial, sans-serif; // as the framework's global stylesheet
+  --font-mono: 'Source Code Pro', ui-monospace, Consolas, monospace;
+  --mono: var(--font-mono);
+  --fs-xs: #{defines.typo(fontSize, xs)};
+  --fs-sm: #{defines.typo(fontSize, xs)};
+  --fs: #{defines.typo(fontSize, small)};
+  --fs-md: #{defines.typo(fontSize, normal)};
+  --fs-title: #{defines.typo(fontSize, semilarge)};
+  --fs-headline: #{defines.typo(fontSize, large)};
+
+  // geometry
+  --hdr: #{defines.layoutPx(header, height)};
+  --status: #{defines.spacePx(medium)};
+  --side-w: #{defines.layoutPx(sidebars, firstSidebarWidth)};
+  --side-mini: #{defines.spacePx(large)};
+  --title-h: #{defines.layoutPx(mainToolbar, height)};
+  --row-h: #{defines.layoutPx(controls, heightDefault)};
+  --control-h: #{defines.layoutPx(controls, heightDefault)};
+  --radius: #{defines.layout(components, borderRadius)}px;
+  --gap: #{defines.spacePx(small)};
+  --space-xxs: #{defines.spacePx(xxs)};
+  --space-xs: #{defines.spacePx(xs)};
+  --space-s: #{defines.spacePx(small)};
+  --space-m: #{defines.spacePx(medium)};
+
+  --shadow: #{defines.layout(boxShadow, level3)};
+  --dash-shadow: #{defines.layout(boxShadow, level1)};
+  --dash-radius: 0;
+  --scrim: #{defines.layout(dimmedBackground)};
+  color-scheme: light;
+}

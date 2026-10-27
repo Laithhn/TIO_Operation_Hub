@@ -1,0 +1,30 @@
+@use "assets/styles/defines";
+
+.minimizedModwin {
+  position: absolute;
+  width: defines.layoutPx(modwins, minimizedModwinWidth);
+  height: defines.layoutPx(modwins, minimizedModwinHeight);
+  display: flex;
+  justify-content: space-between;
+  border-radius: defines.layoutPx(components, borderRadius);
+  background: defines.color(structureSilver);
+  box-shadow: defines.layout(boxShadow, level3);
+  touch-action: none;
+}
+
+.title {
+  padding: 0 defines.spacePx(xs);
+  align-self: center;
+  font-size: defines.typo(fontSize, small);
+  font-weight: defines.typo(fontWeight, normal);
+  color: defines.typo(color, light, normal);
+  fill: defines.typo(color, light, normal);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  user-select: none;
+  overflow: hidden;
+}
+
+.buttons {
+  display: flex;
+}

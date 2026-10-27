@@ -1,0 +1,9 @@
+@use "sass:map";
+@use "../defines.js" as localDefines;
+
+.dateTimeField {
+  display: inline-flex;
+  margin-bottom: 1px;
+  line-height: #{map.get(localDefines.$dateTimePicker, innerHeight)}px;
+  user-select: none;
+}

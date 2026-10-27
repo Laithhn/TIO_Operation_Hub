@@ -1,0 +1,22 @@
+@use "assets/styles/defines";
+
+.firstSidebar {
+  width: defines.layoutPx(sidebars, firstSidebarWidth);
+  grid-area: viAreaFirstSidebar;
+  display: grid;
+  grid-template-rows: 1fr;
+  row-gap: defines.spacePx(small);
+  border-right: 1px solid defines.layout(sidebars, borderColor);
+  background: defines.layout(sidebars, background);
+
+  &.withTitle {
+    grid-template-rows: minmax(#{defines.layoutPx(mainToolbar, height)}, auto) 1fr;
+  }
+}
+
+body[dir="rtl"] {
+  .firstSidebar {
+    border-right: 0 none;
+    border-left:  1px solid defines.layout(sidebars, borderColor);
+  }
+}

@@ -1,0 +1,54 @@
+@use "assets/styles/defines";
+
+@keyframes animActive {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(20deg); }
+  75% { transform: rotate(-20deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes animActiveRtl {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-20deg); }
+  75% { transform: rotate(20deg); }
+  100% {transform: rotate(0deg); }
+}
+
+.avatar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &:not(.placeholder) {
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      object-fit: cover;
+    }
+  }
+
+  &.placeholder {
+    &:not(.darkTheme) {
+      border: 2px solid defines.color(darkGray);
+      fill: defines.color(darkGray);
+    }
+
+    &.darkTheme {
+      border: 2px solid defines.color(offWhite);
+      fill: defines.color(offWhite);
+    }
+  }
+
+  &.active {
+    animation: animActive 0.4s ease-in-out;
+  }
+}
+
+body[dir="rtl"] {
+  .avatar {
+    &.active {
+      animation: animActiveRtl 0.4s ease-in-out;
+    }
+  }
+}

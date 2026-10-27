@@ -1,0 +1,9 @@
+@use "../defines.js" as localDefines;
+
+.primaryMenuPart {
+  min-width: #{localDefines.$partWidth}px;
+  max-width: max-content;
+  display: flex;
+  flex: 1 1 #{localDefines.$partWidth}px;
+  flex-direction: column;
+}

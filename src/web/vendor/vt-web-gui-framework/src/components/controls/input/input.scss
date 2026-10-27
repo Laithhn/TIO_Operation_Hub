@@ -1,0 +1,38 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "components/helpers/noticeForControls/controlLineAndNotice";
+@use "./defines.js" as localDefines;
+
+$innerHeight: map.get(localDefines.$input, innerHeight);
+$borderHeight: 1;
+$errorBorderHeight: 2;
+$marginTop: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
+$marginBottom: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
+
+.input {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  column-gap: #{map.get(localDefines.$input, gapBetweenTextAndIcon)}px;
+  margin-top: #{$marginTop}px;
+
+  @include controlLineAndNotice.controlLineAndNotice($innerHeight, $marginBottom);
+}
+
+.inputElem {
+  background: none;
+  @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
+  line-height: #{$innerHeight + 1}px; // plus one as sleazy factor
+  outline: none;
+
+  &::selection {
+    background-color: defines.layout(controls, color, dark, backgroundClick);
+  }
+
+  &.typoDisabled {
+    cursor: default;
+  }
+}

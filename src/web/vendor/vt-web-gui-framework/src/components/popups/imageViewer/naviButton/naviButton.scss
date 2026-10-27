@@ -1,0 +1,39 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.naviButton {
+  position: absolute;
+  width: 100px;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transition: opacity defines.layoutMs(defaultAnimationTimeMs) ease;
+
+  &.left {
+    left: #{map.get(localDefines.$contr, padding)}px;
+    justify-content: start;
+  }
+
+  &.right {
+    right: #{map.get(localDefines.$contr, padding)}px;
+    justify-content: end;
+  }
+
+  &.visible {
+    opacity: 1;
+    cursor: pointer;
+  }
+
+  &:not(.isExpanded) {
+    top: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$header, height) + map.get(localDefines.$contr, rowGap)}px;
+    bottom: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$previewImages, heightTotal) + map.get(localDefines.$contr, rowGap)}px;
+    grid-template-columns: defines.layoutPx(controls, heightLarge);
+  }
+
+  &.isExpanded {
+    top: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$header, heightExpanded) + map.get(localDefines.$contr, rowGapExpanded)}px;
+    bottom: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$previewImages, heightTotal) + map.get(localDefines.$contr, rowGapExpanded)}px;
+    grid-template-columns: defines.layoutPx(controls, heightDefault);
+  }
+}

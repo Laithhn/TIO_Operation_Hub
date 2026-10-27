@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Language id="en" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../src/languageFile.xsd">
+  <!-- weekdays -->
+  <Entry id="VIWGF_MONDAY_L">Monday</Entry>
+  <Entry id="VIWGF_MONDAY_S">Mon</Entry>
+  <Entry id="VIWGF_TUESDAY_L">Tuesday</Entry>
+  <Entry id="VIWGF_TUESDAY_S">Tue</Entry>
+  <Entry id="VIWGF_WEDNESDAY_L">Wednesday</Entry>
+  <Entry id="VIWGF_WEDNESDAY_S">Wed</Entry>
+  <Entry id="VIWGF_THURSDAY_L">Thursday</Entry>
+  <Entry id="VIWGF_THURSDAY_S">Thu</Entry>
+  <Entry id="VIWGF_FRIDAY_L">Friday</Entry>
+  <Entry id="VIWGF_FRIDAY_S">Fri</Entry>
+  <Entry id="VIWGF_SATURDAY_L">Saturday</Entry>
+  <Entry id="VIWGF_SATURDAY_S">Sat</Entry>
+  <Entry id="VIWGF_SUNDAY_L">Sunday</Entry>
+  <Entry id="VIWGF_SUNDAY_S">Sun</Entry>
+  <!-- months -->
+  <Entry id="VIWGF_JANUARY_L">January</Entry>
+  <Entry id="VIWGF_JANUARY_S">Jan</Entry>
+  <Entry id="VIWGF_FEBRUARY_L">February</Entry>
+  <Entry id="VIWGF_FEBRUARY_S">Feb</Entry>
+  <Entry id="VIWGF_MARCH_L">March</Entry>
+  <Entry id="VIWGF_MARCH_S">Mar</Entry>
+  <Entry id="VIWGF_APRIL_L">April</Entry>
+  <Entry id="VIWGF_APRIL_S">Apr</Entry>
+  <Entry id="VIWGF_MAY_L">May</Entry>
+  <Entry id="VIWGF_MAY_S">May</Entry>
+  <Entry id="VIWGF_JUNE_L">June</Entry>
+  <Entry id="VIWGF_JUNE_S">June</Entry>
+  <Entry id="VIWGF_JULY_L">July</Entry>
+  <Entry id="VIWGF_JULY_S">July</Entry>
+  <Entry id="VIWGF_AUGUST_L">August</Entry>
+  <Entry id="VIWGF_AUGUST_S">Aug</Entry>
+  <Entry id="VIWGF_SEPTEMBER_L">September</Entry>
+  <Entry id="VIWGF_SEPTEMBER_S">Sept</Entry>
+  <Entry id="VIWGF_OCTOBER_L">October</Entry>
+  <Entry id="VIWGF_OCTOBER_S">Oct</Entry>
+  <Entry id="VIWGF_NOVEMBER_L">November</Entry>
+  <Entry id="VIWGF_NOVEMBER_S">Nov</Entry>
+  <Entry id="VIWGF_DECEMBER_L">December</Entry>
+  <Entry id="VIWGF_DECEMBER_S">Dec</Entry>
+  <!-- date and time formats -->
+  <Entry id="VIWGF_DATETIME_FORMAT_DATE">m-d-Y</Entry>
+  <Entry id="VIWGF_DATETIME_FORMAT_TIME">H:i</Entry>
+  <Entry id="VIWGF_DATETIME_FORMAT_TIME_SEC">H:i:s</Entry>
+  <Entry id="VIWGF_DATETIME_PLACEHOLDER_CHAR_DAY">d</Entry>
+  <Entry id="VIWGF_DATETIME_PLACEHOLDER_CHAR_MONTH">m</Entry>
+  <Entry id="VIWGF_DATETIME_PLACEHOLDER_CHAR_YEAR">y</Entry>
+</Language>

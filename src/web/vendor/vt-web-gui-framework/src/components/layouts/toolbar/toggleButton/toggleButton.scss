@@ -1,0 +1,11 @@
+@use "assets/styles/defines";
+
+.toggleButton {
+  align-self: center;
+  @include defines.typoSet(valueSmall, $disabled: null, $noWrap: false, $noOverflow: false);
+  cursor: pointer;
+
+  &.typoDisabled {
+    cursor: default;
+  }
+}

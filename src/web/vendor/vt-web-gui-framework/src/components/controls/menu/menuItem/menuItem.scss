@@ -1,0 +1,71 @@
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.menuItem {
+  width: 100%;
+  height: #{localDefines.$itemHeight}px;
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-areas: "text";
+  align-content: center;
+  align-items: baseline;
+  padding: 0 #{localDefines.$itemPaddingLeftRight}px;
+  outline: none;
+  @include defines.typoSet(valueSmall, $darkTheme: false, $noWrap: true, $noOverflow: true);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.1s ease;
+  user-select: none;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &::-moz-focus-inner { border: 0; }
+  &:focus { outline: none; }
+
+  &.typoDisabled {
+    cursor: default;
+    opacity: 1;
+  }
+
+  &.highlighted {
+    background: defines.color(attention);
+    opacity: 1;
+  }
+
+  &.isLeadingIconOnly {
+    grid-template-columns: #{localDefines.$leadingIconWidth}px auto;
+    grid-template-areas: "leadingIcon text";
+  }
+
+  &.isTrailingIconOnly {
+    grid-template-columns: auto auto;
+    grid-template-areas: "text trailingIcon";
+  }
+
+  &.areBothIcons {
+    grid-template-columns: #{localDefines.$leadingIconWidth}px auto auto;
+    grid-template-areas: "leadingIcon text trailingIcon";
+  }
+}
+
+.menuItemLeadingIcon {
+  grid-area: leadingIcon;
+}
+
+.menuItemText {
+ grid-area: text;
+}
+
+.menuItemTrailingIcon {
+  grid-area: trailingIcon;
+  justify-self: end;
+  margin: 0 0 0 (localDefines.$trailingIconMargin + px);
+}
+
+body[dir='rtl'] {
+  .menuItemTrailingIcon {
+    margin: 0 (localDefines.$trailingIconMargin + px) 0 0;
+  }
+}

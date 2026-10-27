@@ -1,0 +1,49 @@
+@use "assets/styles/defines";
+
+.valueField {
+  display: grid;
+  text-align: center;
+  transition: background 0.1s ease, color 0.1s ease;
+
+  &.clickable {
+    cursor: pointer;
+    user-select: none;
+    transition: box-shadow 150ms ease-in-out;
+
+    &.clicked {
+      box-shadow: defines.layout(boxShadow, level3);
+    }
+  }
+
+  .title {
+    padding: 0 0 defines.spacePx(xxs) 0;
+
+    &:not(.titleAsLabel) {
+      @include defines.typoSet(title);
+    }
+
+    &.titleAsLabel {
+      @include defines.typoSet(label);
+    }
+  }
+
+  .valueContr {
+    display: grid;
+    grid-auto-flow: column;
+    gap: defines.spacePx(xxs);
+    align-items: last baseline;
+    justify-content: center;
+  }
+
+  .value {
+    @include defines.typoSet(value);
+  }
+
+  .unit {
+    @include defines.typoSet(value, $noWrap: false, $noOverflow: false);
+  }
+
+  .hint {
+    @include defines.typoSet(value);
+  }
+}

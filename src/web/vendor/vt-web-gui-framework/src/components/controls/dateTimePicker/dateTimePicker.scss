@@ -1,0 +1,29 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles/defines";
+@use "components/helpers/noticeForControls/controlLineAndNotice";
+@use "./defines.js" as localDefines;
+
+$innerHeight: map.get(localDefines.$dateTimePicker, innerHeight);
+$marginTop: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
+$marginBottom: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
+
+.dateTimePicker {
+  position: relative;
+  display: inline-grid;
+  grid-template-columns: 1fr;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  column-gap: #{map.get(localDefines.$dateTimePicker, gapBetweenValuesAndIcons)}px;
+  margin: #{$marginTop}px 0 0;
+
+  @include controlLineAndNotice.controlLineAndNotice($innerHeight, $marginBottom);
+}
+
+.dateTimePickerContr {
+  display: inline-grid;
+  grid-auto-flow: column;
+  column-gap: #{map.get(localDefines.$dateTimePicker, gapBetweenValuesAndIcons)}px;
+  align-content: baseline;
+  @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
+}

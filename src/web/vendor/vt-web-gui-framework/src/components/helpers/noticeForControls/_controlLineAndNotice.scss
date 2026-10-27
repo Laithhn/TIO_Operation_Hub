@@ -1,0 +1,132 @@
+@use "assets/styles/defines";
+
+$borderHeight: 1;
+$errorBorderHeight: 2;
+$noticeHeight: defines.layout(controls, noticeHeight);
+
+
+// Helper mixin to set the CSS properties "height", "padding-right", "padding-left",
+// "border-bottom", "margin-right", "margin-bottom", "margin-left" and "background" to style a
+// control element with a bottom border, a background color and an optional notice (text or error
+// text) below. This mixin uses the following classes and pseudo classes: ".disabled", ".inactive",
+// ":focus-within", ":hover", ".hover", ".error", ".noLine", ".withBackground", ".darkTheme" and
+// ".showNotice".
+//
+// disabled  inactive  hover...  error  noLine  darkTheme  showNotice  |  prio  result
+//    1        (?)       (?)      (?)     0        0/1        0/1      |   1    dashed disabled line
+//    0         0         1       (?)    (?)       (?)        0/1      |   2    green active line
+//    0        (?)        0        1     (?)       (?)        0/1      |   3    red error line
+//   (?)       (?)       (?)      (?)    0/1       0/1        0/1      |   4    default or no line
+//
+// $innerHeight (number): The inner height of the control element.
+// $marginBottom (number): The default margin bottom without any border, must be 2 pixels at least.
+@mixin controlLineAndNotice($innerHeight, $marginBottom) {
+  // -----------------------------------------------------------------------------------------------
+  // priority 4 (lowest): default line or no line
+  // -----------------------------------------------------------------------------------------------
+
+  &:not(.noLine) {
+    height: #{$innerHeight + $borderHeight}px;
+
+    &:not(darkTheme) {
+      border-bottom: defines.layout(components, dividerBorderDark);
+    }
+    &.darkTheme {
+      border-bottom: defines.layout(components, dividerBorderLight);
+    }
+
+    &:not(.showNotice) {
+      margin-bottom: #{$marginBottom - $borderHeight}px;
+    }
+    &.showNotice {
+      margin-bottom: #{$marginBottom - $borderHeight + $noticeHeight}px;
+    }
+  }
+  &.noLine {
+    height: #{$innerHeight}px;
+
+    &:not(.showNotice) {
+      margin-bottom: #{$marginBottom}px;
+    }
+    &.showNotice {
+      margin-bottom: #{$marginBottom + $noticeHeight}px;
+    }
+  }
+
+  &:not(.disabled) {
+    &:not(:focus-within):not(:hover):not(.hover).error {
+      // -------------------------------------------------------------------------------------------
+      // priority 3: red error line
+      // -------------------------------------------------------------------------------------------
+
+      height: #{$innerHeight + $errorBorderHeight}px;
+      border-bottom: #{$errorBorderHeight}px solid defines.color(attentionHigh);
+
+      &:not(.showNotice) {
+        margin-bottom: #{$marginBottom - $errorBorderHeight}px;
+      }
+      &.showNotice {
+        margin-bottom: #{$marginBottom - $errorBorderHeight + $noticeHeight}px;
+      }
+    }
+
+    &:not(.inactive) {
+      &:focus-within, &:hover, &.hover {
+        // -----------------------------------------------------------------------------------------
+        // priority 2: green active line
+        // -----------------------------------------------------------------------------------------
+
+        height: #{$innerHeight + $borderHeight}px;
+        border-bottom: #{$borderHeight}px solid defines.color(impulseGreen);
+
+        &:not(.showNotice) {
+          margin-bottom: #{$marginBottom - $borderHeight}px;
+        }
+        &.showNotice {
+          margin-bottom: #{$marginBottom - $borderHeight + $noticeHeight}px;
+        }
+      }
+    }
+  }
+
+  &.disabled:not(.noLine) {
+    // ---------------------------------------------------------------------------------------------
+    // priority 1 (highest): dashed disabled line
+    // ---------------------------------------------------------------------------------------------
+
+    height: #{$innerHeight + $borderHeight}px;
+
+    &:not(darkTheme) {
+      border-bottom: #{$borderHeight}px dashed defines.layout(controls, color, dark, disabled);
+    }
+    &.darkTheme {
+      border-bottom: #{$borderHeight}px dashed defines.layout(controls, color, light, disabled);
+    }
+
+    &:not(.showNotice) {
+      margin-bottom: #{$marginBottom - $borderHeight}px;
+    }
+    &.showNotice {
+      margin-bottom: #{$marginBottom - $borderHeight + $noticeHeight}px;
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // independent of all above: show a background color
+  // -----------------------------------------------------------------------------------------------
+
+  &.withBackground {
+    padding-right: 3px;
+    padding-left: 3px;
+    margin-right: -3px;
+    margin-left: -3px;
+
+    &:not(darkTheme) {
+      background: defines.layout(controls, color, dark, backgroundInput);
+    }
+
+    &.darkTheme {
+      background: defines.layout(controls, color, light, backgroundInput);
+    }
+  }
+}

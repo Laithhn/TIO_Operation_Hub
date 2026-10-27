@@ -1,0 +1,8 @@
+@use "assets/styles/defines";
+
+.internalLinkError {
+  font-style: italic;
+  text-decoration: underline wavy;
+  color: defines.typo(color, dark, signalError);
+  fill: defines.typo(color, dark, signalError);
+}

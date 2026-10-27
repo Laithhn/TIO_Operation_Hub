@@ -1,8 +1,10 @@
-import '@fontsource/open-sans/400.css';
-import '@fontsource/open-sans/600.css';
-import '@fontsource/open-sans/700.css';
-import './styles/tokens.css';
+// Global styles, in order: VtWebGuiFramework base sheet (fonts, reset; via ./vt), framework-derived tokens,
+// the hub's component and page styles, then the frame additions.
+import './vt';
+import './styles/tokens.scss';
+import './styles/kit.scss';
 import './styles/app.css';
+import './styles/frame.scss';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

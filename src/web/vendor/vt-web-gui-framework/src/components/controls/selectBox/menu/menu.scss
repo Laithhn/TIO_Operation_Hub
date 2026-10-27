@@ -1,0 +1,27 @@
+@use "sass:map";
+@use "assets/styles/defines";
+@use "../defines.js" as localDefines;
+
+.menu {
+  position: absolute;
+  top: 0;
+  padding: #{map.get(localDefines.$selectBoxMenu, paddingTop)}px 0 #{map.get(localDefines.$selectBoxMenu, paddingBottom)}px 0;
+  margin: 0 -#{map.get(localDefines.$selectBoxOption, paddingRight)}px 0 0;
+  background: defines.color(offWhite);
+  box-shadow: defines.layout(boxShadow, level2);
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    opacity defines.layoutMs(fadeInOutTimeMs) ease,
+    transform #{map.get(localDefines.$selectBoxMenu, moveMenuAnimationTimeMs)}ms ease;
+
+  &.show {
+    opacity: 1;
+  }
+}
+
+body[dir="rtl"] {
+  .menu {
+    margin: 0 0 0 -#{map.get(localDefines.$selectBoxOption, paddingLeft)}px;
+  }
+}
