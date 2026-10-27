@@ -1,6 +1,6 @@
 import { hasPermission, hasAnyPermission } from '../permissions';
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { get } from '../api';
 import { useMe, type Me } from '../hooks';
 import { signOut } from '../pages/SignIn';
@@ -146,17 +146,17 @@ export function Shell({ children }: { children: ReactNode }) {
   const f = frameCss;
 
   const entry = (i: Item) => (
-    <div key={i.to + i.label} className={f.entry.entry}>
+    <div key={i.to + i.label} className={f.sidebarNode.menuNode}>
       <NavLink to={i.to} end={i.end ?? !i.children} title={mini ? i.label : undefined}
-        className={({ isActive }) => cx(f.entry.link, i.icon && f.entry.hasIcon, isActive && f.entry.active)}>
+        className={({ isActive }) => cx(f.sidebarNode.link, i.icon && f.sidebarNode.hasIcon, isActive && f.sidebarNode.active)}>
         {i.icon && <Icon name={i.icon} size={20} />}
-        <span className={f.entry.caption}>{i.label}</span>
+        <span className={f.sidebarNode.caption}>{i.label}</span>
       </NavLink>
       {i.children && me && i.children.filter(c => c.show?.(me) ?? true).map(c => (
-        <div key={c.to} className={f.entry.entry}>
-          <NavLink to={c.to} end={c.end} className={({ isActive }) => cx(f.entry.link, f.entry.isSubEntry, isActive && f.entry.active)}>
-            <span className={f.entry.line} />
-            <span className={f.entry.caption}>{c.label}</span>
+        <div key={c.to} className={f.sidebarNode.menuNode}>
+          <NavLink to={c.to} end={c.end} className={({ isActive }) => cx(f.sidebarNode.link, f.sidebarNode.isSubmenuNode, isActive && f.sidebarNode.active)}>
+            <span className={f.sidebarNode.line} />
+            <span className={f.sidebarNode.caption}>{c.label}</span>
           </NavLink>
         </div>
       ))}
@@ -167,14 +167,14 @@ export function Shell({ children }: { children: ReactNode }) {
     <div className={cx(f.app.app, f.app.withFooter, 'hub-app', withSidebar ? 'with-sidebar' : 'bare')}>
       <a className="skip" href="#main">Skip to content</a>
       <header className={cx(f.header.header, 'hdr')}>
-        <button className={cx(f.secondaryLink.secondaryLink, 'menu-btn')} onClick={() => setNavOpen(true)} aria-label="Open section menu"><Icon name="menu" size={24} /></button>
-        <Link className={f.logo.logo} to="/" aria-label="TIO Operations Hub home"><Logo /></Link>
+        <button className={cx(f.secondaryNode.menuNode, 'menu-btn')} onClick={() => setNavOpen(true)} aria-label="Open section menu"><Icon name="menu" size={24} /></button>
+        <Link className={f.logo.headerLogo} to="/" aria-label="TIO Operations Hub home"><Logo /></Link>
         <div className={f.primaryHeader.primaryHeader}>
-          <nav ref={primaryLinks} className={f.primaryLinks.primaryLinks} aria-label="Main">
+          <nav ref={primaryLinks} className={f.menuNodes.menuNodes} aria-label="Main">
             <PrimaryLinksMarker container={primaryLinks} activeKey={section?.key} />
             {visible.map(s => (
               <Link key={s.key} to={s.to} aria-current={s.key === section?.key ? 'page' : undefined}
-                className={cx(f.primaryLink.primaryLink, s.key === section?.key && f.primaryLink.active)}>{s.label}</Link>
+                className={cx(f.primaryNode.menuNode, s.key === section?.key && f.primaryNode.active)}>{s.label}</Link>
             ))}
           </nav>
         </div>
@@ -195,22 +195,22 @@ export function Shell({ children }: { children: ReactNode }) {
             { label: 'Note', to: '/notes' },
             { label: 'Product', to: '/products/new', hidden: !hasPermission(me, 'Products', 'Create') }
           ]} /></div>}
-          <button className={f.secondaryLink.secondaryLink} onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
+          <button className={f.secondaryNode.menuNode} onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
             <Icon name="search" size={24} />
           </button>
           {me && <NotificationBell />}
           {forms
-            ? <Link className={f.secondaryLink.secondaryLink} to="/account/password" title={`${me!.displayName} · ${me!.roleLabels.join(', ')} · Change password`} aria-label={`Signed in as ${me!.displayName}. Change password`}><Icon name="user" size={24} /></Link>
-            : <span className={f.secondaryLink.secondaryLink} title={me ? `${me.displayName} · ${me.roleLabels.join(', ')}` : ''}><Icon name="user" size={24} title={me ? `Signed in as ${me.displayName}` : undefined} /></span>}
-          {forms && <button className={f.secondaryLink.secondaryLink} onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="signout" size={24} /></button>}
+            ? <Link className={f.secondaryNode.menuNode} to="/account/password" title={`${me!.displayName} · ${me!.roleLabels.join(', ')} · Change password`} aria-label={`Signed in as ${me!.displayName}. Change password`}><Icon name="user" size={24} /></Link>
+            : <span className={f.secondaryNode.menuNode} title={me ? `${me.displayName} · ${me.roleLabels.join(', ')}` : ''}><Icon name="user" size={24} title={me ? `Signed in as ${me.displayName}` : undefined} /></span>}
+          {forms && <button className={f.secondaryNode.menuNode} onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="signout" size={24} /></button>}
         </div>
       </header>
-      <div id="viMainToolbar" className={f.app.mainToolbar} />
+      <div id="viMainToolbar" className={'hub-main-toolbar'} />
       {withSidebar && (
         <aside className={cx(f.firstSidebar.firstSidebar, f.firstSidebar.withTitle, 'side')} aria-label="Section menu">
           <SidebarTitle>TIO Operations Hub</SidebarTitle>
-          <div className={f.primarySubmenu.primarySubmenuWrapper}>
-            <nav ref={submenu} className={cx(f.primarySubmenu.primarySubmenu, 'side-nav')}>
+          <div className={f.sidebarMenu.menuWrapper}>
+            <nav ref={submenu} className={cx(f.sidebarMenu.menu, 'side-nav')}>
               {section && me && section.side.filter(i => i.show?.(me) ?? true).map(entry)}
               <SidebarMarker container={submenu} path={loc.pathname} />
             </nav>

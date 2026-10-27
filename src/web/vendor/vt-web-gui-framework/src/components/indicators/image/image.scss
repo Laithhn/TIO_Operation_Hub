@@ -1,13 +1,28 @@
+@use "assets/styles";
+
+
 .contr {
   position: relative;
 }
+
 
 .image {
   position: absolute;
   width: 100%;
   height: 100%;
+  // The radius reaches the container, the element that carries the pane; the picture inside it
+  // takes the same rounding.
+  border-radius: inherit;
 
   &.clickable {
     cursor: pointer;
   }
+}
+
+
+// The pane of the styling prop boxShadow="contact", drawn for the ground the image sits on. It takes
+// the edge and the contact shadow alone: rim and glow are inset shadows, and they would lie over the
+// picture.
+.contactPane {
+  @include styles.contactPane($inner: false);
 }

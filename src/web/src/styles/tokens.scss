@@ -2,76 +2,76 @@
 // through the framework's own Sass functions. Owner decision 27 Oct 2026: framework tokens in full (primary #001e46),
 // framework density as shipped (html 17px, 28px controls, 46px header, 60px main toolbar, 180px first sidebar, no radius).
 // The custom-property names are the hub's historical ones so that page styles keep working; their values are the framework's.
-@use "assets/styles/defines";
+@use "assets/styles" as vt;
 
 :root {
   // brand / chrome
-  --navy: #{defines.color(primary)};
-  --navy-2: #{defines.color(primaryMidnight)};
-  --navy-3: #{defines.color(structureSilver)};
-  --on-navy: #{defines.color(offWhite)};
-  --attention: #{defines.color(attention)};
-  --attention-high: #{defines.color(attentionHigh)};
+  --navy: #{vt.color(primary)};
+  --navy-2: #{vt.color(primaryMidnight)};
+  --navy-3: #{vt.color(structureSilver)};
+  --on-navy: #{vt.color(offWhite)};
+  --attention: #{vt.color(attention)};
+  --attention-high: #{vt.color(attentionHigh)};
 
   // surfaces (dashboard canvas, sidebar / toolbar / sections)
-  --bg: #{defines.layout(dashboard, background)};
-  --strip: #{defines.layout(sidebars, background)};
-  --surface: #{defines.color(offWhite)};
-  --surface-2: #{defines.color(paleGray)};
-  --row-hover: #{defines.layout(controls, color, dark, backgroundFocus)};
+  --bg: #{vt.color(lightGray)};
+  --strip: #{vt.color(offWhite)};
+  --surface: #{vt.color(offWhite)};
+  --surface-2: #{vt.color(paleGray)};
+  --row-hover: #{vt.colorA(structureSilver, 0.08)};
 
   // lines
-  --line: #{defines.color(lightGray)};
-  --line-strong: #{defines.layout(sidebars, borderColor)};
+  --line: #{vt.color(lightGray)};
+  --line-strong: #{vt.layout(dividerColor, soft)};
 
   // text (typo colours, dark theme = on light backgrounds)
-  --fg: #{defines.typo(color, dark, normal)};
-  --fg-2: #{defines.typo(color, dark, weak)};
-  --muted: #{defines.typo(color, dark, weak)};
-  --link: #{defines.typo(color, dark, attention)};
+  --fg: #{vt.typo(color, dark, normal)};
+  --fg-2: #{vt.typo(color, dark, weak)};
+  --muted: #{vt.typo(color, dark, weak)};
+  --link: #{vt.typo(color, dark, attention)};
 
   // status: framework signal colours; text stays readable (labels always accompany the colour)
-  --good: #{defines.color(calmingGreen)};
-  --good-text: #{defines.typo(color, dark, normal)};
-  --good-soft: #{defines.colorA(calmingGreen, 0.18)};
-  --warn: #{defines.typo(color, dark, attentionHigh)};
-  --warn-soft: #{defines.colorA(attentionHigh, 0.18)};
-  --bad: #{defines.color(signalError)};
-  --bad-soft: #{defines.colorA(signalError, 0.1)};
-  --info: #{defines.color(primary)};
-  --info-soft: #{defines.colorA(attention, 0.14)};
-  --focus: #{defines.typo(color, dark, attention)};
+  --good: #{vt.color(calmingGreen)};
+  --good-text: #{vt.typo(color, dark, normal)};
+  --good-soft: #{vt.colorA(calmingGreen, 0.18)};
+  --warn: #{vt.typo(color, dark, attentionHigh)};
+  --warn-soft: #{vt.colorA(attentionHigh, 0.18)};
+  --bad: #{vt.color(signalError)};
+  --bad-soft: #{vt.colorA(signalError, 0.1)};
+  --info: #{vt.color(primary)};
+  --info-soft: #{vt.colorA(attention, 0.14)};
+  --focus: #{vt.typo(color, dark, attention)};
 
   // type
   --font: 'Open Sans', 'Noto Sans Arabic', Arial, sans-serif; // as the framework's global stylesheet
   --font-mono: 'Source Code Pro', ui-monospace, Consolas, monospace;
   --mono: var(--font-mono);
-  --fs-xs: #{defines.typo(fontSize, xs)};
-  --fs-sm: #{defines.typo(fontSize, xs)};
-  --fs: #{defines.typo(fontSize, small)};
-  --fs-md: #{defines.typo(fontSize, normal)};
-  --fs-title: #{defines.typo(fontSize, semilarge)};
-  --fs-headline: #{defines.typo(fontSize, large)};
-  --fs-xl: #{defines.typo(fontSize, xl)};
+  --fs-xs: #{vt.typo(fontSize, xs)};
+  --fs-sm: #{vt.typo(fontSize, xs)};
+  --fs: #{vt.typo(fontSize, small)};
+  --fs-md: #{vt.typo(fontSize, normal)};
+  --fs-title: #{vt.typo(fontSize, semilarge)};
+  --fs-headline: #{vt.typo(fontSize, large)};
+  --fs-xl: #{vt.typo(fontSize, xl)};
 
   // geometry
-  --hdr: #{defines.layoutPx(header, height)};
-  --status: #{defines.spacePx(medium)};
-  --side-w: #{defines.layoutPx(sidebars, firstSidebarWidth)};
-  --side-mini: #{defines.spacePx(large)};
-  --title-h: #{defines.layoutPx(mainToolbar, height)};
-  --row-h: #{defines.layoutPx(controls, heightDefault)};
-  --control-h: #{defines.layoutPx(controls, heightDefault)};
-  --radius: #{defines.layout(components, borderRadius)}px;
-  --gap: #{defines.spacePx(small)};
-  --space-xxs: #{defines.spacePx(xxs)};
-  --space-xs: #{defines.spacePx(xs)};
-  --space-s: #{defines.spacePx(small)};
-  --space-m: #{defines.spacePx(medium)};
+  --hdr: #{vt.layoutPx(header, height)};
+  --status: #{vt.spacePx(large)};
+  --side-w: #{vt.layoutPx(firstSidebar, width)};
+  --side-mini: #{vt.spacePx(xl)};
+  --title-h: #{vt.layoutPx(mainToolbar, heightInMainScope)};
+  --row-h: #{vt.layoutPx(controls, heightDefault)};
+  --control-h: #{vt.layoutPx(controls, heightDefault)};
+  --radius: #{vt.layout(controls, borderRadiusDefault)}px;
+  --gap: #{vt.spacePx(normal)};
+  --space-xxs: #{vt.spacePx(xs)};
+  --space-xs: #{vt.spacePx(small)};
+  --space-s: #{vt.spacePx(normal)};
+  --space-m: #{vt.spacePx(large)};
 
-  --shadow: #{defines.layout(boxShadow, level3)};
-  --dash-shadow: #{defines.layout(boxShadow, level1)};
+  --shadow: #{vt.layout(boxShadow, floating)};
+  --dash-shadow: #{vt.layout(controls, surface, contact, dark)};
   --dash-radius: 0;
-  --scrim: #{defines.layout(dimmedBackground)};
+  --scrim: #{vt.layout(dimmedBackground)};
   color-scheme: light;
 }

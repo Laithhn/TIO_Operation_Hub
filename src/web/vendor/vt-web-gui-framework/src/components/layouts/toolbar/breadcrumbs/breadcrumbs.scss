@@ -1,0 +1,9 @@
+@use "assets/styles";
+
+
+.breadcrumbs {
+  height: inherit;
+  display: flex;
+  align-items: center;
+  margin-left: -#{styles.space(small)}px
+}

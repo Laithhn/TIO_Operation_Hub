@@ -1,4 +1,4 @@
-import { Enumify } from 'enumify';
+import { Enumify } from 'utils/enumify';
 
 
 /**
@@ -10,10 +10,10 @@ import { Enumify } from 'enumify';
  * @property {object} NORMAL - The window of the desktop app is normal, not maximized nor minimized.
  * @property {function} enumValues - Return an array with all enum objects.
  */
-export class AppState extends Enumify {
-  static MAXIMIZED = new AppState();
-  static MINIMIZED = new AppState();
-  static NORMAL = new AppState();
+export class DesktopAppStatus extends Enumify {
+  static MAXIMIZED = new DesktopAppStatus();
+  static MINIMIZED = new DesktopAppStatus();
+  static NORMAL = new DesktopAppStatus();
   static _ = this.closeEnum();
 }
 
@@ -81,7 +81,7 @@ export const closeApp = () => {
 /**
  * Exported function to open an external link by a given url in the default browser.
  *
- * @param {string} url
+ * @param {string | function} url
  */
 export const openExternalLink = (url) => {
   if (IS_ELECTRON) {
@@ -114,11 +114,11 @@ export const initDesktopApp = ({
   }
 
   if (IS_ELECTRON) {
-    ipcRenderer.on('appStateChange', (event, state) => {
-      switch (state) {
-        case 'maximized': onAppStateChange(AppState.MAXIMIZED); break;
-        case 'minimized': onAppStateChange(AppState.MINIMIZED); break;
-        default: onAppStateChange(AppState.NORMAL); break;
+    ipcRenderer.on('appStateChange', (event, status) => {
+      switch (status) {
+        case 'maximized': onAppStateChange(DesktopAppStatus.MAXIMIZED); break;
+        case 'minimized': onAppStateChange(DesktopAppStatus.MINIMIZED); break;
+        default: onAppStateChange(DesktopAppStatus.NORMAL); break;
       }
     });
 

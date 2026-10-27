@@ -1,0 +1,64 @@
+@use "assets/styles";
+
+
+$linkLevel2MinHeight: 50;
+$linkLevel2IconColumnWidth: styles.space(large);
+$linkLevel2IconDim: styles.space(normal);
+$linkLevel2FontSize: styles.typo(fontSize, normal);
+$linkLevel2CaptionPaddingTopBottom: styles.space(small);
+
+$linkLevel3MinHeight: 30;
+$linkLevel3IconColumnWidth: $linkLevel2IconColumnWidth;
+$linkLevel3FontSize: styles.typo(fontSize, small);
+$linkLevel3CaptionPaddingTopBottom: styles.space(xs);
+
+:export {
+  linkLevel2IconDim: $linkLevel2IconDim;
+}
+
+
+.menuNode {
+  display: grid;
+  overflow: hidden;
+  align-items: center;
+  @include styles.menuEntry($markActiveCaption: true);
+
+  .icon {
+    grid-area: iconOrSign;
+  }
+
+  .sign {
+    grid-area: iconOrSign;
+    white-space: pre-wrap;
+    overflow: hidden;
+  }
+
+  .caption {
+    grid-area: caption;
+    white-space: pre-wrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  &.isLevel2 {
+    grid-template-rows: minmax(#{$linkLevel2MinHeight}px, max-content);
+    grid-template-columns: #{$linkLevel2IconColumnWidth}px auto;
+    grid-template-areas: "iconOrSign caption";
+    font-size: $linkLevel2FontSize;
+
+    .caption {
+      padding: #{$linkLevel2CaptionPaddingTopBottom}px 0;
+    }
+  }
+
+  &.isLevel3 {
+    grid-template-rows: minmax(#{$linkLevel3MinHeight}px, max-content);
+    grid-template-columns: #{$linkLevel3IconColumnWidth}px auto;
+    grid-template-areas: "iconOrSign caption";
+    font-size: $linkLevel3FontSize;
+
+    .caption {
+      padding: #{$linkLevel3CaptionPaddingTopBottom}px 0;
+    }
+  }
+}

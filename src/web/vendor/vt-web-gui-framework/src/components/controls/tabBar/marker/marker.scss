@@ -1,55 +1,62 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
+
+// The lens's rounding: the radius every control of the framework carries, the button's and the
+// switch's, which makes the lens the geometry of a control's pane. A tab is at least heightDefault
+// high and the lens covers it, so the lens of a tab of one line is a pill - the radius being the
+// half of the height - and a tab whose content asks for more height carries a taller lens at the
+// same radius, a rounded rectangle then.
+$lensBorderRadius: styles.layout(controls, borderRadiusDefault);
+
+
+// The marker lies in the scrolling list, positioned absolutely, and the tabs lie above it by their
+// own position. It takes no pointer events, so neither form of it ever stands between the pointer
+// and the tab it marks. Where the marker begins along the bar and how long it is is an inline style
+// set by Marker.tsx - never a transform, which would cost it the pixel snapping of its edges (see
+// there) - and the two sides across the bar are pinned here, per form: a filled tab takes the bar's
+// whole height, the air at its two edges included, and the lens stays inside that air, where its
+// contact shadow has the room to be seen. The marker's containing block is the bar's padding box,
+// so an inset of zero covers that air and an inset of the air's own size, which the bar hands down
+// as --tabBarPadding (see tabBar.scss), stays inside it.
 .marker {
   position: absolute;
+  pointer-events: none;
 
+  // The slide from one tab to the next, on the two properties that change with the selection: the
+  // marker's place and its length.
   &.enableAnimation {
-    transition-duration: defines.layoutMs(defaultAnimationTimeMs);
+    transition-duration: styles.layoutMs(animationTime, slowMs);
     transition-timing-function: ease;
   }
 
+  // The lens is a body of the base design's glass lying on the bar: the surface's edge, rim, glow
+  // and contact shadow, which the bar hands down as slots because no selector reaches across a CSS
+  // module (see tabBar.scss), and a fill of the marker's colour set inline. It keeps this rounding
+  // and never the bar's outer corners, which belong to the tab that is filled.
+  &.isLens {
+    border: 1px solid var(--markerBorderColor);
+    border-radius: #{$lensBorderRadius}px;
+    box-shadow: var(--markerShadow), var(--markerRim), var(--markerGlow);
+  }
+
+  // A bar above or below its content: the axis across it is the block axis.
   &.isPosTop, &.isPosBottom {
-    left: 0;
-    transition-property: width, transform;
+    inset-block: 0;
+    transition-property: width, inset-inline-start;
+
+    &.isLens {
+      inset-block: var(--tabBarPadding);
+    }
   }
 
-  &.isPosTop {
-    bottom: 0;
-  }
-
-  &.isPosBottom {
-    top: 0;
-  }
-
+  // A bar beside its content: the axis across it is the inline axis, so the marker pins itself
+  // logically and a right-to-left document mirrors it by itself.
   &.isPosLeft, &.isPosRight {
-    top: 0;
-    transition-property: height, transform;
-  }
+    inset-inline: 0;
+    transition-property: height, top;
 
-  &.isPosLeft {
-    right: 0;
-  }
-
-  &.isPosRight {
-    left: 0;
-  }
-}
-
-body[dir='rtl'] {
-  .marker {
-    &.isPosTop, &.isPosBottom {
-      left: auto;
-      right: 0;
-    }
-
-    &.isPosLeft {
-      left: 0;
-      right: auto;
-    }
-
-    &.isPosRight {
-      left: auto;
-      right: 0;
+    &.isLens {
+      inset-inline: var(--tabBarPadding);
     }
   }
 }

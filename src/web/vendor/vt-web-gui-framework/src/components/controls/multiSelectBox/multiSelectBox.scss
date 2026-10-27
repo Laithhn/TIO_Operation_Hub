@@ -1,28 +1,19 @@
-@use "sass:map";
-@use "sass:math";
-@use "assets/styles/defines";
-@use "components/helpers/noticeForControls/controlLineAndNotice";
-@use "./defines.js" as localDefines;
+@use "assets/styles";
 
-$innerHeight: map.get(localDefines.$multiSelectBox, innerHeight);
-$borderHeight: 1;
-$errorBorderHeight: 2;
-$marginTop: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
-$marginBottom: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
 
+.multiSelectBoxContr {
+  @include styles.inputControlContainer();
+}
+
+
+// The pane the multiple select box rests on, holding the selection text and the icon beside it - the
+// control's whole face, which is what the interaction veil covers and what states the status. The
+// text takes whatever is left beside the icon and shortens itself with an ellipsis, a selection of
+// many options being longer than any pane.
 .multiSelectBox {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: 1fr auto;
-  column-gap: #{map.get(localDefines.$multiSelectBox, gapBetweenTextAndIcon)}px;
-  justify-content: space-between;
-  margin: #{$marginTop}px 0 0;
+  grid-template-columns: 1fr;
   outline: none;
   cursor: pointer;
 
-  @include controlLineAndNotice.controlLineAndNotice($innerHeight, $marginBottom);
-
-  &.disabled, &.inactive {
-    cursor: default;
-  }
+  @include styles.inputControlPane();
 }

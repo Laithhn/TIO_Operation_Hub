@@ -1,29 +1,27 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
-
-// -------------------------------------------------------------------------------------------------
-// The main section of a dashboard.
-// -------------------------------------------------------------------------------------------------
 
 .mainSection {
   min-width: 100%;
-  min-height: 100%;
   display: grid;
 
   &:not(.inModwin):not(.inSecondSidebar) {
-    padding: defines.spacePx(small) defines.spacePx(medium) defines.spacePx(xs);
+    min-height: 100%;
+    padding: styles.spacePx(normal) styles.spacePx(large) styles.spacePx(small);
   }
 
   &.inModwin {
-    padding: defines.spacePx(small) defines.spacePx(xs) defines.spacePx(xs);
+    flex-grow: 1;
+    padding: styles.spacePx(normal) styles.spacePx(small) styles.spacePx(small);
   }
 
   &.inSecondSidebar {
-    padding: defines.spacePx(small) defines.layoutPx(mostLeftRightPadding) defines.spacePx(xs);
+    min-height: 100%;
+    padding: styles.spacePx(normal) styles.layoutPx(mostLeftRightPadding) styles.spacePx(small);
   }
 
   &.scrollBarH:not(.noPaddingBottom) {
-    padding-bottom: defines.layoutPx(scrollBarThickness);
+    padding-bottom: styles.layoutPx(scrolling, scrollBarThickness);
   }
 
   &.noPaddingStart {
@@ -42,6 +40,7 @@
     padding-bottom: 0 !important;
   }
 }
+
 
 body[dir="rtl"] {
   .mainSection {

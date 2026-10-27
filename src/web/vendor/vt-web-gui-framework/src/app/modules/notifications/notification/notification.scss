@@ -1,0 +1,83 @@
+@use "assets/styles";
+
+
+// The pulse a notification plays once it has flown in: a ring grows around it and fades out.
+// It announces that something has arrived, not how much attention it deserves, so it is drawn in
+// the neutral structureSilver and plays on every notification, whatever its colour (ADR
+// general-notification-announces-its-arrival-with-a-pulse.md).
+$pulseMs: 700ms;
+
+
+@keyframes pulse {
+  from {
+    box-shadow: 0 0 0 0 styles.colorA(structureSilver, .3);
+  }
+
+  to {
+    box-shadow: 0 0 0 styles.spacePx(small) styles.colorA(structureSilver, 0);
+  }
+}
+
+
+.notification {
+  width: max-content;
+}
+
+.innerContr {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-auto-flow: column;
+  column-gap: styles.spacePx(small);
+  align-items: baseline;
+  padding: styles.spacePx(small);
+  margin-top: styles.layoutPx(notifications, space);
+  border-radius: styles.spacePx(small);
+  // The height a notification floats at, which reaches the glass through its slot and a coloured
+  // notification through the declaration beside it.
+  --glassShadow: #{styles.layout(boxShadow, floating)};
+  box-shadow: var(--glassShadow);
+
+  &.isIcon {
+    grid-template-columns: auto 1fr;
+  }
+
+  // The ring lies on a layer of its own, so that it leaves the shadow and the glass of the box
+  // untouched.
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  &.isArrived::after {
+    animation: pulse $pulseMs ease-out;
+
+    @media (prefers-reduced-motion: reduce) {
+      animation: none;
+    }
+  }
+
+  // A notification lies over the page, and what lies over the page is light: its ground is glass
+  // unless the call site gives it one of the two attention colours, which replace the glass - edge
+  // and blur included - rather than tinting it.
+  &.glass {
+    @include styles.glassmorphism($strength: opaque);
+    @include styles.ground(light);
+  }
+
+  &.colorAttention {
+    @include styles.background(attention);
+  }
+
+  &.colorAttentionHigh {
+    @include styles.background(attentionHigh);
+  }
+}
+
+.link {
+  outline: none;
+  text-decoration: none;
+}

@@ -1,0 +1,52 @@
+@use "assets/styles";
+
+
+@keyframes stretch {
+  0%, 48%, 100% { transform: scaleY(0.4); }
+  24% { transform: scaleY(1.0); }
+}
+
+
+.bars {
+  display: inline-flex;
+}
+
+
+.innerContr {
+  width: 100%;
+  display: inline-flex;
+  justify-content: space-between;
+
+  span {
+    background: styles.typo(color, dark, weak);
+    animation: stretch 1s infinite ease-in-out;
+  }
+
+  @include styles.onDarkGround {
+    span {
+      background: styles.typo(color, light, normal);
+    }
+  }
+
+  :nth-child(2) {
+    animation-delay: -0.9s;
+  }
+
+  :nth-child(3) {
+    animation-delay: -0.8s;
+  }
+
+  :nth-child(4) {
+    animation-delay: -0.7s;
+  }
+
+  :nth-child(5) {
+    animation-delay: -0.6s;
+  }
+}
+
+
+.text {
+  align-self: baseline;
+  visibility: hidden;
+}

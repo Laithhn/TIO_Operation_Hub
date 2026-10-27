@@ -1,0 +1,18 @@
+@use "assets/styles";
+
+.title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0 styles.layoutPx(mostLeftRightPadding);
+
+  p {
+    font-weight: styles.typo(fontWeight, semibold);
+    line-height: styles.typo(lineHeight, normal);
+    color: styles.typo(color, dark, strong);
+    white-space: pre-wrap;
+    text-align: center;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}

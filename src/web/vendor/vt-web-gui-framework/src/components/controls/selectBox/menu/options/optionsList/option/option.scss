@@ -1,16 +1,36 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "../../../../defines.js" as localDefines;
+@use "assets/styles";
+
+
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
 
 .option {
   width: 100%;
-  height: #{defines.layout(controls, heightDefault) + 2}px;
-  padding: 0 #{map.get(localDefines.$selectBoxOption, paddingRight)}px 0 #{map.get(localDefines.$selectBoxOption, paddingLeft)}px;
-  @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
+  height: styles.layoutPx(controlMenus, optionHeight);
+  padding: 0 styles.layoutPx(controlMenus, optionPaddingRight) 0 styles.layoutPx(controlMenus, optionPaddingLeft);
   text-align: start;
-  line-height: #{defines.layout(controls, heightDefault) + 2}px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
   cursor: pointer;
-  user-select: none;
+  @include styles.noTextSelection;
+  // FOCUS and HOVER show the veil of the base design, this menu marking its selection with a face:
+  // the marker covers exactly one option (marker.scss), so an option is a bounded area of the
+  // menu's full width and takes the veil rather than the underline of an entry without one. It is
+  // drawn square, like the marker it lies over. A menu is a floating surface and therefore always
+  // light (documentation/design/dark-areas.md), so there is one veil here and no theme pair.
+  --statusVeil: #{$slotEmptyVeil};
+  box-shadow: var(--statusVeil);
+  transition: box-shadow var(--statusEaseMs, #{$easeOutMs}) ease-out;
+
+  @include styles.typoSet(valueSmall, $lineHeight: #{styles.layout(controls, heightDefault) + 2}px);
+
+  &:hover:not(.typoDisabled), &:focus-visible:not(.typoDisabled) {
+    --statusVeil: #{styles.layout(controls, interactionVeil)};
+    --statusEaseMs: #{$easeInMs};
+  }
 
   &.typoDisabled {
     cursor: default;

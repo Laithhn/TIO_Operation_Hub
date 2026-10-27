@@ -1,27 +1,169 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+// The rounding of the marker, which a tab shares: the marker covers its tab exactly, so the veil
+// below has to take the marker's shape to lie on it without an edge of its own showing.
+$borderRadius: styles.layout(controls, borderRadiusDefault);
+// The air a title tab keeps above and below its lettering, and it is the largest whole pixel that
+// fits: a tab of one line has to stay at heightDefault, whose remainder over the line box of the
+// valueSmall set - 21.675px, 0.85rem at a root of 17px over a line height of 1.5 - is 8.325px, so
+// 4.16 to a side. At 4 a tab of one line measures 29.675 and its minimum lifts it to the 30 it
+// would have carried without any padding at all, while a tab of two lines grows by the full 8 and
+// its lettering stops crowding the lens (seen at the running control on 2026-09-07, where a
+// two-line tab left too little room to the lens's edge).
+//
+// It is no space of the space map, which knows 5 as its smallest step - a step that would put the
+// minimum out of reach and make a tab of one line 31.675 high. Read the value against the typo set:
+// another lettering or another root font size moves the ceiling with it.
+$paddingBlock: 4;
+
 
 .tabBarTitleItem {
-  position: relative; // otherwise the marker will be placed above the item
+  // Above the marker, which lies in the bar positioned absolutely: without a position of its own
+  // the item would lie under it.
+  position: relative;
   display: grid;
   grid-template-columns: max-content;
-  justify-content: center;
+  // Where the lettering sits, from the slot the bar sets: centred along a bar that lies over or
+  // under its content, at the reading direction's start in a bar that stacks its tabs beside it
+  // (see tabBar.scss). The fallback keeps a tab outside a bar readable.
+  justify-content: var(--tabItemJustifyContent, center);
   align-content: center;
-  padding: defines.spacePx(xs);
+  // The height every control of the framework shares, as a floor: a tab of one line reaches it
+  // through this minimum, and the marker covering the tab is then a pane of the base design - a
+  // pill, the radius being the half of the height (see the controls map). A tab of two lines grows
+  // past it by its content.
+  min-height: styles.layoutPx(controls, heightDefault);
+  // A tab keeps the size its content asks for and lets the bar scroll instead. The declaration is
+  // needed because of the minimum above: a flex item shrinks no further than its content only
+  // while its minimum stands at "auto", and an explicit one takes that floor away. Without this a
+  // stack of tabs in a bar too short for them would squeeze to the minimum, cut its two-line tabs
+  // off, and report no overflow at all - so no scroll button would appear either.
+  flex-shrink: 0;
+  // The air above and below the lettering is measured so that the floor stays reachable (see the
+  // arithmetic at $paddingBlock above).
+  padding-block: #{$paddingBlock}px;
+  padding-inline: styles.spacePx(small);
+  border-radius: #{$borderRadius}px;
+  box-shadow: var(--statusVeil);
+  transition: box-shadow var(--statusEaseMs) ease-out;
+  // The browser's own focus ring is suppressed because the veil replaces it.
   outline: none;
   cursor: pointer;
+  // What the tab draws at rest: an empty veil, and the ease-out every status leaves over. The empty
+  // value carries two layers, as the veil that fills the slot does - a shadow list interpolates
+  // only while both sides hold the same number of layers.
+  --statusVeil: #{$slotEmptyVeil};
+  --statusEaseMs: #{$easeOutMs};
+
+  // FOCUS and HOVER are two statuses with one appearance, and **which appearance is the bar's
+  // marker's business**, because the marker is what decides whether a tab has an area of its own.
+  // In a bar with a lens the tabs share the bar's width, so each of them is a bounded area and the
+  // veil of the base design covers it - no edge to go with it, a tab carrying no pane, the way the
+  // check box and the bare button carry none. The veil lies over whatever is behind the tab: the
+  // bar's ground, or the lens of the selected tab, which shows through it.
+  //
+  // **The selected tab shows no veil.** The lens is the statement, and a veil over it lays a second
+  // translucent layer on one tab - seen at the click that moves the lens onto the tab under the
+  // pointer, where the two overlap while the lens travels. Where the marker lies, the interaction
+  // adds nothing (ADR `general-marker-carrier-shows-no-interaction-veil.md`). Focus follows
+  // :focus-visible rather than :focus, the browser's own judgement of a focus worth showing: a tab
+  // focused by a click drops the appearance together with the pointer, one reached by the arrow
+  // keys keeps it. The disabled status suppresses both.
+  //
+  // **The focus keeps its veil there.** It is the only thing that marks a focused tab, the browser's
+  // outline being suppressed, and the tab stop of the bar sits on the selected tab - without the
+  // veil, tabbing into the bar would show nothing at all. A pointer click leaves no :focus-visible
+  // behind, so the overlap this rule is about cannot arise from it.
+  &:hover:not(.disabled):not(.selected):not(.isBackgroundMarker),
+  &:focus-visible:not(.disabled):not(.isBackgroundMarker) {
+    --statusVeil: #{styles.layout(controls, interactionVeil)};
+    --statusEaseMs: #{$easeInMs};
+
+    @include styles.onDarkGround {
+      --statusVeil: #{styles.layout(controls, interactionVeilOnDark)};
+    }
+  }
+
+  // In a bar with a background marker the tabs pack at the bar's start, each one only as wide as
+  // its lettering, and an unselected tab has no area a veil could cover without inventing one. Such
+  // a tab shows the interaction appearance of a text entry instead (see the controls map): the
+  // lettering reaches full opacity from the resting value, and impulseGreen underlines it.
+  //
+  // **Two tabs rest at full opacity all the same**, the way the menuEntry mixin holds them at it.
+  // The selected tab, because a marked entry is not a weakened one - and it stands on the opaque
+  // marker, where thinned lettering would read as a fault. The disabled tab, because its lettering
+  // is weakened already, by the disabled colour of its typo set; the two thinnings would multiply.
+  //
+  // The line sits under the title alone, not under the whole tab: a tab with a subtitle would
+  // otherwise carry two lines under two rows, which reads as two targets. The rule reaches into the
+  // title from here because both classes live in this module.
+  &.isBackgroundMarker {
+    opacity: styles.layout(controls, interactionTextOpacity);
+    transition:
+      box-shadow var(--statusEaseMs) ease-out,
+      opacity var(--statusEaseMs) ease-out;
+
+    &.selected, &.disabled {
+      opacity: 1;
+    }
+
+    // The selected tab answers the pointer with nothing here either, so both forms of the bar
+    // behave alike: the marker is the statement, and the tab it covers can be clicked again
+    // without anything happening. The focus is excepted as it is above.
+    &:hover:not(.disabled):not(.selected), &:focus-visible:not(.disabled) {
+      opacity: 1;
+      --statusEaseMs: #{$easeInMs};
+
+      .title {
+        text-decoration-color: styles.layout(controls, interactionUnderline);
+      }
+    }
+  }
 
   &.disabled {
     cursor: default;
   }
+}
 
-  .title {
-    @include defines.typoSet(value, $darkTheme: null, $disabled: null, $noWrap: false, $noOverflow: false);
-    font-weight: defines.typo(fontWeight, semibold);
-    text-align: center;
-  }
 
-  .subTitle {
-    @include defines.typoSet(hint, $darkTheme: null, $disabled: null, $noWrap: false, $noOverflow: false);
-    text-align: center;
-  }
+// The two lettering sets bring the colour for the ground and the class "typoDisabled" with them, so
+// neither needs a colour rule of its own here. The ground is the tab's: the bar's, or the filled
+// marker's, which the selected tab of such a bar sets on itself.
+// The two lines share one column as wide as the longer of them, so the shorter one is stretched to
+// that width and its own alignment decides where its text sits - the same slot the item's grid
+// follows.
+.title {
+  text-align: var(--tabItemTextAlign, center);
+  text-transform: uppercase;
+  transition: text-decoration-color var(--statusEaseMs) ease;
+  @include styles.typoSet(valueSmall);
+  // The title is set semibold, which the value lettering is not; it stands after the include so
+  // that it wins by position.
+  font-weight: styles.typo(fontWeight, semibold);
+  // The underline of the interaction appearance a tab of a bar with a background marker shows
+  // (above). It is drawn at rest and transparent, so that its colour is all that changes and the
+  // line eases out with every other status instead of vanishing: text-decoration-color transitions,
+  // text-decoration-line does not, so a line switched on and off could only jump.
+  // The offset is the one the active menu entry's line carries, so that a list whose selection is
+  // underlined already shows one line in two colours.
+  //
+  // These declarations stand after the include for the same reason the font weight does, and for
+  // this one it is not a matter of taste: typoSet ends on "text-decoration-line: none", so before
+  // the include there would be no line at all and the hover would colour nothing.
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-color: transparent;
+  text-decoration-thickness: #{styles.layout(controls, interactionUnderlineWidth)}px;
+  text-underline-offset: #{styles.layout(controls, interactionUnderlineOffset)}px;
+}
+
+
+.subTitle {
+  text-align: var(--tabItemTextAlign, center);
+  @include styles.typoSet(hint);
 }

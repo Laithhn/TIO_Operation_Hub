@@ -1,9 +1,11 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .scrollContr {
   position: absolute;
   overflow: hidden;
 }
+
 
 .innerContr {
   position: absolute;
@@ -11,9 +13,10 @@
   left: 0;
 
   &.smoothScrolling {
-    transition: transform defines.layoutMs(defaultAnimationTimeMs) linear;
+    transition: transform styles.layoutMs(animationTime, slowMs) linear;
   }
 }
+
 
 body[dir="rtl"] {
   .innerContr {

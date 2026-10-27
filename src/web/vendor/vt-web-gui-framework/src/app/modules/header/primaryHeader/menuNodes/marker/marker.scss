@@ -1,0 +1,107 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+$height: styles.layout(controls, heightDefault);
+
+// The glass of the lens, the same ingredients the tab bar's lens carries (see its tabBar.scss): the
+// surface's own, at full strength, from the controls map. The header is a dark area, so the two
+// keyed values take the set for a dark ground - which the map calls "light", naming the ingredient
+// rather than the ground.
+// **The fill carries no colour**, so the lens is the resting pane of a control on a dark ground and
+// nothing more. A tint of the marker colour was tried on 2026-09-09 - attention at the alpha of the
+// tab bar's lens, .3 - and it drew more attention than a menu marker should:
+// what the user is to look at is the content, and the header states where one stands, not what
+// matters (ADR PDWG-98-primary-header-marker-is-a-colourless-lens.md).
+$lensFill: styles.layout(controls, surface, fill, light);
+$lensBorder: styles.layout(controls, surface, border, light);
+$lensContact: styles.layout(controls, surface, contact, light);
+$lensRim: styles.layout(controls, surface, rim);
+$lensGlow: styles.layout(controls, surface, glow);
+
+
+// The marker of the active menu node, and it is a **lens of the base design**: a translucent fill
+// with the surface's edge, lit rim, inner glow and contact shadow around it. It
+// was built from the glass of a floating surface until 2026-09-09 - glassmorphism() plus a halo
+// shadow of its own - which is the vocabulary of the cards and the popup menus. This node is no
+// floating surface: it lies in the header and marks an entry of a bar, the way the tab bar's lens
+// marks a tab, so it speaks the controls' glass and drops the backdrop blur with it. A blur has
+// nothing to do behind a marker that lies on one single colour.
+//
+// This is the resting form of the marker and the one it shows without the prop "dynamicEffect" -
+// a box, slid from node to node by a transition. The rules below draw the same lens as a path that
+// deforms while it travels (see Marker.tsx).
+.marker {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  top: #{math.div(styles.layout(header, height) - $height, 2)}px;
+  height: #{$height}px;
+  border: 1px solid $lensBorder;
+  border-radius: styles.layoutPx(controls, borderRadiusDefault);
+  background: $lensFill;
+  box-shadow: $lensContact, $lensRim, $lensGlow;
+
+  &.enableAnimation {
+    transition:
+      width styles.layoutMs(animationTime, contentFadeOutMs) ease,
+      transform styles.layoutMs(animationTime, contentFadeOutMs) ease;
+  }
+}
+
+
+// The dynamic form: one element spanning the whole node row, so the lens is drawn in the row's own
+// coordinates and nothing has to be moved but the path itself. It takes no pointer events, so the
+// nodes under it stay clickable.
+.dynamicMarker {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+
+// The pane of the lens. Two of the four ingredients an inset shadow carries in the box form are
+// drawn as paths of their own below, an SVG path knowing no inset shadow.
+.shape {
+  fill: $lensFill;
+  stroke: $lensBorder;
+  stroke-width: 1;
+}
+
+
+// The contact shadow of the pane: the value of the controls map without its spread ("0 1px 3px 0"
+// there), in black at 25 %. It is drawn by a filter of the SVG (see Marker.tsx), which carries the
+// offset and the blur - a standard deviation of 3, which is what drop-shadow() made of the 3px;
+// this rule gives its primitive the colour.
+.shapeShadow {
+  flood-color: rgb(0, 0, 0);
+  flood-opacity: 0.25;
+}
+
+
+// The lit rim: the shape's own outline, stroked one pixel lower and clipped to the shape, which
+// leaves the bright line along its top edge - what "inset 0 1px 0" draws on a box.
+.rim {
+  fill: none;
+  stroke: styles.colorA(offWhite, 0.45);
+  stroke-width: 1;
+}
+
+
+// The inner glow: the same outline with a wide, blurred stroke, clipped to the shape so that only
+// its inner half survives - what "inset 0 0 4px 1px" draws on a box. The blur of 3px is a filter
+// of the SVG (see Marker.tsx).
+.glow {
+  fill: none;
+  stroke: styles.colorA(offWhite, 0.1);
+  stroke-width: 8;
+}
+
+
+// The light the body catches while it travels is not styled here: it is filled from a gradient of
+// its own, whose id has to be unique per instance, so the element states its fill itself (see
+// Marker.tsx).

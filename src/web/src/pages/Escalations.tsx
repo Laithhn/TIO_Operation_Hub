@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
 import { usePermission, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';

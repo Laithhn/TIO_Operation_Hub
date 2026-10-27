@@ -1,15 +1,52 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "./defines.js" as localDefines;
+@use "assets/styles";
+
+// The settings of the viewer as a whole. Its parts are stylesheets of their own and each of them is
+// an entry of its own in the build, so a value more than one of them needs cannot be a Sass
+// variable they share: it is handed down as a custom property of the element enclosing them all.
+$showHideTransitionTimeMs: 150;
+$imageChangeTransitionTimeMs: 200;
+$rowGap: styles.space(large);
+$rowGapExpanded: styles.space(normal);
+$rowGapMobile: styles.space(normal);
+$rowGapMobileExpanded: styles.space(small);
+$padding: styles.space(normal);
+$paddingExpanded: styles.space(normal);
+$paddingMobile: styles.space(small);
+$paddingMobileExpanded: 0;
+$headerHeight: 75; // caution: value determined by the heights of the inner elements
+$headerHeightExpanded: styles.layout(controls, heightDefault);
+// The row of the preview strip: a thumbnail (65) plus what reaches above it while it is lifted, the
+// lift (15), the half of the scale that grows upwards (3.25) and the glow (9). Those four belong to
+// previewImage.scss and are set there; this is the room they need, and raising one raises this.
+$previewImagesHeightTotal: 95;
+
+:export {
+  showHideTransitionTimeMs: $showHideTransitionTimeMs;
+  imageChangeTransitionTimeMs: $imageChangeTransitionTimeMs;
+}
 
 .imageViewer {
+  // The values the parts of the viewer read. They carry their unit, so that a part computes with
+  // them in "calc()" the way it computed with the Sass variables before.
+  --imageViewerChangeTime: #{$imageChangeTransitionTimeMs}ms;
+  --imageViewerPadding: #{$padding}px;
+  --imageViewerHeaderHeight: #{$headerHeight}px;
+  --imageViewerHeaderHeightExpanded: #{$headerHeightExpanded}px;
+  --imageViewerRowGap: #{$rowGap}px;
+  --imageViewerRowGapExpanded: #{$rowGapExpanded}px;
+  --imageViewerPreviewHeight: #{$previewImagesHeightTotal}px;
+  // The one dark surface over the page: images read better on a dark ground. The ground is set on
+  // the element enclosing every part, because the background below is a layer of its own beside
+  // them rather than around them.
+  @include styles.ground(dark);
+
   position: fixed;
   left: 0;
   right: 0;
   top: 0;
   bottom: 0;
   opacity: 0;
-  transition: opacity #{localDefines.$showHideTransitionTimeMs}ms ease-in-out;
+  transition: opacity #{$showHideTransitionTimeMs}ms ease-in-out;
 
   &.visible {
     opacity: 1;
@@ -20,26 +57,17 @@
   position: absolute;
   width: 100%;
   height: 100%;
-  background-color: defines.colorA(primaryMidnight, 0.95);
+  background-color: styles.colorA(primaryMidnight, 0.95);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
 
-  // At the moment backdrop-filter is only supported at Firefox if options
-  // layout.css.backdrop-filter.enabled and gfx.webrender.all are set to true in about:config.
-  // Chrome supports the backdrop-filter.
-  @supports (backdrop-filter: blur(30px)) {
-    &::before {
-      content: "";
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backdrop-filter: blur(30px);
-    }
-  }
-
-  @supports not (backdrop-filter: blur(30px)) {
-    background-image: none !important;
+  &::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(30px);
   }
 }
 
@@ -48,41 +76,41 @@
   left: 0;
   right: 0;
   display: grid;
-  transition: all defines.layoutMs(defaultAnimationTimeMs) ease;
+  transition: all styles.layoutMs(animationTime, slowMs) ease;
 
   &:not(.isMobile) {
     top: 0;
 
     &:not(.isExpanded) {
       bottom: 0;
-      grid-template-rows: #{map.get(localDefines.$header, height)}px 1fr #{map.get(localDefines.$previewImages, heightTotal)}px;
-      row-gap: #{map.get(localDefines.$contr, rowGap)}px;
-      padding: #{map.get(localDefines.$contr, padding)}px;
+      grid-template-rows: #{$headerHeight}px 1fr #{$previewImagesHeightTotal}px;
+      row-gap: #{$rowGap}px;
+      padding: #{$padding}px;
     }
 
     &.isExpanded {
-      bottom: #{- map.get(localDefines.$contr, rowGapExpanded) - map.get(localDefines.$previewImages, heightTotal)}px;
-      grid-template-rows: #{map.get(localDefines.$header, heightExpanded)}px 1fr #{map.get(localDefines.$previewImages, heightTotal)}px;
-      row-gap: #{map.get(localDefines.$contr, rowGapExpanded)}px;
-      padding: #{map.get(localDefines.$contr, paddingExpanded)}px;
+      bottom: #{- $rowGapExpanded - $previewImagesHeightTotal}px;
+      grid-template-rows: #{$headerHeightExpanded}px 1fr #{$previewImagesHeightTotal}px;
+      row-gap: #{$rowGapExpanded}px;
+      padding: #{$paddingExpanded}px;
     }
   }
 
   &.isMobile {
-    grid-template-rows: #{map.get(localDefines.$header, heightExpanded)}px 1fr #{map.get(localDefines.$previewImages, heightTotal)}px;
+    grid-template-rows: #{$headerHeightExpanded}px 1fr #{$previewImagesHeightTotal}px;
 
     &:not(.isExpanded) {
       top: 0;
       bottom: 0;
-      row-gap: #{map.get(localDefines.$contr, rowGapMobile)}px;
-      padding: #{map.get(localDefines.$contr, paddingMobile)}px;
+      row-gap: #{$rowGapMobile}px;
+      padding: #{$paddingMobile}px;
     }
 
     &.isExpanded {
-      top:  #{- map.get(localDefines.$contr, rowGapMobileExpanded) - map.get(localDefines.$header, heightExpanded)}px;
-      bottom: #{- map.get(localDefines.$contr, rowGapMobileExpanded) - map.get(localDefines.$previewImages, heightTotal)}px;
-      row-gap: #{map.get(localDefines.$contr, rowGapMobileExpanded)}px;
-      padding: #{map.get(localDefines.$contr, paddingMobileExpanded)}px;
+      top:  #{- $rowGapMobileExpanded - $headerHeightExpanded}px;
+      bottom: #{- $rowGapMobileExpanded - $previewImagesHeightTotal}px;
+      row-gap: #{$rowGapMobileExpanded}px;
+      padding: #{$paddingMobileExpanded}px;
     }
   }
 }

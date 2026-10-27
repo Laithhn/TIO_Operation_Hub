@@ -1,0 +1,7 @@
+@use "assets/styles";
+
+.header {
+  grid-area: styles.layout(header, gridArea);
+  display: flex;
+  @include styles.background(primary);
+}

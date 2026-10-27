@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { get, post, put, qs, type Paged } from '../api';
 import { usePermission, useForm, useMe, useRefresh, useUrlState } from '../hooks';
 import { Badge, DataTable, DeleteAction, Dialog, FormError, PageHead, Pager, SelectInput, StateMessage, TextInput, useToast, type Column } from '../ui/kit';

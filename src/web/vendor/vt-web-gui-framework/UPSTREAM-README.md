@@ -1,18 +1,32 @@
 # VtWebGuiFramework
-Eine ausführliche Dokumentation über dieses Framework finden Sie im VITRONIC-Intranet auf dem Server Chow unter [https://chow.vitronic.de/](https://chow.vitronic.de/).
-## Build-Checkliste
-Die folgende Checkliste beschreibt die Vorgehensweise beim Erstellen eines neuen Releases von VtWebGuiFramework. Wie ein Projekt erstellt wird, welches auf dem Framework basiert, ist hingegen auf dem oben genannten Server Chow unter "Für Entwickler" > "Neues Projekt..." beschrieben.
-1. Dokumentation anpassen, vor allem unter /proj/contents/overview/start, /proj/contents/overview/releases, /proj/contents/secondSidebarContent und /proj/contents/forDevs/yourProject/step1.
-2. Alle ausstehenden Änderungen auf dem develop-Branch einchecken.
-3. Anschließend einen neuen Git-Flow "Release" beginnen und als Release-Name die neue Versionsnummer verwenden.
-4. Die neue Versionsnummer in der Datei settings.js unter <code>settings.meta.version</code> und unter <code>settings.packages.vtWebGuiFramework</code> eintragen.
-5. Die zu verwendende Versionsnummer von VtWebGuiIcons in der Datei settings.js unter <code>settings.packages.vtWebGuiIcons</code> eintragen.
-6. Die zu verwendende Versionsnummer von Node.js in der Datei settings.js unter <code>settings.packages.nodeJs</code> eintragen.
-7. Überprüfen, ob für die zu verwendenden Pakete electron, electron-builder und node-sass die zugehörigen Binaries auf dem Buildmachine-Repository zur Verfügung stehen.
-8. Datei applySettings.js ausführen, Konsolenausgabe und BeyondCompare-Vergleiche überprüfen.
-9. Die Distributionen und Electron-Releases lokal bauen und überprüfen.
-10. Alle weiteren Änderungen im Release-Branch mit dem Commit "Version X.X.X vorbereitet" einchecken.
-11. Den Release-Branch von VtWebGuiFramework auf dem Jenkins bauen und überprüfen.
-12. Release-Branch schließen.
-13. Den master-Branch von VtWebGuiFramework auf der Buildmachine bauen und überprüfen.
-14. Erstelltes Demoprojekt auf dem Chow-Server aktualisieren.
+
+VITRONIC's React/TypeScript GUI framework for web and desktop apps, consumed by other VITRONIC projects. This is `4.0.0-rc.5`: the v3 → v4 rewrite is under way, so the tree carries ported and unported code side by side. The file extension tells them apart — `.ts`/`.tsx` is v4, `.js`/`.jsx` is v3 awaiting its port.
+
+## Quick start
+
+Node.js `24.21.0` is fixed for this version, and VtWebGuiIcons is expected at `4.0.*`; both are pinned in `settings.js` under `settings.packages`.
+
+| Command | Purpose |
+|---|---|
+| `npm run devServer:web` | start the dev server |
+| `npm run build:web-dist-dev` | development build |
+| `npm run build:web-dist-prod` | production build |
+| `npm run applySettings` | regenerate the generated files from `settings.js` — required after editing `tsconfig.base.json` |
+
+With the dev server running, the framework demonstrates itself: the demo app's **For developers** section (`proj/contents/forDevelopers/`) walks through setting up a project on top of the framework, and **Overview** lists what each release brought.
+
+## Documentation
+
+- [docs/VtWebGuiFramework/](docs/VtWebGuiFramework/) — the documentation corpus: decision records in `decisions/`, the realized current state in `documentation/`, in-flight planning in `concepts/`. Consult `decisions/` before proposing a toolchain change — ESLint, TypeScript, and the Webpack cache each stay where they are for a recorded reason.
+- [Release checklist](docs/VtWebGuiFramework/documentation/operations/release-checklist.md) — the procedure for producing a release. Branch types, tags, and the commit format: [`.claude/rules/_local/git.md`](.claude/rules/_local/git.md).
+- [CLAUDE.md](CLAUDE.md) — the conventions Claude Code works by here, and a fast orientation for a human joining the code.
+
+## Who to ask
+
+| Category | Topic | Ask | Reach |
+|---|---|---|---|
+| Framework | Public API, breaking changes for consuming projects | Marco Stolz | Teams |
+| Framework | Control design and colour semantics | Marco Stolz | Teams |
+| Release | Jenkins and build machine runs, release tags | Marco Stolz | Teams |
+| Release | Demo project and documentation on the Chow server | Marco Stolz | Teams |
+| Claude Code | Plugins, rules, skills, accounts | ViAiDevKit, the `Who to ask` section of its README | — |

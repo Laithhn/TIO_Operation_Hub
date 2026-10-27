@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router';
 import { get, post, put } from '../api';
 import { useForm, useMe, useRefresh } from '../hooks';
 import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Panel, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';

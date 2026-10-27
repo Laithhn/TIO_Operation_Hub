@@ -1,39 +1,43 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "../defines.js" as localDefines;
+@use "assets/styles";
 
+// The button lies in a strip of its own along one side of the image, which is what makes the whole
+// strip clickable rather than the button alone. The opacity comes from the fade hook as an inline
+// style; this rule only says how long it takes to arrive.
+//
+// Where the strip begins and ends is the geometry of the viewer, not the button's own: it reaches
+// from below the header to above the preview strip. Those measurements are handed down as custom
+// properties by imageViewer.scss, and the button adds them up in "calc()".
 .naviButton {
   position: absolute;
   width: 100px;
   display: grid;
   place-items: center;
-  opacity: 0;
-  transition: opacity defines.layoutMs(defaultAnimationTimeMs) ease;
+  cursor: pointer;
+  transition: opacity styles.layoutMs(animationTime, slowMs) ease;
 
   &.left {
-    left: #{map.get(localDefines.$contr, padding)}px;
+    left: var(--imageViewerPadding);
     justify-content: start;
   }
 
   &.right {
-    right: #{map.get(localDefines.$contr, padding)}px;
+    right: var(--imageViewerPadding);
     justify-content: end;
   }
 
-  &.visible {
-    opacity: 1;
-    cursor: pointer;
-  }
-
   &:not(.isExpanded) {
-    top: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$header, height) + map.get(localDefines.$contr, rowGap)}px;
-    bottom: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$previewImages, heightTotal) + map.get(localDefines.$contr, rowGap)}px;
-    grid-template-columns: defines.layoutPx(controls, heightLarge);
+    top: calc(var(--imageViewerPadding) + var(--imageViewerHeaderHeight) + var(--imageViewerRowGap));
+    bottom: calc(var(--imageViewerPadding) + var(--imageViewerPreviewHeight) + var(--imageViewerRowGap));
+    grid-template-columns: styles.layoutPx(controls, heightLarge);
   }
 
   &.isExpanded {
-    top: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$header, heightExpanded) + map.get(localDefines.$contr, rowGapExpanded)}px;
-    bottom: #{map.get(localDefines.$contr, padding) + map.get(localDefines.$previewImages, heightTotal) + map.get(localDefines.$contr, rowGapExpanded)}px;
-    grid-template-columns: defines.layoutPx(controls, heightDefault);
+    top: calc(
+      var(--imageViewerPadding) + var(--imageViewerHeaderHeightExpanded) + var(--imageViewerRowGapExpanded)
+    );
+    bottom: calc(
+      var(--imageViewerPadding) + var(--imageViewerPreviewHeight) + var(--imageViewerRowGapExpanded)
+    );
+    grid-template-columns: styles.layoutPx(controls, heightDefault);
   }
 }

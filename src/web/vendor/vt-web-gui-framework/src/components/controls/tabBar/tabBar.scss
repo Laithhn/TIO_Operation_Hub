@@ -1,19 +1,85 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
+
+// The glass of the lens that marks the selected tab (see marker.scss): the surface's own
+// ingredients, the full strength, from the controls map - the same values the button's resting pane
+// carries. Read the two theme keys as the map states them: "dark" is the value for a light ground,
+// "light" the one for a dark ground.
+$lensBorder: styles.layout(controls, surface, border, dark);
+$lensBorderOnDark: styles.layout(controls, surface, border, light);
+$lensContact: styles.layout(controls, surface, contact, dark);
+$lensContactOnDark: styles.layout(controls, surface, contact, light);
+$lensRim: styles.layout(controls, surface, rim);
+$lensGlow: styles.layout(controls, surface, glow);
+
+// The air the bar keeps to its two edges along the axis across the bar - above and below a bar that
+// lies over or under its content, beside a bar that stands next to it. It is the gap a bar along
+// the reading direction keeps between two tabs, so the lens of such a bar keeps one distance on all
+// four sides; a bar that stacks its tabs sets them further apart (below). The air is also what
+// gives the lens's contact shadow the room to be seen at those two edges, the bar hiding its
+// overflow because it scrolls. Along the bar there is no such air, so the lens of the first and of
+// the last tab loses that part of its shadow.
+//
+// The marker of a filled tab reaches over this air and takes the bar's whole height, which takes no
+// rule of its own: the containing block of an absolutely positioned element is its ancestor's
+// padding box, so an inset of zero already covers the padding. It is the lens that keeps out of it,
+// by an inset of this same value, which the bar hands down as a custom property (see marker.scss).
+$barPadding: styles.spacePx(xs);
+
+
+// The outer box: it clips the scrolling list, and it is what the two scroll buttons position
+// themselves in.
 .tabBarWrapper {
   position: relative;
   overflow: hidden;
 }
 
+
+// The scrolling list of the tabs. It shows no scroll bar of its own: the bar scrolls by wheel, by
+// touch and by its two scroll buttons, and clips what does not fit.
 .tabBar {
   position: relative;
-  overflow: hidden;
   display: flex;
+  // The gap of a bar that lies over or under its content; a bar beside it stands its tabs further
+  // apart (below).
+  gap: styles.spacePx(xs);
+  overflow: hidden;
+
+  // The lens draws its glass from these slots, which the bar sets and the marker inherits: no
+  // selector reaches into another CSS module, and the two of them are two modules. Which values
+  // they hold follow the ground the lens lies on, the bar's: the wrapper around the bar sets it from
+  // the bar's own colour or passes on the one below, and the bar reads it. The fill is no slot: it follows the
+  // marker's colour, which is a prop, and travels as an inline style (see Marker.tsx).
+  --markerBorderColor: #{$lensBorder};
+  --markerShadow: #{$lensContact};
+  --markerRim: #{$lensRim};
+  --markerGlow: #{$lensGlow};
+  // The air the lens keeps out of, for the same reason: the marker is a stylesheet of its own and
+  // cannot read the Sass variable.
+  --tabBarPadding: #{$barPadding};
+
+  // How a title tab lays out its lettering, and it follows the bar's direction. A bar that lies
+  // over or under its content runs along the reading direction and centres its titles, the way a
+  // menu of one level does. A bar beside its content stacks them, and a stack of entries is a list:
+  // its lettering starts where the reading text starts, which "start" states logically, so a
+  // right-to-left document turns it around by itself. The two travel as slots because the title tab
+  // is a CSS module of its own and no selector reaches into it.
+  --tabItemJustifyContent: center;
+  --tabItemTextAlign: center;
+
+  @include styles.onDarkGround {
+    --markerBorderColor: #{$lensBorderOnDark};
+    --markerShadow: #{$lensContactOnDark};
+  }
 
   &:not(.isVertical) {
     width: 100%;
+    padding-block: $barPadding;
 
-    &:not(.isOverflow) {
+    // As long as every tab fits, the tabs share the width. A bar that scrolls packs them at the
+    // start instead, and so does one whose marker is a background - a tab's background has to end
+    // where the tab ends, not where its share of the width does.
+    &:not(.isBackgroundMarker):not(.isOverflow) {
       justify-content: space-around;
     }
   }
@@ -21,5 +87,14 @@
   &.isVertical {
     height: 100%;
     flex-direction: column;
+    padding-inline: $barPadding;
+    // The tabs stand further apart than in a bar along the reading direction, and the tab's own
+    // padding is why: to the left and right it pads its lettering by 12, so two titles side by side
+    // already keep 24 plus the gap, while above and below it pads by 4 and two stacked titles keep
+    // 8. The larger gap answers that, and it separates a stack of entries the way a list has to be
+    // separated to be read as one.
+    gap: styles.spacePx(small);
+    --tabItemJustifyContent: start;
+    --tabItemTextAlign: start;
   }
 }

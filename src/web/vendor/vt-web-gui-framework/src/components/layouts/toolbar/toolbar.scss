@@ -1,9 +1,10 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .toolbar {
   display: grid;
   grid-auto-flow: column;
-  column-gap: defines.spacePx(xs);
+  column-gap: styles.spacePx(small);
 
   &:not(.withToggleButton) {
     grid-template-columns: 1fr;
@@ -13,7 +14,16 @@
     grid-template-columns: auto 1fr;
   }
 
+  // The same seam a tabular draws between its entries, and for the same reason translucent: a
+  // toolbar sits on a surface whose colour the call site chooses. A tabular sets this itself, so a
+  // toolbar inside one draws the line its neighbouring entries draw. The line lies on the
+  // toolbar's own edge, so it follows the toolbar's own colour where it has one and the ground it
+  // sits on where it has none.
   &.withLine {
-    border-bottom: defines.layout(components, dividerBorderDark);
+    border-bottom: 1px solid styles.layout(dividerLine, dark);
+
+    @include styles.onDarkGroundOrClass {
+      border-bottom-color: styles.layout(dividerLine, light);
+    }
   }
 }

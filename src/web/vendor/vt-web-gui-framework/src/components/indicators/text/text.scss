@@ -1,7 +1,15 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .monotype {
   font-family: 'Source Code Pro', monospace !important;
 }
 
-@include defines.allTypoSets();
+
+@include styles.allTypoSets();
+
+// The colour of a value, in the form for the ground the text sits on. It follows the typo set, whose
+// colour it overwrites by coming later.
+.typoSetValue {
+  @include styles.typoColorClasses;
+}

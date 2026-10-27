@@ -1,7 +1,7 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { DataTable } from './kit';
-import { Enums, ValueField } from '../vt';
+import { ValueField } from '../vt';
 
 // Chart kit for the dashboard. Rules (validated, see docs/DESIGN-RULES.md):
 // magnitude = one blue ramp; trend = categorical slots 1–2 with a legend + direct end labels;
@@ -218,8 +218,8 @@ export function Kpi({ value, label, context, part, of, partLabel, tone, valueTon
       <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
       {/* VtWebGuiFramework ValueField: label as title, the number in the XL value size, signal colour for critical/warning values. */}
       <span className="kpi-v">
-        <ValueField title={label} value={value} valueSize={hero ? Enums.ValueSize.XXL : Enums.ValueSize.XL}
-          darkTheme={!!hero} valueColor={valueTone === 'critical' ? Enums.ValueColor.SIGNAL_ERROR : valueTone === 'warning' ? Enums.ValueColor.SIGNAL_WARNING : Enums.ValueColor.NONE} noWrap />
+        <ValueField title={label} value={value} valueSize={hero ? 'xxl' : 'xl'}
+          darkTheme={!!hero} {...(valueTone && { valueColor: valueTone === 'critical' ? 'signalError' : 'signalWarning' })} />
       </span>
       {pct !== null && (
         <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>

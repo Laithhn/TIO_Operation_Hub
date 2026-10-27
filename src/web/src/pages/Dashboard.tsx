@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
 import { useCan, useEnumLabel, useMe, useUrlState } from '../hooks';

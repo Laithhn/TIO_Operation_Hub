@@ -1,0 +1,287 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+// The measures of the switch: the height and the radius every control of the framework shares, from
+// the controls map, and the two of its own - its width and the diameter of its knob.
+//
+// The switch is the one control that is wider than it is high, and the one whose value CSS draws
+// rather than a glyph - a pane of the tinted strength at heightDefault with a knob travelling on
+// it. The width keeps the proportion the glyph had as a check box type: 50 on 30 is 1.67:1, where
+// iOS (1.65) and Material 3 (1.63) sit. The knob is 22 on the pane's inner height of 28, which
+// leaves 3px of air to the edge on every side - 0.79 of the inner height, inside the band the
+// platforms keep to (none below 0.70, iOS at 0.87). The travel follows from the two: the inner
+// width less the knob and its air on both sides, 20px. There is no large size: the pane at the
+// shared height is what makes the switch large enough, where the glyph of 30 x 18 needed the large
+// size to be hit by a finger at all.
+$height: styles.layout(controls, heightDefault);
+$width: 50;
+$borderRadius: styles.layout(controls, borderRadiusDefault);
+$knobDim: 22;
+// The pane's edge, which the knob's air and its travel are measured inside of: an absolutely placed
+// knob counts from the padding box, and border-box takes the edge out of the stated height.
+$edgeWidth: 1;
+$knobInset: math.div($height - (2 * $edgeWidth) - $knobDim, 2);
+$knobTravel: $width - (2 * $edgeWidth) - (2 * $knobInset) - $knobDim;
+
+// The pane in the half strength the button calls "tinted" - the one every input control rests on -
+// plus the locked strength, the slots and the interaction layer of the base design. All of it lives
+// in the controls map, where the button and the input group read it as well; the map states what
+// its two theme keys mean.
+$paneFill: styles.layout(controls, surfaceTinted, fill, dark);
+$paneFillOnDark: styles.layout(controls, surfaceTinted, fill, light);
+$paneBorder: styles.layout(controls, surfaceTinted, border, dark);
+$paneBorderOnDark: styles.layout(controls, surfaceTinted, border, light);
+$paneContact: styles.layout(controls, surfaceTinted, contact, dark);
+$paneContactOnDark: styles.layout(controls, surfaceTinted, contact, light);
+$paneRim: styles.layout(controls, surfaceTinted, rim);
+$paneGlow: styles.layout(controls, surfaceTinted, glow);
+$paneFillLocked: styles.layout(controls, surfaceLocked, fill, dark);
+$paneFillLockedOnDark: styles.layout(controls, surfaceLocked, fill, light);
+$paneBorderLocked: styles.layout(controls, surfaceLocked, border, dark);
+$paneBorderLockedOnDark: styles.layout(controls, surfaceLocked, border, light);
+// The glass a coloured pane carries while it can be used - see the controls map for why the tinted
+// strength's own ingredients are not enough on an opaque colour. One set for both themes.
+$paneBorderColored: styles.layout(controls, surfaceColored, border);
+$paneRimColored: styles.layout(controls, surfaceColored, rim);
+$paneGlowColored: styles.layout(controls, surfaceColored, glow);
+$slotEmpty: styles.layout(controls, slotEmpty);
+$slotEmptyInset: styles.layout(controls, slotEmptyInset);
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+$veilInteraction: styles.layout(controls, interactionVeil);
+$veilInteractionOnDark: styles.layout(controls, interactionVeilOnDark);
+$borderInteraction: styles.layout(controls, interactionBorder);
+$borderInteractionOnDark: styles.layout(controls, interactionBorderOnDark);
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
+// The value's own colour: a switch that is on fills its pane with it. "A setting is switched on" is
+// what the attention colour says - notable but uncritical, the second level of the attention ladder
+// (see colors.md) and the colour the active button carries for the same statement. Neither
+// impulseGreen, which is the interaction colour and exists for nothing else, nor a signal colour,
+// which describes the status of a thing the page shows rather than of the interface.
+$fillOn: styles.color(attention);
+// A disabled switch that is on keeps the position of its knob and thins its fill to the alpha the
+// disabled lettering carries (see controls.color in the map): the colour still says which value the
+// switch holds, and the thinning says that nothing can be done about it. At full strength a
+// disabled switch would read as switched on and ready, which it is not.
+$fillOnDisabled: styles.colorA(attention, 0.33);
+
+// The knob is a body of the base design's glass, lying on the track and carrying no colour of its
+// own. A solid disc in the lettering colour was built first and judged too dominant on 2026-09-03:
+// the one opaque element among controls made of veils, 22 of 28 pixels of the darkest colour of the
+// palette. Its glass is the offWhite veil every pane carries over a dark ground, and it is the same
+// veil in every status and theme: with the surface's own fill, structureSilver over a light ground,
+// the knob darkened the grey track while off and lightened the blue one while on - two bodies for
+// one knob, judged at the running control on 2026-09-04. A knob that lightens whatever lies under
+// it is one body, and the light body every platform puts on a switch. At 70 % the track shows
+// through just enough to say glass rather than an opaque disc: 18 %, the surface's dark-ground
+// value, was a slightly lighter blue on the blue track, and 40 % still read as blue on blue
+// (2026-09-04).
+//
+// Edge and contact shadow follow the ground the knob lies on, as every pane's do, and are twice as
+// dense as the surface's: they are what separate a body from the ground, and a body of 22px on a
+// track of the same glass has to separate from it where a button separates from a whole surface. At
+// the surface's values throughout, the knob read as a body but too faint (2026-09-03). Rim and glow
+// are the surface's own.
+$knobFill: styles.colorA(offWhite, 0.7);
+$knobBorder: styles.colorA(structureSilver, 0.32);
+$knobBorderOnDark: styles.colorA(offWhite, 0.44);
+$knobContact: 0 1px 3px 0 styles.colorA(structureSilver, 0.24);
+$knobContactOnDark: 0 1px 3px 0 rgba(0, 0, 0, 0.5);
+$knobRim: styles.layout(controls, surface, rim);
+$knobGlow: styles.layout(controls, surface, glow);
+// Locked, the knob thins by one step the way every locked pane does: fill and edge at half, the
+// contact shadow gone, rim and glow at the tinted strength. It keeps an edge a body of 22px can be
+// seen by, because the value has to stay readable through the knob's position.
+$knobFillLocked: styles.colorA(offWhite, 0.35);
+$knobBorderLocked: styles.colorA(structureSilver, 0.16);
+$knobBorderLockedOnDark: styles.colorA(offWhite, 0.22);
+$knobRimLocked: styles.layout(controls, surfaceTinted, rim);
+$knobGlowLocked: styles.layout(controls, surfaceTinted, glow);
+
+// The knob slides and the fills fade over the medium duration, not the fast one every fill of an
+// icon takes: at 50ms the knob would jump rather than slide, and the slide is what a switch says.
+$valueMs: styles.layoutMs(animationTime, mediumMs);
+
+
+// The root class cannot carry the control's own name: the .d.scss.ts declares every class as a
+// constant, and "switch" is a reserved word.
+.switchControl {
+  display: inline-grid;
+  grid-auto-flow: column;
+  align-items: baseline;
+  column-gap: styles.spacePx(xs);
+  // The browser's own focus ring is suppressed because the veil below replaces it.
+  outline: none;
+  cursor: pointer;
+  @include styles.noTextSelection;
+
+  // Every layer of the pane's and the knob's appearance rides in a slot, and the two elements below
+  // assemble them: a status sets its own slots and touches no other, which is what lets the
+  // statuses add up instead of replacing each other. The slots sit here on the root, where the
+  // statuses are determined - the focus lands on this element, the status classes stand on it -
+  // and inherit down to the pane and the knob, which draw them. What they hold at rest is the
+  // tinted track on a light background, the knob's glass, and the empty veil; the veil slot takes
+  // the empty value with two layers, the veil that fills it carrying two - see the controls map.
+  --paneShadow: #{$paneContact};
+  --paneRim: #{$paneRim};
+  --paneGlow: #{$paneGlow};
+  --statusVeil: #{$slotEmptyVeil};
+  --paneFill: #{$paneFill};
+  --paneBorderColor: #{$paneBorder};
+  --paneEaseMs: #{$easeOutMs};
+  --knobFill: #{$knobFill};
+  --knobBorderColor: #{$knobBorder};
+  --knobShadow: #{$knobContact};
+  --knobRim: #{$knobRim};
+  --knobGlow: #{$knobGlow};
+
+  @include styles.onDarkGround {
+    --paneShadow: #{$paneContactOnDark};
+    --paneFill: #{$paneFillOnDark};
+    --paneBorderColor: #{$paneBorderOnDark};
+    --knobBorderColor: #{$knobBorderOnDark};
+    --knobShadow: #{$knobContactOnDark};
+  }
+
+  // The label before the pane is what asks for the two to be pushed apart: a column of switches
+  // named on the left reads as a list only where their panes stand on one edge. The rule is bound
+  // to the class rather than offered as a prop, for the reason the check box states at the same
+  // rule: with the pane first the same distribution would drive the label away from the switch it
+  // names. It takes effect only where the parent grid stretches the control, an inline-sized switch
+  // having nothing to distribute, so justifySelf="start" at the call site is what takes it back.
+  &.labelFirst {
+    justify-content: space-between;
+
+    .pane {
+      grid-column-start: 2;
+    }
+  }
+
+  // The value, and it is the one appearance CSS draws rather than a glyph: the track fills with the
+  // value's colour and takes the glass of a coloured pane - the tinted strength's rim, glow and
+  // edge are dimensioned for a veil and vanish on an opaque colour, where the track read as flat
+  // paint (2026-09-04) - and the knob travels to the far end. Its fill is the same glass as at
+  // rest; its edge and shadow take the dark-ground values, the ones that separate a light body from
+  // a saturated colour. The rule carries one class more than the dark-ground branch above, a query
+  // adding none, so it wins on both grounds - on the coloured track the two look the same.
+  &.on {
+    --paneFill: #{$fillOn};
+    --paneBorderColor: #{$paneBorderColored};
+    --paneRim: #{$paneRimColored};
+    --paneGlow: #{$paneGlowColored};
+    --knobBorderColor: #{$knobBorderOnDark};
+    --knobShadow: #{$knobContactOnDark};
+  }
+
+  // FOCUS takes the veil every control of the base design takes, and the edge in the interaction
+  // colour, because the pane has an edge to colour. HOVER takes nothing: the switch is meant for
+  // projects on touch-only devices, where the pointer never arrives, so a hover appearance would be
+  // one nobody ever sees. The focus is the other case: such a device may still have a keyboard
+  // attached, and a focusable element whose focus is invisible leaves a keyboard user with no way
+  // to tell where they are - which is what WCAG 2.4.7 asks for. Focus follows :focus-visible
+  // rather than :focus, which is the browser's own judgement of a focus worth showing.
+  &:focus-visible:not(.disabled) {
+    --statusVeil: #{$veilInteraction};
+    --paneBorderColor: #{$borderInteraction};
+    --paneEaseMs: #{$easeInMs};
+
+    @include styles.onDarkGround {
+      --statusVeil: #{$veilInteractionOnDark};
+      --paneBorderColor: #{$borderInteractionOnDark};
+    }
+  }
+
+  // A locked control lies in the surface rather than on it: it gives up its contact shadow, its lit
+  // rim and its glow, which are what make a body look raised, and its pane thins to the locked
+  // values - the step the input group takes, resting on the tinted pane for the same reason. The
+  // knob thins by the same step. The rule stands after the value's rule and carries the same
+  // weight, so it wins whichever value the switch holds; the fill of a track that is on is answered
+  // below.
+  &.disabled {
+    cursor: default;
+    --paneShadow: #{$slotEmpty};
+    --paneRim: #{$slotEmptyInset};
+    --paneGlow: #{$slotEmptyInset};
+    --paneFill: #{$paneFillLocked};
+    --paneBorderColor: #{$paneBorderLocked};
+    --knobFill: #{$knobFillLocked};
+    --knobBorderColor: #{$knobBorderLocked};
+    --knobShadow: #{$slotEmpty};
+    --knobRim: #{$knobRimLocked};
+    --knobGlow: #{$knobGlowLocked};
+
+    @include styles.onDarkGround {
+      --paneFill: #{$paneFillLockedOnDark};
+      --paneBorderColor: #{$paneBorderLockedOnDark};
+      --knobBorderColor: #{$knobBorderLockedOnDark};
+    }
+
+    // Carries one class more than the dark-ground branch above: the thinned track is the same on
+    // both grounds, and the knob's edge on it takes the dark-ground value at the locked strength.
+    &.on {
+      --paneFill: #{$fillOnDisabled};
+      --knobBorderColor: #{$knobBorderLockedOnDark};
+    }
+  }
+}
+
+
+// The pane the knob travels on - the control's face, which answers the focus and states the value
+// and the status. It is the tinted pane of the button and the input group, measured at the height
+// and radius every control shares and at the width of its own; a pill, the radius being half the
+// height.
+.pane {
+  position: relative;
+  display: inline-grid;
+  width: #{$width}px;
+  height: #{$height}px;
+  border: #{$edgeWidth}px solid var(--paneBorderColor);
+  border-radius: #{$borderRadius}px;
+  background: var(--paneFill);
+  box-shadow: var(--paneShadow), var(--paneRim), var(--paneGlow), var(--statusVeil);
+  // The fill is the value and changes over the value's duration; shadow and edge belong to the
+  // statuses and take the ease the root switches between arriving and leaving.
+  transition:
+    background-color $valueMs ease,
+    box-shadow var(--paneEaseMs) ease-out,
+    border-color var(--paneEaseMs) ease-out;
+
+  // The element that carries the pane's baseline (see Switch.tsx): a line box as tall as the pane's
+  // inside, which puts the baseline in the pane's middle. It is the pane's only in-flow item, so
+  // the grid takes its baseline from it without any declaration.
+  span:last-child {
+    line-height: #{$height - (2 * $edgeWidth)}px;
+  }
+}
+
+
+// The knob: a body of the base design's glass (see the values above), placed out of the flow so
+// that it leaves the pane's baseline to the element above. It moves by its inline start rather
+// than by a transform: the logical property mirrors in a right-to-left document by itself, where a
+// translateX would carry the knob out of the pane, and it costs no compositing layer - the one a
+// transform buys is what the select box menu pays a subpixel jump for.
+.knob {
+  position: absolute;
+  top: #{$knobInset}px;
+  inset-inline-start: #{$knobInset}px;
+  width: #{$knobDim}px;
+  height: #{$knobDim}px;
+  border: 1px solid var(--knobBorderColor);
+  border-radius: 50%;
+  background: var(--knobFill);
+  box-shadow: var(--knobShadow), var(--knobRim), var(--knobGlow);
+  transition:
+    inset-inline-start $valueMs ease,
+    background-color $valueMs ease,
+    border-color $valueMs ease,
+    box-shadow $valueMs ease;
+
+  .on & {
+    inset-inline-start: #{$knobInset + $knobTravel}px;
+  }
+}

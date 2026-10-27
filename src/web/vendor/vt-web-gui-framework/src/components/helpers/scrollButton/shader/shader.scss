@@ -1,0 +1,68 @@
+@use "assets/styles";
+
+
+// The shader's length along the scroll axis, the room the scroll button takes at its edge. A
+// component that scrolls a chosen element into view keeps that element clear of it, which is why
+// the length leaves through the export below.
+$length: styles.space(xl);
+
+:export {
+  shaderLength: $length;
+}
+
+
+.shader {
+  position: absolute;
+  opacity: 0;
+  display: grid;
+  transition: opacity styles.layoutMs(animationTime, mediumMs) ease;
+
+  &.show {
+    opacity: 1; // showing has to be done by opacity to prevent clicking the menu below in the moment the button disapears
+  }
+
+  &.posTop, &.posBottom {
+    left: 0;
+    width: 100%;
+    height: #{$length}px;
+    padding: 0 styles.spacePx(small);
+  }
+
+  &.posTop {
+    top: 0;
+  }
+
+  &.posBottom {
+    bottom: 0;
+  }
+
+  &.posLeft, &.posRight {
+    width: #{$length}px;
+    top: 0;
+    height: 100%;
+    padding: styles.spacePx(small) 0;
+  }
+
+  &.posLeft {
+    left: 0;
+  }
+
+  &.posRight {
+    right: 0;
+  }
+}
+
+
+body[dir="rtl"] {
+  .shader {
+    &.posLeft {
+      left: auto;
+      right: 0;
+    }
+
+    &.posRight {
+      left: 0;
+      right: auto;
+    }
+  }
+}

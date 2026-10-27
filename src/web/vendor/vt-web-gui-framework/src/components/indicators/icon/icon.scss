@@ -1,5 +1,10 @@
+@use "assets/styles";
+
+
 .icon {
   display: inline-flex;
+  // the icon's colour, in the form for the ground it sits on; the path takes it as its fill
+  @include styles.typoColorClasses;
 
   span {
     align-self: baseline;

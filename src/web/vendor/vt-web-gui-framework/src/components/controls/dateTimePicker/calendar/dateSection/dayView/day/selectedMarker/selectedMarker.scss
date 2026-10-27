@@ -1,8 +1,8 @@
-@use "assets/styles/defines";
-
+// The marker's colour comes from the day it lies in, which also derives the ground of its number
+// from it (see day.scss).
 .selectedMarker {
   position: absolute;
   left: 0;
   right: 0;
-  background: defines.color(calmingGreen);
+  background: var(--calendarSelectedMarkerColor);
 }

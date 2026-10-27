@@ -3,219 +3,219 @@
 // Native elements (<button>, <input>, <select>, <table>, <dialog>-like popups) are kept for keyboard, form and
 // assistive-technology semantics; their look follows the framework components listed.
 @use "sass:math";
-@use "assets/styles/defines";
+@use "assets/styles" as vt;
 
-$control: defines.layout(controls, heightDefault);
+$control: vt.layout(controls, heightDefault);
 
 // ---------- base (framework assets/styles/index.scss sets the reset, html 17px and Open Sans) ----------
 html, body { height: 100%; }
-body { background: defines.layout(dashboard, background); color: defines.typo(color, dark, normal); font-size: defines.typo(fontSize, small); line-height: defines.typo(lineHeight, normal); -webkit-font-smoothing: antialiased; }
-h1, h2, h3 { color: defines.typo(color, dark, normal); }
-a { color: defines.typo(color, dark, attention); text-decoration: none; }
+body { background: vt.color(lightGray); color: vt.typo(color, dark, normal); font-size: vt.typo(fontSize, small); line-height: vt.typo(lineHeight, normal); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { color: vt.typo(color, dark, normal); }
+a { color: vt.typo(color, dark, attention); text-decoration: none; }
 a:hover { text-decoration: underline; }
 button, input, select, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; }
-:focus-visible { outline: 2px solid defines.typo(color, dark, attention); outline-offset: 2px; }
+:focus-visible { outline: 2px solid vt.typo(color, dark, attention); outline-offset: 2px; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .mono { font-family: 'Source Code Pro', ui-monospace, Consolas, monospace; font-size: .95em; }
-.muted { color: defines.typo(color, dark, weak); }
+.muted { color: vt.typo(color, dark, weak); }
 .num { font-variant-numeric: tabular-nums; text-align: right; }
 .nowrap { white-space: nowrap; }
 .ic { flex: none; display: block; }
-strong, b { font-weight: defines.typo(fontWeight, bold); }
+strong, b { font-weight: vt.typo(fontWeight, bold); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 
 // ---------- main toolbar (components/layouts/mainToolbar + title): page title, sub title, actions ----------
 .page-head {
-  display: flex; flex-wrap: wrap; align-items: center; gap: defines.spacePx(xxs) defines.spacePx(small);
-  width: 100%; min-height: defines.layoutPx(mainToolbar, height); padding: defines.spacePx(xxs) defines.spacePx(medium);
-  background: defines.layout(mainToolbar, background); border-bottom: 1px solid defines.layout(sidebars, borderColor);
-  h1 { font-size: defines.typo(fontSize, large); font-weight: defines.typo(fontWeight, bold); line-height: defines.typo(lineHeight, small); color: defines.typo(color, dark, normal); }
-  .sub { @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
-  .actions { margin-left: auto; display: flex; gap: defines.spacePx(xs); flex-wrap: wrap; align-items: center; }
+  display: flex; flex-wrap: wrap; align-items: center; gap: vt.spacePx(xs) vt.spacePx(normal);
+  width: 100%; min-height: vt.layoutPx(mainToolbar, heightInMainScope); padding: vt.spacePx(xs) vt.spacePx(large);
+  background: vt.color(offWhite); border-bottom: 1px solid vt.layout(dividerColor, soft);
+  h1 { font-size: vt.typo(fontSize, large); font-weight: vt.typo(fontWeight, bold); line-height: vt.typo(lineHeight, small); color: vt.typo(color, dark, normal); }
+  .sub { @include vt.typoSet(hint, $disabled: false); }
+  .actions { margin-left: auto; display: flex; gap: vt.spacePx(small); flex-wrap: wrap; align-items: center; }
   .crumbs { width: 100%; }
 }
-.crumbs { display: flex; gap: defines.spacePx(xxs); font-size: defines.typo(fontSize, xs); color: defines.typo(color, dark, weak); flex-wrap: wrap;
-  a { color: defines.typo(color, dark, weak); }
-  span[aria-hidden] { color: defines.typo(color, dark, extraWeak); }
+.crumbs { display: flex; gap: vt.spacePx(xs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); flex-wrap: wrap;
+  a { color: vt.typo(color, dark, weak); }
+  span[aria-hidden] { color: vt.typo(color, dark, extraWeak); }
 }
 
 // ---------- buttons (components/controls/button: RaisedButton = .btn-primary, FlatButton = .btn / .linkbtn) ----------
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: defines.spacePx(xxs);
-  height: #{$control}px; padding: 0 #{defines.space(xs) - 2}px;
-  border: 2px solid defines.layout(controls, color, dark, disabled); background: transparent;
-  font-size: defines.typo(fontSize, small); font-weight: defines.typo(fontWeight, semibold); color: defines.typo(color, dark, normal); fill: currentColor;
+  display: inline-flex; align-items: center; justify-content: center; gap: vt.spacePx(xs);
+  height: #{$control}px; padding: 0 #{vt.space(small) - 2}px;
+  border: 2px solid vt.layout(controls, color, dark, disabled); background: transparent;
+  font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, normal); fill: currentColor;
   text-transform: uppercase; white-space: nowrap; user-select: none;
-  transition: border-color defines.layoutMs(controls, animationTimeMs) ease, background defines.layoutMs(controls, animationTimeMs) ease;
-  &:hover:not(:disabled), &:focus-visible { border-color: defines.color(impulseGreen); text-decoration: none; }
-  &:disabled { color: defines.typo(color, dark, extraWeak); cursor: not-allowed; }
-  svg { width: defines.layoutPx(controls, iconDimDefault); height: defines.layoutPx(controls, iconDimDefault); }
+  transition: border-color vt.layoutMs(animationTime, fastMs) ease, background vt.layoutMs(animationTime, fastMs) ease;
+  &:hover:not(:disabled), &:focus-visible { border-color: vt.color(impulseGreen); text-decoration: none; }
+  &:disabled { color: vt.typo(color, dark, extraWeak); cursor: not-allowed; }
+  svg { width: vt.layoutPx(controls, iconDimDefault); height: vt.layoutPx(controls, iconDimDefault); }
 }
 .btn-primary {
-  min-width: 88px; padding: 0 defines.spacePx(xs); border: 0;
-  background: defines.color(primary); color: defines.typo(color, light, normal);
-  &:hover:not(:disabled), &:focus-visible { background: defines.color(impulseGreen); color: defines.typo(color, dark, normal); }
-  &:disabled { border: 2px solid defines.layout(controls, color, dark, disabled); background: none; color: defines.typo(color, dark, extraWeak); padding: 0 #{defines.space(xs) - 2}px; }
+  min-width: 88px; padding: 0 vt.spacePx(small); border: 0;
+  background: vt.color(primary); color: vt.typo(color, light, normal);
+  &:hover:not(:disabled), &:focus-visible { background: vt.color(impulseGreen); color: vt.typo(color, dark, normal); }
+  &:disabled { border: 2px solid vt.layout(controls, color, dark, disabled); background: none; color: vt.typo(color, dark, extraWeak); padding: 0 #{vt.space(small) - 2}px; }
 }
-.btn-danger { border: 0; background: defines.color(signalError); color: defines.typo(color, light, normal);
-  &:hover:not(:disabled), &:focus-visible { background: defines.color(signalError); color: defines.typo(color, light, normal); filter: brightness(1.15); }
+.btn-danger { border: 0; background: vt.color(signalError); color: vt.typo(color, light, normal);
+  &:hover:not(:disabled), &:focus-visible { background: vt.color(signalError); color: vt.typo(color, light, normal); filter: brightness(1.15); }
 }
-.btn-danger-outline { border-color: defines.color(signalError); color: defines.color(signalError); }
+.btn-danger-outline { border-color: vt.color(signalError); color: vt.color(signalError); }
 .btn-ghost { border-color: transparent; }
-.btn-sm { height: 24px; padding: 0 defines.spacePx(xxs); font-size: defines.typo(fontSize, xs); }
+.btn-sm { height: 24px; padding: 0 vt.spacePx(xs); font-size: vt.typo(fontSize, xs); }
 .linkbtn {
-  border: 0; padding: 0; color: defines.typo(color, dark, attention); font-weight: defines.typo(fontWeight, semibold); font-size: defines.typo(fontSize, small);
+  border: 0; padding: 0; color: vt.typo(color, dark, attention); font-weight: vt.typo(fontWeight, semibold); font-size: vt.typo(fontSize, small);
   &:hover { text-decoration: underline; }
-  &:disabled { color: defines.typo(color, dark, extraWeak); cursor: not-allowed; text-decoration: none; }
+  &:disabled { color: vt.typo(color, dark, extraWeak); cursor: not-allowed; text-decoration: none; }
 }
-.danger-link { color: defines.color(signalError); }
+.danger-link { color: vt.color(signalError); }
 
 // ---------- inputs (components/controls/input, selectBox: underline control, notice line below) ----------
 .input {
-  width: 100%; height: #{$control}px; padding: 0 defines.spacePx(xxs);
-  border: 0; border-bottom: defines.layout(components, dividerBorderDark);
-  background: defines.layout(controls, color, dark, backgroundInput);
-  font-size: defines.typo(fontSize, small); color: defines.typo(color, dark, normal);
-  &::placeholder { color: defines.typo(color, dark, extraWeak); }
-  &:hover:not(:disabled), &:focus { outline: none; border-bottom-color: defines.color(impulseGreen); background: defines.layout(controls, color, dark, backgroundFocus); }
-  &:disabled { color: defines.typo(color, dark, extraWeak); border-bottom-color: defines.layout(controls, color, dark, disabled); }
+  width: 100%; height: #{$control}px; padding: 0 vt.spacePx(xs);
+  border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)};
+  background: vt.layout(controls, surfaceTinted, fill, dark);
+  font-size: vt.typo(fontSize, small); color: vt.typo(color, dark, normal);
+  &::placeholder { color: vt.typo(color, dark, extraWeak); }
+  &:hover:not(:disabled), &:focus { outline: none; border-bottom-color: vt.color(impulseGreen); background: vt.colorA(structureSilver, 0.08); }
+  &:disabled { color: vt.typo(color, dark, extraWeak); border-bottom-color: vt.layout(controls, color, dark, disabled); }
 }
-select.input { padding-right: defines.spacePx(small); }
-textarea.input { height: auto; min-height: 76px; padding: defines.spacePx(xxs); resize: vertical; line-height: defines.typo(lineHeight, normal); }
-.field { display: flex; flex-direction: column; gap: defines.spacePx(xxxs); min-width: 0; }
-.field > label, .flabel { @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
-.req::after { content: " *"; color: defines.color(signalError); }
-.hint { @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); font-size: defines.typo(fontSize, xs); }
-.err { font-size: defines.typo(fontSize, xs); color: defines.color(signalError); font-weight: defines.typo(fontWeight, semibold); }
-.field.invalid .input { border-bottom: 2px solid defines.color(attentionHigh); }
-.check { display: inline-flex; align-items: center; gap: defines.spacePx(xxs); font-size: defines.typo(fontSize, small); cursor: pointer;
-  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: defines.color(primary); }
+select.input { padding-right: vt.spacePx(normal); }
+textarea.input { height: auto; min-height: 76px; padding: vt.spacePx(xs); resize: vertical; line-height: vt.typo(lineHeight, normal); }
+.field { display: flex; flex-direction: column; gap: vt.spacePx(xxs); min-width: 0; }
+.field > label, .flabel { @include vt.typoSet(label, $disabled: false); }
+.req::after { content: " *"; color: vt.color(signalError); }
+.hint { @include vt.typoSet(hint, $disabled: false); font-size: vt.typo(fontSize, xs); }
+.err { font-size: vt.typo(fontSize, xs); color: vt.color(signalError); font-weight: vt.typo(fontWeight, semibold); }
+.field.invalid .input { border-bottom: 2px solid vt.color(attentionHigh); }
+.check { display: inline-flex; align-items: center; gap: vt.spacePx(xs); font-size: vt.typo(fontSize, small); cursor: pointer;
+  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: vt.color(primary); }
 }
-.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: defines.spacePx(xs) defines.spacePx(small);
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: vt.spacePx(small) vt.spacePx(normal);
   .wide { grid-column: 1 / -1; }
 }
-.form-actions { display: flex; gap: defines.spacePx(xs); justify-content: flex-end; margin-top: defines.spacePx(small); flex-wrap: wrap; }
+.form-actions { display: flex; gap: vt.spacePx(small); justify-content: flex-end; margin-top: vt.spacePx(normal); flex-wrap: wrap; }
 
 // ---------- sections (components/layouts/section + toolbar title "title" set) ----------
-.panel { background: defines.color(offWhite); margin-bottom: defines.spacePx(small); box-shadow: defines.layout(boxShadow, level1); }
-.panel-head { display: flex; align-items: center; gap: defines.spacePx(xs); min-height: defines.spacePx(large); padding: defines.spacePx(xxs) defines.spacePx(small); border-bottom: 1px solid defines.color(lightGray); flex-wrap: wrap;
-  h2 { @include defines.typoSet(title, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
-  .actions { margin-left: auto; display: flex; gap: defines.spacePx(xxs); flex-wrap: wrap; align-items: center; }
+.panel { background: vt.color(offWhite); margin-bottom: vt.spacePx(normal); box-shadow: vt.layout(controls, surface, contact, dark); }
+.panel-head { display: flex; align-items: center; gap: vt.spacePx(small); min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(normal); border-bottom: 1px solid vt.color(lightGray); flex-wrap: wrap;
+  h2 { @include vt.typoSet(title, $disabled: false); }
+  .actions { margin-left: auto; display: flex; gap: vt.spacePx(xs); flex-wrap: wrap; align-items: center; }
 }
-.panel-body { padding: defines.spacePx(xs) defines.spacePx(small) defines.spacePx(small); }
+.panel-body { padding: vt.spacePx(small) vt.spacePx(normal) vt.spacePx(normal); }
 .table-wrap { overflow-x: auto; }
 
 // ---------- tables (assets/styles/_nativeElements table + layouts/dataTable header cells) ----------
-table.grid { width: 100%; border-collapse: collapse; font-size: defines.typo(fontSize, small); }
-.grid th { text-align: left; font-weight: defines.typo(fontWeight, semibold); color: defines.typo(color, dark, normal); padding: 0; white-space: nowrap; border-bottom: defines.layout(components, dividerBorderDark); background: defines.color(offWhite); position: relative; }
-.grid-head-cell { min-height: defines.spacePx(large); padding: defines.spacePx(xxs) defines.spacePx(xs); display: flex; align-items: center; gap: defines.spacePx(xxs); }
-.grid-sort, .grid-heading-label { min-width: 0; display: inline-flex; align-items: center; gap: defines.spacePx(xxxs); color: inherit; font: inherit; }
-.grid-sort { border: 0; padding: 0; text-align: left; &:hover, &:focus-visible { color: defines.typo(color, dark, attention); } }
-.grid-sort-indicator { line-height: 1; color: defines.typo(color, dark, attention); font-weight: defines.typo(fontWeight, bold); }
-.grid-sort-muted { color: defines.typo(color, dark, extraWeak); }
-.grid-filter-trigger { width: 24px; height: 24px; display: inline-grid; place-items: center; margin-left: auto; padding: 3px; border: 0; color: defines.typo(color, dark, weak); flex: 0 0 auto;
+table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize, small); }
+.grid th { text-align: left; font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, normal); padding: 0; white-space: nowrap; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; background: vt.color(offWhite); position: relative; }
+.grid-head-cell { min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(small); display: flex; align-items: center; gap: vt.spacePx(xs); }
+.grid-sort, .grid-heading-label { min-width: 0; display: inline-flex; align-items: center; gap: vt.spacePx(xxs); color: inherit; font: inherit; }
+.grid-sort { border: 0; padding: 0; text-align: left; &:hover, &:focus-visible { color: vt.typo(color, dark, attention); } }
+.grid-sort-indicator { line-height: 1; color: vt.typo(color, dark, attention); font-weight: vt.typo(fontWeight, bold); }
+.grid-sort-muted { color: vt.typo(color, dark, extraWeak); }
+.grid-filter-trigger { width: 24px; height: 24px; display: inline-grid; place-items: center; margin-left: auto; padding: 3px; border: 0; color: vt.typo(color, dark, weak); flex: 0 0 auto;
   svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
-  &:hover, &:focus-visible, &.active { color: defines.typo(color, dark, attention); background: defines.layout(controls, color, dark, backgroundFocus); }
+  &:hover, &:focus-visible, &.active { color: vt.typo(color, dark, attention); background: vt.colorA(structureSilver, 0.08); }
 }
-.grid-filter-popover { position: absolute; z-index: 55; top: calc(100% + 2px); left: 0; width: 240px; padding: defines.spacePx(xs); background: defines.color(offWhite); box-shadow: defines.layout(boxShadow, level2); white-space: normal; font-weight: defines.typo(fontWeight, normal); }
-.grid-filter-value { margin-top: defines.spacePx(xxs); }
+.grid-filter-popover { position: absolute; z-index: 55; top: calc(100% + 2px); left: 0; width: 240px; padding: vt.spacePx(small); background: vt.color(offWhite); box-shadow: vt.layout(boxShadow, anchored); white-space: normal; font-weight: vt.typo(fontWeight, normal); }
+.grid-filter-value { margin-top: vt.spacePx(xs); }
 .grid-custom-filter > * { width: 100%; min-width: 0; }
-.grid-filter-actions { display: flex; justify-content: flex-end; gap: defines.spacePx(xxs); margin-top: defines.spacePx(xs); }
-.grid td { padding: defines.spacePx(xxxs) defines.spacePx(xs); height: #{$control + 4}px; border-bottom: 1px solid defines.color(lightGray); vertical-align: middle; }
-.grid tbody tr:hover td { background: defines.layout(controls, color, dark, backgroundFocus); }
+.grid-filter-actions { display: flex; justify-content: flex-end; gap: vt.spacePx(xs); margin-top: vt.spacePx(small); }
+.grid td { padding: vt.spacePx(xxs) vt.spacePx(small); height: #{$control + 4}px; border-bottom: 1px solid vt.color(lightGray); vertical-align: middle; }
+.grid tbody tr:hover td { background: vt.colorA(structureSilver, 0.08); }
 .grid td.num, .grid th.num { text-align: right; }
-.grid .state td { text-align: center; color: defines.typo(color, dark, weak); padding: defines.spacePx(small) defines.spacePx(xxs); }
-.pager { display: flex; align-items: center; gap: defines.spacePx(small); background: defines.color(offWhite); padding: defines.spacePx(xxs) defines.spacePx(small); border-top: 1px solid defines.color(lightGray); color: defines.typo(color, dark, weak); font-size: defines.typo(fontSize, xs); flex-wrap: wrap;
-  .right { margin-left: auto; display: flex; align-items: center; gap: defines.spacePx(xs); }
-  select { height: 24px; border: 0; border-bottom: defines.layout(components, dividerBorderDark); background: transparent; padding: 0 defines.spacePx(xxxs); }
-  button { border: 0; color: defines.typo(color, dark, normal); font-weight: defines.typo(fontWeight, semibold); text-transform: uppercase; font-size: defines.typo(fontSize, xs);
-    &:disabled { color: defines.typo(color, dark, extraWeak); cursor: default; }
+.grid .state td { text-align: center; color: vt.typo(color, dark, weak); padding: vt.spacePx(normal) vt.spacePx(xs); }
+.pager { display: flex; align-items: center; gap: vt.spacePx(normal); background: vt.color(offWhite); padding: vt.spacePx(xs) vt.spacePx(normal); border-top: 1px solid vt.color(lightGray); color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); flex-wrap: wrap;
+  .right { margin-left: auto; display: flex; align-items: center; gap: vt.spacePx(small); }
+  select { height: 24px; border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; background: transparent; padding: 0 vt.spacePx(xxs); }
+  button { border: 0; color: vt.typo(color, dark, normal); font-weight: vt.typo(fontWeight, semibold); text-transform: uppercase; font-size: vt.typo(fontSize, xs);
+    &:disabled { color: vt.typo(color, dark, extraWeak); cursor: default; }
   }
 }
 
 // ---------- status markers (indicators/statusMarker colours: calmingGreen OK, attentionHigh warning, signalError error) ----------
-.badge { display: inline-flex; align-items: center; gap: defines.spacePx(xxxs); padding: 0 defines.spacePx(xxs); font-size: defines.typo(fontSize, xs); font-weight: defines.typo(fontWeight, semibold); line-height: 1.8; white-space: nowrap; color: defines.typo(color, dark, normal); background: defines.color(paleGray);
-  &::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: defines.color(gray); flex: none; }
-  &.good { background: defines.colorA(calmingGreen, 0.16); &::before { background: defines.color(calmingGreen); } }
-  &.warn { background: defines.colorA(attentionHigh, 0.16); &::before { background: defines.color(attentionHigh); } }
-  &.bad { background: defines.colorA(signalError, 0.1); color: defines.color(signalError); &::before { background: defines.color(signalError); } }
-  &.info { background: defines.colorA(attention, 0.14); &::before { background: defines.color(attention); } }
-  &.neutral { color: defines.typo(color, dark, weak); }
+.badge { display: inline-flex; align-items: center; gap: vt.spacePx(xxs); padding: 0 vt.spacePx(xs); font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); line-height: 1.8; white-space: nowrap; color: vt.typo(color, dark, normal); background: vt.color(paleGray);
+  &::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: vt.color(gray); flex: none; }
+  &.good { background: vt.colorA(calmingGreen, 0.16); &::before { background: vt.color(calmingGreen); } }
+  &.warn { background: vt.colorA(attentionHigh, 0.16); &::before { background: vt.color(attentionHigh); } }
+  &.bad { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); &::before { background: vt.color(signalError); } }
+  &.info { background: vt.colorA(attention, 0.14); &::before { background: vt.color(attention); } }
+  &.neutral { color: vt.typo(color, dark, weak); }
   &.marked::before { display: none; }
   .badge-marker { display: inline-flex; line-height: 0; > span { display: inline-flex; } }
 }
 .vt-spinner { display: inline-flex; line-height: 0; }
-.chip { display: inline-block; padding: 0 defines.spacePx(xxs); background: defines.color(lightGray); font-size: defines.typo(fontSize, xs); white-space: nowrap; color: defines.typo(color, dark, normal); }
-.state-msg { display: flex; gap: defines.spacePx(xxs); align-items: flex-start; padding: defines.spacePx(xs); font-size: defines.typo(fontSize, small); background: defines.color(paleGray); color: defines.typo(color, dark, weak);
-  &.restricted { background: defines.colorA(attentionHigh, 0.16); color: defines.typo(color, dark, normal); }
-  &.error { background: defines.colorA(signalError, 0.1); color: defines.color(signalError); }
+.chip { display: inline-block; padding: 0 vt.spacePx(xs); background: vt.color(lightGray); font-size: vt.typo(fontSize, xs); white-space: nowrap; color: vt.typo(color, dark, normal); }
+.state-msg { display: flex; gap: vt.spacePx(xs); align-items: flex-start; padding: vt.spacePx(small); font-size: vt.typo(fontSize, small); background: vt.color(paleGray); color: vt.typo(color, dark, weak);
+  &.restricted { background: vt.colorA(attentionHigh, 0.16); color: vt.typo(color, dark, normal); }
+  &.error { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); }
 }
-.notice { padding: defines.spacePx(xxs) defines.spacePx(xs); background: defines.colorA(attention, 0.12); border-left: 4px solid defines.color(attention); font-size: defines.typo(fontSize, small); margin-bottom: defines.spacePx(xs);
-  &.warn { background: defines.colorA(attentionHigh, 0.14); border-left-color: defines.color(attentionHigh); }
-  &.bad { background: defines.colorA(signalError, 0.08); border-left-color: defines.color(signalError); color: defines.color(signalError); }
+.notice { padding: vt.spacePx(xs) vt.spacePx(small); background: vt.colorA(attention, 0.12); border-left: 4px solid vt.color(attention); font-size: vt.typo(fontSize, small); margin-bottom: vt.spacePx(small);
+  &.warn { background: vt.colorA(attentionHigh, 0.14); border-left-color: vt.color(attentionHigh); }
+  &.bad { background: vt.colorA(signalError, 0.08); border-left-color: vt.color(signalError); color: vt.color(signalError); }
 }
 
 // ---------- value fields / tiles (indicators/valueField: title label + large value) ----------
-.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: defines.spacePx(xxs); }
-.tile { background: defines.color(offWhite); padding: defines.spacePx(xs); display: flex; flex-direction: column; gap: defines.spacePx(xxxs); color: defines.typo(color, dark, normal); box-shadow: defines.layout(boxShadow, level1);
-  &:hover { background: defines.color(paleGray); text-decoration: none; }
-  .v { font-size: defines.typo(fontSize, xl); font-weight: defines.typo(fontWeight, normal); line-height: defines.typo(lineHeight, small); font-variant-numeric: tabular-nums; }
-  .l { @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
-  .d { @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); font-size: defines.typo(fontSize, xs); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: vt.spacePx(xs); }
+.tile { background: vt.color(offWhite); padding: vt.spacePx(small); display: flex; flex-direction: column; gap: vt.spacePx(xxs); color: vt.typo(color, dark, normal); box-shadow: vt.layout(controls, surface, contact, dark);
+  &:hover { background: vt.color(paleGray); text-decoration: none; }
+  .v { font-size: vt.typo(fontSize, xl); font-weight: vt.typo(fontWeight, normal); line-height: vt.typo(lineHeight, small); font-variant-numeric: tabular-nums; }
+  .l { @include vt.typoSet(label, $disabled: false); }
+  .d { @include vt.typoSet(hint, $disabled: false); font-size: vt.typo(fontSize, xs); }
 }
 
 // ---------- tabular (layouts/tabular, LINE style: label column, value column, divider lines) ----------
-.dl { display: grid; grid-template-columns: minmax(160px, max-content) 1fr; font-size: defines.typo(fontSize, small);
-  dt, dd { padding: defines.spacePx(xxs) 0; border-bottom: 1px solid defines.color(lightGray); }
-  dt { @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); padding-right: defines.spacePx(small); }
+.dl { display: grid; grid-template-columns: minmax(160px, max-content) 1fr; font-size: vt.typo(fontSize, small);
+  dt, dd { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color(lightGray); }
+  dt { @include vt.typoSet(label, $disabled: false); padding-right: vt.spacePx(normal); }
   dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 }
-.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: defines.spacePx(small); }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: vt.spacePx(normal); }
 
 // ---------- tab bar (controls/tabBar: title items, marker line under the selected tab) ----------
-.tabs { display: flex; gap: 0; border-bottom: defines.layout(components, dividerBorderDark); margin-bottom: defines.spacePx(xs); flex-wrap: wrap;
-  button { border: 0; padding: defines.spacePx(xxs) defines.spacePx(small); font-size: defines.typo(fontSize, small); font-weight: defines.typo(fontWeight, semibold); color: defines.typo(color, dark, weak); border-bottom: 4px solid transparent; margin-bottom: -1px;
-    &:hover { color: defines.typo(color, dark, normal); }
-    &[aria-selected="true"] { color: defines.typo(color, dark, normal); border-bottom-color: defines.color(primary); }
+.tabs { display: flex; gap: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; margin-bottom: vt.spacePx(small); flex-wrap: wrap;
+  button { border: 0; padding: vt.spacePx(xs) vt.spacePx(normal); font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, weak); border-bottom: 4px solid transparent; margin-bottom: -1px;
+    &:hover { color: vt.typo(color, dark, normal); }
+    &[aria-selected="true"] { color: vt.typo(color, dark, normal); border-bottom-color: vt.color(primary); }
   }
 }
 .timeline { list-style: none; margin: 0; padding: 0;
-  li { padding: defines.spacePx(xxs) 0; border-bottom: 1px solid defines.color(lightGray); font-size: defines.typo(fontSize, small); }
-  .when { color: defines.typo(color, dark, weak); font-size: defines.typo(fontSize, xs); }
+  li { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color(lightGray); font-size: vt.typo(fontSize, small); }
+  .when { color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); }
 }
 .tree { list-style: none; margin: 0; padding: 0;
-  li { padding: defines.spacePx(xxxs) 0; }
-  ul { list-style: none; margin: 0 0 0 defines.spacePx(small); padding: 0 0 0 defines.spacePx(xs); border-left: 1px solid defines.layout(sidebars, borderColor); }
+  li { padding: vt.spacePx(xxs) 0; }
+  ul { list-style: none; margin: 0 0 0 vt.spacePx(normal); padding: 0 0 0 vt.spacePx(small); border-left: 1px solid vt.layout(dividerColor, soft); }
 }
 // toolbar (layouts/toolbar) for filter rows above tables
-.toolbar { display: flex; gap: defines.spacePx(xs); flex-wrap: wrap; align-items: flex-end; margin-bottom: defines.spacePx(xs);
+.toolbar { display: flex; gap: vt.spacePx(small); flex-wrap: wrap; align-items: flex-end; margin-bottom: vt.spacePx(small);
   .field { width: 200px; }
 }
 // spinner (helpers/spinner, circle)
-.spin { width: 16px; height: 16px; border: 2px solid defines.color(lightGray); border-top-color: defines.color(attention); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
+.spin { width: 16px; height: 16px; border: 2px solid vt.color(lightGray); border-top-color: vt.color(attention); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 // ---------- dialogs (popups/dialog + card: dimmed background, level-3 shadow, toolbar header), notifications, search ----------
-.scrim { position: fixed; inset: 0; background: defines.layout(dimmedBackground); z-index: 80; display: flex; align-items: flex-start; justify-content: center; padding: 6vh defines.spacePx(small); overflow-y: auto; }
-.dialog { background: defines.color(offWhite); width: min(680px, 100%); box-shadow: defines.layout(boxShadow, level3);
+.scrim { position: fixed; inset: 0; background: vt.layout(dimmedBackground); z-index: 80; display: flex; align-items: flex-start; justify-content: center; padding: 6vh vt.spacePx(normal); overflow-y: auto; }
+.dialog { background: vt.color(offWhite); width: min(680px, 100%); box-shadow: vt.layout(boxShadow, floating);
   &.wide { width: min(960px, 100%); }
-  header { display: flex; align-items: center; min-height: defines.spacePx(large); padding: defines.spacePx(xxs) defines.spacePx(small); border-bottom: defines.layout(components, dividerBorderDark);
-    h2 { @include defines.typoSet(title, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false); }
+  header { display: flex; align-items: center; min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(normal); border-bottom: 1px solid #{vt.layout(dividerColor, dark)};
+    h2 { @include vt.typoSet(title, $disabled: false); }
     button { margin-left: auto; }
   }
-  .body { padding: defines.spacePx(small); }
+  .body { padding: vt.spacePx(normal); }
 }
 // frame/notifications: dark notification cards bottom right
-.toasts { position: fixed; right: defines.spacePx(xs); bottom: calc(#{defines.spacePx(medium)} + #{defines.spacePx(xs)}); display: flex; flex-direction: column; gap: defines.spacePx(xxs); z-index: 90; }
-.toast { background: defines.color(primary); color: defines.typo(color, light, normal); padding: defines.spacePx(xs) defines.spacePx(small); font-size: defines.typo(fontSize, small); box-shadow: defines.layout(boxShadow, level2); max-width: 400px;
-  &.bad { background: defines.color(signalError); }
+.toasts { position: fixed; right: vt.spacePx(small); bottom: calc(#{vt.spacePx(large)} + #{vt.spacePx(small)}); display: flex; flex-direction: column; gap: vt.spacePx(xs); z-index: 90; }
+.toast { background: vt.color(primary); color: vt.typo(color, light, normal); padding: vt.spacePx(small) vt.spacePx(normal); font-size: vt.typo(fontSize, small); box-shadow: vt.layout(boxShadow, anchored); max-width: 400px;
+  &.bad { background: vt.color(signalError); }
 }
 .palette { width: min(660px, 100%);
-  input { border: 0; border-bottom: defines.layout(components, dividerBorderDark); width: 100%; padding: defines.spacePx(xs) defines.spacePx(small); font-size: defines.typo(fontSize, normal); background: transparent; &:focus { outline: none; border-bottom-color: defines.color(impulseGreen); } }
-  ul { list-style: none; margin: 0; padding: defines.spacePx(xxxs) 0; max-height: 55vh; overflow: auto; }
-  li a { display: block; padding: defines.spacePx(xxs) defines.spacePx(small); color: defines.typo(color, dark, normal);
-    &[aria-selected="true"], &:hover { background: defines.layout(controls, color, dark, backgroundFocus); text-decoration: none; }
+  input { border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; width: 100%; padding: vt.spacePx(small) vt.spacePx(normal); font-size: vt.typo(fontSize, normal); background: transparent; &:focus { outline: none; border-bottom-color: vt.color(impulseGreen); } }
+  ul { list-style: none; margin: 0; padding: vt.spacePx(xxs) 0; max-height: 55vh; overflow: auto; }
+  li a { display: block; padding: vt.spacePx(xs) vt.spacePx(normal); color: vt.typo(color, dark, normal);
+    &[aria-selected="true"], &:hover { background: vt.colorA(structureSilver, 0.08); text-decoration: none; }
   }
-  .g { padding: defines.spacePx(xxs) defines.spacePx(small) defines.spacePx(xxxs); font-size: defines.typo(fontSize, xs); color: defines.typo(color, dark, weak); font-weight: defines.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
+  .g { padding: vt.spacePx(xs) vt.spacePx(normal) vt.spacePx(xxs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: vt.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
 }

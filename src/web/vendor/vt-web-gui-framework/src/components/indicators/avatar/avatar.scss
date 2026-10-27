@@ -1,4 +1,5 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 @keyframes animActive {
   0% { transform: rotate(0deg); }
@@ -13,6 +14,7 @@
   75% { transform: rotate(20deg); }
   100% {transform: rotate(0deg); }
 }
+
 
 .avatar {
   display: flex;
@@ -29,14 +31,12 @@
   }
 
   &.placeholder {
-    &:not(.darkTheme) {
-      border: 2px solid defines.color(darkGray);
-      fill: defines.color(darkGray);
-    }
+    border: 2px solid styles.color("darkGray");
+    fill: styles.color("darkGray");
 
-    &.darkTheme {
-      border: 2px solid defines.color(offWhite);
-      fill: defines.color(offWhite);
+    @include styles.onDarkGround {
+      border: 2px solid styles.color(offWhite);
+      fill: styles.color(offWhite);
     }
   }
 
@@ -44,6 +44,7 @@
     animation: animActive 0.4s ease-in-out;
   }
 }
+
 
 body[dir="rtl"] {
   .avatar {

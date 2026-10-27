@@ -1,0 +1,22 @@
+@use "assets/styles";
+
+
+.app {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  background: styles.color(offWhite);
+  transition: grid-template-columns styles.layoutMs(animationTime, slowMs);
+
+  // The middle row keeps the height that header and footer leave. "1fr" alone takes its content as
+  // the minimum, so a tall stack of notifications would grow the row past the bottom edge and push
+  // the footer out of the viewport.
+  &:not(.withFooter) {
+    grid-template-rows: styles.layoutPx(header, height) minmax(0, 1fr);
+  }
+
+  &.withFooter {
+    grid-template-rows: styles.layoutPx(header, height) minmax(0, 1fr) auto;
+  }
+}

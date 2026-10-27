@@ -1,4 +1,5 @@
-import { Enumify } from 'enumify'; // eslint-disable-line max-classes-per-file
+// eslint-disable-next-line max-classes-per-file
+import { Enumify } from 'utils/enumify';
 
 
 /**
@@ -23,9 +24,9 @@ export class StepperOrientation extends Enumify {
  * @property {object} DONE - The step is currently being or has already been processed.
  * @property {object} VERIFIED - The step has been processed and checked.
  */
-export class StepperState extends Enumify {
-  static OPEN = new StepperState();
-  static DONE = new StepperState();
-  static VERIFIED = new StepperState();
+export class SidebarStatus extends Enumify {
+  static OPEN = new SidebarStatus();
+  static DONE = new SidebarStatus();
+  static VERIFIED = new SidebarStatus();
   static _ = this.closeEnum();
 }

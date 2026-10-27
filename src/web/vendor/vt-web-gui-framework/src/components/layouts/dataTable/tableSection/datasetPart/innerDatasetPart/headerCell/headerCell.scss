@@ -1,8 +1,9 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .headerCell {
   display: flex;
-  column-gap: defines.spacePx(xxxs); // ToDo: erst ab Chrome 84 und Edge 84 verfügbar!
+  column-gap: styles.spacePx(xxs); // ToDo: erst ab Chrome 84 und Edge 84 verfügbar!
   align-items: center;
 
   &.reverse {
@@ -14,6 +15,7 @@
   }
 }
 
+
 .label {
-  @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+  @include styles.typoSet(label, $disabled: false);
 }

@@ -1,0 +1,19 @@
+@use "assets/styles";
+
+
+@keyframes rotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+
+.circle {
+  border-style: solid;
+  border-color: styles.typo(color, dark, weak) styles.typo(color, dark, weak) transparent transparent;
+  border-radius: 50%;
+  animation: rotate 1s infinite linear;
+
+  @include styles.onDarkGround {
+    border-color: styles.typo(color, light, normal) styles.typo(color, light, normal) transparent transparent;
+  }
+}

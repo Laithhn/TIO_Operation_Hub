@@ -1,4 +1,5 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .innerDatasetPart {
   display: grid;
@@ -6,14 +7,15 @@
   justify-items: start; // do not stretch by default because of staying able to measure the cells
 
   &.endLine {
-    border-right: 1px solid defines.layout(sidebars, borderColor);
+    border-right: 1px solid styles.layout(dividerColor, soft);
   }
 }
+
 
 body[dir='rtl'] {
   .innerDatasetPart {
     &.endLine {
-      border-left: 1px solid defines.layout(sidebars, borderColor);
+      border-left: 1px solid styles.layout(dividerColor, soft);
       border-right: 0 none;
     }
   }

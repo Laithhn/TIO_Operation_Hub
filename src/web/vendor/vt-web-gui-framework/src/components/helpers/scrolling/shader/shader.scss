@@ -1,5 +1,12 @@
-@use "sass:map";
-@use "../defines.js" as localDefines;
+@use "assets/styles";
+
+
+$shaderDim: styles.space(xl);
+
+:export {
+  shaderDim: $shaderDim,
+}
+
 
 .shader {
   position: absolute;
@@ -8,26 +15,26 @@
     left: 0;
     width: 100%;
     top: 0;
-    height: #{map.get(localDefines.$shader, dimTop)}px;
+    height: #{$shaderDim}px;
   }
 
   &.bottom {
     left: 0;
     width: 100%;
     bottom: 0;
-    height: #{map.get(localDefines.$shader, dimBottom)}px;
+    height: #{$shaderDim}px;
   }
 
   &.left {
     left: 0;
-    width: #{map.get(localDefines.$shader, dimLeft)}px;
+    width: #{$shaderDim}px;
     top: 0;
     height: 100%;
   }
 
   &.right {
     right: 0;
-    width: #{map.get(localDefines.$shader, dimRight)}px;
+    width: #{$shaderDim}px;
     top: 0;
     height: 100%;
   }

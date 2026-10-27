@@ -1,0 +1,42 @@
+@use "sass:map";
+
+
+// Global definitions of the spaces in pixels.
+// To be able to export this map into TypeScript by NodeJS script scssToTypeScript.js, it must have
+// prefix "/* export */" and all values inside the map have to be valid CSS (no SCSS). The map can
+// contain further nested maps.
+
+/* export */ $space: (
+  xxs:      5, // changed at VtWebGuiFramework 4 from "xxxs"
+  xs:       7, // changed at VtWebGuiFramework 4 from "xxs"
+  small:   12, // changed at VtWebGuiFramework 4 from "xs"
+  normal:  20, // changed at VtWebGuiFramework 4 from "small"
+  large:   32, // changed at VtWebGuiFramework 4 from "medium"
+  xl:      50, // changed at VtWebGuiFramework 4 from "large"
+  xxl:     80, // changed at VtWebGuiFramework 4 from "xl"
+  xxxl:   120, // changed at VtWebGuiFramework 4 from "xxl"
+);
+
+
+/* export */ $spacePx: (
+  xxs:      5px,
+  xs:       7px,
+  small:   12px,
+  normal:  20px,
+  large:   32px,
+  xl:      50px,
+  xxl:     80px,
+  xxxl:   120px,
+);
+
+
+// Function to get a numeric space value from map "$space". For example: space(small).
+@function space ($keys...) {
+  @return map.get($space, $keys...);
+}
+
+
+// Function to get a value from map "$spacePx" with string "px" behind the numerical value.
+@function spacePx($keys...) {
+  @return map.get($spacePx, $keys...);
+}

@@ -1,28 +1,27 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .tabular {
   display: flex;
   flex-direction: column;
 
-  &.tabularStyleIsLine {
-    &.noLastLine > :last-child {
-      border-bottom: 0 none;
-    }
+  // Each entry draws its own divider line (see the item stylesheets), and the last one never keeps
+  // it: below it there is nothing left to separate, and its line would read as the edge of a table
+  // that continues somewhere. The rule sits here rather than at the items, an item not knowing
+  // whether it is the last.
+  &.tabularStyleIsLine > :last-child {
+    border-bottom: 0 none;
   }
 
-  &.tabularStyleIsBackground {
-    & > :not(:last-child) {
-      margin-bottom: defines.spacePx(xxs);
-    }
+  // The style "background" needs no rule of its own here: its entries are surfaces themselves and
+  // carry their own colour and radius (the props "itemBackgroundColor" and "itemBorderRadius"), and
+  // the seam between them is the styling prop "rowGap", which the component applies at that style
+  // only, defaulting to "xs". So the tabular has no class for that style either - one without a rule
+  // would not be exported by the css-loader at all.
+}
 
-    & > :first-child {
-      border-top-left-radius: defines.layoutPx(components, borderRadius);
-      border-top-right-radius: defines.layoutPx(components, borderRadius);
-    }
 
-    & > :last-child {
-      border-bottom-right-radius: defines.layoutPx(components, borderRadius);
-      border-bottom-left-radius: defines.layoutPx(components, borderRadius);
-    }
-  }
+// The pane of the styling prop boxShadow="contact", drawn for the ground the tabular sits on.
+.contactPane {
+  @include styles.contactPane;
 }

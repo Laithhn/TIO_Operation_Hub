@@ -1,9 +1,0 @@
-@use "assets/styles/defines";
-@use "../defines.js" as localDefines;
-
-.divider {
-  width: 100%;
-  height:  #{localDefines.$dividerSpace + 1}px;
-  border-bottom: defines.layout(components, dividerBorderDark);
-  margin-bottom: #{localDefines.$dividerSpace}px;
-}

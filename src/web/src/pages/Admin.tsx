@@ -1,7 +1,7 @@
 import { hasPermission, resourceForRecord } from '../permissions';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
 import { useForm, useMe, useRefresh, useUrlState } from '../hooks';

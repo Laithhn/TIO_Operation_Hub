@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { get, qs, type Paged } from '../api';
 import { fmtDateTime } from '../format';
 import { useMe, useReference } from '../hooks';

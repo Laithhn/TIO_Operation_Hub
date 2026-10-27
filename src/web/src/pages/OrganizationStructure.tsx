@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ApiError, del, get, post, put, qs, type Paged } from '../api';
 import { useDebounced, useForm, useLookup, useMe, useRefresh } from '../hooks';
 import { Checkbox, DataTable, Dialog, FormError, Panel, QueryState, SelectInput, TextInput, useToast } from '../ui/kit';

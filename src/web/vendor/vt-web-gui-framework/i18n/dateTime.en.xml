@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Language id="en" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../src/languageFile.xsd">
+<Language id="en" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../templates/languageFile.xsd">
   <!-- weekdays -->
   <Entry id="VIWGF_MONDAY_L">Monday</Entry>
   <Entry id="VIWGF_MONDAY_S">Mon</Entry>
@@ -47,4 +47,9 @@
   <Entry id="VIWGF_DATETIME_PLACEHOLDER_CHAR_DAY">d</Entry>
   <Entry id="VIWGF_DATETIME_PLACEHOLDER_CHAR_MONTH">m</Entry>
   <Entry id="VIWGF_DATETIME_PLACEHOLDER_CHAR_YEAR">y</Entry>
+  <!-- common -->
+  <Entry id="VIWGF_AM">AM</Entry>
+  <Entry id="VIWGF_NOW">Now</Entry>
+  <Entry id="VIWGF_PM">PM</Entry>
+  <Entry id="VIWGF_TODAY">Today</Entry>
 </Language>

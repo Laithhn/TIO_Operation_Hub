@@ -1,0 +1,13 @@
+@use "assets/styles";
+
+
+.marker {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: styles.layoutPx(controlMenus, optionHeight);
+  background: styles.colorA(structureSilver, 0.18);
+  transition: transform styles.layoutMs(animationTime, mediumMs) ease;
+  pointer-events: none;
+}

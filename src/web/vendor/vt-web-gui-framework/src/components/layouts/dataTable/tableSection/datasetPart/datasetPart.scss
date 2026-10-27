@@ -1,6 +1,5 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "../../defines.js" as localDefines;
+@use "assets/styles";
+
 
 .datasetPart {
   position: absolute;
@@ -10,26 +9,25 @@
   display: flex;
   justify-content: start;
   align-items: start;
-  padding-right: #{map.get(localDefines.$datasetPart, paddingRight)}px;
-  padding-left: #{map.get(localDefines.$datasetPart, paddingLeft)}px;
-  background: map.get(localDefines.$datasetPart, backgroundColor);
+  background: styles.color(offWhite);
 
   &.topLine {
-    border-top: defines.layout(components, dividerBorderDark);
+    border-top: 1px solid styles.layout(dividerColor, dark);
   }
 
   &.bottomLine {
-    border-bottom: defines.layout(components, dividerBorderDark);
+    border-bottom: 1px solid styles.layout(dividerColor, dark);
   }
 
   &.hasFocus {
-    background: map.get(localDefines.$datasetPart, backgroundColorFocus) !important;
+    background:  #d7dadd !important; // color structureSilver at .18 on top of color offWhite
   }
 
   &.clickable {
     cursor: pointer;
   }
 }
+
 
 body[dir="rtl"] {
   .datasetPart {

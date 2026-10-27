@@ -1,16 +1,22 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "../defines.js" as localDefines;
+@use "assets/styles";
 
-$innerHeight: map.get(localDefines.$selectBox, innerHeight);
+
+$height: styles.layout(controls, heightDefault);
+
 
 .text {
-  align-self: baseline;
   text-align: start;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 
+  // The line box takes the height of the pane, as every line of lettering inside it does - that is
+  // what holds the option in the middle of the pane whatever lettering set it is written in, and
+  // what carries the control's baseline out to the label the layout sets beside it: a grid
+  // container takes its baseline from its first item in document order, and the option is that
+  // item.
   &:not(.noOption) {
-    @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
-    line-height: #{$innerHeight + 1}px; // reset line-height of the type set, plus one pixel as sleazy factor
+    @include styles.typoSet(valueSmall, $lineHeight: #{$height}px);
 
     &.italic {
       font-style: italic;
@@ -18,8 +24,7 @@ $innerHeight: map.get(localDefines.$selectBox, innerHeight);
   }
 
   &.noOption {
-    @include defines.typoSet(hint, $noWrap: true, $noOverflow: true);
-    line-height: #{$innerHeight + 1}px; //reset line-height of the type set,  plus one pixel as sleazy factor
     font-style: italic;
+    @include styles.typoSet(hint, $lineHeight: #{$height}px);
   }
 }

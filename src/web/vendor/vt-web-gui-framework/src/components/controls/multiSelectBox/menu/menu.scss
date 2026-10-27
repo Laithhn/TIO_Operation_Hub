@@ -1,35 +1,40 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "../defines.js" as localDefines;
+@use "assets/styles";
+
+
+$gapBetweenHeaderAndOptions: styles.space(normal);
+
+:export {
+  gapBetweenHeaderAndOptions: $gapBetweenHeaderAndOptions;
+}
+
 
 .menu {
   position: absolute;
   display: grid;
-  grid-template-rows: #{map.get(localDefines.$multiSelectBox, innerHeight)}px 1fr;
-  row-gap: #{map.get(localDefines.$multiSelectBoxMenu, gapBetweenHeaderAndOptions)}px;
-  padding: #{map.get(localDefines.$multiSelectBoxMenu, paddingTop)}px 0 #{map.get(localDefines.$multiSelectBoxMenu, paddingBottom)}px 0;
-  margin: 0 -#{map.get(localDefines.$multiSelectBoxOption, paddingRight)}px 0 0;
-  background: defines.color(offWhite);
-  box-shadow: defines.layout(boxShadow, level2);
+  row-gap: #{$gapBetweenHeaderAndOptions}px;
+  padding: styles.layoutPx(controlMenus, paddingTop) 0 styles.layoutPx(controlMenus, paddingBottom) 0;
+  border-radius: styles.layoutPx(controlMenus, borderRadius);
+  // the height of something sitting on its trigger - see the select box's menu
+  --glassShadow: #{styles.layout(boxShadow, anchored)};
+
   opacity: 0;
+  // what keeps the options from running over the rounded corners
   overflow: hidden;
-  transition: opacity defines.layoutMs(fadeInOutTimeMs) ease;
+  transition: opacity styles.layoutMs(animationTime, mediumMs) ease;
+
+  @include styles.glassmorphism($strength: opaque);
+  // what floats over the page is light, whatever it covers
+  @include styles.ground(light);
 
   &.show {
     opacity: 1;
   }
 
-  &:not(.showAllOrNoneCheckbox) {
+  &:not(.showHeader) {
     grid-template-rows: 1fr;
   }
 
-  &.showAllOrNoneCheckbox {
-    grid-template-rows: #{map.get(localDefines.$multiSelectBox, innerHeight)}px 1fr;
-  }
-}
-
-body[dir="rtl"] {
-  .menu {
-    margin: 0 0 0 -#{map.get(localDefines.$multiSelectBoxOption, paddingLeft)}px;
+  &.showHeader {
+    grid-template-rows: auto 1fr;
   }
 }

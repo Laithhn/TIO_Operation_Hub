@@ -1,35 +1,66 @@
-@use "sass:map";
-@use "sass:math";
-@use "assets/styles/defines";
-@use "components/helpers/noticeForControls/controlLineAndNotice";
-@use "./defines.js" as localDefines;
+@use "assets/styles";
 
-$innerHeight: map.get(localDefines.$input, innerHeight);
-$borderHeight: 1;
-$errorBorderHeight: 2;
-$marginTop: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
-$marginBottom: math.div((defines.layout(controls, heightDefault) - $innerHeight), 2);
 
-.input {
-  position: relative;
-  display: inline-grid;
-  grid-template-columns: 1fr;
-  grid-auto-flow: column;
-  grid-auto-columns: auto;
-  column-gap: #{map.get(localDefines.$input, gapBetweenTextAndIcon)}px;
-  margin-top: #{$marginTop}px;
+$height: styles.layout(controls, heightDefault);
 
-  @include controlLineAndNotice.controlLineAndNotice($innerHeight, $marginBottom);
+
+.inputContr {
+  @include styles.inputControlContainer();
 }
 
-.inputElem {
-  background: none;
-  @include defines.typoSet(valueSmall, $noWrap: true, $noOverflow: true);
-  line-height: #{$innerHeight + 1}px; // plus one as sleazy factor
-  outline: none;
 
+// The pane the field rests on, holding the field, its icons and its inc/dec controls - the field's
+// whole face, which is what the interaction veil covers and what states the status.
+.input {
+  @include styles.inputControlPane();
+
+  // The field takes whatever is left beside the icons, which is what makes a field wider than its
+  // content stay one field rather than a text with space behind it.
+  grid-template-columns: 1fr;
+}
+
+
+.inputElem {
+  // Safari on iOS draws a text field of its own, with an inner shadow and rounded corners, unless
+  // the native appearance is reset.
+  appearance: none;
+  background: none;
+  outline: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  // The floor of the container and the pane a third time, on the value itself - and the hidden
+  // overflow above does not stand in for it. To Firefox an <input> is a replaced element, so its
+  // overflow makes it no scroll container and leaves its automatic minimum size at its intrinsic
+  // width, the HTML default of 20 characters. In a pane narrower than that the value's track then
+  // refuses to shrink and pushes the trailing icon out of the pane: the search box of the multi
+  // select box's menu stood like that until 2026-09-03, its pane the first one narrow enough to
+  // show it.
+  min-width: 0;
+
+  // The line box takes the height of the pane, which centres the value and keeps the caret where
+  // the field's own edge leads the eye. It is also what carries the control's baseline out to the
+  // label the layout sets beside it: a grid container takes its baseline from its first item in
+  // document order, the value is that item, and a line box of the pane's height puts the baseline
+  // in the middle of the pane. No "align-self: baseline" is needed for it - that is a flexbox rule,
+  // and it is why the button's label does need one: an icon stands before it.
+  @include styles.typoSet(valueSmall, $lineHeight: #{$height}px);
+
+  // The characters the user has selected take the neutral highlight of the controls map: the
+  // selection belongs to the value rather than to an interaction with the field, see the map.
   &::selection {
-    background-color: defines.layout(controls, color, dark, backgroundClick);
+    background-color: styles.layout(controls, color, dark, textSelection);
+  }
+
+  @include styles.onDarkGround {
+    &::selection {
+      background-color: styles.layout(controls, color, light, textSelection);
+    }
+  }
+
+  &::placeholder {
+    font-style: italic;
+    @include styles.typoSet(hint, $lineHeight: #{$height}px);
   }
 
   &.typoDisabled {

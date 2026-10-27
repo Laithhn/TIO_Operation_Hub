@@ -1,0 +1,30 @@
+@use "assets/styles";
+
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  @include styles.background(structureSilver);
+  touch-action: none;
+}
+
+
+.title {
+  padding: 0 styles.layoutPx(mostLeftRightPadding);
+  align-self: center;
+  font-size: styles.typo(fontSize, normal);
+  font-weight: styles.typo(fontWeight, normal);
+  color: styles.typo(color, light, normal);
+  fill: styles.typo(color, light, normal);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  @include styles.noTextSelection;
+  overflow: hidden;
+}
+
+
+.buttons {
+  display: flex;
+}

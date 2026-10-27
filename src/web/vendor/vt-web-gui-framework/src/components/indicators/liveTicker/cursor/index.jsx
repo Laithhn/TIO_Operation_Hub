@@ -1,16 +1,19 @@
-import PropTypes from 'prop-types';
 import { memo } from 'react';
 
-import Enums from 'assets/enums';
-import classNames from 'utils/classNames';
+import { classNames } from 'utils/classNames';
 
-import css from './cursor.scss';
+import * as css from './cursor.scss';
 
+
+//Cursor.propTypes = {
+//  size: PropTypes.string,
+//  darkTheme: PropTypes.bool,
+//};
 
 /**
  *
  */
-const Cursor = memo(({ size, darkTheme }) => {
+const Cursor = memo(({ size = 'small', darkTheme = false }) => {
   // --------------------------------------------------------------------<editor-fold desc="States">
   // States
   // -----------------------------------------------------------------------------------------------
@@ -46,10 +49,10 @@ const Cursor = memo(({ size, darkTheme }) => {
   // -----------------------------------------------------------------------------------------------
 
   const cursorClasses = classNames(css.cursor, {
-    [css.typoValueSmall]: ![Enums.ValueSize.NORMAL, Enums.ValueSize.LARGE, Enums.ValueSize.XL, Enums.ValueSize.XXL].includes(size),
-    [css.typoValueLarge]: (size === Enums.ValueSize.LARGE),
-    [css.typoValueXL]: (size === Enums.ValueSize.XL),
-    [css.typoValueXXL]: (size === Enums.ValueSize.XXL),
+    [css.typoValueSmall]: !['normal', 'large', 'xl', 'xxl'].includes(size),
+    [css.typoValueLarge]: (size === 'large'),
+    [css.typoValueXL]: (size === 'xl'),
+    [css.typoValueXXL]: (size === 'xxl'),
     [css.typoDarkTheme]: darkTheme,
   });
 
@@ -60,15 +63,5 @@ const Cursor = memo(({ size, darkTheme }) => {
 });
 
 Cursor.displayName = 'Cursor';
-
-Cursor.propTypes = {
-  size: PropTypes.instanceOf(Enums.ValueSize),
-  darkTheme: PropTypes.bool,
-};
-
-Cursor.defaultProps = {
-  size: Enums.ValueSize.SMALL,
-  darkTheme: false,
-};
 
 export default Cursor;

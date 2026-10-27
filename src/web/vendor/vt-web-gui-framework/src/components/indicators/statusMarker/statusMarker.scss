@@ -1,4 +1,4 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
 .statusMarker {
   display: inline-flex;
@@ -18,46 +18,46 @@
 
   &.ok {
     .background {
-      fill: defines.color(calmingGreen);
+      fill: styles.color(calmingGreen);
     }
     .symbol {
-      fill: defines.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
     }
   }
 
   &.warning {
     .background {
-      fill: defines.color(attentionHigh);
+      fill: styles.color(attentionHigh);
     }
     .symbol {
-      fill: defines.typo(color, dark, normal);
+      fill: styles.typo(color, dark, normal);
     }
   }
 
   &.error {
     .background {
-      fill: defines.color(signalError);
+      fill: styles.color(signalError);
     }
     .symbol {
-      fill: defines.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
     }
   }
 
   &.unknown {
     .background {
-      fill: defines.color(darkGray);
+      fill: styles.color("darkGray");
     }
     .symbol {
-      fill: defines.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
     }
   }
 
   &.inactive {
     .background {
-      fill: defines.color(gray);
+      fill: styles.color("gray");
     }
     .symbol {
-      fill: defines.typo(color, dark, extraWeak);
+      fill: styles.typo(color, dark, extraWeak);
     }
   }
 }

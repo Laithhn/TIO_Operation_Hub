@@ -1,8 +1,21 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
+
+// The form an internal link takes when its target cannot be resolved. It is a span rather than an
+// "a", so it meets none of the native element rules and states its lettering itself.
 .internalLinkError {
   font-style: italic;
-  text-decoration: underline wavy;
-  color: defines.typo(color, dark, signalError);
-  fill: defines.typo(color, dark, signalError);
+  // Longhands, not the shorthand: Safari reads a style value in "text-decoration" only from 26.2
+  // and drops the whole declaration before.
+  text-decoration-line: underline;
+  text-decoration-style: wavy;
+  color: styles.typo(color, dark, signalError);
+  fill: styles.typo(color, dark, signalError);
+
+  // On a dark ground the error set of the typo map, which is the same colour lightened by 22 % so
+  // that it carries against a dark background.
+  @include styles.onDarkGround {
+    color: styles.typo(color, light, signalError);
+    fill: styles.typo(color, light, signalError);
+  }
 }

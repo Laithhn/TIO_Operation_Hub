@@ -1,11 +1,16 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+@use "assets/styles/nativeElements";
+
 
 .card {
   position: absolute;
-  background: defines.color(offWhite);
-  box-shadow: defines.layout(boxShadow, level3);
+  // The card's height as a slot rather than as a property, because two things read it: the rule
+  // below that lowers it onto an anchor, and the glass, which shares the box-shadow property with
+  // its own inner glow (see the mixin).
+  --glassShadow: #{styles.layout(boxShadow, floating)};
+
   opacity: 0;
-  transition: opacity defines.layoutMs(fadeInOutTimeMs) ease;
+  transition: opacity styles.layoutMs(animationTime, mediumMs) ease;
 
   &.clickable {
     cursor: pointer;
@@ -15,13 +20,33 @@
     opacity: 1;
   }
 
-  &.smallShadow {
-    box-shadow: defines.layout(boxShadow, level2);
+  // The floating shadows are a scale of height, not of strength (see the layout map). A card placed
+  // on a reference element belongs to that element and hangs from it, which is "anchored"; a card
+  // that stands on its own keeps the "floating" above.
+  &.anchored {
+    --glassShadow: #{styles.layout(boxShadow, anchored)};
   }
+
+  // The card's ground is always glass, and a glass that carries content is light: what floats over
+  // the page stays light whatever it covers. The opaque strength is what a surface carrying content
+  // needs, the lettering on it having to be readable over whatever the card covers. A different
+  // colour comes from a section placed inside.
+  @include styles.glassmorphism($strength: opaque);
+  @include styles.ground(light);
+
+  @include nativeElements.nativeElements(true);
 }
+
 
 .innerCard {
   width: 100%;
   height: 100%;
   display: grid;
+}
+
+
+body[dir="rtl"] {
+  .card {
+    @include nativeElements.nativeElementsAddForRtl(true);
+  }
 }

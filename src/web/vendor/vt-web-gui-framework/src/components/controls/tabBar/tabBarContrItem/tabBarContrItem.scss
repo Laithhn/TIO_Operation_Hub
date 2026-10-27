@@ -1,8 +1,92 @@
+@use "assets/styles";
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+// The rounding of the marker, which a tab shares: the marker covers its tab exactly, so the veil
+// below has to take the marker's shape to lie on it without an edge of its own showing.
+$borderRadius: styles.layout(controls, borderRadiusDefault);
+
+
 .tabBarContrItem {
-  position: relative; // otherwise the marker will be placed above the item
+  // Above the marker, which lies in the bar positioned absolutely: without a position of its own
+  // the item would lie under it.
+  position: relative;
   display: grid;
+  // The same floor the title tab keeps, so that a bar of container tabs is as high as a bar of
+  // titles and its marker is the same pane (see tabBarTitleItem.scss). What the container puts in
+  // that height, and what it pads it with, is the call site's business.
+  min-height: styles.layoutPx(controls, heightDefault);
+  // The same as at the title tab, and for the same reason: an explicit minimum takes a flex item's
+  // content-based floor away, so the tab has to refuse to shrink itself.
+  flex-shrink: 0;
+  border-radius: #{$borderRadius}px;
+  box-shadow: var(--statusVeil);
+  transition: box-shadow var(--statusEaseMs) ease-out;
+  // The browser's own focus ring is suppressed because the veil replaces it.
   outline: none;
   cursor: pointer;
+  // What the tab draws at rest: an empty veil, and the ease-out every status leaves over. The empty
+  // value carries two layers, as the veil that fills the slot does - a shadow list interpolates
+  // only while both sides hold the same number of layers.
+  --statusVeil: #{$slotEmptyVeil};
+  --statusEaseMs: #{$easeOutMs};
+
+  // FOCUS and HOVER are two statuses with one appearance, and which appearance is the bar's
+  // marker's business - the title tab carries the reasoning. In a bar with a lens the tabs share
+  // the bar's width, each of them a bounded area, and the veil of the base design covers it: no
+  // edge to go with it, a tab carrying no pane, the way the check box and the bare button carry
+  // none. The veil lies over whatever is behind the tab - the bar's ground, or the lens of the
+  // selected tab, which shows through it.
+  //
+  // **The selected tab shows no veil**, for the reason the title tab states: the marker is the
+  // statement, and where it lies the interaction adds nothing. Focus follows :focus-visible rather
+  // than :focus, the browser's own judgement of a focus worth showing: a tab focused by a click
+  // drops the appearance together with the pointer, one reached by the arrow keys keeps it. The
+  // disabled status suppresses both.
+  // The focus keeps its veil on the selected tab all the same, for the reason the title tab states:
+  // it is the only mark a focused tab carries, and the bar's tab stop sits on the selected one.
+  &:hover:not(.disabled):not(.selected):not(.isBackgroundMarker),
+  &:focus-visible:not(.disabled):not(.isBackgroundMarker) {
+    --statusVeil: #{styles.layout(controls, interactionVeil)};
+    --statusEaseMs: #{$easeInMs};
+
+    @include styles.onDarkGroundOrClass {
+      --statusVeil: #{styles.layout(controls, interactionVeilOnDark)};
+    }
+  }
+
+  // In a bar with a background marker the tab has no area of its own to veil, and it shows the
+  // interaction appearance of a text entry instead (see the controls map). **Of that appearance's
+  // two halves the container takes the opacity alone.** The underline needs a line of text to sit
+  // under, and this tab holds whatever the call site put in it - a value beside an icon, a chart,
+  // several rows. The opacity is the half that reaches any content, which is also why it is the
+  // half the container can use: it needs to know nothing about what it carries.
+  //
+  // The two tabs that rest at full opacity are the selected one and the disabled one, for the
+  // reasons the title tab states. The disabled one differs on one point: a container has no
+  // lettering of its own to be weakened by a disabled typo set, so its status reaches its content
+  // through the call site alone.
+  &.isBackgroundMarker {
+    opacity: styles.layout(controls, interactionTextOpacity);
+    transition:
+      box-shadow var(--statusEaseMs) ease-out,
+      opacity var(--statusEaseMs) ease-out;
+
+    &.selected, &.disabled {
+      opacity: 1;
+    }
+
+    // The selected tab is excluded here as it is above, so both forms of the bar behave alike. It
+    // rests at full opacity anyway, so the exclusion changes nothing visible - it keeps the two
+    // rules saying one thing.
+    &:hover:not(.disabled):not(.selected), &:focus-visible:not(.disabled) {
+      opacity: 1;
+      --statusEaseMs: #{$easeInMs};
+    }
+  }
 
   &.disabled {
     cursor: default;

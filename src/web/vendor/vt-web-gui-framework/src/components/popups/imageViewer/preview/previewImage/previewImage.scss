@@ -1,31 +1,74 @@
-@use "sass:map";
 @use "sass:math";
-@use "assets/styles/defines";
-@use "../../defines.js" as localDefines;
+@use "assets/styles";
 
+// The settings of a thumbnail. The height of the row it lies in is not among them: it has to hold
+// the lift, the scale and the glow below, and it belongs to the grid that draws it (imageViewer.scss).
+$previewImagesHeight: 65;
+$previewImagesTranslateY: -15;
+$previewImagesScale: 1.05;
+$previewImagesBorderWidth: 2;
+$previewImagesColumnGap: styles.space(small);
+$previewImagesRimAlpha: 0.18;
+$previewImagesGlowBlur: 8;
+$previewImagesGlowSpread: 1;
+$previewImagesGlowAlpha: 0.55;
+// The selection glows weaker than an interaction does, and its rim lights up with the glow: a rim
+// left at rest strength reads as a grey ring between the lit thumbnail and its glow, because the
+// dark ground shines through it (judged 2026-09-17).
+$previewImagesSelectedRimAlpha: 0.4;
+$previewImagesSelectedGlowSpread: 0;
+$previewImagesSelectedGlowAlpha: 0.35;
+
+// The strip adds the widths of its thumbnails up to place the selected one in its middle, and it
+// falls back on the border width while an image has not loaded yet.
+:export {
+  previewImagesColumnGap: $previewImagesColumnGap;
+  previewImagesBorderWidth: $previewImagesBorderWidth;
+}
+
+// A thumbnail lies in the strip like a printed glass plate: what shows its body is the light rim
+// around the image, not a shadow below it, which the dark ground of the viewer would swallow. Three
+// things lift it off that ground - the selection, the pointer and the keyboard focus - and the
+// colour of the glow says which: impulseGreen is the interaction colour and belongs to the pointer
+// and the focus, so the selection, which is no interaction, glows in plain light instead.
 .previewImage {
-  height: #{map.get(localDefines.$previewImages, height)}px;
-  border: #{map.get(localDefines.$previewImages, borderWidth)}px solid transparent;
-  margin: 0 #{math.div(map.get(localDefines.$previewImages, columnGap), 2)}px;
+  height: #{$previewImagesHeight}px;
+  border: #{$previewImagesBorderWidth}px solid styles.colorA(offWhite, $previewImagesRimAlpha);
+  margin: 0 #{math.div($previewImagesColumnGap, 2)}px;
   outline: none;
   cursor: pointer;
   transform-origin: bottom;
+  // A thumbnail moves in the time an image change takes, so that the strip and the image are one
+  // movement. The time is a setting of the viewer (imageViewer.scss).
   transition:
-    border-color #{localDefines.$imageChangeTransitionTimeMs}ms ease-in-out,
-    transform #{localDefines.$imageChangeTransitionTimeMs}ms ease-in-out;
+    border-color var(--imageViewerChangeTime) ease-in-out,
+    box-shadow var(--imageViewerChangeTime) ease-in-out,
+    transform var(--imageViewerChangeTime) ease-in-out;
 
   &:focus { outline: none; }
   &::-moz-focus-inner { border: 0; }
 
+  // The rim lightens with the glow, but not to full light: that read as a frame around the
+  // thumbnail rather than as its edge (judged 2026-09-16).
   &.selected {
-    border-color: defines.color(active);
-    transform: translateY(#{map.get(localDefines.$previewImages, translateY)}px) scale(map.get(localDefines.$previewImages, scale));
+    border-color: styles.colorA(offWhite, $previewImagesSelectedRimAlpha);
+    box-shadow: 0 0 #{$previewImagesGlowBlur}px #{$previewImagesSelectedGlowSpread}px styles.colorA(offWhite, $previewImagesSelectedGlowAlpha);
+    transform: translateY(#{$previewImagesTranslateY}px) scale($previewImagesScale);
   }
 
-  &:not(.selected) {
-    &:hover {
-      transform: translateY(#{map.get(localDefines.$previewImages, translateY)}px);
-    }
+  // The interaction stands after the selection on purpose: a hovered or focused thumbnail carries
+  // the interaction colour whether it is the selected one or not, and the selected one keeps its
+  // scale through the rule below.
+  &:hover,
+  &:focus-visible {
+    border-color: styles.layout(controls, interactionBorderOnDark);
+    box-shadow: 0 0 #{$previewImagesGlowBlur}px #{$previewImagesGlowSpread}px styles.colorA(impulseGreen, $previewImagesGlowAlpha);
+    transform: translateY(#{$previewImagesTranslateY}px);
+  }
+
+  &.selected:hover,
+  &.selected:focus-visible {
+    transform: translateY(#{$previewImagesTranslateY}px) scale($previewImagesScale);
   }
 
   img {

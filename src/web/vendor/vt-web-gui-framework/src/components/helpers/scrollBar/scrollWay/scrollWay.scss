@@ -1,0 +1,71 @@
+@use "assets/styles";
+
+
+$scrollWayThickness: styles.layout(scrolling, scrollBarThickness); // total thickness of the scrollway
+
+
+.scrollWay {
+  position: absolute;
+  background: styles.color(structureSilver);
+  cursor: pointer;
+  // A touch on the way is a press of the scroll bar, not a pan the browser may claim.
+  touch-action: none;
+  opacity: 0;
+  transition: opacity styles.layoutMs(animationTime, mediumMs) ease;
+
+  &.hover {
+    opacity: 0.1;
+  }
+
+  &.verticalStart, &.verticalEnd {
+    width: #{$scrollWayThickness}px;
+  }
+
+  &.verticalStart {
+    left: 0;
+
+    &.outside {
+      left: #{-$scrollWayThickness}px;
+    }
+  }
+
+  &.verticalEnd {
+    right: 0;
+
+    &.outside {
+      right: #{-$scrollWayThickness}px;
+    }
+  }
+
+  &.horizontal {
+    bottom: 0;
+    height: #{$scrollWayThickness}px;
+
+    &.outside {
+      bottom: #{-$scrollWayThickness}px;
+    }
+  }
+}
+
+
+body[dir="rtl"] {
+  .scrollWay {
+    &.verticalStart {
+      left: auto;
+      right: 0;
+
+      &.outside {
+        right: #{-$scrollWayThickness}px;
+      }
+    }
+
+    &.verticalEnd {
+      left: 0;
+      right: auto;
+
+      &.outside {
+        left: #{-$scrollWayThickness}px;
+      }
+    }
+  }
+}

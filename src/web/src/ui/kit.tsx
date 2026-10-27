@@ -1,13 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { ApiError, del, get, type UserRef } from '../api';
 import { useMe, useReference } from '../hooks';
 import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
 import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
 import { createPortal } from 'react-dom';
-import { Enums, Spinner, StatusMarker, TabBar, TabBarTitleItem } from '../vt';
+import { Icon as VtIcon, Spinner, TabBar, TabBarTitleItem } from '../vt';
 
 // ---------- page structure ----------
 
@@ -98,13 +98,14 @@ export function FormError({ error, fields }: { error: ApiError | null; fields?: 
 
 // ---------- badges ----------
 
-const MARKER_STATE = { good: 'OK', warn: 'WARNING', bad: 'ERROR' } as const;
-/** Status text with the VtWebGuiFramework StatusMarker glyph (OK / warning / error); informational and neutral states keep a plain dot. */
+// VtWebGuiFramework 4 has no StatusMarker (not ported from v3); the status glyph is the framework Icon in the signal colour.
+const MARKER_STATE = { good: ['OK', 'signalOk'], warn: ['WARNING', 'signalWarning'], bad: ['ERROR', 'signalError'] } as const;
+/** Status text with a framework signal icon (OK / warning / error); informational and neutral states keep a plain dot. */
 export function Badge({ tone = 'neutral', children }: { tone?: 'good' | 'warn' | 'bad' | 'info' | 'neutral'; children: ReactNode }) {
   const state = tone in MARKER_STATE ? MARKER_STATE[tone as keyof typeof MARKER_STATE] : null;
   return (
     <span className={`badge ${tone}${state ? ' marked' : ''}`}>
-      {state && <span className="badge-marker" aria-hidden="true"><StatusMarker status={Enums.SystemState[state]} size={14} /></span>}
+      {state && <span className="badge-marker" aria-hidden="true"><VtIcon icon={state[0]} color={state[1]} size={16} /></span>}
       {children}
     </span>
   );
@@ -648,20 +649,12 @@ export const useToast = () => useContext(ToastCtx);
 
 // ---------- misc ----------
 
-/** VtWebGuiFramework TabBar. The wrapper adds what the framework item lacks: aria-selected and Enter/Space activation. */
+/** VtWebGuiFramework TabBar: tab list semantics, aria-selected and arrow-key navigation come with the framework (v4). */
 export function Tabs({ tabs, value, onChange }: { tabs: { key: string; label: ReactNode }[]; value: string; onChange: (k: string) => void }) {
-  const root = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    root.current?.querySelectorAll<HTMLElement>('[role="tab"]').forEach((el, i) => el.setAttribute('aria-selected', String(tabs[i]?.key === value)));
-  });
-  const onKeyDown = (e: { key: string; target: EventTarget; preventDefault(): void }) => {
-    const t = e.target as HTMLElement;
-    if (t.getAttribute('role') === 'tab' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); t.click(); }
-  };
   return (
-    <div className="vt-tabs" ref={root} onKeyDown={onKeyDown}>
+    <div className="vt-tabs">
       <TabBar selectedId={value}>
-        {tabs.map(t => <TabBarTitleItem key={t.key} id={t.key} title={nodeText(t.label)} onClick={() => onChange(t.key)} />)}
+        {tabs.map(t => <TabBarTitleItem key={t.key} id={t.key} title={nodeText(t.label)} selected={t.key === value} onClick={() => onChange(t.key)} />)}
       </TabBar>
     </div>
   );

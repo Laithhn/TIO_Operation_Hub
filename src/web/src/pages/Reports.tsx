@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { ApiError, del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
 import { useEnumLabel, useMe, useTypes, useUrlState } from '../hooks';

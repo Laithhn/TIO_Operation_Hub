@@ -1,12 +1,61 @@
+@use "assets/styles";
+
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
+
+
 .checkBox {
   display: inline-grid;
   grid-auto-flow: column;
   align-items: baseline;
-  justify-content: space-between;
-  background: none;
+  // The browser's own focus ring is suppressed because the veil below replaces it.
   outline: none;
   cursor: pointer;
-  user-select: none;
+  @include styles.noTextSelection;
+
+  // The label before the icon is what asks for the two to be pushed apart: a column of check boxes
+  // named on the left reads as a list only where their icons stand on one edge. The rule is bound
+  // to the class rather than offered as a prop, because with the icon first the same distribution
+  // would drive the label away from the box it names - a layout no call site wants. It takes
+  // effect only where the parent grid stretches the control, an inline-sized check box having
+  // nothing to distribute, so justifySelf="start" at the call site is what takes it back.
+  &.labelFirst {
+    justify-content: space-between;
+  }
+  // The check box carries no surface of its own, so the interaction veil is its whole appearance
+  // under the pointer - and it is drawn around the icon rather than across the control: the label
+  // may be long or wrapped, and a check box often sits in a row that hovers itself, as in a menu
+  // item. The slot rides on this element although the icon is what fills it, because the status
+  // belongs to the whole control - hovering the label lights the icon too - while the icon is the
+  // element that draws it. A custom property is what carries it across: it inherits, and the class
+  // of the icon lives in a CSS module of its own that no selector here can reach.
+  // The empty value with two layers, the veil that fills this slot carrying two - see the controls
+  // map.
+  --statusVeil: #{styles.layout(controls, slotEmptyVeil)};
+  --statusEaseMs: #{$easeOutMs};
+
+  // FOCUS and HOVER are two statuses with one appearance, and here it is the veil alone - the same
+  // one every control of the base design takes, and no line around it. The check box carries no
+  // surface of its own (D19), so it has no edge to colour, and a green circle around the icon was
+  // tried on 2026-08-28 and judged too loud - together with the same line at the bare button and
+  // the bare field.
+  //
+  // Focus follows :focus-visible rather than :focus, which is the browser's own judgement of a
+  // focus worth showing: a check box focused by a click drops the appearance together with the
+  // pointer, one reached by the tab key keeps it until the focus moves on. The disabled status
+  // suppresses both.
+  &:hover:not(.disabled), &:focus-visible:not(.disabled) {
+    --statusVeil: #{styles.layout(controls, interactionVeil)};
+    --statusEaseMs: #{$easeInMs};
+
+    @include styles.onDarkGround {
+      --statusVeil: #{styles.layout(controls, interactionVeilOnDark)};
+    }
+  }
 
   &.disabled {
     cursor: default;

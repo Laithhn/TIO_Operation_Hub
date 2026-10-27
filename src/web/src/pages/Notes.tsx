@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { ApiError, del, get, post, put, qs, upload, type Paged } from '../api';
 import { fmtDateTime } from '../format';
 import { Icon } from '../ui/Icon';

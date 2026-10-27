@@ -1,5 +1,5 @@
 @use "sass:math";
-@use "assets/styles/defines";
+@use "assets/styles";
 
 $iconDim: 24;
 $sepShortEdge: 2;
@@ -14,12 +14,12 @@ $sepLongEdge: 40;
 
   &.vertical {
     flex-direction: column;
-    //padding: defines.spacePx(small) 0;
+    //padding: styles.spacePx(normal) 0;
   }
 
   &.horizontal {
     flex-direction: row;
-    //padding: 0 defines.spacePx(small);
+    //padding: 0 styles.spacePx(normal);
   }
 }
 
@@ -31,6 +31,16 @@ $sepLongEdge: 40;
   //width: 100%;
   display: grid;
 
+  background: none;
+  //outline: none;
+  font-size: styles.typo(fontSize, small);
+  font-weight: styles.typo(fontWeight, normal);
+  color: styles.typo(color, dark, normal);
+  fill: styles.typo(color, dark, normal);
+
+  //&:focus { outline: none; }
+  //&::-moz-focus-inner { border: 0; }
+
   &.vertical {
     grid-template-rows: #{math.div($sepLongEdge, 2)}px auto #{math.div($sepLongEdge, 2)}px;
     grid-template-columns: #{$iconDim}px auto;
@@ -39,9 +49,9 @@ $sepLongEdge: 40;
       "icon caption"
       "sepAfter caption";
 
-    gap: 0 defines.spacePx(xs);
+    gap: 0 styles.spacePx(small);
 
-    padding: 0 0 0 defines.layoutPx(mostLeftRightPadding);
+    padding: 0 0 0 styles.layoutPx(mostLeftRightPadding);
 
     .caption {
       text-align: start;
@@ -56,9 +66,9 @@ $sepLongEdge: 40;
       "sepBefore icon sepAfter"
       "caption caption caption";
 
-    gap: defines.spacePx(xxs) 0;
+    gap: styles.spacePx(xs) 0;
 
-    padding: defines.layoutPx(mostLeftRightPadding) 0 0 0;
+    padding: styles.layoutPx(mostLeftRightPadding) 0 0 0;
 
     .caption {
       justify-self: center;
@@ -67,23 +77,13 @@ $sepLongEdge: 40;
     }
   }
 
-  background: none;
-  //outline: none;
-  font-size: defines.typo(fontSize, small);
-  font-weight: defines.typo(fontWeight, normal);
-  color: defines.typo(color, dark, normal);
-  fill: defines.typo(color, dark, normal);
-
-  //&:focus { outline: none; }
-  //&::-moz-focus-inner { border: 0; }
-
   .icon {
     width: #{$iconDim}px;
     height: #{$iconDim}px;
     grid-area: icon;
     display: grid;
     place-items: center;
-    border: 1px solid defines.typo(color, dark, normal);
+    border: 1px solid styles.typo(color, dark, normal);
     border-radius: #{math.div($iconDim, 2)}px;
     opacity: 0.2;
     transition: border-color 0.1s ease, background 0.1s ease, box-shadow 0.1s ease, color 0.1s ease, opacity 0.1s ease;
@@ -102,17 +102,17 @@ $sepLongEdge: 40;
   &.active {
     .icon {
       border: 0 none;
-      box-shadow: defines.layout(boxShadow, level2);
-      background: defines.color(offWhite);
-      font-size: defines.typo(fontSize, normal);
-      color: defines.typo(color, dark, attention);
-      fill: defines.typo(color, dark, attention);
+      box-shadow: styles.layout(boxShadow, level1);
+      background: styles.color(offWhite);
+      font-size: styles.typo(fontSize, normal);
+      color: styles.typo(color, dark, attention);
+      fill: styles.typo(color, dark, attention);
       opacity: 1;
     }
 
     .caption {
-      color: defines.typo(color, dark, attention);
-      fill: defines.typo(color, dark, attention);
+      color: styles.typo(color, dark, attention);
+      fill: styles.typo(color, dark, attention);
       opacity: 1;
     }
   }
@@ -120,9 +120,9 @@ $sepLongEdge: 40;
   &.done {
     .icon {
       border: 0 none;
-      background: defines.color(active);
-      color: defines.typo(color, light, normal);
-      fill: defines.typo(color, light, normal);
+      background: styles.color(active);
+      color: styles.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
       opacity: 1;
     }
 
@@ -147,7 +147,7 @@ $sepLongEdge: 40;
     &:not(.active) {
       &:hover {
         .icon {
-          box-shadow: defines.layout(boxShadow, level1);
+          box-shadow: styles.layout(boxShadow, level1);
         }
       }
     }
@@ -156,7 +156,7 @@ $sepLongEdge: 40;
 
 body[dir="rtl"] {
   .stepperStep {
-    padding: 0 defines.layoutPx(mostLeftRightPadding) 0 0;
+    padding: 0 styles.layoutPx(mostLeftRightPadding) 0 0;
   }
 }
 
@@ -165,6 +165,9 @@ body[dir="rtl"] {
 // -------------------------------------------------------------------------------------------------
 
 .stepperStepSepBefore, .stepperStepSepAfter {
+  background: styles.typo(color, dark, normal);
+  opacity: 0.2;
+
   &.vertical {
     width: #{$sepShortEdge}px;
     height: #{math.div($sepLongEdge, 2)}px;
@@ -176,11 +179,8 @@ body[dir="rtl"] {
     align-self: center;
   }
 
-  background: defines.typo(color, dark, normal);
-  opacity: 0.2;
-
   &.done {
-    background: defines.color(active);
+    background: styles.color(active);
     opacity: 1;
   }
 }

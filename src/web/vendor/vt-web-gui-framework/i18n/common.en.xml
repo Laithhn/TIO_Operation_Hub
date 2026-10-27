@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Language id="en" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../src/languageFile.xsd">
+<Language id="en" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../../../templates/languageFile.xsd">
   <Entry id="VIWGF_ABORT">Abort</Entry>
   <Entry id="VIWGF_ACTIVE">Active</Entry>
   <Entry id="VIWGF_ALARM">Alarm</Entry>

@@ -1,49 +1,61 @@
-@use "assets/styles/defines";
+@use "sass:math";
+@use "assets/styles";
+
 
 .valueField {
   display: grid;
   text-align: center;
-  transition: background 0.1s ease, color 0.1s ease;
+  transition:
+    background 0.1s ease, color 0.1s ease,
+    transform #{math.div(styles.layout(animationTime, fastMs), 2)}ms linear;
 
   &.clickable {
     cursor: pointer;
-    user-select: none;
-    transition: box-shadow 150ms ease-in-out;
 
-    &.clicked {
-      box-shadow: defines.layout(boxShadow, level3);
+    &:active {
+      transform: translateY(2px);
     }
   }
 
   .title {
-    padding: 0 0 defines.spacePx(xxs) 0;
+    padding: 0 0 styles.spacePx(xs) 0;
 
     &:not(.titleAsLabel) {
-      @include defines.typoSet(title);
+      @include styles.typoSet(title);
     }
 
     &.titleAsLabel {
-      @include defines.typoSet(label);
+      @include styles.typoSet(label);
     }
   }
 
   .valueContr {
     display: grid;
     grid-auto-flow: column;
-    gap: defines.spacePx(xxs);
+    gap: styles.spacePx(xs);
     align-items: last baseline;
     justify-content: center;
   }
 
+  // The colour of the value and its unit, in the form for the ground the field sits on. It follows
+  // the typo set, whose colour it overwrites by coming later.
   .value {
-    @include defines.typoSet(value);
+    @include styles.typoSet(value);
+    @include styles.typoColorClasses;
   }
 
   .unit {
-    @include defines.typoSet(value, $noWrap: false, $noOverflow: false);
+    @include styles.typoSet(value);
+    @include styles.typoColorClasses;
   }
 
   .hint {
-    @include defines.typoSet(value);
+    @include styles.typoSet(value);
   }
+}
+
+
+// The pane of the styling prop boxShadow="contact", drawn for the ground the value field sits on.
+.contactPane {
+  @include styles.contactPane;
 }

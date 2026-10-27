@@ -1,13 +1,11 @@
-import { Enumify } from 'enumify';
-import PropTypes from 'prop-types';
 import { memo } from 'react';
 
-import Enums from 'assets/enums';
-import useStylingProps from 'components/hooks/useStylingProps';
-import { hooks } from 'store';
-import classNames from 'utils/classNames';
+import { useStylingProps } from 'components/hooks/useStylingProps';
+import { useI18n } from 'components/hooks/useI18n';
+import { classNames } from 'utils/classNames';
+import { Enumify } from 'utils/enumify';
 
-import css from './statusMarker.scss';
+import * as css from './statusMarker.scss';
 import stylingProps from './stylingProps';
 
 
@@ -40,17 +38,28 @@ const iconPathError = 'M13.06 8l2.47-2.47a.75.75 0 10-1.06-1.06L12 6.94 9.53 4.4
 const iconPathUnknown = 'M13.66 8.083c-.883.421-.969.518-1.06.827 0 0-.046.642-.75.642-.473 0-.703-.279-.704-.628-.03-.523.235-1.177 1.422-1.723.526-.241.683-.41.683-.788 0-.484-.357-.767-1.25-.767-.798 0-1.1.216-1.529.613 0 0-.551.431-.98 0-.398-.399-.139-.796.014-.994.536-.659 1.264-1.058 2.493-1.058 1.607 0 2.72.683 2.72 2.143.001.977-.556 1.492-1.06 1.733zm-1.85 3.709a.906.906 0 01-.893-.892c0-.485.41-.893.893-.893.485 0 .893.41.893.892a.905.905 0 01-.893.893z';
 
 
+//StatusMarker.propTypes = {
+//  status: PropTypes.string,
+//  inactive: PropTypes.bool,
+//  size: PropTypes.oneOfType([PropTypes.number, PropTypes.instanceOf(StatusMarkerSize)]),
+//  rotation: PropTypes.number,
+//};
+
 /**
  * Memoized React component of a status marker.
  */
 const StatusMarker = memo(({
-  status, inactive, size, rotation, ...restProps
+  status = 'unknown',
+  inactive = false,
+  size = StatusMarkerSize.NORMAL,
+  rotation = 0,
+  ...restProps
 }) => {
   // --------------------------------------------------------------------<editor-fold desc="States">
   // States
   // -----------------------------------------------------------------------------------------------
 
-  const { isRtl } = hooks.useI18n();
+  const { isRtl } = useI18n();
 
 
   //                                                                                  </editor-fold>
@@ -65,9 +74,9 @@ const StatusMarker = memo(({
   let iconPathSymbol;
 
   switch (status) {
-    case Enums.SystemState.OK: iconPathSymbol = iconPathOk; break;
-    case Enums.SystemState.WARNING: iconPathSymbol = iconPathWarning; break;
-    case Enums.SystemState.ERROR: iconPathSymbol = iconPathError; break;
+    case 'ok': iconPathSymbol = iconPathOk; break;
+    case 'warning': iconPathSymbol = iconPathWarning; break;
+    case 'error': iconPathSymbol = iconPathError; break;
     default: iconPathSymbol = iconPathUnknown; break;
   }
 
@@ -99,10 +108,10 @@ const StatusMarker = memo(({
     ...(inactive ? {
       [css.inactive]: inactive,
     } : {
-      [css.ok]: (status === Enums.SystemState.OK),
-      [css.warning]: (status === Enums.SystemState.WARNING),
-      [css.error]: (status === Enums.SystemState.ERROR),
-      [css.unknown]: ![Enums.SystemState.OK, Enums.SystemState.WARNING, Enums.SystemState.ERROR].includes(status),
+      [css.ok]: (status === 'ok'),
+      [css.warning]: (status === 'warning'),
+      [css.error]: (status === 'error'),
+      [css.unknown]: !['ok', 'warning', 'error'].includes(status),
     }),
   });
 
@@ -138,20 +147,6 @@ const StatusMarker = memo(({
 });
 
 StatusMarker.displayName = 'StatusMarker';
-
-StatusMarker.propTypes = {
-  status: PropTypes.instanceOf(Enums.SystemState),
-  inactive: PropTypes.bool,
-  size: PropTypes.oneOfType([PropTypes.number, PropTypes.instanceOf(StatusMarkerSize)]),
-  rotation: PropTypes.number,
-};
-
-StatusMarker.defaultProps = {
-  status: Enums.SystemState.UNKNOWN,
-  inactive: false,
-  size: StatusMarkerSize.NORMAL,
-  rotation: 0,
-};
 
 export { StatusMarkerSize };
 export default StatusMarker;

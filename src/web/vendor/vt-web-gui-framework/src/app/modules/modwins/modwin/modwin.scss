@@ -1,0 +1,29 @@
+@use "assets/styles";
+
+
+.exclusiveScreen {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: 100%;
+
+  &.visible {
+    background: styles.layout(dimmedBackground);
+  }
+}
+
+
+.modwin {
+  position: absolute;
+  display: grid;
+  grid-template-rows: styles.spacePx(large) 1fr;
+  border-radius: styles.layoutPx(modwins, borderRadius);
+  box-shadow: styles.layout(boxShadow, modal);
+  overflow: hidden;
+
+  &.minimized {
+    display: none;
+  }
+}
+

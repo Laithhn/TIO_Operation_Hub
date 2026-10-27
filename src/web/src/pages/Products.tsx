@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router';
 import { del, get, post, put } from '../api';
 import { fmtDate, label } from '../format';
 import { usePermission, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';

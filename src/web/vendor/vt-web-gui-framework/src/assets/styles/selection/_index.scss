@@ -1,0 +1,12 @@
+// Mixin for an element that is pressed rather than read, a control's face or a drag handle: its
+// text can't be selected, and a long press on a touch device opens no callout.
+//
+// **Safari reads "user-select" only prefixed**, in every version, so the unprefixed declaration
+// alone leaves the text selectable there. The callout is iOS's own menu for a long press, which
+// "user-select" does not suppress. Both are spelled here once, and every stylesheet includes the
+// mixin instead of writing "user-select" itself.
+@mixin noTextSelection() {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}

@@ -1,0 +1,86 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+// The glass of the drop that marks the active menu node. Its light - the lit rim, the inner glow
+// and the contact shadow below - is the surface of the base design, the same glass the header's
+// menu marker is made of (see its marker.scss).
+//
+// **Its body is not, and that is deliberate: this marker carries a colour set of its own.** Two
+// things set it apart from every other glass in the framework. It is the one that names the active
+// entry of the sidebar, so it has to be read at a glance, and it is by far the smallest - ten
+// pixels across, where a control's pane is thirty high. The surface's own fill, structureSilver at
+// 12 %, disappears on such a body lying on offWhite, and the primary tint at 35 % still read as a
+// locked control rather than as a marker. The values below are what carries on the running GUI.
+//
+// The tint is the primary the flat dot carried before it, where the header's marker is a
+// colourless lens (ADR PDWG-98-primary-header-marker-is-a-colourless-lens.md): the header states
+// where one stands beside this marker, which is what lets it stay quiet, and this one stands
+// alone. The border keeps the surface's proportion to its fill - a shade denser than the body, the
+// way glass is denser seen edge-on.
+$dropFill: styles.colorA(primary, .6);
+$dropBorder: styles.colorA(primary, .75);
+
+
+.marker {
+  position: absolute;
+  right: 0;
+  top: -#{math.div(styles.layout(firstSidebar, markerHeight), 2)}px;
+}
+
+.line {
+  stroke: styles.layout(dividerColor, soft);
+  fill: none;
+}
+
+
+// The pane of the drop. Two of the four ingredients an inset shadow carries on a box are drawn as
+// paths of their own below, an SVG path knowing no inset shadow.
+.drop {
+  fill: $dropFill;
+  stroke: $dropBorder;
+  stroke-width: 1;
+}
+
+
+// The contact shadow of the pane: the value of the controls map without its spread - "0 1px 3px 0
+// structureSilver at 12 %" there. It is drawn by a filter of the SVG (see Marker.tsx), which
+// carries the offset and the blur - a standard deviation of 3, which is what drop-shadow() made of
+// the 3px; this rule gives its primitive the colour.
+.dropShadow {
+  flood-color: styles.color(structureSilver);
+  flood-opacity: .12;
+}
+
+
+// The lit rim: the drop's own outline, stroked one pixel lower and clipped to the drop, which
+// leaves the bright line along its top edge - what "inset 0 1px 0" draws on a box.
+.dropRim {
+  fill: none;
+  stroke: styles.colorA(offWhite, .45);
+  stroke-width: 1;
+}
+
+
+// The inner glow: the same outline with a wide, blurred stroke, clipped to the drop so that only
+// its inner half survives - what "inset 0 0 4px 1px" draws on a box. The header draws it at stroke
+// width 8 and blur 3 on a body thirty pixels high; this body is ten, and both are scaled with it,
+// or the glow would wash the drop out instead of lighting its inside. The blur of 1px is a filter
+// of the SVG (see Marker.tsx).
+.dropGlow {
+  fill: none;
+  stroke: styles.colorA(offWhite, .1);
+  stroke-width: 3;
+}
+
+
+body[dir="rtl"] {
+  .marker {
+    left: 0;
+    right: auto;
+
+    svg {
+      transform: scale(-1);
+    }
+  }
+}

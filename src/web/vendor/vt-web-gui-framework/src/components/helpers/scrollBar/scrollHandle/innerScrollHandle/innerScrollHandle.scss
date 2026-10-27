@@ -1,0 +1,43 @@
+@use "assets/styles";
+
+
+// The thickness of the handle while it only shows the position. Under the pointer it grows to the
+// thickness the box around it hands down as --scrollBarHandleThicknessHover (see
+// scrollHandle.scss).
+$thickness: 4;
+
+
+.innerScrollHandle {
+  background: styles.color(structureSilver);
+  border-radius: var(--scrollBarHandleThicknessHover);
+  opacity: 0.5;
+  transition-property: width, height, opacity;
+  transition-duration: styles.layoutMs(animationTime, mediumMs);
+  transition-timing-function: ease;
+
+  &.inactive {
+    opacity: 0.2;
+  }
+
+  &.hover:not(.inactive) {
+    opacity: 0.6;
+  }
+
+  &.vertical {
+    width: #{$thickness}px;
+    height: 100%;
+
+    &.hover:not(.inactive) {
+      width: var(--scrollBarHandleThicknessHover);
+    }
+  }
+
+  &:not(.vertical) {
+    width: 100%;
+    height: #{$thickness}px;
+
+    &.hover:not(.inactive) {
+      height: var(--scrollBarHandleThicknessHover);
+    }
+  }
+}

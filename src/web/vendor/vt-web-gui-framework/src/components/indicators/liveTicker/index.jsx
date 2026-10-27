@@ -1,22 +1,27 @@
-import PropTypes from 'prop-types';
 import { memo, useRef, useEffect } from 'react';
 
-import Enums from 'assets/enums';
-import Scrolling from 'components/helpers/scrolling';
-import useStylingProps from 'components/hooks/useStylingProps';
+import { Scrolling } from 'components/helpers/scrolling';
+import { useStylingProps } from 'components/hooks/useStylingProps';
 import Text from 'components/indicators/text';
-import classNames from 'utils/classNames';
+import { classNames } from 'utils/classNames';
 
 import Cursor from './cursor';
-import css from './liveTicker.scss';
+import * as css from './liveTicker.scss';
 import stylingProps from './stylingProps';
 
+
+//LiveTicker.propTypes = {
+//  entries: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
+//  size: PropTypes.string,
+//  darkTheme: PropTypes.bool,
+//  showCursor: PropTypes.bool,
+//};
 
 /**
  * Memoized React component of a live ticker.
  */
 const LiveTicker = memo(({
-  entries, size, darkTheme, showCursor, ...restProps
+  entries = [], size = 'small', darkTheme = false, showCursor = false, ...restProps
 }) => {
   // --------------------------------------------------------------------<editor-fold desc="States">
   // States
@@ -114,19 +119,5 @@ const LiveTicker = memo(({
 });
 
 LiveTicker.displayName = 'LiveTicker';
-
-LiveTicker.propTypes = {
-  entries: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.number])),
-  size: PropTypes.instanceOf(Enums.ValueSize),
-  darkTheme: PropTypes.bool,
-  showCursor: PropTypes.bool,
-};
-
-LiveTicker.defaultProps = {
-  entries: [],
-  size: Enums.ValueSize.SMALL,
-  darkTheme: false,
-  showCursor: false,
-};
 
 export default LiveTicker;

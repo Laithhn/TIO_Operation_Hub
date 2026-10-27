@@ -1,0 +1,16 @@
+@use "assets/styles";
+
+
+.divider {
+  path {
+    fill: none;
+    stroke: styles.layout(dividerColor, soft);
+  }
+}
+
+
+body[dir='rtl'] {
+  .divider {
+    transform: scaleX(-1);
+  }
+}

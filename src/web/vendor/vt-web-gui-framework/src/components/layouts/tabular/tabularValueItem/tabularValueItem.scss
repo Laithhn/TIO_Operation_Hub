@@ -1,18 +1,25 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
 .tabularValueItem {
   display: grid;
   grid-template-areas: "label value";
-  gap: 0 defines.spacePx(xs);
+  gap: 0 styles.spacePx(small);
   grid-auto-flow: column;
   align-items: baseline;
 
+  // the seam between two entries - see the container item's stylesheet
   &.tabularStyleIsLine {
-    border-bottom: defines.layout(components, dividerBorderDark);
+    border-bottom: 1px solid styles.layout(dividerLine, dark);
+
+    @include styles.onDarkGround {
+      border-bottom-color: styles.layout(dividerLine, light);
+    }
   }
 
+  // The fallback ground, overruled by the colour the tabular hands down as an inline style - see the
+  // container item's stylesheet.
   &.tabularStyleIsBackground {
-    background: defines.color(lightGray);
+    @include styles.background("lightGray");
   }
 
   &.withHint {
@@ -27,19 +34,21 @@
     grid-template-areas: "label hint value" "subLabel subLabel value";
   }
 
+  // The four letterings take the colour for the ground from typoSet: an item with a colour of its
+  // own sets that ground itself, and one without passes on the tabular's.
   .label {
     grid-area: label;
-    @include defines.typoSet(label, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+    @include styles.typoSet(label, $disabled: false);
   }
 
   .hint {
     grid-area: hint;
-    @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+    @include styles.typoSet(hint, $disabled: false);
   }
 
   .subLabel {
     grid-area: subLabel;
-    @include defines.typoSet(hint, $darkTheme: false, $disabled: false, $noWrap: false, $noOverflow: false);
+    @include styles.typoSet(hint, $disabled: false);
   }
 
   .value {
@@ -47,12 +56,17 @@
     justify-self: end;
     text-align: right;
 
-    @include defines.typoSet(value, $darkTheme: false, $noWrap: false, $noOverflow: false);
+    @include styles.typoSet(value);
+
+    &:after {
+      content: '\200b'; // zero width space
+      visibility: hidden;
+    }
   }
 }
 
 body[dir="rtl"] {
-  .gridTabluarItem {
+  .tabularValueItem {
     .value {
       text-align: left;
     }

@@ -1,25 +1,42 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
 
 /**
  *
  */
 @mixin nativeElements($small: false) {
-  $paragraphMarginPx: defines.spacePx(if($small, small, medium));
+  $paragraphMarginSmallPx: styles.spacePx(normal);
+  $paragraphMarginPx: styles.spacePx(large);
 
   p, dl, ul, ol, table {
-    font-size: defines.typo(fontSize, if($small, small, normal));
-    font-weight: defines.typo(fontWeight, normal);
-    color: defines.typo(color, dark, normal);
+    @if ($small) {
+      font-size: styles.typo(fontSize, small);
+    } @else {
+      font-size: styles.typo(fontSize, normal);
+    }
+    font-weight: styles.typo(fontWeight, normal);
+    color: styles.typo(color, dark, normal);
 
     small {
-      font-size: defines.typo(fontSize, if($small, xs, small));
+      @if ($small) {
+        font-size: styles.typo(fontSize, xs);
+      } @else {
+        font-size: styles.typo(fontSize, small);
+      }
+    }
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
     }
   }
 
   p {
-    margin-bottom: $paragraphMarginPx;
-    line-height: defines.typo(lineHeight, normal);
+    @if ($small) {
+      margin-bottom: $paragraphMarginSmallPx;
+    } @else {
+      margin-bottom: $paragraphMarginPx;
+    }
+    line-height: styles.typo(lineHeight, normal);
     hyphens: auto;
   }
 
@@ -29,27 +46,52 @@
   // -----------------------------------------------------------------------------------------------
 
   h1 {
-    margin: defines.spacePx(if($small, xl, xxl)) 0 defines.spacePx(if($small, medium, xxl)) 0;
-    font-size: defines.typo(fontSize, if($small, xl, xxl));
-    font-weight: defines.typo(fontWeight, bold);
-    line-height: defines.typo(lineHeight, small);
-    color: defines.typo(color, dark, normal);
+    @if ($small) {
+      margin: styles.spacePx(xxl) 0 styles.spacePx(large) 0;
+      font-size: styles.typo(fontSize, xl);
+    } @else {
+      margin: styles.spacePx(xxxl) 0 styles.spacePx(xxxl) 0;
+      font-size: styles.typo(fontSize, xxl);
+    }
+    font-weight: styles.typo(fontWeight, bold);
+    line-height: styles.typo(lineHeight, small);
+    color: styles.typo(color, dark, normal);
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
+    }
   }
 
   h2 {
-    margin: defines.spacePx(if($small, xl, xxl)) 0 defines.spacePx(if($small, medium, xl)) 0;
-    font-size: defines.typo(fontSize, xl);
-    font-weight: defines.typo(fontWeight, bold);
-    color: defines.typo(color, dark, normal);
-    line-height: defines.typo(lineHeight, small);
+    @if ($small) {
+      margin: styles.spacePx(xxl) 0 styles.spacePx(large) 0;
+    } @else {
+      margin: styles.spacePx(xxxl) 0 styles.spacePx(xxl) 0;
+    }
+    font-size: styles.typo(fontSize, xl);
+    font-weight: styles.typo(fontWeight, bold);
+    color: styles.typo(color, dark, normal);
+    line-height: styles.typo(lineHeight, small);
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
+    }
   }
 
   h3 {
-    margin: defines.spacePx(if($small, large, xl)) 0 defines.spacePx(if($small, small, large)) 0;
-    font-size: defines.typo(fontSize, large);
-    font-weight: defines.typo(fontWeight, bold);
-    line-height: defines.typo(lineHeight, small);
-    color: defines.typo(color, dark, normal);
+    @if ($small) {
+      margin: styles.spacePx(xl) 0 styles.spacePx(normal) 0;
+    } @else {
+      margin: styles.spacePx(xxl) 0 styles.spacePx(xl) 0;
+    }
+    font-size: styles.typo(fontSize, large);
+    font-weight: styles.typo(fontWeight, bold);
+    line-height: styles.typo(lineHeight, small);
+    color: styles.typo(color, dark, normal);
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
+    }
   }
 
   header {
@@ -58,49 +100,69 @@
     }
 
     h1 + p {
-      margin: 0 0 defines.spacePx(if($small, medium, xxl)) 0;
-      font-size: defines.typo(fontSize, small);
-      line-height: defines.typo(lineHeight, small);
+      @if ($small) {
+        margin: 0 0 styles.spacePx(large) 0;
+      } @else {
+        margin: 0 0 styles.spacePx(xxxl) 0;
+      }
+      font-size: styles.typo(fontSize, small);
+      line-height: styles.typo(lineHeight, small);
     }
 
     h2 + p {
-      margin: 0 0 defines.spacePx(if($small, medium, xl)) 0;
-      font-size: defines.typo(fontSize, small);
-      line-height: defines.typo(lineHeight, small);
+      @if ($small) {
+        margin: 0 0 styles.spacePx(large) 0;
+      } @else {
+        margin: 0 0 styles.spacePx(xxl) 0;
+      }
+      font-size: styles.typo(fontSize, small);
+      line-height: styles.typo(lineHeight, small);
     }
 
     h3 + p {
-      margin: 0 0 defines.spacePx(if($small, small, large)) 0;
-      font-size: defines.typo(fontSize, small);
-      line-height: defines.typo(lineHeight, small);
+      @if ($small) {
+        margin: 0 0 styles.spacePx(normal) 0;
+      } @else {
+        margin: 0 0 styles.spacePx(xl) 0;
+      }
+      font-size: styles.typo(fontSize, small);
+      line-height: styles.typo(lineHeight, small);
     }
   }
 
   h4 {
-    margin: defines.spacePx(large) 0 defines.spacePx(small) 0;
-    font-size: defines.typo(fontSize, semilarge);
-    font-weight: defines.typo(fontWeight, bold);
-    line-height: defines.typo(lineHeight, small);
-    color: defines.typo(color, dark, normal);
+    margin: styles.spacePx(xl) 0 styles.spacePx(normal) 0;
+    font-size: styles.typo(fontSize, semilarge);
+    font-weight: styles.typo(fontWeight, bold);
+    line-height: styles.typo(lineHeight, small);
+    color: styles.typo(color, dark, normal);
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
+    }
   }
 
   h5 {
-    margin: defines.spacePx(large) 0 defines.spacePx(small) 0;
-    font-size: defines.typo(fontSize, normal);
-    font-weight: defines.typo(fontWeight, semibold);
-    line-height: defines.typo(lineHeight, small);
-    color: defines.typo(color, dark, normal);
+    margin: styles.spacePx(xl) 0 styles.spacePx(normal) 0;
+    font-size: styles.typo(fontSize, normal);
+    font-weight: styles.typo(fontWeight, semibold);
+    line-height: styles.typo(lineHeight, small);
+    color: styles.typo(color, dark, normal);
     text-decoration: underline;
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
+    }
   }
 
   h6 {
-    margin: defines.spacePx(large) -4px defines.spacePx(small) -4px;
+    margin: styles.spacePx(xl) -4px styles.spacePx(normal) -4px;
     padding: 4px;
-    background: defines.color(darkGray);
-    font-size: defines.typo(fontSize, normal);
-    font-weight: defines.typo(fontWeight, semibold);
-    line-height: defines.typo(lineHeight, small);
-    color: defines.typo(color, light, normal);
+    background: styles.color("darkGray");
+    font-size: styles.typo(fontSize, normal);
+    font-weight: styles.typo(fontWeight, semibold);
+    line-height: styles.typo(lineHeight, small);
+    color: styles.typo(color, light, normal);
   }
 
 
@@ -109,49 +171,77 @@
   // -----------------------------------------------------------------------------------------------
 
   dl {
-    margin: $paragraphMarginPx 0;
-    line-height: defines.typo(lineHeight, normal);
+    @if ($small) {
+      margin: $paragraphMarginSmallPx 0;
+    } @else {
+      margin: $paragraphMarginPx 0;
+    }
+    line-height: styles.typo(lineHeight, normal);
 
     dt {
-      font-size: defines.typo(fontSize, small);
-      font-weight: defines.typo(fontWeight, bold);
+      font-size: styles.typo(fontSize, small);
+      font-weight: styles.typo(fontWeight, bold);
     }
 
     dd {
-      margin: defines.spacePx(xxs) 0 0 defines.spacePx(small);
+      margin: styles.spacePx(xs) 0 0 styles.spacePx(normal);
       hyphens: auto;
 
       & + dt {
-        margin-top: defines.spacePx(if($small, xs, small));
+        @if ($small) {
+          margin-top: styles.spacePx(small);
+        } @else {
+          margin-top: styles.spacePx(normal);
+        }
       }
     }
   }
 
   ul {
     list-style: disc outside none;
-    margin: $paragraphMarginPx 0;
-    line-height: defines.typo(lineHeight, normal);
+    @if ($small) {
+      margin: $paragraphMarginSmallPx 0;
+    } @else {
+      margin: $paragraphMarginPx 0;
+    }
+    line-height: styles.typo(lineHeight, normal);
 
     li {
-      margin: 0 0 defines.spacePx(if($small, xxs, xs)) defines.spacePx(medium);
+      @if ($small) {
+        margin: 0 0 styles.spacePx(xs) styles.spacePx(large);
+      } @else {
+        margin: 0 0 styles.spacePx(small) styles.spacePx(large);
+      }
       hyphens: auto;
 
       ul {
         list-style-type: circle;
-        margin: defines.spacePx(if($small, xxs, xs)) 0 defines.spacePx(if($small, xs, small)) 0;
+        @if ($small) {
+          margin: styles.spacePx(xs) 0 styles.spacePx(small) 0;
+        } @else {
+          margin: styles.spacePx(small) 0 styles.spacePx(normal) 0;
+        }
       }
     }
   }
 
   ol {
     counter-reset: item;
-    margin: $paragraphMarginPx 0;
+    @if ($small) {
+      margin: $paragraphMarginSmallPx 0;
+    } @else {
+      margin: $paragraphMarginPx 0;
+    }
     list-style-position: outside;
-    line-height: defines.typo(lineHeight, normal);
+    line-height: styles.typo(lineHeight, normal);
 
     li {
       display: block;
-      margin: 0 0 defines.spacePx(if($small, xxs, xs)) defines.spacePx(small);
+      @if ($small) {
+        margin: 0 0 styles.spacePx(xs) styles.spacePx(normal);
+      } @else {
+        margin: 0 0 styles.spacePx(small) styles.spacePx(normal);
+      }
       hyphens: auto;
 
       &:before {
@@ -160,7 +250,11 @@
       }
 
       ol {
-        margin: defines.spacePx(if($small, xxs, xs)) 0 defines.spacePx(if($small, xs, small)) 0;
+        @if ($small) {
+          margin: styles.spacePx(xs) 0 styles.spacePx(small) 0;
+        } @else {
+          margin: styles.spacePx(small) 0 styles.spacePx(normal) 0;
+        }
 
         li:before {
           content: counters(item, ".") "\00a0\00a0\00a0";
@@ -176,23 +270,31 @@
 
   table {
     border-spacing: 0;
-    margin: $paragraphMarginPx 0;
-    line-height: defines.typo(lineHeight, small);
+    @if ($small) {
+      margin: $paragraphMarginSmallPx 0;
+    } @else {
+      margin: $paragraphMarginPx 0;
+    }
+    line-height: styles.typo(lineHeight, small);
 
     thead, tbody, tfoot {
       tr {
         th, td {
-          height: defines.spacePx(medium);
-          padding: defines.spacePx(xxxs) defines.spacePx(if($small, xs, small)) defines.spacePx(xxxs) 0;
+          height: styles.spacePx(large);
+          @if ($small) {
+            padding: styles.spacePx(xxs) styles.spacePx(small) styles.spacePx(xxs) 0;
+          } @else {
+            padding: styles.spacePx(xxs) styles.spacePx(normal) styles.spacePx(xxs) 0;
+          }
           vertical-align: baseline;
 
-          &:last-child, &:only-child { padding: defines.spacePx(xxxs) 0; }
+          &:last-child, &:only-child { padding: styles.spacePx(xxs) 0; }
         }
 
         th {
           text-align: initial;
-          font-size: defines.typo(fontSize, small);
-          font-weight: defines.typo(fontWeight, bold);
+          font-size: styles.typo(fontSize, small);
+          font-weight: styles.typo(fontWeight, bold);
         }
 
         td {
@@ -201,7 +303,7 @@
 
         &:not(:last-child) {
           th, td {
-            border-bottom: 1px solid defines.color(gray);
+            border-bottom: 1px solid styles.color("gray");
           }
         }
       }
@@ -210,17 +312,17 @@
     thead {
       tr:last-child {
         th, td {
-          border-bottom: 2px solid defines.color(structureSilver);
+          border-bottom: 2px solid styles.color(structureSilver);
         }
       }
     }
 
     tfoot {
-      font-size: defines.typo(fontSize, small);
+      font-size: styles.typo(fontSize, small);
 
       tr:first-child {
         th, td {
-          border-top: 2px solid defines.color(structureSilver);
+          border-top: 2px solid styles.color(structureSilver);
         }
       }
     }
@@ -239,13 +341,18 @@
 
   b, strong {
     font-family: inherit;
-    font-weight: defines.typo(fontWeight, semibold);
+    font-weight: styles.typo(fontWeight, semibold);
     color: inherit;
   }
 
   mark {
-    padding: 0 4px;
-    background: defines.color(impulseGreen);
+    padding: 0 5px;
+    border-radius: 2px;
+    background: styles.color(attention);
+
+    @include styles.onDarkGround {
+      background: styles.color(offWhite);
+    }
   }
 
   code {
@@ -254,8 +361,16 @@
   }
 
   hr {
-    border-bottom: defines.layout(components, dividerBorderDark);
-    margin: $paragraphMarginPx 0;
+    border-bottom: 1px solid styles.layout(dividerColor, dark);
+    @if ($small) {
+      margin: $paragraphMarginSmallPx 0;
+    } @else {
+      margin: $paragraphMarginPx 0;
+    }
+
+    @include styles.onDarkGround {
+      border-bottom-color: styles.layout(dividerColor, light);
+    }
   }
 
 
@@ -264,17 +379,27 @@
   // -----------------------------------------------------------------------------------------------
 
   blockquote {
-    padding: defines.spacePx(xs) defines.spacePx(xs) defines.spacePx(xs) #{defines.space(xs) + defines.space(xxs)}px;
-    border-left: defines.spacePx(xxs) solid defines.color(calmingGreen);
-    margin: $paragraphMarginPx 0;
-    background: defines.color(lightGray);
+    padding: styles.spacePx(small) styles.spacePx(small) styles.spacePx(small) #{styles.space(small) + styles.space(xs)}px;
+    border: 1px solid styles.color(calmingGreen);
+    border-radius: styles.spacePx(small);
+    @if ($small) {
+      margin: $paragraphMarginSmallPx 0;
+    } @else {
+      margin: $paragraphMarginPx 0;
+    }
+    // a surface of its own, whose ground its content follows
+    @include styles.background("lightGray");
 
     p, dl, ul, ol, table {
-      font-size: defines.typo(fontSize, small);
+      font-size: styles.typo(fontSize, small);
     }
 
     p {
-      margin-bottom: defines.spacePx(if($small, xs, small));;
+      @if ($small) {
+        margin-bottom: styles.spacePx(small);
+      } @else {
+        margin-bottom: styles.spacePx(normal);
+      }
     }
 
     & > *:first-child {
@@ -288,12 +413,12 @@
 
   q {
     display: block;
-    margin: defines.spacePx(xl) 0 defines.spacePx(xl) 0;
-    font-size: defines.typo(fontSize, xl);
-    font-weight: defines.typo(fontWeight, semibold);
+    margin: styles.spacePx(xxl) 0 styles.spacePx(xxl) 0;
+    font-size: styles.typo(fontSize, xl);
+    font-weight: styles.typo(fontWeight, semibold);
     font-style: italic;
-    line-height: defines.typo(lineHeight, normal);
-    color: defines.typo(color, dark, normal);
+    line-height: styles.typo(lineHeight, normal);
+    color: styles.typo(color, dark, normal);
     text-align: center;
     hyphens: auto;
 
@@ -301,11 +426,15 @@
       position: relative;
       top: 12px;
       margin: 0 7px 0 0;
-      font-size: defines.typo(fontSize, xxl);
+      font-size: styles.typo(fontSize, xxl);
     }
 
     &:after {
       content: no-close-quote;
+    }
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
     }
   }
 
@@ -319,11 +448,18 @@
     display: inline-block;
     align-self: baseline;
     margin-bottom: 1px;
-    color: defines.typo(color, dark, normal);
-    fill: defines.typo(color, dark, normal);
+    // The lettering of a link, in the form for the ground it sits on - a link of the control
+    // component "Link" and one written into a content's markup alike.
+    color: styles.typo(color, dark, normal);
+    fill: styles.typo(color, dark, normal);
     text-decoration: none;
     hyphens: manual;
     z-index: 0;
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
+    }
 
     &:before {
       content: "";
@@ -331,10 +467,12 @@
       left: 0;
       width: 100%;
       bottom: -1px;
-      border-bottom: 2px solid defines.color(impulseGreen);
+      // The width every green line of the framework is drawn at - the interaction underline of the
+      // menus and of the tab bar read the same value.
+      border-bottom: #{styles.layout(controls, interactionUnderlineWidth)}px solid styles.color(impulseGreen);
       transform-origin: left;
       transform: scaleX(1);
-      transition: transform defines.layoutMs(defaultAnimationTimeMs) ease;
+      transition: transform styles.layoutMs(animationTime, slowMs) ease;
       z-index: -1;
     }
 
@@ -348,12 +486,17 @@
     }
 
     &:focus {
-      outline: 1px solid defines.color(impulseGreen)
+      outline: 1px solid styles.color(impulseGreen)
     }
 
     &:visited {
-      color: defines.typo(color, dark, normal);
-      fill: defines.typo(color, dark, normal);
+      color: styles.typo(color, dark, normal);
+      fill: styles.typo(color, dark, normal);
+
+      @include styles.onDarkGround {
+        color: styles.typo(color, light, normal);
+        fill: styles.typo(color, light, normal);
+      }
     }
   }
 }
@@ -365,19 +508,27 @@
 @mixin nativeElementsAddForRtl($small: false) {
   dl {
     dd {
-      margin: defines.spacePx(xxs) defines.spacePx(small) 0 0;
+      margin: styles.spacePx(xs) styles.spacePx(normal) 0 0;
     }
   }
 
   ul {
     li {
-      margin: 0 defines.spacePx(medium) defines.spacePx(if($small, xxs, xs)) 0;
+      @if ($small) {
+        margin: 0 styles.spacePx(large) styles.spacePx(xs) 0;
+      } @else {
+        margin: 0 styles.spacePx(large) styles.spacePx(small) 0;
+      }
     }
   }
 
   ol {
     li {
-      margin: 0 defines.spacePx(small) defines.spacePx(if($small, xxs, xs)) 0;
+      @if ($small) {
+        margin: 0 styles.spacePx(normal) styles.spacePx(xs) 0;
+      } @else {
+        margin: 0 styles.spacePx(normal) styles.spacePx(small) 0;
+      }
     }
   }
 
@@ -385,17 +536,21 @@
     thead, tbody, tfoot {
       tr {
         th, td {
-          padding: defines.spacePx(xxxs) 0 defines.spacePx(xxxs) defines.spacePx(if($small, xs, small));
+          @if ($small) {
+            padding: styles.spacePx(xxs) 0 styles.spacePx(xxs) styles.spacePx(small);
+          } @else {
+            padding: styles.spacePx(xxs) 0 styles.spacePx(xxs) styles.spacePx(normal);
+          }
 
-          &:last-child, &:only-child { padding: defines.spacePx(xxxs) 0; }
+          &:last-child, &:only-child { padding: styles.spacePx(xxs) 0; }
         }
       }
     }
   }
 
   blockquote {
-    padding: defines.spacePx(xs) #{defines.space(xs) + defines.space(xxs)}px defines.spacePx(xs) defines.spacePx(xs);
+    padding: styles.spacePx(small) #{styles.space(small) + styles.space(xs)}px styles.spacePx(small) styles.spacePx(small);
     border-left: 0 none;
-    border-right: defines.spacePx(xxs) solid defines.color(calmingGreen);
+    border-right: styles.spacePx(xs) solid styles.color(calmingGreen);
   }
 }

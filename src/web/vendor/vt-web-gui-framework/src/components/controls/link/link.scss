@@ -1,12 +1,13 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
 
 .linkExternalIcon {
-  margin: 0 0 0 defines.spacePx(xxxs);
+  margin: 0 0 0 styles.spacePx(xxs);
 }
+
 
 body[dir="rtl"] {
   .linkExternalIcon {
-    margin: 0 defines.spacePx(xxs) 0 0;
+    margin: 0 styles.spacePx(xs) 0 0;
   }
 }

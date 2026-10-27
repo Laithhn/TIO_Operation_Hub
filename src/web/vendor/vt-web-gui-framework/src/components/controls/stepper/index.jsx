@@ -1,13 +1,12 @@
-import PropTypes from 'prop-types'; // eslint-disable-line max-classes-per-file
 import { memo } from 'react';
 
-import Icon from 'components/indicators/icon';
-import useStylingProps from 'components/hooks/useStylingProps';
-import classNames from 'utils/classNames';
+import { Icon } from 'components/indicators/icon';
+import { useStylingProps } from 'components/hooks/useStylingProps';
+import { classNames } from 'utils/classNames';
 
-import { StepperOrientation, StepperState } from './enums';
+import { StepperOrientation, SidebarStatus } from './enums';
 import stylingProps from './stylingProps';
-import css from './stepper.scss';
+import * as css from './stepper.scss';
 
 /**
  * Sliding window generator
@@ -18,14 +17,25 @@ function* windowGenerator(inputArray, size) {
   }
 }
 
+
+//Stepper.propTypes = {
+//  steps: PropTypes.oneOfType([PropTypes.func, PropTypes.arrayOf(PropTypes.exact({
+//    label: PropTypes.string.isRequired,
+//    state: PropTypes.instanceOf(SidebarStatus).isRequired,
+//  }))]).isRequired,
+//  activeStepIndex: PropTypes.number,
+//  stepperOrientation: PropTypes.instanceOf(StepperOrientation),
+//  onClick: PropTypes.func,
+//};
+
 /**
  * Memoized React component of a stepper control element.
  */
 const Stepper = memo(({
   steps,
-  activeStepIndex,
-  stepperOrientation,
-  onClick,
+  activeStepIndex = null,
+  stepperOrientation = StepperOrientation.HORIZONTAL,
+  onClick = () => {},
   ...restProps
 }) => {
   // --------------------------------------------------------------------<editor-fold desc="States">
@@ -43,8 +53,8 @@ const Stepper = memo(({
 
   // Separators can be invisible (null), inactive (false) and active (true)
   const stepsWithSeparatorInformation = Array.from(windowGenerator([null, ...stepsDethunked, null], 3)).map(([predecessor, current, successor]) => {
-    const separatorBeforeActive = predecessor === null ? null : predecessor.state !== StepperState.OPEN && current.state !== StepperState.OPEN;
-    const separatorAfterActive = successor === null ? null : current.state !== StepperState.OPEN && successor.state !== StepperState.OPEN;
+    const separatorBeforeActive = predecessor === null ? null : predecessor.state !== SidebarStatus.OPEN && current.state !== SidebarStatus.OPEN;
+    const separatorAfterActive = successor === null ? null : current.state !== SidebarStatus.OPEN && successor.state !== SidebarStatus.OPEN;
     return { separatorBeforeActive, ...current, separatorAfterActive };
   });
 
@@ -83,7 +93,7 @@ const Stepper = memo(({
 
         const stepperStepClasses = classNames(css.stepperStep, {
           [css.active]: active,
-          [css.done]: (((step.state === StepperState.DONE) || (step.state === StepperState.VERIFIED)) && !active),
+          [css.done]: (((step.state === SidebarStatus.DONE) || (step.state === SidebarStatus.VERIFIED)) && !active),
           [css.selectable]: step.selectable === undefined ? true : step.selectable,
           [css.horizontal]: (stepperOrientation === StepperOrientation.HORIZONTAL),
           [css.vertical]: (stepperOrientation === StepperOrientation.VERTICAL),
@@ -112,7 +122,7 @@ const Stepper = memo(({
           >
             {(step.separatorBeforeActive !== null) && <span className={sepBeforeClasses} />}
             <span className={css.icon}>
-              {(step.state === StepperState.VERIFIED)
+              {(step.state === SidebarStatus.VERIFIED)
                 ? <Icon icon="OK" size={15} />
                 : index}
             </span>
@@ -128,21 +138,5 @@ const Stepper = memo(({
 
 Stepper.displayName = 'Stepper';
 
-Stepper.propTypes = {
-  steps: PropTypes.oneOfType([PropTypes.func, PropTypes.arrayOf(PropTypes.exact({
-    label: PropTypes.string.isRequired,
-    state: PropTypes.instanceOf(StepperState).isRequired,
-  }))]).isRequired,
-  activeStepIndex: PropTypes.number,
-  stepperOrientation: PropTypes.instanceOf(StepperOrientation),
-  onClick: PropTypes.func,
-};
-
-Stepper.defaultProps = {
-  activeStepIndex: null,
-  stepperOrientation: StepperOrientation.HORIZONTAL,
-  onClick() {},
-};
-
-export { StepperOrientation, StepperState };
+export { StepperOrientation, SidebarStatus };
 export default Stepper;

@@ -1,0 +1,33 @@
+@use "assets/styles";
+
+
+.minimizedModwin {
+  position: absolute;
+  width: styles.layoutPx(modwins, minimizedModwinWidth);
+  height: styles.layoutPx(modwins, minimizedModwinHeight);
+  display: flex;
+  justify-content: space-between;
+  border-radius: styles.layoutPx(modwins, minimizedModwinBorderRadius);
+  background: styles.color(structureSilver);
+  box-shadow: styles.layout(boxShadow, floating);
+  touch-action: none;
+}
+
+
+.title {
+  padding: 0 styles.spacePx(small);
+  align-self: center;
+  font-size: styles.typo(fontSize, small);
+  font-weight: styles.typo(fontWeight, normal);
+  color: styles.typo(color, light, normal);
+  fill: styles.typo(color, light, normal);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  @include styles.noTextSelection;
+  overflow: hidden;
+}
+
+
+.buttons {
+  display: flex;
+}

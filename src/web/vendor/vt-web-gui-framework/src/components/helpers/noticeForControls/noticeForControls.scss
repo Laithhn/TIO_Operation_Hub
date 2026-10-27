@@ -1,42 +1,41 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
 
 .noticeForControls {
-  position: absolute;
-  height: defines.layoutPx(controls, noticeHeight);
-  font-size: defines.typo(fontSize, xs);
-  font-weight: defines.typo(typoSet, hint, fontWeight);
-  line-height: defines.typo(typoSet, hint, lineHeight);
-  white-space: nowrap;
+  // The notice lines up with the **value** of the control above it, not with that control's edge:
+  // it is prose about what stands in the field, so it reads as a continuation of that text rather
+  // than as a second block under the same rectangle. The control states its own inset here, its
+  // class living in a CSS module this one cannot reach - the same route the interaction veil takes
+  // to the check box's icon. A control that has no inset to state leaves this at zero, which is
+  // what the two controls still on the bottom line do.
+  padding-inline: var(--noticeInset, 0);
+  font-size: styles.typo(fontSize, xs);
+  font-weight: styles.typo(typoSet, hint, fontWeight);
+  line-height: styles.typo(lineHeight, small);
   text-align: start;
-  text-decoration-line: none;
-  text-overflow: ellipsis;
-  overflow: hidden;
 
-  &:not(.darkTheme) {
-    &:not(.disabled) {
-      color: defines.typo(typoSet, hint, color, dark);
+  // Each colour is followed by its form for a dark ground, which wins by position alone.
+  &:not(.disabled) {
+    color: styles.typo(typoSet, hint, color, dark);
 
-      &.errorText {
-        color: defines.typo(color, dark, attentionHigh);
-      }
+    @include styles.onDarkGround {
+      color: styles.typo(typoSet, hint, color, light);
     }
 
-    &.disabled {
-      color: defines.typo(typoSet, hint, disabledColor, dark);
+    &.errorText {
+      color: styles.typo(color, dark, attentionHigh);
+
+      @include styles.onDarkGround {
+        color: styles.typo(color, light, attentionHigh);
+      }
     }
   }
 
-  &.darkTheme {
-    &:not(.disabled) {
-      color: defines.typo(typoSet, hint, color, light);
+  &.disabled {
+    color: styles.typo(typoSet, hint, disabledColor, dark);
 
-      &.errorText {
-        color: defines.typo(color, light, attentionHigh);
-      }
-    }
-
-    &.disabled {
-      color: defines.typo(typoSet, hint, disabledColor, light);
+    @include styles.onDarkGround {
+      color: styles.typo(typoSet, hint, disabledColor, light);
     }
   }
 }

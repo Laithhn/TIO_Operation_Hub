@@ -1,9 +1,19 @@
+@use "assets/styles";
+
+
 .dataTable {
   min-height: 0;
 }
+
 
 .innerContr {
   position: relative;
   width: 100%;
   height: 100%;
+}
+
+
+// The pane of the styling prop boxShadow="contact", drawn for the ground the table sits on.
+.contactPane {
+  @include styles.contactPane;
 }

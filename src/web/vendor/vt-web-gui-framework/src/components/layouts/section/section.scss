@@ -1,38 +1,86 @@
-@use "assets/styles/defines";
+@use "assets/styles";
+
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
 
 .section {
   display: grid;
   transition: background 0.1s ease;
 
-  &.darkTheme {
-    p, h1, h2, h3, h4, h5, dl, ul, ol, table {
-      color: defines.typo(color, light, normal);
-    }
-
-    mark {
-      background: defines.color(offWhite);
-    }
-
-    hr {
-      border-bottom: defines.layout(components, dividerBorderLight);
-    }
-
-    a {
-      color: defines.typo(color, light, normal);
-      fill: defines.typo(color, light, normal);
-
-      &:visited {
-        color: defines.typo(color, light, normal);
-        fill: defines.typo(color, light, normal);
-      }
-    }
-  }
+  // The lettering of native elements in the content follows the ground they sit on through the
+  // rules of nativeElements(), which every content and every card includes.
 
   &.overflowHidden {
     overflow: hidden;
   }
 
+  // A clickable section is drawn and behaves like the filled button, except for its fill, which stays
+  // the section's own colour: it carries the full pane - edge, contact shadow, rim and glow -
+  // whether "boxShadow" is set or not. Under the pointer and the focus its edge takes the
+  // interaction colour and the interaction veil lies over its face; a press lays the veil once
+  // more, pulls the contact shadow together and puts the rim out. It neither lifts nor sinks.
+  //
+  // The edge and the contact shadow take the form of the ground the section sits on. The veil takes
+  // the form of the section's own ground, because it lies on the section's colour: the classes
+  // "groundDark" and "groundLight" state that ground, and without either - an image with no
+  // "darkTheme" - the section's ground is the one it sits on. The veil rides in slots named for the
+  // section, a slot being inherited by everything inside it.
   &.clickable {
     cursor: pointer;
+    --sectionVeil: #{styles.layout(controls, slotEmptyVeil)};
+    --sectionPress: #{styles.layout(controls, slotEmptyVeil)};
+    @include styles.contactPane(full);
+    box-shadow:
+      var(--contactPaneShadow), var(--contactPaneRim), var(--contactPaneGlow),
+      var(--sectionVeil), var(--sectionPress);
+    transition:
+      background 0.1s ease,
+      box-shadow $easeOutMs ease-out,
+      border-color $easeOutMs ease-out;
+
+    // The veil and the edge are the whole focus appearance, so the browser's own ring goes.
+    &:focus-visible {
+      outline: none;
+    }
+
+    &:hover, &:focus-visible {
+      --sectionVeil: #{styles.layout(controls, interactionVeil)};
+      --contactPaneBorderColor: #{styles.layout(controls, interactionBorder)};
+      transition-duration: $easeInMs;
+
+      @include styles.onDarkGroundOrClass {
+        --sectionVeil: #{styles.layout(controls, interactionVeilOnDark)};
+      }
+
+      @include styles.onDarkGround {
+        --contactPaneBorderColor: #{styles.layout(controls, interactionBorderOnDark)};
+      }
+    }
+
+    // The pressed status comes from the component rather than from ":active", which the keyboard
+    // never reaches (see Section.tsx).
+    &.pressed {
+      --sectionPress: #{styles.layout(controls, interactionVeil)};
+      --contactPaneShadow: #{styles.layout(controls, surface, contactPressed, dark)};
+      --contactPaneRim: #{styles.layout(controls, slotEmptyInset)};
+      transition-duration: $easeInMs;
+
+      @include styles.onDarkGroundOrClass {
+        --sectionPress: #{styles.layout(controls, interactionVeilOnDark)};
+      }
+
+      @include styles.onDarkGround {
+        --contactPaneShadow: #{styles.layout(controls, surface, contactPressed, light)};
+      }
+    }
   }
+}
+
+
+// The pane of the styling prop boxShadow="contact", drawn for the ground the section sits on.
+.contactPane {
+  @include styles.contactPane;
 }

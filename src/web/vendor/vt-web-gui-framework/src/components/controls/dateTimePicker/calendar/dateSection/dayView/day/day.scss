@@ -1,46 +1,77 @@
-@use "sass:map";
 @use "sass:math";
-@use "assets/styles/defines";
-@use "../../../../defines.js" as localDefines;
+@use "assets/styles";
 
-$dayHeight: map.get(localDefines.$calendar, dateSection, dayHeight);
-$todayCircleDiameter: map.get(localDefines.$calendar, dateSection, todayCircleDiameter);
-$todayCircleWidth: map.get(localDefines.$calendar, dateSection, todayCircleWidth);
 
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+// The circle that holds a day's number, and the width of the ring that marks today on it.
+$circleDiameter: 28;
+$todayRingWidth: 2;
+// The colour of the marker behind the selected day, which is the ground of that day's number.
+$selectedMarkerColor: calmingGreen;
+
+
+// A day is a control without a surface of its own, like the check box: its face is the circle
+// holding its number, which the ring of "today" already takes its shape from, and the selection
+// marker behind it belongs to the calendar rather than to the day. The status sits on the day, since
+// the pointer anywhere in its cell counts, and the circle is what draws it - the slot idiom of the
+// base design, one custom property per layer, here inside one module.
 .day {
   position: relative;
+  // The browser's own focus ring is suppressed because the veil below replaces it.
   outline: none;
   cursor: pointer;
+  // The empty value with two layers, the veil that fills this slot carrying two - see the controls
+  // map.
+  --statusVeil: #{styles.layout(controls, slotEmptyVeil)};
+  --statusEaseMs: #{$easeOutMs};
+  // The marker's colour, handed down because the marker is a stylesheet of its own: the day needs
+  // the same colour at compile time to derive the ground it gives its number (below).
+  --calendarSelectedMarkerColor: #{styles.color($selectedMarkerColor)};
 
+  // A selected day stands on the marker behind it, which is another element rather than an
+  // ancestor of the number - so the day states the marker's ground itself, and the number's
+  // lettering and veil follow it.
+  &.selected {
+    @include styles.ground(styles.groundOf($selectedMarkerColor));
+  }
+
+  // The circle stands in the middle of the day's cell on both axes: the day is a grid item and
+  // fills its cell, a column wide and a row high, and the auto margins share out what the circle
+  // leaves of it.
   .number {
     position: absolute;
-    width: $todayCircleDiameter + px;
-    top: #{math.div(($dayHeight - $todayCircleDiameter), 2)}px;
-    height: #{$todayCircleDiameter}px;
+    inset: 0;
+    width: #{$circleDiameter}px;
+    height: #{$circleDiameter}px;
+    margin: auto;
     display: inline-block;
-    border-radius: #{math.div($todayCircleDiameter, 2)}px;
-    @include defines.typoSet(valueSmall);
-    line-height: #{$todayCircleDiameter - 1}px;
+    border-radius: #{math.div($circleDiameter, 2)}px;
     text-align: center;
-    user-select: none;
+    @include styles.noTextSelection;
+    box-shadow: var(--statusVeil);
+    transition: box-shadow var(--statusEaseMs) ease-out;
+
+    @include styles.typoSet(valueSmall, $lineHeight: #{$circleDiameter - 1}px);
 
     &.today {
-      border: #{$todayCircleWidth}px solid defines.color(calmingGreen);
-      line-height: #{$todayCircleDiameter - ($todayCircleWidth * 2) - 1}px;
+      border: #{$todayRingWidth}px solid styles.color(calmingGreen);
+      line-height: #{$circleDiameter - ($todayRingWidth * 2) - 1}px;
 
       &.selected {
-        border-color: defines.color(offWhite);
+        border-color: styles.color(offWhite);
       }
     }
   }
 
-  &:focus {
-    .number {
-      background: defines.layout(controls, color, dark, backgroundFocus);
-
-      &.selected {
-        background: defines.layout(controls, color, light, backgroundFocus);
-      }
-    }
+  // FOCUS and HOVER are two statuses with one appearance - the veil every control of the base design
+  // takes, and no line: a day carries no edge at rest and grows none. Focus follows :focus-visible,
+  // the browser's own judgement of a focus worth showing: the arrow keys move it from day to day and
+  // that focus shows, a click on a day drops it together with the pointer.
+  &:hover, &:focus-visible {
+    --statusVeil: #{styles.layout(controls, interactionVeil)};
+    --statusEaseMs: #{$easeInMs};
   }
 }

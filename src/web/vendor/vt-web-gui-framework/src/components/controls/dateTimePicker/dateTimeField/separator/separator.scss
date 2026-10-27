@@ -1,0 +1,15 @@
+@use "assets/styles";
+
+
+.separator {
+  padding: 0 1px;
+}
+
+
+.spacer {
+  width: styles.spacePx(xs);
+
+  &.dense {
+    width: styles.spacePx(xxs);
+  }
+}

@@ -1,8 +1,10 @@
 {
-  "Y": { "key": "year", "minValue": 0, "maxValue": 9999, "numDigits": 4, "phC": "VIWGF_DATETIME_PLACEHOLDER_CHAR_YEAR", "translatePhC": true },
-  "m": { "key": "month", "minValue": 1, "maxValue": 12, "numDigits": 2, "phC": "VIWGF_DATETIME_PLACEHOLDER_CHAR_MONTH", "translatePhC": true },
-  "d": { "key": "day", "minValue": 1, "maxValue": 31, "numDigits": 2, "phC": "VIWGF_DATETIME_PLACEHOLDER_CHAR_DAY", "translatePhC": true },
-  "H": { "key": "hours", "minValue": 0, "maxValue": 23, "numDigits": 2, "phC": "-", "translatePhC": false },
-  "i": { "key": "minutes", "minValue": 0, "maxValue": 59, "numDigits": 2, "phC": "-", "translatePhC": false },
-  "s": { "key": "seconds", "minValue": 0, "maxValue": 59, "numDigits": 2, "phC": "-", "translatePhC": false }
+  "Y": { "id": "year", "minValue": 0, "maxValue": 9999, "numDigits": 4, "phC": "VIWGF_DATETIME_PLACEHOLDER_CHAR_YEAR", "translatePhC": true },
+  "m": { "id": "month", "minValue": 1, "maxValue": 12, "numDigits": 2, "phC": "VIWGF_DATETIME_PLACEHOLDER_CHAR_MONTH", "translatePhC": true },
+  "d": { "id": "day", "minValue": 1, "maxValue": 31, "numDigits": 2, "phC": "VIWGF_DATETIME_PLACEHOLDER_CHAR_DAY", "translatePhC": true },
+  "H": { "id": "hours", "minValue": 0, "maxValue": 23, "numDigits": 2, "phC": "-", "translatePhC": false },
+  "h": { "id": "hoursH12", "minValue": 1, "maxValue": 12, "numDigits": 2, "phC": "-", "translatePhC": false },
+  "i": { "id": "minutes", "minValue": 0, "maxValue": 59, "numDigits": 2, "phC": "-", "translatePhC": false },
+  "s": { "id": "seconds", "minValue": 0, "maxValue": 59, "numDigits": 2, "phC": "-", "translatePhC": false },
+  "a": { "id": "amPm", "numDigits": 2, "phC": "-", "translatePhC": false }
 }

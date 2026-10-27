@@ -1,0 +1,49 @@
+@use "sass:map";
+@use "sass:math";
+@use "assets/styles";
+
+.hamburgerIcon {
+  height: styles.layoutPx(header, height);
+  outline:  none;
+  padding: #{math.div((styles.layout(header, height) - styles.layout(header, iconSize)), 2)}px #{styles.layoutPx(mostLeftRightPadding)};
+  fill: styles.typo(color, light, normal);
+  cursor: pointer;
+  transition:
+    background styles.layoutMs(animationTime, slowMs) ease,
+    fill styles.layoutMs(animationTime, slowMs) ease;
+
+  path {
+    transition: transform styles.layoutMs(animationTime, slowMs);
+
+    &:first-child {
+      transform-origin: center 6px;
+    }
+
+    &:nth-child(2) {
+      transform-origin: center;
+    }
+
+    &:last-child {
+      transform-origin: center 18px;
+    }
+  }
+
+  &.active {
+    background: styles.color(offWhite);
+    fill: styles.typo(color, dark, normal);
+
+    path {
+      &:first-child {
+        transform: translateY(6px) rotate(135deg);
+      }
+
+      &:nth-child(2) {
+        transform: scaleX(0);
+      }
+
+      &:last-child {
+        transform: translateY(-6px) rotate(-135deg);
+      }
+    }
+  }
+}

@@ -1,23 +1,51 @@
-import PropTypes from 'prop-types';
 import {
   useState, useRef, useCallback, useEffect,
 } from 'react';
 
-import Enums from 'assets/enums';
-import Button, { ButtonType, ButtonState, ButtonHighlight } from 'components/controls/button';
-import Input, { InputType, InputState } from 'components/controls/input';
+import { Button, ButtonStatus } from 'components/controls/button';
+import { Input } from 'components/controls/input';
 import Text from 'components/indicators/text';
 import Section from 'components/layouts/section';
 import Dialog from 'components/popups/dialog';
 
 
+//Login.propTypes = {
+//  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+//  title: PropTypes.string,
+//  stateInputUsername: PropTypes.instanceOf(InputState),
+//  stateInputPassword: PropTypes.instanceOf(InputState),
+//  stateButtonOk: PropTypes.instanceOf(ButtonState),
+//  labelUsername: PropTypes.string,
+//  labelPassword: PropTypes.string,
+//  labelButtonCancel: PropTypes.string,
+//  labelButtonOk: PropTypes.string,
+//  noticeUsername: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+//  noticePassword: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+//  passwordVisibilityToggle: PropTypes.bool,
+//  onClickCancel: PropTypes.func,
+//  onClickOk: PropTypes.func,
+//  children: PropTypes.node,
+//};
+
 /**
  * React component of a default login dialog uses component Dialog.
  */
 const Login = ({
-  id, title, stateInputUsername, stateInputPassword, stateButtonOk, labelUsername, labelPassword,
-  labelButtonCancel, labelButtonOk, noticeUsername, noticePassword, passwordVisibilityToggle,
-  onClickCancel, onClickOk, children,
+  id = '',
+  title = '',
+  stateInputUsername = "IDLE",
+  stateInputPassword = "IDLE",
+  stateButtonOk = ButtonStatus.IDLE,
+  labelUsername = '',
+  labelPassword = '',
+  labelButtonCancel = 'Cancel',
+  labelButtonOk = 'OK',
+  noticeUsername = '',
+  noticePassword = '',
+  passwordVisibilityToggle = false,
+  onClickCancel = () => {},
+  onClickOk = () => {},
+  children = null,
 }) => {
   // --------------------------------------------------------------------<editor-fold desc="States">
   // States
@@ -124,20 +152,20 @@ const Login = ({
 
   return (
     <Dialog
-      rowGap={Enums.GapAndPadding.XL}
-      padding={Enums.GapAndPadding.LARGE}
-      backgroundColor={Enums.BackgroundColor.OFF_WHITE}
+      rowGap="xl"
+      padding="large"
+      backgroundColor="offWhite"
       exclusive
       dimmedBackground
     >
-      {title && <Text type={Enums.TextType.TITLE}>{title}</Text>}
+      {title && <Text type="title">{title}</Text>}
       <Section
         gridTemplateColumns={isLabel ? 'auto 300px' : '300px'}
         gridTemplateAreas={isLabel ? '"labelUsername inputUsername" "labelPassword inputPassword"' : '"inputUsername" "inputPassword"'}
-        gap={Enums.GapAndPadding.NORMAL}
-        alignItems={Enums.PlaceSelfItems.BASELINE}
+        gap="normal"
+        alignItems="baseline"
       >
-        {labelUsername && <Text gridArea="labelUsername" type={Enums.TextType.LABEL}>{labelUsername}</Text>}
+        {labelUsername && <Text gridArea="labelUsername" type="label">{labelUsername}</Text>}
         <Input
           ref={inputUsernameRef}
           id="inputUsername"
@@ -147,10 +175,10 @@ const Login = ({
           notice={noticeUsername}
           onChange={handleUsernameInputChange}
         />
-        {labelPassword && <Text gridArea="labelPassword" type={Enums.TextType.LABEL}>{labelPassword}</Text>}
+        {labelPassword && <Text gridArea="labelPassword" type="label">{labelPassword}</Text>}
         <Input
           gridArea="inputPassword"
-          type={InputType.PASSWORD}
+          type="password"
           state={stateInputPassword}
           passwordVisibilityToggle={passwordVisibilityToggle}
           value={password}
@@ -160,22 +188,21 @@ const Login = ({
       </Section>
       {children}
       <Section
-        gridAutoFlow={Enums.GridAutoFlow.COLUMN}
-        columnGap={Enums.GapAndPadding.NORMAL}
-        justifyContent={Enums.PlaceContent.END}
+        gridAutoFlow="column"
+        columnGap="normal"
+        justifyContent="end"
       >
         <Button
-          type={ButtonType.FLAT}
-          highlight={ButtonHighlight.ATTENTION}
+          type="flat"
           text={labelButtonCancel}
           onClick={handleClickCancel}
         />
         <Button
           ref={buttonOkRef}
           id="buttonOk"
-          type={ButtonType.FLAT}
+          type="flat"
           state={stateButtonOk}
-          highlight={ButtonHighlight.ATTENTION}
+          highlight="attention"
           text={labelButtonOk}
           onClick={handleClickOk}
         />
@@ -186,41 +213,5 @@ const Login = ({
 };
 
 Login.displayName = 'Login';
-
-Login.propTypes = {
-  id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  title: PropTypes.string,
-  stateInputUsername: PropTypes.instanceOf(InputState),
-  stateInputPassword: PropTypes.instanceOf(InputState),
-  stateButtonOk: PropTypes.instanceOf(ButtonState),
-  labelUsername: PropTypes.string,
-  labelPassword: PropTypes.string,
-  labelButtonCancel: PropTypes.string,
-  labelButtonOk: PropTypes.string,
-  noticeUsername: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  noticePassword: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  passwordVisibilityToggle: PropTypes.bool,
-  onClickCancel: PropTypes.func,
-  onClickOk: PropTypes.func,
-  children: PropTypes.node,
-};
-
-Login.defaultProps = {
-  id: '',
-  title: '',
-  stateInputUsername: InputState.IDLE,
-  stateInputPassword: InputState.IDLE,
-  stateButtonOk: ButtonState.IDLE,
-  labelUsername: '',
-  labelPassword: '',
-  labelButtonCancel: 'Cancel',
-  labelButtonOk: 'OK',
-  noticeUsername: Input.defaultProps.notice,
-  noticePassword: Input.defaultProps.notice,
-  passwordVisibilityToggle: false,
-  onClickCancel() {},
-  onClickOk() {},
-  children: null,
-};
 
 export default Login;

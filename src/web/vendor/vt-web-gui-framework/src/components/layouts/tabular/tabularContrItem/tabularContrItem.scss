@@ -1,13 +1,23 @@
-@use "assets/styles/defines";
+@use "assets/styles";
 
 .tabularContrItem {
   display: grid;
 
+  // The seam between two entries, translucent so it deepens the surface it lies on instead of
+  // stating a colour of its own - which is what lets one line serve every ground a call site may
+  // choose. A dark ground only swaps the colour: the line stays where it is.
   &.tabularStyleIsLine {
-    border-bottom: defines.layout(components, dividerBorderDark);
+    border-bottom: 1px solid styles.layout(dividerLine, dark);
+
+    @include styles.onDarkGround {
+      border-bottom-color: styles.layout(dividerLine, light);
+    }
   }
 
+  // The colour a tabular hands down reaches the item as an inline style and wins over this one, which
+  // is therefore the ground an item stands on where the call site named no colour at all - without
+  // it this style would separate nothing.
   &.tabularStyleIsBackground {
-    background: defines.color(lightGray);
+    @include styles.background("lightGray");
   }
 }

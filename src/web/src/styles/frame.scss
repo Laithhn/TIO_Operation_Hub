@@ -1,12 +1,14 @@
 // Hub additions to the VtWebGuiFramework frame (src/vt/frame.tsx, ui/Shell.tsx): the grid areas that the framework's
 // App component computes, the collapsible / off-canvas first sidebar, header controls and the footer line.
 // Values come from the framework defines; the frame's own look comes from its CSS modules.
-@use "assets/styles/defines";
+@use "assets/styles" as vt;
 
-.hub-app {
-  // frame/app: rows header · main toolbar · main scope · footer
+body .hub-app.hub-app {
+  // rows header · main toolbar · main scope · footer (the v4 App keeps its toolbar inside the main scope; the hub's
+  // #viMainToolbar slot is a row of its own, so the rows are set here)
+  grid-template-rows: vt.layoutPx(header, height) auto minmax(0, 1fr) auto;
   &.with-sidebar {
-    grid-template-columns: 0 defines.layoutPx(sidebars, firstSidebarWidth) minmax(0, 1fr) 0;
+    grid-template-columns: 0 vt.layoutPx(firstSidebar, width) minmax(0, 1fr) 0;
     grid-template-areas:
       ". viAreaHeader viAreaHeader ."
       "viAreaBurgerMenu viAreaFirstSidebar viAreaMainToolbar viAreaNotifications"
@@ -26,8 +28,10 @@ body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini)
 
 .skip {
   position: absolute; left: -9999px; top: 0; z-index: 100;
-  &:focus { left: defines.spacePx(xs); top: defines.spacePx(xxs); padding: defines.spacePx(xxs) defines.spacePx(xs); background: defines.color(offWhite); color: defines.color(primary); }
+  &:focus { left: vt.spacePx(small); top: vt.spacePx(xs); padding: vt.spacePx(xs) vt.spacePx(small); background: vt.color(offWhite); color: vt.color(primary); }
 }
+
+.hub-main-toolbar { grid-area: viAreaMainToolbar; }
 
 // ---------- header ----------
 .hdr {
@@ -45,25 +49,25 @@ body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini)
   nav[aria-label="Main"] { align-items: stretch; }
   nav[aria-label="Main"] > a { display: flex; align-items: center; }
   .hdr-select {
-    height: defines.layoutPx(controls, heightDefault);
-    padding: 0 defines.spacePx(xxs);
+    height: vt.layoutPx(controls, heightDefault);
+    padding: 0 vt.spacePx(xs);
     border: 0;
-    border-bottom: 1px solid defines.typo(color, light, weak);
+    border-bottom: 1px solid vt.typo(color, light, weak);
     background: transparent;
-    color: defines.typo(color, light, normal);
-    font-size: defines.typo(fontSize, small);
-    option { color: defines.color(primary); }
+    color: vt.typo(color, light, normal);
+    font-size: vt.typo(fontSize, small);
+    option { color: vt.color(primary); }
   }
   // "+ New" menu trigger in the header, as a flat dark-theme button
   .menu > .btn {
-    background: transparent; color: defines.typo(color, light, normal); border-color: defines.typo(color, light, weak);
-    &:hover { background: defines.layout(controls, color, light, backgroundFocus); }
+    background: transparent; color: vt.typo(color, light, normal); border-color: vt.typo(color, light, weak);
+    &:hover { background: vt.colorA(offWhite, 0.18); }
   }
-  svg.ic { fill: defines.typo(color, light, normal); }
-  .bell-btn { height: defines.layoutPx(header, height); padding: 0 defines.layoutPx(mostLeftRightPadding); color: defines.typo(color, light, normal); }
+  svg.ic { fill: vt.typo(color, light, normal); }
+  .bell-btn { height: vt.layoutPx(header, height); padding: 0 vt.layoutPx(mostLeftRightPadding); color: vt.typo(color, light, normal); }
 }
 @media (max-width: 1700px) {
-  .hdr nav[aria-label="Main"] > a { padding: 0 defines.spacePx(xs); font-size: defines.typo(fontSize, small); }
+  .hdr nav[aria-label="Main"] > a { padding: 0 vt.spacePx(small); font-size: vt.typo(fontSize, small); }
 }
 
 // ---------- first sidebar ----------
@@ -74,14 +78,14 @@ body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini)
   .side-nav { overflow-y: auto; overflow-x: hidden; }
   svg.ic { fill: currentColor; }
   .side-collapse {
-    position: absolute; right: defines.spacePx(xxs); bottom: defines.spacePx(xxs);
-    width: defines.spacePx(small); height: defines.spacePx(small);
+    position: absolute; right: vt.spacePx(xs); bottom: vt.spacePx(xs);
+    width: vt.spacePx(normal); height: vt.spacePx(normal);
     display: grid; place-items: center;
-    border: 1px solid defines.layout(sidebars, borderColor); background: defines.color(offWhite); color: defines.color(primary); cursor: pointer;
+    border: 1px solid vt.layout(dividerColor, soft); background: vt.color(offWhite); color: vt.color(primary); cursor: pointer;
   }
 }
 body.side-mini .side {
-  [class*="title__title"] p, [class*="entry__caption"], [class*="entry__isSubEntry"] { display: none; }
+  [class*="title__title"] p, [class*="menuNode__caption"], [class*="menuNode__isSubmenuNode"] { display: none; }
   .side-collapse svg { transform: rotate(180deg); }
 }
 
@@ -89,8 +93,8 @@ body.side-mini .side {
 .content {
   overflow: auto;
   min-width: 0;
-  background: defines.layout(dashboard, background);
-  padding: defines.spacePx(small) defines.spacePx(medium) defines.spacePx(medium);
+  background: vt.color(lightGray);
+  padding: vt.spacePx(normal) vt.spacePx(large) vt.spacePx(large);
   outline: none;
 }
 
@@ -99,22 +103,22 @@ body.side-mini .side {
   grid-auto-flow: column;
   grid-template-columns: auto auto 1fr auto;
   align-items: center;
-  column-gap: defines.spacePx(small);
-  min-height: defines.spacePx(medium);
-  padding: 0 defines.layoutPx(mostLeftRightPadding);
-  color: defines.typo(color, light, normal);
-  font-size: defines.typo(fontSize, xs);
+  column-gap: vt.spacePx(normal);
+  min-height: vt.spacePx(large);
+  padding: 0 vt.layoutPx(mostLeftRightPadding);
+  color: vt.typo(color, light, normal);
+  font-size: vt.typo(fontSize, xs);
   .center { text-align: center; }
-  .right { display: inline-flex; gap: defines.spacePx(small); align-items: center; }
-  .online { display: inline-flex; gap: defines.spacePx(xxxs); align-items: center; svg { fill: defines.color(calmingGreen); } }
-  .env-badge { padding: 0 defines.spacePx(xxs); background: defines.color(attentionHigh); color: defines.color(primary); font-weight: defines.typo(fontWeight, semibold); }
+  .right { display: inline-flex; gap: vt.spacePx(normal); align-items: center; }
+  .online { display: inline-flex; gap: vt.spacePx(xxs); align-items: center; svg { fill: vt.color(calmingGreen); } }
+  .env-badge { padding: 0 vt.spacePx(xs); background: vt.color(attentionHigh); color: vt.color(primary); font-weight: vt.typo(fontWeight, semibold); }
 }
 
 // ---------- phone: primary links keep the room; "+ New" (also in every section sidebar) and the dev switch step aside ----------
 @media (max-width: 600px) {
   .hdr .hdr-right > :has(> .hdr-select), .hdr .hdr-right > :has(> .menu) { display: none; }
-  .hdr [class*="logo__logo"] svg { width: 92px; }
-  .hdr .hdr-right [class*="secondaryLink__secondaryLink"] { padding-left: defines.spacePx(xxxs); padding-right: defines.spacePx(xxxs); }
+  .hdr [class*="headerLogo__headerLogo"] svg { width: 92px; }
+  .hdr .hdr-right [class*="menuNode__menuNode"] { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
 }
 
 // ---------- tablet / phone: the first sidebar becomes an off-canvas drawer ----------
@@ -123,15 +127,15 @@ body.side-mini .side {
   .hub-app.with-sidebar, body.side-mini .hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
   .hdr .menu-btn { display: inline-flex; align-items: center; }
   .hub-app.bare .hdr .menu-btn { display: none; }
-  .hdr [class*="logo__logo"] { min-width: auto; flex: none; padding: 0 defines.spacePx(xs); }
+  .hdr [class*="headerLogo__headerLogo"] { min-width: auto; flex: none; padding: 0 vt.spacePx(small); }
   .side {
-    position: fixed; left: 0; top: defines.layoutPx(header, height); bottom: 0;
-    width: defines.layoutPx(sidebars, firstSidebarWidth);
-    transform: translateX(-105%); transition: transform defines.layoutMs(defaultAnimationTimeMs) ease; z-index: 40;
+    position: fixed; left: 0; top: vt.layoutPx(header, height); bottom: 0;
+    width: vt.layoutPx(firstSidebar, width);
+    transform: translateX(-105%); transition: transform vt.layoutMs(animationTime, slowMs) ease; z-index: 40;
     .side-collapse { display: none; }
   }
   body.nav-open .side { transform: none; }
-  body.nav-open .scrim-nav { display: block; position: fixed; inset: defines.layoutPx(header, height) 0 0 0; background: defines.layout(dimmedBackground); z-index: 30; }
-  .content { padding: defines.spacePx(xs); }
-  .status { grid-template-columns: 1fr; grid-auto-flow: row; padding: defines.spacePx(xxxs) defines.spacePx(xs); .app, .center { display: none; } }
+  body.nav-open .scrim-nav { display: block; position: fixed; inset: vt.layoutPx(header, height) 0 0 0; background: vt.layout(dimmedBackground); z-index: 30; }
+  .content { padding: vt.spacePx(small); }
+  .status { grid-template-columns: 1fr; grid-auto-flow: row; padding: vt.spacePx(xxs) vt.spacePx(small); .app, .center { display: none; } }
 }

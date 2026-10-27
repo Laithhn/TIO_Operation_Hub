@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router';
 import { ApiError, get, post } from '../api';
 import { useForm } from '../hooks';
 import { Logo, Icon } from '../ui/Icon';
@@ -20,7 +20,7 @@ function AuthFrame({ title, sub, children }: { title: string; sub?: ReactNode; c
   const f = frameCss;
   return (
     <div className="auth-page">
-      <header className={cx(f.header.header, 'hdr auth-hdr')}><span className={f.logo.logo}><Logo /></span></header>
+      <header className={cx(f.header.header, 'hdr auth-hdr')}><span className={f.logo.headerLogo}><Logo /></span></header>
       <main className="auth-main" id="main">
         <section className="auth-card" aria-labelledby="auth-title">
           <div className="auth-product">TIO Operations Hub</div>

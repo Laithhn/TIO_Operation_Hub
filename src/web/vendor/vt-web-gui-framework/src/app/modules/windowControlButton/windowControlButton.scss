@@ -1,0 +1,29 @@
+@use "assets/styles";
+
+
+.windowControlButton {
+  height: 100%;
+  display: inline-flex;
+  justify-content: center;
+  padding: 0 styles.layoutPx(mostLeftRightPadding);
+  background: none;
+  outline: none;
+  fill: styles.typo(color, light, normal);
+  cursor: pointer;
+  // The ease-out every state of this button shares; the pressed rule below switches the duration to
+  // the ease-in, so the press arrives instantly and only its end is animated.
+  transition: background styles.layoutMs(controls, interactionEaseOutMs) ease-out;
+
+  &:hover {
+    background: styles.colorA("darkGray", 0.3);
+  }
+
+  svg {
+    align-self: center;
+  }
+
+  &.pressed {
+    background: styles.colorA("darkGray", 0.6);
+    transition-duration: styles.layoutMs(controls, interactionEaseInMs);
+  }
+}

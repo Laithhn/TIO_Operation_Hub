@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { del, get, post, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
 import { useUrlState } from '../hooks';

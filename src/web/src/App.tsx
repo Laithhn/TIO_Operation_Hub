@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { createBrowserRouter, Navigate, Outlet } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
 import { AdminArchived, AdminAudit, AdminGroups, AdminJira, AdminPolicies, AdminSettings, AdminUsers, AdminRoles, AdminRights } from './pages/Admin';

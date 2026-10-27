@@ -1,14 +1,18 @@
-@use "sass:map";
-@use "assets/styles/defines";
-@use "../../defines.js" as localDefines;
+@use "assets/styles";
+
 
 .marker {
   position: absolute;
   left: 0;
   width: 100%;
   top: 0;
-  height: #{defines.layout(controls, heightDefault) + 2}px;
-  background: defines.colorA(structureSilver, 0.18);
+  // The marker covers exactly one option, so it takes the option's height. It read
+  // "heightDefault + 2" until 2026-09-02, which was the same number back when heightDefault was 28
+  // and optionHeight was defined as that plus two; the control grew to 30 and the two parted, since
+  // when the marker stood two pixels taller than the row it marks and reached into the next one.
+  // The proposal list's marker has read optionHeight all along.
+  height: styles.layoutPx(controlMenus, optionHeight);
+  background: styles.colorA(structureSilver, 0.18);
   cursor: pointer;
-  transition: transform #{map.get(localDefines.$selectBoxMenu, moveMenuAnimationTimeMs)}ms ease;
+  transition: transform styles.layoutMs(animationTime, mediumMs) ease;
 }
