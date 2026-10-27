@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDate, label, qty } from '../format';
-import { useCan, useEnum, useForm, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { usePermission, useEnum, useForm, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, ArchiveDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, DataTable, Dialog, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, FreshnessBadge, type FreshnessT, Menu, FormSection, QuantityInput, DeleteAction } from '../ui/kit';
 import { InfraSummary, type Infra } from './Clients';
@@ -317,8 +317,10 @@ export function InstallationDetail() {
   const { id } = useParams();
   const q = useQuery({ queryKey: ['installation', id], queryFn: () => get<InstDto>(`/installations/${id}`) });
   const ref = useReference().data;
-  const canEng = useCan('Engineer');
-  const canArchive = useCan('Archive');
+  const canEng = usePermission('Installations', 'Maintain');
+  const canCreateComponent = usePermission('Servers', 'Create');
+  const canClone = usePermission('Installations', 'Create');
+  const canArchive = usePermission('Installations', 'ArchiveRestore');
   const [dialog, setDialog] = useState<string | null>(null);
   const i = q.data;
   const versions = ref?.products.find(p => p.id === i?.product.id)?.versions ?? [];
@@ -326,8 +328,8 @@ export function InstallationDetail() {
     <QueryState q={q}>{i && (<>
       <PageHead title={`${i.product.code} · ${i.instanceName}`} crumbs={[{ to: `/clients/${i.environment.clientId}`, label: i.environment.clientCode }, ...(i.environment.region ? [{ to: `/regions/${i.environment.region.id}`, label: i.environment.region.code }] : []), { to: `/environments/${i.environment.id}`, label: i.environment.name }, { label: i.instanceName }]}
         sub={<>Installation in {i.environment.name} ({label(i.environment.type)}) · version <span className="chip">{i.version?.version ?? 'Unknown'}</span></>}
-        actions={<>{canEng && <button className="btn" onClick={() => setDialog('version')}>Confirm version change</button>}{canEng && <button className="btn" onClick={() => setDialog('component')}>+ Component</button>}
-          <Menu label="More" items={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canEng }, { label: 'Archive installation…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /><DeleteAction button path={`/installations/${i.id}`} what={`installation ${i.instanceName}`} afterTo={`/environments/${i.environment.id}`} /></>} />
+        actions={<>{canEng && <button className="btn" onClick={() => setDialog('version')}>Confirm version change</button>}{canCreateComponent && <button className="btn" onClick={() => setDialog('component')}>+ Component</button>}
+          <Menu label="More" items={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canClone }, { label: 'Archive installation…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /><DeleteAction button path={`/installations/${i.id}`} what={`installation ${i.instanceName}`} afterTo={`/environments/${i.environment.id}`} /></>} />
       <div className="cols">
         <Panel title="Installation"><DL items={[
           ['Product', `${i.product.code} · ${i.product.name}`], ['Module', i.module?.code ?? 'None'], ['Installed version', i.version?.version ?? <Badge tone="warn">Unknown</Badge>],
@@ -347,7 +349,7 @@ export function InstallationDetail() {
           { key: 'o', header: 'Owner', render: c => <Person u={c.owner} /> }, { key: 'del', header: '', className: 'row-actions', render: c => <DeleteAction path={`/components/${c.id}`} what={`component ${c.name}`} /> }
         ]} />
       </Panel>
-      <AttachmentsPanel recordType="Installation" recordId={i.id} canEdit={canEng} />
+      <AttachmentsPanel recordType="Installation" recordId={i.id} />
       {dialog === 'version' && <ActionDialog title="Confirm version change" path={`/installations/${i.id}/version`} version={i.etag} onClose={() => setDialog(null)} submitLabel="Confirm version"
         intro="Version changes need a reason and evidence; old and new values are kept. A downgrade alone is not treated as a rollback."
         fields={[{ name: 'productVersionId', label: `New ${i.product.code} version`, kind: 'select', options: [{ value: '', label: 'Unknown' }, ...versions.map(v => ({ value: String(v.id), label: v.version }))] },
@@ -398,7 +400,7 @@ export function ComponentDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['component', id], queryFn: () => get<CompDto>(`/components/${id}`) });
-  const canEng = useCan('Engineer');
+  const canEng = usePermission('Servers', 'Maintain');
   const [edit, setEdit] = useState(false);
   const c = q.data;
   return (
@@ -407,7 +409,7 @@ export function ComponentDetail() {
         sub={`Component · ${c.role}`} actions={<>{canEng && <button className="btn" onClick={() => setEdit(true)}>Edit</button>}<DeleteAction button path={`/components/${c.id}`} what={`component ${c.name}`} afterTo={`/installations/${c.installationId}`} /></>} />
       <Panel title="Component"><DL items={[['Role', c.role], ['Component version', c.componentVersion ?? 'Not recorded'], ['Owner', <Person u={c.owner} gap="Environment owner" />],
         ['Supporting servers', c.hosts.length ? c.hosts.map(h => <div key={h.assetId}><Link to={`/assets/${h.assetId}`}>{h.name}</Link> ({T.name('AssetType', h.type)})</div>) : <Badge tone="warn">Hosting unresolved</Badge>]]} /></Panel>
-      <AttachmentsPanel recordType="Component" recordId={c.id} canEdit={canEng} />
+      <AttachmentsPanel recordType="Component" recordId={c.id} />
       <HistoryPanel entityType="Component" entityId={c.id} />
       {edit && <ComponentDialog installationId={c.installationId} environmentId={c.environmentId} clientId={c.clientId} component={c} onClose={() => setEdit(false)} />}
     </>)}</QueryState>
@@ -418,8 +420,9 @@ export function AssetDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['asset', id], queryFn: () => get<AssetDto>(`/assets/${id}`) });
-  const canEng = useCan('Engineer');
-  const canArchive = useCan('Archive');
+  const canEng = usePermission('Servers', 'Maintain');
+  const canClone = usePermission('Servers', 'Create');
+  const canArchive = usePermission('Servers', 'ArchiveRestore');
   const [dialog, setDialog] = useState<string | null>(null);
   const a = q.data;
   return (
@@ -427,7 +430,7 @@ export function AssetDetail() {
       <PageHead title={a.name} crumbs={[{ to: `/clients/${a.environment.clientId}`, label: a.environment.clientCode }, { to: `/environments/${a.environment.id}`, label: a.environment.name }, { label: a.name }]}
         sub={<>{T.name('AssetType', a.type)} · {a.role ?? 'Role not recorded'} · <StatusBadge value={a.lifecycle} /></>}
         actions={<>{canEng && <button className="btn" onClick={() => setDialog('edit')}>Edit</button>}{canEng && <button className="btn" onClick={() => setDialog('volume')}>+ Volume</button>}
-          <Menu label="More" items={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canEng }, { label: 'Archive server…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /><DeleteAction button path={`/assets/${a.id}`} what={`server ${a.name}`} afterTo={`/environments/${a.environment.id}`} /></>} />
+          <Menu label="More" items={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canClone }, { label: 'Archive server…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /><DeleteAction button path={`/assets/${a.id}`} what={`server ${a.name}`} afterTo={`/environments/${a.environment.id}`} /></>} />
       <div className="cols">
         <Panel title="Recorded specification">
           <DL items={[
@@ -458,7 +461,7 @@ export function AssetDetail() {
         ]} />
       </Panel>
       <Panel title="Firewall rules (from and to this server)" pad={false}><FirewallRulesPanel assetId={a.id} clientId={a.environment.clientId} /></Panel>
-      <AttachmentsPanel recordType="Asset" recordId={a.id} canEdit={canEng} />
+      <AttachmentsPanel recordType="Asset" recordId={a.id} />
       <HistoryPanel entityType="Asset" entityId={a.id} />
       {dialog === 'edit' && <AssetDialog environmentId={a.environment.id} clientId={a.environment.clientId} asset={a} onClose={() => setDialog(null)} />}
       {dialog === 'volume' && <VolumeDialog assetId={a.id} clientId={a.environment.clientId} onClose={() => setDialog(null)} />}
@@ -522,7 +525,7 @@ export function AssetList() {
         columns={[
           { key: 'name', header: 'Asset', render: r => <Link to={`/assets/${r.id}`}>{r.name}</Link>, filter: <input className="input" aria-label="Search assets" placeholder="Search by name" value={f.q} onChange={e => set({ q: e.target.value })} /> },
           { key: 'client', header: 'Client / environment', render: r => <><Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link>{r.regionCode && ` / ${r.regionCode}`} / <Link to={`/environments/${r.environmentId}`}>{r.environmentName}</Link></> },
-          { key: 'type', header: 'Type', render: r => T.name('AssetType', r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{T.options('AssetType', f.type).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
+          { key: 'type', header: 'Type', render: r => T.name('AssetType', r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{T.filterOptions('AssetType').map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
           { key: 'role', header: 'Role', render: r => r.role },
           { key: 'life', header: 'Lifecycle', render: r => <StatusBadge value={r.lifecycle} />, filter: <select className="input" aria-label="Filter by lifecycle" value={f.lifecycle} onChange={e => set({ lifecycle: e.target.value })}><option value="">All</option>{lifecycles.map(t => <option key={t}>{t}</option>)}</select> },
           { key: 'zone', header: 'Zone', render: r => r.networkZoneRestricted ? <span className="muted">Restricted</span> : r.networkZone },
@@ -553,11 +556,11 @@ export function VersionMatrix() {
   return (
     <>
       <PageHead title="Product version matrix" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/environments', label: 'Environments' }, { label: 'Version matrix' }]} sub="Versions are compared only within the same product. An environment with several installations is counted once in environment totals."
-        actions={me.grants.export && <button className="btn" onClick={() => exportCsv('versions', { clientId: f.clientId, productId: f.productId })}>Export CSV</button>} />
+        actions={me.grants.export && <button className="btn" onClick={() => exportCsv('versions', f)}>Export CSV</button>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
-        <SelectInput label="Environment type" value={f.environmentType} onChange={v => set({ environmentType: v })} options={T.options('EnvironmentType', f.environmentType)} empty="All types" />
+        <SelectInput label="Environment type" value={f.environmentType} onChange={v => set({ environmentType: v })} options={T.filterOptions('EnvironmentType')} empty="All types" />
       </div>
       <QueryState q={q}>{m && (<>
         <Panel title="Product coverage" pad={false}>
@@ -571,17 +574,13 @@ export function VersionMatrix() {
         </Panel>
         <Panel title="Matrix (environment × product)" pad={false}>
           {envs.length === 0 ? <div className="panel-body"><StateMessage kind={Object.values(f).some(Boolean) ? 'nomatch' : 'none'} /></div> : (
-            <div className="table-wrap"><table className="grid">
-              <thead><tr><th>Client</th><th>Region</th><th>Environment</th>{prods.map(([pid, code]) => <th key={pid}>{code}</th>)}</tr></thead>
-              <tbody>{envs.map(e => (
-                <tr key={e.environmentId}>
-                  <td><Link to={`/clients/${e.clientId}`}>{e.clientCode}</Link></td><td>{e.regionCode ?? <span className="muted">Direct</span>}</td>
-                  <td><Link to={`/environments/${e.environmentId}`}>{e.environmentName}</Link> <span className="chip">{T.name('EnvironmentType', e.environmentType)}</span></td>
-                  {prods.map(([pid]) => <td key={pid}>{m.cells.filter(c => c.environmentId === e.environmentId && c.productId === pid).map(c => (
-                    <div key={c.id}><Link to={`/installations/${c.id}`}>{c.instanceName}</Link>: {c.versionUnknown ? <Badge tone="warn">Unknown</Badge> : <span className="chip">{c.version}</span>} <FreshnessBadge f={c.freshness} /></div>))}</td>)}
-                </tr>))}
-              </tbody>
-            </table></div>
+            <DataTable caption="Environment by product matrix" rows={envs} rowKey={e => e.environmentId} columns={[
+              { key: 'client', header: 'Client', render: e => <Link to={`/clients/${e.clientId}`}>{e.clientCode}</Link> },
+              { key: 'region', header: 'Region', render: e => e.regionCode ?? <span className="muted">Direct</span> },
+              { key: 'environment', header: 'Environment', render: e => <><Link to={`/environments/${e.environmentId}`}>{e.environmentName}</Link> <span className="chip">{T.name('EnvironmentType', e.environmentType)}</span></> },
+              ...prods.map(([pid, code]) => ({ key: `product-${pid}`, header: code, render: (e: typeof envs[number]) => m.cells.filter(c => c.environmentId === e.environmentId && c.productId === pid).map(c => (
+                <div key={c.id}><Link to={`/installations/${c.id}`}>{c.instanceName}</Link>: {c.versionUnknown ? <Badge tone="warn">Unknown</Badge> : <span className="chip">{c.version}</span>} <FreshnessBadge f={c.freshness} /></div>)) }))
+            ]} />
           )}
         </Panel>
       </>)}</QueryState>
@@ -607,14 +606,18 @@ type CloneTargetRow = { id: number; find: string; replace: string };
 export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, sourceName, wholeEnvironment = false, assetIds = [], installationIds = [], onClose }:
   { sourceEnvironmentId: number; clientId: number; sourceRegionCode?: string; sourceName?: string; wholeEnvironment?: boolean; assetIds?: number[]; installationIds?: number[]; onClose: () => void }) {
   const lifecycles = useEnum('AssetLifecycle');
-  const [mode, setMode] = useState<'new' | 'existing'>(wholeEnvironment ? 'new' : 'existing');
+  const canCreateEnvironment = usePermission('Environments', 'Create');
+  const canCreateServer = usePermission('Servers', 'Create');
+  const canMaintainServer = usePermission('Servers', 'Maintain');
+  const canCreateInstallation = usePermission('Installations', 'Create');
+  const [mode, setMode] = useState<'new' | 'existing'>(wholeEnvironment && canCreateEnvironment ? 'new' : 'existing');
   const regions = useQuery({ queryKey: ['regions', clientId], queryFn: () => get<{ id: number; code: string; name: string }[]>(`/clients/${clientId}/regions`), enabled: wholeEnvironment });
   const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`) });
   const assets = useQuery({ queryKey: ['clone-assets', sourceEnvironmentId], queryFn: () => get<Paged<{ id: number; name: string; type: string; role?: string }>>(`/assets?environmentId=${sourceEnvironmentId}&pageSize=200`) });
   const insts = useQuery({ queryKey: ['clone-insts', sourceEnvironmentId], queryFn: () => get<Paged<{ id: number; instanceName: string; productCode: string; version?: string }>>(`/installations?environmentId=${sourceEnvironmentId}&pageSize=200`) });
   const f = useForm({
-    targetEnvironmentId: '', regionId: '', name: sourceName ?? '', assetIds, installationIds, find: '', replace: '', lifecycle: 'Planned',
-    includeVolumes: true, includeDeployment: true, copyVersions: false, versionEvidence: '',
+    targetEnvironmentId: '', regionId: '', name: sourceName ?? '', assetIds: canCreateServer ? assetIds : [], installationIds: canCreateInstallation ? installationIds : [], find: '', replace: '', lifecycle: 'Planned',
+    includeVolumes: true, includeDeployment: canCreateServer, copyVersions: false, versionEvidence: '',
     // A45: several targets at once, each with its own rename rule.
     targets: [] as CloneTargetRow[]
   });
@@ -653,8 +656,8 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
   const [preselected, setPreselected] = useState(false);
   useEffect(() => {
     if (wholeEnvironment && mode === 'new' && !preselected && assets.data && insts.data) {
-      f.set('assetIds', assets.data.items.map(a => a.id));
-      f.set('installationIds', insts.data.items.map(i => i.id));
+      f.set('assetIds', canCreateServer ? assets.data.items.map(a => a.id) : []);
+      f.set('installationIds', canCreateInstallation ? insts.data.items.map(i => i.id) : []);
       setPreselected(true);
     }
   }, [assets.data, insts.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -662,8 +665,8 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
   const switchMode = (m: 'new' | 'existing') => {
     setMode(m);
     setPreselected(true);
-    f.set('assetIds', m === 'new' ? (assets.data?.items ?? []).map(a => a.id) : assetIds);
-    f.set('installationIds', m === 'new' ? (insts.data?.items ?? []).map(i => i.id) : installationIds);
+    f.set('assetIds', canCreateServer ? (m === 'new' ? (assets.data?.items ?? []).map(a => a.id) : assetIds) : []);
+    f.set('installationIds', canCreateInstallation ? (m === 'new' ? (insts.data?.items ?? []).map(i => i.id) : installationIds) : []);
   };
   const pickRegion = (v: string) => {
     f.set('regionId', v);
@@ -704,11 +707,13 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
     </Dialog>
   );
   const nameErrors = f.error?.errors?.names ?? [];
+  const selectionAllowed = (f.values.assetIds.length === 0 || canCreateServer) && (f.values.installationIds.length === 0 || canCreateInstallation);
+  const canCopy = selectionAllowed && (mode === 'new' ? canCreateEnvironment : f.values.targets.length > 0 && f.values.assetIds.length + f.values.installationIds.length > 0);
   return (
     <Dialog title={mode === 'new' ? 'Copy environment to another region' : 'Copy to other environments'} onClose={onClose} wide>
       {wholeEnvironment && (
         <div className="radio-row" role="radiogroup" aria-label="What to copy into">
-          <label className="check"><input type="radio" name="clone-mode" checked={mode === 'new'} onChange={() => switchMode('new')} /> A new environment (copy the whole environment)</label>
+          <label className="check"><input type="radio" name="clone-mode" disabled={!canCreateEnvironment} checked={mode === 'new'} onChange={() => switchMode('new')} /> A new environment (copy the whole environment)</label>
           <label className="check"><input type="radio" name="clone-mode" checked={mode === 'existing'} onChange={() => switchMode('existing')} /> An existing environment</label>
         </div>
       )}
@@ -746,23 +751,14 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
         </fieldset>
       )}
       {mode === 'existing' && f.values.targets.length > 0 && (
-        <div className="table-wrap clone-renames">
-          <table className="grid">
-            <caption className="sr">Names in each target</caption>
-            <thead><tr><th>Target</th><th>Find in names</th><th>Replace with</th><th>Copies will be named</th><th /></tr></thead>
-            <tbody>{f.values.targets.map((t, n) => (
-              <tr key={t.id}>
-                <td className="nowrap">{envLabel(t.id)}</td>
-                <td><input className="input" aria-label={`Find in names for ${envLabel(t.id)}`} value={t.find} onChange={e => setTarget(t.id, { find: e.target.value })} placeholder={t.id === sourceEnvironmentId ? 'Required, e.g. APP1' : 'Keep names'} /></td>
-                <td><input className="input" aria-label={`Replace with for ${envLabel(t.id)}`} value={t.replace} onChange={e => setTarget(t.id, { replace: e.target.value })} /></td>
-                <td>{[...(assets.data?.items ?? []).filter(a => f.values.assetIds.includes(a.id)).map(a => a.name), ...(insts.data?.items ?? []).filter(i => f.values.installationIds.includes(i.id)).map(i => i.instanceName)]
-                  .map(nm => <div key={nm} className="mono">{renameCopy(nm, t.find, t.replace)}</div>)}
-                  {f.fieldError(`targets[${n}].find`) && <div className="err">{f.fieldError(`targets[${n}].find`)}</div>}</td>
-                <td><button className="linkbtn" onClick={() => toggleTarget({ id: t.id }, false)} aria-label={`Remove ${envLabel(t.id)}`}>Remove</button></td>
-              </tr>))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable<CloneTargetRow> caption="Names in each target" rows={f.values.targets} rowKey={t => t.id} tableWrapClassName="clone-renames" columns={[
+          { key: 'target', header: 'Target', className: 'nowrap', render: t => envLabel(t.id) },
+          { key: 'find', header: 'Find in names', render: t => <input className="input" aria-label={`Find in names for ${envLabel(t.id)}`} value={t.find} onChange={e => setTarget(t.id, { find: e.target.value })} placeholder={t.id === sourceEnvironmentId ? 'Required, e.g. APP1' : 'Keep names'} /> },
+          { key: 'replace', header: 'Replace with', render: t => <input className="input" aria-label={`Replace with for ${envLabel(t.id)}`} value={t.replace} onChange={e => setTarget(t.id, { replace: e.target.value })} /> },
+          { key: 'copies', header: 'Copies will be named', render: t => <>{[...(assets.data?.items ?? []).filter(a => f.values.assetIds.includes(a.id)).map(a => a.name), ...(insts.data?.items ?? []).filter(i => f.values.installationIds.includes(i.id)).map(i => i.instanceName)]
+            .map(nm => <div key={nm} className="mono">{renameCopy(nm, t.find, t.replace)}</div>)}{f.fieldError(`targets[${f.values.targets.indexOf(t)}].find`) && <div className="err">{f.fieldError(`targets[${f.values.targets.indexOf(t)}].find`)}</div>}</> },
+          { key: 'actions', header: '', render: t => <button className="linkbtn" onClick={() => toggleTarget({ id: t.id }, false)} aria-label={`Remove ${envLabel(t.id)}`}>Remove</button> }
+        ]} />
       )}
       <div className="clone-pick">
         <fieldset className="hosted-ms">
@@ -770,7 +766,7 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
           {assets.data?.items.length === 0 && <p className="hint" style={{ margin: 0 }}>No servers in this environment.</p>}
           {assets.data?.items.map(a => (
             <label key={a.id} className="check hosted-ms-item">
-              <input type="checkbox" checked={f.values.assetIds.includes(a.id)} onChange={e => toggle('assetIds', a.id, e.target.checked)} />
+              <input type="checkbox" disabled={!canCreateServer} checked={f.values.assetIds.includes(a.id)} onChange={e => toggle('assetIds', a.id, e.target.checked)} />
               <span className="mono">{a.name}</span>{mode === 'new' && f.values.assetIds.includes(a.id) && <span className="muted"> → <span className="mono">{newName(a.name)}</span></span>}
             </label>
           ))}
@@ -780,7 +776,7 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
           {insts.data?.items.length === 0 && <p className="hint" style={{ margin: 0 }}>No installations in this environment.</p>}
           {insts.data?.items.map(i => (
             <label key={i.id} className="check hosted-ms-item">
-              <input type="checkbox" checked={f.values.installationIds.includes(i.id)} onChange={e => toggle('installationIds', i.id, e.target.checked)} />
+              <input type="checkbox" disabled={!canCreateInstallation} checked={f.values.installationIds.includes(i.id)} onChange={e => toggle('installationIds', i.id, e.target.checked)} />
               <span><b>{i.productCode}</b> · {i.instanceName}</span>{mode === 'new' && f.values.installationIds.includes(i.id) && <span className="muted"> → {newName(i.instanceName)}</span>}
             </label>
           ))}
@@ -790,13 +786,13 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
       {nameErrors.length > 0 && <ul className="err clone-notes">{nameErrors.map((n, i) => <li key={i}>{n}</li>)}</ul>}
       <div className="form-grid" style={{ marginTop: 8 }}>
         <Checkbox label="Copy volumes" checked={f.values.includeVolumes} onChange={v => f.set('includeVolumes', v)} />
-        <Checkbox label="Copy which microservices and components run on which server" checked={f.values.includeDeployment} onChange={v => f.set('includeDeployment', v)}
-          hint="A copied server is attached to the copied installation, or to the target's installation of the same product." />
+        <Checkbox label="Copy which microservices and components run on which server" disabled={!canCreateServer} checked={f.values.includeDeployment} onChange={v => f.set('includeDeployment', v)}
+          hint={canCreateServer ? `Creates components with Servers Create; extending existing component hosting also needs Servers Edit${canMaintainServer ? '.' : ' (not granted).'}` : 'Copying deployment needs Servers Create permission.'} />
         <Checkbox label="Copy the recorded versions" checked={f.values.copyVersions} onChange={v => f.set('copyVersions', v)} hint="Off: copies start with Unknown versions. On: the copies get the same recorded versions." />
         {f.values.copyVersions && <TextInput label="Evidence for the versions (optional)" value={f.values.versionEvidence} onChange={v => f.set('versionEvidence', v)} error={f.fieldError('versionEvidence')} />}
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button>
-        <button className="btn btn-primary" disabled={f.busy || (mode === 'existing' && f.values.targets.length === 0)} onClick={save}>
+        <button className="btn btn-primary" disabled={f.busy || !canCopy} onClick={save}>
           {mode === 'existing' && f.values.targets.length > 1 ? `Copy to ${f.values.targets.length} environments` : 'Copy'}</button></div>
     </Dialog>
   );

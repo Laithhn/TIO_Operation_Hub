@@ -57,6 +57,7 @@ public class Contract : Entity, IArchivable, IClientOwned
     public long? ScopeClientId => ClientId;
     public List<ContractEnvironment> Environments { get; set; } = [];
     public List<SlaTarget> SlaTargets { get; set; } = [];
+    public List<ContractPenaltyClause> PenaltyClauses { get; set; } = [];
 
     /// <summary>Last day to give notice (end date minus notice period), when both are recorded.</summary>
     public DateOnly? NoticeDeadline => EndDate is { } end && NoticeDays is { } n ? end.AddDays(-n) : null;
@@ -79,6 +80,43 @@ public class SlaTarget
     public int? ResolutionMinutes { get; set; }
     public SlaBasis Basis { get; set; }
     public string? Notes { get; set; }
+}
+
+public enum PenaltyTrigger { ResponseSlaBreached, ResolutionSlaBreached }
+public enum PenaltyCalculation { FixedPerBreach, PercentagePerBreach }
+
+/// <summary>Recorded contractual penalty terms. The hub reports indicative amounts and never issues credits or invoices.</summary>
+public class ContractPenaltyClause
+{
+    public long Id { get; set; }
+    public long ContractId { get; set; }
+    public string Name { get; set; } = "";
+    public PenaltyTrigger Trigger { get; set; }
+    public PenaltyCalculation Calculation { get; set; }
+    public decimal? FixedAmount { get; set; }
+    public decimal? Percentage { get; set; }
+    public decimal? ReferenceAmount { get; set; }
+    public decimal? MonthlyCap { get; set; }
+    public string? BillingTimeZone { get; set; }
+}
+
+public class PenaltyAssessment : Entity
+{
+    public long ContractId { get; set; }
+    public long ClauseId { get; set; }
+    public string TermsKey { get; set; } = "";
+    public string TermsSnapshotJson { get; set; } = "";
+    public DateOnly BillingMonth { get; set; }
+    public decimal UncappedAmount { get; set; }
+    public decimal Amount { get; set; }
+    public int BreachCount { get; set; }
+    public string BreachIdentitiesJson { get; set; } = "[]";
+    public string Currency { get; set; } = "";
+    public DateTimeOffset CalculatedAt { get; set; }
+    public DateTimeOffset? ReviewedAt { get; set; }
+    public long? ReviewedById { get; set; }
+    public string? ReviewReason { get; set; }
+    public string ReviewState => BreachCount == 0 ? "Superseded" : ReviewedAt is null ? "NeedsReview" : "Confirmed";
 }
 
 /// <summary>A49: support days, Sunday first (the regional working week).</summary>

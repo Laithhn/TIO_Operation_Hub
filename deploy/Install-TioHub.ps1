@@ -212,7 +212,7 @@ if ($PSCmdlet.ShouldProcess($SiteName, 'start and check /api/health/ready')) {
   for ($i = 0; $i -lt 12 -and -not $ready; $i++) {
     try { $r = Invoke-RestMethod $url -UseBasicParsing -TimeoutSec 10; $ready = $r.status -eq 'ready' } catch { Start-Sleep -Seconds 5 }
   }
-  if ($ready) { Ok "$url -> ready" } else { Warn "$url did not answer 'ready' yet. Check $appDir\logs and the Windows event log (IIS AspNetCore Module)." }
+  if ($ready) { Ok "$url -> ready" } else { throw "Installation verification failed: $url did not answer 'ready'. Check $appDir\logs for database availability or missing migrations, and the Windows event log (IIS AspNetCore Module)." }
 }
 
 Write-Host @"

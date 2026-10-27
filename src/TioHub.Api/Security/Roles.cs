@@ -37,14 +37,22 @@ public static class BuiltInRoles
     public static async Task<Dictionary<Role, long>> EnsureAsync(HubDbContext db, CancellationToken ct)
     {
         var roles = await db.AppRoles.Where(r => r.Key != null).ToListAsync(ct);
+        var created = new HashSet<string>(StringComparer.Ordinal);
         AppRole Get(string key, string name, Right rights, string description)
         {
             var r = roles.FirstOrDefault(x => x.Key == key);
-            if (r is null) { r = new AppRole { Key = key, Name = name, Rights = rights, Description = description }; db.AppRoles.Add(r); roles.Add(r); }
+            if (r is null) { r = new AppRole { Key = key, Name = name, Rights = rights, Description = description }; db.AppRoles.Add(r); roles.Add(r); created.Add(key); }
             return r;
         }
         var manager = Get(ManagerKey, "TIO Manager", All, "Runs the TIO team; administers the hub. Always holds every right.");
         var engineer = Get(EngineerKey, "Operation Engineer", EngineerDefault, "Day-to-day operations work on every client.");
+        foreach (var role in new[] { manager, engineer }.Where(r => created.Contains(r.Key!)))
+        {
+            var permissions = role.Key == ManagerKey ? ResourcePermissions.All : ResourcePermissions.EngineerDefault;
+            foreach (var key in permissions)
+                if (ResourcePermissions.TryParse(key, out var resource, out var action))
+                    role.Permissions.Add(new RolePermission { Resource = resource, Action = action });
+        }
         if (manager.Id == 0 || engineer.Id == 0) await db.SaveChangesAsync(ct);
         return new() { [Role.Manager] = manager.Id, [Role.Engineer] = engineer.Id };
     }

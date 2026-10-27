@@ -77,6 +77,8 @@ public class Case : Entity, IClientOwned, IAccountable
     public bool SlaPauseOnCustomerWaiting { get; set; }
     public string? SlaContractRef { get; set; }
     public DateTimeOffset? SlaAppliedAt { get; set; }
+    /// <summary>A63: penalty terms copied from the contract when the case is linked, so later contract edits do not rewrite its basis.</summary>
+    public string? PenaltyTermsSnapshotJson { get; set; }
     // Results (recomputed on every save of the case and by the SLA sweep).
     /// <summary>Contractual response deadline. Separate from <see cref="DueAt"/>, which is the operational due date the team agreed.</summary>
     public DateTimeOffset? ResponseDueAt { get; set; }

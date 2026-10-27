@@ -76,7 +76,7 @@ public static class ReportingEndpoints
         {
             ExportService.RequireExport(me);
             var def = Report(key);
-            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct);
+            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct, svc.ZoneOf(input.TimeZone));
             var page = Math.Max(1, input.Page ?? 1);
             var size = Math.Clamp(input.PageSize ?? 25, 1, 100);
             return Results.Ok(await svc.PreviewAsync(def, f, svc.ZoneOf(input.TimeZone), page, size, ct));
@@ -88,7 +88,7 @@ public static class ReportingEndpoints
             var def = Report(key);
             var format = ParseFormat(input.Format);
             ExportService.CheckColumns(def, input.Columns);
-            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct);
+            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct, svc.ZoneOf(input.TimeZone));
             var job = await svc.ExportAsync(def, f, format, input.Columns, svc.ZoneOf(input.TimeZone), "Reporting Center", null, null, ct);
             return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job));
         });
@@ -140,10 +140,22 @@ public static class ReportingEndpoints
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
             if (j.Status == ExportStatus.Expired || (j.ExpiresAt is { } e && e < clock.GetUtcNow()))
+            {
+                if (j.StoredPath is not null) store.Delete(j.StoredPath);
+                j.StoredPath = null;
+                j.Status = ExportStatus.Expired;
+                await db.SaveChangesAsync(ct);
                 return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file has expired", detail: "Export files are kept for a limited time. Generate the report again (Retry).");
+            }
             if (j.Status != ExportStatus.Completed || j.StoredPath is null) throw new ValidationException("status", "This export has no file.");
             var stream = store.Open(j.StoredPath);
-            if (stream is null) return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file is no longer available", detail: "Generate the report again (Retry).");
+            if (stream is null)
+            {
+                j.Status = ExportStatus.Expired;
+                j.StoredPath = null;
+                await db.SaveChangesAsync(ct);
+                return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file is no longer available", detail: "Generate the report again (Retry).");
+            }
             await db.AuditActionAsync("Download", "Report", j.Id, j.ReportName, null, null, new { exportId = j.AuditId, j.FileName }, ct);
             await db.SaveChangesAsync(ct);
             return Results.File(stream, j.Format == ExportFormat.Xlsx ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv; charset=utf-8", j.FileName);
@@ -156,7 +168,7 @@ public static class ReportingEndpoints
             if (j.Status is not (ExportStatus.Failed or ExportStatus.Expired)) throw new ValidationException("status", "Only a failed or expired export can be generated again.");
             var def = Report(j.Report);
             // The filters are validated again under the caller's current access.
-            var f = await svc.ValidateAsync(def, JsonSerializer.Deserialize<Dictionary<string, string?>>(j.FiltersJson), strict: false, ct);
+            var f = await svc.ValidateAsync(def, JsonSerializer.Deserialize<Dictionary<string, string?>>(j.FiltersJson), strict: true, ct, svc.ZoneOf(j.TimeZone));
             var cols = j.ColumnsJson is null ? null : JsonSerializer.Deserialize<List<string>>(j.ColumnsJson);
             var job = await svc.ExportAsync(def, f, j.Format, cols, svc.ZoneOf(j.TimeZone), j.Source == "Schedule" ? "Reporting Center" : j.Source, null, j.Id, ct);
             return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job));
@@ -270,7 +282,7 @@ public static class ReportingEndpoints
         if (def is null) check.Add("report", "Select a report.");
         ExportFormat format = ExportFormat.Csv;
         try { format = ParseFormat(input.Format); } catch (ValidationException ex) { check.Add("format", ex.Message); }
-        if (input.Frequency is null) check.Add("frequency", "Select daily, weekly or monthly.");
+        if (input.Frequency is null || !Enum.IsDefined(input.Frequency.Value)) check.Add("frequency", "Select daily, weekly or monthly.");
         if (input.Frequency == ScheduleFrequency.Weekly && input.DayOfWeek is not (>= 0 and <= 6)) check.Add("dayOfWeek", "Select the weekday.");
         if (input.Frequency == ScheduleFrequency.Monthly && input.DayOfMonth is not (>= 1 and <= 28)) check.Add("dayOfMonth", "Select a day from 1 to 28.");
         if (!TimeOnly.TryParseExact(input.Time ?? "", "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)) check.Add("time", "Enter the time as HH:mm.");
@@ -287,7 +299,7 @@ public static class ReportingEndpoints
             else if ((r.Grants & Grant.Export) != Grant.Export || r.Roles.Length == 0) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
         }
         check.ThrowIfAny();
-        var f = await svc.ValidateAsync(def!, input.Filters, strict: true, ct);
+        var f = await svc.ValidateAsync(def!, input.Filters, strict: true, ct, zone);
         s.Name = input.Name!.Trim();
         s.Report = def!.Key;
         s.FiltersJson = JsonSerializer.Serialize(f.Values);
@@ -352,22 +364,35 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         using (var scope = scopes.CreateScope())
             due = await scope.ServiceProvider.GetRequiredService<HubDbContext>().ReportSchedules.AsNoTracking().Include(s => s.Recipients)
                 .Where(s => s.IsActive && s.NextRunAt <= now).OrderBy(s => s.NextRunAt).Take(20).ToListAsync(ct);
-        foreach (var s in due)
+        int processed = 0;
+        foreach (var candidate in due)
         {
+            using var scope = scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            // A schedule occurrence must be claimed across overlapping workers before any recipient file is generated.
+            var resource = $"TioHub:ReportSchedule:{candidate.Id}";
+            var acquired = await db.Database.SqlQuery<int>($"""
+                DECLARE @result int;
+                EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=0;
+                SELECT @result AS [Value];
+                """).ToListAsync(ct);
+            if (acquired[0] < 0) continue;
+            var s = await db.ReportSchedules.Include(x => x.Recipients).FirstOrDefaultAsync(x => x.Id == candidate.Id, ct);
+            if (s is null || !s.IsActive || s.NextRunAt > now) continue;
             int ok = 0, failed = 0;
             foreach (var r in s.Recipients)
             {
                 if (await RunForAsync(scopes, s, r.UserId, ct)) ok++; else failed++;
             }
-            using var scope = scopes.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
-            var row = await db.ReportSchedules.FirstAsync(x => x.Id == s.Id, ct);
-            row.LastRunAt = now;
-            row.LastOutcome = failed == 0 ? $"Completed for {ok} recipient(s)" : $"{ok} completed, {failed} failed";
-            row.NextRunAt = ScheduleClock.Next(row.Frequency, row.DayOfWeek, row.DayOfMonth, row.TimeOfDay, Zones.Find(row.TimeZone) ?? TimeZoneInfo.Utc, now);
+            s.LastRunAt = now;
+            s.LastOutcome = failed == 0 ? $"Completed for {ok} recipient(s)" : $"{ok} completed, {failed} failed";
+            s.NextRunAt = ScheduleClock.Next(s.Frequency, s.DayOfWeek, s.DayOfMonth, s.TimeOfDay, Zones.Find(s.TimeZone) ?? TimeZoneInfo.Utc, now);
             await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            processed++;
         }
-        return due.Count;
+        return processed;
     }
 
     private static async Task<bool> RunForAsync(IServiceScopeFactory scopes, ReportSchedule s, long userId, CancellationToken ct)
@@ -405,7 +430,7 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         ExportJob job;
         try
         {
-            var f = await svc.ValidateAsync(def!, JsonSerializer.Deserialize<Dictionary<string, string?>>(s.FiltersJson), strict: false, ct);
+            var f = await svc.ValidateAsync(def!, JsonSerializer.Deserialize<Dictionary<string, string?>>(s.FiltersJson), strict: true, ct, svc.ZoneOf(s.TimeZone));
             job = await svc.ExportAsync(def!, f, s.Format, null, Zones.Find(s.TimeZone) ?? TimeZoneInfo.Utc, "Schedule", s.Id, null, ct);
         }
         catch (ValidationException ex)
@@ -423,7 +448,7 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         {
             UserId = userId, Kind = "Report", Title = job.Status == ExportStatus.Completed ? $"Scheduled report ready: {s.Name}" : $"Scheduled report failed: {s.Name}",
             Body = job.Status == ExportStatus.Completed ? $"{job.ReportName}, {job.RowCount} row(s)." : job.Error, Link = $"/reports?tab=history&export={job.Id}",
-            Key = $"report:{s.Id}:{userId}:{now:yyyyMMddHHmm}", CreatedAt = now
+            Key = $"report:{s.Id}:{userId}:{job.Id}", CreatedAt = now
         });
         await db.SaveChangesAsync(ct);
         return job.Status == ExportStatus.Completed;

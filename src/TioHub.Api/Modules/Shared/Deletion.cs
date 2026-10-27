@@ -4,6 +4,7 @@ using System.Text.RegularExpressions;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Admin;
+using TioHub.Api.Modules.Clients;
 using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Shared;
@@ -22,7 +23,8 @@ public static partial class Deletion
         ["Contact"] = "contacts", ["ResponsibilityBoundary"] = "responsibility boundaries", ["Case"] = "cases", ["CaseEnvironment"] = "cases", ["CaseAsset"] = "cases",
         ["CaseComponent"] = "cases", ["Commitment"] = "commitments", ["Client"] = "clients (sub-clients)", ["ClientTeamMember"] = "project teams", ["Team"] = "teams",
         ["TeamMember"] = "team members", ["UserScope"] = "user access scopes", ["GroupMappingScope"] = "group mappings", ["Product"] = "products", ["Handover"] = "handovers",
-        ["SharedStorage"] = "shared storage", ["ProjectProduct"] = "projects", ["JiraReference"] = "Jira links", ["User"] = "users"
+        ["SharedStorage"] = "shared storage", ["ProjectProduct"] = "projects", ["JiraReference"] = "Jira links", ["User"] = "users",
+        ["Organization"] = "organizations", ["OrganizationRelationship"] = "organization relationships"
     };
 
     [GeneratedRegex(@"table ""[a-z]+\.(?<t>[A-Za-z]+)""")]
@@ -32,8 +34,18 @@ public static partial class Deletion
     /// deletes <paramref name="entity"/> and commits — or rolls everything back and explains what still uses the record.</summary>
     public static async Task<IResult> RunAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, object entity, string recordType, long id, string label, Func<Task>? removeOwned, CancellationToken ct)
     {
-        me.RequireRight(Right.Delete);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        if (recordType == "LookupValue") me.RequireAdministrator();
+        else me.RequirePermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.Delete);
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        if (entity is Client client)
+            await OrganizationEndpoints.PreserveClientIdentityAsync(client.Id, db, ct);
+        if (entity is Project project)
+        {
+            await OrganizationEndpoints.LockContextAsync(project.ClientId, project.Id, db, ct);
+            await db.OrganizationRelationships.IgnoreQueryFilters().Where(x => x.ProjectId == project.Id).ExecuteDeleteAsync(ct);
+        }
+        if (entity is Modules.Catalogue.Installation && await db.Components.IgnoreQueryFilters().AnyAsync(x => x.InstallationId == id, ct))
+            me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.Delete);
         var attached = await db.Attachments.IgnoreQueryFilters().Where(a => a.RecordType == recordType && a.RecordId == id).Select(a => a.StoredPath).ToListAsync(ct);
         await db.Attachments.IgnoreQueryFilters().Where(a => a.RecordType == recordType && a.RecordId == id).ExecuteDeleteAsync(ct);
         if (removeOwned is not null) await removeOwned();
@@ -189,6 +201,8 @@ public static partial class Deletion
         {
             me.RequireAdministrator();
             var x = await Load(db.LookupValues.Where(l => l.Id == id), "The value", ct);
+            if (LookupLists.IsFixedWorkflowLabel(x.ListName))
+                throw new ValidationException("record", "Condition and case-status values are fixed; only their display labels can be changed.");
             var used = (await LookupUsage.CountsAsync(db, x.ListName, ct)).GetValueOrDefault(x.Code);
             if (used > 0) throw new ConflictException($"{x.Label} is used by {used} record(s). Change those records first, or retire it so it is no longer offered.",
                 new() { ["record"] = [$"Used by {used} record(s)."] });
@@ -206,6 +220,7 @@ public static class LookupUsage
     {
         var rows = list switch
         {
+            LookupLists.OrganizationRelationshipType => await db.OrganizationRelationships.IgnoreQueryFilters().Where(x => x.RelationshipType != null).GroupBy(x => x.RelationshipType!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.EnvironmentType => await db.Environments.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.AssetType => await db.Assets.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.ContractType => await db.Contracts.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),

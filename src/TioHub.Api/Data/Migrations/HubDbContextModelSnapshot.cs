@@ -190,6 +190,24 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("GroupMappingScope", "iam");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Access.RolePermission", b =>
+                {
+                    b.Property<long>("AppRoleId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Resource")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Action")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("AppRoleId", "Resource", "Action");
+
+                    b.ToTable("AppRolePermission", "iam");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Access.User", b =>
                 {
                     b.Property<long>("Id")
@@ -1439,6 +1457,175 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("Contact", "clients");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.Organization", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<long?>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("Name")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("OrganizationType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Phone")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Status")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique()
+                        .HasFilter("[ClientId] IS NOT NULL");
+
+                    b.HasIndex("Code")
+                        .IsUnique()
+                        .HasFilter("[Code] IS NOT NULL");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("Organization", "clients", t =>
+                        {
+                            t.HasCheckConstraint("CK_Organization_Identity", "[ClientId] IS NOT NULL OR (LEN(LTRIM(RTRIM([Name]))) > 0 AND [Name] IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.OrganizationRelationship", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ChildOrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("ParentOrganizationId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProjectScope")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("bigint")
+                        .HasComputedColumnSql("ISNULL([ProjectId], CONVERT(bigint, 0))", true);
+
+                    b.Property<string>("RelationshipType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChildOrganizationId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("ParentOrganizationId");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ClientId", "ProjectId", "ChildOrganizationId");
+
+                    b.HasIndex("ClientId", "ProjectScope", "ParentOrganizationId", "ChildOrganizationId")
+                        .IsUnique();
+
+                    b.ToTable("OrganizationRelationship", "clients", t =>
+                        {
+                            t.HasCheckConstraint("CK_OrganizationRelationship_Dates", "[StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate]");
+
+                            t.HasCheckConstraint("CK_OrganizationRelationship_NotSelf", "[ParentOrganizationId] <> [ChildOrganizationId]");
+                        });
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Clients.Project", b =>
                 {
                     b.Property<long>("Id")
@@ -2224,6 +2411,150 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("Status", "DueDate");
 
                     b.ToTable("ContractPayment", "contracts");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Contracts.ContractPenaltyClause", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("BillingTimeZone")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Calculation")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<long>("ContractId")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("FixedAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<decimal?>("MonthlyCap")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<decimal?>("Percentage")
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal?>("ReferenceAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.ToTable("ContractPenaltyClause", "contracts");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Contracts.PenaltyAssessment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateOnly>("BillingMonth")
+                        .HasColumnType("date");
+
+                    b.Property<int>("BreachCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BreachIdentitiesJson")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTimeOffset>("CalculatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("ClauseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ContractId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("ReviewedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("TermsKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("TermsSnapshotJson")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<decimal>("UncappedAmount")
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ContractId", "ClauseId", "BillingMonth", "TermsKey")
+                        .IsUnique();
+
+                    b.ToTable("PenaltyAssessment", "contracts");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Contracts.SlaTarget", b =>
@@ -4478,6 +4809,10 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long?>("OwnerUserId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("PenaltyTermsSnapshotJson")
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -5024,6 +5359,17 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Access.RolePermission", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.AppRole", "AppRole")
+                        .WithMany("Permissions")
+                        .HasForeignKey("AppRoleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AppRole");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Access.User", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Access.User", null)
@@ -5466,6 +5812,62 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.Organization", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Clients.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.OrganizationRelationship", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Clients.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("ChildOrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Clients.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Clients.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("ParentOrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Clients.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Clients.Project", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Access.User", null)
@@ -5747,6 +6149,34 @@ namespace TioHub.Api.Data.Migrations
                         .HasForeignKey("ContractId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Contracts.ContractPenaltyClause", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Contracts.Contract", null)
+                        .WithMany("PenaltyClauses")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.ClientCascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Contracts.PenaltyAssessment", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Contracts.Contract", null)
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Contracts.SlaTarget", b =>
@@ -6639,6 +7069,11 @@ namespace TioHub.Api.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Access.AppRole", b =>
+                {
+                    b.Navigation("Permissions");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMapping", b =>
                 {
                     b.Navigation("Scopes");
@@ -6697,6 +7132,8 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("Milestones");
 
                     b.Navigation("Payments");
+
+                    b.Navigation("PenaltyClauses");
 
                     b.Navigation("SlaTargets");
                 });

@@ -46,12 +46,14 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
     {
         var now = p.AsOf ?? DateTimeOffset.UtcNow;
         var days = await settings.UpcomingDaysAsync(ct);
+        const int commitmentWindowDays = 14;
         var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
         var prios = await settings.CoveragePrioritiesAsync(ct);
         var baseCase = new CaseFilter(ClientId: p.ClientId, TeamId: p.TeamId, OwnerId: p.OwnerId, ProductId: p.ProductId, Country: p.Country);
         IQueryable<Case> Cases(CaseFilter f) => CaseQuery.Apply(db.Cases.AsNoTracking(), f, now, days, policy, db, prios);
         var baseCom = new CommitmentFilter(ClientId: p.ClientId, TeamId: p.TeamId, OwnerId: p.OwnerId, ProductId: p.ProductId, Country: p.Country);
         IQueryable<Commitment> Coms(CommitmentFilter f) => CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, days, db);
+        IQueryable<Commitment> UpcomingComs(CommitmentFilter f) => CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, commitmentWindowDays, db);
 
         var open = await Cases(baseCase).Select(c => new { c.CreatedAt, waiting = c.WaitingIntervals.Select(w => new { w.StartedAt, w.EndedAt }).ToList() }).ToListAsync(ct);
         var waitingHours = open.SelectMany(c => c.waiting).Sum(w => ((w.EndedAt ?? now) - w.StartedAt).TotalHours);
@@ -61,7 +63,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         return new
         {
             evaluatedAt = now,
-            upcomingDays = days,
+            upcomingDays = commitmentWindowDays,
             filters = p,
             cases = new object[]
             {
@@ -84,7 +86,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
             {
                 M("openCommitments", "Open commitments", await Coms(baseCom).CountAsync(ct), "Commitments with status Open.", link("/commitments", "status=open")),
                 M("overdueCommitments", "Overdue commitments", await Coms(baseCom with { Due = "overdue" }).CountAsync(ct), "Open commitments whose current deadline is strictly before the evaluation time.", link("/commitments", "due=overdue")),
-                M("upcomingCommitments", $"Due in the next {days} days", await Coms(baseCom with { Due = "upcoming" }).CountAsync(ct), $"Open commitments due between now and {days} calendar days ahead.", link("/commitments", "due=upcoming"))
+                M("upcomingCommitments", $"Due in the next {commitmentWindowDays} days", await UpcomingComs(baseCom with { Due = "upcoming" }).CountAsync(ct), $"Open commitments due between now and {commitmentWindowDays} calendar days ahead.", link("/commitments", $"due=upcoming&upcomingDays={commitmentWindowDays}"))
             },
             actionCounts = (await ActionsAsync(p, ct)).GroupBy(a => a.Category).ToDictionary(g => g.Key, g => g.Count()),
             deferred = "Tasks, changes, capacity and on-time delivery rates are delivered in the Next release and are not shown."
@@ -107,6 +109,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
     {
         var now = p.AsOf ?? DateTimeOffset.UtcNow;
         var days = await settings.UpcomingDaysAsync(ct);
+        const int commitmentWindowDays = 14;
         var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
         var prios = await settings.CoveragePrioritiesAsync(ct);
         var crit = (await settings.CoverageCriticalitiesAsync(ct)).ToList();
@@ -121,10 +124,10 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
             var rows = await CaseQuery.Apply(db.Cases.AsNoTracking(), f, now, days, policy, db, prios).Select(CaseEndpoints.Row(now, policy)).ToListAsync(ct);
             list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Case, r.Id, r.Ref, r.Title, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), r.NextAction, r.DueAt, $"/cases/{r.Id}", Priority: r.Priority.ToString())));
         }
-        async Task AddCommitments(string category, CommitmentFilter f, Func<CommitmentEndpoints.CommitmentRow, string> reason)
+        async Task AddCommitments(string category, CommitmentFilter f, Func<CommitmentEndpoints.CommitmentRow, string> reason, int? windowDays = null)
         {
             if (!Want(category)) return;
-            var rows = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, days, db).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
+            var rows = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, windowDays ?? days, db).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
             list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Commitment, r.Id, r.Ref, r.Description, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), null, r.CurrentDueAt, $"/commitments/{r.Id}")));
         }
 
@@ -134,7 +137,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         await AddCases("OverdueCase", baseCase with { Due = "overdue" }, r => $"Due {r.DueAt:yyyy-MM-dd HH:mm} UTC");
         await AddCases("CaseDueSoon", baseCase with { Due = "24h" }, r => $"Due within 24 hours ({r.DueAt:yyyy-MM-dd HH:mm} UTC)");
         await AddCommitments("OverdueCommitment", baseCom with { Due = "overdue" }, r => $"Due {r.CurrentDueAt:yyyy-MM-dd HH:mm} UTC ({r.TimeZone})");
-        await AddCommitments("ApproachingCommitment", baseCom with { Due = "upcoming" }, r => $"Due within {days} days");
+        await AddCommitments("ApproachingCommitment", baseCom with { Due = "upcoming" }, r => $"Due within {commitmentWindowDays} days", commitmentWindowDays);
         await AddCases("StaleReview", baseCase with { Stale = true }, _ => "No meaningful review within the policy period");
         await AddCommitments("StaleReview", baseCom with { Stale = true }, r => $"Next review {r.NextReviewAt:yyyy-MM-dd} passed");
 

@@ -10,7 +10,7 @@ export type RightKey = 'Edit' | 'Manage' | 'Archive' | 'Delete' | 'Export' | 'Te
 const SHORTHAND: Record<Role, RightKey> = { Engineer: 'Edit', Manager: 'Manage' };
 
 export type Me = {
-  id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: RightKey[]; businessRole: Role | null; isAdministrator: boolean;
+  id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: RightKey[]; permissions: string[]; businessRole: Role | null; isAdministrator: boolean;
   grants: { export: boolean; technicalDetail: boolean; audit: boolean };
   scope: { allClients: boolean; clientCount: number; projectCount: number; allInternal: boolean; internalTeamCount: number; hasBusinessAccess: boolean };
   app: { version: string; environmentName: string; supportContact: string; devSignIn: boolean; authMode: string; mustChangePassword: boolean; map: { tileUrl: string; attribution: string } | null };
@@ -23,6 +23,7 @@ export type Reference = {
   teams: { id: number; code: string; name: string; isActive: boolean }[];
   jiraInstances: { id: number; name: string; kind: string; approvedHost: string; isActive: boolean }[];
   enums: Record<string, string[]>;
+  enumLabels: Record<string, Record<string, string>>;
   countries: string[];
 };
 
@@ -41,8 +42,18 @@ export function useCan(right: Role | RightKey): boolean {
   return !!me?.rights?.includes(key as RightKey);
 }
 
+/** UI hint only; the API enforces the same resource/action key. */
+export function usePermission(resource: string, action: string): boolean {
+  return !!useMe().data?.permissions?.includes(`${resource}:${action}`);
+}
+
 export function useEnum(name: string): string[] {
   return useReference().data?.enums[name] ?? [];
+}
+
+export function useEnumLabel(name: 'Condition' | 'CaseStatus') {
+  const labels = useReference().data?.enumLabels?.[name] ?? {};
+  return (code: string) => labels[code] ?? label(code);
 }
 
 export function useLookup(list: string, keep?: string | null) {
@@ -52,7 +63,7 @@ export function useLookup(list: string, keep?: string | null) {
 
 /**
  * A34: configured types (environment, server, contract and case types). name() shows the configured label, category() the built-in
- * behaviour (for example LogicalEndpoint), options() the active values plus the record's current one.
+ * behaviour (for example LogicalEndpoint), options() the active values plus the record's current one; filterOptions() includes historical values.
  */
 export function useTypes() {
   const ref = useReference().data;
@@ -60,7 +71,9 @@ export function useTypes() {
   return {
     name: (list: string, code?: string | null) => (code ? all(list).find(l => l.code === code)?.label ?? label(code) : ''),
     category: (list: string, code?: string | null) => (code ? all(list).find(l => l.code === code)?.category ?? code : undefined),
-    options: (list: string, keep?: string | null) => all(list).filter(l => !l.isRetired || l.code === keep).map(l => ({ value: l.code, label: l.label }))
+    options: (list: string, keep?: string | null) => all(list).filter(l => !l.isRetired || l.code === keep).map(l => ({ value: l.code, label: l.label })),
+    // Filters must still find historical records after their configured type has been retired.
+    filterOptions: (list: string) => all(list).map(l => ({ value: l.code, label: l.isRetired ? `${l.label} (retired)` : l.label }))
   };
 }
 

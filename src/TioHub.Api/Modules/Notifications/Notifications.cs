@@ -91,12 +91,12 @@ public static class AssignmentNotices
     }
 }
 
-/// <summary>The hourly check: overdue and soon-due cases and commitments for their owners; contract renewals for contract owners and managers.</summary>
+/// <summary>Checks active reminders on a configurable interval and reopens them until the underlying condition is resolved.</summary>
 public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfiguration config, ILogger<NotificationScanner> log) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stop)
     {
-        var minutes = config.GetValue("Notifications:ScanMinutes", 60);
+        var minutes = config.GetValue("Notifications:ScanMinutes", 15);
         if (minutes <= 0) return;
         await Task.Delay(TimeSpan.FromSeconds(20), stop);
         while (!stop.IsCancellationRequested)
@@ -177,10 +177,32 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
                     $"payment-{(overdue ? "overdue" : "due")}:{p.Id}:{p.DueDate:yyyyMMdd}");
         }
 
-        if (found.Count == 0) return 0;
-        var keys = found.Select(f => f.Key).Distinct().ToList();
-        var existing = (await db.Notifications.Where(n => keys.Contains(n.Key)).Select(n => new { n.UserId, n.Key }).ToListAsync(ct)).Select(x => (x.UserId, x.Key)).ToHashSet();
-        var fresh = found.Where(f => existing.Add((f.UserId, f.Key))).ToList();
+        var current = found.GroupBy(f => (f.UserId, f.Key)).Select(g => g.First()).ToDictionary(f => (f.UserId, f.Key));
+        var keys = current.Keys.Select(x => x.Key).Distinct().ToList();
+        var recurring = db.Notifications.Where(n =>
+            n.Key.StartsWith("case-due:") || n.Key.StartsWith("case-overdue:") ||
+            n.Key.StartsWith("commitment-due:") || n.Key.StartsWith("commitment-overdue:") ||
+            n.Key.StartsWith("escalation-due:") || n.Key.StartsWith("escalation-overdue:") ||
+            n.Key.StartsWith("contract-") || n.Key.StartsWith("payment-due:") || n.Key.StartsWith("payment-overdue:"));
+        var existingAlerts = await recurring.Where(n => n.ReadAt == null || keys.Contains(n.Key)).ToListAsync(ct);
+        var existingByPair = existingAlerts.ToDictionary(n => (n.UserId, n.Key));
+        foreach (var notice in existingAlerts)
+        {
+            if (current.TryGetValue((notice.UserId, notice.Key), out var active))
+            {
+                notice.Kind = active.Kind;
+                notice.Title = active.Title;
+                notice.Body = active.Body;
+                notice.Link = active.Link;
+                notice.ReadAt = null;
+            }
+            else if (notice.ReadAt is null)
+            {
+                // Resolving the source condition clears the recurring alert from the unread list.
+                notice.ReadAt = now;
+            }
+        }
+        var fresh = current.Values.Where(n => !existingByPair.ContainsKey((n.UserId, n.Key))).ToList();
         db.Notifications.AddRange(fresh);
         // Read notices older than 90 days are cleared.
         await db.Notifications.Where(n => n.ReadAt != null && n.ReadAt < now.AddDays(-90)).ExecuteDeleteAsync(ct);

@@ -1,6 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json.Nodes;
+using TioHub.Api.Security;
 
 namespace TioHub.Tests;
 
@@ -29,13 +31,13 @@ public abstract class Scenario(HubFactory hub)
         return (await m.Get("/teams")).Body!.AsArray().First(t => t!["code"]!.GetValue<string>() == code)!["id"]!.GetValue<long>();
     }
 
-    protected async Task<long> NewCase(long? clientId, long? envId = null, long? owner = null, string scope = "Client", string? dueLocal = null, string asUser = HubFactory.Manager)
+    protected async Task<long> NewCase(long? clientId, long? envId = null, long? owner = null, string scope = "Client", string? dueLocal = null, string asUser = HubFactory.Manager, string? nextAction = "Investigate")
     {
         var a = await Hub.As(asUser);
         return await a.Create("/cases", new
         {
             title = "Import stopped " + Guid.NewGuid().ToString("N")[..4], type = "Incident", scope, clientId, responsibleTeamId = await Team(), impactSummary = "Degraded imports", priority = "High",
-            ownerUserId = owner, nextAction = "Investigate", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1), dueLocal, dueTimeZone = dueLocal is null ? null : "Asia/Riyadh",
+            ownerUserId = owner, nextAction, nextReviewAt = DateTimeOffset.UtcNow.AddDays(1), dueLocal, dueTimeZone = dueLocal is null ? null : "Asia/Riyadh",
             affected = new { environmentIds = envId is null ? Array.Empty<long>() : new[] { envId.Value } }
         });
     }
@@ -474,9 +476,11 @@ public class AC06_CaseLifecycle(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var e2 = await Hub.As(HubFactory.Engineer2);
-        var id = await NewCase(null, scope: "Internal");
+        var id = await NewCase(null, scope: "Internal", nextAction: null);
         Assert.Equal(HttpStatusCode.OK, (await e2.Get($"/cases/{id}")).Status);
-        Assert.True((await m.Get($"/cases/{id}")).Body!["client"] is null);
+        var created = (await m.Get($"/cases/{id}")).Body!;
+        Assert.True(created["client"] is null);
+        Assert.Equal("", created["nextAction"]!.GetValue<string>());
         Assert.NotNull((await m.Post("/cases", new { title = "x", type = "Request", scope = "Client", responsibleTeamId = await Team(), impactSummary = "x", priority = "Low", nextAction = "x", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) })).Error("clientId"));
     }
 }
@@ -545,12 +549,15 @@ public class AC08_Commitments(HubFactory hub) : Scenario(hub)
         await m.Ok($"/commitments/{id}/revise", new { dueLocal = Future(-2), reason = "Customer agreed earlier date" }, V());
         // Completion in the future refused; late completion stays Completed with a derived late result.
         Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddHours(2), evidence = "mail" }, V())).Error("completedAt"));
-        Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow }, V())).Error("evidence"));
-        Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddDays(-30), evidence = "x" }, V())).Error("completedAt"));
-        await m.Ok($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow, evidence = "Email ref 55" }, V());
+        // A backfilled completion may predate creation, provided it is not before the deadline; evidence is optional.
+        Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddDays(-3) }, V())).Error("completedAt"));
+        var backfilled = DateTimeOffset.UtcNow.AddDays(-1);
+        await m.Ok($"/commitments/{id}/complete", new { completedAt = backfilled }, V());
         c = (await m.Get($"/commitments/{id}")).Body!;
         Assert.Equal("Completed", c["status"]!.GetValue<string>());
         Assert.Equal("Completed late", c["timeliness"]!.GetValue<string>());
+        Assert.Null(c["completionEvidence"]);
+        Assert.Equal(backfilled, c["completedAt"]!.GetValue<DateTimeOffset>());
         Assert.Equal(expectedUtc, c["originalDueAt"]!.GetValue<DateTimeOffset>());
         Assert.Equal(1, c["revisionCount"]!.GetValue<int>());
 
@@ -625,10 +632,10 @@ public class AC10_Verification(HubFactory hub) : Scenario(hub)
         var env = await NewEnv(c, "Production");
         var e0 = (await m.Get($"/environments/{env}")).Body!;
         Assert.Equal("Unknown", e0["condition"]!["display"]!.GetValue<string>());
-        // Non-Unknown condition needs reason and evidence; observation cannot be in the future.
-        Assert.NotNull((await m.Post($"/environments/{env}/conditions", new { condition = "Healthy", observedAt = DateTimeOffset.UtcNow })).Error("evidence"));
+        // Non-Unknown condition needs a reason; comments are optional and observation cannot be in the future.
+        Assert.NotNull((await m.Post($"/environments/{env}/conditions", new { condition = "Healthy", observedAt = DateTimeOffset.UtcNow })).Error("reason"));
         Assert.NotNull((await m.Post($"/environments/{env}/conditions", new { condition = "Healthy", reason = "ok", evidence = "chk", observedAt = DateTimeOffset.UtcNow.AddHours(3) })).Error("observedAt"));
-        await m.Create($"/environments/{env}/conditions", new { condition = "Healthy", reason = "Morning check", evidence = "Checklist 1", observedAt = DateTimeOffset.UtcNow.AddMinutes(-5) });
+        await m.Create($"/environments/{env}/conditions", new { condition = "Healthy", reason = "Morning check", observedAt = DateTimeOffset.UtcNow.AddMinutes(-5) });
         var e1 = (await m.Get($"/environments/{env}")).Body!;
         Assert.Equal("Healthy", e1["condition"]!["reported"]!.GetValue<string>());
         Assert.Null(e1["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
@@ -666,6 +673,7 @@ public class AC11_DashboardReconciliation(HubFactory hub) : Scenario(hub)
         var a = await Hub.As(account);
         var asOf = DateTimeOffset.UtcNow.AddHours(1).ToString("O");
         var d = (await a.Get($"/dashboard?asOf={Uri.EscapeDataString(asOf)}")).Body!;
+        Assert.Equal(14, d["upcomingDays"]!.GetValue<int>());
         foreach (var measure in d["cases"]!.AsArray().Concat(d["commitments"]!.AsArray()))
         {
             var drill = measure!["drilldown"]!.GetValue<string>();
@@ -731,6 +739,16 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
         Assert.Contains("Generated", text);
         Assert.Contains("Column: Reference", text);
         Assert.NotEmpty((await m.Get("/admin/audit?action=Export&pageSize=5")).Body!["items"]!.AsArray());
+    }
+
+    [Fact]
+    public async Task An_unused_user_can_be_deleted_with_a_reason()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var id = await m.Create("/admin/users", new { accountName = U("DELETE"), displayName = "Unused user", workingTimeZone = "UTC", roles = new[] { "Engineer" } });
+        var deleted = await m.Send(HttpMethod.Delete, $"/admin/users/{id}", new { reason = "Account was provisioned in error" }, await m.Version($"/admin/users/{id}"));
+        Assert.Equal(HttpStatusCode.NoContent, deleted.Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/admin/users/{id}")).Status);
     }
 
     [Fact]
@@ -1028,10 +1046,14 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         var m = await Hub.As(HubFactory.Manager);
         var e = await Hub.As(HubFactory.Engineer);
         var roles = (await m.Get("/admin/roles")).Body!;
-        Assert.Equal(8, roles["rights"]!.AsArray().Count);
+        Assert.Equal(new[] { "Export", "TechnicalDetail", "Audit", "Administer" },
+            roles["rights"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()));
+        Assert.Equal(ResourcePermissions.All.Order(), roles["permissions"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()).Order());
         var manager = roles["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == "Manager")!;
         Assert.True(manager["isLocked"]!.GetValue<bool>());
-        Assert.Equal(8, manager["rights"]!.AsArray().Count);
+        Assert.Equal(new[] { "Export", "TechnicalDetail", "Audit", "Administer" },
+            manager["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
+        Assert.Equal(ResourcePermissions.All.Order(), manager["permissions"]!.AsArray().Select(r => r!.GetValue<string>()).Order());
         Assert.Equal(HttpStatusCode.Forbidden, (await e.Get("/admin/roles")).Status);
 
         // A new role "Viewer" with no rights: sees records, changes nothing.
@@ -2082,6 +2104,24 @@ public class AC50_PaymentsOnDashboardAndNotifications(HubFactory hub) : Scenario
         Assert.All(notes["items"]!.AsArray(), n => Assert.StartsWith("Payment", n!["title"]!.GetValue<string>()));
         Assert.True(notes["unreadPayments"]!.GetValue<int>() >= 2);
         Assert.NotNull((await e.Get("/notifications?category=other")).Error("category"));
+
+        var paymentNotice = mine.First(n => n!["title"]!.GetValue<string>().StartsWith("Payment due"))!;
+        var noticeId = Id(paymentNotice);
+        await e.Post($"/notifications/{noticeId}/read");
+        using (var scope = Hub.Services.CreateScope())
+            await TioHub.Api.Modules.Notifications.NotificationScanner.ScanAsync(scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>(), DateTimeOffset.UtcNow, CancellationToken.None);
+        Assert.Contains((await e.Get("/notifications?unread=true&category=payments&pageSize=100")).Body!["items"]!.AsArray(), n => Id(n) == noticeId);
+
+        using (var scope = Hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
+            var contract = await db.Contracts.Include(x => x.Payments).SingleAsync(x => x.Id == id);
+            foreach (var payment in contract.Payments.Where(x => x.Status is TioHub.Api.Modules.Contracts.PaymentStatus.Pending or TioHub.Api.Modules.Contracts.PaymentStatus.Invoiced))
+                payment.Status = TioHub.Api.Modules.Contracts.PaymentStatus.Paid;
+            await db.SaveChangesAsync();
+            await TioHub.Api.Modules.Notifications.NotificationScanner.ScanAsync(db, DateTimeOffset.UtcNow, CancellationToken.None);
+        }
+        Assert.DoesNotContain((await e.Get("/notifications?unread=true&category=payments&pageSize=100")).Body!["items"]!.AsArray(), n => n!["link"]!.GetValue<string>() == $"/contracts/{id}");
     }
 }
 

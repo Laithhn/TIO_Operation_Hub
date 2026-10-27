@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, label, qty, toLocalInput } from '../format';
-import { useCan, useEnum, useForm, useLeaveGuard, useMe, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useEnum, useEnumLabel, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput,
@@ -19,6 +19,7 @@ const HOSTING_LABEL: Record<string, string> = { OnPrem: 'On-prem', Cloud: 'Cloud
 type EnvRow = { id: number; name: string; type: string; criticality: string; hosting?: string; clientId: number; clientCode: string; clientName: string; country?: string; regionId?: number; regionCode?: string; owner?: UserRef; backupOwner?: UserRef; backupGapReason?: string; installationCount: number; assetCount: number; openCases: number; condition: ConditionT; inventoryFreshness: FreshnessT };
 
 export function EnvironmentList() {
+  const conditionLabel = useEnumLabel('Condition');
   const T = useTypes();
   const [f, set] = useUrlState({ clientId: '', regionId: '', direct: '', type: '', criticality: '', condition: '', freshness: '', q: '', sort: 'client', page: '1', pageSize: '15' });
   const q = useQuery({ queryKey: ['environments', f], queryFn: () => get<Paged<EnvRow>>(`/environments${qs(f)}`) });
@@ -27,17 +28,18 @@ export function EnvironmentList() {
   const crit = useEnum('Criticality');
   const conds = useEnum('Condition');
   const me = useMe().data!;
-  const canLead = useCan('Engineer');
+  const canLead = usePermission('Environments', 'Create');
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize'].includes(k) && v);
+  const exportFilters = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   return (
     <>
       <PageHead title="Environments" crumbs={[{ to: '/clients', label: 'Clients' }, { label: 'Environments' }]} sub="Production in two regions are two distinct environments. Direct-client environments have no region by design."
-        actions={<>{me.grants.export && <button className="btn" onClick={() => exportCsv('environments', { clientId: f.clientId, regionId: f.regionId })}>Export CSV</button>}{canLead && <Link className="btn btn-primary" to="/environments/new">+ New Environment</Link>}</>} />
+        actions={<>{me.grants.export && <button className="btn" onClick={() => exportCsv('environments', exportFilters)}>Export CSV</button>}{canLead && <Link className="btn btn-primary" to="/environments/new">+ New Environment</Link>}</>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v, regionId: '' })} options={clients} empty="All authorized clients" />
         {f.clientId && (regions.data?.length ?? 0) > 0 && <SelectInput label="Region (optional)" value={f.regionId} onChange={v => set({ regionId: v })} options={(regions.data ?? []).map(r => ({ value: String(r.id), label: `${r.code} · ${r.name}` }))} empty="All" />}
         <SelectInput label="Placement" value={f.direct} onChange={v => set({ direct: v })} options={[{ value: 'true', label: 'Direct under client' }]} empty="Regional and direct" />
-        <SelectInput label="Reported condition" value={f.condition} onChange={v => set({ condition: v })} options={enumOptions(conds)} empty="Any" />
+        <SelectInput label="Reported condition" value={f.condition} onChange={v => set({ condition: v })} options={conds.map(c => ({ value: c, label: conditionLabel(c) }))} empty="Any" />
         <SelectInput label="Review state" value={f.freshness} onChange={v => set({ freshness: v })} options={[{ value: 'stale', label: 'Inventory stale' }, { value: 'needsVerification', label: 'Condition needs verification' }]} empty="Any" />
       </div>
       <DataTable<EnvRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })}
@@ -45,7 +47,7 @@ export function EnvironmentList() {
           { key: 'client', header: 'Client', sort: 'client', render: r => <Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link>, filter: <input className="input" aria-label="Search environments" placeholder="Search by environment or client" value={f.q} onChange={e => set({ q: e.target.value })} /> },
           { key: 'region', header: 'Region', sort: 'region', render: r => r.regionCode ?? <span className="muted">Direct</span> },
           { key: 'name', header: 'Environment', sort: 'name', render: r => <Link to={`/environments/${r.id}`}>{r.name}</Link> },
-          { key: 'type', header: 'Type', sort: 'type', render: r => T.name('EnvironmentType', r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{T.options('EnvironmentType', f.type).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
+          { key: 'type', header: 'Type', sort: 'type', render: r => T.name('EnvironmentType', r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{T.filterOptions('EnvironmentType').map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
           { key: 'crit', header: 'Criticality', sort: 'criticality', render: r => <StatusBadge value={r.criticality} />, filter: <select className="input" aria-label="Filter by criticality" value={f.criticality} onChange={e => set({ criticality: e.target.value })}><option value="">All</option>{crit.map(t => <option key={t}>{t}</option>)}</select> },
           { key: 'cond', header: 'Reported condition', render: r => <ConditionBadge c={r.condition} /> },
           { key: 'fresh', header: 'Inventory review', render: r => <FreshnessBadge f={r.inventoryFreshness} /> },
@@ -155,7 +157,10 @@ export function EnvironmentDetail() {
   const conds = useQuery({ queryKey: ['conditions', id], queryFn: () => get<{ id: number; condition: string; reason?: string; evidence?: string; observedAt: string; recordedAt: string; recordedBy?: string }[]>(`/environments/${id}/conditions`) });
   const [tab, setTab] = useState('apps');
   const [dialog, setDialog] = useState<string | null>(null);
-  const canArchive = useCan('Archive');
+  const canArchive = usePermission('Environments', 'ArchiveRestore');
+  const canCreateServer = usePermission('Servers', 'Create');
+  const canCreateInstallation = usePermission('Installations', 'Create');
+  const canCreateEnvironment = usePermission('Environments', 'Create');
   const e = env.data;
   const o = ov.data;
   return (
@@ -165,12 +170,12 @@ export function EnvironmentDetail() {
         actions={<>
           {e.canEdit && <Link className="btn" to={`/environments/${id}/edit`}>Edit</Link>}
           {e.canEdit && <button className="btn" onClick={() => setDialog('condition')}>Report condition</button>}
-          {e.canEdit && <Menu label="+ Add" primary items={[
-            { label: 'Server', onClick: () => setDialog('asset') },
-            { label: 'Installation (product)', onClick: () => setDialog('install') }
+          {(canCreateServer || canCreateInstallation) && <Menu label="+ Add" primary items={[
+            { label: 'Server', onClick: () => setDialog('asset'), hidden: !canCreateServer },
+            { label: 'Installation (product)', onClick: () => setDialog('install'), hidden: !canCreateInstallation }
           ]} />}
           <Menu label="More" items={[
-            { label: 'Copy servers or environment…', onClick: () => setDialog('clone'), hidden: !e.canEdit },
+            { label: 'Copy servers or environment…', onClick: () => setDialog('clone'), hidden: !(canCreateServer || canCreateInstallation || canCreateEnvironment) },
             { label: 'Archive environment…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }
           ]} />
         <DeleteAction button path={`/environments/${e.id}`} what={`environment ${e.name}`} afterTo={`/clients/${e.client.id}`} /></>} />
@@ -199,9 +204,12 @@ export function EnvironmentDetail() {
       {o && tab === 'apps' && (o.installations.length === 0 ? <StateMessage kind="none">No application installations recorded.</StateMessage> : o.installations.map(i => (
         <Panel key={i.id} title={<><Link to={`/installations/${i.id}`}>{i.product} · {i.instanceName}</Link>{i.module && <span className="chip"> {i.module}</span>} <span className="chip">{i.version ?? 'Unknown version'}</span></>} pad={false}>
           {i.components.length === 0 ? <div className="panel-body"><StateMessage kind="none">No components recorded.</StateMessage></div> : (
-            <table className="grid"><thead><tr><th>Component</th><th>Role</th><th>Component version</th><th>Supporting servers</th></tr></thead>
-              <tbody>{i.components.map(c => <tr key={c.id}><td><Link to={`/components/${c.id}`}>{c.name}</Link></td><td>{c.role}</td><td>{c.componentVersion ?? <span className="muted">Not recorded</span>}</td>
-                <td>{c.hosts.length === 0 ? <Badge tone="warn">No host recorded</Badge> : c.hosts.map(h => <span key={h.assetId} style={{ marginRight: 8 }}><Link to={`/assets/${h.assetId}`}>{h.name}</Link> <span className="chip">{T.name('AssetType', h.type)}</span></span>)}</td></tr>)}</tbody></table>
+            <DataTable caption={`Components in ${i.product} ${i.instanceName}`} rows={i.components} rowKey={c => c.id} columns={[
+              { key: 'component', header: 'Component', render: c => <Link to={`/components/${c.id}`}>{c.name}</Link> },
+              { key: 'role', header: 'Role', render: c => c.role },
+              { key: 'version', header: 'Component version', render: c => c.componentVersion ?? <span className="muted">Not recorded</span> },
+              { key: 'hosts', header: 'Supporting servers', render: c => c.hosts.length === 0 ? <Badge tone="warn">No host recorded</Badge> : c.hosts.map(h => <span key={h.assetId} style={{ marginRight: 8 }}><Link to={`/assets/${h.assetId}`}>{h.name}</Link> <span className="chip">{T.name('AssetType', h.type)}</span></span>) }
+            ]} />
           )}
         </Panel>)))}
       {o && tab === 'assets' && (
@@ -218,7 +226,7 @@ export function EnvironmentDetail() {
         </Panel>
       )}
       {o && tab === 'work' && (<div className="cols">
-        <Panel title="Open cases affecting this environment">{o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.status} /><div className="when">{c.owner} · {c.nextAction}</div></li>)}</ul>}</Panel>
+        <Panel title="Open cases affecting this environment">{o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.status} enumName="CaseStatus" /><div className="when">{c.owner} · {c.nextAction}</div></li>)}</ul>}</Panel>
         <Panel title="Related open commitments">{o.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.commitments.map(c => <li key={c.id}><Link to={`/commitments/${c.id}`}>{c.ref}</Link> {c.description}<div className="when">due {fmtDateTime(c.currentDueAt)}</div></li>)}</ul>}</Panel>
         <Panel title="Responsibility boundaries">{o.boundaries.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.boundaries.map(b => <li key={b.id}><b>{b.area}</b>: <BoundaryPerson b={b} /> {label(b.party)}{b.organization && ` · ${b.organization}`}{b.coordinator && ` · coordinator ${b.coordinator}`} <span className="chip">{b.environmentSpecific ? 'This environment' : 'Whole client'}</span></li>)}</ul>}</Panel>
       </div>)}
@@ -226,7 +234,7 @@ export function EnvironmentDetail() {
       {tab === 'conditions' && (
         <Panel title="Condition reports (history kept)" pad={false}>
           <DataTable rowKey={r => r.id} rows={conds.data} loading={conds.isLoading} columns={[
-            { key: 'o', header: 'Observed', render: r => fmtDateTime(r.observedAt) }, { key: 'c', header: 'Condition', render: r => <StatusBadge value={r.condition} /> },
+            { key: 'o', header: 'Observed', render: r => fmtDateTime(r.observedAt) }, { key: 'c', header: 'Condition', render: r => <StatusBadge value={r.condition} enumName="Condition" /> },
             { key: 'r', header: 'Reason', render: r => r.reason }, { key: 'e', header: 'Evidence / note', render: r => r.evidence }, { key: 'b', header: 'Recorded by', render: r => `${r.recordedBy ?? ''} · ${fmtDateTime(r.recordedAt)}` }
           ]} />
         </Panel>
@@ -238,7 +246,7 @@ export function EnvironmentDetail() {
           ]} />
         </Panel>
       )}
-      {tab === 'files' && <AttachmentsPanel recordType="Environment" recordId={e.id} canEdit={e.canEdit} />}
+      {tab === 'files' && <AttachmentsPanel recordType="Environment" recordId={e.id} />}
       {tab === 'history' && <HistoryPanel entityType="Environment" entityId={e.id} />}
       {dialog === 'condition' && <ConditionDialog envId={e.id} onClose={() => setDialog(null)} />}
       {dialog === 'install' && <InstallationDialog environmentId={e.id} clientId={e.client.id} onClose={() => setDialog(null)} />}
@@ -252,6 +260,7 @@ export function EnvironmentDetail() {
 function ConditionDialog({ envId, onClose }: { envId: number; onClose: () => void }) {
   const f = useForm({ condition: 'Healthy', reason: '', evidence: '', observedAt: toLocalInput(new Date().toISOString()) });
   const conds = useEnum('Condition');
+  const conditionLabel = useEnumLabel('Condition');
   const toast = useToast();
   const refresh = useRefresh();
   const save = async () => {
@@ -260,13 +269,13 @@ function ConditionDialog({ envId, onClose }: { envId: number; onClose: () => voi
   };
   return (
     <Dialog title="Report operating condition" onClose={onClose}>
-      <div className="notice">A manual report, not live monitoring. Healthy, Degraded or Unavailable need a reason and supporting evidence or a verification note. This does not verify the inventory.</div>
+      <div className="notice">A manual report, not live monitoring. Healthy, Degraded or Unavailable need a reason. Comments are optional. This does not verify the inventory.</div>
       <FormError error={f.error} />
       <div className="form-grid">
-        <SelectInput label="Condition" required value={f.values.condition} onChange={v => f.set('condition', v)} options={enumOptions(conds)} empty={null} />
+        <SelectInput label="Condition" required value={f.values.condition} onChange={v => f.set('condition', v)} options={conds.map(c => ({ value: c, label: conditionLabel(c) }))} empty={null} />
         <TextInput label="Observed at" required type="datetime-local" value={f.values.observedAt} onChange={v => f.set('observedAt', v)} error={f.fieldError('observedAt')} hint="Cannot be in the future." />
         <TextInput label="Reason" required={f.values.condition !== 'Unknown'} wide value={f.values.reason} onChange={v => f.set('reason', v)} error={f.fieldError('reason')} />
-        <TextInput label="Evidence, reference or verification note" required={f.values.condition !== 'Unknown'} wide multiline value={f.values.evidence} onChange={v => f.set('evidence', v)} error={f.fieldError('evidence')} />
+        <TextInput label="Comments (optional)" wide multiline value={f.values.evidence} onChange={v => f.set('evidence', v)} error={f.fieldError('evidence')} />
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Record report</button></div>
     </Dialog>

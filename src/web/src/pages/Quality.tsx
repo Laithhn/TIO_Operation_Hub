@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, label } from '../format';
-import { useCan, useMe, useRefresh, useUrlState } from '../hooks';
+import { usePermission, useMe, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog } from '../ui/pickers';
 import { DataTable, PageHead, Pager, Panel, Person, SelectInput, StatusBadge, useToast } from '../ui/kit';
 import { RecordLink, useClientOptions } from './common';
@@ -15,7 +15,7 @@ export function DataQuality() {
   const sum = useQuery({ queryKey: ['dq-sum', f.clientId], queryFn: () => get<{ rule: string; label: string; count: number }[]>(`/data-quality/summary${qs({ clientId: f.clientId })}`) });
   const clients = useClientOptions();
   const me = useMe().data!;
-  const canEng = useCan('Engineer');
+  const canEng = usePermission('OtherOperations', 'Maintain');
   const refresh = useRefresh();
   const toast = useToast();
   const [edit, setEdit] = useState<Item | null>(null);

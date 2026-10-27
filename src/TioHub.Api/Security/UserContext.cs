@@ -5,7 +5,7 @@ namespace TioHub.Api.Security;
 /// <summary>Effective permission snapshot for one user, built at sign-in and cached briefly (Section 3).</summary>
 public sealed record ResolvedUser(
     long UserId, string AccountName, string DisplayName, string TimeZone, bool IsActive,
-    string[] Roles, Right Rights, Grant Grants,
+    string[] Roles, Right Rights, string[] Permissions, Grant Grants,
     bool AllClients, long[] ClientIds, long[] ProjectIds, long[] ProjectClientIds, long[] ProjectEnvironmentIds,
     bool AllInternal, long[] TeamIds);
 
@@ -24,6 +24,8 @@ public sealed class UserContext
     /// <summary>Names of the roles held (A31: configurable roles).</summary>
     public string[] Roles { get; private set; } = [];
     public Right Rights { get; private set; }
+    public string[] PermissionKeys { get; private set; } = [];
+    private HashSet<string> PermissionSet { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Grant Grants { get; private set; }
 
     /// <summary>Highest business role, or null for users with only the administrator role.</summary>
@@ -51,9 +53,11 @@ public sealed class UserContext
         TimeZone = u.TimeZone;
         Roles = u.Roles;
         Rights = u.Rights;
+        PermissionKeys = u.Permissions;
+        PermissionSet = u.Permissions.ToHashSet(StringComparer.OrdinalIgnoreCase);
         Grants = u.Grants;
-        // Kept for older call sites: "Manager" level = may manage structure, "Engineer" level = holds any role.
-        BusinessRole = u.Roles.Length == 0 ? null : u.Rights.HasFlag(Right.Manage) ? Role.Manager : Role.Engineer;
+        // Role identity determines business visibility; resource permissions determine each action.
+        BusinessRole = u.Roles.Length == 0 ? null : PermissionSet.Contains(ResourcePermissions.KeyOf(ResourcePermissions.Structure, ResourcePermissions.Coordinate)) ? Role.Manager : Role.Engineer;
         IsAdministrator = u.Rights.HasFlag(Right.Administer);
         // No business role, no business access, whatever scopes were granted.
         var hasBusiness = BusinessRole is not null;
@@ -68,10 +72,32 @@ public sealed class UserContext
 
     public bool HasBusinessRole => IsSystem || BusinessRole is not null;
 
-    /// <summary>A31: the two original levels map to rights — Engineer = Edit records, Manager = Manage clients &amp; structure.</summary>
-    public bool Can(Role minimum) => HasRight(minimum == Role.Manager ? Right.Manage : Right.Edit);
+    /// <summary>Compatibility helper. New handlers should check the specific resource and action.</summary>
+    public bool Can(Role minimum) => minimum == Role.Manager
+        ? HasPermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate)
+        : HasBusinessRole && PermissionSet.Any(p => p.EndsWith($":{ResourcePermissions.Maintain}", StringComparison.OrdinalIgnoreCase));
 
-    public bool HasRight(Right right) => IsSystem || (HasBusinessRole && (Rights & right) == right);
+    public bool HasRight(Right right) => IsSystem || (right switch
+    {
+        Right.Edit => Can(Role.Engineer),
+        Right.Manage => HasPermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate),
+        Right.Archive => HasAny(ResourcePermissions.ArchiveRestore),
+        Right.Delete => HasAny(ResourcePermissions.Delete),
+        _ => HasBusinessRole && (Rights & right) == right
+    });
+
+    public bool HasPermission(string resource, string action) => IsSystem ||
+        (HasBusinessRole && PermissionSet.Contains(ResourcePermissions.KeyOf(resource, action)));
+
+    public bool HasAny(string action) => IsSystem || (HasBusinessRole && PermissionSet.Any(p =>
+        p.EndsWith($":{action}", StringComparison.OrdinalIgnoreCase)));
+
+    public void RequirePermission(string resource, string action)
+    {
+        if (HasPermission(resource, action)) return;
+        var row = ResourcePermissions.Catalog.FirstOrDefault(x => x.Resource == resource && x.Action == action);
+        throw new ForbiddenException($"This needs {row?.ActionLabel ?? action} for {row?.ResourceLabel ?? resource}. Ask the TIO Manager.");
+    }
 
     public void RequireRight(Right right)
     {
@@ -79,7 +105,7 @@ public sealed class UserContext
             throw new ForbiddenException($"This needs the \"{BuiltInRoles.Catalog.FirstOrDefault(r => r.Key == right)?.Label ?? right.ToString()}\" right. Ask the TIO Manager.");
     }
 
-    /// <summary>Coordination authority (assign owners, triage, structure): holders of the Manage right.</summary>
+    /// <summary>Structure coordination authority. Other resource coordination is checked independently.</summary>
     public bool IsLead => Can(Role.Manager);
     public bool IsManager => Can(Role.Manager);
 

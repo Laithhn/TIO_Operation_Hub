@@ -213,6 +213,62 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.Equal("Expired", (await m.Get($"/reports/exports/{id}")).Body!["export"]!["status"]!.GetValue<string>());
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Unavailable_downloads_enable_retry_without_scheduler_cleanup(bool expired)
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var c = await NewClient();
+        await NewCase(c);
+        var job = (await m.Post("/reports/cases/exports", new { filters = new { clientId = c.ToString() }, format = "csv" })).Body!;
+        var id = Id(job);
+        using (var scope = Hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+            var row = await db.ExportJobs.SingleAsync(j => j.Id == id);
+            if (expired) row.ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(-1);
+            else scope.ServiceProvider.GetRequiredService<ExportStore>().Delete(row.StoredPath!);
+            await db.SaveChangesAsync();
+        }
+        Assert.Equal(HttpStatusCode.Gone, (await Download(m, id)).Status);
+        var details = (await m.Get($"/reports/exports/{id}")).Body!["export"]!;
+        Assert.Equal("Expired", details["status"]!.GetValue<string>());
+        Assert.True(details["canRetry"]!.GetValue<bool>());
+        Assert.False(details["canDownload"]!.GetValue<bool>());
+        var retry = (await m.Post($"/reports/exports/{id}/retry")).Body!;
+        Assert.Equal("Completed", retry["status"]!.GetValue<string>());
+        Assert.Equal(id, retry["retryOfId"]!.GetValue<long>());
+        Assert.Equal(HttpStatusCode.OK, (await Download(m, Id(retry))).Status);
+    }
+
+    [Fact]
+    public async Task Cancelled_generation_persists_a_retryable_failed_job()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        using var scope = Hub.Services.CreateScope();
+        var sp = scope.ServiceProvider;
+        sp.GetRequiredService<TioHub.Api.Security.UserContext>().Set(
+            (await sp.GetRequiredService<TioHub.Api.Security.UserResolver>().ForUserAsync(m.UserId, CancellationToken.None))!);
+        using var cancel = new CancellationTokenSource();
+        var def = new TableReport<string>
+        {
+            Key = "cases", Name = "Cancelled cases", Category = "Operations", Description = "Test", Icon = "case",
+            Cols = [new("Reference", "Reference", r => r)],
+            Load = (_, _) => { cancel.Cancel(); throw new OperationCanceledException(cancel.Token); }
+        };
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => sp.GetRequiredService<ExportService>().ExportAsync(
+            def, new ValidFilters(new(), ""), ExportFormat.Csv, null, TimeZoneInfo.Utc, "Test", null, -1, cancel.Token));
+        var db = sp.GetRequiredService<HubDbContext>();
+        db.ChangeTracker.Clear();
+        var row = await db.ExportJobs.SingleAsync(j => j.ReportName == "Cancelled cases");
+        Assert.Equal(ExportStatus.Failed, row.Status);
+        Assert.NotNull(row.CompletedAt);
+        Assert.Contains("cancelled", row.Error);
+        var retry = (await m.Post($"/reports/exports/{row.Id}/retry")).Body!;
+        Assert.Equal("Completed", retry["status"]!.GetValue<string>());
+    }
+
     [Fact]
     public async Task Presets_and_schedules_belong_to_their_owner_and_runs_use_each_recipients_access()
     {

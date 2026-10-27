@@ -33,6 +33,15 @@ $keep = @('appsettings.Production.json', 'App_Data', 'logs')
 function Step($text) { Write-Host "`n== $text" -ForegroundColor Cyan }
 function Ok($text) { Write-Host "  [ok]   $text" -ForegroundColor Green }
 
+# Complete IIS/elevation preflight before backing up or changing the database.
+$principal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
+if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+  throw 'Open Windows PowerShell using Run as administrator, then run this upgrade again. No database or application files have been changed.'
+}
+Import-Module WebAdministration -ErrorAction Stop
+if (-not (Test-Path -LiteralPath "IIS:\Sites\$SiteName")) { throw "IIS site '$SiteName' was not found. No database or application files have been changed." }
+if (-not (Test-Path -LiteralPath "IIS:\AppPools\$SiteName")) { throw "IIS application pool '$SiteName' was not found. No database or application files have been changed." }
+
 $version = (Get-Item (Join-Path $appSource 'TioHub.Api.dll')).VersionInfo.ProductVersion -replace '\+.*$', ''
 $current = if (Test-Path (Join-Path $appDir 'TioHub.Api.dll')) { (Get-Item (Join-Path $appDir 'TioHub.Api.dll')).VersionInfo.ProductVersion -replace '\+.*$', '' } else { $null }
 if (-not $current) { throw "No installation found in $appDir. Use Install-TioHub.ps1 for a first installation." }
@@ -57,7 +66,6 @@ if (-not $SkipDatabase) {
 }
 
 Step 'Application files'
-Import-Module WebAdministration
 if ($PSCmdlet.ShouldProcess($appDir, "replace application files (keeping $($keep -join ', '))")) {
   Stop-Website -Name $SiteName -ErrorAction SilentlyContinue
   Stop-WebAppPool -Name $SiteName -ErrorAction SilentlyContinue
@@ -73,9 +81,13 @@ if ($PSCmdlet.ShouldProcess($appDir, "replace application files (keeping $($keep
 }
 
 Step 'Health check'
+if ($WhatIfPreference) {
+  Write-Host 'WhatIf: readiness verification is skipped because no upgrade was applied.'
+  return
+}
 $ready = $false
 for ($i = 0; $i -lt 12 -and -not $ready; $i++) {
   try { $r = Invoke-RestMethod "$Url/api/health/ready" -UseBasicParsing -TimeoutSec 10; $ready = $r.status -eq 'ready' } catch { Start-Sleep -Seconds 5 }
 }
 if ($ready) { Ok "$Url/api/health/ready -> ready. Upgrade to $version finished." }
-else { Write-Warning "Not ready yet. Check $appDir\logs. To roll back: stop the site, replace $appDir with $previous (keep App_Data and logs), start." }
+else { throw "Upgrade verification failed: application is not ready. Check $appDir\logs for database availability or missing migrations. To roll back: stop the site, replace $appDir with $previous (keep App_Data and logs), start." }

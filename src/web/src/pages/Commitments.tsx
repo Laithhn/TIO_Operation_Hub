@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useCan, useEnum, useForm, useLeaveGuard, useMe, useRefresh, useUrlState } from '../hooks';
+import { useEnum, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useTeamOptions } from './common';
@@ -20,7 +20,7 @@ export function CommitmentList() {
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const types = useEnum('CommitmentType');
-  const canEng = useCan('Engineer');
+  const canEng = usePermission('Commitments', 'Create');
   const exportParams = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
   return (
@@ -60,7 +60,7 @@ export function CommitmentForm() {
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const types = useEnum('CommitmentType');
-  const canLead = useCan('Manager');
+  const canLead = usePermission('Commitments', 'Coordinate');
   const f = useForm({ scope: sp.get('clientId') ? 'Client' : sp.get('teamId') ? 'Internal' : 'Client', clientId: sp.get('clientId') ?? '', responsibleTeamId: sp.get('teamId') ?? '', description: '', type: '', ownerUserId: me.id as number | null,
     dueLocal: inDays(7, 17), timeZone: me.timeZone, nextReviewAt: inDays(3), caseId: sp.get('caseId') ?? '', projectId: '' });
   useLeaveGuard(f.dirty && !f.busy);
@@ -145,14 +145,14 @@ export function CommitmentDetail() {
           {e.completedAt && <> fulfilled {fmtDateTime(e.completedAt)}</>}{e.reason && <> — {e.reason}</>}{e.evidence && <> · evidence: {e.evidence}</>}
           <div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul>
       </Panel>
-      <AttachmentsPanel recordType="Commitment" recordId={c.id} canEdit={c.permissions.canEdit} />
+      <AttachmentsPanel recordType="Commitment" recordId={c.id} />
       <HistoryPanel entityType="Commitment" entityId={c.id} />
       {dialog === 'revise' && <ActionDialog title="Revise deadline" path={`/commitments/${id}/revise`} version={c.version} onClose={close} submitLabel="Revise" intro="The original and every earlier deadline are kept."
         initial={{ dueLocal: toLocalInput(c.currentDueAt).length ? c.currentDueLocal.slice(0, 16).replace(' ', 'T') : '', timeZone: c.timeZone }}
         fields={[{ name: 'dueLocal', label: 'New deadline (local time)', kind: 'datetime', required: true }, { name: 'timeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
-      {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro="Completion after the deadline stays Completed, with a derived late result. The time cannot be in the future or before creation."
+      {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro="Completion after the deadline stays Completed, with a derived late result. The time cannot be in the future or before the deadline."
         initial={{ completedAt: toLocalInput(new Date().toISOString()) }}
-        fields={[{ name: 'completedAt', label: 'Fulfilled at', kind: 'datetime', required: true }, { name: 'evidence', label: 'Evidence or reference', kind: 'textarea', required: true }]}
+        fields={[{ name: 'completedAt', label: 'Fulfilled at', kind: 'datetime', required: true }, { name: 'evidence', label: 'Evidence or reference (optional)', kind: 'textarea' }]}
         transform={v => ({ completedAt: fromLocalInput(v.completedAt), evidence: v.evidence })} />}
       {dialog === 'cancel' && <ActionDialog title="Cancel commitment" danger path={`/commitments/${id}/cancel`} version={c.version} onClose={close} submitLabel="Cancel commitment" fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
       {dialog === 'reopen' && <ActionDialog title="Reopen commitment" path={`/commitments/${id}/reopen`} version={c.version} onClose={close} submitLabel="Reopen" intro="Previous completion or cancellation events are kept." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}

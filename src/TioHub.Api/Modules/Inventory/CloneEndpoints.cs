@@ -5,6 +5,7 @@ using TioHub.Api.Data;
 using TioHub.Api.Modules.Catalogue;
 using TioHub.Api.Modules.Environments;
 using TioHub.Api.Modules.Shared;
+using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Inventory;
 
@@ -45,7 +46,6 @@ public static class CloneEndpoints
             if (input.TargetEnvironmentId is null) throw new ValidationException("targetEnvironmentId", "Select the environment to copy to.");
             var target = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == input.TargetEnvironmentId, ct)
                 ?? throw new ValidationException("targetEnvironmentId", "Select an environment you can access.");
-            access.RequireMaintain(target.ClientId, null, target.OwnerUserId, target.BackupOwnerUserId, target.CoordinatorUserId);
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             var result = await CopyIntoAsync(db, access, clock, source, target, input, ct);
             await tx.CommitAsync(ct);
@@ -69,7 +69,6 @@ public static class CloneEndpoints
             foreach (var t in targets)
             {
                 var target = envs.First(e => e.Id == t.EnvironmentId);
-                access.RequireMaintain(target.ClientId, null, target.OwnerUserId, target.BackupOwnerUserId, target.CoordinatorUserId);
                 var label = target.Region is null ? target.Name : $"{target.Region.Code} / {target.Name}";
                 if (target.Id == source.Id && string.IsNullOrWhiteSpace(t.Find))
                     throw new ValidationException($"targets[{targets.IndexOf(t)}].find", $"{label}: a copy in the same environment needs a new name; enter what to find and replace.");
@@ -97,7 +96,7 @@ public static class CloneEndpoints
             TimeProvider clock, CancellationToken ct) =>
         {
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireEngineerFor(source.ClientId);
+            access.RequireCreateFor(ResourcePermissions.Environments, source.ClientId);
             if (input.RegionId == source.RegionId && string.Equals((input.Name ?? source.Name).Trim(), source.Name, StringComparison.OrdinalIgnoreCase))
                 throw new ValidationException("regionId", "Choose another region, or give the copy another name.");
             var env = new ClientEnvironment { ClientId = source.ClientId };
@@ -127,6 +126,8 @@ public static class CloneEndpoints
         CloneInput input, CancellationToken ct)
     {
             var assetIds = (input.AssetIds ?? []).Distinct().ToList();
+            if (assetIds.Count > 0) access.RequireCreateFor(ResourcePermissions.Servers, target.ClientId);
+            if (input.InstallationIds?.Count > 0) access.RequireCreateFor(ResourcePermissions.Installations, target.ClientId);
             var instIds = (input.InstallationIds ?? []).Distinct().ToList();
             var check = new Check()
                 .When(target.ClientId != source.ClientId, "targetEnvironmentId", "Copies stay within the same client; choose an environment of this client.")
@@ -167,7 +168,7 @@ public static class CloneEndpoints
             {
                 var copy = new Asset
                 {
-                    EnvironmentId = target.Id, ClientId = target.ClientId, Name = assetNames[a.Id], NormalizedName = Text.Norm(assetNames[a.Id]), Type = a.Type, Role = a.Role,
+                    EnvironmentId = target.Id, ClientId = target.ClientId, Name = assetNames[a.Id], NormalizedName = Text.Norm(assetNames[a.Id]), Type = a.Type, TypeCategory = a.TypeCategory, Role = a.Role,
                     NetworkZone = access.Me.SeesTechnical ? a.NetworkZone : null, ProjectPhase = a.ProjectPhase, Lifecycle = lifecycle,
                     OwnerUserId = a.OwnerUserId, TechnicalOwnerName = a.TechnicalOwnerName, TechnicalOwnerContact = a.TechnicalOwnerContact, TechnicalOwnerTitle = a.TechnicalOwnerTitle,
                     TechnicalOwnerOrganization = a.TechnicalOwnerOrganization, TechnicalOwnerPhone = a.TechnicalOwnerPhone, TechnicalOwnerMobile = a.TechnicalOwnerMobile, TechnicalOwnerEmail = a.TechnicalOwnerEmail, ResponsibleParty = a.ResponsibleParty, ResponsibleOrganization = a.ResponsibleOrganization, ResponsibleTeamId = a.ResponsibleTeamId,
@@ -233,6 +234,7 @@ public static class CloneEndpoints
                     comp ??= db.Components.Local.FirstOrDefault(x => x.Id == 0 && ReferenceEquals(x.Installation, inst) && (c.MicroserviceId != null ? x.MicroserviceId == c.MicroserviceId : x.NormalizedName == c.NormalizedName));
                     if (comp is null)
                     {
+                        access.RequireCreateFor(ResourcePermissions.Servers, target.ClientId);
                         comp = new Component
                         {
                             Installation = inst, EnvironmentId = target.Id, ClientId = target.ClientId, MicroserviceId = c.MicroserviceId, Name = c.Name, NormalizedName = c.NormalizedName,
@@ -241,6 +243,8 @@ public static class CloneEndpoints
                         };
                         db.Components.Add(comp);
                     }
+                    else if (hosts.Count > 0)
+                        access.RequireMaintain(ResourcePermissions.Servers, target.ClientId, null);
                     foreach (var h in hosts)
                         comp.Hosts.Add(new ComponentHost { Asset = assetMap[h.AssetId], ClientId = target.ClientId, MicroserviceVersionId = input.CopyVersions ? h.MicroserviceVersionId : null });
                     var notCopied = c.Hosts.Where(h => !assetMap.ContainsKey(h.AssetId)).Select(h => h.AssetId).ToList();

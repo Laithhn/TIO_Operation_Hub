@@ -52,32 +52,37 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
     }
 
     /// <summary>TIO Manager actions: client structure (clients, regions, projects), archive/restore, triage, assignment, handovers.</summary>
-    public void RequireLeadFor(long? clientId, long? teamId = null)
+    public void RequireLeadFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Structure)
     {
-        me.Require(Role.Manager);
         if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
+        me.RequirePermission(resource, ResourcePermissions.Coordinate);
     }
 
     /// <summary>A31: archiving and restoring needs the Archive right.</summary>
-    public void RequireArchiveFor(long? clientId, long? teamId = null)
+    public void RequireArchiveFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Other)
     {
-        me.RequireRight(Right.Archive);
         if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
+        me.RequirePermission(resource, ResourcePermissions.ArchiveRestore);
     }
 
     /// <summary>Day-to-day work that any Operation Engineer may do (environments, contracts, network, products…).</summary>
-    public void RequireEngineerFor(long? clientId, long? teamId = null)
+    public void RequireEngineerFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Other)
+        => RequireCreateFor(resource, clientId, teamId);
+
+    public void RequireCreateFor(string resource, long? clientId, long? teamId = null)
     {
-        me.Require(Role.Engineer);
         if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
+        me.RequirePermission(resource, ResourcePermissions.Create);
     }
 
     /// <summary>Maintain a record: every Operation Engineer and the TIO Manager (owner decision, 19 Oct 2026). Ownership changes stay with the Manager (CheckOwnerChange).</summary>
-    public void RequireMaintain(long? clientId, long? teamId, params long?[] responsibleUserIds)
+    public void RequireMaintain(long? clientId, long? teamId, params long?[] responsibleUserIds) =>
+        RequireMaintain(ResourcePermissions.Other, clientId, teamId, responsibleUserIds);
+
+    public void RequireMaintain(string resource, long? clientId, long? teamId, params long?[] responsibleUserIds)
     {
         if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
-        if (me.Can(Role.Engineer)) return;
-        throw new ForbiddenException("Your account has no role in the hub. Ask the TIO Manager.");
+        me.RequirePermission(resource, ResourcePermissions.Maintain);
     }
 
     /// <summary>Validates an assignee/owner: exists, active, has a business role and can access the record's scope.</summary>
@@ -95,11 +100,11 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
     }
 
     /// <summary>OPS-01 / ACC-03: only the TIO Manager or Manager changes ownership; an Engineer may only take unowned work themselves.</summary>
-    public void CheckOwnerChange(Check check, string field, long? current, long? requested, bool allowSelfTakeIfUnassigned = false)
+    public void CheckOwnerChange(Check check, string field, long? current, long? requested, bool allowSelfTakeIfUnassigned = false, string resource = ResourcePermissions.Other)
     {
-        if (current == requested || me.IsLead) return;
-        if (allowSelfTakeIfUnassigned && current is null && requested == me.UserId && me.Can(Role.Engineer)) return;
-        check.Add(field, "Only the TIO Manager can change the owner.");
+        if (current == requested || me.HasPermission(resource, ResourcePermissions.Coordinate)) return;
+        if (allowSelfTakeIfUnassigned && current is null && requested == me.UserId && me.HasPermission(resource, ResourcePermissions.Maintain)) return;
+        check.Add(field, "You do not have permission to change the owner.");
     }
 
     public async Task<UserRef?> UserRefAsync(long? id, CancellationToken ct) =>

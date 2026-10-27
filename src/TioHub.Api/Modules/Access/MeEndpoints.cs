@@ -25,6 +25,11 @@ public static class MeEndpoints
             ctx.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.Strict, Secure = ctx.Request.IsHttps, Path = "/" });
             var user = await db.Users.AsNoTracking().FirstAsync(u => u.Id == me.UserId, ct);
             var version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0] ?? "dev";
+            var legacyRights = BuiltInRoles.Names(me.IsSystem ? BuiltInRoles.All : me.Rights).ToHashSet(StringComparer.Ordinal);
+            if (me.HasRight(Right.Edit)) legacyRights.Add("Edit");
+            if (me.HasRight(Right.Manage)) legacyRights.Add("Manage");
+            if (me.HasRight(Right.Archive)) legacyRights.Add("Archive");
+            if (me.HasRight(Right.Delete)) legacyRights.Add("Delete");
             return Results.Ok(new
             {
                 id = me.UserId,
@@ -33,7 +38,7 @@ public static class MeEndpoints
                 timeZone = user.WorkingTimeZone,
                 roles = me.Roles,
                 roleLabels = me.Roles,
-                rights = BuiltInRoles.Names(me.IsSystem ? BuiltInRoles.All : me.Rights),
+                rights = legacyRights.OrderBy(x => x).ToArray(), permissions = me.PermissionKeys,
                 businessRole = me.BusinessRole,
                 isAdministrator = me.IsAdministrator,
                 grants = new { export = me.Has(Grant.Export), technicalDetail = me.SeesTechnical, audit = me.Has(Grant.Audit) },
@@ -64,6 +69,9 @@ public static class MeEndpoints
         {
             var lookups = await db.LookupValues.AsNoTracking().OrderBy(l => l.SortOrder).ThenBy(l => l.Label)
                 .Select(l => new { l.ListName, l.Code, l.Label, l.Description, l.IsRetired, l.Category }).ToListAsync(ct);
+            var workflowLabels = lookups.Where(l => LookupLists.IsFixedWorkflowLabel(l.ListName))
+                .GroupBy(l => l.ListName == LookupLists.ConditionLabel ? "Condition" : "CaseStatus")
+                .ToDictionary(g => g.Key, g => g.ToDictionary(x => x.Code, x => x.Label));
             var products = await db.Products.AsNoTracking().OrderBy(p => p.Code)
                 .Select(p => new
                 {
@@ -77,7 +85,7 @@ public static class MeEndpoints
             {
                 lookups = lookups.GroupBy(l => l.ListName).ToDictionary(x => x.Key, x => x.ToList()),
                 products, teams, jiraInstances = jira,
-                enums = EnumCatalog.All,
+                enums = EnumCatalog.All, enumLabels = workflowLabels,
                 countries = Countries.All
             });
         });

@@ -6288,3 +6288,387 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023080108_ResourcePermissionMatrix'
+)
+BEGIN
+    CREATE TABLE [iam].[AppRolePermission] (
+        [AppRoleId] bigint NOT NULL,
+        [Resource] nvarchar(40) NOT NULL,
+        [Action] nvarchar(40) NOT NULL,
+        CONSTRAINT [PK_AppRolePermission] PRIMARY KEY ([AppRoleId], [Resource], [Action]),
+        CONSTRAINT [FK_AppRolePermission_AppRole_AppRoleId] FOREIGN KEY ([AppRoleId]) REFERENCES [iam].[AppRole] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023080108_ResourcePermissionMatrix'
+)
+BEGIN
+    INSERT INTO [iam].[AppRolePermission] ([AppRoleId], [Resource], [Action])
+    SELECT r.[Id], p.[Resource], p.[Action]
+    FROM [iam].[AppRole] AS r
+    CROSS APPLY (VALUES
+        (N'ClientStructure', N'Maintain', 1),
+        (N'ClientStructure', N'Create', 2),
+        (N'ClientStructure', N'Coordinate', 2),
+        (N'ClientStructure', N'ArchiveRestore', 4),
+        (N'ClientStructure', N'Delete', 8),
+        (N'Contracts', N'Maintain', 1),
+        (N'Contracts', N'Create', 1),
+        (N'Contracts', N'Coordinate', 2),
+        (N'Contracts', N'ArchiveRestore', 4),
+        (N'Contracts', N'Delete', 8),
+        (N'Environments', N'Maintain', 1),
+        (N'Environments', N'Create', 1),
+        (N'Environments', N'Coordinate', 2),
+        (N'Environments', N'ArchiveRestore', 4),
+        (N'Environments', N'Delete', 8),
+        (N'Servers', N'Maintain', 1),
+        (N'Servers', N'Create', 1),
+        (N'Servers', N'Coordinate', 2),
+        (N'Servers', N'ArchiveRestore', 4),
+        (N'Servers', N'Delete', 8),
+        (N'Installations', N'Maintain', 1),
+        (N'Installations', N'Create', 1),
+        (N'Installations', N'Coordinate', 2),
+        (N'Installations', N'ArchiveRestore', 4),
+        (N'Installations', N'Delete', 8),
+        (N'Products', N'Maintain', 1),
+        (N'Products', N'Create', 1),
+        (N'Products', N'Coordinate', 2),
+        (N'Products', N'ArchiveRestore', 4),
+        (N'Products', N'Delete', 8),
+        (N'Cases', N'Maintain', 1),
+        (N'Cases', N'Create', 1),
+        (N'Cases', N'Coordinate', 2),
+        (N'Cases', N'ArchiveRestore', 4),
+        (N'Cases', N'Delete', 8),
+        (N'Commitments', N'Maintain', 1),
+        (N'Commitments', N'Create', 1),
+        (N'Commitments', N'Coordinate', 2),
+        (N'Commitments', N'ArchiveRestore', 4),
+        (N'Commitments', N'Delete', 8),
+        (N'Teams', N'Maintain', 1),
+        (N'Teams', N'Create', 2),
+        (N'Teams', N'Coordinate', 2),
+        (N'Teams', N'ArchiveRestore', 4),
+        (N'Teams', N'Delete', 8),
+        (N'OtherOperations', N'Maintain', 1),
+        (N'OtherOperations', N'Create', 1),
+        (N'OtherOperations', N'Coordinate', 2),
+        (N'OtherOperations', N'ArchiveRestore', 4),
+        (N'OtherOperations', N'Delete', 8)
+    ) AS p([Resource], [Action], [LegacyRight])
+    WHERE (r.[Rights] & p.[LegacyRight]) = p.[LegacyRight];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023080108_ResourcePermissionMatrix'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261023080108_ResourcePermissionMatrix', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023081028_ContractPenaltyClauses'
+)
+BEGIN
+    CREATE TABLE [contracts].[ContractPenaltyClause] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ContractId] bigint NOT NULL,
+        [Name] nvarchar(150) NOT NULL,
+        [Trigger] nvarchar(40) NOT NULL,
+        [Calculation] nvarchar(30) NOT NULL,
+        [FixedAmount] decimal(18,4) NULL,
+        [Percentage] decimal(5,2) NULL,
+        [ReferenceAmount] decimal(18,4) NULL,
+        [MonthlyCap] decimal(18,4) NULL,
+        [BillingTimeZone] nvarchar(64) NULL,
+        CONSTRAINT [PK_ContractPenaltyClause] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ContractPenaltyClause_Contract_ContractId] FOREIGN KEY ([ContractId]) REFERENCES [contracts].[Contract] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023081028_ContractPenaltyClauses'
+)
+BEGIN
+    CREATE INDEX [IX_ContractPenaltyClause_ContractId] ON [contracts].[ContractPenaltyClause] ([ContractId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023081028_ContractPenaltyClauses'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261023081028_ContractPenaltyClauses', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023082258_PenaltyAssessmentSnapshots'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [PenaltyTermsSnapshotJson] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023082258_PenaltyAssessmentSnapshots'
+)
+BEGIN
+    CREATE TABLE [contracts].[PenaltyAssessment] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ContractId] bigint NOT NULL,
+        [ClauseId] bigint NOT NULL,
+        [TermsKey] nvarchar(64) NOT NULL,
+        [TermsSnapshotJson] nvarchar(2000) NOT NULL,
+        [BillingMonth] date NOT NULL,
+        [UncappedAmount] decimal(18,4) NOT NULL,
+        [Amount] decimal(18,4) NOT NULL,
+        [BreachCount] int NOT NULL,
+        [BreachIdentitiesJson] nvarchar(4000) NOT NULL,
+        [Currency] nvarchar(3) NOT NULL,
+        [CalculatedAt] datetimeoffset NOT NULL,
+        [ReviewedAt] datetimeoffset NULL,
+        [ReviewedById] bigint NULL,
+        [ReviewReason] nvarchar(1000) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_PenaltyAssessment] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_PenaltyAssessment_Contract_ContractId] FOREIGN KEY ([ContractId]) REFERENCES [contracts].[Contract] ([Id]) ON DELETE NO ACTION,
+        CONSTRAINT [FK_PenaltyAssessment_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_PenaltyAssessment_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023082258_PenaltyAssessmentSnapshots'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_PenaltyAssessment_ContractId_ClauseId_BillingMonth_TermsKey] ON [contracts].[PenaltyAssessment] ([ContractId], [ClauseId], [BillingMonth], [TermsKey]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023082258_PenaltyAssessmentSnapshots'
+)
+BEGIN
+    CREATE INDEX [IX_PenaltyAssessment_CreatedById] ON [contracts].[PenaltyAssessment] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023082258_PenaltyAssessmentSnapshots'
+)
+BEGIN
+    CREATE INDEX [IX_PenaltyAssessment_UpdatedById] ON [contracts].[PenaltyAssessment] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023082258_PenaltyAssessmentSnapshots'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261023082258_PenaltyAssessmentSnapshots', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE TABLE [clients].[Organization] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientId] bigint NULL,
+        [Name] nvarchar(150) NULL,
+        [Code] nvarchar(50) NULL,
+        [OrganizationType] nvarchar(100) NULL,
+        [Description] nvarchar(2000) NULL,
+        [Email] nvarchar(254) NULL,
+        [Phone] nvarchar(100) NULL,
+        [Address] nvarchar(1000) NULL,
+        [Status] nvarchar(100) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_Organization] PRIMARY KEY ([Id]),
+        CONSTRAINT [CK_Organization_Identity] CHECK ([ClientId] IS NOT NULL OR (LEN(LTRIM(RTRIM([Name]))) > 0 AND [Name] IS NOT NULL)),
+        CONSTRAINT [FK_Organization_Client_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [clients].[Client] ([Id]),
+        CONSTRAINT [FK_Organization_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_Organization_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE TABLE [clients].[OrganizationRelationship] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientId] bigint NOT NULL,
+        [ProjectId] bigint NULL,
+        [ProjectScope] AS ISNULL([ProjectId], CONVERT(bigint, 0)) PERSISTED,
+        [ParentOrganizationId] bigint NOT NULL,
+        [ChildOrganizationId] bigint NOT NULL,
+        [RelationshipType] nvarchar(100) NULL,
+        [Description] nvarchar(2000) NULL,
+        [StartDate] date NULL,
+        [EndDate] date NULL,
+        [SortOrder] int NOT NULL,
+        [IsActive] bit NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_OrganizationRelationship] PRIMARY KEY ([Id]),
+        CONSTRAINT [CK_OrganizationRelationship_Dates] CHECK ([StartDate] IS NULL OR [EndDate] IS NULL OR [EndDate] >= [StartDate]),
+        CONSTRAINT [CK_OrganizationRelationship_NotSelf] CHECK ([ParentOrganizationId] <> [ChildOrganizationId]),
+        CONSTRAINT [FK_OrganizationRelationship_Client_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [clients].[Client] ([Id]),
+        CONSTRAINT [FK_OrganizationRelationship_Organization_ChildOrganizationId] FOREIGN KEY ([ChildOrganizationId]) REFERENCES [clients].[Organization] ([Id]),
+        CONSTRAINT [FK_OrganizationRelationship_Organization_ParentOrganizationId] FOREIGN KEY ([ParentOrganizationId]) REFERENCES [clients].[Organization] ([Id]),
+        CONSTRAINT [FK_OrganizationRelationship_Project_ProjectId] FOREIGN KEY ([ProjectId]) REFERENCES [clients].[Project] ([Id]),
+        CONSTRAINT [FK_OrganizationRelationship_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_OrganizationRelationship_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_Organization_ClientId] ON [clients].[Organization] ([ClientId]) WHERE [ClientId] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_Organization_Code] ON [clients].[Organization] ([Code]) WHERE [Code] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_Organization_CreatedById] ON [clients].[Organization] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_Organization_UpdatedById] ON [clients].[Organization] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_OrganizationRelationship_ChildOrganizationId] ON [clients].[OrganizationRelationship] ([ChildOrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_OrganizationRelationship_ClientId_ProjectId_ChildOrganizationId] ON [clients].[OrganizationRelationship] ([ClientId], [ProjectId], [ChildOrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_OrganizationRelationship_ClientId_ProjectScope_ParentOrganizationId_ChildOrganizationId] ON [clients].[OrganizationRelationship] ([ClientId], [ProjectScope], [ParentOrganizationId], [ChildOrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_OrganizationRelationship_CreatedById] ON [clients].[OrganizationRelationship] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_OrganizationRelationship_ParentOrganizationId] ON [clients].[OrganizationRelationship] ([ParentOrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_OrganizationRelationship_ProjectId] ON [clients].[OrganizationRelationship] ([ProjectId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    CREATE INDEX [IX_OrganizationRelationship_UpdatedById] ON [clients].[OrganizationRelationship] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    INSERT INTO [clients].[Organization] ([ClientId], [CreatedAt], [UpdatedAt])
+    SELECT [Id], [CreatedAt], [UpdatedAt] FROM [clients].[Client];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261023100730_OptionalOrganizationGraph'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261023100730_OptionalOrganizationGraph', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
