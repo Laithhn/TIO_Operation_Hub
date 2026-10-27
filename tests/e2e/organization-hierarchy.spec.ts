@@ -19,8 +19,15 @@ async function api<T>(page: Page, path: string, body?: unknown): Promise<T> {
   }, { path, body });
 }
 
-async function clientFixture(page: Page) {
+// GET /me issues the XSRF-TOKEN cookie; wait for it before direct API writes so they cannot race the app's first request.
+async function openApp(page: Page) {
+  const me = page.waitForResponse(r => /\/api\/v1\/me$/.test(r.url()) && r.ok());
   await page.goto('/clients');
+  await me;
+}
+
+async function clientFixture(page: Page) {
+  await openApp(page);
   const me = await api<{ id: number }>(page, '/me');
   const code = unique('ORG');
   const client = await api<{ id: number }>(page, '/clients', { code, name: `${code} standalone client`, country: 'Oman', status: 'Opportunity', ownerUserId: me.id, team: [] });
@@ -64,7 +71,7 @@ test.describe('Optional contextual organization structures', () => {
   });
 
   test('initial client save creates optional name-only children atomically and reuses existing organizations', async ({ page }) => {
-    await page.goto('/clients');
+    await openApp(page);
     const existingName = unique('Reusable organization');
     const existing = await api<Organization>(page, '/organizations', { name: existingName });
     const code = unique('GRAPH');

@@ -19,7 +19,7 @@ const admin = (m: Me) => m.isAdministrator;
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
-  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|actions|notifications|data-quality|reports)/, show: biz, bare: true, side: [
+  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|actions|notifications|data-quality|reports)/, show: biz, side: [
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true },
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
@@ -46,15 +46,15 @@ const SECTIONS: Section[] = [
     { to: '/clients/new', label: 'New client', icon: 'plus', show: action('ClientStructure', 'Create') },
     { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
   ] },
-  { key: 'products', label: 'Products', to: '/products', match: /^\/(products|microservices)/, show: biz, bare: true, side: [
+  { key: 'products', label: 'Products', to: '/products', match: /^\/(products|microservices)/, show: biz, side: [
     { to: '/products', label: 'All products', icon: 'app', end: true },
     { to: '/products/new', label: 'New product', icon: 'plus', show: action('Products', 'Create') }
   ] },
-  { key: 'cases', label: 'Cases', to: '/cases', match: /^\/cases/, show: biz, bare: true, side: [
+  { key: 'cases', label: 'Cases', to: '/cases', match: /^\/cases/, show: biz, side: [
     { to: '/cases', label: 'All cases', icon: 'case', end: true },
     { to: '/cases/new', label: 'New case', icon: 'plus', show: action('Cases', 'Create') }
   ] },
-  { key: 'commitments', label: 'Commitments', to: '/commitments', match: /^\/commitments/, show: biz, bare: true, side: [
+  { key: 'commitments', label: 'Commitments', to: '/commitments', match: /^\/commitments/, show: biz, side: [
     { to: '/commitments', label: 'All commitments', icon: 'commitment', end: true },
     { to: '/commitments/new', label: 'New commitment', icon: 'plus', show: action('Commitments', 'Create') }
   ] },

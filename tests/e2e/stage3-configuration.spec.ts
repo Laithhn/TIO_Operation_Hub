@@ -24,6 +24,10 @@ async function signedIn(page: Page) {
   await expect(page.getByRole('heading', { name: 'Clients', exact: true })).toBeVisible();
   return api<{ id: number }>(page, '/me');
 }
+/** Column filters live in a popover opened from the column header (2.31). */
+async function openColumnFilter(page: Page, header: string) {
+  await page.locator('table.grid').first().getByRole('columnheader', { name: new RegExp(`^${header}\\b`) }).locator('button.grid-filter-trigger').click();
+}
 async function client(page: Page, ownerUserId: number) {
   return api<{ id: number }>(page, '/clients', { code: unique('CFG'), name: unique('Configuration client'), country: 'Oman', status: 'Active', ownerUserId });
 }
@@ -107,6 +111,7 @@ test('case-status configuration updates case labels without renaming cancelled c
     await page.goto(`/cases/${work.id}`);
     await expect(page.locator('.page-head .sub')).toContainText(newLabel);
     await page.goto(`/cases?clientId=${organization.id}&status=Cancelled`);
+    await openColumnFilter(page, 'Status');
     await expect(page.getByLabel('Filter by status', { exact: true }).locator('option[value="Cancelled"]')).toHaveText(newLabel);
     await expect(page.getByRole('row').filter({ hasText: 'Label case' })).toContainText(newLabel);
     await page.goto(`/commitments/${commitment.id}`);
@@ -150,6 +155,8 @@ for (const scenario of [
     }
     await updateLookup(page, row, { isRetired: true });
     await page.goto(`${scenario.path}?clientId=${organization.id}`);
+    // Contracts keep their type filter in the page toolbar; the other lists filter from the column header.
+    if (scenario.list !== 'ContractType') await openColumnFilter(page, 'Type');
     const filter = page.getByLabel(scenario.label, { exact: true });
     await expect(filter.locator(`option[value="${row.code}"]`)).toHaveText(`${row.label} (retired)`);
     await filter.selectOption(row.code);

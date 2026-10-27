@@ -7,6 +7,11 @@ async function signInAs(page: Page, account: string) {
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(account), url: baseURL }]);
 }
 
+/** Column filters live in a popover opened from the column header (2.31). */
+async function openColumnFilter(page: Page, header: string) {
+  await page.locator('table.grid').first().getByRole('columnheader', { name: new RegExp(`^${header}\\b`) }).locator('button.grid-filter-trigger').click();
+}
+
 async function confirmDialog(page: Page, button: string) {
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('I confirm this action.').check();
@@ -32,12 +37,13 @@ test.describe('Shell and visual language', () => {
     await expect(page.getByText(/Records :- \d+ OF \d+/)).toBeVisible();
     await expect(page.locator('footer.status')).toContainText('User : DEV\\manager');
     const hdr = await page.locator('header.hdr').evaluate(e => getComputedStyle(e).backgroundColor);
-    expect(hdr).toBe('rgb(0, 30, 70)');
+    expect(hdr).toBe('rgb(12, 27, 55)');
     const active = await page.locator('.topnav a[aria-current="page"]').evaluate(e => getComputedStyle(e).backgroundColor);
-    expect(active).toBe('rgb(248, 249, 250)');
+    expect(active).toBe('rgb(245, 245, 246)');
     await page.screenshot({ path: 'test-results/visual-clients-1600.png' });
     await page.goto('/');
-    await expect(page.getByRole('complementary', { name: 'Section menu' })).toHaveCount(0);
+    // The dashboard's section menu is the only navigation to its other pages (map, actions, reports, data quality).
+    await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' })).toBeVisible();
     const upcoming = page.locator('.kpi').filter({ hasText: 'Upcoming commitments' });
     await expect(upcoming).toContainText('Due in the next 14 days');
     await expect(upcoming.locator('.kpi-v')).toHaveCSS('font-weight', '700');
@@ -379,6 +385,7 @@ test.describe('Projects and contracts', () => {
     // The contract register is the second view of the same area.
     await page.getByRole('tab', { name: 'Contract register' }).click();
     await expect(page).toHaveURL(/\/contracts$/);
+    await openColumnFilter(page, 'Ref');
     await page.getByLabel('Search contracts').fill('NTA support');
     const ntaRow = page.getByRole('row', { name: /NTA support and maintenance agreement/ });
     await expect(ntaRow.getByText('Renewal due')).toBeVisible();
@@ -838,7 +845,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await page.getByRole('button', { name: 'Export CSV' }).click();
     expect((await download).suggestedFilename()).toMatch(/\.csv$/);
     await page.getByPlaceholder('Filter rows…').fill('');
-    await page.getByRole('columnheader', { name: 'Name' }).getByRole('button').click();
+    await page.getByRole('columnheader', { name: /^Name\b/ }).locator('button.grid-sort').click();
     await expect(page.getByRole('columnheader', { name: /Name/ })).toHaveAttribute('aria-sort', 'ascending');
     // Unused values delete straight from the table; values in use are refused with the reason.
     await page.getByRole('button', { name: `Delete ${label}` }).click();
@@ -1421,7 +1428,7 @@ test.describe('Operations Command Center (A60)', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Operations Command Center' })).toBeVisible();
     await expect(page.getByText(/Last refreshed/)).toBeVisible();
     // Nine figures, each a link to its list.
-    for (const name of ['Clients', 'Open cases', 'Targets met (period)', 'Contractual SLA met (period)', 'Open commitments', 'Active escalations', 'Active contracts', 'Overdue payments', 'Environment health'])
+    for (const name of ['Clients', 'Open cases', 'Targets met (period)', 'Contractual SLA met (period)', 'Upcoming commitments', 'Active escalations', 'Active contracts', 'Overdue payments', 'Environment health'])
       await expect(page.getByRole('link', { name: new RegExp(`^${name.replace(/[()]/g, '\\$&')}: `) })).toBeVisible();
 
     // The attention queue: severity first, filter by issue type, rows open their record.
@@ -1502,6 +1509,7 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(page).toHaveURL(/\/contracts\/\d+$/);
     await page.getByRole('link', { name: 'Cases measured against this contract' }).click();
     await expect(page).toHaveURL(/contractId=\d+/);
+    await openColumnFilter(page, 'Ref');
     await page.getByLabel('Search cases').fill(title);
     const row = page.locator('tbody tr', { hasText: title });
     await expect(row).toBeVisible();
@@ -1555,7 +1563,7 @@ test.describe('Reporting Center (A62)', () => {
     await page.getByRole('button', { name: /Apply filters and preview/ }).click();
     const preview = page.locator('section.panel', { has: page.getByRole('heading', { name: '2 · Preview' }) });
     await expect(preview).toContainText(/\d+ matching row\(s\)/);
-    await expect(preview.locator('thead th').filter({ hasText: /^Reference$/ })).toBeVisible();
+    await expect(preview.getByRole('columnheader', { name: /^Reference\b/ })).toBeVisible();
     await expect(preview).toContainText('Client = DEMO-NTA');
 
     // Unchanged filters must still issue a fresh preview request.

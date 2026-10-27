@@ -325,17 +325,18 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const showTools = tools && !loading && !error && (rows?.length ?? 0) > 0;
   return (
     <div className={`panel table-wrap${tableWrapClassName ? ` ${tableWrapClassName}` : ''}`}>
+      {/* The toolbar stays outside the table so it is not announced or counted as a table row. */}
+      {showTools && (
+        <div className="table-tools">
+          <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
+            aria-label="Filter rows" />
+          <span className="muted table-count">{needle ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
+          {me?.grants.export && <button className="btn btn-sm" onClick={exportRows} title={server ? 'Rows on this page, as shown' : 'All rows that match the filter'}>Export CSV</button>}
+        </div>
+      )}
       <table className={`grid${tableClassName ? ` ${tableClassName}` : ''}`}>
         {caption && <caption className="sr">{caption}</caption>}
         <thead>
-          {showTools && <tr className="table-tools-row"><th colSpan={columns.length}>
-            <div className="table-tools">
-              <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
-                aria-label="Filter rows" />
-              <span className="muted table-count">{needle ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
-              {me?.grants.export && <button className="btn btn-sm" onClick={exportRows} title={server ? 'Rows on this page, as shown' : 'All rows that match the filter'}>Export CSV</button>}
-            </div>
-          </th></tr>}
           <tr>
             {columns.map(c => {
               const serverActive = server && !!c.sort && sort?.replace('-', '') === c.sort;

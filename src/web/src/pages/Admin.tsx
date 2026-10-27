@@ -257,7 +257,8 @@ export function AdminRights() {
         actions={<Link className="btn" to="/admin/roles">Manage roles</Link>} />
       {!d ? <StateMessage kind="loading" /> : (
         <Panel pad={false}>
-          <DataTable caption="Rights per role" rows={matrixRows} rowKey={r => r.key} tableClassName="rights-matrix" columns={[
+          {/* One page: the matrix is edited as a whole (55+ rows since resource permissions). */}
+          <DataTable caption="Rights per role" rows={matrixRows} rowKey={r => r.key} tableClassName="rights-matrix" pageSize={Math.max(25, matrixRows.length)} columns={[
             { key: 'right', header: 'Right', render: r => <><span>{r.label}</span><div className="hint">{r.description}</div></> },
             ...d.roles.map(role => ({ key: `role-${role.id}`, header: <span title={`${role.userCount} user(s)${role.key ? ' · built-in' : ''}`}>{role.name}</span>, className: 'c', render: (right: typeof matrixRows[number]) => {
               if (right.always) return <><span className="sr">Allowed</span>✔</>;

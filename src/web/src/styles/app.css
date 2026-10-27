@@ -399,8 +399,7 @@ ul.config-links a{font-weight:600}
 .order-btns .linkbtn:disabled{opacity:.3;cursor:default}
 
 /* A37 table tools: filter, row count, export; client pager */
-.grid tr.table-tools-row th{padding:0;border-bottom:1px solid var(--line);font-weight:400}
-.table-tools{display:flex;align-items:center;gap:10px;padding:8px 10px;flex-wrap:wrap}
+.table-tools{display:flex;align-items:center;gap:10px;padding:8px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .table-search{max-width:260px;height:28px;padding:3px 8px}
 .table-count{font-size:12px}
 .table-tools .btn{margin-left:auto}
