@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { cloneElement, createContext, isValidElement, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
+import { cloneElement, createContext, Fragment, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ApiError, del, get, type UserRef } from '../api';
 import { useMe, useReference } from '../hooks';
@@ -7,7 +7,8 @@ import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
 import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
 import { createPortal } from 'react-dom';
-import { Button, Card, ColumnsSelectionCard, DataTable as DataTableVt, Icon as VtIcon, Spinner, TabBar, TabBarTitleItem, Toolbar, ToolbarContrItem } from '../vt';
+import { Button, Card, Icon as VtIcon, Spinner, TabBar, TabBarTitleItem, Toolbar, ToolbarContrItem } from '../vt';
+import { activeCriteriaCount, DEFAULT_OPERATOR, isCriterionIncomplete, rowMatches, TEXT_FILTER_OPERATORS, type TextFilterOperator } from './tableFilter';
 
 // ---------- page structure ----------
 
@@ -219,31 +220,16 @@ export function QuantityInput({ label: text, value, onChange, unit, onUnit, unit
   );
 }
 
-// ---------- data table (reference: bold header row, optional filter row, thin rows, separate pager strip) ----------
+// ---------- data table (framework toolbar and cards above a semantic table) ----------
 
-export type Column<T> = { key: string; header: ReactNode; render: (row: T) => ReactNode; sort?: string; className?: string; filter?: ReactNode };
-
-type TextFilterOperator = 'starts' | 'ends' | 'contains' | 'equal' | 'empty' | 'not-starts' | 'not-ends' | 'not-contains' | 'not-equal';
-const TEXT_FILTER_OPERATORS: { value: TextFilterOperator; label: string }[] = [
-  { value: 'starts', label: 'Starts With' }, { value: 'ends', label: 'Ends With' }, { value: 'contains', label: 'Contains' },
-  { value: 'equal', label: 'Equal' }, { value: 'empty', label: 'Empty' }, { value: 'not-starts', label: 'Does Not Start With' },
-  { value: 'not-ends', label: 'Does Not End With' }, { value: 'not-contains', label: 'Does Not Contain' }, { value: 'not-equal', label: 'Not Equal' }
-];
-
-function matchesTextFilter(text: string, value: string, operator: TextFilterOperator) {
-  const a = text.trim().toLocaleLowerCase(), b = value.trim().toLocaleLowerCase();
-  switch (operator) {
-    case 'starts': return a.startsWith(b);
-    case 'ends': return a.endsWith(b);
-    case 'contains': return a.includes(b);
-    case 'equal': return a === b;
-    case 'empty': return a.length === 0;
-    case 'not-starts': return !a.startsWith(b);
-    case 'not-ends': return !a.endsWith(b);
-    case 'not-contains': return !a.includes(b);
-    case 'not-equal': return a !== b;
-  }
-}
+export type Column<T> = {
+  key: string; header: ReactNode; render: (row: T) => ReactNode; sort?: string; className?: string; filter?: ReactNode;
+  /** Phones (GUI-06): "primary" columns stay in the row, the others move into the row's details. Without any priority in a table, the first
+   *  two named columns, a Status column and the unnamed action columns are primary. */
+  priority?: 'primary' | 'secondary';
+  /** Caps the column (for example "18rem"); long text wraps inside it instead of widening the table (GUI-11). */
+  maxWidth?: string;
+};
 
 /** Plain text of a rendered cell (for client-side filter, sort and CSV export). */
 export function nodeText(n: ReactNode): string {
@@ -251,7 +237,8 @@ export function nodeText(n: ReactNode): string {
   if (typeof n === 'string' || typeof n === 'number') return String(n);
   if (Array.isArray(n)) return n.map(nodeText).filter(Boolean).join(' ');
   if (isValidElement(n)) {
-    const p = n.props as { children?: ReactNode; value?: unknown; u?: { name?: string } | null; gap?: string; label?: unknown; 'aria-label'?: string };
+    const p = n.props as { children?: ReactNode; value?: unknown; u?: { name?: string } | null; gap?: string; label?: unknown; 'aria-label'?: string; 'data-text'?: string };
+    if (typeof p['data-text'] === 'string') return p['data-text'];
     if (p.children !== undefined) return nodeText(p.children);
     if (typeof p.value === 'string') return label(p.value);
     if (p.u !== undefined) return p.u?.name ?? p.gap ?? '';
@@ -272,19 +259,105 @@ function downloadCsv(name: string, header: string[], rows: string[][]) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/**
- * The hub's table on the VtWebGuiFramework 4 standard (owner decision 27 Oct 2026). Owner request (20 Oct 2026): every table
- * can be filtered, sorted, paged and exported. Lists paged by the server keep their server-side sort and filters (and export
- * the rows on the page); every other table filters, sorts and pages in the browser.
- *
- * Framework standard, as in the framework's DataTable example: a Toolbar above the table carries the controls (row search,
- * the Filter card with the column filters, the ColumnsSelectionCard, export); the framework DataTable shows the rows; a
- * header cell sorts its column on click and shows the framework's sort arrows (the rows are sorted here, outside the table).
- */
-const HEADER_ID = '__header';
-const COLUMN_GROUPS = ['CG0'];
-const ROW_LAYOUT = { id: 'row', rows: [{ autoHeight: true, height: 30, cells: [] as string[] }] };
+const headerText = <T,>(c: Column<T>) => nodeText(c.header).trim();
 
+/** The columns that stay in the row on phones (GUI-06). */
+function primaryKeys<T>(columns: Column<T>[]): Set<string> {
+  if (columns.some(c => c.priority)) return new Set(columns.filter(c => c.priority === 'primary' || (!c.priority && !headerText(c))).map(c => c.key));
+  const named = columns.filter(c => headerText(c));
+  return new Set([...named.slice(0, 2), ...named.filter(c => /^status$/i.test(headerText(c))), ...columns.filter(c => !headerText(c))].map(c => c.key));
+}
+
+// Room the card's own padding and the gap above its action row take, beside the measured body and actions.
+const CARD_CHROME = 2 * 12 + 12 + 2;
+type CardAnchor = { focus?: () => void; getBoundingClientRect: () => DOMRect | undefined } | null;
+
+/**
+ * A framework Card hung from a toolbar button (GUI-04). It keeps clear of the header and the status footer and stays inside the viewport
+ * (framework minimum distances and soft anchor), opens above the button when there is more room there (framework placement), scrolls its
+ * body and keeps its action row in view. Focus moves into the card on opening and back to the button on Escape or a close action.
+ */
+function ToolbarCard({ anchor, label: name, width, onClose, actions, children }: {
+  anchor: React.RefObject<CardAnchor>; label: string; width: number; onClose: () => void; actions: (close: (refocus: boolean) => void) => ReactNode; children: ReactNode;
+}) {
+  const root = useRef<HTMLDivElement>(null);
+  const body = useRef<HTMLDivElement>(null);
+  const foot = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number>();
+  const [edges] = useState(() => {
+    const hdr = document.querySelector('header')?.getBoundingClientRect().bottom ?? 0;
+    const ftr = document.querySelector('footer')?.getBoundingClientRect().top;
+    return { top: Math.round(hdr) + 4, bottom: ftr === undefined ? 8 : Math.round(window.innerHeight - ftr) + 4, width: Math.min(width, window.innerWidth - 16) };
+  });
+  useLayoutEffect(() => {
+    // The content's own height: the body element itself stretches with the card.
+    const measure = () => {
+      const content = body.current?.firstElementChild as HTMLElement | null;
+      if (content && foot.current) setHeight(Math.ceil(content.offsetHeight + foot.current.offsetHeight + CARD_CHROME));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    if (body.current?.firstElementChild) ro.observe(body.current.firstElementChild);
+    return () => ro.disconnect();
+  }, []);
+  useEffect(() => {
+    const first = () => root.current?.querySelector<HTMLElement>('input,select,button,[role="button"]')?.focus();
+    first();
+    // The framework card may still be hidden while it measures itself: try again once it has painted.
+    const f = requestAnimationFrame(() => { if (!root.current?.contains(document.activeElement)) first(); });
+    return () => cancelAnimationFrame(f);
+  }, []);
+  const close = (refocus: boolean) => { onClose(); if (refocus) anchor.current?.focus?.(); };
+  return (
+    <Card width={edges.width} left={-8} right={-8} top={-edges.top} bottom={-edges.bottom} height={height} softAnchor anchorElemRef={anchor as never} padding="small"
+      onClickBeside={() => close(false)} onPressEscape={() => close(true)} onMoveAnchorElem={() => close(false)}>
+      <div ref={root} className="vt-card-panel" role="group" aria-label={name}>
+        <div ref={body} className="vt-card-body"><div>{children}</div></div>
+        <div ref={foot} className="grid-filter-actions">{actions(close)}</div>
+      </div>
+    </Card>
+  );
+}
+
+/** Phones (up to 600 px, as the table styles): only there are the secondary columns folded into row details. */
+function usePhone() {
+  const query = '(max-width: 600px)';
+  const [on, setOn] = useState(() => typeof window !== 'undefined' && window.matchMedia(query).matches);
+  useEffect(() => {
+    const m = window.matchMedia(query);
+    const h = () => setOn(m.matches);
+    h();
+    m.addEventListener('change', h);
+    return () => m.removeEventListener('change', h);
+  }, []);
+  return on;
+}
+
+/** Horizontal overflow of the table: an edge shadow shows it, and the scroll area takes keyboard focus only when there is something to scroll. */
+function useOverflow<E extends HTMLElement>() {
+  const ref = useRef<E>(null);
+  const [over, setOver] = useState(false);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const check = () => setOver(el.scrollWidth > el.clientWidth + 1);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  });
+  return [ref, over] as const;
+}
+
+/**
+ * The hub's table. Owner request (20 Oct 2026): every table can be filtered, sorted, paged and exported. Lists paged by the server keep
+ * their server-side sort and filters (and export the rows on the page); every other table filters, sorts and pages in the browser.
+ *
+ * The framework toolbar above the table carries the controls (row search, the Filter card with the column filters, the column chooser,
+ * export). The rows are a native table (GUI-05): screen readers announce rows, column headers and cells, a sortable header is a button
+ * with aria-sort, and sorting is announced. On phones the secondary columns move into a details row under each record (GUI-06).
+ */
 export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
   sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
@@ -298,26 +371,35 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const [filterOperators, setFilterOperators] = useState<Record<string, TextFilterOperator>>({});
   const [showFilters, setShowFilters] = useState(false);
   const [showColumns, setShowColumns] = useState(false);
+  const [columnSearch, setColumnSearch] = useState('');
   const [hidden, setHidden] = useState<Record<string, boolean>>({});
-  const filterButton = useRef<HTMLSpanElement>(null);
-  const columnsButton = useRef<HTMLSpanElement>(null);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [announce, setAnnounce] = useState('');
+  // A server-sorted list reloads (and briefly replaces the table): the sort button gets the focus back afterwards.
+  // It waits for the new rows: the old table is still on screen right after the click.
+  const refocusSort = useRef<{ key: string; rows: unknown } | null>(null);
+  useEffect(() => {
+    const want = refocusSort.current;
+    if (!want || loading || (server && rows === want.rows)) return;
+    const b = document.querySelector<HTMLElement>(`#${tableId} [data-sort-key="${want.key}"]`);
+    if (b) { b.focus(); refocusSort.current = null; }
+  });
+  const filterButton = useRef<CardAnchor>(null);
+  const columnsButton = useRef<CardAnchor>(null);
+  const [scroller, overflowing] = useOverflow<HTMLDivElement>();
   const [csort, setCsort] = useState<{ key: string; desc: boolean } | null>(null);
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(initialSize);
-  const textCols = columns.filter(c => nodeText(c.header).trim().length > 0);
+  const textCols = columns.filter(c => headerText(c).length > 0);
   // Text of each row, computed once per render for filter, sort and export.
   const prepared = useMemo(() => (rows ?? []).map(r => ({ r, text: Object.fromEntries(columns.map(c => [c.key, nodeText(c.render(r))])) as Record<string, string> })), [rows, columns]);
   const suggestions = useMemo(() => columns.map(c => [...new Set(prepared.map(x => x.text[c.key]?.trim()).filter((v): v is string => !!v))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' })).slice(0, 300)), [columns, prepared]);
   const needle = q.trim().toLowerCase();
-  const isFiltered = (k: string) => !!columnFilters[k]?.trim() || (filterOperators[k] ?? 'starts') !== 'starts';
-  const activeFilters = columns.filter(c => !c.filter && isFiltered(c.key)).length;
-  const filtered = prepared.filter(x => (!needle || Object.values(x.text).some(t => t.toLowerCase().includes(needle))) &&
-    columns.every(c => {
-      const value = columnFilters[c.key] ?? '';
-      const op = filterOperators[c.key] ?? 'starts';
-      return (value.trim() || op === 'empty')
-        ? matchesTextFilter(x.text[c.key] ?? '', value, op) : true;
-    }));
+  // Columns with a page-supplied filter (c.filter) are filtered by the page; the text filters are filtered here.
+  const textFilterKeys = columns.filter(c => !c.filter).map(c => c.key);
+  const criteria = { values: columnFilters, operators: filterOperators };
+  const activeFilters = activeCriteriaCount(textFilterKeys, criteria);
+  const filtered = prepared.filter(x => (!needle || Object.values(x.text).some(t => t.toLowerCase().includes(needle))) && rowMatches(x.text, textFilterKeys, criteria));
   const localSort = server ? csort && !columns.find(c => c.key === csort.key)?.sort ? csort : null : csort;
   const sorted = localSort ? [...filtered].sort((x, y) => {
     const a = x.text[localSort.key] ?? '', b = y.text[localSort.key] ?? '';
@@ -330,135 +412,182 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const cur = Math.min(page, pages);
   const shown = server ? sorted : sorted.slice((cur - 1) * size, cur * size);
   useEffect(() => { setPage(1); }, [needle, rows]);
-  const exportRows = () => downloadCsv(exportName ?? caption ?? document.title.split(' · ')[0] ?? 'table', textCols.map(c => nodeText(c.header)),
+  const exportRows = () => downloadCsv(exportName ?? caption ?? document.title.split(' · ')[0] ?? 'table', textCols.map(c => headerText(c)),
     sorted.map(x => textCols.map(c => x.text[c.key] ?? '')));
-  const byKey = useMemo(() => new Map(shown.map(x => [String(rowKey(x.r)), x.r])), [shown, rowKey]);
   const visibleCols = columns.filter(c => !hidden[c.key]);
+  const primary = useMemo(() => primaryKeys(columns), [columns]);
+  const secondaryCols = visibleCols.filter(c => !primary.has(c.key));
+  const phone = usePhone();
+  const hasDetails = phone && secondaryCols.length > 0;
+  const lastVisible = visibleCols.filter(c => headerText(c)).length <= 1;
 
-  // Sorting: server-sorted lists send their sort key; every other column sorts in the browser. Arrows: framework sortOrder.
+  // Sorting: server-sorted lists send their sort key; every other column sorts in the browser.
   const sortState = (c: Column<T>) => {
     const serverActive = server && !!c.sort && sort?.replace('-', '') === c.sort;
     const desc = serverActive ? !!sort?.startsWith('-') : !!csort?.desc;
     const active = serverActive || (csort?.key === c.key && !serverActive);
-    const sortable = nodeText(c.header).trim().length > 0 && (server ? (!!c.sort || (rows?.length ?? 0) > 1) : (rows?.length ?? 0) > 1);
+    const sortable = headerText(c).length > 0 && (server ? (!!c.sort || (rows?.length ?? 0) > 1) : (rows?.length ?? 0) > 1);
     return { serverActive, desc, active, sortable };
   };
   const toggleSort = (c: Column<T>) => {
     const s = sortState(c);
-    if (server && c.sort) onSort!(s.serverActive && !s.desc ? `-${c.sort}` : c.sort!);
-    else setCsort(s.active ? { key: c.key, desc: !csort!.desc } : { key: c.key, desc: false });
+    const desc = s.active ? !s.desc : false;
+    if (server && c.sort) onSort!(desc ? `-${c.sort}` : c.sort!);
+    else setCsort({ key: c.key, desc });
+    setAnnounce(`Sorted by ${headerText(c)}, ${desc ? 'descending' : 'ascending'}.`);
+    if (document.activeElement?.closest(`#${tableId}`)) refocusSort.current = { key: c.key, rows };
   };
 
-  // Framework DataTable model: one column per visible hub column, one dataset layout, a frozen header dataset.
-  const vtColumns = useMemo(() => visibleCols.map(c => ({ autoWidth: true, width: c.className?.includes('num') ? 60 : 80 })), [visibleCols]);
-  const layout = useMemo(() => ({ ...ROW_LAYOUT, rows: [{ ...ROW_LAYOUT.rows[0], cells: visibleCols.map(c => c.key) }] }), [visibleCols]);
-  // As the framework's DataTable example: columns and dataset layout handed over per column group / dataset.
-  const getColumns = useCallback(() => vtColumns, [vtColumns]);
-  const getLayout = useCallback(() => layout, [layout]);
-  const cellIterator = ({ datasetId, cellId }: { datasetId: string | number; cellId: string }) => {
-    const c = visibleCols.find(x => x.key === cellId);
-    if (!c) return undefined;
-    const align = c.className?.includes('num') ? { justifySelf: 'end' as const, textAlign: 'right' as const } : {};
-    if (datasetId === HEADER_ID) {
-      const s = sortState(c);
-      return {
-        alignSelf: 'center' as const, ...align, label: nodeText(c.header) || ' ',
-        ...(s.active && { sortOrder: s.desc ? 'desc' as const : 'asc' as const }),
-        ...(s.sortable && { onClick: () => toggleSort(c) })
-      };
-    }
-    const r = byKey.get(String(datasetId));
-    return r === undefined ? undefined : { alignSelf: 'center' as const, ...align, content: <span className="vt-cell" data-col={c.key}>{c.render(r)}<span className="sr"> </span></span> };
-  };
   // Ease of use: a click anywhere on a row opens its record (the row's first link); links, buttons and fields keep their own behaviour.
-  const openRow = ({ datasetId, event }: { datasetId: string | number; event: React.MouseEvent<HTMLDivElement> }) => {
-    if (datasetId === HEADER_ID) return;
+  const openRow = (event: React.MouseEvent<HTMLTableRowElement>) => {
     const t = event.target as HTMLElement;
-    if (t.closest('a,button,[role="button"],input,select,textarea,label,summary') || window.getSelection()?.toString()) return;
-    const a = (event.currentTarget as HTMLElement).querySelector<HTMLAnchorElement>('a[href]');
+    if (t.closest('a,button,[role="button"],input,select,textarea,label,summary,details') || window.getSelection()?.toString()) return;
+    const a = event.currentTarget.querySelector<HTMLAnchorElement>('a[href]');
     if (!a) return;
     const href = a.getAttribute('href')!;
     if (event.ctrlKey || event.metaKey || event.button === 1) window.open(href, '_blank', 'noopener');
     else if (href.startsWith('/')) nav(href); else a.click();
   };
-  const datasetPartIterator = ({ datasetId }: { datasetId: string | number }) => ({
-    cellIterator,
-    ...(datasetId === HEADER_ID ? { backgroundColor: 'offWhite' as const } : { onClick: openRow })
-  });
 
   const hasRows = !loading && !error && (rows?.length ?? 0) > 0;
   const showTools = tools && hasRows;
   const clearFilters = () => { setColumnFilters({}); setFilterOperators({}); };
-  // The framework table virtualizes inside its own box; the box is sized to the page of rows so that every row is laid out.
-  const boxHeight = shown.length ? `min(70vh, ${(shown.length + 1) * 3.2 + 1}rem)` : '3.4rem';
+  // Unnamed columns hold the row actions: they stay at the right edge while the table scrolls sideways (GUI-11).
+  const cellClass = (c: Column<T>) => [c.className, primary.has(c.key) ? undefined : 'col-secondary', headerText(c) ? undefined : 'col-actions'].filter(Boolean).join(' ') || undefined;
+  // On the cell's content: browsers ignore max-width on the cells of an auto-layout table.
+  const cellStyle = (c: Column<T>) => (c.maxWidth ? { maxWidth: c.maxWidth } : undefined);
+  const columnMatches = columns.filter(c => (headerText(c) || c.key).toLowerCase().includes(columnSearch.trim().toLowerCase()) && headerText(c));
+  const colSpan = visibleCols.length + (hasDetails ? 1 : 0);
   return (
     <div className={`panel vt-table${tableWrapClassName ? ` ${tableWrapClassName}` : ''}${tableClassName ? ` ${tableClassName}` : ''}`}
       role="region" aria-label={caption ?? 'Table'} data-vt-table={tableId}>
       {showTools && (
-        <Toolbar alignItems="center" paddingTop="xs" paddingBottom="xs" paddingLeft="normal" paddingRight="normal">
-          <ToolbarContrItem columnGap="small" alignItems="center">
-            <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
-              aria-label="Filter rows" />
-            <span className="muted table-count">{needle || activeFilters ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle || activeFilters ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
-          </ToolbarContrItem>
-          <ToolbarContrItem justifySelf="end" columnGap="small" alignItems="center">
-            <Button ref={filterButton} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
-              onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />
-            <Button ref={columnsButton} type="bare" icon="COLUMNSELECT" text="Columns" onClick={() => { setShowFilters(false); setShowColumns(v => !v); }} />
-            {me?.grants.export && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={exportRows} />}
-          </ToolbarContrItem>
-        </Toolbar>
+        <div className="vt-table-toolbar">
+          <Toolbar alignItems="center" paddingTop="xs" paddingBottom="xs" paddingLeft="normal" paddingRight="normal">
+            <ToolbarContrItem columnGap="small" alignItems="center">
+              <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
+                aria-label="Filter rows" />
+              <span className="muted table-count" aria-live="polite">{needle || activeFilters ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle || activeFilters ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
+            </ToolbarContrItem>
+            <ToolbarContrItem justifySelf="end" columnGap="small" alignItems="center">
+              <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
+                onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />
+              <Button ref={columnsButton as never} type="bare" icon="COLUMNSELECT" text="Columns" onClick={() => { setShowFilters(false); setColumnSearch(''); setShowColumns(v => !v); }} />
+              {me?.grants.export && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={exportRows} />}
+            </ToolbarContrItem>
+          </Toolbar>
+        </div>
       )}
       {showFilters && (
-        <Card width={420} anchorElemRef={filterButton} padding="small" rowGap="small" scrollBarV
-          onClickBeside={() => setShowFilters(false)} onPressEscape={() => setShowFilters(false)} onMoveAnchorElem={() => setShowFilters(false)}>
-          <div className="vt-filter-card" role="group" aria-label={`${caption ?? 'Table'} filters`}>
-            {columns.filter(c => !!c.filter || nodeText(c.header).trim().length > 0).map(c => {
-              const headerName = nodeText(c.header).trim() || 'column';
+        <ToolbarCard anchor={filterButton} width={500} label={`${caption ?? 'Table'} filters`} onClose={() => setShowFilters(false)}
+          actions={close => <><Button type="tinted" text="Clear" onClick={clearFilters} /><Button type="filled" text="Close" onClick={() => close(true)} /></>}>
+          <div className="vt-filter-card">
+            {columns.filter(c => !!c.filter || headerText(c).length > 0).map(c => {
+              const headerName = headerText(c) || 'column';
               const suggestionId = `${tableId}-filter-${c.key}`;
               const columnSuggestions = suggestions[columns.indexOf(c)] ?? [];
+              const op = filterOperators[c.key] ?? DEFAULT_OPERATOR;
+              const incomplete = !c.filter && isCriterionIncomplete(columnFilters[c.key], op);
               return (
                 <div key={c.key} className="vt-filter-row">
-                  <span className="flabel">{headerName}</span>
+                  <span className="flabel" id={`${suggestionId}-label`}>{headerName}</span>
                   {c.filter ? <div className="grid-custom-filter">{isValidElement(c.filter) && c.filter.type === 'input' ? <>
                     {cloneElement(c.filter as ReactElement<InputHTMLAttributes<HTMLInputElement>>, { list: suggestionId })}
                     <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
                   </> : c.filter}</div> : <div className="vt-filter-pair">
-                    <select className="input grid-filter-operator" aria-label={`${headerName} filter operator`} value={filterOperators[c.key] ?? 'starts'} onChange={e => setFilterOperators(f => ({ ...f, [c.key]: e.target.value as TextFilterOperator }))}>
-                      {TEXT_FILTER_OPERATORS.map(op => <option key={op.value} value={op.value}>{op.label}</option>)}
+                    <select className="input grid-filter-operator" aria-label={`${headerName} filter operator`} value={op} onChange={e => setFilterOperators(f => ({ ...f, [c.key]: e.target.value as TextFilterOperator }))}>
+                      {TEXT_FILTER_OPERATORS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
-                    {(filterOperators[c.key] ?? 'starts') !== 'empty' && <input className="input grid-filter-value" aria-label={`Filter value for ${headerName}`} placeholder="Enter the value" list={suggestionId} value={columnFilters[c.key] ?? ''} onChange={e => setColumnFilters(f => ({ ...f, [c.key]: e.target.value }))} />}
+                    {op !== 'empty' && <input className="input grid-filter-value" aria-label={`Filter value for ${headerName}`} placeholder="Enter the value" list={suggestionId}
+                      value={columnFilters[c.key] ?? ''} onChange={e => setColumnFilters(f => ({ ...f, [c.key]: e.target.value }))}
+                      aria-describedby={incomplete ? `${suggestionId}-incomplete` : undefined} />}
                     <datalist id={suggestionId}>{columnSuggestions.map(value => <option key={value} value={value} />)}</datalist>
+                    {incomplete && <span className="hint vt-filter-incomplete" id={`${suggestionId}-incomplete`}>Not applied until a value is entered.</span>}
                   </div>}
                 </div>
               );
             })}
-            <div className="grid-filter-actions">
-              <Button type="tinted" text="Clear" onClick={clearFilters} />
-              <Button type="filled" text="Close" onClick={() => setShowFilters(false)} />
-            </div>
           </div>
-        </Card>
+        </ToolbarCard>
       )}
       {showColumns && (
-        <ColumnsSelectionCard width={300} anchorElemRef={columnsButton} title="Columns" searchBox
-          columns={columns.map(c => ({ autoWidth: true, hidden: !!hidden[c.key], ...(nodeText(c.header).trim() ? {} : { selection: 'hidden' as const }) }))}
-          columnsLabels={columns.map(c => nodeText(c.header).trim() || c.key)}
-          onChangeColumns={({ columns: next }: { columns: { hidden?: boolean }[] }) => setHidden(Object.fromEntries(columns.map((c, i) => [c.key, !!next[i]?.hidden])))}
-          onClose={() => setShowColumns(false)} />
+        // GUI-08: the hub's own column chooser on the framework Card; the framework ColumnsSelectionCard's search field cannot be named.
+        <ToolbarCard anchor={columnsButton} width={320} label={`${caption ?? 'Table'} columns`} onClose={() => setShowColumns(false)}
+          actions={close => <><Button type="tinted" text="Show all" onClick={() => setHidden({})} /><Button type="filled" text="Close" onClick={() => close(true)} /></>}>
+          <div className="vt-columns-card">
+            <label className="field"><span className="flabel">Search columns</span>
+              <input className="input" type="search" value={columnSearch} onChange={e => setColumnSearch(e.target.value)} /></label>
+            <ul className="vt-columns-list" aria-label="Columns shown">
+              {columnMatches.map(c => {
+                const on = !hidden[c.key];
+                return <li key={c.key}><label className="check"><input type="checkbox" checked={on} disabled={on && lastVisible} onChange={e => setHidden(h => ({ ...h, [c.key]: !e.target.checked }))} /> {headerText(c)}</label></li>;
+              })}
+            </ul>
+            {columnMatches.length === 0 && <p className="hint">No column matches “{columnSearch.trim()}”.</p>}
+          </div>
+        </ToolbarCard>
       )}
       {loading && <div className="vt-table-state"><StateMessage kind="loading" /></div>}
       {!loading && !!error && <div className="vt-table-state"><ErrorBox error={error} /></div>}
       {/* The header row stays visible above an empty table, as before; the empty-state text follows it. */}
       {!loading && !error && !!rows && (
-        <div className="vt-table-box" style={{ height: boxHeight }}>
-          <DataTableVt id={tableId} backgroundColor="offWhite" columns={getColumns} datasetLayout={getLayout} columnGroupIds={COLUMN_GROUPS}
-            freezedDatasetIds={{ top: [HEADER_ID] }} datasetIds={shown.map(x => String(rowKey(x.r)))}
-            datasetPartIterator={datasetPartIterator} resetTable={`${needle}|${cur}|${size}|${localSort?.key}|${localSort?.desc}|${sort}`}
-            columnGap="normal" datasetPaddingLeft="normal" datasetPaddingRight="normal" defaultColumnWidth={80} defaultRowHeight={30}
-            expandTableTopBottomFactor={50} expandTableLeftRightFactor={20} />
+        <div ref={scroller} className={`vt-table-scroll${overflowing ? ' is-overflowing' : ''}`}
+          {...(overflowing && { tabIndex: 0, role: 'group', 'aria-label': `${caption ?? 'Table'}: scroll sideways for more columns` })}>
+          <table id={tableId} className="grid vt-grid">
+            {caption && <caption className="sr">{caption}</caption>}
+            <thead>
+              <tr>
+                {hasDetails && <th scope="col" className="col-disclose"><span className="sr">Details</span></th>}
+                {visibleCols.map(c => {
+                  const s = sortState(c);
+                  const name = headerText(c);
+                  return (
+                    <th key={c.key} scope="col" className={['vt-th', cellClass(c)].filter(Boolean).join(' ')}
+                      aria-sort={s.sortable && s.active ? (s.desc ? 'descending' : 'ascending') : undefined}>
+                      {s.sortable
+                        ? <button type="button" className="grid-sort" data-sort-key={c.key} onClick={() => toggleSort(c)}>
+                          <span className="grid-heading-label">{name}</span>
+                          <span className={`grid-sort-indicator${s.active ? '' : ' grid-sort-muted'}`} aria-hidden="true"><VtIcon icon={s.active && s.desc ? 'ARROWDOWN' : 'ARROWUP'} size={16} /></span>
+                        </button>
+                        : name ? <span className="grid-heading-label">{name}</span> : <span className="sr">Actions</span>}
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody>
+              {shown.map(x => {
+                const key = String(rowKey(x.r));
+                const open = !!expanded[key];
+                const detailsId = `${tableId}-details-${key.replace(/[^\w-]/g, '_')}`;
+                const identity = x.text[visibleCols.find(c => headerText(c))?.key ?? ''] || 'this row';
+                return (
+                  <Fragment key={key}>
+                    <tr className={`vt-row${open ? ' is-open' : ''}`} onClick={openRow}>
+                      {hasDetails && <td className="col-disclose">
+                        <button type="button" className="row-disclose" aria-expanded={open} aria-controls={open ? detailsId : undefined} aria-label={`Details for ${identity}`}
+                          onClick={() => setExpanded(e => ({ ...e, [key]: !open }))}><VtIcon icon={open ? 'ARROWUP' : 'ARROWDOWN'} size={16} /></button>
+                      </td>}
+                      {/* The hidden space keeps cell texts apart in the row's text (row search, copy and paste). */}
+                      {visibleCols.map(c => <td key={c.key} className={cellClass(c)}><span className="vt-cell" data-col={c.key} style={cellStyle(c)}>{c.render(x.r)}</span><span className="sr"> </span></td>)}
+                    </tr>
+                    {hasDetails && open && (
+                      <tr className="row-details" id={detailsId}>
+                        <td colSpan={colSpan}>
+                          <dl className="row-details-list">
+                            {secondaryCols.map(c => <div key={c.key}><dt>{headerText(c) || 'Actions'}</dt><dd>{c.render(x.r)}</dd></div>)}
+                          </dl>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
+      <div className="sr" role="status" aria-live="polite">{announce}</div>
       {!loading && !error && rows?.length === 0 && <div className="vt-table-state"><StateMessage kind={empty} /></div>}
       {hasRows && shown.length === 0 && <div className="vt-table-state"><StateMessage kind="nomatch" /></div>}
       {showTools && !server && sorted.length > Math.min(size, 25) && (

@@ -220,17 +220,118 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
   .g { padding: vt.spacePx(xs) vt.spacePx(normal) vt.spacePx(xxs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: vt.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
 }
 
-// ---------- tables on the framework DataTable (ui/kit.tsx DataTable): Toolbar, Filter card, ColumnsSelectionCard ----------
-.vt-table { display: flex; flex-direction: column; min-width: 0; overflow: visible;
-  .table-search { width: 260px; }
+// ---------- tables (ui/kit.tsx DataTable): framework Toolbar and Cards above a native table in the framework DataTable look ----------
+.vt-table { display: flex; flex-direction: column; min-width: 0; max-width: 100%; overflow: visible;
+  .table-search { width: 260px; min-width: 0; }
   .table-count { white-space: nowrap; }
 }
-.vt-table-box { position: relative; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); min-height: 3.4rem; min-width: 0; }
 .vt-table-state { padding: vt.spacePx(small) vt.spacePx(normal); }
-.vt-cell { display: block; min-width: 0; overflow-wrap: anywhere; }
-.vt-filter-card { display: grid; gap: vt.spacePx(small); max-height: 60vh; }
-.vt-filter-row { display: grid; grid-template-columns: 9rem 1fr; gap: vt.spacePx(xs); align-items: center; }
-.vt-filter-pair { display: grid; grid-template-columns: 11rem 1fr; gap: vt.spacePx(xs); }
+// Rows stay on one line as in the framework DataTable: the table is as wide as its content, and a cell wraps only past 24rem (a column's
+// maxWidth sets a narrower cap). break-word, not anywhere: "anywhere" would shrink a column's minimum width to a single letter.
+.vt-cell { display: block; min-width: 0; max-width: 24rem; overflow-wrap: break-word; }
+// Sideways overflow is signposted by edge shadows that appear only where there is more to scroll (GUI-06).
+.vt-table-scroll {
+  overflow-x: auto; max-width: 100%;
+  background:
+    linear-gradient(to right, #{vt.color(offWhite)} 30%, transparent) left / 24px 100% no-repeat local,
+    linear-gradient(to left, #{vt.color(offWhite)} 30%, transparent) right / 24px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, #{vt.colorA(primary, 0.22)}, transparent) left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, #{vt.colorA(primary, 0.22)}, transparent) right / 12px 100% no-repeat scroll;
+  &:focus-visible { outline-offset: -2px; }
+}
+// The framework DataTable look (header cells: label typography and ARROWUP/ARROWDOWN; 20px column gap; offWhite rows).
+table.vt-grid { width: max-content; min-width: 100%; }
+.vt-grid {
+  th { padding: 0; background: transparent; vertical-align: middle; }
+  th > .grid-heading-label { display: flex; min-height: 36px; padding: 0 vt.spacePx(small); }
+  .grid-heading-label { @include vt.typoSet(label, $disabled: false); white-space: nowrap; }
+  .grid-sort { display: flex; width: 100%; min-height: 36px; padding: 0 vt.spacePx(small); gap: vt.spacePx(xxs);
+    &:hover .grid-heading-label, &:focus-visible .grid-heading-label { color: vt.typo(color, dark, attention); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .grid-sort-indicator { display: inline-flex; line-height: 0; svg { fill: currentColor; } }
+  .grid-sort-muted { visibility: hidden; }
+  .grid-sort:hover .grid-sort-muted, .grid-sort:focus-visible .grid-sort-muted { visibility: visible; opacity: .45; }
+  th.num .grid-sort { flex-direction: row-reverse; }
+  td { padding: vt.spacePx(xxs) vt.spacePx(small); height: 34px; }
+  tbody tr.vt-row:hover td { background: vt.colorA(structureSilver, 0.08); }
+  tbody tr.vt-row:has(a[href]) { cursor: pointer; }
+  .col-disclose, .row-details { display: none; }
+  .col-actions { position: sticky; right: 0; z-index: 1; background: vt.color(offWhite); }
+  tbody tr.vt-row:hover td.col-actions { background: linear-gradient(#{vt.colorA(structureSilver, 0.08)}, #{vt.colorA(structureSilver, 0.08)}), vt.color(offWhite); }
+  th.col-disclose, td.col-disclose { width: 44px; padding: 0; }
+}
+.vt-table-scroll.is-overflowing .vt-grid .col-actions { box-shadow: -8px 0 8px -8px #{vt.colorA(primary, 0.35)}; }
+.row-disclose { display: grid; place-items: center; width: 40px; height: 40px; border: 0; color: vt.typo(color, dark, attention);
+  svg { fill: currentColor; }
+  &:focus-visible { outline-offset: -2px; }
+}
+.row-details > td { padding: 0 vt.spacePx(small) vt.spacePx(small) 44px; background: vt.colorA(structureSilver, 0.05); }
+.row-details-list { display: grid; grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr); gap: vt.spacePx(xxs) vt.spacePx(small); margin: 0; padding-top: vt.spacePx(xs);
+  > div { display: contents; }
+  dt { @include vt.typoSet(label, $disabled: false); }
+  dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+}
+
+// The framework Toolbar is a single grid row, which squeezes and truncates the actions on narrow screens. Here it wraps instead: the
+// search and the row count come first, and the actions move to their own row whenever they do not fit beside them (GUI-07).
+.vt-table-toolbar {
+  [class*="toolbar__toolbar"] { display: flex; flex-wrap: wrap; align-items: center; gap: vt.spacePx(xs) vt.spacePx(small); }
+  [class*="toolbarContrItem__toolbarContrItem"] { min-width: 0; }
+  [class*="toolbarContrItem__toolbarContrItem"]:first-child { flex: 1 1 18rem; grid-template-columns: minmax(0, 1fr) auto; }
+  [class*="toolbarContrItem__toolbarContrItem"]:last-child { flex: 0 1 auto; display: flex; flex-wrap: wrap; margin-left: auto; gap: vt.spacePx(xs) vt.spacePx(small); }
+  .table-search { width: 100%; max-width: 260px; }
+}
+@media (max-width: 600px) {
+  .vt-table-toolbar {
+    [class*="toolbarContrItem__toolbarContrItem"]:first-child { flex-basis: 100%; }
+    [class*="toolbarContrItem__toolbarContrItem"]:last-child { margin-left: 0; }
+    .table-search { max-width: none; }
+  }
+}
+
+// Toolbar cards (Filter, Columns): the body scrolls, the action row stays in view on an opaque ground (GUI-04).
+.vt-card-panel { display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: vt.spacePx(small); height: 100%; min-height: 0; }
+.vt-card-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.vt-card-panel > .grid-filter-actions { margin-top: 0; padding-top: vt.spacePx(small); border-top: 1px solid vt.layout(dividerColor, soft); background: vt.color(offWhite); }
+.vt-filter-card { display: grid; gap: vt.spacePx(small); }
+.vt-filter-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: vt.spacePx(xs); align-items: center; }
+// Operator and value share the row while each keeps at least 8.75rem (about 150px); otherwise the value moves under the operator (GUI-03).
+.vt-filter-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(8.75rem, 100%), 1fr)); gap: vt.spacePx(xs); min-width: 0;
+  > * { min-width: 0; }
+  .grid-filter-value { margin-top: 0; }
+}
+.vt-filter-incomplete { grid-column: 1 / -1; }
+.vt-columns-card { display: grid; gap: vt.spacePx(small); }
+.vt-columns-list { list-style: none; margin: 0; padding: 0; display: grid;
+  .check { width: 100%; min-height: 32px; }
+}
+
+// ---------- phones: label above the filter controls; toolbar on two rows; secondary columns in the row details ----------
+@media (max-width: 600px) {
+  .vt-filter-row { grid-template-columns: minmax(0, 1fr); gap: vt.spacePx(xxs); }
+  // The primary columns share the screen width and wrap, so identity, status and actions are seen without panning.
+  table.vt-grid { width: 100%; min-width: 0; }
+  .vt-grid {
+    .grid-heading-label { white-space: normal; }
+    td { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
+    th > .grid-heading-label, .grid-sort { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
+    th.col-disclose, td.col-disclose { width: 40px; padding: 0; }
+    .col-secondary { display: none; }
+    .col-disclose { display: table-cell; }
+    .row-details { display: table-row; }
+  }
+}
+
+// ---------- target sizes (GUI-12, WCAG 2.2 SC 2.5.8): at least 24 x 24 px, 40 px and more on touch screens ----------
+.vt-grid .linkbtn, .row-actions .linkbtn { display: inline-flex; align-items: center; min-height: 24px; padding: 0 vt.spacePx(xxs); }
+.pager button { min-height: 24px; min-width: 44px; padding: 0 vt.spacePx(xs); }
+.pager select { min-height: 24px; }
+.check { min-height: 24px; }
+@media (pointer: coarse) {
+  .vt-grid .linkbtn, .row-actions .linkbtn, .pager button, .pager select { min-height: 40px; }
+  .check { min-height: 40px; }
+}
 
 // ---------- KPI tiles (ui/charts.tsx Kpi): coloured surfaces in the framework colours ----------
 // Each tile carries an accent: a tinted ground, a solid band on the leading edge and a filled icon tile.

@@ -233,6 +233,11 @@ table.grid th .grid-sort{white-space:nowrap}
 .notice-row .notice-item{border-bottom:0;flex:1}
 .notice-actions{display:flex;gap:10px;padding:9px 12px;white-space:nowrap}
 .right-box{width:16px;height:16px;cursor:pointer;vertical-align:middle}
+.right-hit{display:inline-grid;place-items:center;min-width:32px;min-height:32px;cursor:pointer;vertical-align:middle}
+@media (pointer:coarse){.right-hit{min-width:40px;min-height:40px}}
+/* GUI-11: the rights of a role as a count with the full list on request */
+.rights-summary summary{cursor:pointer;color:var(--link);font-weight:600;min-height:24px;display:inline-flex;align-items:center}
+.rights-summary ul{margin:4px 0 0;padding-left:18px;font-size:var(--fs-xs);line-height:1.5}
 .rights-matrix td.c .spin{margin-left:4px}
 
 /* A39 dashboard: donut, SLA matrix, interactive map panel */
@@ -316,9 +321,28 @@ table.grid th .grid-sort{white-space:nowrap}
 .attach-err{margin:8px 0 0;padding-left:18px}
 
 /* A47 notes workspace (OneNote-like) */
-.notes{display:grid;grid-template-columns:250px 290px minmax(0,1fr);height:calc(100vh - var(--hdr) - var(--status));margin:0 calc(-1 * var(--gap)) -24px;background:var(--surface);border-top:1px solid var(--line)}
-@media (max-width:1100px){.notes{grid-template-columns:220px minmax(0,1fr);grid-template-rows:auto 1fr;height:auto;min-height:calc(100vh - var(--hdr) - var(--status))}.notes-editor-pane{grid-column:1 / -1}}
-@media (max-width:720px){.notes{grid-template-columns:1fr}}
+.notes{display:grid;grid-template-columns:250px 290px minmax(0,1fr);height:calc(100vh - var(--hdr) - var(--status));margin:0 calc(-1 * var(--content-pad-x, var(--gap))) calc(-1 * var(--content-pad-bottom, 24px));background:var(--surface);border-top:1px solid var(--line);min-width:0}
+/* GUI-02: panes never widen the workspace (min-width:0 on the tracks and the panes); the page-list title and the pane context ellipsize. */
+.notes>*{min-width:0;box-sizing:border-box}
+.notes-back,.notes-editor-back{display:none}
+.notes-context{color:var(--muted);font-weight:400}
+@media (max-width:1100px){.notes{grid-template-columns:220px minmax(0,1fr);grid-template-rows:auto 1fr;height:auto;min-height:calc(100vh - var(--hdr) - var(--status))}.notes-editor-pane{grid-column:1 / -1;border-top:1px solid var(--line)}}
+/* Phones: one pane at a time (notebooks → pages → page) with a back button and the selected notebook / section / page named. */
+@media (max-width:720px){
+  .notes{grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
+  .notes>.notes-nav,.notes>.notes-pages,.notes>.notes-editor-pane{display:none;border-right:0;border-top:0}
+  .notes[data-pane="nav"]>.notes-nav,.notes[data-pane="pages"]>.notes-pages{display:flex}
+  .notes[data-pane="editor"]>.notes-editor-pane{display:block}
+  .notes-back{display:inline-flex;flex:none}
+  .notes-editor-back{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--strip);min-width:0}
+  .notes-editor-back .notes-context{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .notes-pages-head{flex-wrap:wrap}
+  .notes-pages-head h2{flex:1 1 60%}
+  .note{padding:12px 12px 40px}
+  .note-title{font-size:22px}
+  .note-link{margin-left:0}
+  .item-menu-btn{width:40px;height:40px}
+}
 .notes-nav{border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow-y:auto;overflow-x:hidden;background:var(--strip)}
 .notes-search{display:flex;align-items:center;gap:6px;padding:10px;border-bottom:1px solid var(--line);color:var(--muted)}
 .notes-search .input{height:28px}

@@ -39,11 +39,21 @@ body .hub-app.hub-app {
 .hdr {
   position: relative;
   z-index: 20;
-  // Primary links scroll horizontally when they do not fit, so the secondary links stay visible.
-  [class*="primaryHeader__primaryHeader"] { min-width: 0; }
-  nav[aria-label="Main"] { overflow-x: auto; scrollbar-width: none; justify-content: flex-start; }
+  // GUI-10: the primary links that do not fit move into "More" (ui/Shell.tsx useFittingSections); nothing is clipped or hidden in a
+  // scroll strip. The invisible copy of the links (.nav-measure) gives their widths.
+  [class*="primaryHeader__primaryHeader"] { min-width: 0; position: relative; }
+  nav[aria-label="Main"] { justify-content: flex-start; min-width: 0; }
+  .nav-measure { position: absolute; left: 0; top: 0; width: max-content; visibility: hidden; pointer-events: none; }
+  .nav-more { position: relative; display: flex; align-items: stretch; }
+  .nav-more > button { display: flex; align-items: center; gap: vt.spacePx(xxs); white-space: nowrap; }
+  .nav-more-list {
+    position: absolute; right: 0; top: 100%; z-index: 60; min-width: 220px; margin: 0; padding: vt.spacePx(xxs) 0; list-style: none;
+    background: vt.color(offWhite); box-shadow: vt.layout(boxShadow, anchored);
+    a { display: flex; align-items: center; min-height: 40px; padding: 0 vt.spacePx(normal); color: vt.typo(color, dark, normal); font-size: vt.typo(fontSize, small); }
+    a:hover, a:focus-visible { background: vt.colorA(structureSilver, 0.08); text-decoration: none; }
+    a:focus-visible { outline-offset: -2px; }
+  }
   .hdr-right { flex: none; }
-  nav[aria-label="Main"]::-webkit-scrollbar { display: none; }
   .menu-btn { display: none; }
   // Only the family: the font shorthand would also reset line-height, which centres the primary links (frame primaryLink).
   button, a { font-family: inherit; }
@@ -79,9 +89,10 @@ body .hub-app.hub-app {
   z-index: 5;
   .side-nav { overflow-y: auto; overflow-x: hidden; }
   svg.ic { fill: currentColor; }
+  // GUI-12: 28 x 28 px target (40 px on touch screens) around the 16 px icon.
   .side-collapse {
-    position: absolute; right: vt.spacePx(xs); bottom: vt.spacePx(xs);
-    width: vt.spacePx(normal); height: vt.spacePx(normal);
+    position: absolute; right: vt.spacePx(xxs); bottom: vt.spacePx(xxs);
+    width: 28px; height: 28px;
     display: grid; place-items: center;
     border: 1px solid vt.layout(dividerColor, soft); background: vt.color(offWhite); color: vt.color(primary); cursor: pointer;
   }
@@ -99,12 +110,19 @@ body .hub-app.hub-app {
   }
 }
 
+@media (pointer: coarse) {
+  .side .side-collapse { width: 40px; height: 40px; }
+}
+
 // ---------- main scope ----------
+// --content-pad-x / --content-pad-bottom: full-bleed workspaces such as Notes cancel exactly this padding.
 .content {
+  --content-pad-x: #{vt.spacePx(large)};
+  --content-pad-bottom: #{vt.spacePx(large)};
   overflow: auto;
   min-width: 0;
   background: vt.color("lightGray");
-  padding: vt.spacePx(normal) vt.spacePx(large) vt.spacePx(large);
+  padding: vt.spacePx(normal) var(--content-pad-x) var(--content-pad-bottom);
   outline: none;
 }
 
@@ -136,8 +154,32 @@ body .hub-app.hub-app {
 @media (max-width: 900px) {
   // same specificity as the column rules above, so the drawer layout wins on narrow screens
   body .hub-app.hub-app.with-sidebar, body.side-mini .hub-app.hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
-  .hdr .menu-btn { display: inline-flex; align-items: center; }
-  .hub-app.bare .hdr .menu-btn { display: none; }
+  // GUI-10: the drawer replaces the header links; the menu button names the current section.
+  .hdr .menu-btn { display: inline-flex; align-items: center; gap: vt.spacePx(xs); min-width: 44px; }
+  .hdr .menu-btn-label { max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: vt.typo(color, light, normal); font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, semibold); }
+  .hdr .hdr-primary > nav { display: none; }
+  .side.drawer { display: flex; flex-direction: column; overflow: hidden;
+    [class*="menu__menuWrapper"] { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    > :first-child { flex: 1 1 auto; min-width: 0; }
+  }
+  .drawer-close, .drawer-toggle { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border: 0; background: none; color: vt.color(primary);
+    svg { fill: currentColor; }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .drawer-toggle svg { transform: rotate(-90deg); transition: transform vt.layoutMs(animationTime, fastMs) ease; }
+  .drawer-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .drawer-section { border-bottom: 1px solid vt.layout(dividerColor, soft); }
+  .drawer-section-head { display: flex; align-items: center; }
+  .drawer-section-link { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; min-height: 44px; padding: 0 vt.spacePx(small) 0 vt.spacePx(normal);
+    color: vt.typo(color, dark, normal); font-weight: vt.typo(fontWeight, semibold); border-left: 4px solid transparent;
+    &:hover { text-decoration: none; background: vt.colorA(structureSilver, 0.08); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .drawer-section.current .drawer-section-link { border-left-color: vt.color(impulseGreen); background: vt.colorA(attention, 0.12); }
+  .drawer-items { padding-bottom: vt.spacePx(xs); }
+  .drawer-items [class*="menuNode__link"] { min-height: 40px; }
   .hdr [class*="headerLogo__headerLogo"] { min-width: auto; flex: none; padding: 0 vt.spacePx(small); }
   .side {
     position: fixed; left: 0; top: vt.layoutPx(header, height); bottom: 0;
@@ -147,6 +189,6 @@ body .hub-app.hub-app {
   }
   body.nav-open .side { transform: none; }
   body.nav-open .scrim-nav { display: block; position: fixed; inset: vt.layoutPx(header, height) 0 0 0; background: vt.layout(dimmedBackground); z-index: 30; }
-  .content { padding: vt.spacePx(small); }
+  .content { --content-pad-x: #{vt.spacePx(small)}; --content-pad-bottom: #{vt.spacePx(small)}; padding: vt.spacePx(small) var(--content-pad-x) var(--content-pad-bottom); }
   .status { grid-template-columns: 1fr; grid-auto-flow: row; padding: vt.spacePx(xxs) vt.spacePx(small); .app, .center { display: none; } }
 }

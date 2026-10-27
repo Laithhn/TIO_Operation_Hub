@@ -447,7 +447,7 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         db.Notifications.Add(new Notification
         {
             UserId = userId, Kind = "Report", Title = job.Status == ExportStatus.Completed ? $"Scheduled report ready: {s.Name}" : $"Scheduled report failed: {s.Name}",
-            Body = job.Status == ExportStatus.Completed ? $"{job.ReportName}, {job.RowCount} row(s)." : job.Error, Link = $"/reports?tab=history&export={job.Id}",
+            Body = job.Status == ExportStatus.Completed ? $"{job.ReportName}, {job.RowCount} row(s)." : job.Error, Link = $"/reporting-center?tab=history&export={job.Id}",
             Key = $"report:{s.Id}:{userId}:{job.Id}", CreatedAt = now
         });
         await db.SaveChangesAsync(ct);

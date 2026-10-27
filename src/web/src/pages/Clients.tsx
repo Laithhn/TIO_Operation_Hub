@@ -40,12 +40,12 @@ export function ClientList() {
           { key: 'code', header: 'Alias', sort: 'code', render: r => r.parentClientId
               ? <span className="sub-client"><span aria-hidden="true">↳ </span><Link to={`/clients/${r.id}`}>{r.code}</Link></span> : <Link to={`/clients/${r.id}`}>{r.code}</Link>,
             filter: <input className="input" placeholder="Search by name or alias" aria-label="Search clients by name or alias" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 200 }} /> },
-          { key: 'name', header: 'Client', sort: 'name', render: r => <><Link to={`/clients/${r.id}`}>{r.name}</Link>
+          { key: 'name', header: 'Client', sort: 'name', priority: 'primary', render: r => <><Link to={`/clients/${r.id}`}>{r.name}</Link>
               {r.parentClientId ? <div className="hint">Sub-client of {r.parentCode}</div> : r.subClientCount > 0 ? <div className="hint">{r.subClientCount} sub-client(s)</div> : null}</>,
             filter: <select className="input" aria-label="Filter by level" value={f.level} onChange={e => set({ level: e.target.value, page: '1' })}><option value="">All levels</option><option value="main">Main clients</option><option value="sub">Sub-clients</option></select> },
           { key: 'country', header: 'Country', sort: 'country', render: r => r.country,
             filter: <input className="input" aria-label="Filter by country" placeholder="Country" value={f.country} onChange={e => set({ country: e.target.value })} /> },
-          { key: 'status', header: 'Status', sort: 'status', render: r => <StatusBadge value={r.status} />,
+          { key: 'status', header: 'Status', sort: 'status', priority: 'primary', render: r => <StatusBadge value={r.status} />,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="">All</option>{statuses.filter(s => s !== 'Archived').map(s => <option key={s}>{s}</option>)}</select> },
           { key: 'structure', header: 'Structure', render: r => <span className="nowrap" title={r.regionCount === 0 ? 'Environments directly under the client, no regions' : undefined}>{r.regionCount === 0 ? 'Direct' : `${r.regionCount} region${r.regionCount > 1 ? 's' : ''}${r.directEnvironmentCount ? ' + direct' : ''}`}</span>,
             filter: <select className="input" aria-label="Filter by structure" value={f.structure} onChange={e => set({ structure: e.target.value })}><option value="">All</option><option value="regional">With regions</option><option value="direct">Without regions</option></select> },

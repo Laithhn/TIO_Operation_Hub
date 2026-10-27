@@ -15,7 +15,7 @@ type Rec = { id: number } & Record<string, unknown>;
 const firstOf = (j: unknown): Rec | undefined => (Array.isArray(j) ? j : ((j as { items?: Rec[] } | null)?.items ?? []))[0] as Rec | undefined;
 
 const STATIC = [
-  '/', '/map', '/actions', '/notifications', '/data-quality', '/reports',
+  '/', '/map', '/actions', '/notifications', '/data-quality', '/reporting-center', '/reports',
   '/clients', '/clients/new', '/projects', '/contracts', '/contracts/new', '/environments', '/environments/new', '/versions', '/assets', '/firewall-rules',
   '/products', '/products/new', '/cases', '/cases/new', '/commitments', '/commitments/new', '/escalations', '/escalations/new',
   '/teams', '/handovers', '/reassignment',
@@ -86,7 +86,7 @@ test.describe('VtWebGuiFramework frame on every page', () => {
     await page.goto('/cases');
     const side = page.locator('aside.side');
     await expect.poll(async () => (await side.boundingBox())?.x ?? 0).toBeLessThan(0);
-    await page.getByRole('button', { name: 'Open section menu' }).click();
+    await page.getByRole('button', { name: 'Menu, current section Cases' }).click();
     await expect.poll(async () => (await side.boundingBox())?.x ?? -1).toBe(0);
     await expect(side.getByRole('link', { name: 'All cases' })).toBeVisible();
   });

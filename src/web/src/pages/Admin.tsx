@@ -200,14 +200,15 @@ export function AdminRoles() {
       <PageHead title="Roles" sub="Each user holds one role. Add roles for the way your team works; what each role may do is set on the Rights page."
         actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
       <DataTable<RoleDef> caption="Roles" rowKey={r => r.id} rows={d?.roles} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Role', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>}</> },
-        { key: 'd', header: 'Description', render: r => r.description ?? <span className="muted">—</span> },
+        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>}</> },
+        { key: 'd', header: 'Description', maxWidth: '18rem', render: r => r.description ?? <span className="muted">—</span> },
         { key: 'u', header: 'Users', className: 'num', render: r => r.userCount },
-        { key: 'r', header: 'Rights', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length + r.permissions.length === 0 ? <span className="muted">View only</span>
-          : [...r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k), ...r.permissions.map(k => {
+        // GUI-11: a count with the full list on request, so a long list of rights never widens the table past its actions.
+        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length + r.permissions.length === 0 ? <span className="muted">View only</span>
+          : <RightsSummary role={r.name} items={[...r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k), ...r.permissions.map(k => {
             const p = d?.permissions.find(x => x.key === k); return p ? `${p.resourceLabel}: ${p.actionLabel}` : k;
-          })].join(', ') },
-        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}>Edit</button>{!r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)}>Delete</button></>}</> }
+          })]} /> },
+        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button>{!r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)} aria-label={`Delete role ${r.name}`}>Delete</button></>}</> }
       ]} />
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
       {remove && <Dialog title={`Delete role ${remove.name}`} onClose={() => setRemove(null)}>
@@ -218,6 +219,16 @@ export function AdminRoles() {
           }}>Delete role</button></div>
       </Dialog>}
     </AdminOnly>
+  );
+}
+
+/** The rights of a role as a count that opens the full list (keyboard: the summary is a button). Filter and export read the full list. */
+function RightsSummary({ role, items }: { role: string; items: string[] }) {
+  return (
+    <details className="rights-summary" data-text={items.join(', ')}>
+      <summary aria-label={`${items.length} right${items.length === 1 ? '' : 's'} of ${role}: show the list`}>{items.length} right{items.length === 1 ? '' : 's'}</summary>
+      <ul>{items.map(i => <li key={i}>{i}</li>)}</ul>
+    </details>
   );
 }
 
@@ -265,8 +276,9 @@ export function AdminRights() {
               const values = right.resourcePermission ? role.permissions : role.rights;
               const on = role.isLocked || (pending[`${role.id}-${right.key}`] ?? values.includes(right.key));
               return <><span className="sr">{on ? 'Allowed' : 'Not allowed'}</span>
-                <input type="checkbox" className="right-box" checked={on} disabled={role.isLocked || busy !== null} onChange={e => toggle(role, right.key, e.target.checked, right.resourcePermission)}
-                  aria-label={`${right.label} for ${role.name}`} title={role.isLocked ? 'The TIO Manager role always keeps every right' : undefined} />
+                {/* GUI-12: the label around the 16 px box is the 32 px target. */}
+                <label className="right-hit"><input type="checkbox" className="right-box" checked={on} disabled={role.isLocked || busy !== null} onChange={e => toggle(role, right.key, e.target.checked, right.resourcePermission)}
+                  aria-label={`${right.label} for ${role.name}`} title={role.isLocked ? 'The TIO Manager role always keeps every right' : undefined} /></label>
                 {busy === `${role.id}-${right.key}` && <span className="spin" />}</>;
             } }))
           ]} />

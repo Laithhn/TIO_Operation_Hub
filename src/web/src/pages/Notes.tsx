@@ -23,6 +23,9 @@ type PageT = {
   id: number; sectionId: number; title: string; contentHtml: string; level: number; isPinned: boolean; clientId?: number; projectId?: number; linkLabel?: string;
   linkGone: boolean; createdAt: string; updatedAt: string; deletedAt?: string; section: string; sectionColor: string; notebookId: number; notebook: string; version: string;
 };
+/** Phones show one pane at a time (GUI-02): notebooks, then the page list, then the page. */
+type Pane = 'nav' | 'pages' | 'editor';
+const PHONE = '(max-width: 720px)';
 type View = { kind: 'section'; id: number } | { kind: 'search'; q: string } | { kind: 'pinned' } | { kind: 'bin' } | { kind: 'link'; link: string; clientId?: string; projectId?: string };
 
 const COLOR: Record<string, string> = { blue: '#2a78d6', orange: '#eb6834', green: '#1baf7a', purple: '#6250d6', red: '#e34948', teal: '#0f8b8d', yellow: '#eda100', gray: '#7d8494' };
@@ -41,8 +44,20 @@ export function NotesWorkspace() {
   const [search, setSearch] = useState('');
   const [dialog, setDialog] = useState<null | { kind: 'notebook' | 'section'; item?: NotebookT | SectionT; notebookId?: number }>(null);
   const pageId = sp.get('page') ? Number(sp.get('page')) : null;
+  const [pane, setPane] = useState<Pane>(() => (pageId ? 'editor' : 'pages'));
+  const root = useRef<HTMLDivElement>(null);
+  const moved = useRef(false);
   useEffect(() => { document.title = 'Notes · TIO Operations Hub'; }, []);
+  // On phones, moving to another pane moves focus to it, so keyboard and screen-reader users land in the pane they asked for.
+  const go = useCallback((p: Pane) => { moved.current = true; setPane(p); }, []);
+  useEffect(() => {
+    if (!moved.current || !window.matchMedia(PHONE).matches) return;
+    moved.current = false;
+    root.current?.querySelector<HTMLElement>(`[data-pane-focus="${pane}"]`)?.focus();
+  }, [pane]);
   const openPage = useCallback((id: number | null) => { const n = new URLSearchParams(sp); if (id) n.set('page', String(id)); else n.delete('page'); setSp(n, { replace: true }); }, [sp, setSp]);
+  const showPage = (id: number | null) => { openPage(id); if (id) go('editor'); };
+  const showList = (v: View) => { setView(v); go('pages'); };
 
   // Start in the section of the requested page, or the first section.
   const current = useQuery({ queryKey: ['notes', 'page', pageId], queryFn: () => get<PageT>(`/notes/pages/${pageId}`), enabled: !!pageId, retry: false });
@@ -65,26 +80,27 @@ export function NotesWorkspace() {
       const r = await post<{ id: number }>('/notes/pages', { sectionId, title: '', contentHtml: '', level, afterPageId: after ?? null });
       if (view?.kind !== 'section') setView({ kind: 'section', id: sectionId });
       await refresh();
-      openPage(r.id);
+      showPage(r.id);
     } catch (e) { toast(errText(e)); }
   };
 
   const sectionName = view?.kind === 'section' ? allSections.find(s => s.id === view.id) : undefined;
+  const pageTitle = current.data ? current.data.title || 'Untitled page' : undefined;
   const listTitle = view?.kind === 'section' ? sectionName?.name ?? 'Section' : view?.kind === 'search' ? `Search: “${view.q}”` : view?.kind === 'pinned' ? 'Pinned pages'
     : view?.kind === 'bin' ? 'Recycle bin' : view?.kind === 'link' ? (view.link === 'personal' ? 'Personal pages' : view.link === 'linked' ? 'Pages linked to clients or projects' : 'Linked pages') : '';
 
   return (
-    <div className="notes">
+    <div className="notes" data-pane={pane} ref={root}>
       <aside className="notes-nav" aria-label="Notebooks">
-        <form className="notes-search" onSubmit={e => { e.preventDefault(); if (search.trim()) setView({ kind: 'search', q: search.trim() }); }} role="search">
+        <form className="notes-search" onSubmit={e => { e.preventDefault(); if (search.trim()) showList({ kind: 'search', q: search.trim() }); }} role="search">
           <Icon name="search" size={14} />
-          <input className="input" type="search" placeholder="Search all notes" aria-label="Search all notes" value={search} onChange={e => setSearch(e.target.value)} />
+          <input className="input" type="search" placeholder="Search all notes" aria-label="Search all notes" value={search} onChange={e => setSearch(e.target.value)} data-pane-focus="nav" />
         </form>
         <div className="notes-quick">
-          <button className={view?.kind === 'pinned' ? 'on' : ''} onClick={() => setView({ kind: 'pinned' })}>★ Pinned <span>{tree.data?.pinned ?? 0}</span></button>
-          <button className={view?.kind === 'link' && view.link === 'personal' ? 'on' : ''} onClick={() => setView({ kind: 'link', link: 'personal' })}>Personal</button>
-          <button className={view?.kind === 'link' && view.link === 'linked' ? 'on' : ''} onClick={() => setView({ kind: 'link', link: 'linked' })}>Clients &amp; projects</button>
-          <button className={view?.kind === 'bin' ? 'on' : ''} onClick={() => setView({ kind: 'bin' })}>🗑 Recycle bin <span>{tree.data?.deleted ?? 0}</span></button>
+          <button className={view?.kind === 'pinned' ? 'on' : ''} aria-current={view?.kind === 'pinned' ? 'true' : undefined} onClick={() => showList({ kind: 'pinned' })}>★ Pinned <span>{tree.data?.pinned ?? 0}</span></button>
+          <button className={view?.kind === 'link' && view.link === 'personal' ? 'on' : ''} aria-current={view?.kind === 'link' && view.link === 'personal' ? 'true' : undefined} onClick={() => showList({ kind: 'link', link: 'personal' })}>Personal</button>
+          <button className={view?.kind === 'link' && view.link === 'linked' ? 'on' : ''} aria-current={view?.kind === 'link' && view.link === 'linked' ? 'true' : undefined} onClick={() => showList({ kind: 'link', link: 'linked' })}>Clients &amp; projects</button>
+          <button className={view?.kind === 'bin' ? 'on' : ''} aria-current={view?.kind === 'bin' ? 'true' : undefined} onClick={() => showList({ kind: 'bin' })}>🗑 Recycle bin <span>{tree.data?.deleted ?? 0}</span></button>
         </div>
         <div className="notes-books">
           {tree.isLoading && <StateMessage kind="loading" />}
@@ -108,7 +124,7 @@ export function NotesWorkspace() {
                 <ul className="notes-sections">
                   {nb.sections.map(s => (
                     <li key={s.id} className={view?.kind === 'section' && view.id === s.id ? 'on' : ''}>
-                      <button className="notes-section" onClick={() => setView({ kind: 'section', id: s.id })} aria-current={view?.kind === 'section' && view.id === s.id ? 'true' : undefined}>
+                      <button className="notes-section" onClick={() => showList({ kind: 'section', id: s.id })} aria-current={view?.kind === 'section' && view.id === s.id ? 'true' : undefined}>
                         <span className="sec-tab" style={{ background: cssColor(s.color) }} aria-hidden="true" />{s.name}<span className="count">{s.pages}</span>
                       </button>
                       <ItemMenu label={`Section ${s.name}`} items={[
@@ -132,19 +148,26 @@ export function NotesWorkspace() {
 
       <section className="notes-pages" aria-label="Pages">
         <div className="notes-pages-head">
+          <button type="button" className="btn btn-sm notes-back" onClick={() => go('nav')} aria-label="Back to notebooks"><span aria-hidden="true">‹</span> Notebooks</button>
           {sectionName && <span className="sec-tab" style={{ background: cssColor(sectionName.color) }} aria-hidden="true" />}
-          <h2>{listTitle}</h2>
+          <h2 tabIndex={-1} data-pane-focus="pages">{sectionName && <span className="notes-context">{sectionName.notebook.name} › </span>}{listTitle}</h2>
           {view?.kind === 'section' && <button className="btn btn-sm btn-primary" onClick={() => newPage()}>+ Page</button>}
           {view?.kind === 'bin' && (pages.data?.length ?? 0) > 0 && <button className="btn btn-sm" onClick={async () => {
             if (!window.confirm('Delete every page in the recycle bin permanently?')) return;
             await post('/notes/recycle-bin/empty'); await refresh(); openPage(null);
           }}>Empty</button>}
         </div>
-        <PageList rows={pages.data} loading={pages.isLoading} view={view} selected={pageId} onOpen={openPage} onRefresh={refresh}
+        <PageList rows={pages.data} loading={pages.isLoading} view={view} selected={pageId} onOpen={showPage} onRefresh={refresh}
           sections={allSections.map(s => ({ id: s.id, label: `${s.notebook.name} › ${s.name}` }))} onSubPage={id => newPage(1, id)} />
       </section>
 
       <main className="notes-editor-pane" aria-label="Page">
+        <div className="notes-editor-back">
+          <button type="button" className="btn btn-sm notes-back" onClick={() => go('pages')} data-pane-focus="editor" aria-label={`Back to pages${listTitle ? ` of ${listTitle}` : ''}`}>
+            <span aria-hidden="true">‹</span> Pages
+          </button>
+          {pageTitle && <span className="notes-context" aria-hidden="true">{pageTitle}</span>}
+        </div>
         {!pageId ? (
           <div className="notes-empty">
             <p>Select a page or create one.</p>

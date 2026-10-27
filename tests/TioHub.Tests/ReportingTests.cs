@@ -341,7 +341,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.True(Id(invalidRun) > 0);
         Assert.Contains((await scoped.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(),
             n => n!["title"]!.GetValue<string>() == "Scheduled report failed: Invalid filters"
-                && n["link"]!.GetValue<string>() == $"/reports?tab=history&export={Id(invalidRun)}");
+                && n["link"]!.GetValue<string>() == $"/reporting-center?tab=history&export={Id(invalidRun)}");
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/reports/schedules/{invalidScheduleId}")).Status);
 
         // Pause, resume, edit, delete.

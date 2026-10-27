@@ -1,27 +1,70 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router';
+import { lazy, Suspense, type ComponentType } from 'react';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
-import { AdminArchived, AdminAudit, AdminGroups, AdminJira, AdminPolicies, AdminSettings, AdminUsers, AdminRoles, AdminRights } from './pages/Admin';
-import { CaseDetail, CaseForm, CaseList } from './pages/Cases';
-import { ClientDetail, ClientForm, ClientList, ProjectList, RegionDetail } from './pages/Clients';
-import { CommitmentDetail, CommitmentForm, CommitmentList } from './pages/Commitments';
-import { EscalationDetail, EscalationForm, EscalationList } from './pages/Escalations';
-import { NotesWorkspace } from './pages/Notes';
-import { ConfigHome, ConfigListPage } from './pages/Configuration';
-import { ContractDetail, ContractForm, ContractList, ProjectDetail } from './pages/Contracts';
-import { ActionList } from './pages/Actions';
-import { ClientMap, Dashboard } from './pages/Dashboard';
-import { MicroserviceDetail, ProductDetail, ProductForm, ProductList } from './pages/Products';
 import { ChangePasswordPage, LoginPage } from './pages/SignIn';
-import { EnvironmentDetail, EnvironmentForm, EnvironmentList } from './pages/Environments';
-import { AssetDetail, AssetList, ComponentDetail, InstallationDetail, VersionMatrix } from './pages/Inventory';
-import { FirewallRuleList } from './pages/Firewall';
-import { NotificationsPage } from './pages/Notifications';
-import { DataQuality } from './pages/Quality';
-import { Reports } from './pages/Reports';
-import { HandoverDetail, HandoverList, ReassignmentQueue, TeamDetail, TeamList } from './pages/Teams';
 import { ErrorBox, PageHead, StateMessage } from './ui/kit';
 import { Shell } from './ui/Shell';
+
+// GUI-13: pages load with their route (one chunk per page module), so the first screen does not download every page. The shell
+// stays in place while a page loads; in-app navigation keeps the previous page until the next one is ready (router transitions).
+function page<M, K extends keyof M & string>(load: () => Promise<M>, name: K) {
+  return lazy(() => load().then(m => ({ default: m[name] as ComponentType })));
+}
+const AdminArchived = page(() => import('./pages/Admin'), 'AdminArchived');
+const AdminAudit = page(() => import('./pages/Admin'), 'AdminAudit');
+const AdminGroups = page(() => import('./pages/Admin'), 'AdminGroups');
+const AdminJira = page(() => import('./pages/Admin'), 'AdminJira');
+const AdminPolicies = page(() => import('./pages/Admin'), 'AdminPolicies');
+const AdminSettings = page(() => import('./pages/Admin'), 'AdminSettings');
+const AdminUsers = page(() => import('./pages/Admin'), 'AdminUsers');
+const AdminRoles = page(() => import('./pages/Admin'), 'AdminRoles');
+const AdminRights = page(() => import('./pages/Admin'), 'AdminRights');
+const CaseDetail = page(() => import('./pages/Cases'), 'CaseDetail');
+const CaseForm = page(() => import('./pages/Cases'), 'CaseForm');
+const CaseList = page(() => import('./pages/Cases'), 'CaseList');
+const ClientDetail = page(() => import('./pages/Clients'), 'ClientDetail');
+const ClientForm = page(() => import('./pages/Clients'), 'ClientForm');
+const ClientList = page(() => import('./pages/Clients'), 'ClientList');
+const ProjectList = page(() => import('./pages/Clients'), 'ProjectList');
+const RegionDetail = page(() => import('./pages/Clients'), 'RegionDetail');
+const CommitmentDetail = page(() => import('./pages/Commitments'), 'CommitmentDetail');
+const CommitmentForm = page(() => import('./pages/Commitments'), 'CommitmentForm');
+const CommitmentList = page(() => import('./pages/Commitments'), 'CommitmentList');
+const EscalationDetail = page(() => import('./pages/Escalations'), 'EscalationDetail');
+const EscalationForm = page(() => import('./pages/Escalations'), 'EscalationForm');
+const EscalationList = page(() => import('./pages/Escalations'), 'EscalationList');
+const NotesWorkspace = page(() => import('./pages/Notes'), 'NotesWorkspace');
+const ConfigHome = page(() => import('./pages/Configuration'), 'ConfigHome');
+const ConfigListPage = page(() => import('./pages/Configuration'), 'ConfigListPage');
+const ContractDetail = page(() => import('./pages/Contracts'), 'ContractDetail');
+const ContractForm = page(() => import('./pages/Contracts'), 'ContractForm');
+const ContractList = page(() => import('./pages/Contracts'), 'ContractList');
+const ProjectDetail = page(() => import('./pages/Contracts'), 'ProjectDetail');
+const ActionList = page(() => import('./pages/Actions'), 'ActionList');
+const ClientMap = page(() => import('./pages/Dashboard'), 'ClientMap');
+const Dashboard = page(() => import('./pages/Dashboard'), 'Dashboard');
+const MicroserviceDetail = page(() => import('./pages/Products'), 'MicroserviceDetail');
+const ProductDetail = page(() => import('./pages/Products'), 'ProductDetail');
+const ProductForm = page(() => import('./pages/Products'), 'ProductForm');
+const ProductList = page(() => import('./pages/Products'), 'ProductList');
+const EnvironmentDetail = page(() => import('./pages/Environments'), 'EnvironmentDetail');
+const EnvironmentForm = page(() => import('./pages/Environments'), 'EnvironmentForm');
+const EnvironmentList = page(() => import('./pages/Environments'), 'EnvironmentList');
+const AssetDetail = page(() => import('./pages/Inventory'), 'AssetDetail');
+const AssetList = page(() => import('./pages/Inventory'), 'AssetList');
+const ComponentDetail = page(() => import('./pages/Inventory'), 'ComponentDetail');
+const InstallationDetail = page(() => import('./pages/Inventory'), 'InstallationDetail');
+const VersionMatrix = page(() => import('./pages/Inventory'), 'VersionMatrix');
+const FirewallRuleList = page(() => import('./pages/Firewall'), 'FirewallRuleList');
+const NotificationsPage = page(() => import('./pages/Notifications'), 'NotificationsPage');
+const DataQuality = page(() => import('./pages/Quality'), 'DataQuality');
+const Reports = page(() => import('./pages/Reports'), 'Reports');
+const HandoverDetail = page(() => import('./pages/Teams'), 'HandoverDetail');
+const HandoverList = page(() => import('./pages/Teams'), 'HandoverList');
+const ReassignmentQueue = page(() => import('./pages/Teams'), 'ReassignmentQueue');
+const TeamDetail = page(() => import('./pages/Teams'), 'TeamDetail');
+const TeamList = page(() => import('./pages/Teams'), 'TeamList');
 
 function Root() {
   const me = useMe();
@@ -30,7 +73,7 @@ function Root() {
   if (me.isLoading) return <div style={{ padding: 24 }}><StateMessage kind="loading" /></div>;
   if (me.data?.app.mustChangePassword) return <Navigate to="/account/password" replace />;
   if (me.error) return <div style={{ padding: 24 }}><ErrorBox error={me.error} /></div>;
-  return <Shell><Outlet /></Shell>;
+  return <Shell><Suspense fallback={<StateMessage kind="loading" />}><Outlet /></Suspense></Shell>;
 }
 
 function Home() {
@@ -52,6 +95,16 @@ function NoAccess() {
   </>);
 }
 
+/**
+ * GUI-01: the Reporting Center lives at /reporting-center. On a server where SQL Server Reporting Services holds the http.sys URL
+ * reservation http://+:80/Reports/ (the default SSRS web portal), every full page load of /reports - typing it, refreshing, a bookmark,
+ * a notification link opened in a new tab - is answered by the SSRS Report Manager, not by the hub. Old in-app links still work.
+ */
+function LegacyReports() {
+  const loc = useLocation();
+  return <Navigate to={`/reporting-center${loc.search}`} replace />;
+}
+
 function NotFound() {
   return (<><PageHead title="Page not found" /><StateMessage kind="none">There is no page at this address.</StateMessage></>);
 }
@@ -66,7 +119,8 @@ export const router = createBrowserRouter([
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'data-quality', element: <DataQuality /> },
-      { path: 'reports', element: <Reports /> },
+      { path: 'reporting-center', element: <Reports /> },
+      { path: 'reports', element: <LegacyReports /> },
       { path: 'clients', element: <ClientList /> },
       { path: 'clients/new', element: <ClientForm /> },
       { path: 'clients/:id', element: <ClientDetail /> },

@@ -40,7 +40,7 @@ export function ProductList() {
         actions={canEdit && <Link className="btn btn-primary" to="/products/new">+ New product</Link>} />
       <DataTable<Row> rowKey={p => p.id} rows={q.data} loading={q.isLoading} error={q.error} empty={f.q ? 'nomatch' : 'none'} caption="Products"
         columns={[
-          { key: 'code', header: 'Product', render: p => <><Link to={`/products/${p.id}`}><b>{p.code}</b> · {p.name}</Link>{p.aliases && <div className="hint">Also known as: {p.aliases}</div>}</>,
+          { key: 'code', header: 'Product', priority: 'primary', render: p => <><Link to={`/products/${p.id}`}><b>{p.code}</b> · {p.name}</Link>{p.aliases && <div className="hint">Also known as: {p.aliases}</div>}</>,
             filter: <input className="input" aria-label="Search products" placeholder="Name, code, alias or category" value={f.q} onChange={e => set({ q: e.target.value })} /> },
           { key: 'cat', header: 'Category', render: p => p.category ?? <span className="muted">—</span> },
           { key: 'dev', header: 'Application developers', render: p => p.developers.length ? p.developers.map(d => d.role === 'Lead' ? `${d.name} (lead)` : d.name).join(', ') : <span className="muted">—</span> },
@@ -50,7 +50,7 @@ export function ProductList() {
           { key: 'feat', header: 'Features', className: 'num', render: p => p.featureCount },
           { key: 'ver', header: 'Latest version', render: p => p.latestVersion ?? <span className="muted">—</span> },
           { key: 'use', header: 'Installed at', render: p => p.clients ? `${p.clients} client(s) · ${p.environments} environment(s)` : <span className="muted">Not installed</span> },
-          { key: 'st', header: 'Status', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge>,
+          { key: 'st', header: 'Status', priority: 'primary', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge>,
             filter: <label className="check"><input type="checkbox" checked={f.retired === '1'} onChange={e => set({ retired: e.target.checked ? '1' : '' })} /> Show retired</label> }, { key: 'del', header: '', className: 'row-actions', render: p => <DeleteAction path={`/products/${p.id}`} what={`product ${p.code}`} /> }
         ]} />
     </>

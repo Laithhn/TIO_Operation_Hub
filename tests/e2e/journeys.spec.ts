@@ -20,10 +20,10 @@ test.describe('Shell and visual language', () => {
     await page.goto('/clients');
     await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Clients' })).toHaveAttribute('aria-current', 'page');
     await expect(page.getByRole('heading', { level: 1, name: 'Clients' })).toBeVisible();
-    // VtWebGuiFramework 4 table standard: a Toolbar above the framework DataTable carries the controls (the column
-    // filters are in its Filter card); a header cell sorts on click and shows the framework's sort arrow.
+    // Table standard: the framework Toolbar above the table carries the controls (the column filters are in its Filter
+    // card); the rows are a native table (GUI-05), and a header button sorts its column and sets aria-sort.
     const clientTable = vtTable(page);
-    await expect(clientTable.locator('[class*="dataTable__dataTable"]')).toBeVisible();
+    await expect(clientTable.getByRole('table', { name: 'Clients' })).toBeVisible();
     await openColumnFilter(page);
     await expect(page.getByLabel('Search clients by name or alias')).toBeVisible();
     await page.keyboard.press('Escape');
@@ -31,7 +31,7 @@ test.describe('Shell and visual language', () => {
     const aliasHeader = vtHeader(clientTable, /^Alias/);
     await aliasHeader.click();
     await expect(page).toHaveURL(/sort=code/);
-    await expect(aliasHeader.locator('svg')).toHaveCount(1);
+    await expect(aliasHeader).toHaveAttribute('aria-sort', 'ascending');
     const firstAsc = await clientTable.locator(VT_CELL + '[data-col="code"]').first().innerText();
     await aliasHeader.click();
     await expect(page).toHaveURL(/sort=-code/);
@@ -110,14 +110,14 @@ test.describe('Shell and visual language', () => {
     await expect(page.getByRole('dialog', { name: 'Search' })).toBeHidden();
   });
 
-  test('tablet layout: section menu becomes a drawer', async ({ page }) => {
+  test('tablet layout: navigation becomes a drawer', async ({ page }) => {
     await page.setViewportSize({ width: 820, height: 1100 });
     await page.goto('/cases');
     const side = page.locator('aside.side');
-    await expect(page.getByRole('button', { name: 'Open section menu' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Menu, current section Cases' })).toBeVisible();
     const box = await side.boundingBox();
     expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(1);
-    await page.getByRole('button', { name: 'Open section menu' }).click();
+    await page.getByRole('button', { name: 'Menu, current section Cases' }).click();
     await expect(side.getByRole('link', { name: 'All cases', exact: true })).toBeInViewport();
     await page.waitForTimeout(400);
     await page.screenshot({ path: 'test-results/visual-cases-tablet.png' });
@@ -855,8 +855,8 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await page.getByPlaceholder('Filter rows…').fill('');
     const nameHeader = page.locator(VT_HEADER).filter({ hasText: /^Name\b/ });
     await nameHeader.click();
-    // The framework header cell shows its sort arrow (ARROWUP for ascending).
-    await expect(nameHeader.locator('svg')).toHaveCount(1);
+    // The sorted header carries aria-sort (and shows the framework's ARROWUP for ascending).
+    await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
     // Unused values delete straight from the table; values in use are refused with the reason.
     await page.getByRole('button', { name: `Delete ${label}` }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
@@ -1546,7 +1546,7 @@ test.describe('Measured SLA compliance (A61)', () => {
 
 test.describe('Reporting Center (A62)', () => {
   test('find a report, validate filters, preview, export a CSV with chosen columns, see it in the history and schedule it', async ({ page }) => {
-    await page.goto('/reports');
+    await page.goto('/reporting-center');
     await expect(page.getByRole('heading', { level: 1, name: 'Reporting Center' })).toBeVisible();
     await expect(page.getByText('Generate operational reports, analyze performance, and manage data exports.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Reporting Center' }).first()).toBeVisible();
