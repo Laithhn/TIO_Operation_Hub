@@ -37,6 +37,7 @@ const EscalationList = page(() => import('./pages/Escalations'), 'EscalationList
 const NotesWorkspace = page(() => import('./pages/Notes'), 'NotesWorkspace');
 const ConfigHome = page(() => import('./pages/Configuration'), 'ConfigHome');
 const ConfigListPage = page(() => import('./pages/Configuration'), 'ConfigListPage');
+const ConfigCategoryPage = page(() => import('./pages/Configuration'), 'ConfigCategoryPage');
 const ContractDetail = page(() => import('./pages/Contracts'), 'ContractDetail');
 const ContractForm = page(() => import('./pages/Contracts'), 'ContractForm');
 const ContractList = page(() => import('./pages/Contracts'), 'ContractList');
@@ -171,6 +172,7 @@ export const router = createBrowserRouter([
       { path: 'admin/groups', element: <AdminGroups /> },
       // A34: one page per configuration list; the old single page and the zones link point to it.
       { path: 'admin/config', element: <ConfigHome /> },
+      { path: 'admin/config/category/:category', element: <ConfigCategoryPage /> },
       { path: 'admin/config/:slug', element: <ConfigListPage /> },
       { path: 'admin/reference', element: <Navigate to="/admin/config" replace /> },
       { path: 'admin/network-zones', element: <Navigate to="/admin/config/network-zones" replace /> },

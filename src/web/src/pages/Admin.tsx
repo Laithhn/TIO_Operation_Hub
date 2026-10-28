@@ -6,6 +6,7 @@ import { del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
 import { useForm, useMe, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, computerZone, TimeZoneSelect, timeZoneOptions } from '../ui/pickers';
+import { configCrumbs } from '../configRegistry';
 import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Pager, Panel, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Changes, RecordLink } from './common';
 
@@ -358,7 +359,7 @@ export function AdminPolicies() {
   const [edit, setEdit] = useState<Policy | 'new' | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Review policies" sub="Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments."
+      <PageHead title="Review policies" crumbs={configCrumbs('review-policies')} sub="Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments."
         actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>+ New Policy</button>} />
       <DataTable<Policy> rowKey={p => p.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 't', header: 'Record type', render: p => p.recordType }, { key: 's', header: 'Scope', render: p => label(p.scope) }, { key: 'm', header: 'Max age (days)', className: 'num', render: p => p.maxAgeDays ?? '—' },
@@ -380,7 +381,7 @@ export function AdminJira() {
   const [edit, setEdit] = useState<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string } | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Jira instances" sub="The two disconnected Jira systems. Only the approved HTTPS host is stored for validating manual ticket links; the hub never calls Jira." />
+      <PageHead title="Jira instances" crumbs={configCrumbs('jira-instances')} sub="The two disconnected Jira systems. Only the approved HTTPS host is stored for validating manual ticket links; the hub never calls Jira." />
       <DataTable rowKey={j => j.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'n', header: 'Name', render: j => j.name }, { key: 'k', header: 'Kind', render: j => label(j.kind) }, { key: 'h', header: 'Approved host', render: j => j.approvedHost || <Badge tone="warn">Not configured</Badge> },
         { key: 'x', header: '', render: j => <button className="linkbtn" onClick={() => setEdit(j)}>Edit</button> }
@@ -397,7 +398,7 @@ export function AdminSettings() {
   const [edit, setEdit] = useState<{ id: number; key: string; value: string; version: string } | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Settings" sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
+      <PageHead title="Settings" crumbs={configCrumbs('settings')} sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
       <DataTable rowKey={s => s.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'k', header: 'Setting', render: s => <span className="mono">{s.key}</span> }, { key: 'v', header: 'Value', render: s => s.key === 'DefaultTimeZone' && s.value ? timeZoneOptions().find(o => o.value === s.value)?.label ?? s.value : s.value || <span className="muted">Empty (open decision)</span> },
         { key: 'd', header: 'Description', render: s => s.description }, { key: 'x', header: '', render: s => <button className="linkbtn" onClick={() => setEdit(s)}>Edit</button> }

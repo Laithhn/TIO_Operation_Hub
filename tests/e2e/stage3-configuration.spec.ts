@@ -38,6 +38,8 @@ async function updateLookup(page: Page, row: Lookup, patch: Partial<Lookup>) {
 async function renameThroughConfiguration(page: Page, slug: string, title: string, row: Lookup, newLabel: string) {
   await page.goto('/admin/config');
   await expect(page.getByRole('heading', { name: 'Configuration', exact: true })).toBeVisible();
+  const category = slug === 'case-statuses' ? 'Contracts & Cases' : 'Clients & Environments';
+  await page.locator('main').getByRole('link', { name: category, exact: true }).click();
   await page.locator('main').getByRole('link', { name: title, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/config/${slug}$`));
   await expect(page.locator('aside').getByRole('link', { name: title, exact: true })).toBeVisible();

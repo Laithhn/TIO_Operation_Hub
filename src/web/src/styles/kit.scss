@@ -445,3 +445,35 @@ table.vt-grid { width: max-content; min-width: 100%; }
 }
 @media (prefers-reduced-motion: reduce) { .kpi, .kpi-go { transition: none; } .kpi-skel { animation: none; } }
 
+
+// ---------- Administration → Configuration overview cards and category page lists (pages/Configuration.tsx) ----------
+// Six categories: three columns on wide screens, two on laptops, one on phones.
+.cfg-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: vt.spacePx(normal); }
+.cfg-card {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; grid-template-areas: "icon title" "icon count" "desc desc" "open open";
+  column-gap: vt.spacePx(small); row-gap: vt.spacePx(xxs); padding: vt.spacePx(normal); background: vt.color(offWhite);
+  border: 1px solid vt.layout(dividerColor, soft); border-left: 4px solid transparent;
+  &:hover, &:focus-within { border-left-color: vt.color(impulseGreen); background: vt.colorA(attention, 0.06); }
+  &:focus-within { outline: 2px solid vt.typo(color, dark, attention); outline-offset: 2px; }
+  .cfg-card-icon { grid-area: icon; align-self: start; display: grid; place-items: center; width: 40px; height: 40px; background: vt.colorA(structureSilver, 0.12); svg { fill: vt.color(primary); } }
+  .cfg-card-title { grid-area: title; margin: 0; font-size: vt.typo(fontSize, normal); font-weight: vt.typo(fontWeight, semibold); line-height: vt.typo(lineHeight, small); overflow-wrap: anywhere; }
+  // The whole card opens the category; the link keeps a short accessible name.
+  .cfg-card-link { color: vt.typo(color, dark, normal); &::after { content: ""; position: absolute; inset: 0; } &:hover { text-decoration: none; } &:focus-visible { outline: none; } }
+  .cfg-card-count { grid-area: count; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
+  .cfg-card-desc { grid-area: desc; margin: vt.spacePx(xs) 0 0; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak);
+    overflow-wrap: anywhere; }
+  .cfg-card-open { grid-area: open; justify-self: end; display: inline-flex; align-items: center; gap: vt.spacePx(xxs); margin-top: vt.spacePx(xs);
+    font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, attention); text-transform: uppercase;
+    svg { fill: currentColor; transform: rotate(180deg); } }
+}
+.cfg-pages { list-style: none; margin: 0; padding: 0; background: vt.color(offWhite); border: 1px solid vt.layout(dividerColor, soft); }
+.cfg-page-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr) auto; gap: vt.spacePx(xxs) vt.spacePx(normal); align-items: center;
+  padding: vt.spacePx(small) vt.spacePx(normal); border-top: 1px solid vt.layout(dividerColor, soft);
+  &:first-child { border-top: 0; }
+  .cfg-page-link { font-weight: vt.typo(fontWeight, semibold); overflow-wrap: anywhere; }
+  .cfg-page-desc { font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
+  .cfg-page-meta { display: inline-flex; gap: vt.spacePx(small); align-items: center; justify-content: flex-end; font-size: vt.typo(fontSize, xs); white-space: nowrap; }
+}
+@media (max-width: 700px) {
+  .cfg-page-row { grid-template-columns: 1fr; .cfg-page-meta { justify-content: flex-start; } }
+}

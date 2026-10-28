@@ -20,7 +20,7 @@ const STATIC = [
   '/clients', '/clients/new', '/projects', '/contracts', '/contracts/new', '/environments', '/environments/new', '/versions', '/assets', '/firewall-rules',
   '/products', '/products/new', '/cases', '/cases/new', '/commitments', '/commitments/new', '/escalations', '/escalations/new',
   '/teams', '/handovers', '/reassignment',
-  '/admin/users', '/admin/roles', '/admin/rights', '/admin/config', '/admin/config/environment-types', '/admin/policies', '/admin/jira',
+  '/admin/users', '/admin/roles', '/admin/rights', '/admin/config', '/admin/config/category/contracts-cases', '/admin/config/environment-types', '/admin/policies', '/admin/jira',
   '/admin/settings', '/admin/audit', '/admin/archived'
 ];
 

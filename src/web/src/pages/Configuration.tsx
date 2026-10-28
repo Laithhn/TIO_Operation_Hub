@@ -3,70 +3,12 @@ import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { get, post, put } from '../api';
 import { useForm, useMe, useRefresh } from '../hooks';
-import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Panel, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { Icon } from '../ui/Icon';
+import { CONFIG_CATEGORIES, CONFIG_HOME, CONFIG_LISTS, categoryRoute, configCrumbs, configTree, type ConfigKind, type ConfigList } from '../configRegistry';
 
 // A34: system configuration, one page per list (owner request, 20 Oct 2026: no single "reference lists" page).
-
-type Category = { value: string; label: string; hint: string };
-export type ConfigList = { slug: string; list: string; title: string; group: string; about: string; usedBy: string; categories?: Category[]; labelOnly?: boolean };
-
-export const CONFIG_LISTS: ConfigList[] = [
-  { slug: 'reported-conditions', list: 'ConditionLabel', group: 'Clients & environments', title: 'Reported conditions', usedBy: 'condition reports', labelOnly: true,
-    about: 'Change the display labels of the built-in reported conditions. Their codes, order and operational meaning stay fixed.' },
-  { slug: 'organization-relationship-types', list: 'OrganizationRelationshipType', group: 'Clients & environments', title: 'Organization relationship types', usedBy: 'organization relationships',
-    about: 'Optional business roles such as Contractor, Supplier or Partner. Roles belong to each relationship and never fix its hierarchy level.' },
-  { slug: 'environment-types', list: 'EnvironmentType', group: 'Clients & environments', title: 'Environment types', usedBy: 'environments',
-    about: 'Offered when creating an environment. Each type behaves like its category, for example "Pre-production" behaves like Staging.',
-    categories: [
-      { value: 'Production', label: 'Production', hint: 'Live service' }, { value: 'Staging', label: 'Staging', hint: 'Pre-production / acceptance' },
-      { value: 'UAT', label: 'UAT', hint: 'User acceptance testing' }, { value: 'Test', label: 'Test', hint: 'Test, POC, development' },
-      { value: 'DR', label: 'Disaster recovery', hint: 'Standby for recovery' }, { value: 'Other', label: 'Other', hint: 'Needs a description on the environment' }
-    ] },
-  { slug: 'responsibility-areas', list: 'BoundaryArea', group: 'Clients & environments', title: 'Responsibility areas', usedBy: 'responsibility boundaries',
-    about: 'Areas of work (application, database, network…) used when recording who is responsible for what at a client.' },
-  { slug: 'team-roles', list: 'TeamRole', group: 'Clients & environments', title: 'Project team roles', usedBy: 'project team members',
-    about: "Roles offered for the members of a client's project team." },
-  { slug: 'server-types', list: 'AssetType', group: 'Servers', title: 'Server types', usedBy: 'servers',
-    about: 'Offered on the server form. The category decides how the server is counted in totals.',
-    categories: [
-      { value: 'VM', label: 'Virtual machine', hint: 'Counted as a VM' }, { value: 'Physical', label: 'Physical server', hint: 'Counted as a physical server' },
-      { value: 'LogicalEndpoint', label: 'Logical endpoint', hint: 'No own CPU or RAM; never counted as a server (listener, load balancer address)' }
-    ] },
-  { slug: 'server-roles', list: 'AssetRole', group: 'Servers', title: 'Server roles', usedBy: 'servers', about: 'What a server is for, for example Application server or Database server.' },
-  { slug: 'network-zones', list: 'NetworkZone', group: 'Servers', title: 'Network zones', usedBy: 'servers', about: 'Network zones offered on the server form.' },
-  { slug: 'operating-systems', list: 'OsFamily', group: 'Servers', title: 'Operating systems', usedBy: 'servers', about: 'Operating system families offered on the server form; the version is typed per server.' },
-  { slug: 'project-phases', list: 'ProjectPhase', group: 'Servers', title: 'Project phases', usedBy: 'servers', about: 'Where a server is in its delivery, for example Requested or Deployed.' },
-  { slug: 'component-roles', list: 'ComponentRole', group: 'Products & installations', title: 'Component roles', usedBy: 'components',
-    about: 'Roles of the components of an installation, for example Application, Database or Workflow.' },
-  { slug: 'contract-types', list: 'ContractType', group: 'Contracts & cases', title: 'Contract types', usedBy: 'contracts',
-    about: 'Offered on the contract form. Each type belongs to a category used in reports.',
-    categories: [
-      { value: 'SlaSupport', label: 'SLA & support', hint: 'Support with recorded SLA targets' }, { value: 'Implementation', label: 'Implementation', hint: 'Delivery project' },
-      { value: 'Maintenance', label: 'Maintenance', hint: 'Operation and maintenance' }, { value: 'Subscription', label: 'Subscription', hint: 'Licence or service subscription' },
-      { value: 'Other', label: 'Other', hint: 'Anything else' }
-    ] },
-  { slug: 'case-types', list: 'CaseType', group: 'Contracts & cases', title: 'Case types', usedBy: 'cases',
-    about: 'Offered when opening a case. Each type belongs to a category used in reports.',
-    categories: [
-      { value: 'Incident', label: 'Incident', hint: 'Something is broken' }, { value: 'Request', label: 'Request', hint: 'Something is asked for' },
-      { value: 'ProblemFollowUp', label: 'Problem follow-up', hint: 'Root cause work' }, { value: 'MaintenanceCoordination', label: 'Maintenance coordination', hint: 'Planned work' },
-      { value: 'Improvement', label: 'Improvement', hint: 'Make something better' }, { value: 'RiskFollowUp', label: 'Risk follow-up', hint: 'Track a risk' }
-    ] },
-  { slug: 'case-statuses', list: 'CaseStatusLabel', group: 'Contracts & cases', title: 'Case statuses', usedBy: 'cases', labelOnly: true,
-    about: 'Change the display labels of the built-in case statuses. The case lifecycle, transitions and stored codes stay fixed.' },
-  { slug: 'escalation-channels', list: 'EscalationChannel', group: 'Contracts & cases', title: 'Escalation channels', usedBy: 'escalations and their logged communications',
-    about: 'How escalations arrive or are raised and how replies go out, for example e-mail, formal letter, verbal or Jira. The hub records the channel and its reference; it never sends anything.' },
-  { slug: 'team-member-roles', list: 'TeamMemberRole', group: 'Teams', title: 'Team member roles', usedBy: 'team members',
-    about: 'Roles offered when adding or editing a member of an internal team (Teams), for example Team lead or Support engineer.' },
-  { slug: 'priority-guidance', list: 'PriorityGuidance', group: 'Contracts & cases', title: 'Priority guidance', usedBy: 'the case form (guidance text)',
-    about: 'The explanation shown for each case priority. Rename or reword it to match your service levels.' }
-];
-
-const SYSTEM = [
-  { to: '/admin/policies', title: 'Review policies', about: 'How often records must be reviewed before they show as stale.' },
-  { to: '/admin/jira', title: 'Jira instances', about: 'Jira sites that cases may link to.' },
-  { to: '/admin/settings', title: 'Settings', about: 'Approved link hosts, coverage policy and other application values.' }
-];
+// Navigation (categories, sidebar tree, search, breadcrumbs) comes from the configuration registry, configRegistry.ts.
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
@@ -77,28 +19,56 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
 type Row = { id: number; listName: string; code: string; label: string; description?: string; sortOrder: number; isRetired: boolean; category?: string; version: string };
 const useValues = () => useQuery({ queryKey: ['admin-lookups'], queryFn: () => get<Row[]>('/admin/lookups') });
 
-/** Administration → Configuration: every configurable list, grouped, each with its own page. */
+/** Administration → Configuration: one compact card per category; each opens the category's page list. */
 export function ConfigHome() {
+  const me = useMe().data;
+  const groups = configTree(me);
+  return (
+    <AdminOnly>
+      <PageHead title="Configuration" crumbs={[{ to: '/admin', label: 'Administration' }, { label: 'Configuration' }]}
+        sub="What the forms offer and how the hub behaves. Changes apply at once; retired values stay on the records that use them." />
+      <ul className="cfg-cards" aria-label="Configuration categories">
+        {groups.map(g => (
+          <li key={g.id} className="cfg-card">
+            <span className="cfg-card-icon"><Icon name={g.icon} size={24} /></span>
+            <h2 className="cfg-card-title"><Link to={categoryRoute(g.id)} className="cfg-card-link">{g.name}</Link></h2>
+            <span className="cfg-card-count">{g.pages.length} {g.pages.length === 1 ? 'page' : 'pages'}</span>
+            <p className="cfg-card-desc">{g.description}</p>
+            <span className="cfg-card-open" aria-hidden="true">Open <Icon name="chevron" size={14} /></span>
+          </li>
+        ))}
+      </ul>
+    </AdminOnly>
+  );
+}
+
+const KIND: Record<ConfigKind, string> = { editable: 'Editable list', labels: 'Fixed values, labels only', system: 'System setting' };
+
+/** One configuration category: its pages, each with a short description and, for lists, how many values are active. */
+export function ConfigCategoryPage() {
+  const { category } = useParams();
+  const me = useMe().data;
+  const group = configTree(me).find(g => g.id === category);
   const q = useValues();
-  const groups = [...new Set(CONFIG_LISTS.map(c => c.group))];
+  if (!CONFIG_CATEGORIES.some(c => c.id === category)) return <Navigate to={CONFIG_HOME} replace />;
   const count = (list: string) => (q.data ?? []).filter(r => r.listName === list && !r.isRetired).length;
   return (
     <AdminOnly>
-      <PageHead title="Configuration" sub="What the forms offer. Each list has its own page; changes apply at once. Workflow labels can be renamed; retired configurable values stay on the records that use them." />
-      <div className="config-grid">
-        {groups.map(g => (
-          <Panel key={g} title={g}>
-            <ul className="config-links">
-              {CONFIG_LISTS.filter(c => c.group === g).map(c => (
-                <li key={c.slug}><Link to={`/admin/config/${c.slug}`}>{c.title}</Link> <span className="muted">· {q.data ? `${count(c.list)} ${c.labelOnly ? 'fixed values' : 'active'}` : '…'}</span><div className="hint">{c.about}</div></li>
-              ))}
-            </ul>
-          </Panel>
-        ))}
-        <Panel title="System">
-          <ul className="config-links">{SYSTEM.map(s => <li key={s.to}><Link to={s.to}>{s.title}</Link><div className="hint">{s.about}</div></li>)}</ul>
-        </Panel>
-      </div>
+      <PageHead title={group?.name ?? 'Configuration'} crumbs={[{ to: '/admin', label: 'Administration' }, { to: CONFIG_HOME, label: 'Configuration' }, { label: group?.name ?? '' }]} sub={group?.description} />
+      {group ? (
+        <ul className="cfg-pages" aria-label={`${group.name} pages`}>
+          {group.pages.map(p => (
+            <li key={p.id} className="cfg-page-row">
+              <Link to={p.route} className="cfg-page-link">{p.name}</Link>
+              <span className="cfg-page-desc">{p.description}</span>
+              <span className="cfg-page-meta">
+                {p.list && <span className="muted">{q.data ? `${count(p.list)} ${p.kind === 'labels' ? 'fixed values' : 'active'}` : '…'}</span>}
+                <Badge tone={p.kind === 'system' ? 'info' : 'neutral'}>{KIND[p.kind]}</Badge>
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : <StateMessage kind="restricted">No configuration pages in this category are available to you.</StateMessage>}
     </AdminOnly>
   );
 }
@@ -126,7 +96,7 @@ export function ConfigListPage() {
   };
   return (
     <AdminOnly>
-      <PageHead title={cfg.title} crumbs={[{ to: '/admin/config', label: 'Configuration' }, { label: cfg.title }]} sub={cfg.about}
+      <PageHead title={cfg.title} crumbs={configCrumbs(cfg.slug)} sub={cfg.about}
         actions={!cfg.labelOnly && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ Add</button>} />
       {!cfg.labelOnly && <div className="toolbar"><Checkbox label={`Show retired (${all.filter(r => r.isRetired).length})`} checked={showRetired} onChange={setShowRetired} /></div>}
       <DataTable<Row> rowKey={r => r.id} rows={rows} loading={q.isLoading} error={q.error} caption={cfg.title} columns={[

@@ -5,11 +5,14 @@ import { get } from '../api';
 import { useMe, type Me } from '../hooks';
 import { signOut } from '../pages/SignIn';
 import { Menu } from './kit';
+import { ConfigNav } from './ConfigNav';
+import { configAt } from '../configRegistry';
 import { NotificationBell } from '../pages/Notifications';
 import { Icon, Logo } from './Icon';
 import { cx, frameCss, PrimaryLinksMarker, SidebarMarker, SidebarTitle } from '../vt/frame';
 
-type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m: Me) => boolean; children?: Item[] };
+/** tree 'config': the entry carries the Configuration tree (ConfigNav) instead of fixed children. */
+type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m: Me) => boolean; children?: Item[]; tree?: 'config' };
 /** bare: the page uses the whole width (no section menu), for full-screen workspaces such as Notes. */
 type Section = { key: string; label: string; to: string; match: RegExp; show?: (m: Me) => boolean; side: Item[]; bare?: boolean };
 
@@ -88,31 +91,9 @@ const SECTIONS: Section[] = [
     { to: '/admin/roles', label: 'Roles', icon: 'users', show: admin },
     { to: '/admin/rights', label: 'Rights', icon: 'lock', show: admin },
     { to: '/admin/groups', label: 'Group mappings', icon: 'key', show: m => admin(m) && m.app.authMode.toLowerCase() !== 'forms' },
-    // A34: each configurable list has its own page.
-    { to: '/admin/config', label: 'Configuration', icon: 'list', show: admin, children: [
-      { to: '/admin/config', label: 'Overview', end: true },
-      { to: '/admin/config/environment-types', label: 'Environment types' },
-      { to: '/admin/config/reported-conditions', label: 'Reported conditions' },
-      { to: '/admin/config/responsibility-areas', label: 'Responsibility areas' },
-      { to: '/admin/config/team-roles', label: 'Project team roles' },
-      { to: '/admin/config/organization-relationship-types', label: 'Organization relationship types' },
-      { to: '/admin/config/server-types', label: 'Server types' },
-      { to: '/admin/config/server-roles', label: 'Server roles' },
-      { to: '/admin/config/network-zones', label: 'Network zones' },
-      { to: '/admin/config/operating-systems', label: 'Operating systems' },
-      { to: '/admin/config/project-phases', label: 'Project phases' },
-      { to: '/admin/config/component-roles', label: 'Component roles' },
-      { to: '/admin/config/contract-types', label: 'Contract types' },
-      { to: '/admin/config/case-types', label: 'Case types' },
-      { to: '/admin/config/case-statuses', label: 'Case statuses' },
-      { to: '/admin/config/escalation-channels', label: 'Escalation channels' },
-      { to: '/admin/config/priority-guidance', label: 'Priority guidance' }
-    ] },
-    { to: '/admin/settings', label: 'System', icon: 'key', show: admin, children: [
-      { to: '/admin/settings', label: 'Settings', end: true },
-      { to: '/admin/policies', label: 'Review policies' },
-      { to: '/admin/jira', label: 'Jira instances' }
-    ] },
+    // A34: each configurable list has its own page. The Configuration tree (categories, search, System pages) comes from the
+    // configuration registry and is drawn by ConfigNav; review policies, Jira instances and settings sit in its System category.
+    { to: '/admin/config', label: 'Configuration', icon: 'list', show: admin, tree: 'config' },
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => m.grants.audit || m.isAdministrator },
     { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
   ] }
@@ -270,8 +251,8 @@ export function Shell({ children }: { children: ReactNode }) {
 
   const entry = (i: Item) => (
     <div key={i.to + i.label} className={f.sidebarNode.menuNode}>
-      <NavLink to={i.to} end={i.end ?? !i.children} title={mini ? i.label : undefined}
-        className={({ isActive }) => cx(f.sidebarNode.link, i.icon && f.sidebarNode.hasIcon, isActive && f.sidebarNode.active)}>
+      <NavLink to={i.to} end={i.end ?? !(i.children || i.tree)} title={mini ? i.label : undefined}
+        className={({ isActive }) => cx(f.sidebarNode.link, i.icon && f.sidebarNode.hasIcon, (isActive || (i.tree === 'config' && !!configAt(loc.pathname).page)) && f.sidebarNode.active)}>
         {i.icon && <Icon name={i.icon} size={20} />}
         <span className={f.sidebarNode.caption}>{i.label}</span>
       </NavLink>
@@ -283,6 +264,7 @@ export function Shell({ children }: { children: ReactNode }) {
           </NavLink>
         </div>
       ))}
+      {i.tree === 'config' && !(mini && !drawer) && <ConfigNav />}
     </div>
   );
 

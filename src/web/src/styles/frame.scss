@@ -119,6 +119,45 @@ body .hub-app.hub-app {
   .side .side-collapse { width: 40px; height: 40px; }
 }
 
+// ---------- Administration → Configuration tree (ui/ConfigNav.tsx): search, overview, collapsible categories ----------
+.cfg-nav {
+  padding: vt.spacePx(xxs) 0 vt.spacePx(xs);
+  .cfg-search {
+    position: relative; display: flex; align-items: center; margin: vt.spacePx(xxs) vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding);
+    > svg { position: absolute; left: vt.spacePx(xs); fill: vt.typo(color, dark, weak); pointer-events: none; }
+    input { width: 100%; min-width: 0; height: 32px; padding: 0 32px 0 28px; border: 1px solid vt.layout(dividerColor, soft); border-radius: 0;
+      background: vt.color(offWhite); font-size: vt.typo(fontSize, xs);
+      &::placeholder { color: vt.typo(color, dark, weak); opacity: 1; }
+      &:focus-visible { outline: 2px solid vt.typo(color, dark, attention); outline-offset: 0; border-color: transparent; }
+    }
+  }
+  .cfg-search-clear { position: absolute; right: 2px; display: grid; place-items: center; width: 28px; height: 28px; border: 0; color: vt.typo(color, dark, normal);
+    svg { fill: currentColor; }
+    &:hover { background: vt.colorA(structureSilver, 0.12); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  // The sidebar is narrow: a category shows its chevron in the column of the tree line, so the name keeps the width; the
+  // pages below keep the line and sit a little deeper. Long names wrap instead of being cut.
+  .cfg-leaf, .cfg-cat { [class*="menuNode__caption"] { overflow-wrap: anywhere; } }
+  .cfg-cat-items .cfg-leaf, .cfg-results .cfg-leaf { [class*="menuNode__caption"] { padding-left: vt.spacePx(xs); } }
+  .cfg-cat { width: 100%; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer;
+    [class*="menuNode__caption"] { font-weight: vt.typo(fontWeight, semibold); }
+    svg { fill: currentColor; transform: rotate(180deg); justify-self: center; }
+    &[aria-expanded="true"] svg { transform: rotate(90deg); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .cfg-cat-node.current > .cfg-cat { color: vt.typo(color, dark, attention); }
+  [class*="menuNode__link"]:focus-visible { outline-offset: -2px; }
+  .cfg-result-cat { padding: vt.spacePx(xs) vt.spacePx(small) 0 vt.layoutPx(mostLeftRightPadding);
+    font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, weak); text-transform: uppercase; letter-spacing: .02em; }
+  .cfg-result-desc { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: normal; }
+  mark { background: vt.colorA(attentionHigh, 0.45); color: inherit; padding: 0; }
+  .cfg-empty { margin: 0; padding: vt.spacePx(xs) vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
+}
+@media (min-width: 901px) {
+  body.side-mini .side .cfg-nav { display: none; }
+}
+
 // ---------- main scope ----------
 // --content-pad-x / --content-pad-bottom: full-bleed workspaces such as Notes cancel exactly this padding.
 .content {

@@ -464,7 +464,9 @@ test.describe('Configuration', () => {
     const name = unique('Container host');
     await page.goto('/admin/config');
     await expect(page.getByRole('heading', { level: 1, name: 'Configuration' })).toBeVisible();
-    await page.getByRole('main').getByRole('link', { name: 'Server types' }).click();
+    // The overview shows one card per category; the category page lists its pages.
+    await page.getByRole('main').getByRole('link', { name: 'Servers', exact: true }).click();
+    await page.getByRole('main').getByRole('link', { name: 'Server types', exact: true }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Server types' })).toBeVisible();
     await expect(page.locator(VT_ROW).filter({ hasText: /Virtual machine \(VM\)/ })).toBeVisible();
     await page.getByRole('button', { name: '+ Add' }).click();
@@ -1314,8 +1316,8 @@ test.describe('Teams, time zones and retired sections (A52, A53)', () => {
     await page.getByRole('dialog').getByRole('button', { name: /^Delete/ }).click();
     await expect(page.getByRole('button', { name: /^Remove / })).toHaveCount(0);
     // The role list is configurable.
-    await page.goto('/admin/config');
-    await expect(page.getByRole('link', { name: /Team member roles/ })).toBeVisible();
+    await page.goto('/admin/config/category/teams');
+    await expect(page.getByRole('main').getByRole('link', { name: 'Team member roles', exact: true })).toBeVisible();
   });
 
   test('time zones are chosen from lists and the review and reference sections are gone', async ({ page }) => {
