@@ -129,6 +129,17 @@ AC-16 (scope independence) is covered by the structural no-integration test and 
 - `dotnet test tests/TioHub.Tests`: **97 passed, 0 failed**. `AC03b_MicroserviceDeployment` extended: three versions with release notes (newest first with numeric ordering — 1.10.0 above 1.2.0), duplicate number refused, secrets in release notes refused, notes editable, renaming a version refused, latest version shown on the product; application developers saved in order with Lead/Developer roles, an unknown role refused, developers listed on the product list.
 - `tests/e2e`: **13 passed, 0 failed**. Products journey extended: no Owning team field, add a lead developer, add a microservice, add version 1.0.0 with two lines of release notes and see them on the microservice page.
 
+## Release 2.39.0 — 28 Oct 2026 (client logos, notification redesign, Configuration navigation; local UAT of the package)
+
+- Release script `build/Build-Release.ps1`: front-end build, `dotnet test` (Release) **267 passed, 0 failed**, publish, `release/TioHub-2.39.0.zip` (SHA-256 `9d82ea668be2cc22dac91bcdd4893ac54b9e5e20691eb8f37d34a87d2a12a96c`, after the release notes and test results were added to the package). Built from uncommitted changes on top of `a09cc3f` (`BUILD-INFO.txt` says so).
+- Before packaging: Vitest **33/33**; typecheck and production build clean; Playwright on the source build **118/118** (new: `client-logos.spec.ts` 4, `notifications-redesign.spec.ts` 7).
+- Local UAT of the package (throwaway LocalDB databases, dropped afterwards; Development sign-in, fictional data; no shared or UAT database was used):
+  - **Schema script, empty database:** `database/01-schema.sql` applied twice without errors; 27 migrations, last `20261028130133_NotificationResolution`; the three logo columns and `ResolvedAt` exist.
+  - **Upgrade with data:** a database created with the 2.38.0 script and filled by the 2.38.0 package (3 clients, 6 cases, 37 notifications); the 2.39.0 script applied twice without errors; every row kept, new columns empty.
+  - **Package on the upgraded database** with `Database:ApplyMigrationsOnStartup=false`: the readiness gate accepted the schema, the API answered ready, no errors in the log.
+  - **Acceptance suite against the running package** (`tests/e2e/playwright.uat.config.ts`): **117 of 118 passed** (7.4 min). The one failure (*a project holds its contracts*) was a timing race in the test — it checked the *Project* field before the click on *+ Contract* had opened the form (2 of 3 repeats passed). The test now waits for the contract form; afterwards it passed 5 of 5 against the package. No product change was needed.
+- Not covered: IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, a screen-reader session, and the actual UAT environment and its database.
+
 ## Release 2.38.0 — 28 Oct 2026 (Reporting Center redesign, Cases Report Builder; local UAT of the package)
 
 - Release script `build/Build-Release.ps1`: front-end build, `dotnet test` (Release) **256 passed, 0 failed**, publish, `release/TioHub-2.38.0.zip` (SHA-256 `f4ae667b0571e381a0a18d928fef22536a8338777ea664cb27c67075349054b6`). Built from uncommitted changes on top of `a09cc3f` (`BUILD-INFO.txt` says so).

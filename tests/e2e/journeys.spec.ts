@@ -408,6 +408,8 @@ test.describe('Projects and contracts', () => {
     const contracts = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Contracts & SLAs' }) });
     await expect(contracts.locator(VT_ROW).filter({ hasText: /HCP rollout support/ })).toContainText('Critical: 1 h / 8 h');
     await page.getByRole('link', { name: '+ Contract' }).click();
+    // Wait for the contract form: on the project page "Project" also matches other labelled elements.
+    await expect(page).toHaveURL(/\/contracts\/new/);
     const title = unique('E2E support contract');
     await expect(page.getByLabel('Project')).toHaveValue(/\d+/);
     await expect(page.getByText(/Client DEMO-HCP · covered products: ViTIS/)).toBeVisible();
