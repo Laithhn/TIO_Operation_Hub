@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
@@ -115,10 +115,35 @@ function dueText(iso?: string | null) {
   return ms < 0 ? <span className="t-bad"><b>{span(ms)}</b> overdue</span> : <span className={ms < 86400000 ? 't-warn' : undefined}>due in {span(ms)}</span>;
 }
 
-/** A60: the executive figures — each opens its list; nothing is shown that the data cannot support. Main figures in large cards, the others in small tiles. */
+/** The KPI cards in two tiers (owner request, 28 Oct 2026): five main figures, then the supporting ones. The titles are fixed, so the
+ *  loading state shows the same cards with placeholders and the page does not jump when the figures arrive. */
+const MAIN_KPIS = ['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open cases'];
+const MORE_KPIS = ['Clients', 'Targets met (period)', 'Contractual SLA met (period)', 'Environment health', 'Data quality'];
+const KPI_ICON: Record<string, string> = {
+  'Active contracts': 'list', 'Overdue payments': 'report', 'Upcoming commitments': 'commitment', 'Active escalations': 'escalation', 'Open cases': 'case',
+  Clients: 'clients', 'Targets met (period)': 'dashboard', 'Contractual SLA met (period)': 'matrix', 'Environment health': 'server', 'Data quality': 'quality'
+};
+const kpiIcon = (label: string, size = 20) => <Icon name={KPI_ICON[label]} size={size} />;
+
+function KpiTiers({ main, more }: { main: ReactNode; more: ReactNode }) {
+  return (
+    <div className="cc-kpi-tiers">
+      <div className="kpis kpis-main" role="group" aria-label="Main figures">{main}</div>
+      <div className="kpis kpis-secondary" role="group" aria-label="More figures">{more}</div>
+    </div>
+  );
+}
+
+function KpiSkeleton() {
+  return <KpiTiers main={MAIN_KPIS.map(l => <Kpi key={l} label={l} icon={kpiIcon(l)} loading />)}
+    more={MORE_KPIS.map(l => <Kpi key={l} size="small" label={l} icon={kpiIcon(l, 18)} loading />)} />;
+}
+
+/** A60: the executive figures — each opens its list; nothing is shown that the data cannot support. The states come from each figure's
+ *  existing rules: overdue and past-target are critical; due soon, due for renewal, degraded and high severity need attention. */
 function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
   const m = (k: string) => [...dash.cases, ...dash.commitments].find(x => x.key === k)!;
-  const openCases = m('openCases'), overdueCases = m('overdueCases'), openComs = m('openCommitments'), upcoming = m('upcomingCommitments');
+  const openCases = m('openCases'), overdueCases = m('overdueCases'), openComs = m('openCommitments'), overdueComs = m('overdueCommitments'), upcoming = m('upcomingCommitments');
   const clients = d.countries.rows.reduce((s, r) => s + r.clients, 0) + d.countries.unknownCountryClients;
   const env = (k: string) => d.environments.condition.find(c => c.key === k)?.value ?? 0;
   const envTotal = d.environments.condition.reduce((s, c) => s + c.value, 0);
@@ -133,47 +158,86 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
   // All measured targets of the period together: escalation response and resolution, and case due dates.
   const metAll = (e ? e.response.met + e.resolution.met : 0) + cc.cases.adherence.onTime;
   const measuredAll = (e ? e.response.measured + e.resolution.measured : 0) + cc.cases.adherence.measured;
+  const targets = rate(metAll, measuredAll);
+  const sla = rate(cc.sla.response.met + cc.sla.resolution.met, cc.sla.response.measured + cc.sla.resolution.measured);
   const amounts = (x?: PayPart) => x?.amounts.map(a => fmtMoney(a.amount, a.currency)).join(' + ') ?? '';
-  return (
-    <div className="cc-kpi-tiers">
-      {/* Main figures (owner order, 28 Oct 2026): contracts, payments, commitments, escalations, cases. */}
-      <div className="kpis cc-kpis kpis-main" role="group" aria-label="Main figures">
-        {cd && <Kpi size="main" icon={<Icon name="list" size={18} />} accent="primary" label="Active contracts" value={cd.active} to="/contracts?status=Active" tone={renewalDue || review ? 'warning' : undefined}
-          part={renewalDue} of={cd.active} partLabel={renewalDue ? `${renewalDue} due for renewal` : 'None due for renewal'}
-          context={review ? `${review} need review (ended but Active, or no end date)` : 'None need review'} />}
-        {pay && <Kpi size="main" icon={<Icon name="report" size={18} />} accent="amber" label="Overdue payments" value={pay.overdue.count} to="/notifications?show=payments&state=overdue"
-          tone={pay.overdue.count ? 'critical' : undefined}
-          partLabel={pay.overdue.count ? (pay.overdue.amounts.length ? amounts(pay.overdue) : 'Amounts not recorded') : 'None overdue'}
-          context={`${pay.due.count} due within ${pay.reminderDays} days`} />}
-        <Kpi size="main" icon={<Icon name="commitment" size={18} />} accent="amber" label="Upcoming commitments" value={upcoming.value} to={upcoming.drilldown} tone={upcoming.value ? 'critical' : undefined} valueTone="critical"
-          partLabel={`${openComs.value} open commitments`}
-          context={<strong className="critical-text">Due in the next {dash.upcomingDays} days</strong>} />
-        {e && <Kpi size="main" icon={<Icon name="escalation" size={18} />} accent="red" label="Active escalations" value={e.active} to="/escalations" tone={e.overdue ? 'critical' : undefined}
-          part={e.overdue} of={e.active} partLabel={e.overdue ? `${e.overdue} past a target` : 'None past a target'}
-          context={e.highestLevel ? `Highest active level: ${e.highestLevel}` : 'No active escalation'} />}
-        <Kpi size="main" icon={<Icon name="case" size={18} />} accent="attention" label="Open cases" value={openCases.value} to={openCases.drilldown} tone={overdueCases.value ? 'critical' : undefined}
-          part={overdueCases.value} of={openCases.value} partLabel={overdueCases.value ? `${overdueCases.value} overdue` : 'None overdue'}
-          context={`${cc.cases.criticalHigh} critical or high priority`} />
-      </div>
-      {/* Secondary figures: smaller tiles. */}
-      <div className="kpis cc-kpis kpis-secondary" role="group" aria-label="More figures">
-        <Kpi size="small" icon={<Icon name="clients" size={18} />} accent="primary" label="Clients" value={clients} to="/clients"
-          context={<>{d.countries.rows.length} countr{d.countries.rows.length === 1 ? 'y' : 'ies'}{d.countries.unknownCountryClients ? `, ${d.countries.unknownCountryClients} without a country` : ''}</>} />
-        <Kpi size="small" icon={<Icon name="dashboard" size={18} />} accent="green" label="Targets met (period)" value={rate(metAll, measuredAll) ?? 'Not available'} to="/escalations?status=all"
-          tone={cc.cases.risk.approaching ? 'warning' : undefined}
-          partLabel={e ? `Escalation response ${resp ?? 'n/a'} · resolution ${reso ?? 'n/a'}` : undefined}
-          context={<>Case due dates met: {adh ?? 'n/a'}{cc.cases.risk.approaching ? ` · ${cc.cases.risk.approaching} case(s) due within 24 h` : ''}</>} />
-        <Kpi size="small" icon={<Icon name="matrix" size={18} />} accent="silver" label="Contractual SLA met (period)" value={rate(cc.sla.response.met + cc.sla.resolution.met, cc.sla.response.measured + cc.sla.resolution.measured) ?? 'Not available'}
-          to="/cases?sla=withContract&status=all" tone={cc.sla.breachedOpen ? 'critical' : cc.sla.approaching ? 'warning' : undefined}
-          partLabel={`Response ${cc.sla.response.rate ?? 'n/a'}${cc.sla.response.rate !== null ? ' %' : ''} · resolution ${cc.sla.resolution.rate ?? 'n/a'}${cc.sla.resolution.rate !== null ? ' %' : ''}`}
-          context={<>{cc.sla.response.measured + cc.sla.resolution.measured} obligation(s) measured{cc.sla.breachedOpen ? ` · ${cc.sla.breachedOpen} open case(s) breached` : ''}</>} />
-        <Kpi size="small" icon={<Icon name="server" size={18} />} accent="green" label="Environment health" value={`${env('Healthy')} / ${envTotal}`} to="/environments"
-          tone={env('Unavailable') ? 'critical' : env('Degraded') ? 'warning' : undefined}
-          partLabel={`healthy · ${env('Degraded')} degraded · ${env('Unavailable')} unavailable`}
-          context={`${env('Unknown')} not reported (unknown) · manually reported`} />
-      </div>
-    </div>
-  );
+  // Overdue (deadline passed) and upcoming (due within the window) are disjoint parts of the open commitments.
+  const later = Math.max(0, openComs.value - upcoming.value - overdueComs.value);
+  // Data quality: open items per rule, with the rules' severities (A60).
+  const dqItems = d.dataQuality.reduce((s, r) => s + r.value, 0);
+  const dqHigh = d.dataQuality.filter(r => DQ_SEVERITY[r.key] === 'High').reduce((s, r) => s + r.value, 0);
+  const dqRules = d.dataQuality.filter(r => r.value > 0).length;
+  const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+  const main = <>
+    {cd && <Kpi label="Active contracts" icon={kpiIcon('Active contracts')} value={cd.active} to="/contracts?status=Active"
+      status={renewalDue || review ? 'warning' : 'healthy'}
+      bar={{ total: cd.active, segments: [{ value: renewalDue, status: 'warning', label: 'Due for renewal' }] }}
+      lines={[
+        { text: renewalDue ? `${renewalDue} due for renewal` : 'None due for renewal', status: renewalDue ? 'warning' : 'healthy' },
+        { text: review ? `${review} need review (ended but Active, or no end date)` : 'None need review', status: review ? 'warning' : 'healthy' }
+      ]} />}
+    {pay && <Kpi label="Overdue payments" icon={kpiIcon('Overdue payments')} value={pay.overdue.count} to="/notifications?show=payments&state=overdue"
+      status={pay.overdue.count ? 'critical' : 'healthy'}
+      lines={[
+        { text: pay.overdue.count ? (pay.overdue.amounts.length ? amounts(pay.overdue) : 'Amounts not recorded') : 'None overdue', status: pay.overdue.count ? 'critical' : 'healthy' },
+        { text: `${pay.due.count} due within ${pay.reminderDays} days`, status: pay.due.count ? 'warning' : 'neutral' }
+      ]} />}
+    <Kpi label="Upcoming commitments" icon={kpiIcon('Upcoming commitments')} value={upcoming.value} to={upcoming.drilldown}
+      status={overdueComs.value ? 'critical' : upcoming.value ? 'warning' : 'healthy'}
+      bar={{ total: openComs.value, segments: [
+        { value: overdueComs.value, status: 'critical', label: 'Overdue' },
+        { value: upcoming.value, status: 'warning', label: `Due in the next ${dash.upcomingDays} days` },
+        { value: later, status: 'info', label: 'Due later' }] }}
+      lines={[
+        { text: `${upcoming.value} due in the next ${dash.upcomingDays} days`, status: upcoming.value ? 'warning' : 'healthy' },
+        { text: overdueComs.value ? `${overdueComs.value} overdue` : 'None overdue', status: overdueComs.value ? 'critical' : 'healthy' },
+        { text: `${count(openComs.value, 'open commitment')} in total`, status: 'info' }
+      ]} />
+    {e && <Kpi label="Active escalations" icon={kpiIcon('Active escalations')} value={e.active} to="/escalations"
+      status={e.overdue ? 'critical' : e.active ? 'warning' : 'healthy'}
+      bar={{ total: e.active, segments: [{ value: e.overdue, status: 'critical', label: 'Past a target' }] }}
+      lines={[
+        { text: e.overdue ? `${e.overdue} past a target` : 'None past a target', status: e.overdue ? 'critical' : 'healthy' },
+        { text: e.highestLevel ? `Highest active level: ${e.highestLevel}` : 'No active escalation', status: e.highestLevel ? 'warning' : 'neutral' }
+      ]} />}
+    <Kpi label="Open cases" icon={kpiIcon('Open cases')} value={openCases.value} to={openCases.drilldown}
+      status={overdueCases.value ? 'critical' : cc.cases.criticalHigh ? 'warning' : 'info'}
+      bar={{ total: openCases.value, segments: [{ value: overdueCases.value, status: 'critical', label: 'Overdue' }] }}
+      lines={[
+        { text: overdueCases.value ? `${overdueCases.value} overdue` : 'None overdue', status: overdueCases.value ? 'critical' : 'healthy' },
+        { text: `${cc.cases.criticalHigh} critical or high priority`, status: cc.cases.criticalHigh ? 'warning' : 'neutral' }
+      ]} />
+  </>;
+  const more = <>
+    <Kpi size="small" label="Clients" icon={kpiIcon('Clients', 18)} value={clients} to="/clients"
+      lines={[{ text: `${count(d.countries.rows.length, 'country', 'countries')}${d.countries.unknownCountryClients ? `, ${d.countries.unknownCountryClients} without a country` : ''}` }]} />
+    <Kpi size="small" label="Targets met (period)" icon={kpiIcon('Targets met (period)', 18)} value={targets ?? undefined} unavailable={targets === null} to="/escalations?status=all"
+      status={cc.cases.risk.approaching ? 'warning' : 'neutral'}
+      tooltip={targets === null ? 'No escalation targets or case due dates were measured in the period.' : undefined}
+      lines={[
+        ...(e ? [{ text: `Escalation response ${resp ?? 'n/a'} · resolution ${reso ?? 'n/a'}` }] : []),
+        { text: `Case due dates met: ${adh ?? 'n/a'}${cc.cases.risk.approaching ? ` · ${cc.cases.risk.approaching} case(s) due within 24 h` : ''}`, status: cc.cases.risk.approaching ? 'warning' as const : undefined }
+      ]} />
+    <Kpi size="small" label="Contractual SLA met (period)" icon={kpiIcon('Contractual SLA met (period)', 18)} value={sla ?? undefined} unavailable={sla === null}
+      to="/cases?sla=withContract&status=all" status={cc.sla.breachedOpen ? 'critical' : cc.sla.approaching ? 'warning' : 'neutral'}
+      tooltip={sla === null ? 'No contractual obligations were measured in the period.' : undefined}
+      lines={[
+        { text: `Response ${cc.sla.response.rate ?? 'n/a'}${cc.sla.response.rate !== null ? ' %' : ''} · resolution ${cc.sla.resolution.rate ?? 'n/a'}${cc.sla.resolution.rate !== null ? ' %' : ''}` },
+        { text: `${cc.sla.response.measured + cc.sla.resolution.measured} obligation(s) measured${cc.sla.breachedOpen ? ` · ${cc.sla.breachedOpen} open case(s) breached` : ''}`, status: cc.sla.breachedOpen ? 'critical' : undefined }
+      ]} />
+    <Kpi size="small" label="Environment health" icon={kpiIcon('Environment health', 18)} value={`${env('Healthy')} / ${envTotal}`} to="/environments"
+      status={env('Unavailable') ? 'critical' : env('Degraded') ? 'warning' : envTotal ? 'healthy' : 'neutral'}
+      tooltip={`Healthy environments of all environments (manually reported): ${env('Healthy')} healthy · ${env('Degraded')} degraded · ${env('Unavailable')} unavailable · ${env('Unknown')} not reported`}
+      bar={{ total: envTotal, segments: [
+        { value: env('Healthy'), status: 'healthy', label: 'Healthy' }, { value: env('Degraded'), status: 'warning', label: 'Degraded' },
+        { value: env('Unavailable'), status: 'critical', label: 'Unavailable' }, { value: env('Unknown'), status: 'neutral', label: 'Not reported' }] }}
+      lines={[{ text: `${env('Healthy')} healthy · ${env('Degraded')} degraded · ${env('Unavailable')} unavailable` }]} />
+    <Kpi size="small" label="Data quality" icon={kpiIcon('Data quality', 18)} value={dqItems} to="/data-quality"
+      status={dqHigh ? 'warning' : dqItems ? 'info' : 'healthy'}
+      tooltip={`Open data-quality items: ${dqItems} in ${count(dqRules, 'rule')}, ${dqHigh} of high severity`}
+      lines={[{ text: dqItems ? `${dqHigh} high severity · ${count(dqRules, 'rule')}` : 'No open items', status: dqHigh ? 'warning' : dqItems ? undefined : 'healthy' }]} />
+  </>;
+  return <KpiTiers main={main} more={more} />;
 }
 
 const SEVERITY_RANK: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
@@ -800,7 +864,8 @@ export function Dashboard() {
       {(dash.isLoading || insights.isLoading || cc.isLoading) && <StateMessage kind="loading" />}
       {(dash.error || insights.error || cc.error) && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       <section id="overview" aria-label="Key figures">
-        {dash.data && insights.data && cc.data && <KpiGrid dash={dash.data} d={insights.data} cc={cc.data} />}
+        {dash.data && insights.data && cc.data ? <KpiGrid dash={dash.data} d={insights.data} cc={cc.data} />
+          : (dash.isLoading || insights.isLoading || cc.isLoading) && <KpiSkeleton />}
         {mine && <p className="hint" style={{ margin: '-4px 0 var(--gap)' }}>My work: cases, commitments, escalations, payments and environments you own. Contract figures need the whole view.</p>}
       </section>
       <ActionCenter params={params} />

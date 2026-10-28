@@ -202,45 +202,64 @@ const ALIASES: Record<string, string> = {
 };
 export const normalizeCountry = (c: string) => ALIASES[c.trim().toLowerCase()] ?? c.trim();
 
-// ---------- executive KPI tile ----------
-// A headline number with an optional meter (part of a whole, same blue track) and a context line.
-// The whole tile is a link to the list whose total equals the number.
-/** Accent colours of the KPI tiles: VtWebGuiFramework colours (primary, attention, calmingGreen, attentionHigh, signalError, structureSilver). */
-export type KpiAccent = 'primary' | 'attention' | 'green' | 'amber' | 'red' | 'silver';
-/** size: "main" for the headline figures (large card), "small" for supporting figures (one detail line, the rest in the tooltip). */
-export function Kpi({ value, label, context, part, of, partLabel, tone, valueTone, to, hero, icon, accent = 'primary', size }: {
-  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; valueTone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode; accent?: KpiAccent;
-  size?: 'main' | 'small';
+// ---------- KPI card (dashboards: Operations Command Center, Reporting Center) ----------
+/** The operational state of a figure. It comes from the figure's existing business rules (overdue, past a target, due soon, degraded…),
+ *  never from new thresholds. The card shows it as a text badge as well as a colour. */
+export type KpiStatus = 'critical' | 'warning' | 'healthy' | 'info' | 'neutral';
+/** A supporting line; its dot repeats the state of what the line counts. */
+export type KpiLine = { text: ReactNode; status?: KpiStatus };
+/** A real distribution of the figure: disjoint parts of `total` (the rest of the track stays empty). No decorative charts. */
+export type KpiBar = { total: number; segments: { value: number; status: KpiStatus; label: string }[] };
+
+const STATUS_TEXT: Partial<Record<KpiStatus, string>> = { critical: 'Critical', warning: 'Attention', healthy: 'OK' };
+const STATUS_GLYPH: Partial<Record<KpiStatus, string>> = { critical: '▲', warning: '●', healthy: '✓' };
+
+/**
+ * A KPI card. size "main" for the headline figures, "small" for supporting ones (the first supporting line shows, all of them are in the
+ * tooltip and the accessible name). With `to` the whole card is a link (click, Enter). `loading` keeps the card's size with placeholders;
+ * `unavailable` shows the value as not available (for example a rate with nothing measured in the period).
+ */
+export function Kpi({ label, value, icon, status = 'neutral', lines = [], bar, to, size = 'main', loading, unavailable, tooltip }: {
+  label: string; value?: number | string; icon?: ReactNode; status?: KpiStatus; lines?: KpiLine[]; bar?: KpiBar; to?: string; size?: 'main' | 'small';
+  loading?: boolean; unavailable?: boolean; tooltip?: string;
 }) {
   const nav = useNavigate();
-  const pct = part !== undefined && of ? Math.min(100, (part / of) * 100) : null;
-  const fill = tone === 'critical' ? STATUS.critical : tone === 'warning' ? STATUS.warning : SERIES.blue;
+  const statusText = loading ? undefined : STATUS_TEXT[status];
+  const texts = lines.map(l => nodeText(l.text)).filter(Boolean);
+  const shown = size === 'small' ? lines.slice(0, 1) : lines;
+  const name = [`${label}: ${loading ? 'loading' : unavailable ? 'not available' : value}`, statusText && `status ${statusText}`, ...texts, to && 'open the list'].filter(Boolean).join('. ');
+  const open = () => { if (to && !loading) nav(to); };
+  const sum = bar ? bar.segments.reduce((a, x) => a + x.value, 0) : 0;
   return (
-    <div className={`kpi accent-${tone === 'critical' ? 'red' : tone === 'warning' ? 'amber' : accent}${hero ? ' hero' : ''}${size ? ` ${size}` : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
-      onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
-      aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${context ? `. ${nodeText(context)}` : ''}${to ? '. Open list' : ''}`}>
-      {/* Compact tile (28 Oct 2026): the icon beside the number, the details in at most two short lines below it. */}
-      {icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}
-      <span className="kpi-main">
-        {/* VtWebGuiFramework ValueField: label as title, the number in the large value size, signal colour for critical/warning values. */}
+    <div className={['kpi', size, `st-${status}`, to && 'link', loading && 'is-loading', unavailable && 'is-unavailable'].filter(Boolean).join(' ')}
+      role={to ? 'link' : 'group'} tabIndex={to ? 0 : undefined} aria-label={name} aria-busy={loading || undefined}
+      title={tooltip ?? (size === 'small' && texts.length > 1 ? texts.join(' · ') : undefined)}
+      onClick={open} onKeyDown={e => { if (e.key === 'Enter') open(); }}>
+      <div className="kpi-head">
+        {icon && <span className="kpi-ic" aria-hidden="true">{icon}</span>}
+        <span className="kpi-title">{label}</span>
+        {to && <span className="kpi-go" aria-hidden="true">›</span>}
+      </div>
+      <div className="kpi-body">
         <span className="kpi-v">
-          <ValueField title={label} titleAsLabel value={value} valueSize={hero || size === 'main' ? 'xl' : size === 'small' ? 'normal' : 'large'}
-            darkTheme={!!hero} {...(valueTone && { valueColor: valueTone === 'critical' ? 'signalError' : 'signalWarning' })} />
+          {loading ? <span className="kpi-skel kpi-skel-v" /> : <ValueField value={unavailable ? 'Not available' : value} valueSize={size === 'small' ? 'large' : 'xl'} />}
         </span>
-        {tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}
-      </span>
-      {size === 'small' && (partLabel || context) && (
-        <span className="kpi-foot">
-          <span className="kpi-p" title={[partLabel, nodeText(context)].filter(Boolean).join(' · ')}>{partLabel ?? context}</span>
+        {statusText && <span className="kpi-status" aria-hidden="true"><span className="kpi-glyph">{STATUS_GLYPH[status]}</span>{statusText}</span>}
+      </div>
+      {loading && size === 'main' && <span className="kpi-bar" aria-hidden="true" />}
+      {!loading && bar && bar.total > 0 && (
+        <span className="kpi-bar" aria-hidden="true" title={bar.segments.map(x => `${x.label}: ${x.value}`).join(' · ')}>
+          {bar.segments.filter(x => x.value > 0).map(x => <span key={x.label} className={`st-${x.status}`} style={{ width: `max(${(x.value / Math.max(bar.total, sum)) * 100}%, 4px)` }} />)}
         </span>
       )}
-      {size !== 'small' && (pct !== null || partLabel || context) && (
-        <span className="kpi-foot">
-          {pct !== null && <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>}
-          {/* One line each; the full text shows on hover and is part of the tile's accessible name. */}
-          {partLabel && <span className="kpi-p" title={partLabel}>{partLabel}</span>}
-          {context && <span className="kpi-c" title={nodeText(context)}>{context}</span>}
-        </span>
+      {(loading || shown.length > 0) && (
+        <ul className="kpi-lines">
+          {loading
+            ? Array.from({ length: size === 'small' ? 1 : 2 }, (_, i) => <li key={i}><span className="kpi-skel kpi-skel-line" /></li>)
+            : shown.map((l, i) => (
+              <li key={i}><span className={`kpi-dot st-${l.status ?? 'neutral'}`} aria-hidden="true" /><span className="kpi-line">{l.text}</span></li>
+            ))}
+        </ul>
       )}
     </div>
   );

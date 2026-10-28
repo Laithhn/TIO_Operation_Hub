@@ -53,12 +53,11 @@ test.describe('Shell and visual language', () => {
     // The dashboard's section menu is the only navigation to its other pages (map, actions, reports, data quality).
     await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' })).toBeVisible();
     const upcoming = page.locator('.kpi').filter({ hasText: 'Upcoming commitments' });
-    await expect(upcoming).toContainText('Due in the next 14 days');
-    // The KPI number is a framework ValueField in the signalError value colour.
-    const kpiValue = upcoming.locator('.kpi-v [class*="valueField__value__"]');
-    await expect(kpiValue).toHaveCSS('color', 'rgb(176, 0, 32)');
-    await expect(upcoming.locator('.critical-text')).toHaveCSS('font-weight', '700');
-    await expect(upcoming.locator('.critical-text')).toHaveCSS('color', 'rgb(176, 0, 32)');
+    await expect(upcoming).toContainText('due in the next 14 days');
+    // KPI cards (28 Oct 2026): the number is a framework ValueField in the card's text colour; the state is a text badge as well as a
+    // colour (critical when commitments are overdue, attention when some are due soon).
+    await expect(upcoming.locator('.kpi-v [class*="valueField__value__"]')).toHaveCSS('color', 'rgb(8, 36, 74)');
+    await expect(upcoming.locator('.kpi-status')).toHaveText(/^.(Critical|Attention|OK)$/);
     await page.screenshot({ path: 'test-results/visual-dashboard-1600.png' });
     await page.goto('/environments/1');
     await expect(page.getByText('Condition and freshness (separately scoped)')).toBeVisible();

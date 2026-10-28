@@ -636,34 +636,65 @@ test.describe('Filter card while filtering, and the dashboard KPI tiers', () => 
     expect(Math.abs(back.y - before.y)).toBeLessThanOrEqual(2);
   });
 
-  test('the dashboard KPIs come in two tiers: five main cards in the owner order, smaller supporting tiles', async ({ page }) => {
+  test('the dashboard KPIs come in two tiers with real-data states, keyboard access and a stable loading state', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
+    // Loading: the same cards with placeholders (the dashboard figures are held back here so the loading state can be seen).
+    let release: () => void = () => undefined;
+    const held = new Promise<void>(r => { release = r; });
+    await page.route('**/api/v1/dashboard/**', async route => { await held; await route.continue(); });
     await page.goto('/');
     const main = page.getByRole('group', { name: 'Main figures' });
     const more = page.getByRole('group', { name: 'More figures' });
-    await expect(main.locator('.kpi').first()).toBeVisible();
-    const titles = (g: Locator) => g.locator('[class*="valueField__title"]').allTextContents();
+    await expect(main.locator('.kpi.is-loading')).toHaveCount(5);
+    await expect(more.locator('.kpi.is-loading')).toHaveCount(5);
+    const loadingH = (await box(main.locator('.kpi').first())).height;
+    release();
+    await expect(main.locator('.kpi.is-loading')).toHaveCount(0);
+    const titles = (gr: Locator) => gr.locator('.kpi-title').allTextContents();
     expect(await titles(main)).toEqual(['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open cases']);
-    expect(await titles(more)).toEqual(['Clients', 'Targets met (period)', 'Contractual SLA met (period)', 'Environment health']);
-    // One row each at 1440 px; the supporting tiles are clearly smaller.
+    expect(await titles(more)).toEqual(['Clients', 'Targets met (period)', 'Contractual SLA met (period)', 'Environment health', 'Data quality']);
+    // Loading did not change the card size much (no jump when the figures arrive).
+    expect(Math.abs((await box(main.locator('.kpi').first())).height - loadingH)).toBeLessThanOrEqual(40);
+    // One row each at 1440 px; equal main cards; supporting cards smaller, with smaller values.
     expect(await main.evaluate(e => getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(5);
-    const mainH = (await box(main.locator('.kpi').first())).height;
-    const moreH = (await box(more.locator('.kpi').first())).height;
-    expect(mainH).toBeLessThanOrEqual(190);
-    expect(moreH).toBeLessThanOrEqual(mainH * 0.65);
-    const valueSize = (g: Locator) => g.locator('.kpi-v [class*="valueField__value__"]').first().evaluate(e => parseFloat(getComputedStyle(e).fontSize));
+    const heights = await main.locator('.kpi').evaluateAll(es => es.map(e => Math.round(e.getBoundingClientRect().height)));
+    expect(new Set(heights).size).toBe(1);
+    const valueSize = (gr: Locator) => gr.locator('.kpi-v [class*="valueField__value__"]').first().evaluate(e => parseFloat(getComputedStyle(e).fontSize));
+    expect(await valueSize(main)).toBeGreaterThanOrEqual(28);
     expect(await valueSize(more)).toBeLessThan(await valueSize(main));
-    // Main cards: the icon beside the value.
-    const first = main.locator('.kpi').first();
-    expect((await box(first.locator('.kpi-ic'))).x + (await box(first.locator('.kpi-ic'))).width).toBeLessThanOrEqual((await box(first.locator('.kpi-v'))).x);
-    await page.locator('.cc-kpi-tiers').screenshot({ path: 'test-results/kpi-tiers-1440.png' });
-    // Phones: two per row, the top figure across the full width.
-    await page.setViewportSize({ width: 390, height: 844 });
-    await expect.poll(() => main.evaluate(e => getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(2);
-    const top = await box(main.locator('.kpi').first());
-    const second = await box(main.locator('.kpi').nth(1));
-    expect(top.width, 'the top figure spans both columns').toBeGreaterThan(second.width * 1.8);
-    expect(await docOverflow(page)).toBeLessThanOrEqual(0);
-    await page.locator('.cc-kpi-tiers').screenshot({ path: 'test-results/kpi-tiers-390.png' });
+    // White cards, 12 px corners, no coloured surfaces.
+    const card = main.locator('.kpi').first();
+    expect(await card.evaluate(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).borderTopLeftRadius])).toEqual(['rgb(255, 255, 255)', '12px']);
+    // States follow the figures: an open case overdue makes Open cases critical; zero overdue payments is OK. Never colour alone.
+    const cases = main.locator('.kpi').filter({ hasText: 'Open cases' });
+    const overdueText = await cases.locator('.kpi-lines li').first().textContent();
+    if (!/None overdue/.test(overdueText ?? '')) await expect(cases.locator('.kpi-status')).toHaveText(/Critical/);
+    else await expect(cases.locator('.kpi-status')).not.toHaveText(/Critical/);
+    const payments = main.locator('.kpi').filter({ hasText: 'Overdue payments' });
+    const payValue = Number(await payments.locator('.kpi-v').textContent());
+    await expect(payments.locator('.kpi-status')).toHaveText(payValue ? /Critical/ : /OK/);
+    for (const k of await main.locator('.kpi').all()) {
+      const cls = await k.getAttribute('class');
+      if (/st-(critical|warning|healthy)/.test(cls ?? '')) await expect(k.locator('.kpi-status')).toHaveText(/Critical|Attention|OK/);
+    }
+    // No invented trends: nothing claims a comparison with a previous period.
+    await expect(page.locator('.cc-kpi-tiers')).not.toContainText(/last period|vs\./i);
+    // Keyboard: the card is a link with its figures in its name; Enter opens the list.
+    await cases.focus();
+    await expect(cases).toHaveAttribute('aria-label', /^Open cases: \d+\./);
+    await page.keyboard.press('Enter');
+    await expect(page).toHaveURL(/\/cases\?/);
+    await page.goBack();
+    await expect(main.locator('.kpi')).toHaveCount(5);
+    await page.locator('.cc-kpi-tiers').screenshot({ path: 'test-results/kpi-cards-1440.png' });
+    // Responsive: 3 per row at 1024 px, 2 on tablets, 1 on phones; no overflow, nothing cut off.
+    for (const [width, cols] of [[1366, 5], [1024, 3], [768, 2], [390, 1]] as const) {
+      await page.setViewportSize({ width, height: 900 });
+      await expect.poll(() => main.evaluate(e => getComputedStyle(e).gridTemplateColumns.split(' ').length), { message: `${width}` }).toBe(cols);
+      expect(await docOverflow(page), `${width}: document overflow`).toBeLessThanOrEqual(0);
+      const clipped = await page.locator('.kpi-title, .kpi-line').evaluateAll(es => es.filter(e => e.scrollWidth > e.clientWidth + 1).map(e => e.textContent));
+      expect(clipped, `${width}: clipped text`).toEqual([]);
+      if (width === 390) await page.locator('.cc-kpi-tiers').screenshot({ path: 'test-results/kpi-cards-390.png' });
+    }
   });
 });
