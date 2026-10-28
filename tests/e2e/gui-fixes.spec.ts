@@ -616,3 +616,54 @@ test.describe('Header pop-ups and the collapsed sidebar', () => {
     await expect(page.locator('body')).not.toHaveClass(/side-mini/);
   });
 });
+
+test.describe('Filter card while filtering, and the dashboard KPI tiers', () => {
+  test('the Filter card stays under its button while a filter reloads the list or matches nothing', async ({ page }) => {
+    await page.goto('/clients');
+    const card = await openFilter(page);
+    const before = await box(card);
+    // The client search is a server filter: the list reloads and, here, matches nothing.
+    await card.getByLabel('Search clients by name or alias').fill('ZZZ-NO-SUCH-CLIENT');
+    await expect(vtTable(page).locator('.table-count')).toHaveText('0 rows');
+    await expect(card).toBeVisible();
+    const after = await box(card);
+    expect(Math.abs(after.x - before.x), 'card stays in place horizontally').toBeLessThanOrEqual(2);
+    expect(Math.abs(after.y - before.y), 'card stays in place vertically').toBeLessThanOrEqual(2);
+    await expect(vtTable(page).getByRole('button', { name: /^Filter/ })).toBeVisible();
+    await card.getByLabel('Search clients by name or alias').fill('');
+    await expect(vtTable(page).locator('.table-count')).not.toHaveText('0 rows');
+    const back = await box(card);
+    expect(Math.abs(back.y - before.y)).toBeLessThanOrEqual(2);
+  });
+
+  test('the dashboard KPIs come in two tiers: five main cards in the owner order, smaller supporting tiles', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/');
+    const main = page.getByRole('group', { name: 'Main figures' });
+    const more = page.getByRole('group', { name: 'More figures' });
+    await expect(main.locator('.kpi').first()).toBeVisible();
+    const titles = (g: Locator) => g.locator('[class*="valueField__title"]').allTextContents();
+    expect(await titles(main)).toEqual(['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open cases']);
+    expect(await titles(more)).toEqual(['Clients', 'Targets met (period)', 'Contractual SLA met (period)', 'Environment health']);
+    // One row each at 1440 px; the supporting tiles are clearly smaller.
+    expect(await main.evaluate(e => getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(5);
+    const mainH = (await box(main.locator('.kpi').first())).height;
+    const moreH = (await box(more.locator('.kpi').first())).height;
+    expect(mainH).toBeLessThanOrEqual(190);
+    expect(moreH).toBeLessThanOrEqual(mainH * 0.65);
+    const valueSize = (g: Locator) => g.locator('.kpi-v [class*="valueField__value__"]').first().evaluate(e => parseFloat(getComputedStyle(e).fontSize));
+    expect(await valueSize(more)).toBeLessThan(await valueSize(main));
+    // Main cards: the icon beside the value.
+    const first = main.locator('.kpi').first();
+    expect((await box(first.locator('.kpi-ic'))).x + (await box(first.locator('.kpi-ic'))).width).toBeLessThanOrEqual((await box(first.locator('.kpi-v'))).x);
+    await page.locator('.cc-kpi-tiers').screenshot({ path: 'test-results/kpi-tiers-1440.png' });
+    // Phones: two per row, the top figure across the full width.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect.poll(() => main.evaluate(e => getComputedStyle(e).gridTemplateColumns.split(' ').length)).toBe(2);
+    const top = await box(main.locator('.kpi').first());
+    const second = await box(main.locator('.kpi').nth(1));
+    expect(top.width, 'the top figure spans both columns').toBeGreaterThan(second.width * 1.8);
+    expect(await docOverflow(page)).toBeLessThanOrEqual(0);
+    await page.locator('.cc-kpi-tiers').screenshot({ path: 'test-results/kpi-tiers-390.png' });
+  });
+});

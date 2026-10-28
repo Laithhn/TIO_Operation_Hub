@@ -698,3 +698,38 @@ table.grid th .grid-sort{white-space:nowrap}
 .rc-sub{font-size:var(--fs);margin:12px 0 6px;color:var(--navy)}
 .rc-foot{margin-top:18px}
 @media (max-width:760px){.rc-col-list li{grid-template-columns:1fr auto}.rc-col-list li .hint{display:none}}
+
+/* Compact KPI tiles (28 Oct 2026): the icon beside the number and the details in short lines below it, so a row of tiles takes
+   about a third of the height of the earlier cards. Later in the file than the earlier .kpi rules, which it replaces. */
+.kpis,.dash .kpis{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.kpi,.dash .kpi,.dash .cc-kpis .kpi{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"ic main" "ic foot";column-gap:10px;row-gap:4px;align-content:start;padding:10px 12px}
+.kpi:not(:has(.kpi-ic)){grid-template-columns:minmax(0,1fr);grid-template-areas:"main" "foot"}
+.dash .kpi.hero{grid-row:auto}
+.kpi .kpi-ic{grid-area:ic;align-self:start;width:32px;height:32px}
+.kpi-main{grid-area:main;display:flex;align-items:flex-start;gap:6px;min-width:0}
+.kpi-main .kpi-v{flex:1;min-width:0}
+/* The framework ValueField centres its title and value; in the tile they read from the icon, left-aligned. */
+.kpi-v [class*="valueField__valueField"],.kpi-v [class*="valueField__title"]{text-align:left}
+.kpi-v [class*="valueField__valueContr"]{justify-content:start;text-align:left}
+.dash .kpi-v,.dash .cc-kpis .kpi-v{font-size:inherit}
+.kpi-flag{line-height:1.4}
+.kpi-foot{grid-area:foot;display:flex;flex-direction:column;gap:2px;min-width:0}
+.kpi-foot .kpi-meter{margin-top:2px;height:4px}
+.kpi-p,.kpi-c{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.35}
+/* Phones: two tiles per row; the decorative icon gives its room to the text. */
+@media (max-width:600px){.kpis,.dash .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.kpi .kpi-ic{display:none}.kpi,.dash .kpi,.dash .cc-kpis .kpi{grid-template-columns:minmax(0,1fr);grid-template-areas:"main" "foot";padding:8px 10px}}
+/* Dashboard KPIs in two tiers (owner request, 28 Oct 2026): five main figures in large cards on one row, the supporting figures
+   in a row of small tiles below. Same accents and links; the small tiles show one detail line and keep the rest in the tooltip. */
+.cc-kpi-tiers{display:grid;gap:10px;margin-bottom:var(--gap)}
+.cc-kpi-tiers .kpis{margin-bottom:0}
+.dash .kpis.kpis-main{grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@media (max-width:1280px){.dash .kpis.kpis-main{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.dash .kpis.kpis-secondary{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.dash .cc-kpis .kpi.main{padding:14px 16px;column-gap:12px;row-gap:6px}
+.kpi.main .kpi-ic{width:40px;height:40px}
+.kpi.main .kpi-ic svg{width:22px;height:22px}
+.kpi.main .kpi-foot .kpi-meter{height:5px}
+.dash .cc-kpis .kpi.small{padding:7px 10px;column-gap:8px;row-gap:2px;border-left-width:3px;align-items:center}
+.kpi.small .kpi-ic{width:26px;height:26px}
+.kpi.small .kpi-ic svg{width:15px;height:15px}
+@media (max-width:600px){.dash .kpis.kpis-main,.dash .kpis.kpis-secondary{grid-template-columns:repeat(2,minmax(0,1fr))}.dash .kpis.kpis-main .kpi:first-child{grid-column:1 / -1}}

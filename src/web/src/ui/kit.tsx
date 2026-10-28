@@ -450,7 +450,12 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   };
 
   const hasRows = !loading && !error && (rows?.length ?? 0) > 0;
-  const showTools = tools && hasRows;
+  // Once the table has shown rows its toolbar stays, also while a filter reloads the list or matches nothing: the open Filter
+  // card hangs from the toolbar's button and would otherwise lose its place (it jumped to the top-left corner).
+  const hadRows = useRef(false);
+  if (hasRows) hadRows.current = true;
+  const showTools = tools && !error && (hasRows || hadRows.current);
+  const total = rows?.length ?? 0;
   const clearFilters = () => { setColumnFilters({}); setFilterOperators({}); };
   // Unnamed columns hold the row actions: they stay at the right edge while the table scrolls sideways (GUI-11).
   const cellClass = (c: Column<T>) => [c.className, primary.has(c.key) ? undefined : 'col-secondary', headerText(c) ? undefined : 'col-actions'].filter(Boolean).join(' ') || undefined;
@@ -467,7 +472,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
             <ToolbarContrItem columnGap="small" alignItems="center">
               <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
                 aria-label="Filter rows" />
-              <span className="muted table-count" aria-live="polite">{needle || activeFilters ? `${sorted.length} of ${rows!.length}` : `${rows!.length}`} row{(needle || activeFilters ? sorted.length : rows!.length) === 1 ? '' : 's'}</span>
+              <span className="muted table-count" aria-live="polite">{loading ? 'Loading…' : <>{needle || activeFilters ? `${sorted.length} of ${total}` : `${total}`} row{(needle || activeFilters ? sorted.length : total) === 1 ? '' : 's'}</>}</span>
             </ToolbarContrItem>
             <ToolbarContrItem justifySelf="end" columnGap="small" alignItems="center">
               <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}

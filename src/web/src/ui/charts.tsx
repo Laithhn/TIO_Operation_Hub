@@ -1,6 +1,6 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router';
-import { DataTable } from './kit';
+import { DataTable, nodeText } from './kit';
 import { ValueField } from '../vt';
 
 // Chart kit for the dashboard. Rules (validated, see docs/DESIGN-RULES.md):
@@ -207,27 +207,41 @@ export const normalizeCountry = (c: string) => ALIASES[c.trim().toLowerCase()] ?
 // The whole tile is a link to the list whose total equals the number.
 /** Accent colours of the KPI tiles: VtWebGuiFramework colours (primary, attention, calmingGreen, attentionHigh, signalError, structureSilver). */
 export type KpiAccent = 'primary' | 'attention' | 'green' | 'amber' | 'red' | 'silver';
-export function Kpi({ value, label, context, part, of, partLabel, tone, valueTone, to, hero, icon, accent = 'primary' }: {
+/** size: "main" for the headline figures (large card), "small" for supporting figures (one detail line, the rest in the tooltip). */
+export function Kpi({ value, label, context, part, of, partLabel, tone, valueTone, to, hero, icon, accent = 'primary', size }: {
   value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; valueTone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode; accent?: KpiAccent;
+  size?: 'main' | 'small';
 }) {
   const nav = useNavigate();
   const pct = part !== undefined && of ? Math.min(100, (part / of) * 100) : null;
   const fill = tone === 'critical' ? STATUS.critical : tone === 'warning' ? STATUS.warning : SERIES.blue;
   return (
-    <div className={`kpi accent-${tone === 'critical' ? 'red' : tone === 'warning' ? 'amber' : accent}${hero ? ' hero' : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
+    <div className={`kpi accent-${tone === 'critical' ? 'red' : tone === 'warning' ? 'amber' : accent}${hero ? ' hero' : ''}${size ? ` ${size}` : ''}${to ? ' link' : ''}${valueTone ? ` value-${valueTone}` : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
       onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
-      aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${to ? '. Open list' : ''}`}>
-      <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
-      {/* VtWebGuiFramework ValueField: label as title, the number in the XL value size, signal colour for critical/warning values. */}
-      <span className="kpi-v">
-        <ValueField title={label} value={value} valueSize={hero ? 'xxl' : 'xl'}
-          darkTheme={!!hero} {...(valueTone && { valueColor: valueTone === 'critical' ? 'signalError' : 'signalWarning' })} />
+      aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${context ? `. ${nodeText(context)}` : ''}${to ? '. Open list' : ''}`}>
+      {/* Compact tile (28 Oct 2026): the icon beside the number, the details in at most two short lines below it. */}
+      {icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}
+      <span className="kpi-main">
+        {/* VtWebGuiFramework ValueField: label as title, the number in the large value size, signal colour for critical/warning values. */}
+        <span className="kpi-v">
+          <ValueField title={label} titleAsLabel value={value} valueSize={hero || size === 'main' ? 'xl' : size === 'small' ? 'normal' : 'large'}
+            darkTheme={!!hero} {...(valueTone && { valueColor: valueTone === 'critical' ? 'signalError' : 'signalWarning' })} />
+        </span>
+        {tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}
       </span>
-      {pct !== null && (
-        <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>
+      {size === 'small' && (partLabel || context) && (
+        <span className="kpi-foot">
+          <span className="kpi-p" title={[partLabel, nodeText(context)].filter(Boolean).join(' · ')}>{partLabel ?? context}</span>
+        </span>
       )}
-      {partLabel && <span className="kpi-p">{partLabel}</span>}
-      {context && <span className="kpi-c">{context}</span>}
+      {size !== 'small' && (pct !== null || partLabel || context) && (
+        <span className="kpi-foot">
+          {pct !== null && <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>}
+          {/* One line each; the full text shows on hover and is part of the tile's accessible name. */}
+          {partLabel && <span className="kpi-p" title={partLabel}>{partLabel}</span>}
+          {context && <span className="kpi-c" title={nodeText(context)}>{context}</span>}
+        </span>
+      )}
     </div>
   );
 }
