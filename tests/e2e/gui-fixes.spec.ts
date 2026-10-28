@@ -574,3 +574,45 @@ test.describe('Responsive sweep', () => {
     expect(failures).toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------- 28 Oct 2026 follow-up --------------------------------------------------
+test.describe('Header pop-ups and the collapsed sidebar', () => {
+  test('the notifications pop-up stays above the dashboard section bar, also while the bar is sticky', async ({ page }) => {
+    await page.goto('/');
+    const bar = page.locator('.dash-nav');
+    await expect(bar).toBeVisible();
+    for (const scrolled of [false, true]) {
+      if (scrolled) await page.locator('#main').evaluate(e => e.scrollTo(0, 400));
+      await page.locator('.bell').getByRole('button').first().click();
+      const pop = page.getByRole('dialog', { name: 'Notifications' });
+      await expect(pop).toBeVisible();
+      const p = await box(pop);
+      const b = await box(bar);
+      // A point inside the pop-up at the height of the section bar belongs to the pop-up.
+      const y = Math.min(Math.max(b.y + b.height / 2, p.y + 10), p.y + p.height - 10);
+      const top = await page.evaluate(([x, y]) => !!document.elementFromPoint(x, y)?.closest('.bell-pop'), [p.x + 30, y]);
+      expect(top, `pop-up on top (scrolled: ${scrolled})`).toBe(true);
+      await page.keyboard.press('Escape');
+      await page.locator('#viMainToolbar h1').click();
+    }
+  });
+
+  test('collapsed, the sidebar shows every entry of the section as an icon', async ({ page }) => {
+    await page.goto('/clients');
+    const side = page.locator('aside.side');
+    const entries = side.locator('.side-nav [class*="menuNode__link"]:not([class*="isSubmenuNode"])');
+    const count = await entries.count();
+    expect(count).toBeGreaterThanOrEqual(4);
+    await page.getByRole('button', { name: 'Collapse menu' }).click();
+    await expect(page.locator('body')).toHaveClass(/side-mini/);
+    const nav = await box(side.locator('.side-nav'));
+    for (let i = 0; i < count; i++) {
+      const e = await box(entries.nth(i));
+      expect(e.y, `entry ${i} top`).toBeGreaterThanOrEqual(nav.y - 1);
+      expect(e.y + e.height, `entry ${i} bottom`).toBeLessThanOrEqual(nav.y + nav.height + 1);
+    }
+    await expect(side.locator('.side-nav')).toHaveJSProperty('scrollTop', 0);
+    await page.getByRole('button', { name: 'Expand menu' }).click();
+    await expect(page.locator('body')).not.toHaveClass(/side-mini/);
+  });
+});

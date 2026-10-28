@@ -36,9 +36,11 @@ body .hub-app.hub-app {
 .hub-main-toolbar { grid-area: viAreaMainToolbar; }
 
 // ---------- header ----------
+// Layer order: page content and its sticky bars (dashboard section bar 40) < header and its pop-ups (bell, "+ New", More)
+// < dialogs (80) < toasts (90). The header is one stacking layer, so it has to sit above every layer of the page.
 .hdr {
   position: relative;
-  z-index: 20;
+  z-index: 50;
   // GUI-10: the primary links that do not fit move into "More" (ui/Shell.tsx useFittingSections); nothing is clipped or hidden in a
   // scroll strip. The invisible copy of the links (.nav-measure) gives their widths.
   [class*="primaryHeader__primaryHeader"] { min-width: 0; position: relative; }
@@ -103,6 +105,9 @@ body .hub-app.hub-app {
   body.side-mini .side {
     width: var(--side-mini);
     overflow: hidden;
+    // The framework sidebar is a grid of a title row and a menu row. With the title hidden, the menu would drop into the
+    // 60 px title row and show a single entry; one full-height row keeps every entry visible.
+    grid-template-rows: minmax(0, 1fr);
     [class*="title__title"], [class*="menuNode__caption"], [class*="menuNode__isSubmenuNode"] { display: none; }
     [class*="menuNode__link"] { grid-template-columns: 1fr; justify-items: center; padding-left: 0; padding-right: vt.spacePx(small); }
     .side-collapse { right: 50%; transform: translateX(50%); }

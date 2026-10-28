@@ -90,7 +90,8 @@ label.right-pick{display:flex;gap:8px;align-items:flex-start;padding:4px 0;font-
 .rank-bar>span{display:block;height:100%;background:#007db3;border-radius:0}
 .rank-n{font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
 .rank-o{font-size:var(--fs-xs);white-space:nowrap}
-.osm-wrap{position:relative}
+/* isolation: the map's own layers (Leaflet panes, zoom buttons at 500) stay inside the map and never cover the header */
+.osm-wrap{position:relative;isolation:isolate}
 .osm{height:400px;background:var(--surface-2);z-index:0}
 .osm-loading{position:absolute;inset:40px 0 0;display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted)}
 .osm-badge{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px solid var(--navy);font:700 12px var(--font);color:var(--navy);position:relative;box-shadow:0 1px 3px rgba(0,30,70,.3)}
