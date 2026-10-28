@@ -6969,3 +6969,24 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028130133_NotificationResolution'
+)
+BEGIN
+    ALTER TABLE [notify].[Notification] ADD [ResolvedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028130133_NotificationResolution'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261028130133_NotificationResolution', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

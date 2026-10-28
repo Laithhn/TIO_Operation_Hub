@@ -1,93 +1,192 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { del, get, post, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
-import { useUrlState } from '../hooks';
+import { useDebounced, useUrlState } from '../hooks';
 import { Icon } from '../ui/Icon';
-import { Badge, Checkbox, DataTable, PageHead, Pager, StateMessage, Tabs, type Column } from '../ui/kit';
+import { Badge, Checkbox, DataTable, PageHead, Pager, StateMessage, Tabs, useToast, type Column } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
+import { buildSections, chipOf, entityOf, relativeTime, severityOf, type Entry, type Notice, type NoticePage } from './notificationModel';
+import './Notifications.css';
 
-/** A38: the notifications center — assignments, due and overdue work and contract renewals, for every role. */
-type Notice = { id: number; kind: string; title: string; body?: string; link?: string; createdAt: string; readAt?: string };
-type NoticePage = { items: Notice[]; page: number; pageSize: number; totalCount: number; unreadCount: number; unreadPayments?: number };
+/**
+ * A38: the notifications center — assignments, due and overdue work, contract renewals and payments, for every role.
+ * A72: severity sections (critical, action required, informational, resolved), grouped related alerts, contextual actions, relative times,
+ * and read state kept apart from business resolution (an alert is resolved by the server when its condition clears, never by reading it).
+ */
 
-const KIND: Record<string, { label: string; tone: string }> = {
-  Assigned: { label: 'Assigned to you', tone: 'info' }, Team: { label: 'Project team', tone: 'info' }, Handover: { label: 'Handover', tone: 'info' },
-  DueSoon: { label: 'Due soon', tone: 'warn' }, Overdue: { label: 'Overdue', tone: 'bad' }, Renewal: { label: 'Contract renewal', tone: 'warn' }, PaymentDue: { label: 'Payment due', tone: 'warn' }, PaymentOverdue: { label: 'Payment overdue', tone: 'bad' }
-};
-
-function ago(iso: string) {
-  const m = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m} min ago`;
-  const h = Math.round(m / 60);
-  if (h < 24) return `${h} h ago`;
-  const d = Math.round(h / 24);
-  return d < 8 ? `${d} d ago` : fmtDateTime(iso);
+function When({ iso }: { iso: string }) {
+  const rel = relativeTime(iso);
+  return <time dateTime={iso} title={fmtDateTime(iso)}>{rel ?? fmtDate(iso)}</time>;
 }
 
 function useNoticeActions() {
   const qc = useQueryClient();
+  const toast = useToast();
   const refresh = () => qc.invalidateQueries({ queryKey: ['notifications'] });
+  // Read state changes are idempotent on the server; failures are reported and the lists reloaded from the server.
+  const run = async (f: () => Promise<unknown>, failure: string) => { try { await f(); } catch { toast(failure, true); } finally { await refresh(); } };
   return {
-    read: async (n: Notice) => { if (!n.readAt) { await post(`/notifications/${n.id}/read`); refresh(); } },
-    readAll: async () => { await post('/notifications/read-all'); refresh(); },
-    remove: async (n: Notice) => { await del(`/notifications/${n.id}`); refresh(); }
+    read: (n: Notice) => n.readAt ? Promise.resolve() : run(() => post(`/notifications/${n.id}/read`), 'The notification could not be marked as read.'),
+    readMany: (list: Notice[]) => {
+      const ids = list.filter(n => !n.readAt).map(n => n.id);
+      return ids.length ? run(() => post('/notifications/read', { ids }), 'The notifications could not be marked as read.') : Promise.resolve();
+    },
+    readAll: () => run(() => post('/notifications/read-all'), 'The notifications could not be marked as read.'),
+    remove: (n: Notice) => run(() => del(`/notifications/${n.id}`), 'The notification could not be deleted.')
   };
 }
 
-function NoticeItem({ n, onOpen, compact }: { n: Notice; onOpen: (n: Notice) => void; compact?: boolean }) {
-  const k = KIND[n.kind] ?? { label: n.kind, tone: 'info' };
+/** One notice: icon, title, description, source and time, status chip (text, not colour alone), unread dot and its action. */
+function NoticeCard({ n, onOpen, extra, nested }: { n: Notice; onOpen: (n: Notice) => void; extra?: React.ReactNode; nested?: boolean }) {
+  const sev = n.resolvedAt ? 'resolved' : severityOf(n);
+  const e = entityOf(n);
+  const unread = !n.readAt && !n.resolvedAt;
   return (
-    <div className={`notice-item${n.readAt ? '' : ' unread'}`}>
-      <span className={`notice-dot tone-${k.tone}`} aria-hidden="true" />
-      <div className="notice-text">
-        <button className="notice-title" onClick={() => onOpen(n)}>{n.title}</button>
-        {n.body && !compact && <div className="hint">{n.body}</div>}
-        <div className="notice-meta"><span className={`notice-kind tone-${k.tone}`}>{k.label}</span> · <span title={fmtDateTime(n.createdAt)}>{ago(n.createdAt)}</span>{!n.readAt && <span className="sr"> · unread</span>}</div>
+    <div className={`ntf ntf-${sev}${unread ? ' unread' : ''}${nested ? ' nested' : ''}`} data-notice={n.id}>
+      <span className="ntf-dot" aria-hidden="true" />
+      {!nested && <span className="ntf-icon" aria-hidden="true"><Icon name={e.icon} size={18} /></span>}
+      <div className="ntf-main">
+        <div className="ntf-title">{n.title}</div>
+        {n.body && <div className="ntf-body">{n.body}</div>}
+        <div className="ntf-meta">{!nested && <>{e.source} · </>}<When iso={n.createdAt} />{unread && <span className="sr"> · Unread</span>}</div>
+      </div>
+      <div className="ntf-side">
+        <span className="ntf-chip">{chipOf(n)}</span>
+        {n.link ? <button type="button" className="ntf-act" onClick={() => onOpen(n)} aria-label={`${e.action}: ${n.title}`}>{e.action}</button>
+          : unread && <button type="button" className="ntf-act" onClick={() => onOpen(n)}>Mark as read</button>}
+        {extra}
       </div>
     </div>
   );
 }
 
-/** Header bell: unread count (checked every minute) and the latest notices. */
-export function NotificationBell() {
+/** Related alerts as one card ("2 overdue commitments"); expanding shows each one with its own state and action. */
+function GroupCard({ g, onOpen, onReadAll, extra }: { g: Extract<Entry, { type: 'group' }>; onOpen: (n: Notice) => void; onReadAll: (l: Notice[]) => void; extra?: (n: Notice) => React.ReactNode }) {
   const [open, setOpen] = useState(false);
-  const root = useRef<HTMLDivElement>(null);
-  const nav = useNavigate();
-  const act = useNoticeActions();
-  const count = useQuery({ queryKey: ['notifications', 'count'], queryFn: () => get<{ count: number }>('/notifications/unread-count'), refetchInterval: 60_000, refetchOnWindowFocus: true });
-  const list = useQuery({ queryKey: ['notifications', 'latest'], queryFn: () => get<NoticePage>('/notifications?pageSize=8'), enabled: open });
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: MouseEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('mousedown', away); document.addEventListener('keydown', esc);
-    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc); };
-  }, [open]);
-  const n = count.data?.count ?? 0;
-  const openNotice = async (x: Notice) => { setOpen(false); await act.read(x); if (x.link) nav(x.link); };
+  const first = g.notices[0];
+  const e = entityOf(first);
+  const unread = g.notices.filter(n => !n.readAt).length;
+  const sev = severityOf(first);
+  const id = `ntf-g-${first.id}`;
   return (
-    <div className="bell" ref={root}>
-      <button className="hdr-btn bell-btn" onClick={() => setOpen(o => !o)} aria-haspopup="dialog" aria-expanded={open} aria-label={n ? `Notifications, ${n} unread` : 'Notifications'} title="Notifications">
-        <Icon name="bell" size={18} />{n > 0 && <span className="bell-count" aria-hidden="true">{n > 99 ? '99+' : n}</span>}
-      </button>
+    <div className={`ntf-group ntf-${sev}${unread ? ' unread' : ''}`}>
+      <div className="ntf">
+        <span className="ntf-dot" aria-hidden="true" />
+        <span className="ntf-icon" aria-hidden="true"><Icon name={e.icon} size={18} /></span>
+        <div className="ntf-main">
+          <div className="ntf-title">{g.title}</div>
+          {g.body && <div className="ntf-body">{g.body}</div>}
+          <div className="ntf-meta">{e.source} · <When iso={first.createdAt} />{unread > 0 && <span className="sr"> · {unread} unread</span>}</div>
+        </div>
+        <div className="ntf-side">
+          <span className="ntf-chip">{chipOf(first)}</span>
+          <button type="button" className="ntf-act" aria-expanded={open} aria-controls={id} onClick={() => setOpen(o => !o)}>{open ? 'Hide' : `View ${e.plural}`} ({g.notices.length})</button>
+        </div>
+      </div>
       {open && (
-        <div className="bell-pop" role="dialog" aria-label="Notifications">
-          <div className="bell-head"><b>Notifications</b>{n > 0 && <button className="linkbtn" onClick={act.readAll}>Mark all read</button>}</div>
-          <div className="bell-list">
-            {list.isLoading && <div className="state-msg"><span className="spin" /> Loading…</div>}
-            {list.data?.items.length === 0 && <div className="state-msg">You are all caught up.</div>}
-            {list.data?.items.map(x => <NoticeItem key={x.id} n={x} onOpen={openNotice} compact />)}
-          </div>
-          <div className="bell-foot"><Link to="/notifications" onClick={() => setOpen(false)}>Open the notifications center</Link></div>
+        <div className="ntf-members" id={id}>
+          {g.notices.map(n => <NoticeCard key={n.id} n={n} onOpen={onOpen} nested extra={extra?.(n)} />)}
+          {unread > 0 && <button type="button" className="linkbtn ntf-group-read" onClick={() => onReadAll(g.notices)}>Mark these {g.notices.length} as read</button>}
         </div>
       )}
     </div>
   );
 }
 
+function NoticeSections({ items, onOpen, onReadAll, extra }: { items: Notice[]; onOpen: (n: Notice) => void; onReadAll: (l: Notice[]) => void; extra?: (n: Notice) => React.ReactNode }) {
+  return (
+    <>
+      {buildSections(items).map(s => (
+        <section key={s.key} className={`ntf-section ntf-sec-${s.key}`} aria-label={s.label}>
+          <h3 className="ntf-sec-head"><Icon name={s.icon} size={16} /> {s.label}</h3>
+          {s.entries.map(en => en.type === 'one'
+            ? <NoticeCard key={en.notice.id} n={en.notice} onOpen={onOpen} extra={extra?.(en.notice)} />
+            : <GroupCard key={en.key} g={en} onOpen={onOpen} onReadAll={onReadAll} extra={extra} />)}
+        </section>
+      ))}
+    </>
+  );
+}
+
+type Filter = 'all' | 'unread' | 'critical';
+const EMPTY: Record<Filter, string> = {
+  all: 'No notifications yet.', unread: "You're all caught up. No unread notifications.", critical: 'Nothing critical or overdue right now.'
+};
+const filterQuery = (f: Filter) => f === 'unread' ? { unread: true } : f === 'critical' ? { severity: 'critical', state: 'open' } : {};
+
+/** Keyboard support for a row of tabs: arrow keys, Home and End move between them (WAI-ARIA tabs pattern). */
+function tabKeys(e: ReactKeyboardEvent<HTMLDivElement>) {
+  const tabs = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]'));
+  const i = tabs.indexOf(document.activeElement as HTMLButtonElement);
+  const next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : null;
+  if (next === null || i < 0) return;
+  e.preventDefault();
+  const t = tabs[(next + tabs.length) % tabs.length];
+  t.focus(); t.click();
+}
+
+/** Header bell: unread count (checked every minute) and the notices by severity. */
+export function NotificationBell() {
+  const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<Filter>('all');
+  const root = useRef<HTMLDivElement>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  const nav = useNavigate();
+  const act = useNoticeActions();
+  const [busy, setBusy] = useState(false);
+  const count = useQuery({ queryKey: ['notifications', 'count'], queryFn: () => get<{ count: number }>('/notifications/unread-count'), refetchInterval: 60_000, refetchOnWindowFocus: true });
+  const list = useQuery({ queryKey: ['notifications', 'pop', filter], queryFn: () => get<NoticePage>(`/notifications${qs({ ...filterQuery(filter), sort: 'severity', pageSize: 50 })}`), enabled: open });
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: MouseEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); btn.current?.focus(); } };
+    document.addEventListener('mousedown', away); document.addEventListener('keydown', esc);
+    root.current?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]')?.focus();
+    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc); };
+  }, [open]);
+  // The list's counters are fresher than the bell's minute check while the pop-up is open.
+  const n = list.data?.unreadCount ?? count.data?.count ?? 0;
+  const critical = list.data?.criticalCount;
+  const openNotice = async (x: Notice) => {
+    if (x.link) setOpen(false);
+    await act.read(x);
+    if (x.link) nav(x.link);
+  };
+  const readAll = async () => { setBusy(true); try { await act.readAll(); } finally { setBusy(false); } };
+  const tabs: { key: Filter; label: string }[] = [
+    { key: 'all', label: 'All' }, { key: 'unread', label: `Unread (${n})` }, { key: 'critical', label: critical === undefined ? 'Critical' : `Critical (${critical})` }
+  ];
+  const d = list.data;
+  return (
+    <div className="bell" ref={root}>
+      <button ref={btn} className="hdr-btn bell-btn" onClick={() => setOpen(o => !o)} aria-haspopup="dialog" aria-expanded={open} aria-label={n ? `Notifications, ${n} unread` : 'Notifications'} title="Notifications">
+        <Icon name="bell" size={18} />{n > 0 && <span className="bell-count" aria-hidden="true">{n > 99 ? '99+' : n}</span>}
+      </button>
+      {open && (
+        <div className="bell-pop ntf-pop" role="dialog" aria-label="Notifications">
+          <div className="ntf-head">
+            <h2>Notifications</h2>
+            {n > 0 && <span className="ntf-count" aria-label={`${n} unread`}>{n > 99 ? '99+' : n}</span>}
+            <button type="button" className="linkbtn ntf-readall" onClick={readAll} disabled={n === 0 || busy}>{busy ? 'Marking…' : 'Mark all as read'}</button>
+          </div>
+          <div className="ntf-tabs" role="tablist" aria-label="Show" onKeyDown={tabKeys}>
+            {tabs.map(t => <button key={t.key} type="button" role="tab" aria-selected={filter === t.key} tabIndex={filter === t.key ? 0 : -1} onClick={() => setFilter(t.key)}>{t.label}</button>)}
+          </div>
+          <div className="ntf-list" role="tabpanel" aria-label={tabs.find(t => t.key === filter)!.label} aria-busy={list.isFetching}>
+            {list.isLoading && <div className="state-msg"><span className="spin" /> Loading…</div>}
+            {list.isError && <div className="state-msg ntf-error" role="alert">Notifications could not be loaded. <button type="button" className="linkbtn" onClick={() => list.refetch()}>Try again</button></div>}
+            {d && d.items.length === 0 && <div className="state-msg ntf-empty">{EMPTY[filter]}</div>}
+            {d && <NoticeSections items={d.items} onOpen={openNotice} onReadAll={act.readMany} />}
+            {d && d.totalCount > d.items.length && <p className="hint ntf-more">{d.totalCount - d.items.length} more in the notifications center.</p>}
+          </div>
+          <div className="bell-foot"><Link to="/notifications" onClick={() => setOpen(false)}><Icon name="list" size={16} /> Open the notifications center</Link></div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 type Payment = {
   id: number; contractId: number; contractRef: string; contractTitle: string; clientId: number; clientCode: string; owner?: string | null; condition: string;
@@ -153,33 +252,52 @@ function PaymentsTab({ state, mine, onState, onMine }: { state: string; mine: bo
 }
 
 export function NotificationsPage() {
-  const [f, set] = useUrlState({ show: 'all', state: 'attention', mine: '', page: '1', pageSize: '25' });
+  const [f, set] = useUrlState({ show: 'all', severity: '', status: '', q: '', state: 'attention', mine: '', page: '1', pageSize: '25' });
   const payments = f.show === 'payments';
-  const q = useQuery({ queryKey: ['notifications', 'page', f.show, f.page, f.pageSize], queryFn: () => get<NoticePage>(`/notifications${qs({ unread: f.show === 'unread' ? true : undefined, category: payments ? 'payments' : undefined, page: f.page, pageSize: f.pageSize })}`) });
+  const [text, setText] = useState(f.q);
+  const dq = useDebounced(text);
+  useEffect(() => { if (dq !== f.q) set({ q: dq, page: '1' }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
+  const params = {
+    unread: f.show === 'unread' ? true : undefined, category: payments ? 'payments' : undefined,
+    severity: f.show === 'critical' ? 'critical' : f.severity || undefined, state: f.show === 'critical' ? 'open' : f.status || undefined,
+    q: f.q || undefined, sort: 'severity', page: f.page, pageSize: f.pageSize
+  };
+  const q = useQuery({ queryKey: ['notifications', 'page', params], queryFn: () => get<NoticePage>(`/notifications${qs(params)}`) });
   const act = useNoticeActions();
   const nav = useNavigate();
   const openNotice = async (x: Notice) => { await act.read(x); if (x.link) nav(x.link); };
   const d = q.data;
+  const filtered = !!(f.q || f.severity || f.status);
+  const tools = (x: Notice) => <span className="ntf-row-actions">
+    {!x.readAt && !x.resolvedAt && <button type="button" className="linkbtn" onClick={() => act.read(x)} aria-label={`Mark as read: ${x.title}`}>Mark as read</button>}
+    <button type="button" className="linkbtn danger-link" onClick={() => act.remove(x)} aria-label={`Delete notification ${x.title}`}>Delete</button>
+  </span>;
   return (
     <>
-      <PageHead title="Notifications" sub="Work assigned to you, due and overdue cases and commitments, contracts that need a renewal decision and contract payments coming due. Read notices are cleared after 90 days."
-        actions={d && d.unreadCount > 0 && <button className="btn" onClick={act.readAll}>Mark all read ({d.unreadCount})</button>} />
+      <PageHead title="Notifications" sub="Work assigned to you, due and overdue cases, commitments and escalations, contracts that need a renewal decision and contract payments coming due. Alerts are resolved automatically when their cause is cleared; read and resolved notices are cleared after 90 days."
+        actions={d && d.unreadCount > 0 && <button className="btn" onClick={act.readAll}>Mark all as read ({d.unreadCount})</button>} />
       <Tabs value={f.show} onChange={v => set({ show: v, page: '1' })} tabs={[{ key: 'all', label: 'All' }, { key: 'unread', label: `Unread${d ? ` (${d.unreadCount})` : ''}` },
+        { key: 'critical', label: `Critical${d?.criticalCount !== undefined ? ` (${d.criticalCount})` : ''}` },
         { key: 'payments', label: `Payments${d?.unreadPayments ? ` (${d.unreadPayments} unread)` : ''}` }]} />
       {payments && <PaymentsTab state={f.state} mine={f.mine === '1'} onState={s => set({ state: s })} onMine={v => set({ mine: v ? '1' : '' })} />}
       {payments && <h2 className="band-title" style={{ margin: '18px 0 8px' }}>Payment reminders</h2>}
-      <div className="panel notice-page">
+      <div className="toolbar ntf-filters">
+        <label className="field"><span className="flabel">Search</span>
+          <input className="input" type="search" value={text} onChange={e => setText(e.target.value)} placeholder="Title, reference or description" aria-label="Search notifications" maxLength={100} /></label>
+        {f.show !== 'critical' && <label className="field"><span className="flabel">Importance</span>
+          <select className="input" value={f.severity} onChange={e => set({ severity: e.target.value, page: '1' })} aria-label="Filter by importance">
+            <option value="">All</option><option value="critical">Critical / overdue</option><option value="action">Action required</option><option value="info">Informational</option>
+          </select></label>}
+        {f.show !== 'critical' && <label className="field"><span className="flabel">Business state</span>
+          <select className="input" value={f.status} onChange={e => set({ status: e.target.value, page: '1' })} aria-label="Filter by business state">
+            <option value="">Open and resolved</option><option value="open">Open</option><option value="resolved">Resolved</option>
+          </select></label>}
+      </div>
+      <div className="panel notice-page ntf-page">
         {q.isLoading && <StateMessage kind="loading" />}
-        {d && d.items.length === 0 && <StateMessage kind="none">{f.show === 'unread' ? 'No unread notifications.' : payments ? 'No payment reminders yet.' : 'No notifications yet.'}</StateMessage>}
-        {d?.items.map(x => (
-          <div key={x.id} className="notice-row">
-            <NoticeItem n={x} onOpen={openNotice} />
-            <span className="notice-actions">
-              {!x.readAt && <button className="linkbtn" onClick={() => act.read(x)}>Mark read</button>}
-              <button className="linkbtn danger-link" onClick={() => act.remove(x)} aria-label={`Delete notification ${x.title}`}>Delete</button>
-            </span>
-          </div>
-        ))}
+        {q.isError && <StateMessage kind="error">Notifications could not be loaded. <button className="linkbtn" onClick={() => q.refetch()}>Try again</button></StateMessage>}
+        {d && d.items.length === 0 && <StateMessage kind={filtered ? 'nomatch' : 'none'}>{filtered ? 'No notifications match these filters.' : f.show === 'unread' ? "You're all caught up. No unread notifications." : f.show === 'critical' ? 'Nothing critical or overdue right now.' : payments ? 'No payment reminders yet.' : 'No notifications yet.'}</StateMessage>}
+        {d && <NoticeSections items={d.items} onOpen={openNotice} onReadAll={act.readMany} extra={tools} />}
       </div>
       {d && d.totalCount > 0 && <Pager page={d.page} pageSize={d.pageSize} total={d.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
     </>

@@ -30,11 +30,45 @@ public class Notification
     public string Key { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ReadAt { get; set; }
+    /// <summary>A72: when the business condition behind a recurring alert cleared (paid, done, end date recorded). Independent of <see cref="ReadAt"/>.</summary>
+    public DateTimeOffset? ResolvedAt { get; set; }
 }
 
 public static class NotificationKinds
 {
     public const string Assigned = "Assigned", Overdue = "Overdue", DueSoon = "DueSoon", Renewal = "Renewal", Team = "Team", Handover = "Handover", PaymentDue = "PaymentDue", PaymentOverdue = "PaymentOverdue";
+}
+
+/// <summary>
+/// A72: how important a notice is, derived from its kind (no stored column, so every existing notice has one):
+/// critical = overdue work and overdue payments; action = due soon, payments due, contract renewal decisions (including a missing end date)
+/// and handovers to acknowledge; info = assignments, project team, reports and anything else.
+/// </summary>
+public static class NotificationSeverity
+{
+    public const string Critical = "critical", Action = "action", Info = "info";
+    public static readonly string[] CriticalKinds = [NotificationKinds.Overdue, NotificationKinds.PaymentOverdue];
+    public static readonly string[] ActionKinds = [NotificationKinds.DueSoon, NotificationKinds.PaymentDue, NotificationKinds.Renewal, NotificationKinds.Handover];
+
+    public static string Of(string kind) => CriticalKinds.Contains(kind) ? Critical : ActionKinds.Contains(kind) ? Action : Info;
+
+    /// <summary>The record a notice is about, from its link (payment reminders link to their contract).</summary>
+    public static string? EntityOf(string kind, string? link) => link switch
+    {
+        null => null,
+        _ when kind is NotificationKinds.PaymentDue or NotificationKinds.PaymentOverdue => "Payment",
+        _ when link.StartsWith("/cases/") => "Case",
+        _ when link.StartsWith("/commitments/") => "Commitment",
+        _ when link.StartsWith("/escalations/") => "Escalation",
+        _ when link.StartsWith("/contracts/") => "Contract",
+        _ when link.StartsWith("/clients/") => "Client",
+        _ when link.StartsWith("/projects/") => "Project",
+        _ when link.StartsWith("/environments/") => "Environment",
+        _ when link.StartsWith("/assets/") => "Server",
+        _ when link.StartsWith("/handovers") => "Handover",
+        _ when link.StartsWith("/reporting-center") || link.StartsWith("/reports") => "Report",
+        _ => null
+    };
 }
 
 /// <summary>Finds new assignments in a save, so the notices can be written once the records have their ids.</summary>
@@ -91,7 +125,11 @@ public static class AssignmentNotices
     }
 }
 
-/// <summary>Checks active reminders on a configurable interval and reopens them until the underlying condition is resolved.</summary>
+/// <summary>
+/// Checks active reminders on a configurable interval. A72: an alert whose condition cleared is marked resolved (its read state is kept);
+/// one that is still active and was read is shown as unread again once it has been read for <c>Notifications:RemindAfterHours</c>
+/// (default 0 = at every scan, as before 2.39 — owner choice, 28 Oct 2026). A resolved alert whose condition returns opens again, unread.
+/// </summary>
 public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfiguration config, ILogger<NotificationScanner> log) : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stop)
@@ -104,14 +142,17 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
             try
             {
                 using var scope = scopes.CreateScope();
-                await ScanAsync(scope.ServiceProvider.GetRequiredService<HubDbContext>(), scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow(), stop);
+                await ScanAsync(scope.ServiceProvider.GetRequiredService<HubDbContext>(), scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow(), stop,
+                    config.GetValue("Notifications:RemindAfterHours", DefaultRemindAfterHours));
             }
             catch (Exception ex) when (ex is not OperationCanceledException) { log.LogError(ex, "Notification scan failed"); }
             await Task.Delay(TimeSpan.FromMinutes(minutes), stop);
         }
     }
 
-    public static async Task<int> ScanAsync(HubDbContext db, DateTimeOffset now, CancellationToken ct)
+    public const int DefaultRemindAfterHours = 0;
+
+    public static async Task<int> ScanAsync(HubDbContext db, DateTimeOffset now, CancellationToken ct, int remindAfterHours = DefaultRemindAfterHours)
     {
         var soon = now.AddDays(2);
         var found = new List<Notification>();
@@ -184,8 +225,9 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
             n.Key.StartsWith("commitment-due:") || n.Key.StartsWith("commitment-overdue:") ||
             n.Key.StartsWith("escalation-due:") || n.Key.StartsWith("escalation-overdue:") ||
             n.Key.StartsWith("contract-") || n.Key.StartsWith("payment-due:") || n.Key.StartsWith("payment-overdue:"));
-        var existingAlerts = await recurring.Where(n => n.ReadAt == null || keys.Contains(n.Key)).ToListAsync(ct);
+        var existingAlerts = await recurring.Where(n => n.ResolvedAt == null || keys.Contains(n.Key)).ToListAsync(ct);
         var existingByPair = existingAlerts.ToDictionary(n => (n.UserId, n.Key));
+        var remindBefore = now.AddHours(-Math.Max(0, remindAfterHours));
         foreach (var notice in existingAlerts)
         {
             if (current.TryGetValue((notice.UserId, notice.Key), out var active))
@@ -194,18 +236,19 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
                 notice.Title = active.Title;
                 notice.Body = active.Body;
                 notice.Link = active.Link;
-                notice.ReadAt = null;
+                if (notice.ResolvedAt is not null) { notice.ResolvedAt = null; notice.ReadAt = null; }   // the condition is back
+                else if (notice.ReadAt is { } read && read <= remindBefore) notice.ReadAt = null;      // still open: remind
             }
-            else if (notice.ReadAt is null)
+            else if (notice.ResolvedAt is null)
             {
-                // Resolving the source condition clears the recurring alert from the unread list.
-                notice.ReadAt = now;
+                // A72: the source condition cleared — the alert is resolved; whether it was read stays as it was.
+                notice.ResolvedAt = now;
             }
         }
         var fresh = current.Values.Where(n => !existingByPair.ContainsKey((n.UserId, n.Key))).ToList();
         db.Notifications.AddRange(fresh);
-        // Read notices older than 90 days are cleared.
-        await db.Notifications.Where(n => n.ReadAt != null && n.ReadAt < now.AddDays(-90)).ExecuteDeleteAsync(ct);
+        // Read notices, and alerts resolved, more than 90 days ago are cleared.
+        await db.Notifications.Where(n => (n.ReadAt != null && n.ReadAt < now.AddDays(-90)) || (n.ResolvedAt != null && n.ResolvedAt < now.AddDays(-90))).ExecuteDeleteAsync(ct);
         await db.SaveChangesAsync(ct);
         return fresh.Count;
     }
@@ -213,29 +256,77 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
 
 public static class NotificationEndpoints
 {
+    public sealed record IdsInput(List<long>? Ids);
+
     public static void MapNotificationEndpoints(this RouteGroupBuilder api)
     {
         var g = api.MapGroup("/notifications").WithTags("Notifications");
-        g.MapGet("", async (bool? unread, string? category, int? page, int? pageSize, HubDbContext db, UserContext me, CancellationToken ct) =>
+        var critical = NotificationSeverity.CriticalKinds;
+        var action = NotificationSeverity.ActionKinds;
+        // A72: "unread" means unread and still open — a resolved alert needs no attention, whatever its read state.
+        g.MapGet("", async (bool? unread, string? category, string? severity, string? state, string? q, string? sort, int? page, int? pageSize, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var uid = me.UserId ?? throw new ForbiddenException("Sign in to see notifications.");
-            var q = db.Notifications.AsNoTracking().Where(n => n.UserId == uid);
-            if (unread == true) q = q.Where(n => n.ReadAt == null);
+            var query = db.Notifications.AsNoTracking().Where(n => n.UserId == uid);
+            if (unread == true) query = query.Where(n => n.ReadAt == null && n.ResolvedAt == null);
             // A50: the Payments tab — payment reminders by their key, so notices written before the PaymentOverdue kind are included.
-            if (category == "payments") q = q.Where(n => n.Key.StartsWith("payment-"));
+            if (category == "payments") query = query.Where(n => n.Key.StartsWith("payment-"));
             else if (category is not null) throw new ValidationException("category", "Unknown notification category.");
-            var paged = await q.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id)
-                .Select(n => new { n.Id, n.Kind, n.Title, n.Body, n.Link, n.CreatedAt, n.ReadAt }).ToPagedAsync(PageQuery.From(page, pageSize ?? 20), ct);
-            var unreadCount = await db.Notifications.CountAsync(n => n.UserId == uid && n.ReadAt == null, ct);
-            var unreadPayments = await db.Notifications.CountAsync(n => n.UserId == uid && n.ReadAt == null && n.Key.StartsWith("payment-"), ct);
-            return Results.Ok(new { paged.Items, paged.Page, paged.PageSize, paged.TotalCount, unreadCount, unreadPayments });
+            query = severity switch
+            {
+                null or "" => query,
+                NotificationSeverity.Critical => query.Where(n => critical.Contains(n.Kind)),
+                NotificationSeverity.Action => query.Where(n => action.Contains(n.Kind)),
+                NotificationSeverity.Info => query.Where(n => !critical.Contains(n.Kind) && !action.Contains(n.Kind)),
+                _ => throw new ValidationException("severity", "Choose critical, action or info.")
+            };
+            query = state switch
+            {
+                null or "" => query,
+                "open" => query.Where(n => n.ResolvedAt == null),
+                "resolved" => query.Where(n => n.ResolvedAt != null),
+                _ => throw new ValidationException("state", "Choose open or resolved.")
+            };
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var t = q.Trim();
+                if (t.Length > 100) throw new ValidationException("q", "Search with at most 100 characters.");
+                query = query.Where(n => n.Title.Contains(t) || (n.Body != null && n.Body.Contains(t)));
+            }
+            // sort=severity: open critical, action, information, then resolved; newest first within each.
+            var ordered = sort == "severity"
+                ? query.OrderBy(n => n.ResolvedAt != null ? 3 : critical.Contains(n.Kind) ? 0 : action.Contains(n.Kind) ? 1 : 2).ThenByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id)
+                : query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id);
+            var paged = await ordered.Select(n => new { n.Id, n.Kind, n.Title, n.Body, n.Link, n.CreatedAt, n.ReadAt, n.ResolvedAt }).ToPagedAsync(PageQuery.From(page, pageSize ?? 20), ct);
+            // One grouped query for the counters of the tabs (no query per notice).
+            var counts = await db.Notifications.Where(n => n.UserId == uid && n.ResolvedAt == null)
+                .GroupBy(n => 1).Select(x => new
+                {
+                    unread = x.Count(n => n.ReadAt == null),
+                    critical = x.Count(n => critical.Contains(n.Kind)),
+                    unreadPayments = x.Count(n => n.ReadAt == null && n.Key.StartsWith("payment-"))
+                }).FirstOrDefaultAsync(ct);
+            var items = paged.Items.Select(n => new
+            {
+                n.Id, n.Kind, n.Title, n.Body, n.Link, n.CreatedAt, n.ReadAt, n.ResolvedAt,
+                severity = NotificationSeverity.Of(n.Kind), entityType = NotificationSeverity.EntityOf(n.Kind, n.Link)
+            });
+            return Results.Ok(new { items, paged.Page, paged.PageSize, paged.TotalCount, unreadCount = counts?.unread ?? 0, criticalCount = counts?.critical ?? 0, unreadPayments = counts?.unreadPayments ?? 0 });
         });
         g.MapGet("/unread-count", async (HubDbContext db, UserContext me, CancellationToken ct) =>
-            Results.Ok(new { count = me.UserId is { } uid ? await db.Notifications.CountAsync(n => n.UserId == uid && n.ReadAt == null, ct) : 0 }));
+            Results.Ok(new { count = me.UserId is { } uid ? await db.Notifications.CountAsync(n => n.UserId == uid && n.ReadAt == null && n.ResolvedAt == null, ct) : 0 }));
         g.MapPost("/{id:long}/read", async (long id, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
             await db.Notifications.Where(n => n.Id == id && n.UserId == me.UserId && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
             return Results.NoContent();
+        });
+        // A72: several notices at once (a group in the pop-up); only the caller's own rows are touched, others are ignored.
+        g.MapPost("/read", async (IdsInput input, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
+        {
+            var ids = (input.Ids ?? []).Distinct().ToList();
+            if (ids.Count == 0 || ids.Count > 500) throw new ValidationException("ids", "Send between 1 and 500 notification ids.");
+            var n = await db.Notifications.Where(n => ids.Contains(n.Id) && n.UserId == me.UserId && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
+            return Results.Ok(new { marked = n });
         });
         g.MapPost("/read-all", async (HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {

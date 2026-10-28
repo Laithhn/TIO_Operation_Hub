@@ -3857,6 +3857,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("ReadAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
