@@ -53,7 +53,12 @@ async function openFilter(page: Page) {
 test.describe('GUI-01 Reporting Center route', () => {
   test('authorized: menu, direct URL, refresh and back stay in the hub; the old /reports address redirects', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' }).click();
+    // A70: a first-level header section, no longer in the Dashboard's section menu.
+    await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' })).toHaveCount(0);
+    const main = page.getByRole('navigation', { name: 'Main' });
+    const inHeader = main.locator(':scope > a', { hasText: 'Reporting Center' });
+    if (await inHeader.count()) await inHeader.click();
+    else { await main.getByRole('button', { name: /^More/ }).click(); await page.locator('#nav-more-list').getByRole('link', { name: 'Reporting Center' }).click(); }
     await expect(page).toHaveURL(/\/reporting-center$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Reporting Center' })).toBeVisible();
     await page.reload();
@@ -64,8 +69,11 @@ test.describe('GUI-01 Reporting Center route', () => {
     await expect(page).toHaveURL(/\/reporting-center$/);
     // Direct URL with a tab, and the old address (bookmarks, notifications stored before the move).
     await page.goto('/reports?tab=history');
-    await expect(page).toHaveURL(/\/reporting-center\?tab=history$/);
-    await expect(page.getByRole('tab', { name: 'Export history' })).toHaveAttribute('aria-selected', 'true');
+    await expect(page).toHaveURL(/\/reporting-center\/history$/);
+    await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Export history' })).toHaveAttribute('aria-current', 'page');
+    await expect(page.getByRole('navigation', { name: 'Main' }).locator('a[aria-current="page"]')).toHaveText('Reporting Center');
+    await page.goto('/reports/schedules');
+    await expect(page).toHaveURL(/\/reporting-center\/schedules$/);
     await expect(page.getByText(/Report Manager/)).toHaveCount(0);
   });
 
@@ -399,7 +407,7 @@ test.describe('GUI-10 Global navigation', () => {
   test('every section is reachable from the phone and tablet drawer; Escape closes it and returns focus', async ({ page }) => {
     await page.goto('/');
     const sections = await page.locator('.nav-measure [data-key]').allTextContents();
-    expect(sections).toHaveLength(9);
+    expect(sections).toHaveLength(10);
     for (const width of [360, 390, 768]) {
       await page.setViewportSize({ width, height: 800 });
       await page.goto('/products');
@@ -450,7 +458,7 @@ test.describe('GUI-10 Global navigation', () => {
     const more = main.getByRole('button', { name: /^More/ });
     await more.click();
     const rest = await page.locator('#nav-more-list a').allInnerTexts();
-    expect([...inHeader, ...rest].sort()).toEqual(['Administration', 'Cases', 'Clients', 'Commitments', 'Dashboard', 'Escalations', 'Notes', 'Products', 'Teams']);
+    expect([...inHeader, ...rest].sort()).toEqual(['Administration', 'Cases', 'Clients', 'Commitments', 'Dashboard', 'Escalations', 'Notes', 'Products', 'Reporting Center', 'Teams']);
     await expect(page.locator('#nav-more-list a').first()).toBeFocused();
     await page.screenshot({ path: 'test-results/gui-10-header-1024.png' });
     await page.keyboard.press('Escape');

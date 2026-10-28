@@ -4187,8 +4187,14 @@ namespace TioHub.Api.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
                     b.Property<Guid>("AuditId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("CancelRequested")
+                        .HasColumnType("bit");
 
                     b.Property<string>("ColumnsJson")
                         .HasMaxLength(2000)
@@ -4196,6 +4202,13 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<DateTimeOffset?>("CompletedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("CutoffAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DefinitionJson")
+                        .HasMaxLength(32000)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Error")
                         .HasMaxLength(1000)
@@ -4226,6 +4239,17 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<string>("IdempotencyKey")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
+                    b.Property<DateTimeOffset?>("NotBefore")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("OptionsJson")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<string>("Report")
                         .IsRequired()
                         .HasMaxLength(60)
@@ -4244,6 +4268,9 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<int?>("RowCount")
                         .HasColumnType("int");
+
+                    b.Property<long?>("SavedReportId")
+                        .HasColumnType("bigint");
 
                     b.Property<long?>("ScheduleId")
                         .HasColumnType("bigint");
@@ -4278,9 +4305,17 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("AuditId")
                         .IsUnique();
 
+                    b.HasIndex("SavedReportId");
+
                     b.HasIndex("ScheduleId");
 
                     b.HasIndex("Status", "ExpiresAt");
+
+                    b.HasIndex("Status", "NotBefore");
+
+                    b.HasIndex("UserId", "IdempotencyKey")
+                        .IsUnique()
+                        .HasFilter("[IdempotencyKey] IS NOT NULL");
 
                     b.HasIndex("UserId", "RequestedAt");
 
@@ -4379,6 +4414,10 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset>("NextRunAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("OptionsJson")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
                     b.Property<long>("OwnerUserId")
                         .HasColumnType("bigint");
 
@@ -4386,6 +4425,9 @@ namespace TioHub.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
+
+                    b.Property<long?>("SavedReportId")
+                        .HasColumnType("bigint");
 
                     b.Property<TimeOnly>("TimeOfDay")
                         .HasColumnType("time");
@@ -4401,6 +4443,8 @@ namespace TioHub.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("SavedReportId");
 
                     b.HasIndex("IsActive", "NextRunAt");
 
@@ -4429,6 +4473,119 @@ namespace TioHub.Api.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("ReportScheduleRecipient", "reporting");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DefinitionJson")
+                        .IsRequired()
+                        .HasMaxLength(32000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("LastRunAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<long>("OwnerUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ReportType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<int>("Revision")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SchemaVersion")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("TeamId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("OwnerUserId", "Name")
+                        .IsUnique();
+
+                    b.HasIndex("Visibility", "TeamId");
+
+                    b.ToTable("SavedReport", "reporting");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReportFavorite", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("SavedReportId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SavedReportId");
+
+                    b.HasIndex("UserId", "SavedReportId")
+                        .IsUnique();
+
+                    b.ToTable("SavedReportFavorite", "reporting");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReportShare", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("SavedReportId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("SavedReportId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("SavedReportShare", "reporting");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Teams.Handover", b =>
@@ -4984,6 +5141,8 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("ClientId");
 
                     b.HasIndex("CoordinatorUserId");
+
+                    b.HasIndex("CreatedAt");
 
                     b.HasIndex("CreatedById");
 
@@ -6738,6 +6897,11 @@ namespace TioHub.Api.Data.Migrations
 
             modelBuilder.Entity("TioHub.Api.Modules.Reporting.ExportJob", b =>
                 {
+                    b.HasOne("TioHub.Api.Modules.Reporting.SavedReport", null)
+                        .WithMany()
+                        .HasForeignKey("SavedReportId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("TioHub.Api.Modules.Access.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -6755,7 +6919,14 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
+                    b.HasOne("TioHub.Api.Modules.Reporting.SavedReport", "SavedReport")
+                        .WithMany()
+                        .HasForeignKey("SavedReportId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.Navigation("Owner");
+
+                    b.Navigation("SavedReport");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Reporting.ReportScheduleRecipient", b =>
@@ -6763,6 +6934,54 @@ namespace TioHub.Api.Data.Migrations
                     b.HasOne("TioHub.Api.Modules.Reporting.ReportSchedule", null)
                         .WithMany("Recipients")
                         .HasForeignKey("ScheduleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReport", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Teams.Team", null)
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Owner");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReportFavorite", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Reporting.SavedReport", null)
+                        .WithMany()
+                        .HasForeignKey("SavedReportId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReportShare", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Reporting.SavedReport", null)
+                        .WithMany("Shares")
+                        .HasForeignKey("SavedReportId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -7158,6 +7377,11 @@ namespace TioHub.Api.Data.Migrations
             modelBuilder.Entity("TioHub.Api.Modules.Reporting.ReportSchedule", b =>
                 {
                     b.Navigation("Recipients");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Reporting.SavedReport", b =>
+                {
+                    b.Navigation("Shares");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Teams.Handover", b =>

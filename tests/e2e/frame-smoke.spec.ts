@@ -16,6 +16,7 @@ const firstOf = (j: unknown): Rec | undefined => (Array.isArray(j) ? j : ((j as 
 
 const STATIC = [
   '/', '/map', '/actions', '/notifications', '/data-quality', '/reporting-center', '/reports',
+  '/reporting-center/library', '/reporting-center/builder/cases', '/reporting-center/my-reports', '/reporting-center/schedules', '/reporting-center/history', '/reporting-center/templates',
   '/clients', '/clients/new', '/projects', '/contracts', '/contracts/new', '/environments', '/environments/new', '/versions', '/assets', '/firewall-rules',
   '/products', '/products/new', '/cases', '/cases/new', '/commitments', '/commitments/new', '/escalations', '/escalations/new',
   '/teams', '/handovers', '/reassignment',

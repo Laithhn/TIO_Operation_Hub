@@ -20,13 +20,12 @@ const admin = (m: Me) => m.isAdministrator;
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
-  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|actions|notifications|data-quality|reporting-center|reports)/, show: biz, side: [
+  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|actions|notifications|data-quality)/, show: biz, side: [
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true },
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
     { to: '/notifications', label: 'Notifications', icon: 'bell' },
     { to: '/data-quality', label: 'Data quality', icon: 'quality' },
-    { to: '/reporting-center', label: 'Reporting Center', icon: 'report', show: m => m.grants.export },
     // Engineers read the change history here; the TIO Manager has it under Administration.
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => !m.isAdministrator && m.grants.audit }
   ] },
@@ -73,6 +72,16 @@ const SECTIONS: Section[] = [
     { to: '/teams', label: 'Teams & coverage', icon: 'team' },
     { to: '/handovers', label: 'Handovers', icon: 'handover' },
     { to: '/reassignment', label: 'Reassignment queue', icon: 'users' }
+  ] },
+  // A70: the Reporting Center is a first-level section (no longer under Dashboard); its own menu holds the center's areas.
+  { key: 'reporting', label: 'Reporting Center', to: '/reporting-center', match: /^\/(reporting-center|reports)(\/|$)/, show: m => biz(m) && m.grants.export, side: [
+    { to: '/reporting-center', label: 'Overview', icon: 'dashboard', end: true },
+    { to: '/reporting-center/library', label: 'Report library', icon: 'report' },
+    { to: '/reporting-center/builder/cases', label: 'Cases report builder', icon: 'filter' },
+    { to: '/reporting-center/my-reports', label: 'My reports', icon: 'list' },
+    { to: '/reporting-center/schedules', label: 'Scheduled reports', icon: 'calendar' },
+    { to: '/reporting-center/history', label: 'Export history', icon: 'history' },
+    { to: '/reporting-center/templates', label: 'Templates', icon: 'copy' }
   ] },
   { key: 'admin', label: 'Administration', to: '/admin', match: /^\/admin/, show: admin, side: [
     { to: '/admin/users', label: 'Users & access', icon: 'users', show: admin },

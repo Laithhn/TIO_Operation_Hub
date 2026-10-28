@@ -2,8 +2,10 @@ using TioHub.Api.Modules.Access;
 
 namespace TioHub.Api.Modules.Reporting;
 
-public enum ExportStatus { Pending, Processing, Completed, Failed, Expired }
-public enum ExportFormat { Csv, Xlsx }
+/// <summary>A62/A70: Pending is shown as "Queued". Cancelled was added for asynchronous builder exports (enums are stored by name).</summary>
+public enum ExportStatus { Pending, Processing, Completed, Failed, Expired, Cancelled }
+public enum ExportFormat { Csv, Xlsx, Pdf }
+public enum ReportVisibility { Private, Team, Shared }
 public enum ScheduleFrequency { Daily, Weekly, Monthly }
 
 /// <summary>
@@ -42,6 +44,61 @@ public class ExportJob
     public string Source { get; set; } = "Reporting Center";
     public long? ScheduleId { get; set; }
     public long? RetryOfId { get; set; }
+
+    // ---- A70: asynchronous builder exports (Cases Report Builder). Null for the synchronous catalog exports. ----
+    /// <summary>The builder definition (JSON, schema-versioned) the worker runs; its presence marks an asynchronous job.</summary>
+    public string? DefinitionJson { get; set; }
+    /// <summary>File options (JSON): file name, summary/filters/metadata sheets, PDF mode.</summary>
+    public string? OptionsJson { get; set; }
+    /// <summary>Client-supplied key; a repeated request with the same key returns the first job.</summary>
+    public string? IdempotencyKey { get; set; }
+    public long? SavedReportId { get; set; }
+    /// <summary>The evaluation time of the preview the export was started from; derived values (overdue, SLA, age) use it.</summary>
+    public DateTimeOffset? CutoffAt { get; set; }
+    public int Attempts { get; set; }
+    /// <summary>A queued job waits until this time (retry back-off).</summary>
+    public DateTimeOffset? NotBefore { get; set; }
+    public bool CancelRequested { get; set; }
+}
+
+/// <summary>
+/// A70: a saved Cases Report Builder configuration. Private to its owner, visible to the members of one team, or shared with
+/// named users. Viewers may run, duplicate and favorite it; only the owner edits or deletes it. Revision guards concurrent edits.
+/// </summary>
+public class SavedReport
+{
+    public long Id { get; set; }
+    public long OwnerUserId { get; set; }
+    public User? Owner { get; set; }
+    public string ReportType { get; set; } = "cases";
+    public string Name { get; set; } = "";
+    public string? Description { get; set; }
+    public ReportVisibility Visibility { get; set; }
+    /// <summary>Team visibility: the team whose active members see the report.</summary>
+    public long? TeamId { get; set; }
+    public int SchemaVersion { get; set; } = 1;
+    public string DefinitionJson { get; set; } = "{}";
+    public int Revision { get; set; } = 1;
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? LastRunAt { get; set; }
+    public List<SavedReportShare> Shares { get; set; } = [];
+}
+
+public class SavedReportShare
+{
+    public long Id { get; set; }
+    public long SavedReportId { get; set; }
+    public long UserId { get; set; }
+    public User? User { get; set; }
+}
+
+/// <summary>A70: a user's favorite mark on a saved report they can see.</summary>
+public class SavedReportFavorite
+{
+    public long Id { get; set; }
+    public long SavedReportId { get; set; }
+    public long UserId { get; set; }
 }
 
 /// <summary>A62: a report run automatically; each recipient receives their own file, generated with their own access.</summary>
@@ -68,6 +125,11 @@ public class ReportSchedule
     public string? LastOutcome { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
+    /// <summary>A70: a schedule of a saved builder report; each run queues one asynchronous export per recipient.</summary>
+    public long? SavedReportId { get; set; }
+    public SavedReport? SavedReport { get; set; }
+    /// <summary>A70: file options of builder schedules (JSON).</summary>
+    public string? OptionsJson { get; set; }
     public List<ReportScheduleRecipient> Recipients { get; set; } = [];
 }
 
@@ -99,4 +161,14 @@ public sealed class ReportingOptions
     public int MaxRows { get; set; } = 100_000;
     /// <summary>How often the scheduler looks for due schedules and expired files; 0 switches scheduled runs off.</summary>
     public int SchedulerMinutes { get; set; } = 1;
+    /// <summary>A70: how often the export worker looks for queued jobs (seconds); 0 switches the worker off (tests run jobs directly).</summary>
+    public int ExportWorkerSeconds { get; set; } = 5;
+    /// <summary>A70: exports generated at the same time by this server.</summary>
+    public int ExportConcurrency { get; set; } = 2;
+    /// <summary>A70: queued or running builder exports one user may have at a time.</summary>
+    public int MaxActiveExportsPerUser { get; set; } = 5;
+    /// <summary>A70: automatic attempts for a job that failed for a transient reason (database timeout, I/O).</summary>
+    public int MaxAttempts { get; set; } = 3;
+    /// <summary>A70: detailed PDF exports are limited to this many rows; larger results belong in Excel.</summary>
+    public int PdfMaxRows { get; set; } = 2_000;
 }

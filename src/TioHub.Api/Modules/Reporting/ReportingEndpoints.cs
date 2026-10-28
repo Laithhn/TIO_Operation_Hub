@@ -22,19 +22,14 @@ public static class ReportingEndpoints
     {
         "csv" => ExportFormat.Csv,
         "xlsx" or "excel" => ExportFormat.Xlsx,
-        "pdf" => throw new ValidationException("format", "PDF is not available yet: use CSV or Excel."),
+        "pdf" => throw new ValidationException("format", "PDF is available for the Cases report in the Report Builder; for this report use CSV or Excel."),
         _ => throw new ValidationException("format", "Choose CSV or Excel.")
     };
 
     private static ReportDefinition Report(string key) => ReportCatalog.Find(key) ?? throw new NotFoundException("The report");
 
-    private static object Dto(ExportJob j, string? user = null, bool mine = true) => new
-    {
-        j.Id, j.AuditId, j.Report, j.ReportName, format = j.Format.ToString().ToLowerInvariant(), status = j.Status.ToString(), j.FilterSummary, j.TimeZone,
-        j.RequestedAt, j.CompletedAt, j.RowCount, j.FileSize, j.FileName, j.ExpiresAt, j.Error, j.Source, j.ScheduleId, j.RetryOfId, user,
-        canDownload = mine && j.Status == ExportStatus.Completed && j.StoredPath != null,
-        canRetry = mine && j.Status is ExportStatus.Failed or ExportStatus.Expired
-    };
+    // A70: one job shape for catalog and builder exports (Pending is shown as "Queued").
+    private static object Dto(ExportJob j, string? user = null, bool mine = true) => BuilderEndpoints.JobDto(j, user, mine);
 
     public static void MapReportingEndpoints(this RouteGroupBuilder api)
     {
@@ -47,7 +42,8 @@ public static class ReportingEndpoints
             {
                 r.Key, r.Name, r.Category, r.Description, r.Icon, r.Operational,
                 formats = new[] { new { key = "csv", label = "CSV", available = true, note = (string?)null }, new { key = "xlsx", label = "Excel (.xlsx)", available = true, note = (string?)null },
-                    new { key = "pdf", label = "PDF", available = false, note = (string?)"A formatted PDF layout is not available yet." } },
+                    new { key = "pdf", label = "PDF", available = false, note = (string?)(r.Key == "cases" ? "PDF is available in the Cases Report Builder (Build report)." : "A formatted PDF layout is available for the Cases report only.") } },
+                builder = r.Key == "cases",
                 filters = r.Filters.Select(f => new { f.Key, f.Label, kind = f.Kind.ToString(), f.Advanced, f.Options, f.Hint, f.RangeEnd }),
                 columns = r.Columns
             }));
@@ -104,6 +100,7 @@ public static class ReportingEndpoints
             if (!all) q = q.Where(j => j.UserId == me.UserId);
             else if (userId is not null) q = q.Where(j => j.UserId == userId);
             if (!string.IsNullOrWhiteSpace(report)) q = q.Where(j => j.Report == report);
+            if (status == "Queued") status = nameof(ExportStatus.Pending);
             if (Enum.TryParse<ExportStatus>(status, true, out var st)) q = q.Where(j => j.Status == st);
             var zone = Zones.Find(me.TimeZone) ?? TimeZoneInfo.Utc;
             DateTimeOffset? Day(string? d, int add) => DateOnly.TryParseExact(d, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var x)
@@ -135,36 +132,13 @@ public static class ReportingEndpoints
             return Results.Ok(new { export = Dto(j, user, j.UserId == me.UserId), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(j.FiltersJson), columns, j.StartedAt });
         });
 
-        g.MapGet("/exports/{id:long}/download", async (long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct) =>
-        {
-            ExportService.RequireExport(me);
-            var j = await db.ExportJobs.FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
-            if (j.Status == ExportStatus.Expired || (j.ExpiresAt is { } e && e < clock.GetUtcNow()))
-            {
-                if (j.StoredPath is not null) store.Delete(j.StoredPath);
-                j.StoredPath = null;
-                j.Status = ExportStatus.Expired;
-                await db.SaveChangesAsync(ct);
-                return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file has expired", detail: "Export files are kept for a limited time. Generate the report again (Retry).");
-            }
-            if (j.Status != ExportStatus.Completed || j.StoredPath is null) throw new ValidationException("status", "This export has no file.");
-            var stream = store.Open(j.StoredPath);
-            if (stream is null)
-            {
-                j.Status = ExportStatus.Expired;
-                j.StoredPath = null;
-                await db.SaveChangesAsync(ct);
-                return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file is no longer available", detail: "Generate the report again (Retry).");
-            }
-            await db.AuditActionAsync("Download", "Report", j.Id, j.ReportName, null, null, new { exportId = j.AuditId, j.FileName }, ct);
-            await db.SaveChangesAsync(ct);
-            return Results.File(stream, j.Format == ExportFormat.Xlsx ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv; charset=utf-8", j.FileName);
-        });
+        g.MapGet("/exports/{id:long}/download", (long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct) => DownloadAsync(id, db, me, store, clock, ct));
 
         g.MapPost("/exports/{id:long}/retry", async (long id, HubDbContext db, ExportService svc, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
+            if (j.DefinitionJson is not null) throw new ValidationException("status", "Retry a Report Builder export with POST /reporting/exports/{id}/retry.");
             if (j.Status is not (ExportStatus.Failed or ExportStatus.Expired)) throw new ValidationException("status", "Only a failed or expired export can be generated again.");
             var def = Report(j.Report);
             // The filters are validated again under the caller's current access.
@@ -208,14 +182,15 @@ public static class ReportingEndpoints
         g.MapGet("/schedules", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var list = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Where(s => s.OwnerUserId == me.UserId).OrderBy(s => s.Name).ToListAsync(ct);
+            var list = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Include(s => s.SavedReport).Where(s => s.OwnerUserId == me.UserId).OrderBy(s => s.Name).ToListAsync(ct);
             return Results.Ok(list.Select(ScheduleDto));
         });
         g.MapGet("/schedules/{id:long}", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var s = await db.ReportSchedules.AsNoTracking().Include(x => x.Recipients).ThenInclude(r => r.User).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
-            return Results.Ok(new { schedule = ScheduleDto(s), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(s.FiltersJson) });
+            var s = await db.ReportSchedules.AsNoTracking().Include(x => x.Recipients).ThenInclude(r => r.User).Include(x => x.SavedReport).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
+            return Results.Ok(new { schedule = ScheduleDto(s), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(s.FiltersJson),
+                options = s.OptionsJson is null ? null : JsonSerializer.Deserialize<BuilderExportOptions>(s.OptionsJson, new JsonSerializerOptions(JsonSerializerDefaults.Web)) });
         });
         g.MapPost("/schedules", async (ScheduleInput input, HubDbContext db, ExportService svc, UserResolver resolver, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
@@ -230,6 +205,7 @@ public static class ReportingEndpoints
         {
             ExportService.RequireExport(me);
             var s = await db.ReportSchedules.Include(x => x.Recipients).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
+            if (s.SavedReportId is not null) throw new ValidationException("savedReportId", "This schedule runs a saved report: change it with PATCH /reporting/schedules/{id}.");
             await ApplyAsync(s, input, db, svc, resolver, me, clock, ct);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
@@ -256,12 +232,46 @@ public static class ReportingEndpoints
         });
     }
 
-    private static object ScheduleDto(ReportSchedule s) => new
+    public static object ScheduleDto(ReportSchedule s) => new
     {
-        s.Id, s.Name, s.Report, reportName = ReportCatalog.Find(s.Report)?.Name ?? s.Report, s.FilterSummary, format = s.Format.ToString().ToLowerInvariant(), frequency = s.Frequency.ToString(),
+        s.Id, s.Name, s.Report, reportName = s.SavedReport?.Name ?? ReportCatalog.Find(s.Report)?.Name ?? s.Report, s.SavedReportId, builder = s.SavedReportId != null, s.FilterSummary, format = s.Format.ToString().ToLowerInvariant(), frequency = s.Frequency.ToString(),
         s.DayOfWeek, s.DayOfMonth, time = s.TimeOfDay.ToString("HH:mm", CultureInfo.InvariantCulture), s.TimeZone, s.IsActive, s.NextRunAt, s.LastRunAt, s.LastOutcome,
         recipients = s.Recipients.Select(r => new { id = r.UserId, name = r.User?.DisplayName })
     };
+
+    /// <summary>Streams an export file to the user it was generated for, after checking status and retention; every download is audited.</summary>
+    public static async Task<IResult> DownloadAsync(long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct)
+    {
+        ExportService.RequireExport(me);
+        var j = await db.ExportJobs.FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
+        if (j.Status == ExportStatus.Expired || (j.ExpiresAt is { } e && e < clock.GetUtcNow()))
+        {
+            if (j.StoredPath is not null) store.Delete(j.StoredPath);
+            j.StoredPath = null;
+            j.Status = ExportStatus.Expired;
+            await db.SaveChangesAsync(ct);
+            return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file has expired", detail: "Export files are kept for a limited time. Generate the report again (Retry).");
+        }
+        if (j.Status != ExportStatus.Completed || j.StoredPath is null) throw new ValidationException("status", "This export has no file.");
+        var stream = store.Open(j.StoredPath);
+        if (stream is null)
+        {
+            j.Status = ExportStatus.Expired;
+            j.StoredPath = null;
+            await db.SaveChangesAsync(ct);
+            return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file is no longer available", detail: "Generate the report again (Retry).");
+        }
+        await db.AuditActionAsync("Download", "Report", j.Id, j.ReportName, null, null, new { exportId = j.AuditId, j.FileName }, ct);
+        await db.SaveChangesAsync(ct);
+        ReportingMetrics.Downloads.Add(1);
+        var type = j.Format switch
+        {
+            ExportFormat.Xlsx => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ExportFormat.Pdf => "application/pdf",
+            _ => "text/csv; charset=utf-8"
+        };
+        return Results.File(stream, type, j.FileName);
+    }
 
     private static async Task<IResult> SetActiveAsync(long id, bool active, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct)
     {
@@ -386,7 +396,9 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
                 if (await RunForAsync(scopes, s, r.UserId, ct)) ok++; else failed++;
             }
             s.LastRunAt = now;
-            s.LastOutcome = failed == 0 ? $"Completed for {ok} recipient(s)" : $"{ok} completed, {failed} failed";
+            s.LastOutcome = s.SavedReportId is not null
+                ? (failed == 0 ? $"Queued for {ok} recipient(s)" : $"{ok} queued, {failed} failed")
+                : failed == 0 ? $"Completed for {ok} recipient(s)" : $"{ok} completed, {failed} failed";
             s.NextRunAt = ScheduleClock.Next(s.Frequency, s.DayOfWeek, s.DayOfMonth, s.TimeOfDay, Zones.Find(s.TimeZone) ?? TimeZoneInfo.Utc, now);
             await db.SaveChangesAsync(ct);
             await transaction.CommitAsync(ct);
@@ -424,6 +436,20 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
                 await db.SaveChangesAsync(ct);
             }
             return false;
+        }
+        if (s.SavedReportId is { } savedId)
+        {
+            // A70: a saved builder report is queued for the export worker, which validates it again under this recipient's access.
+            var saved = await db.SavedReports.AsNoTracking().FirstOrDefaultAsync(r => r.Id == savedId, ct);
+            db.ExportJobs.Add(new ExportJob
+            {
+                UserId = userId, Report = "cases", ReportName = saved?.Name ?? "Cases report", Format = s.Format, FiltersJson = "{}", FilterSummary = s.FilterSummary, TimeZone = s.TimeZone,
+                Status = saved is null ? ExportStatus.Failed : ExportStatus.Pending, RequestedAt = now, CompletedAt = saved is null ? now : null, Error = saved is null ? "The saved report no longer exists." : null,
+                Source = "Schedule", ScheduleId = s.Id, SavedReportId = saved?.Id, DefinitionJson = saved?.DefinitionJson ?? "{}", OptionsJson = s.OptionsJson, CutoffAt = now
+            });
+            await db.SaveChangesAsync(ct);
+            sp.GetRequiredService<ExportQueue>().Signal();
+            return saved is not null;
         }
         sp.GetRequiredService<UserContext>().Set(resolved!);
         var svc = sp.GetRequiredService<ExportService>();

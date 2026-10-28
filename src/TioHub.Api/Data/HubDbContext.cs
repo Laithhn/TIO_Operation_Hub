@@ -119,6 +119,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<Modules.Reporting.ReportSchedule> ReportSchedules => Set<Modules.Reporting.ReportSchedule>();
     public DbSet<Modules.Reporting.ReportScheduleRecipient> ReportScheduleRecipients => Set<Modules.Reporting.ReportScheduleRecipient>();
     public DbSet<Modules.Reporting.ReportPreset> ReportPresets => Set<Modules.Reporting.ReportPreset>();
+    public DbSet<Modules.Reporting.SavedReport> SavedReports => Set<Modules.Reporting.SavedReport>();
+    public DbSet<Modules.Reporting.SavedReportShare> SavedReportShares => Set<Modules.Reporting.SavedReportShare>();
+    public DbSet<Modules.Reporting.SavedReportFavorite> SavedReportFavorites => Set<Modules.Reporting.SavedReportFavorite>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder b)
     {
@@ -562,6 +565,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.ResponsibleOrganization).HasMaxLength(150);
             e.Ignore(x => x.ScopeClientId);
             e.HasIndex(x => new { x.Status, x.DueAt });
+            // A70: the Report Builder's default date filter.
+            e.HasIndex(x => x.CreatedAt);
             e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
             // A61: contractual SLA
             e.HasOne(x => x.Contract).WithMany().HasForeignKey(x => x.ContractId);
@@ -1019,6 +1024,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Error).HasMaxLength(1000);
             e.Property(x => x.Source).HasMaxLength(40);
             e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+            // A70: asynchronous builder exports.
+            e.Property(x => x.OptionsJson).HasMaxLength(2000);
+            e.Property(x => x.DefinitionJson).HasMaxLength(32000);
+            e.Property(x => x.IdempotencyKey).HasMaxLength(80);
+            e.HasIndex(x => new { x.UserId, x.IdempotencyKey }).IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
+            e.HasIndex(x => new { x.Status, x.NotBefore });
+            e.HasOne<Modules.Reporting.SavedReport>().WithMany().HasForeignKey(x => x.SavedReportId);
         });
         m.Entity<Modules.Reporting.ReportSchedule>(e =>
         {
@@ -1033,6 +1045,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.LastOutcome).HasMaxLength(200);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
             e.HasMany(x => x.Recipients).WithOne().HasForeignKey(r => r.ScheduleId);
+            // A70: deleting a saved report deletes its schedules explicitly (the UI asks first); their past exports stay in the history.
+            e.HasOne(x => x.SavedReport).WithMany().HasForeignKey(x => x.SavedReportId);
+            e.Property(x => x.OptionsJson).HasMaxLength(2000);
         });
         m.Entity<Modules.Reporting.ReportScheduleRecipient>(e =>
         {
@@ -1047,6 +1062,33 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Report).HasMaxLength(60);
             e.Property(x => x.Name).HasMaxLength(80);
             e.Property(x => x.FiltersJson).HasMaxLength(4000);
+        });
+        // ---- A70: saved builder reports ----
+        m.Entity<Modules.Reporting.SavedReport>(e =>
+        {
+            e.ToTable("SavedReport", "reporting");
+            e.HasIndex(x => new { x.OwnerUserId, x.Name }).IsUnique();
+            e.HasIndex(x => new { x.Visibility, x.TeamId });
+            e.Property(x => x.ReportType).HasMaxLength(40);
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.Description).HasMaxLength(1000);
+            e.Property(x => x.DefinitionJson).HasMaxLength(32000);
+            e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
+            e.HasOne<Modules.Teams.Team>().WithMany().HasForeignKey(x => x.TeamId);
+            e.HasMany(x => x.Shares).WithOne().HasForeignKey(x => x.SavedReportId);
+        });
+        m.Entity<Modules.Reporting.SavedReportShare>(e =>
+        {
+            e.ToTable("SavedReportShare", "reporting");
+            e.HasIndex(x => new { x.SavedReportId, x.UserId }).IsUnique();
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+        });
+        m.Entity<Modules.Reporting.SavedReportFavorite>(e =>
+        {
+            e.ToTable("SavedReportFavorite", "reporting");
+            e.HasIndex(x => new { x.UserId, x.SavedReportId }).IsUnique();
+            e.HasOne<Modules.Reporting.SavedReport>().WithMany().HasForeignKey(x => x.SavedReportId);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId);
         });
 
         // ---- shared conventions ----
@@ -1110,7 +1152,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     // ---------- Save: stamps and audit in the same transaction (NFR-03, atomic business changes) ----------
 
     private static readonly HashSet<Type> NotAudited =
-        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
+        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
     private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
     private static readonly HashSet<string> QuietProperties =
         [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope"];

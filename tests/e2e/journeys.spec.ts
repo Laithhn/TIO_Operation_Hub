@@ -50,8 +50,11 @@ test.describe('Shell and visual language', () => {
     await expect(page.locator('#viMainToolbar h1')).toHaveText('Clients');
     await page.screenshot({ path: 'test-results/visual-clients-1600.png' });
     await page.goto('/');
-    // The dashboard's section menu is the only navigation to its other pages (map, actions, reports, data quality).
-    await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' })).toBeVisible();
+    // The dashboard's section menu is the only navigation to its other pages (map, actions, data quality); A70: the Reporting Center
+    // is a first-level header section of its own.
+    await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Action list' })).toBeVisible();
+    await expect(page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Reporting Center' })).toHaveCount(0);
+    await expect(page.locator('.nav-measure [data-key="reporting"]')).toHaveText('Reporting Center');
     const upcoming = page.locator('.kpi').filter({ hasText: 'Upcoming commitments' });
     await expect(upcoming).toContainText('due in the next 14 days');
     // KPI cards (28 Oct 2026): the number is a framework ValueField in the card's text colour; the state is a text badge as well as a
@@ -282,7 +285,7 @@ test.describe('Sub-clients and copying between regions', () => {
       return r.items.find((i: { clientCode: string; regionCode?: string; environmentName: string }) => i.clientCode === 'DEMO-NTA' && i.regionCode === 'R1' && i.environmentName === 'Production').environmentId;
     });
     await page.goto(`/environments/${env}`);
-    await page.getByRole('button', { name: 'More' }).click();
+    await page.getByRole('button', { name: 'More', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Copy servers or environment…' }).click();
     const dlg = page.getByRole('dialog');
     await dlg.getByLabel('An existing environment').check();
@@ -319,7 +322,7 @@ test.describe('Sub-clients and copying between regions', () => {
     });
     await page.goto(`/assets?environmentId=${env}&q=nta-r1-web01`);
     await page.getByRole('link', { name: 'nta-r1-web01', exact: true }).click();
-    await page.getByRole('button', { name: 'More' }).click();
+    await page.getByRole('button', { name: 'More', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Copy to other environments…' }).click();
     const dlg = page.getByRole('dialog');
     await expect(dlg.getByLabel('nta-r1-web01')).toBeChecked();
@@ -354,7 +357,7 @@ test.describe('Sub-clients and copying between regions', () => {
       return r.items.find((i: { clientCode: string; regionCode?: string; environmentName: string }) => i.clientCode === 'DEMO-NTA' && i.regionCode === 'R1' && i.environmentName === 'Production').environmentId;
     });
     await page.goto(`/environments/${env}`);
-    await page.getByRole('button', { name: 'More' }).click();
+    await page.getByRole('button', { name: 'More', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Copy servers or environment…' }).click();
     const dlg = page.getByRole('dialog');
     await expect(dlg.getByRole('heading', { name: 'Copy environment to another region' })).toBeVisible();
@@ -1547,9 +1550,11 @@ test.describe('Reporting Center (A62)', () => {
   test('find a report, validate filters, preview, export a CSV with chosen columns, see it in the history and schedule it', async ({ page }) => {
     await page.goto('/reporting-center');
     await expect(page.getByRole('heading', { level: 1, name: 'Reporting Center' })).toBeVisible();
-    await expect(page.getByText('Generate operational reports, analyze performance, and manage data exports.')).toBeVisible();
     await expect(page.getByRole('link', { name: 'Reporting Center' }).first()).toBeVisible();
-    for (const k of ['Available reports', 'Exports generated today', 'Scheduled reports', 'Failed exports']) await expect(page.getByLabel('Reporting summary').getByText(k, { exact: true })).toBeVisible();
+    // A70: the overview shows report usage (not case performance); the catalog is the library area.
+    for (const k of ['Reports generated', 'Success rate', 'Failed exports', 'Scheduled reports']) await expect(page.getByLabel('Report usage').getByText(k, { exact: true })).toBeVisible();
+    await page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Report library' }).click();
+    await expect(page).toHaveURL(/\/reporting-center\/library$/);
 
     // Catalog: categories and search.
     await expect(page.getByRole('heading', { name: 'Operational intelligence' })).toBeVisible();
@@ -1607,7 +1612,7 @@ test.describe('Reporting Center (A62)', () => {
     await expect(page.getByRole('region', { name: 'Export history' }).locator(VT_ROW).first()).toContainText('Cases report');
 
     // Schedule: create, pause, delete.
-    await page.getByRole('tab', { name: 'Scheduled reports' }).click();
+    await page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Scheduled reports' }).click();
     await page.getByRole('button', { name: '+ Schedule report' }).click();
     const name = unique('E2E weekly cases');
     const sd = page.getByRole('dialog', { name: 'Schedule a report' });

@@ -40,6 +40,10 @@ public static class ModuleRegistration
         services.AddSingleton<ExportStore>();
         services.AddScoped<ExportService>();
         services.AddHostedService<ReportScheduler>();
+        // A70: Cases Report Builder and asynchronous exports
+        services.AddScoped<CasesReportService>();
+        services.AddSingleton<ExportQueue>();
+        services.AddHostedService<ExportWorker>();
         return services;
     }
 
@@ -72,6 +76,7 @@ public static class ModuleRegistration
         api.MapOverviewEndpoints();
         api.MapSearchExportEndpoints();
         api.MapReportingEndpoints();
+        api.MapBuilderEndpoints();
         api.MapAdminEndpoints();
         return api;
     }

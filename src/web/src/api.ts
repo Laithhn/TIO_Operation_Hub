@@ -38,15 +38,16 @@ function xsrf(): string | undefined {
   return m ? decodeURIComponent(m[1]) : undefined;
 }
 
-type Options = { method?: string; body?: unknown; version?: string; retried?: boolean };
+/** signal cancels the request (stale previews); headers adds request headers (for example Idempotency-Key). */
+type Options = { method?: string; body?: unknown; version?: string; retried?: boolean; signal?: AbortSignal; headers?: Record<string, string> };
 
 export async function api<T>(path: string, opts: Options = {}): Promise<T> {
   const method = opts.method ?? 'GET';
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = { Accept: 'application/json', ...opts.headers };
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
   if (method !== 'GET') { const t = xsrf(); if (t) headers['X-XSRF-TOKEN'] = t; }
   if (opts.version) headers['If-Match'] = `"${opts.version}"`;
-  const res = await fetch(BASE + path, { method, headers, credentials: 'same-origin', body: opts.body === undefined ? undefined : JSON.stringify(opts.body) });
+  const res = await fetch(BASE + path, { method, headers, credentials: 'same-origin', signal: opts.signal, body: opts.body === undefined ? undefined : JSON.stringify(opts.body) });
   if (res.status === 204) return undefined as T;
   const text = await res.text();
   let data: unknown = undefined;

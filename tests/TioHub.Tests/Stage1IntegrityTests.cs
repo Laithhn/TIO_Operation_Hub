@@ -44,7 +44,7 @@ public class SchemaReadinessTests
             var lookupsBefore = await db.LookupValues.CountAsync();
             var result = await DatabaseReadiness.CheckAsync(db, CancellationToken.None);
             Assert.True(result.Reachable);
-            Assert.Equal(["20261023100730_OptionalOrganizationGraph"], result.MissingMigrations);
+            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder"], result.MissingMigrations);
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
             {
                 b.UseEnvironment("Testing");

@@ -9,6 +9,8 @@ logs/
 src/TioHub.Api/wwwroot/
 tests/e2e/test-results/
 tests/e2e/playwright-report/
+tests/e2e/test-results-uat/
+tests/e2e/playwright-report-uat/
 appsettings.Local.json
 .local/
 App_Data/

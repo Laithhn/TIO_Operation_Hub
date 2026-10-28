@@ -5,7 +5,7 @@ using System.Text;
 
 namespace TioHub.Api.Common;
 
-/// <summary>One worksheet: a name, an optional bold header row and the rows (strings, numbers, booleans; everything else as text).</summary>
+/// <summary>One worksheet: a name, an optional bold header row and the rows (strings, numbers, booleans, local DateTime values; everything else as text).</summary>
 public sealed record XlsxSheet(string Name, IReadOnlyList<string>? Header, IEnumerable<IReadOnlyList<object?>> Rows);
 
 /// <summary>
@@ -38,10 +38,12 @@ public static class Xlsx
                 $"<Relationship Id=\"rId{sheets.Count + 1}\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles\" Target=\"styles.xml\"/></Relationships>");
             Entry(zip, "xl/styles.xml",
                 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><styleSheet xmlns=\"http://schemas.openxmlformats.org/spreadsheetml/2006/main\">" +
+                "<numFmts count=\"1\"><numFmt numFmtId=\"164\" formatCode=\"yyyy-mm-dd hh:mm\"/></numFmts>" +
                 "<fonts count=\"2\"><font><sz val=\"10\"/><name val=\"Calibri\"/></font><font><b/><sz val=\"10\"/><color rgb=\"FFFFFFFF\"/><name val=\"Calibri\"/></font></fonts>" +
                 "<fills count=\"3\"><fill><patternFill patternType=\"none\"/></fill><fill><patternFill patternType=\"gray125\"/></fill><fill><patternFill patternType=\"solid\"><fgColor rgb=\"FF0C1B37\"/></patternFill></fill></fills>" +
                 "<borders count=\"1\"><border/></borders><cellStyleXfs count=\"1\"><xf/></cellStyleXfs>" +
-                "<cellXfs count=\"2\"><xf fontId=\"0\" fillId=\"0\"/><xf fontId=\"1\" fillId=\"2\" applyFont=\"1\" applyFill=\"1\"/></cellXfs></styleSheet>");
+                // Style 2 (A70): local date and time cells, stored as real Excel dates so they sort and filter as dates.
+                "<cellXfs count=\"3\"><xf fontId=\"0\" fillId=\"0\"/><xf fontId=\"1\" fillId=\"2\" applyFont=\"1\" applyFill=\"1\"/><xf numFmtId=\"164\" fontId=\"0\" fillId=\"0\" applyNumberFormat=\"1\"/></cellXfs></styleSheet>");
             for (var i = 0; i < sheets.Count; i++) Entry(zip, $"xl/worksheets/sheet{i + 1}.xml", Sheet(sheets[i]));
         }
         return ms.ToArray();
@@ -74,6 +76,8 @@ public static class Xlsx
                     case null: break;
                     case int or long or decimal or double or float:
                         sb.Append($"<c r=\"{at}\"{style}><v>{Convert.ToString(v, CultureInfo.InvariantCulture)}</v></c>"); break;
+                    case DateTime dt:
+                        sb.Append($"<c r=\"{at}\" s=\"{(header ? 1 : 2)}\"><v>{dt.ToOADate().ToString(CultureInfo.InvariantCulture)}</v></c>"); break;
                     case bool b:
                         sb.Append($"<c r=\"{at}\"{style} t=\"inlineStr\"><is><t>{(b ? "Yes" : "No")}</t></is></c>"); break;
                     default:
@@ -92,6 +96,7 @@ public static class Xlsx
     {
         null => "",
         DateOnly d => d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+        DateTime dt => dt.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture),
         bool b => b ? "Yes" : "No",
         _ => Convert.ToString(v, CultureInfo.InvariantCulture) ?? ""
     };

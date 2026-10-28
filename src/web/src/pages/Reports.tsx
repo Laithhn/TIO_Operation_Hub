@@ -1,34 +1,33 @@
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { ApiError, del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
 import { useEnumLabel, useMe, useTypes, useUrlState } from '../hooks';
-import { Kpi } from '../ui/charts';
 import { Icon } from '../ui/Icon';
 import { TimeZoneSelect } from '../ui/pickers';
-import { Badge, DataTable, Dialog, PageHead, Pager, Panel, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, type Option } from '../ui/kit';
+import { Badge, DataTable, Dialog, PageHead, Pager, Panel, SelectInput, StateMessage, StatusBadge, TextInput, useToast, type Option } from '../ui/kit';
 import { useClientOptions, useProductOptions, useTeamOptions } from './common';
+import { BuilderScheduleDialog, CasesBuilder } from './reporting/CasesBuilder';
+import { MyReports, Templates } from './reporting/MyReports';
+import { ReportingOverview } from './reporting/Overview';
+import { apiError, download, scheduleWhen, size, STATUS_TONE, useAssignable, useReportZone, WEEKDAYS, type ExportJob, type Schedule } from './reporting/shared';
 
 /* ---------------------------------------------------------------------------------------------------------------------------
  * A62 (owner request, 22 Oct 2026): the Reporting Center. Everything the page shows comes from the server's report registry
  * (`/reports/catalog`): filters, columns and formats are not repeated here, so a report registered on the server appears here.
+ * A70 (28 Oct 2026): a first-level header section with its own areas (overview, library, Cases Report Builder, saved reports,
+ * schedules, export history, templates) as sub-routes of /reporting-center.
  * ------------------------------------------------------------------------------------------------------------------------- */
 
 type FilterDef = { key: string; label: string; kind: 'Client' | 'Team' | 'Product' | 'Owner' | 'Date' | 'Select' | 'Bool' | 'Text'; advanced: boolean; options?: string[] | null; hint?: string | null; rangeEnd?: string | null };
 type ColumnDef = { key: string; header: string; definition: string };
 type FormatDef = { key: string; label: string; available: boolean; note?: string | null };
-type ReportDef = { key: string; name: string; category: string; description: string; icon: string; operational: boolean; formats: FormatDef[]; filters: FilterDef[]; columns: ColumnDef[] };
+type ReportDef = { key: string; name: string; category: string; description: string; icon: string; operational: boolean; formats: FormatDef[]; filters: FilterDef[]; columns: ColumnDef[]; builder?: boolean };
 type Metric = { label: string; value: string; definition: string; tone?: 'bad' | 'warn' | null };
 type Breakdown = { title: string; columns: string[]; rows: (string | number | boolean | null)[][] };
 type Preview = { report: { key: string; name: string }; filters: string; generatedAt: string; timeZone: string; total: number; page: number; pageSize: number; columns: ColumnDef[];
   rows: (string | number | boolean | null)[][]; summary?: Metric[] | null; breakdowns?: Breakdown[] | null; limit: number };
-type ExportJob = { id: number; auditId: string; report: string; reportName: string; format: string; status: string; filterSummary: string; timeZone: string; requestedAt: string;
-  completedAt?: string | null; rowCount?: number | null; fileSize?: number | null; fileName?: string | null; expiresAt?: string | null; error?: string | null; source: string;
-  scheduleId?: number | null; retryOfId?: number | null; user?: string | null; canDownload: boolean; canRetry: boolean };
-type Summary = { availableReports: number; exportsToday: number; scheduledReports: number; failedExports: number; retentionDays: number; maxRows: number };
-type Schedule = { id: number; name: string; report: string; reportName: string; filterSummary: string; format: string; frequency: string; dayOfWeek?: number | null; dayOfMonth?: number | null;
-  time: string; timeZone: string; isActive: boolean; nextRunAt: string; lastRunAt?: string | null; lastOutcome?: string | null; recipients: { id: number; name: string }[] };
 type Values = Record<string, string>;
 
 const CATEGORY_ORDER = ['Operations', 'Technical', 'Governance', 'Operational intelligence'];
@@ -38,9 +37,6 @@ const CATEGORY_HINT: Record<string, string> = {
   Governance: 'Data quality and contracts.',
   'Operational intelligence': 'KPIs computed on the server: SLA, delivery, backlog, workload and client health.'
 };
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const STATUS_TONE: Record<string, 'good' | 'warn' | 'bad' | 'info' | 'neutral'> = { Completed: 'good', Failed: 'bad', Processing: 'info', Pending: 'info', Expired: 'neutral' };
-const TZ_KEY = 'tiohub.reports.timeZone';
 const reversedCalendarDays = (from?: string, to?: string) => !!from && !!to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from > to;
 const typeListForFilter = (report: string, key: string) => key === 'environmentType' && report === 'versions' ? 'EnvironmentType' : key === 'type' ? ({ environments: 'EnvironmentType', assets: 'AssetType' } as Record<string, string>)[report] : undefined;
 function optionText(report: string, key: string, value: string, caseName: (code: string) => string, conditionName: (code: string) => string) {
@@ -52,46 +48,11 @@ function optionText(report: string, key: string, value: string, caseName: (code:
   return label(value);
 }
 
-const size = (n?: number | null) => n === null || n === undefined ? '—' : n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(1)} MB`;
-const apiError = (e: unknown) => e instanceof ApiError ? e : null;
 const filterErrors = (e: unknown): Record<string, string> => {
   const a = apiError(e);
   if (!a) return {};
   return Object.fromEntries(Object.entries(a.errors).map(([k, v]) => [k.replace(/^filters\./i, ''), v[0]]));
 };
-
-/** The time zone for report timestamps: the last one chosen here, else the user's working time zone, else Asia/Dubai. */
-function useReportZone(): [string, (z: string) => void] {
-  const me = useMe().data;
-  const [zone, setZone] = useState<string>(() => { try { return localStorage.getItem(TZ_KEY) ?? ''; } catch { return ''; } });
-  const effective = zone || me?.timeZone || 'Asia/Dubai';
-  return [effective, (z: string) => { setZone(z); try { localStorage.setItem(TZ_KEY, z); } catch { /* storage may be unavailable */ } }];
-}
-
-/** Downloads an export through the authorized endpoint; errors (expired, not found) become a message, never a broken page. */
-async function download(job: Pick<ExportJob, 'id' | 'fileName'>, toast: (t: string, bad?: boolean) => void, onUnavailable?: () => void) {
-  const res = await fetch(`/api/v1/reports/exports/${job.id}/download`, { credentials: 'same-origin' });
-  if (!res.ok) {
-    let msg = `The file could not be downloaded (${res.status}).`;
-    try { const p = await res.json(); msg = p.detail || p.title || msg; } catch { /* not JSON */ }
-    toast(msg, true);
-    if (res.status === 410) onUnavailable?.();
-    return;
-  }
-  const blob = await res.blob();
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = job.fileName ?? 'export';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
-function useAssignable() {
-  return useQuery({ queryKey: ['assignable', null, null, false], queryFn: () => get<{ id: number; name: string }[]>('/users/assignable'), staleTime: 60_000 });
-}
 
 /* ------------------------------------------------------------- filters ------------------------------------------------------------- */
 
@@ -202,12 +163,15 @@ function Catalog({ reports, onOpen, search, setSearch, category, setCategory, se
           <div className="rc-group-head"><h2 id={`rc-cat-${c}`}>{c}</h2><span className="hint">{CATEGORY_HINT[c]}</span></div>
           <div className="rc-cards">
             {shown.filter(r => r.category === c).map(r => (
-              <article key={r.key} className="rc-card">
+              <article key={r.key} className={`rc-card${r.builder ? ' rc-card-builder' : ''}`}>
                 <div className="rc-card-head"><span className="rc-ic" aria-hidden="true"><Icon name={r.icon} size={18} /></span><h3>{r.name}</h3></div>
                 <p>{r.description}</p>
                 <div className="rc-card-foot">
-                  <span className="rc-formats">{r.formats.filter(f => f.available).map(f => <span key={f.key} className="chip">{f.label}</span>)}</span>
-                  <button className="btn btn-primary" onClick={() => onOpen(r.key)} aria-label={`Configure ${r.name}`}>Configure</button>
+                  <span className="rc-formats">{r.formats.filter(f => f.available).map(f => <span key={f.key} className="chip">{f.label}</span>)}{r.builder && <span className="chip">PDF (builder)</span>}</span>
+                  <span className="rc-card-actions">
+                    <button className={r.builder ? 'btn' : 'btn btn-primary'} onClick={() => onOpen(r.key)} aria-label={`Configure ${r.name}`}>Configure</button>
+                    {r.builder && <Link className="btn btn-primary" to="/reporting-center/builder/cases" aria-label={`Build report: ${r.name}`}>Build report</Link>}
+                  </span>
                 </div>
               </article>
             ))}
@@ -454,11 +418,17 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
   const [details, setDetails] = useState<number | null>(focus ?? null);
   const set = (patch: Partial<typeof f>) => setF(x => ({ ...x, page: 1, ...patch }));
   const badRange = f.from && f.to && f.from > f.to;
-  const q = useQuery({ queryKey: ['report-history', f], queryFn: () => get<Paged<ExportJob>>(`/reports/exports${qs({ ...f, scope: f.scope || undefined })}`), enabled: !badRange, placeholderData: keepPreviousData });
+  const q = useQuery({ queryKey: ['report-history', f], queryFn: () => get<Paged<ExportJob>>(`/reports/exports${qs({ ...f, scope: f.scope || undefined })}`), enabled: !badRange, placeholderData: keepPreviousData,
+    // A70: while a builder export is queued or running, the list follows it.
+    refetchInterval: r => r.state.data?.items.some(j => j.status === 'Queued' || j.status === 'Processing') ? 3000 : false });
+  const cancel = async (j: ExportJob) => {
+    try { await post(`/reporting/exports/${j.id}/cancel`); toast('Cancellation requested.'); qc.invalidateQueries({ queryKey: ['report-history'] }); }
+    catch (e) { toast(apiError(e)?.summary ?? 'The export could not be cancelled.', true); }
+  };
   const retry = async (j: ExportJob) => {
     try {
-      const n = await post<ExportJob>(`/reports/exports/${j.id}/retry`);
-      toast(n.status === 'Completed' ? `${n.reportName} generated again.` : (n.error ?? 'The export failed again.'), n.status !== 'Completed');
+      const n = await post<ExportJob>(j.builder ? `/reporting/exports/${j.id}/retry` : `/reports/exports/${j.id}/retry`);
+      toast(n.status === 'Queued' ? `${n.reportName} queued again.` : n.status === 'Completed' ? `${n.reportName} generated again.` : (n.error ?? 'The export failed again.'), n.status === 'Failed');
       qc.invalidateQueries({ queryKey: ['report-history'] });
       qc.invalidateQueries({ queryKey: ['report-summary'] });
     } catch (e) { toast(apiError(e)?.summary ?? 'The export could not be retried.', true); }
@@ -468,7 +438,7 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
     <>
       <div className="toolbar">
         <SelectInput label="Report" value={f.report} onChange={v => set({ report: v })} options={reports.map(r => ({ value: r.key, label: r.name }))} empty="All reports" />
-        <SelectInput label="Status" value={f.status} onChange={v => set({ status: v })} options={['Completed', 'Failed', 'Expired'].map(s => ({ value: s, label: s }))} empty="Any" />
+        <SelectInput label="Status" value={f.status} onChange={v => set({ status: v })} options={['Queued', 'Processing', 'Completed', 'Failed', 'Cancelled', 'Expired'].map(s => ({ value: s, label: s }))} empty="Any" />
         <TextInput label="From" type="date" value={f.from} onChange={v => set({ from: v })} />
         <TextInput label="To" type="date" value={f.to} onChange={v => set({ to: v })} error={badRange ? 'The end is before the start.' : undefined} />
         {me.grants.audit && <SelectInput label="Generated by" value={f.scope} onChange={v => set({ scope: v })} options={[{ value: 'all', label: 'Everyone (Audit permission)' }]} empty="Me" />}
@@ -482,7 +452,9 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
           { key: 'at', header: 'Date & time', sort: 'requestedAt', render: r => fmtDateTime(r.requestedAt) },
           { key: 'format', header: 'Format', render: r => <span className="chip">{r.format.toUpperCase()}</span> },
           { key: 'rows', header: 'Records', sort: 'rows', className: 'num', render: r => r.rowCount?.toLocaleString() ?? '—' },
-          { key: 'status', header: 'Status', sort: 'status', render: r => <><Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{r.status}</Badge>{r.status === 'Failed' && r.error && <div className="hint err rc-err">{r.error}</div>}</> },
+          { key: 'status', header: 'Status', sort: 'status', render: r => <><Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{r.status}</Badge>{(r.status === 'Queued' || r.status === 'Processing') && <span className="spin" aria-hidden="true" />}
+            {(r.status === 'Failed' || r.status === 'Cancelled') && r.error && <div className="hint err rc-err">{r.error}</div>}</> },
+          { key: 'expires', header: 'Expires', render: r => r.status === 'Completed' && r.expiresAt ? fmtDateTime(r.expiresAt) : <span className="muted">—</span> },
           { key: 'size', header: 'File size', className: 'num', render: r => size(r.fileSize) },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">
             {r.canDownload && <button className="linkbtn" onClick={() => download(r, toast, () => {
@@ -490,6 +462,7 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
               void qc.invalidateQueries({ queryKey: ['report-export', r.id] });
             })}>Download</button>}
             <button className="linkbtn" onClick={() => setDetails(r.id)}>Details</button>
+            {r.canCancel && <button className="linkbtn" onClick={() => cancel(r)}>Cancel</button>}
             {r.canRetry && <button className="linkbtn" onClick={() => retry(r)}>Retry</button>}</span> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => setF(x => ({ ...x, page: p }))} onSize={s => setF(x => ({ ...x, page: 1, pageSize: s }))} />}
@@ -576,25 +549,49 @@ function ScheduleRuns({ s, onClose }: { s: Schedule; onClose: () => void }) {
   );
 }
 
+type BuilderEdit = { schedule: Schedule; options?: { pdfMode?: string | null } | null };
+
+/** A70: choose which saved builder report to schedule. */
+function PickSaved({ onPick, onClose }: { onPick: (r: { id: number; name: string }) => void; onClose: () => void }) {
+  const list = useQuery({ queryKey: ['rc-saved', 'all', ''], queryFn: () => get<{ id: number; name: string; isOwner: boolean; owner: string }[]>('/reporting/report-definitions') });
+  const [id, setId] = useState('');
+  return (
+    <Dialog title="Schedule a saved report" onClose={onClose}>
+      {list.isLoading && <StateMessage kind="loading" />}
+      {list.data?.length === 0 && <StateMessage kind="none">You have no saved reports yet. <Link to="/reporting-center/builder/cases">Build and save a cases report</Link> first.</StateMessage>}
+      {!!list.data?.length && <SelectInput label="Saved report" value={id} onChange={setId} options={list.data.map(r => ({ value: String(r.id), label: r.isOwner ? r.name : `${r.name} (${r.owner})` }))} />}
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary" disabled={!id} onClick={() => { const r = list.data!.find(x => String(x.id) === id)!; onPick({ id: r.id, name: r.name }); }}>Continue</button></div>
+    </Dialog>
+  );
+}
+
 function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; creating: boolean; setCreating: (b: boolean) => void }) {
   const toast = useToast();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['report-schedules'], queryFn: () => get<Schedule[]>('/reports/schedules') });
   const [edit, setEdit] = useState<{ schedule: Schedule; filters: Values } | null>(null);
+  const [builderEdit, setBuilderEdit] = useState<BuilderEdit | null>(null);
+  const [pickSaved, setPickSaved] = useState(false);
+  const [newSaved, setNewSaved] = useState<{ id: number; name: string } | null>(null);
   const [runs, setRuns] = useState<Schedule | null>(null);
   const [remove, setRemove] = useState<Schedule | null>(null);
   const act = async (fn: () => Promise<unknown>, msg: string) => {
     try { await fn(); toast(msg); qc.invalidateQueries({ queryKey: ['report-schedules'] }); qc.invalidateQueries({ queryKey: ['report-summary'] }); }
     catch (e) { toast(apiError(e)?.summary ?? 'The change could not be saved.', true); }
   };
-  const when = (s: Schedule) => `${s.frequency === 'Weekly' ? `Every ${WEEKDAYS[s.dayOfWeek ?? 0]}` : s.frequency === 'Monthly' ? `Monthly on day ${s.dayOfMonth}` : 'Daily'} at ${s.time} (${s.timeZone})`;
-  return (
+  const when = scheduleWhen;
+  const openEdit = async (r: Schedule) => {
+    const full = await get<{ schedule: Schedule; filters: Values; options?: { pdfMode?: string | null } | null }>(`/reports/schedules/${r.id}`);
+    if (r.builder) setBuilderEdit({ schedule: full.schedule, options: full.options }); else setEdit(full);
+  };  return (
     <>
       <div className="rc-sched-head"><p className="hint">Your scheduled reports. Files are generated at the chosen local time and kept in each recipient's export history.</p>
-        <button className="btn btn-primary" onClick={() => setCreating(true)}>+ Schedule report</button></div>
+        <span className="rc-row-actions"><button className="btn" onClick={() => setPickSaved(true)}>+ Schedule a saved report</button>
+          <button className="btn btn-primary" onClick={() => setCreating(true)}>+ Schedule report</button></span></div>
       <DataTable<Schedule> rowKey={r => r.id} rows={q.data} loading={q.isLoading} error={q.error} tools={false} caption="Scheduled reports" empty="none"
         columns={[
-          { key: 'name', header: 'Name', render: r => <><b>{r.name}</b><div className="hint">{r.reportName}{r.filterSummary ? ` · ${r.filterSummary}` : ''}</div></> },
+          { key: 'name', header: 'Name', render: r => <><b>{r.name}</b><div className="hint">{r.builder ? <>Saved report: <Link to={`/reporting-center/builder/cases?report=${r.savedReportId}`}>{r.reportName}</Link></> : <>{r.reportName}{r.filterSummary ? ` · ${r.filterSummary}` : ''}</>}</div></> },
           { key: 'when', header: 'Frequency', render: r => when(r) },
           { key: 'format', header: 'Format', render: r => <span className="chip">{r.format.toUpperCase()}</span> },
           { key: 'to', header: 'Recipients', render: r => r.recipients.map(x => x.name).join(', ') },
@@ -602,13 +599,18 @@ function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; c
           { key: 'last', header: 'Last run', render: r => r.lastRunAt ? <>{fmtDateTime(r.lastRunAt)}<div className="hint">{r.lastOutcome}</div></> : <span className="muted">Not yet run</span> },
           { key: 'active', header: 'Status', render: r => <Badge tone={r.isActive ? 'good' : 'neutral'}>{r.isActive ? 'Active' : 'Paused'}</Badge> },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">
-            <button className="linkbtn" onClick={async () => setEdit(await get<{ schedule: Schedule; filters: Values }>(`/reports/schedules/${r.id}`))}>Edit</button>
+            <button className="linkbtn" onClick={() => openEdit(r)}>Edit</button>
             {r.isActive ? <button className="linkbtn" onClick={() => act(() => post(`/reports/schedules/${r.id}/pause`), 'Schedule paused.')}>Pause</button>
               : <button className="linkbtn" onClick={() => act(() => post(`/reports/schedules/${r.id}/resume`), 'Schedule resumed.')}>Resume</button>}
             <button className="linkbtn" onClick={() => setRuns(r)}>Runs</button>
             <button className="linkbtn err" onClick={() => setRemove(r)}>Delete</button></span> }
         ]} />
       {(creating || edit) && <ScheduleDialog reports={reports} edit={edit ?? undefined} onClose={() => { setCreating(false); setEdit(null); }} />}
+      {pickSaved && <PickSaved onClose={() => setPickSaved(false)} onPick={r => { setPickSaved(false); setNewSaved(r); }} />}
+      {(newSaved || builderEdit) && <BuilderScheduleDialog savedId={newSaved?.id ?? builderEdit!.schedule.savedReportId!} savedName={newSaved?.name ?? builderEdit!.schedule.reportName}
+        edit={builderEdit ? { ...builderEdit.schedule, pdfMode: builderEdit.options?.pdfMode } : undefined}
+        onClose={() => { setNewSaved(null); setBuilderEdit(null); }}
+        onDone={() => { setNewSaved(null); setBuilderEdit(null); qc.invalidateQueries({ queryKey: ['report-schedules'] }); qc.invalidateQueries({ queryKey: ['report-summary'] }); }} />}
       {runs && <ScheduleRuns s={runs} onClose={() => setRuns(null)} />}
       {remove && <Dialog title="Delete scheduled report" onClose={() => setRemove(null)}>
         <p>Delete <b>{remove.name}</b>? No further runs are made. Files already generated stay in each recipient's export history until they expire.</p>
@@ -621,48 +623,84 @@ function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; c
 
 /* --------------------------------------------------------------- page --------------------------------------------------------------- */
 
-export function Reports() {
-  const me = useMe().data!;
-  const qc = useQueryClient();
-  const [u, setU] = useUrlState({ tab: 'catalog', report: '', export: '' });
+/** A70: the areas of the Reporting Center (sub-routes of /reporting-center; the section menu lists them). */
+const AREAS: Record<string, { label: string; sub: string }> = {
+  '': { label: 'Overview', sub: 'Your report usage, recent exports, upcoming schedules and quick actions.' },
+  library: { label: 'Report library', sub: 'All reports by category: configure, preview and export (CSV or Excel); the Cases report also has the Report Builder.' },
+  'builder/cases': { label: 'Cases report builder', sub: 'Filters, columns, sorting and grouping with a live server-side preview; save, export to Excel or PDF, or schedule.' },
+  'my-reports': { label: 'My reports', sub: 'Saved Cases Report Builder configurations: yours, your team’s and those shared with you.' },
+  schedules: { label: 'Scheduled reports', sub: 'Recurring report files for you and colleagues, each generated with the recipient’s own access.' },
+  history: { label: 'Export history', sub: 'Every export with status, rows, format, expiry and secure download; queued exports update live.' },
+  templates: { label: 'Templates', sub: 'Ready-made Cases Report Builder configurations to start from.' }
+};
+
+/** Links from before A70 (?tab=history&export=…, ?tab=schedules, ?tab=catalog&report=…) open the matching area. */
+function legacyTarget(search: string): string | null {
+  const p = new URLSearchParams(search);
+  const tab = p.get('tab');
+  if (tab === 'history') return `/reporting-center/history${p.get('export') ? `?export=${p.get('export')}` : ''}`;
+  if (tab === 'schedules') return '/reporting-center/schedules';
+  if (tab === 'catalog' || p.get('report')) return `/reporting-center/library${p.get('report') ? `?report=${p.get('report')}` : ''}`;
+  return null;
+}
+
+function Library({ reports, searchRef }: { reports: ReportDef[]; searchRef: React.RefObject<HTMLInputElement> }) {
+  const nav = useNavigate();
+  const [u, setU] = useUrlState({ report: '' });
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
+  const def = reports.find(r => r.key === u.report);
+  return <>
+    {def
+      ? <ReportWorkspace def={def} onBack={() => setU({ report: '' })} onHistory={id => nav(`/reporting-center/history?export=${id}`)} />
+      : <Catalog reports={reports} onOpen={k => setU({ report: k })} search={search} setSearch={setSearch} category={category} setCategory={setCategory} searchRef={searchRef} />}
+    <p className="hint rc-foot">Need a report that is not listed? Report definitions live in one place on the server (<Link to="/admin">ask the application team</Link>); a new definition appears here automatically.</p>
+  </>;
+}
+
+function HistoryArea({ reports }: { reports: ReportDef[] }) {
+  const [u] = useUrlState({ export: '' });
+  return <History reports={reports} focus={u.export ? Number(u.export) : undefined} />;
+}
+
+export function Reports() {
+  const me = useMe().data!;
+  const loc = useLocation();
+  const nav = useNavigate();
+  const qc = useQueryClient();
   const [creating, setCreating] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null!);
   const catalog = useQuery({ queryKey: ['report-catalog'], queryFn: () => get<ReportDef[]>('/reports/catalog'), enabled: me.grants.export, staleTime: 5 * 60_000 });
-  const summary = useQuery({ queryKey: ['report-summary'], queryFn: () => get<Summary>('/reports/summary'), enabled: me.grants.export });
   const reports = useMemo(() => catalog.data ?? [], [catalog.data]);
-  const def = reports.find(r => r.key === u.report);
+  const area = loc.pathname.replace(/^\/reporting-center\/?/, '').replace(/\/$/, '');
+  const refreshing = useIsFetching({ predicate: q => /^(report-|rc-|rb-)/.test(String(q.queryKey[0])) }) > 0;
   // GUI-01: the hub's own access-denied page with a way back; the server refuses the report endpoints to this user as well.
   if (!me.grants.export) return <><PageHead title="Reporting Center" /><StateMessage kind="restricted">The Reporting Center needs the Export permission. Ask a TIO Manager to give it to your role.</StateMessage>
     <p className="rc-back"><Link className="btn" to="/">Back to the dashboard</Link></p></>;
-  const s = summary.data;
-  const refreshing = catalog.isFetching || summary.isFetching;
+  const legacy = area === '' ? legacyTarget(loc.search) : null;
+  if (legacy) return <Navigate to={legacy} replace />;
+  const a = AREAS[area];
+  const needsCatalog = (el: ReactNode) => catalog.isLoading ? <StateMessage kind="loading" />
+    : catalog.error ? <StateMessage kind={apiError(catalog.error)?.status === 403 ? 'restricted' : 'error'}>{apiError(catalog.error)?.summary ?? 'The report catalog could not be loaded.'}</StateMessage> : el;
   return (
-    <div className="rc">
-      <PageHead title="Reporting Center" sub="Generate operational reports, analyze performance, and manage data exports."
+    <div className={`rc${area === 'builder/cases' ? ' rc-wide' : ''}`}>
+      <PageHead title="Reporting Center" crumbs={area ? [{ to: '/reporting-center', label: 'Reporting Center' }, ...(area === 'builder/cases' ? [{ to: '/reporting-center/library', label: 'Report library' }] : []), { label: a?.label ?? 'Not found' }] : undefined}
+        sub={a?.sub ?? 'Generate operational reports, analyze performance, and manage data exports.'}
         actions={<>
-          <button className="btn" disabled={refreshing} onClick={() => qc.invalidateQueries({ predicate: q => String(q.queryKey[0]).startsWith('report-') })}>{refreshing ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
-          <button className="btn" onClick={() => { setU({ tab: 'schedules' }); setCreating(true); }}>Schedule report</button>
-          <button className="btn btn-primary" onClick={() => { setU({ tab: 'catalog', report: '' }); setTimeout(() => searchRef.current?.focus(), 50); }}>+ New report</button>
+          <button className="btn" disabled={refreshing} onClick={() => qc.invalidateQueries({ predicate: q => /^(report-|rc-|rb-)/.test(String(q.queryKey[0])) })}>{refreshing ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
+          <button className="btn" onClick={() => { nav('/reporting-center/schedules'); setCreating(true); }}>Schedule report</button>
+          <button className="btn btn-primary" onClick={() => nav('/reporting-center/builder/cases')}>+ Create report</button>
         </>} />
-      <div className="kpis rc-kpis" aria-label="Reporting summary">
-        <Kpi icon={<Icon name="report" size={18} />} label="Available reports" value={s?.availableReports ?? '—'} loading={!s} lines={[{ text: 'Reports you can generate with your access' }]} />
-        <Kpi icon={<Icon name="download" size={18} />} label="Exports generated today" value={s?.exportsToday ?? '—'} loading={!s} lines={[{ text: 'Your completed exports since midnight' }]} to="/reporting-center?tab=history" />
-        <Kpi icon={<Icon name="history" size={18} />} label="Scheduled reports" value={s?.scheduledReports ?? '—'} loading={!s} lines={[{ text: 'Your active schedules' }]} to="/reporting-center?tab=schedules" />
-        <Kpi icon={<Icon name="bell" size={18} />} label="Failed exports" value={s?.failedExports ?? '—'} loading={!s} status={s?.failedExports ? 'warning' : s ? 'healthy' : 'neutral'}
-          lines={[{ text: 'Yours, last 30 days', status: s?.failedExports ? 'warning' : undefined }]} to="/reporting-center?tab=history" />
-      </div>
-      {s && <p className="hint rc-policy">Exports contain only rows you are authorized to see, with the generation time, time zone, filters and column definitions. Files are kept for {s.retentionDays} days and only you can download yours; every export is audited. One export holds at most {s.maxRows.toLocaleString()} rows.</p>}
-      <Tabs value={u.tab} onChange={k => setU({ tab: k, report: '', export: '' })} tabs={[{ key: 'catalog', label: 'Report catalog' }, { key: 'history', label: 'Export history' }, { key: 'schedules', label: 'Scheduled reports' }]} />
-      {catalog.isLoading && <StateMessage kind="loading" />}
-      {catalog.error && <StateMessage kind={apiError(catalog.error)?.status === 403 ? 'restricted' : 'error'}>{apiError(catalog.error)?.summary ?? 'The report catalog could not be loaded.'}</StateMessage>}
-      {catalog.data && u.tab === 'catalog' && (def
-        ? <ReportWorkspace def={def} onBack={() => setU({ report: '' })} onHistory={id => setU({ tab: 'history', report: '', export: String(id) })} />
-        : <Catalog reports={reports} onOpen={k => setU({ report: k })} search={search} setSearch={setSearch} category={category} setCategory={setCategory} searchRef={searchRef} />)}
-      {catalog.data && u.tab === 'history' && <History reports={reports} focus={u.export ? Number(u.export) : undefined} />}
-      {catalog.data && u.tab === 'schedules' && <Schedules reports={reports} creating={creating} setCreating={setCreating} />}
-      <p className="hint rc-foot">Need a report that is not listed? Report definitions live in one place on the server (<Link to="/admin">ask the application team</Link>); a new definition appears here automatically.</p>
+      <Routes>
+        <Route index element={<ReportingOverview />} />
+        <Route path="library" element={needsCatalog(<Library reports={reports} searchRef={searchRef} />)} />
+        <Route path="builder/cases" element={<CasesBuilder />} />
+        <Route path="my-reports" element={<MyReports />} />
+        <Route path="schedules" element={needsCatalog(<Schedules reports={reports} creating={creating} setCreating={setCreating} />)} />
+        <Route path="history" element={needsCatalog(<HistoryArea reports={reports} />)} />
+        <Route path="templates" element={<Templates />} />
+        <Route path="*" element={<StateMessage kind="none">There is no Reporting Center page at this address. <Link to="/reporting-center">Open the overview</Link>.</StateMessage>} />
+      </Routes>
     </div>
   );
 }

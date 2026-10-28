@@ -32,7 +32,7 @@ async function updateLookup(page: Page, original: Lookup, patch: Partial<Lookup>
   await api(page, `/admin/lookups/${current.id}`, { ...current, ...patch }, 'PUT', current.version);
 }
 async function report(page: Page, name: string) {
-  await page.goto('/reporting-center');
+  await page.goto('/reporting-center/library');
   await expect(page.getByRole('heading', { name: 'Reporting Center', exact: true })).toBeVisible();
   await page.getByRole('button', { name: `Configure ${name}`, exact: true }).click();
 }

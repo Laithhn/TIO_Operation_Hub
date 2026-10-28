@@ -35,6 +35,8 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // A62: export files of this test run go next to the attachments; scheduled runs are triggered by the tests themselves.
         builder.UseSetting("Reporting:Path", Path.Combine(AttachmentRoot, "exports"));
         builder.UseSetting("Reporting:SchedulerMinutes", "0");
+        // A70: builder export jobs are run by the tests themselves (ExportWorker.RunAllAsync).
+        builder.UseSetting("Reporting:ExportWorkerSeconds", "0");
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
     }
 

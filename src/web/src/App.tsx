@@ -102,7 +102,7 @@ function NoAccess() {
  */
 function LegacyReports() {
   const loc = useLocation();
-  return <Navigate to={`/reporting-center${loc.search}`} replace />;
+  return <Navigate to={`/reporting-center${loc.pathname.replace(/^\/reports/, '')}${loc.search}`} replace />;
 }
 
 function NotFound() {
@@ -119,8 +119,10 @@ export const router = createBrowserRouter([
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'data-quality', element: <DataQuality /> },
-      { path: 'reporting-center', element: <Reports /> },
+      // A70: the center's areas are sub-routes (overview, library, builder, my reports, schedules, history, templates).
+      { path: 'reporting-center/*', element: <Reports /> },
       { path: 'reports', element: <LegacyReports /> },
+      { path: 'reports/*', element: <LegacyReports /> },
       { path: 'clients', element: <ClientList /> },
       { path: 'clients/new', element: <ClientForm /> },
       { path: 'clients/:id', element: <ClientDetail /> },
