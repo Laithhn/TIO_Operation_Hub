@@ -4,6 +4,7 @@ import { Link } from 'react-router';
 import { get, post, put, qs, type Paged } from '../api';
 import { usePermission, useForm, useMe, useRefresh, useUrlState } from '../hooks';
 import { Badge, DataTable, DeleteAction, Dialog, FormError, PageHead, Pager, SelectInput, StateMessage, TextInput, useToast, type Column } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { toNum, useClientOptions } from './common';
 
 /** A35: firewall rules replace network endpoints and dependencies — the allowed communication between two servers. */
@@ -27,7 +28,7 @@ function TechGate({ children }: { children: React.ReactNode }) {
 
 function ruleColumns(onEdit: ((r: RuleRow) => void) | null, showClient: boolean): Column<RuleRow>[] {
   return [
-    ...(showClient ? [{ key: 'client', header: 'Client', sort: 'client', render: (r: RuleRow) => <Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link> }] : []),
+    ...(showClient ? [{ key: 'client', header: 'Client', sort: 'client', render: (r: RuleRow) => <ClientDisplay id={r.clientId} code={r.clientCode} /> }] : []),
     { key: 'source', header: 'Source server', sort: 'source', render: r => <><Link to={`/assets/${r.source.id}`}>{r.source.name}</Link><div className="hint">{r.source.environment}</div></> },
     { key: 'dir', header: 'Direction', render: r => <span title={r.direction === 'Bidirectional' ? 'Both directions' : 'Source to destination'}><span aria-hidden="true" className="fw-arrow">{arrow(r.direction)}</span> {r.direction === 'Bidirectional' ? 'Both ways' : 'One way'}</span> },
     { key: 'destination', header: 'Destination server', sort: 'destination', render: r => <><Link to={`/assets/${r.destination.id}`}>{r.destination.name}</Link><div className="hint">{r.destination.environment}</div></> },

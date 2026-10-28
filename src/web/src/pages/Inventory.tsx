@@ -6,6 +6,7 @@ import { fmtDate, label, qty } from '../format';
 import { usePermission, useEnum, useForm, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, ArchiveDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, DataTable, Dialog, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, FreshnessBadge, type FreshnessT, Menu, FormSection, QuantityInput, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { InfraSummary, type Infra } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
@@ -524,7 +525,7 @@ export function AssetList() {
       <DataTable<AssetRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={Object.values(filters).some(Boolean) || f.q ? 'nomatch' : 'none'}
         columns={[
           { key: 'name', header: 'Asset', render: r => <Link to={`/assets/${r.id}`}>{r.name}</Link>, filter: <input className="input" aria-label="Search assets" placeholder="Search by name" value={f.q} onChange={e => set({ q: e.target.value })} /> },
-          { key: 'client', header: 'Client / environment', render: r => <><Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link>{r.regionCode && ` / ${r.regionCode}`} / <Link to={`/environments/${r.environmentId}`}>{r.environmentName}</Link></> },
+          { key: 'client', header: 'Client / environment', render: r => <><ClientDisplay id={r.clientId} code={r.clientCode} />{r.regionCode && ` / ${r.regionCode}`} / <Link to={`/environments/${r.environmentId}`}>{r.environmentName}</Link></> },
           { key: 'type', header: 'Type', render: r => T.name('AssetType', r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{T.filterOptions('AssetType').map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
           { key: 'role', header: 'Role', render: r => r.role },
           { key: 'life', header: 'Lifecycle', render: r => <StatusBadge value={r.lifecycle} />, filter: <select className="input" aria-label="Filter by lifecycle" value={f.lifecycle} onChange={e => set({ lifecycle: e.target.value })}><option value="">All</option>{lifecycles.map(t => <option key={t}>{t}</option>)}</select> },
@@ -575,7 +576,7 @@ export function VersionMatrix() {
         <Panel title="Matrix (environment × product)" pad={false}>
           {envs.length === 0 ? <div className="panel-body"><StateMessage kind={Object.values(f).some(Boolean) ? 'nomatch' : 'none'} /></div> : (
             <DataTable caption="Environment by product matrix" rows={envs} rowKey={e => e.environmentId} columns={[
-              { key: 'client', header: 'Client', render: e => <Link to={`/clients/${e.clientId}`}>{e.clientCode}</Link> },
+              { key: 'client', header: 'Client', render: e => <ClientDisplay id={e.clientId} code={e.clientCode} /> },
               { key: 'region', header: 'Region', render: e => e.regionCode ?? <span className="muted">Direct</span> },
               { key: 'environment', header: 'Environment', render: e => <><Link to={`/environments/${e.environmentId}`}>{e.environmentName}</Link> <span className="chip">{T.name('EnvironmentType', e.environmentType)}</span></> },
               ...prods.map(([pid, code]) => ({ key: `product-${pid}`, header: code, render: (e: typeof envs[number]) => m.cells.filter(c => c.environmentId === e.environmentId && c.productId === pid).map(c => (

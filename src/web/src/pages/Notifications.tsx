@@ -6,6 +6,7 @@ import { fmtDate, fmtDateTime, fmtMoney } from '../format';
 import { useUrlState } from '../hooks';
 import { Icon } from '../ui/Icon';
 import { Badge, Checkbox, DataTable, PageHead, Pager, StateMessage, Tabs, type Column } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 
 /** A38: the notifications center — assignments, due and overdue work and contract renewals, for every role. */
 type Notice = { id: number; kind: string; title: string; body?: string; link?: string; createdAt: string; readAt?: string };
@@ -120,7 +121,7 @@ function PaymentsTab({ state, mine, onState, onMine }: { state: string; mine: bo
   const cols: Column<Payment>[] = [
     { key: 'due', header: 'Due', render: p => <span className="nowrap">{fmtDate(p.dueDate) || <span className="muted">No date</span>}<span className="hint pay-sub">{dueText(p)}</span></span> },
     { key: 'contract', header: 'Contract', render: p => <><Link to={`/contracts/${p.contractId}`}>{p.contractRef}</Link><span className="hint pay-sub">{p.contractTitle}</span></> },
-    { key: 'client', header: 'Client', render: p => <Link to={`/clients/${p.clientId}`}>{p.clientCode}</Link> },
+    { key: 'client', header: 'Client', render: p => <ClientDisplay id={p.clientId} code={p.clientCode} /> },
     { key: 'condition', header: 'Condition', render: p => <>{p.condition}{p.percentage !== null && p.percentage !== undefined && <span className="muted"> · {p.percentage} %</span>}</> },
     { key: 'amount', header: 'Amount', className: 'num', render: p => fmtMoney(p.amount, p.currency) },
     { key: 'status', header: 'Status', render: p => <>{p.status}{p.paidOn && <span className="hint pay-sub">paid {fmtDate(p.paidOn)}</span>}</> },

@@ -142,7 +142,7 @@ public static class BuilderEndpoints
                 total = result.Total, countExact = true, page, pageSize = size, cutoff = k.Now, timeZone = zone.Id, durationMs = (int)watch.Elapsed.TotalMilliseconds,
                 dateRange = new { from = v.RangeFrom, toExclusive = v.RangeTo },
                 columns = v.Columns.Select(c => new { c.Key, c.Label, type = c.Type.ToString() }),
-                rows = result.Rows.Select(r => new { id = r.Id, cells = v.Columns.Select(c => Out(c, r)) }),
+                rows = result.Rows.Select(r => new { id = r.Id, cells = v.Columns.Select(c => Out(c, r)), clientId = r.ClientId }),   // A71: clientId for the logo
                 summary = new { byStatus = result.ByStatus, byPriority = result.ByPriority, bySla = result.BySla },
                 groupBy = v.GroupBy?.Key, groups = result.Groups?.Select(x => new { key = x.Key, count = x.Count }),
                 filters = v.Summary.Select(s => new { label = s.Label, value = s.Value }), warnings,

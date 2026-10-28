@@ -61,6 +61,8 @@ export type MapMetric = { key: string; label: string; value: (d: CountryDatum) =
 export type MapClientPoint = {
   id: number; code: string; name: string; country?: string | null; parentClientId?: number | null; environments: number; servers: number;
   openCases: number; overdueCases: number; openCommitments: number; overdueCommitments: number; activeContracts: number; renewalAttention: number;
+  /** A71: the client's logo address, shown in its popup. */
+  logoUrl?: string | null;
 };
 
 type CountryRow = CountryDatum & { servers?: number; activeContracts?: number };
@@ -158,6 +160,11 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
       e.popup.getElement()?.querySelectorAll<HTMLAnchorElement>('a[data-client]').forEach(a => a.addEventListener('click', ev => {
         ev.preventDefault(); fns.current.onOpenClient(Number(a.dataset.client));
       }));
+      // A71: a logo that fails to load is removed (no broken image); inline handlers are not allowed by the page's security policy.
+      e.popup.getElement()?.querySelectorAll<HTMLImageElement>('img.osm-pop-logo').forEach(img => {
+        if (img.complete && img.naturalWidth === 0) img.remove();
+        else img.addEventListener('error', () => img.remove(), { once: true });
+      });
     });
     m.setView([20, 30], 2);
     map.current = m;
@@ -244,7 +251,8 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
         list.forEach((c, i) => {
           const pos = m.unproject(centre.add(slot(i, list.length)), zoom);
           const st = clientState(c);
-          const popup = `<div class="osm-pop"><div class="osm-pop-h"><b>${esc(c.code)}</b> <span class="muted">${esc(c.name)}</span></div>` +
+          const logo = c.logoUrl ? `<img class="osm-pop-logo" src="${esc(c.logoUrl)}" alt="" width="28" height="28">` : '';
+          const popup = `<div class="osm-pop"><div class="osm-pop-h">${logo}<b>${esc(c.code)}</b> <span class="muted">${esc(c.name)}</span></div>` +
             (c.parentClientId ? '<div class="muted">Sub-client</div>' : '') +
             `<div class="osm-pop-grid"><span><b>${c.environments}</b> env.</span><span><b>${c.servers}</b> servers</span><span><b>${c.openCases}</b> open cases</span>` +
             `<span><b>${c.openCommitments}</b> commitments</span><span><b>${c.activeContracts}</b> contracts</span></div>` +

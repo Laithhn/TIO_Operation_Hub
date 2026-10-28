@@ -81,11 +81,11 @@ export const post = <T = unknown>(path: string, body?: unknown, version?: string
 export const put = <T = unknown>(path: string, body: unknown, version?: string) => api<T>(path, { method: 'PUT', body, version });
 export const del = <T = unknown>(path: string, version?: string, body?: unknown) => api<T>(path, { method: 'DELETE', version, body });
 
-/** A46: multipart upload (the browser sets the boundary); same antiforgery header and error handling as the JSON calls. */
-export async function upload<T = unknown>(path: string, form: FormData): Promise<T> {
+/** A46: multipart upload (the browser sets the boundary); same antiforgery header and error handling as the JSON calls. A71: PUT for the client logo. */
+export async function upload<T = unknown>(path: string, form: FormData, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   const t = xsrf(); if (t) headers['X-XSRF-TOKEN'] = t;
-  const res = await fetch(BASE + path, { method: 'POST', headers, credentials: 'same-origin', body: form });
+  const res = await fetch(BASE + path, { method, headers, credentials: 'same-origin', body: form });
   const text = await res.text();
   let data: unknown = undefined;
   if (text) { try { data = JSON.parse(text); } catch { data = { title: text.slice(0, 200) }; } }

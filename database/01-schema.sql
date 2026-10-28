@@ -6932,3 +6932,40 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028102910_ClientLogo'
+)
+BEGIN
+    ALTER TABLE [clients].[Client] ADD [LogoContentType] nvarchar(50) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028102910_ClientLogo'
+)
+BEGIN
+    ALTER TABLE [clients].[Client] ADD [LogoPath] nvarchar(200) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028102910_ClientLogo'
+)
+BEGIN
+    ALTER TABLE [clients].[Client] ADD [LogoVersion] nvarchar(32) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028102910_ClientLogo'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261028102910_ClientLogo', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

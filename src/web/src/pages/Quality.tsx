@@ -5,6 +5,7 @@ import { fmtDateTime, fromLocalInput, label } from '../format';
 import { usePermission, useMe, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog } from '../ui/pickers';
 import { DataTable, PageHead, Pager, Panel, Person, SelectInput, StatusBadge, useToast } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { RecordLink, useClientOptions } from './common';
 
 type Item = { id: number; rule: string; recordType: string; recordId: number; recordLabel: string; detail: string; clientId?: number; clientCode?: string; coordinator?: UserRef; nextAction?: string; nextReviewAt?: string; status: string; openedAt: string; resolvedAt?: string; resolutionEvidence?: string; version: string };
@@ -34,7 +35,7 @@ export function DataQuality() {
       </div>
       <DataTable<Item> rowKey={i => i.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={f.rule || f.clientId ? 'nomatch' : 'none'} columns={[
         { key: 'r', header: 'Rule', render: i => label(i.rule) }, { key: 'rec', header: 'Record', render: i => <RecordLink type={i.recordType} id={i.recordId}>{label(i.recordType)} · {i.recordLabel}</RecordLink> },
-        { key: 'c', header: 'Client', render: i => i.clientCode ?? <span className="muted">—</span> }, { key: 'd', header: 'Detail', render: i => i.detail },
+        { key: 'c', header: 'Client', render: i => i.clientCode ? <ClientDisplay id={i.clientId} code={i.clientCode} /> : <span className="muted">—</span> }, { key: 'd', header: 'Detail', render: i => i.detail },
         { key: 'co', header: 'Coordinator', render: i => <Person u={i.coordinator} gap="Not assigned" /> }, { key: 'n', header: 'Next action', render: i => <>{i.nextAction}{i.nextReviewAt && <div className="hint">review {fmtDateTime(i.nextReviewAt)}</div>}</> },
         { key: 's', header: 'Status', render: i => <><StatusBadge value={i.status} />{i.resolvedAt && <div className="hint">{fmtDateTime(i.resolvedAt)}</div>}</> },
         { key: 'o', header: 'Opened', render: i => fmtDateTime(i.openedAt) },

@@ -7,6 +7,7 @@ import { useEnum, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useU
 import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 import { MyNotesPanel } from './Notes';
@@ -87,7 +88,7 @@ export function ContractList() {
           { key: 'ref', header: 'Ref', sort: 'ref', render: c => <Link to={`/contracts/${c.id}`}>{c.ref}</Link>,
             filter: <input className="input" aria-label="Search contracts" placeholder="Title or reference" value={f.q} onChange={e => set({ q: e.target.value, page: '1' })} /> },
           { key: 'title', header: 'Contract', sort: 'title', render: c => <><Link to={`/contracts/${c.id}`}>{c.title}</Link>{c.contractReference && <div className="hint">{c.contractReference}</div>}</> },
-          { key: 'project', header: 'Project', sort: 'project', render: c => <><Link to={`/projects/${c.projectId}`}>{c.projectCode}</Link><div className="hint">{c.clientCode}</div></> },
+          { key: 'project', header: 'Project', sort: 'project', render: c => <><Link to={`/projects/${c.projectId}`}>{c.projectCode}</Link><div className="hint"><ClientDisplay id={c.clientId} code={c.clientCode} name={c.clientName} size="xs" link={false} /></div></> },
           { key: 'type', header: 'Type', render: c => T.name('ContractType', c.type) },
           { key: 'status', header: 'Status', sort: 'status', render: c => <StatusBadge value={c.status} />,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value, page: '1' })}><option value="">All</option>{statuses.map(s => <option key={s} value={s}>{label(s)}</option>)}</select> },
@@ -147,7 +148,7 @@ export function ContractDetail() {
         <div className="cols">
           <Panel title="Contract">
             <DL items={[
-              ['Client', <Link to={`/clients/${c.client.id}`}>{c.client.code} · {c.client.name}</Link>],
+              ['Client', <ClientDisplay id={c.client.id} code={c.client.code} name={c.client.name} show="both" />],
               ['Contract reference', c.contractReference ?? <Unknown />],
               ['Type', T.name('ContractType', c.type)],
               ['Project', <Link to={`/projects/${c.project.id}`}>{c.project.code} · {c.project.name}</Link>],
@@ -450,7 +451,7 @@ export function ProjectDetail() {
       <div className="cols">
         <Panel title="Project">
           <DL items={[
-            ['Client', <Link to={`/clients/${p.clientId}`}>{p.clientCode} · {p.clientName}</Link>], ['Project owner', <Person u={p.owner} />],
+            ['Client', <ClientDisplay id={p.clientId} code={p.clientCode} name={p.clientName} show="both" />], ['Project owner', <Person u={p.owner} />],
             ['Service dates', p.serviceStart ? `${fmtDate(p.serviceStart)} – ${p.serviceEnd ? fmtDate(p.serviceEnd) : 'open'}` : <Unknown />],
             ['Scope', p.scopeSummary ? <span style={{ whiteSpace: 'pre-wrap' }}>{p.scopeSummary}</span> : <Unknown />]
           ]} />

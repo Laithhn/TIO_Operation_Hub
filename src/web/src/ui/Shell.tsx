@@ -10,6 +10,7 @@ import { configAt } from '../configRegistry';
 import { NotificationBell } from '../pages/Notifications';
 import { Icon, Logo } from './Icon';
 import { cx, frameCss, PrimaryLinksMarker, SidebarMarker, SidebarTitle } from '../vt/frame';
+import { ClientLogo } from './ClientLogo';
 
 /** tree 'config': the entry carries the Configuration tree (ConfigNav) instead of fixed children. */
 type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m: Me) => boolean; children?: Item[]; tree?: 'config' };
@@ -411,6 +412,7 @@ function SearchPalette({ onClose }: { onClose: () => void }) {
             <li key={h.link + i}>
               {(i === 0 || hits[i - 1].group !== h.group) && <div className="g">{h.group}</div>}
               <a href={h.link} role="option" aria-selected={i === sel} onClick={e => { e.preventDefault(); go(h); }} onMouseEnter={() => setSel(i)}>
+                {/^\/clients\/\d+$/.test(h.link) && <><ClientLogo clientId={Number(h.link.slice(9))} code={h.title.split(' · ')[0]} name={h.title.split(' · ')[1]} size="xs" decorative />{' '}</>}
                 <b>{h.title}</b> <span className="muted">· {h.subtitle}</span>
               </a>
             </li>

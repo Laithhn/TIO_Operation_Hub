@@ -6,6 +6,7 @@ import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../for
 import { useEnum, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useTeamOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 
@@ -39,7 +40,7 @@ export function CommitmentList() {
           { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/commitments/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search commitments" placeholder="Search" value={f.q} onChange={e => set({ q: e.target.value })} /> },
           { key: 'd', header: 'Description', render: r => <Link to={`/commitments/${r.id}`}>{r.description}</Link> },
           { key: 't', header: 'Type', render: r => typeLabel(r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{types.map(t => <option key={t} value={t}>{typeLabel(t)}</option>)}</select> },
-          { key: 'c', header: 'Client / scope', sort: 'client', render: r => r.clientCode ?? <span className="chip">Internal · {r.teamName}</span> },
+          { key: 'c', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal · {r.teamName}</span> },
           { key: 's', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.status} />{r.completedLate === true && <Badge tone="warn">Late</Badge>}</>,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select> },
           { key: 'due', header: 'Current deadline', sort: 'due', render: r => <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.currentDueAt, r.timeZone)} <span className="hint">{r.timeZone}</span>{r.overdue && ' · overdue'}</span> },
@@ -124,7 +125,7 @@ export function CommitmentDetail() {
       <div className="cols">
         <Panel title="Promise">
           <DL items={[
-            ['Scope', c.client ? <Link to={`/clients/${c.client.id}`}>{c.client.code} · {c.client.name}</Link> : `Internal · ${c.team?.name}`], ['Owner', <Person u={c.owner} />],
+            ['Scope', c.client ? <ClientDisplay id={c.client.id} code={c.client.code} name={c.client.name} show="both" /> : `Internal · ${c.team?.name}`], ['Owner', <Person u={c.owner} />],
             ['Type', c.typeLabel], ['Linked case', c.case ? <Link to={`/cases/${c.case.id}`}>{c.case.ref} · {c.case.title}</Link> : 'None'], ['Project', c.project ? `${c.project.code} · ${c.project.name}` : 'None'],
             ['Next review', <When v={c.nextReviewAt} />], ['Last reviewed', <When v={c.lastReviewedAt} />]
           ]} />

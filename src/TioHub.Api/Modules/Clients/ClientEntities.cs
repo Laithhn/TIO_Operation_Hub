@@ -31,6 +31,11 @@ public class Client : Entity, IArchivable, IAccountable, IClientOwned
     public DateTimeOffset? ArchivedAt { get; set; }
     public long? ArchivedById { get; set; }
     public string? ArchiveReason { get; set; }
+    /// <summary>A71: optional logo, stored on disk under the attachment storage root as <c>logos/{random id}</c> (never in this table).</summary>
+    public string? LogoPath { get; set; }
+    public string? LogoContentType { get; set; }
+    /// <summary>A71: random value renewed on every upload; part of the logo URL so a replaced logo is never served from a browser cache.</summary>
+    public string? LogoVersion { get; set; }
     public long? ScopeClientId => Id;
     public List<Region> Regions { get; set; } = [];
     public List<Project> Projects { get; set; } = [];

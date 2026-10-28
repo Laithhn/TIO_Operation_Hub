@@ -6,6 +6,7 @@ import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../for
 import { usePermission, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DeleteAction, DL, FormError, FormSection, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { ContactCard, ContactFields, contactFrom, contactOut, HistoryPanel, toNum, useClientOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 
@@ -54,7 +55,7 @@ export function EscalationTable({ clientId, caseId, compact }: { clientId?: numb
         columns={[
           { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/escalations/${r.id}`}>{r.ref}</Link> },
           { key: 't', header: 'Escalation', render: r => <><Link to={`/escalations/${r.id}`}>{r.title}</Link>{r.counterpartName && <div className="hint">{r.direction === 'Raised' ? 'To' : 'From'} {r.counterpartName}{r.counterpartOrganization ? ` · ${r.counterpartOrganization}` : ''}</div>}</> },
-          ...(clientId || compact ? [] : [{ key: 'client', header: 'Client', sort: 'client', render: (r: Row) => <Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link> }]),
+          ...(clientId || compact ? [] : [{ key: 'client', header: 'Client', sort: 'client', render: (r: Row) => <ClientDisplay id={r.clientId} code={r.clientCode} /> }]),
           { key: 'channel', header: 'Channel', sort: 'channel', render: r => <><span className="chip">{ch.name(r.channel)}</span>{r.channelReference && <div className="hint mono">{r.channelReference}</div>}</> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} /> },
           { key: 'level', header: 'Level', sort: 'level', render: r => <LevelBadge level={r.level} /> },
@@ -195,7 +196,7 @@ export function EscalationDetail() {
       <div className="cols">
         <Panel title="Escalation">
           <DL items={([
-            ['Client', <Link to={`/clients/${e.client.id}`}>{e.client.code} · {e.client.name}</Link>], ['Channel', <>{ch.name(e.channel)}{e.channelReference && <> · <span className="mono">{e.channelReference}</span></>}</>],
+            ['Client', <ClientDisplay id={e.client.id} code={e.client.code} name={e.client.name} show="both" />], ['Channel', <>{ch.name(e.channel)}{e.channelReference && <> · <span className="mono">{e.channelReference}</span></>}</>],
             ['Description', e.description ? <span style={{ whiteSpace: 'pre-wrap' }}>{e.description}</span> : null], ['Owner', <Person u={e.owner} />],
             ['Received / raised', fmtDateTime(e.receivedAt)], ['Acknowledged', e.acknowledgedAt ? <When v={e.acknowledgedAt} /> : <span className="muted">Not yet</span>],
             ['Respond by', e.responseDueAt ? <span className={e.responseOverdue ? 'err' : ''}>{fmtDateTime(e.responseDueAt)}</span> : null],

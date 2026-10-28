@@ -55,6 +55,7 @@ Schema changes in later releases: developers add an EF Core migration and regene
 - Files are stored, kept and removed exactly like the A62 exports (`Reporting:Path`, `Reporting:RetentionDays`, `Reporting:MaxRows`). Every export request, cancellation, completed or failed job and download is written to the change history (Action Export / ExportRequested / ExportCancelled / Download).
 - Metrics (meter `TioHub.Reporting`): preview duration, queue wait, export duration, jobs by status and format, downloads. Logs carry job references, row counts and timings only, never case content.
 - The `ReportBuilder` migration only adds columns and tables in the `reporting` schema and one index on cases; apply the regenerated `database/01-schema.sql` as usual before deploying the application files.
+- The `ClientLogo` migration (A71) only adds three nullable columns to `clients.Client` (logo path, type and version); apply the regenerated `database/01-schema.sql` as usual. Logo files live in `logos/` under the attachment folder.
 
 ### Resource permissions, SLA penalties and workflow labels (A63)
 
@@ -87,6 +88,7 @@ Apply OptionalOrganizationGraph before deploying the matching application. It cr
 | `App__MapAttribution` | Attribution text shown on the map (keep `© OpenStreetMap contributors` for OSM-based tiles). |
 | `Attachments__Path` | Folder for attached files (A46). Default `App_Data/attachments` under the application folder (kept by in-place upgrades); an absolute path or a UNC share such as `\\fileserver\TioHub\attachments` is recommended for servers. The app-pool identity needs modify rights; restrict the folder to that identity and server administrators. Since 2.20.0 an administrator can change the folder, limits and types under Administration → Settings → File attachments (A48); the saved value overrides this setting, which stays the fallback. Moving copies the existing files first; grant the app-pool identity modify rights on the new folder beforehand. |
 | `Attachments__MaxFileMB` / `Attachments__MaxFilesPerUpload` / `Attachments__AllowedExtensions__0…` | Upload limits (default 25 MB, 10 files) and accepted types (Office, PDF, images, text, e-mail, archives; executables, scripts, certificates and keys are never in the default list). The published `web.config` allows requests up to 260 MB; raise `maxAllowedContentLength` with the limits. |
+| `ClientLogos__MaxFileKB` / `ClientLogos__MaxPixels` | Client logo limits (A71): default 2048 KB and 5000 px per side. Logos are PNG, JPEG or WebP; SVG is never accepted. Files are stored under the attachment folder in `logos/`. |
 | `App__EnvironmentName` | `Production`, `UAT`… (shown in the status bar when not Production) |
 | `Database__ApplyMigrationsOnStartup` | `false` (the DBA applies scripts) |
 | `Database__SeedDevelopmentData` | `false` — the app refuses to start with `true` outside Development/Testing |

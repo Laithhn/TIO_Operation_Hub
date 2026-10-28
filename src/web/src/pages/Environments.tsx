@@ -8,6 +8,7 @@ import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput,
   StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { BoundaryPerson, type BoundaryRow } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
 import { HistoryPanel, toNum, useClientOptions } from './common';
@@ -44,7 +45,7 @@ export function EnvironmentList() {
       </div>
       <DataTable<EnvRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })}
         columns={[
-          { key: 'client', header: 'Client', sort: 'client', render: r => <Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link>, filter: <input className="input" aria-label="Search environments" placeholder="Search by environment or client" value={f.q} onChange={e => set({ q: e.target.value })} /> },
+          { key: 'client', header: 'Client', sort: 'client', render: r => <ClientDisplay id={r.clientId} code={r.clientCode} />, filter: <input className="input" aria-label="Search environments" placeholder="Search by environment or client" value={f.q} onChange={e => set({ q: e.target.value })} /> },
           { key: 'region', header: 'Region', sort: 'region', render: r => r.regionCode ?? <span className="muted">Direct</span> },
           { key: 'name', header: 'Environment', sort: 'name', render: r => <Link to={`/environments/${r.id}`}>{r.name}</Link> },
           { key: 'type', header: 'Type', sort: 'type', render: r => T.name('EnvironmentType', r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{T.filterOptions('EnvironmentType').map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },

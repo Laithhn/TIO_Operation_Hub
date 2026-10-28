@@ -5,6 +5,7 @@ import { del, get, post, put } from '../api';
 import { fmtDate, label } from '../format';
 import { usePermission, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { AttachmentsPanel } from './Attachments';
 
 // Products — the business also calls them applications: the software TIO delivers and supports.
@@ -148,7 +149,7 @@ export function ProductDetail() {
         <Panel title="Installations by client" pad={false}>
           {p.usage.length === 0 ? <StateMessage kind="none">Not installed at any client you can access.</StateMessage> : (
             <DataTable caption="Installations by client" rows={p.usage.flatMap(c => c.installations.map(i => ({ ...i, c })))} rowKey={i => i.id} columns={[
-              { key: 'c', header: 'Client', render: i => <Link to={`/clients/${i.c.clientId}`}>{i.c.clientCode} · {i.c.clientName}</Link> },
+              { key: 'c', header: 'Client', render: i => <ClientDisplay id={i.c.clientId} code={i.c.clientCode} name={i.c.clientName} show="both" /> },
               { key: 'e', header: 'Environment', render: i => <Link to={`/environments/${i.environmentId}`}>{i.region ? `${i.region} / ` : ''}{i.environment}</Link> },
               { key: 'i', header: 'Instance', render: i => <Link to={`/installations/${i.id}`}>{i.instanceName}</Link> },
               { key: 'm', header: 'Module', render: i => i.module ?? <span className="muted">—</span> },
@@ -158,7 +159,7 @@ export function ProductDetail() {
         </Panel>
         <div className="cols">
           <Panel title="Projects" pad={false}>
-            {p.projects.length === 0 ? <StateMessage kind="none" /> : <ul className="plain" style={{ padding: 12 }}>{p.projects.map(x => <li key={x.id}><Link to={`/clients/${x.clientId}`}>{x.clientCode}</Link> · {x.code} · {x.name} <span className="muted">({label(x.status)})</span></li>)}</ul>}
+            {p.projects.length === 0 ? <StateMessage kind="none" /> : <ul className="plain" style={{ padding: 12 }}>{p.projects.map(x => <li key={x.id}><ClientDisplay id={x.clientId} code={x.clientCode} size="xs" /> · {x.code} · {x.name} <span className="muted">({label(x.status)})</span></li>)}</ul>}
           </Panel>
           <Panel title="Contracts" pad={false}>
             {p.contracts.length === 0 ? <StateMessage kind="none" /> : <ul className="plain" style={{ padding: 12 }}>{p.contracts.map(x => <li key={x.id}><Link to={`/contracts/${x.id}`}>{x.ref} · {x.title}</Link> <span className="muted">({x.clientCode}, {label(x.status)})</span></li>)}</ul>}
@@ -450,7 +451,7 @@ export function MicroserviceDetail() {
         </Panel>
         <Panel title={`Where it runs (${m.deployments.length})`} pad={false}>
           <DataTable rowKey={d => d.componentId} rows={m.deployments} empty="none" caption="Deployments" columns={[
-            { key: 'c', header: 'Client', render: d => <Link to={`/clients/${d.clientId}`}>{d.clientCode}</Link> },
+            { key: 'c', header: 'Client', render: d => <ClientDisplay id={d.clientId} code={d.clientCode} /> },
             { key: 'e', header: 'Environment', render: d => <Link to={`/environments/${d.environmentId}`}>{d.region ? `${d.region} / ` : ''}{d.environment}</Link> },
             { key: 'i', header: 'Installation', render: d => <Link to={`/installations/${d.installationId}`}>{d.installation}</Link> },
             { key: 's', header: 'Servers and deployed version', render: d => d.servers.length ? d.servers.map(x => (

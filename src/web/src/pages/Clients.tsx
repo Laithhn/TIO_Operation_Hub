@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
-import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
+import { ApiError, del, exportCsv, get, post, put, qs, upload, type Paged, type UserRef } from '../api';
 import { fmtDate, label } from '../format';
 import { usePermission, useDebounced, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
@@ -10,6 +11,7 @@ import {
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsPanel } from './Attachments';
+import { ClientDisplay, ClientLogo, logoProblem, type LogoRules } from '../ui/ClientLogo';
 import { MyNotesPanel } from './Notes';
 import { ClientContracts } from './Contracts';
 import { EscalationTable } from './Escalations';
@@ -17,7 +19,7 @@ import { InitialOrganizationStructure, OrganizationStructure, type InitialRelati
 
 type ClientRow = {
   id: number; code: string; name: string; country?: string; countryUnknown: boolean; status: string; owner?: UserRef; regionCount: number; environmentCount: number; directEnvironmentCount: number;
-  openCases: number; overdueCommitments: number; parentClientId?: number; parentCode?: string; parentName?: string; subClientCount: number;
+  openCases: number; overdueCommitments: number; parentClientId?: number; parentCode?: string; parentName?: string; subClientCount: number; logoUrl?: string | null;
 };
 
 export function ClientList() {
@@ -38,7 +40,7 @@ export function ClientList() {
         sort={f.sort} onSort={s => set({ sort: s })}
         columns={[
           { key: 'code', header: 'Alias', sort: 'code', render: r => r.parentClientId
-              ? <span className="sub-client"><span aria-hidden="true">↳ </span><Link to={`/clients/${r.id}`}>{r.code}</Link></span> : <Link to={`/clients/${r.id}`}>{r.code}</Link>,
+              ? <span className="sub-client"><span aria-hidden="true">↳ </span><ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} /></span> : <ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} />,
             filter: <input className="input" placeholder="Search by name or alias" aria-label="Search clients by name or alias" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 200 }} /> },
           { key: 'name', header: 'Client', sort: 'name', priority: 'primary', render: r => <><Link to={`/clients/${r.id}`}>{r.name}</Link>
               {r.parentClientId ? <div className="hint">Sub-client of {r.parentCode}</div> : r.subClientCount > 0 ? <div className="hint">{r.subClientCount} sub-client(s)</div> : null}</>,
@@ -62,9 +64,9 @@ export function ClientList() {
 type ClientDto = {
   id: number; code: string; name: string; country?: string; countryUnknown: boolean; status: string; parentOrganization?: string; partner?: string;
   owner?: UserRef; countryFollowUpOwner?: UserRef; responsibleParty: string; responsibleOrganization?: string; coordinator?: UserRef; lastReviewedAt?: string; nextReviewAt?: string;
-  freshness: FreshnessT; createdAt: string; updatedAt: string; version: string; accessLevel: string;
-  parentClientId?: number; parent?: { id: number; code: string; name: string };
-  subClients: { id: number; code: string; name: string; status: string; country?: string; owner?: UserRef; regionCount: number; environmentCount: number; serverCount: number; products: string[]; teamSize: number }[];
+  freshness: FreshnessT; createdAt: string; updatedAt: string; version: string; accessLevel: string; logoUrl?: string | null;
+  parentClientId?: number; parent?: { id: number; code: string; name: string; logoUrl?: string | null };
+  subClients: { id: number; code: string; name: string; status: string; logoUrl?: string | null; country?: string; owner?: UserRef; regionCount: number; environmentCount: number; serverCount: number; products: string[]; teamSize: number }[];
   team: { userId: number; name: string; isActive: boolean; role: string }[];
 };
 
@@ -123,6 +125,50 @@ function TeamEditor({ rows, onChange, clientId, error }: { rows: TeamRow[]; onCh
   );
 }
 
+/** The logo change waiting for Save: a new file (with its preview), removal of the current logo, or nothing. */
+type LogoDraft = { file: File; preview: string } | 'remove' | null;
+
+/** A71: optional client logo — preview, replace, remove; nothing is sent until the client is saved. */
+function LogoField({ current, draft, onChange, error, setError, name, code }: {
+  current?: string | null; draft: LogoDraft; onChange: (d: LogoDraft) => void; error: string | null; setError: (e: string | null) => void; name: string; code: string;
+}) {
+  const rules = useQuery({ queryKey: ['logo-rules'], queryFn: () => get<LogoRules>('/clients/logo-rules'), staleTime: Infinity });
+  const input = useRef<HTMLInputElement>(null);
+  const pick = (file?: File) => {
+    if (!file) return;
+    const problem = logoProblem(file, rules.data);
+    if (problem) { setError(problem); if (input.current) input.current.value = ''; return; }
+    setError(null);
+    // A data: address (the page's security policy allows data: images, not blob:).
+    const reader = new FileReader();
+    reader.onload = () => onChange({ file, preview: String(reader.result) });
+    reader.onerror = () => setError('The file could not be read. Choose it again.');
+    reader.readAsDataURL(file);
+  };
+  const shown = draft === 'remove' ? null : draft ? draft.preview : current ?? null;
+  const maxKB = rules.data?.maxFileKB ?? 2048;
+  return (
+    <div className={`field wide${error ? ' invalid' : ''}`}>
+      <span className="flabel" id="logo-label">Client logo <span className="muted">(optional)</span></span>
+      <div className="logo-field">
+        <ClientLogo name={name || 'New client'} code={code} logoUrl={shown} size="lg" />
+        <div className="logo-actions">
+          <div className="row">
+            <input ref={input} id="client-logo-file" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
+              aria-labelledby="logo-label" aria-describedby="logo-hint" onChange={e => pick(e.target.files?.[0])} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
+            <button type="button" className="btn" onClick={() => input.current?.click()}>{shown ? 'Replace logo…' : 'Upload logo…'}</button>
+            {shown && <button type="button" className="btn" onClick={() => { onChange(current ? 'remove' : null); setError(null); if (input.current) input.current.value = ''; }}>Remove logo</button>}
+            {draft && <button type="button" className="linkbtn" onClick={() => { onChange(null); setError(null); if (input.current) input.current.value = ''; }}>Undo logo change</button>}
+          </div>
+          {draft && <span className="hint" role="status">{draft === 'remove' ? 'The logo will be removed when you save.' : `${draft.file.name} will be uploaded when you save.`}</span>}
+          <span className="hint" id="logo-hint">PNG, JPG or WebP, at most {maxKB % 1024 === 0 ? `${maxKB / 1024} MB` : `${maxKB} KB`}. A square or wide logo on a transparent or white background works best. SVG is not accepted.</span>
+          {error && <div className="err" role="alert">{error}</div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ClientForm() {
   const { id } = useParams();
   const isNew = !id;
@@ -137,7 +183,9 @@ export function ClientForm() {
   const mains = useQuery({ queryKey: ['main-clients'], queryFn: () => get<Paged<ClientRow>>('/clients?level=main&sort=code&pageSize=200') });
   const f = useForm({ code: '', name: '', country: '', status: 'Opportunity', ownerUserId: null as number | null, parentClientId: sp.get('parentId') ?? '', team: [] as TeamRow[], organizationRelationships: [] as InitialRelationshipDraft[] });
   const [version, setVersion] = useState<string>();
-  useLeaveGuard(f.dirty && !f.busy);
+  const [logo, setLogo] = useState<LogoDraft>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  useLeaveGuard((f.dirty || logo !== null) && !f.busy);
   useEffect(() => {
     const c = existing.data;
     if (!c) return;
@@ -155,7 +203,22 @@ export function ClientForm() {
         ...(isNew && organizationRelationships.length ? { organizationRelationships: organizationRelationships.map(({ label: _label, ...relationship }) => relationship) } : {}) };
     };
     const r = await f.submit(async v => isNew ? post<{ id: number }>('/clients', body(v)) : put(`/clients/${id}`, body(v), version).then(() => ({ id: Number(id) })));
-    if (r) { toast(isNew ? 'Client created.' : 'Client saved.'); refresh(); nav(`/clients/${r.id}`); }
+    if (!r) return;
+    // A71: the logo goes after the client's own fields (a new client needs its id first); an unchanged logo is never touched.
+    try {
+      if (logo === 'remove') await del(`/clients/${r.id}/logo`);
+      else if (logo) { const form = new FormData(); form.append('file', logo.file); await upload(`/clients/${r.id}/logo`, form, 'PUT'); }
+    } catch (e) {
+      const msg = e instanceof ApiError ? (e.field('file') ?? e.summary) : 'The logo could not be saved.';
+      setLogoError(msg);
+      toast(`${isNew ? 'Client created' : 'Client saved'}, but the logo was not: ${msg}`, true);
+      refresh();
+      if (isNew) nav(`/clients/${r.id}/edit`, { replace: true });
+      return;
+    }
+    // Clear the logo draft before leaving, so the unsaved-changes guard does not stop the navigation.
+    flushSync(() => setLogo(null));
+    toast(isNew ? 'Client created.' : 'Client saved.'); refresh(); nav(`/clients/${r.id}`);
   };
   const hasSubs = (existing.data?.subClients.length ?? 0) > 0;
   const pickParent = (v: string) => {
@@ -188,6 +251,7 @@ export function ClientForm() {
           <SelectInput label="Country" required value={f.values.country} onChange={v => f.set('country', v)} options={countries.map(c => ({ value: c, label: c }))} empty="— Select the country —" error={f.fieldError('country')} />
           <UserPicker label="Project manager" required value={f.values.ownerUserId} onChange={v => f.set('ownerUserId', v)} clientId={isNew ? undefined : Number(id)} error={f.fieldError('ownerUserId')} empty="— Select —"
             hint="The team member managing this client. Only a Team Lead or the TIO Manager can change it." />
+          <LogoField current={existing.data?.logoUrl} draft={logo} onChange={setLogo} error={logoError} setError={setLogoError} name={f.values.name} code={f.values.code} />
           <TeamEditor rows={f.values.team} onChange={r => f.set('team', r)} clientId={isNew ? undefined : Number(id)} error={k => f.fieldError(k)} />
         </div>
         {isNew ? <InitialOrganizationStructure drafts={f.values.organizationRelationships} onChange={v => f.set('organizationRelationships', v)} error={f.fieldError('organizationRelationships')} />
@@ -278,7 +342,7 @@ export function ClientDetail() {
     <QueryState q={client}>
       {c && (<>
         <PageHead title={c.name} crumbs={[{ to: '/clients', label: 'Clients' }, ...(c.parent ? [{ to: `/clients/${c.parent.id}`, label: c.parent.code }] : []), { label: c.code }]}
-          sub={<>{c.code} · {c.country} · <StatusBadge value={c.status} /> · {o?.structure}{c.parent && <> · sub-client of <Link to={`/clients/${c.parent.id}`}>{c.parent.name}</Link></>}</>}
+          sub={<>{c.code} · {c.country} · <StatusBadge value={c.status} /> · {o?.structure}{c.parent && <> · sub-client of <ClientDisplay id={c.parent.id} code={c.parent.code} name={c.parent.name} logoUrl={c.parent.logoUrl ?? null} size="xs" show="name" /></>}</>}
           actions={<>
             {canStructureMaintain && full && <Link className="btn" to={`/clients/${id}/edit`}>Edit</Link>}
             {full && <Menu label="+ Add" primary items={[
@@ -290,6 +354,10 @@ export function ClientDetail() {
             ]} />}
             {full && <Menu label="More" items={[{ label: 'Archive client…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} />}
           <DeleteAction button path={`/clients/${c.id}`} what={`client ${c.code}`} afterTo={c.parent ? `/clients/${c.parent.id}` : '/clients'} /></>} />
+        <div className="client-head" data-testid="client-identity">
+          <ClientLogo clientId={c.id} name={c.name} code={c.code} logoUrl={c.logoUrl ?? null} size="lg" />
+          <div className="client-head-text"><div className="client-head-name">{c.name}</div><div className="muted">{c.code}{c.country ? ` · ${c.country}` : ''}{c.parent ? ` · sub-client of ${c.parent.code}` : ''}</div></div>
+        </div>
         {!full && <div className="notice warn">You see this client through a project scope only: summary and project-linked records are shown; other details are restricted.</div>}
         <div className="cols">
           <Panel title="Management">
@@ -311,7 +379,7 @@ export function ClientDetail() {
         {c.subClients.length > 0 && (
           <Panel title={`Sub-clients (${c.subClients.length})`} pad={false}>
             <DataTable rowKey={x => x.id} rows={c.subClients} caption="Sub-clients" columns={[
-              { key: 'c', header: 'Sub-client', render: x => <><Link to={`/clients/${x.id}`}>{x.code}</Link><div className="hint">{x.name}</div></> },
+              { key: 'c', header: 'Sub-client', render: x => <ClientDisplay id={x.id} code={x.code} name={x.name} logoUrl={x.logoUrl ?? null} sub={x.name} /> },
               { key: 's', header: 'Status', render: x => <StatusBadge value={x.status} /> },
               { key: 'pm', header: 'Project manager', render: x => <Person u={x.owner} gap="Not assigned" /> },
               { key: 'r', header: 'Regions', className: 'num', render: x => x.regionCount || <span className="muted">none</span> },
@@ -436,7 +504,7 @@ export function RegionDetail() {
           {canLead && <button className="btn" onClick={() => setDialog('edit')}>Edit</button>}
           {canArchive && <button className="btn btn-danger" onClick={() => setDialog('archive')}>Archive</button>}<DeleteAction button path={`/regions/${r.id}`} what={`region ${r.code}`} afterTo={`/clients/${r.clientId}`} /></>} />
       <div className="cols">
-        <Panel title="Region"><DL items={[['Client', <Link to={`/clients/${r.clientId}`}>{r.clientName}</Link>], ['Owner', <Person u={r.owner} />], ['Description', r.description]]} /></Panel>
+        <Panel title="Region"><DL items={[['Client', <ClientDisplay id={r.clientId} code={r.clientCode} name={r.clientName} show="name" />], ['Owner', <Person u={r.owner} />], ['Description', r.description]]} /></Panel>
         <Panel title="Environments in this region" pad={false} actions={canEng && <Link className="btn" to={newEnv}>+ Environment in {r.code}</Link>}>
           <DataTable rowKey={e => e.id} rows={r.environments} empty="none" columns={[
             { key: 'n', header: 'Environment', render: e => <Link to={`/environments/${e.id}`}>{e.name}</Link> }, { key: 't', header: 'Type', render: e => T.name('EnvironmentType', e.type) }, { key: 'c', header: 'Criticality', render: e => <StatusBadge value={e.criticality} /> }, { key: 'del', header: '', className: 'row-actions', render: e => <DeleteAction path={`/environments/${e.id}`} what={`environment ${e.name}`} /> }
@@ -483,7 +551,7 @@ export function ProjectList() {
         columns={[
           { key: 'code', header: 'Code', sort: 'code', render: p => <Link to={`/projects/${p.id}`}>{p.code}</Link>, filter: <input className="input" aria-label="Search projects" placeholder="Search by name or code" value={f.q} onChange={e => set({ q: e.target.value })} /> },
           { key: 'name', header: 'Project', sort: 'name', render: p => <Link to={`/projects/${p.id}`}>{p.name}</Link> },
-          { key: 'client', header: 'Client', sort: 'client', render: p => <Link to={`/clients/${p.clientId}`}>{p.clientCode}</Link> },
+          { key: 'client', header: 'Client', sort: 'client', render: p => <ClientDisplay id={p.clientId} code={p.clientCode} name={p.clientName} /> },
           { key: 'status', header: 'Status', sort: 'status', render: p => <StatusBadge value={p.status} />, filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="">All</option>{statuses.map(s => <option key={s} value={s}>{label(s)}</option>)}</select> },
           { key: 'products', header: 'Supported products', render: p => p.products.map(x => x.code).join(', ') },
           { key: 'contracts', header: 'Contracts', render: p => p.contracts === 0 ? <span className="muted">None</span> : <>

@@ -24,6 +24,7 @@ public static class ModuleRegistration
     {
         services.AddOptions<Attachments.AttachmentOptions>().BindConfiguration("Attachments");
         services.AddSingleton<Attachments.AttachmentStore>();
+        services.AddOptions<Clients.ClientLogoOptions>().BindConfiguration("ClientLogos");
         services.AddScoped<HubSettings>();
         services.AddScoped<HubAccess>();
         services.AddScoped<FreshnessService>();
@@ -63,6 +64,7 @@ public static class ModuleRegistration
         api.MapCascadeEndpoints();
         Attachments.AttachmentEndpoints.MapAttachmentEndpoints(api);
         Attachments.StorageSettings.MapStorageSettingsEndpoints(api);
+        Clients.ClientLogos.MapClientLogoEndpoints(api);
         Notes.NoteEndpoints.MapNoteEndpoints(api);
         api.MapNotificationEndpoints();
         api.MapCaseEndpoints();

@@ -5,6 +5,7 @@ import { ApiError, del, get, post, put, qs, type Paged } from '../api';
 import { useDebounced, useForm, useLookup, useMe, useRefresh } from '../hooks';
 import { Checkbox, DataTable, Dialog, FormError, Panel, QueryState, SelectInput, TextInput, useToast } from '../ui/kit';
 import './OrganizationStructure.css';
+import { ClientLogo } from '../ui/ClientLogo';
 
 export type Organization = {
   id: number; name: string; code?: string; clientId?: number; description?: string; organizationType?: string;
@@ -184,7 +185,7 @@ export function OrganizationStructure({ clientId, projects }: { clientId: number
             return <li key={row.key} className="org-tree-row" style={{ marginInlineStart: Math.min(row.depth, 12) * 24 }}>
               <div className="org-node">
                 <div className="org-node-name">{!row.shared && (children.get(o.id)?.length ?? 0) > 0 && <button className="org-toggle" aria-label={`${collapsed.has(o.id) ? 'Expand' : 'Collapse'} ${o.name}`} aria-expanded={!collapsed.has(o.id)} onClick={() => toggle(o.id)}>{collapsed.has(o.id) ? '+' : '−'}</button>}
-                  <span>{o.clientId ? <Link to={`/clients/${o.clientId}`}>{display(o)}</Link> : display(o)}</span>
+                  <span>{o.clientId ? <><ClientLogo clientId={o.clientId} code={o.code} name={o.name} size="xs" decorative /> <Link to={`/clients/${o.clientId}`}>{display(o)}</Link></> : display(o)}</span>
                 </div>
                 {row.incoming && <div className="hint">↳ {role(row.incoming)} · from {organizations.get(row.incoming.parentOrganizationId)?.name ?? `#${row.incoming.parentOrganizationId}`}{!row.incoming.isActive && ' · inactive'}{row.incoming.description && ` · ${row.incoming.description}`}</div>}
                 {row.depth > 12 && <span className="hint">Level {row.depth + 1} · </span>}
@@ -198,7 +199,7 @@ export function OrganizationStructure({ clientId, projects }: { clientId: number
         </div>
       </> : <>
         <DataTable caption="Organizations in this context" rowKey={o => o.id} rows={data.organizations} columns={[
-          { key: 'name', header: 'Organization', render: o => <>{o.clientId ? <Link to={`/clients/${o.clientId}`}>{display(o)}</Link> : display(o)}<div className="hint">{o.description}</div></> },
+          { key: 'name', header: 'Organization', render: o => <>{o.clientId ? <><ClientLogo clientId={o.clientId} code={o.code} name={o.name} size="xs" decorative /> <Link to={`/clients/${o.clientId}`}>{display(o)}</Link></> : display(o)}<div className="hint">{o.description}</div></> },
           { key: 'parents', header: 'Direct parents', render: o => (parents.get(o.id) ?? []).map(r => <div key={r.id}>{organizations.get(r.parentOrganizationId)?.name ?? `#${r.parentOrganizationId}`} · {role(r)}{!r.isActive && ' (inactive)'}</div>) },
           { key: 'children', header: 'Direct children', render: o => (children.get(o.id) ?? []).map(r => <div key={r.id}>{organizations.get(r.childOrganizationId)?.name ?? `#${r.childOrganizationId}`} · {role(r)}{!r.isActive && ' (inactive)'}</div>) },
           { key: 'actions', header: 'Actions', render: o => data.canEdit && <div className="org-node-actions"><button className="linkbtn" onClick={() => setEditor({ parentId: o.id })}>Add child</button>{editOrganization(o)}</div> }
@@ -322,7 +323,7 @@ function OrganizationDirectory({ clientId, projectId, canCreate, canEdit, onClos
     <p className="hint">Search reusable organizations, including independent organizations with no hierarchy. Client organization details are edited from the existing client form.</p>
     <div className="org-directory-toolbar"><TextInput label="Search directory" value={search} onChange={v => { setSearch(v); setPage(1); }} />{canCreate && <button className="btn btn-primary" onClick={() => setEditing('new')}>+ Create independent organization</button>}</div>
     <DataTable caption="Organization directory" rowKey={o => o.id} rows={result.data?.items} loading={result.isLoading} error={result.error} columns={[
-      { key: 'name', header: 'Organization', render: o => o.clientId ? <Link to={`/clients/${o.clientId}`}>{display(o)}</Link> : display(o) },
+      { key: 'name', header: 'Organization', render: o => o.clientId ? <><ClientLogo clientId={o.clientId} code={o.code} name={o.name} size="xs" decorative /> <Link to={`/clients/${o.clientId}`}>{display(o)}</Link></> : display(o) },
       { key: 'type', header: 'Type', render: o => o.organizationType }, { key: 'status', header: 'Status', render: o => o.status },
       { key: 'edit', header: 'Actions', render: o => <div className="org-node-actions"><button className="linkbtn" onClick={() => setBrowsing(o)}>View parents / children</button>{o.clientId ? <Link to={`/clients/${o.clientId}`}>Client details</Link>
         : (o.canEdit ?? canEdit) && <button className="linkbtn" onClick={() => setEditing(o)}>Edit organization</button>}</div> }

@@ -75,7 +75,7 @@ export function useJob(id: number | null, initial?: ExportJob) {
  * Used for clients, owners, teams, products, environments and types (all lists come from the server, already authorized).
  */
 export function MultiPick({ label, options, value, onChange, all = 'All', extra }: {
-  label: string; options: { value: string; label: string; sub?: string }[]; value: string[]; onChange: (v: string[]) => void; all?: string; extra?: React.ReactNode;
+  label: string; options: { value: string; label: string; sub?: string; icon?: React.ReactNode }[]; value: string[]; onChange: (v: string[]) => void; all?: string; extra?: React.ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState('');
@@ -110,7 +110,7 @@ export function MultiPick({ label, options, value, onChange, all = 'All', extra 
             {shown.map(o => (
               <label key={o.value} className="check mp-opt">
                 <input type="checkbox" checked={value.includes(o.value)} onChange={e => onChange(e.target.checked ? [...value, o.value] : value.filter(x => x !== o.value))} />
-                <span>{o.label}{o.sub && <span className="muted"> · {o.sub}</span>}</span>
+                {o.icon}<span>{o.label}{o.sub && <span className="muted"> · {o.sub}</span>}</span>
               </label>
             ))}
           </div>

@@ -162,7 +162,9 @@ public sealed class ExportWorker(IServiceScopeFactory scopes, IOptions<Reporting
             var name = job.SavedReportId is { } sid ? await db.SavedReports.AsNoTracking().Where(r => r.Id == sid).Select(r => r.Name).FirstOrDefaultAsync(stop) : null;
             var context = new BuilderFileContext(name ?? job.ReportName, resolved.DisplayName, now, cutoff, zone, job.AuditId, opts.RetentionDays);
             var labels = await svc.LabelsAsync(stop);
-            var bytes = job.Format == ExportFormat.Pdf ? CasesExportFiles.Pdf(v, page, options, context, labels) : CasesExportFiles.Xlsx(v, page, options, context, labels);
+            // A71: logos of the clients in the file, read once through the requester's scope.
+            var logos = await Clients.ClientLogos.LoadAsync(db, sp.GetRequiredService<Attachments.AttachmentStore>(), rows.Where(r => r.ClientId is not null).Select(r => r.ClientId!.Value), stop);
+            var bytes = job.Format == ExportFormat.Pdf ? CasesExportFiles.Pdf(v, page, options, context, labels, logos) : CasesExportFiles.Xlsx(v, page, options, context, labels, logos);
             var store = sp.GetRequiredService<ExportStore>();
             var ext = job.Format == ExportFormat.Pdf ? ".pdf" : ".xlsx";
             job.StoredPath = await store.SaveAsync(bytes, ext, now, stop);

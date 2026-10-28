@@ -239,6 +239,9 @@ export function nodeText(n: ReactNode): string {
   if (isValidElement(n)) {
     const p = n.props as { children?: ReactNode; value?: unknown; u?: { name?: string } | null; gap?: string; label?: unknown; 'aria-label'?: string; 'data-text'?: string };
     if (typeof p['data-text'] === 'string') return p['data-text'];
+    // A71: a component can say what its plain text is (ClientDisplay: alias and name), since its rendered output is not visible here.
+    const own = (n.type as { plainText?: (props: unknown) => string }).plainText;
+    if (typeof own === 'function') return own(p);
     if (p.children !== undefined) return nodeText(p.children);
     if (typeof p.value === 'string') return label(p.value);
     if (p.u !== undefined) return p.u?.name ?? p.gap ?? '';

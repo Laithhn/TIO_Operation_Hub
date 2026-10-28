@@ -47,6 +47,7 @@ public static partial class Deletion
         if (entity is Modules.Catalogue.Installation && await db.Components.IgnoreQueryFilters().AnyAsync(x => x.InstallationId == id, ct))
             me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.Delete);
         var attached = await db.Attachments.IgnoreQueryFilters().Where(a => a.RecordType == recordType && a.RecordId == id).Select(a => a.StoredPath).ToListAsync(ct);
+        if (entity is Client { LogoPath: { } logo }) attached.Add(logo);   // A71: the client's logo file goes with it
         await db.Attachments.IgnoreQueryFilters().Where(a => a.RecordType == recordType && a.RecordId == id).ExecuteDeleteAsync(ct);
         if (removeOwned is not null) await removeOwned();
         await db.Reviews.IgnoreQueryFilters().Where(r => r.RecordType == recordType && r.RecordId == id).ExecuteDeleteAsync(ct);

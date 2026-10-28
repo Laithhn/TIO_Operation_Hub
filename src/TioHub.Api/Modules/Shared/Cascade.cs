@@ -294,6 +294,13 @@ public static class Cascade
             paths.AddRange(await db.Database.SqlQueryRaw<string>($"SELECT {Col(att, att.FindProperty("StoredPath")!)} AS [Value] FROM {Table(att)} WHERE {Col(att, att.FindProperty("RecordType")!)} = N'{HubDbContext.EntityName(t.ClrType)}' AND {Col(att, att.FindProperty("RecordId")!)} IN (SELECT id FROM #own WHERE t = N'{Name(t)}')").ToListAsync(ct));
         if (plan.Order.Contains(att))
             paths.AddRange(await db.Database.SqlQueryRaw<string>($"SELECT x.{Col(att, att.FindProperty("StoredPath")!)} AS [Value] FROM {Table(att)} x WHERE {Owned(plan, att)}").ToListAsync(ct));
+        // A71: logo files of removed clients (the client itself and any sub-client that goes with it).
+        var clientType = db.Model.FindEntityType(typeof(Client))!;
+        if (plan.Order.Contains(clientType))
+        {
+            var logo = Col(clientType, clientType.FindProperty(nameof(Client.LogoPath))!);
+            paths.AddRange(await db.Database.SqlQueryRaw<string>($"SELECT x.{logo} AS [Value] FROM {Table(clientType)} x WHERE x.{logo} IS NOT NULL AND {Owned(plan, clientType)}").ToListAsync(ct));
+        }
         // 1. Unlink optional references (from kept rows, and between rows about to go so no order problem remains).
         foreach (var u in plan.Unlinks)
             await db.Database.ExecuteSqlRawAsync($"UPDATE {Table(u.Child)} SET {u.Column} = NULL WHERE {u.Column} IN (SELECT id FROM #own WHERE t = N'{Name(u.Parent)}');", ct);

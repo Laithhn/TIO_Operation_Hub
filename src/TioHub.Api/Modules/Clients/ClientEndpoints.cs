@@ -59,6 +59,8 @@ public static partial class ClientEndpoints
             var paged = await query.SortBy(sort, keys, "name").Select(c => new
             {
                 c.Id, c.Code, c.Name, c.Country, c.CountryUnknown, c.Status,
+                // A71: the logo address (null without a logo), in the same query.
+                logoUrl = c.LogoVersion == null ? null : "/api/v1/clients/" + c.Id.ToString() + "/logo?v=" + c.LogoVersion,
                 owner = c.Owner == null ? null : new UserRef(c.Owner.Id, c.Owner.DisplayName, c.Owner.IsActive),
                 c.ParentClientId, parentCode = c.ParentClient == null ? null : c.ParentClient.Code, parentName = c.ParentClient == null ? null : c.ParentClient.Name,
                 subClientCount = db.Clients.Count(s => s.ParentClientId == c.Id),
@@ -97,6 +99,7 @@ public static partial class ClientEndpoints
             var subs = await db.Clients.AsNoTracking().Where(s => s.ParentClientId == id).OrderBy(s => s.Code).Select(s => new
             {
                 s.Id, s.Code, s.Name, s.Status, s.Country,
+                logoUrl = s.LogoVersion == null ? null : "/api/v1/clients/" + s.Id.ToString() + "/logo?v=" + s.LogoVersion,
                 owner = s.Owner == null ? null : new UserRef(s.Owner.Id, s.Owner.DisplayName, s.Owner.IsActive),
                 regionCount = db.Regions.Count(r => r.ClientId == s.Id),
                 environmentCount = db.Environments.Count(e => e.ClientId == s.Id),
@@ -429,8 +432,9 @@ public static partial class ClientEndpoints
     private static object ClientDto(Client c, Freshness f, Dictionary<long, UserRef> users, bool fullScope, object subClients) => new
     {
         c.Id, c.Code, c.Name, c.Country, c.CountryUnknown, c.Status, c.ParentOrganization, c.Partner,
+        logoUrl = ClientLogos.Url(c.Id, c.LogoVersion),
         // A29: main client, sub-clients and the project team.
-        c.ParentClientId, parent = c.ParentClient == null ? null : new { c.ParentClient.Id, c.ParentClient.Code, c.ParentClient.Name },
+        c.ParentClientId, parent = c.ParentClient == null ? null : new { c.ParentClient.Id, c.ParentClient.Code, c.ParentClient.Name, logoUrl = ClientLogos.Url(c.ParentClient.Id, c.ParentClient.LogoVersion) },
         subClients, team = c.Team.OrderBy(t => t.SortOrder).Select(t => new { t.UserId, name = t.User!.DisplayName, t.User.IsActive, t.Role }),
         owner = c.Owner == null ? null : new UserRef(c.Owner.Id, c.Owner.DisplayName, c.Owner.IsActive),
         countryFollowUpOwner = c.CountryFollowUpOwner == null ? null : new UserRef(c.CountryFollowUpOwner.Id, c.CountryFollowUpOwner.DisplayName, c.CountryFollowUpOwner.IsActive),

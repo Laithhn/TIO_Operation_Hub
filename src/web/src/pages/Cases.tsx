@@ -6,6 +6,7 @@ import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../for
 import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useMe, usePermission, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { AttachmentsPanel } from './Attachments';
 import { EscalationTable } from './Escalations';
@@ -67,7 +68,7 @@ export function CaseList() {
         columns={[
           { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search cases" placeholder="Search title or ref" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
           { key: 'title', header: 'Title', sort: 'title', render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
-          { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ?? <span className="chip">Internal</span>,
+          { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span>,
             filter: <select className="input" aria-label="Filter by scope" value={f.scope} onChange={e => set({ scope: e.target.value })}><option value="">All</option><option value="Client">Client-related</option><option value="Internal">Internal</option></select> },
           { key: 'status', header: 'Status', sort: 'status', render: r => <StatusBadge value={r.status} enumName="CaseStatus" />,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s} value={s}>{caseStatusLabel(s)}</option>)}</select> },

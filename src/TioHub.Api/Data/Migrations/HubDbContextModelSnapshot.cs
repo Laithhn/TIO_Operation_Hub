@@ -1262,6 +1262,18 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("LastReviewedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("LogoContentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("LogoPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("LogoVersion")
+                        .HasMaxLength(32)
+                        .HasColumnType("nvarchar(32)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)

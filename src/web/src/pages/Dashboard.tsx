@@ -11,6 +11,7 @@ import {
 import { Icon } from '../ui/Icon';
 import type { MapMetric } from '../ui/LeafletMap';
 import { Badge, DataTable, PageHead, SelectInput, StateMessage, TextInput } from '../ui/kit';
+import { ClientDisplay, ClientLogo, useClientLogos } from '../ui/ClientLogo';
 import { useClientOptions, useProductOptions, useTeamOptions } from './common';
 
 const LeafletMap = lazy(() => import('../ui/LeafletMap'));
@@ -289,7 +290,7 @@ function ActionCenter({ params }: { params: Record<string, string> }) {
           caption="Needs immediate attention" columns={[
             { key: 'p', header: 'Priority', render: r => <><Badge tone={SEVERITY_TONE[r.severity] ?? 'neutral'}>{r.severity}</Badge>{r.priority && <span className="hint pay-sub">{r.priority} priority</span>}</> },
             { key: 'i', header: 'Issue', render: r => <><span className="cc-kind">{QUEUE[r.category]}</span><Link to={r.link}><b>{r.reference}</b></Link> <span className="cc-title">{r.title}</span></> },
-            { key: 'c', header: 'Client', render: r => r.clientId ? <Link to={`/clients/${r.clientId}`}>{r.clientCode ?? 'Client'}</Link> : <span className="muted">Internal</span> },
+            { key: 'c', header: 'Client', render: r => r.clientId ? <ClientDisplay id={r.clientId} code={r.clientCode ?? 'Client'} /> : <span className="muted">Internal</span> },
             { key: 'o', header: 'Owner', render: r => r.owner === 'Unassigned' ? <Badge tone="warn">Unassigned</Badge> : r.owner },
             { key: 'd', header: 'Age / due', className: 'nowrap', render: r => dueText(r.dueAt) },
             { key: 's', header: 'Status', render: r => <>{r.reason}{r.also.length > 0 && <span className="hint">also: {r.also.join(', ')}</span>}</> },
@@ -320,6 +321,9 @@ function Geography({ countries, overviewFor, initial }: { countries: InsightsT['
     return { ...r, servers: cs.reduce((s, c) => s + c.servers, 0), activeContracts: cs.reduce((s, c) => s + c.activeContracts, 0), renewalAttention: cs.reduce((s, c) => s + c.renewalAttention, 0) };
   }), [countries]);
   const sel = selected ? data.find(d => d.country === selected) : undefined;
+  // A71: logos for the map popups, from the shared logo lookup (one request for all clients).
+  const logos = useClientLogos();
+  const mapClients = useMemo(() => countries.clients.map(c => ({ ...c, logoUrl: logos.get(c.id) ?? null })), [countries.clients, logos]);
   const selClients = sel ? countries.clients.filter(c => c.country && normalizeCountry(c.country) === normalizeCountry(sel.country)) : [];
   const ranked = [...data].sort((a, b) => metric.value(b) - metric.value(a) || b.clients - a.clients);
   const max = Math.max(1, ...ranked.map(metric.value));
@@ -336,7 +340,7 @@ function Geography({ countries, overviewFor, initial }: { countries: InsightsT['
           </div>
         </div>
         <Suspense fallback={<div className="viz-empty" style={{ height: 460 }}><span className="spin" /> Loading map…</div>}>
-          <LeafletMap data={data} clients={countries.clients} metric={metric} selected={selected ?? undefined} onSelect={setSelected}
+          <LeafletMap data={data} clients={mapClients} metric={metric} selected={selected ?? undefined} onSelect={setSelected}
             onOpenClient={id => nav(`/clients/${id}`)} tileUrl={tiles?.tileUrl} attribution={tiles?.attribution} />
         </Suspense>
         {countries.unknownCountryClients > 0 && <p className="hint" style={{ marginTop: 6 }}>Country unknown (not placed): {countries.unknownCountryCodes.join(', ')}</p>}
@@ -356,7 +360,7 @@ function Geography({ countries, overviewFor, initial }: { countries: InsightsT['
             <div className="map-side-body">
               {selClients.map(c => (
                 <Link key={c.id} className="map-client" to={`/clients/${c.id}`}>
-                  <b>{c.code}</b> <span className="muted">· {c.name}</span>{c.parentClientId && <span className="sub"> (sub-client)</span>}
+                  <ClientLogo clientId={c.id} code={c.code} name={c.name} size="xs" decorative /> <b>{c.code}</b> <span className="muted">· {c.name}</span>{c.parentClientId && <span className="sub"> (sub-client)</span>}
                   <div className="figs">
                     <span>{c.environments} env.</span><span>{c.servers} servers</span><span>{c.openCases} open cases</span>
                     {c.overdueCases + c.overdueCommitments > 0 && <Badge tone="bad">{c.overdueCases + c.overdueCommitments} overdue</Badge>}
@@ -466,7 +470,7 @@ function EscalationCharts({ d, cc }: { d: InsightsT; cc: CC }) {
         </div>
         <DataTable<EscRow> rowKey={r => r.id} rows={e.attention} tools={false} empty="none" caption="Escalation attention list" columns={[
           { key: 'r', header: 'Escalation', render: r => <><Link to={`/escalations/${r.id}`}><b>{r.ref}</b></Link> <span className="cc-title">{r.title}</span></> },
-          { key: 'c', header: 'Client', render: r => <Link to={`/clients/${r.clientId}`}>{r.client}</Link> },
+          { key: 'c', header: 'Client', render: r => <ClientDisplay id={r.clientId} code={r.client} /> },
           { key: 'k', header: 'Related case', render: r => r.caseId ? <Link to={`/cases/${r.caseId}`}>{r.caseRef}</Link> : <span className="muted">—</span> },
           { key: 'l', header: 'Level', className: 'num', render: r => r.level },
           { key: 'o', header: 'Owner', render: r => r.owner },
@@ -549,7 +553,7 @@ function PaymentCharts({ d, cc }: { d: InsightsT; cc: CC }) {
             <ul className="pay-next">
               {extra!.overdueByClient.map(c => (
                 <li key={c.clientId}>
-                  <span className="pay-date"><Link to={`/clients/${c.clientId}`}>{c.client}</Link></span>
+                  <span className="pay-date"><ClientDisplay id={c.clientId} code={c.client} /></span>
                   <span className="pay-what">{c.count} overdue</span>
                   <span className="pay-amt">{c.amounts.map(a => fmtMoney(a.amount, a.currency)).join(' + ') || <span className="muted">amount not recorded</span>}</span>
                 </li>
@@ -719,7 +723,7 @@ function HealthCharts({ d, cc }: { d: InsightsT; cc: CC }) {
           <section className="panel viz-panel" aria-labelledby="env-att-h">
             <div className="panel-head"><h2 id="env-att-h">Environments not reported healthy</h2></div>
             <DataTable<EnvRow> rowKey={r => r.id} rows={cc.environments} tools={false} empty="none" caption="Environments not reported healthy" columns={[
-              { key: 'c', header: 'Client', render: r => <Link to={`/clients/${r.clientId}`}>{r.client}</Link> },
+              { key: 'c', header: 'Client', render: r => <ClientDisplay id={r.clientId} code={r.client} /> },
               { key: 'p', header: 'Products', render: r => r.products.join(', ') || <span className="muted">—</span> },
               { key: 'e', header: 'Environment', render: r => <Link to={`/environments/${r.id}`}>{r.name}</Link> },
               { key: 'h', header: 'Reported health', render: r => <><Badge tone={r.condition === 'Unavailable' ? 'bad' : r.condition === 'Degraded' ? 'warn' : 'neutral'}>{GLYPH[r.condition]} {conditionLabel(r.condition)}{r.condition === 'Unknown' ? ' (no report)' : ''}</Badge>{r.conditionReason && <span className="hint">{r.conditionReason}</span>}</> },

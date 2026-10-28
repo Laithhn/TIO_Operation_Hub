@@ -1,5 +1,6 @@
 using System.Globalization;
 using TioHub.Api.Common;
+using TioHub.Api.Modules.Clients;
 
 namespace TioHub.Api.Modules.Reporting;
 
@@ -43,10 +44,29 @@ public static class CasesExportFiles
     private static IEnumerable<(string Key, int Count)> Ordered(Dictionary<string, int> counts, string[] order) =>
         order.Where(counts.ContainsKey).Select(k => (k, counts[k])).Concat(counts.Where(c => !order.Contains(c.Key)).OrderByDescending(c => c.Value).Select(c => (c.Key, c.Value)));
 
+    /// <summary>A71: the one client every client-related row belongs to (internal rows are ignored); null when the file covers several or none.</summary>
+    private static long? SingleClient(CasesPage page)
+    {
+        var ids = page.Rows.Where(r => r.ClientId is not null).Select(r => r.ClientId!.Value).Distinct().Take(2).ToList();
+        return ids.Count == 1 ? ids[0] : null;
+    }
+
+    /// <summary>A71: logos as PDF images (PNG and JPEG; WebP has no PDF form here and is left out).</summary>
+    private static Dictionary<long, PdfImage> PdfLogos(IReadOnlyDictionary<long, LogoFile>? logos) =>
+        (logos ?? new Dictionary<long, LogoFile>()).Select(l => (l.Key, Img: PdfImage.From(l.Value.Data, l.Value.ContentType))).Where(x => x.Img is not null).ToDictionary(x => x.Key, x => x.Img!);
+
     private static string Pct(int n, int total) => total == 0 ? "0 %" : $"{Math.Round(100.0 * n / total, 1).ToString(CultureInfo.InvariantCulture)} %";
 
-    public static byte[] Xlsx(ValidCases v, CasesPage page, BuilderExportOptions o, BuilderFileContext x, Func<CaseField, object?, object?> label)
+    public static byte[] Xlsx(ValidCases v, CasesPage page, BuilderExportOptions o, BuilderFileContext x, Func<CaseField, object?, object?> label, IReadOnlyDictionary<long, LogoFile>? logos = null)
     {
+        // A71: a report about one client shows that client's logo (PNG or JPEG) on its Summary or Metadata sheet; the data sheet stays plain.
+        XlsxImage[]? logo = null;
+        if (SingleClient(page) is { } only && logos?.GetValueOrDefault(only) is { } lf && PdfImage.From(lf.Data, lf.ContentType) is { } dims)
+        {
+            var scale = Math.Min(1.0, Math.Min(140.0 / dims.Width, 56.0 / dims.Height));
+            var name = page.Rows.First(r => r.ClientId == only).ClientName;
+            logo = [new XlsxImage(4, 0, lf.Data, lf.ContentType == "image/png" ? "png" : "jpeg", Math.Max(1, (int)(dims.Width * scale)), Math.Max(1, (int)(dims.Height * scale)), $"Logo of {name}")];
+        }
         var sheets = new List<XlsxSheet>
         {
             new("Cases Data", v.Columns.Select(c => c.Label).ToList(), page.Rows.Select(r => (IReadOnlyList<object?>)v.Columns.Select(c => Cell(c, CasesFields.Value(r, c), x.Zone, label)).ToList()))
@@ -64,7 +84,8 @@ public static class CasesExportFiles
             Block("By priority", Ordered(page.ByPriority, PriorityOrder));
             Block("By SLA status", Ordered(page.BySla, CasesFields.SlaStatuses));
             if (page.Groups is { } g && v.GroupBy is { } gf) Block($"By {gf.Label.ToLowerInvariant()}", g, k => k.Length == 0 ? "(none)" : k);
-            sheets.Add(new XlsxSheet("Summary", ["Measure", "Value", "Definition"], lines));
+            sheets.Add(new XlsxSheet("Summary", ["Measure", "Value", "Definition"], lines, logo));
+            logo = null;
         }
         if (o.IncludeFilters)
         {
@@ -85,7 +106,7 @@ public static class CasesExportFiles
                 new object?[] { "Access", "Only rows the requester was authorized to see at generation time." }, Array.Empty<object?>()
             };
             meta.AddRange(v.Columns.Select(c => (IReadOnlyList<object?>)new object?[] { c.Label, c.Description }));
-            sheets.Add(new XlsxSheet("Metadata", ["Item", "Value"], meta));
+            sheets.Add(new XlsxSheet("Metadata", ["Item", "Value"], meta, logo));
         }
         return Common.Xlsx.Build(sheets);
     }
@@ -98,17 +119,26 @@ public static class CasesExportFiles
     private static readonly Dictionary<string, string> PriorityColor = new() { ["Critical"] = "#B00020", ["High"] = "#E6932B", ["Normal"] = "#007DB3", ["Low"] = "#A4ABB0" };
 
     /// <summary>Management PDF: branded summary page (counts, status, priority and SLA visuals, filters) and, in detailed mode, the case table.</summary>
-    public static byte[] Pdf(ValidCases v, CasesPage page, BuilderExportOptions o, BuilderFileContext x, Func<CaseField, object?, object?> label)
+    public static byte[] Pdf(ValidCases v, CasesPage page, BuilderExportOptions o, BuilderFileContext x, Func<CaseField, object?, object?> label, IReadOnlyDictionary<long, LogoFile>? logos = null)
     {
         var pdf = new PdfDocument();
         const double M = 36, W = PdfDocument.Width - 2 * M;
+        // A71: client logos — the report's client in the page header (one-client reports) and beside the client in the detailed table.
+        var images = PdfLogos(logos);
+        var headerLogo = SingleClient(page) is { } only ? images.GetValueOrDefault(only) : null;
         void Header(string sub)
         {
             pdf.NewPage();
             pdf.Rect(0, 0, PdfDocument.Width, 54, Navy);
             pdf.Text(M, 33, "VITRONIC", 16, true, "#FFFFFF");
-            pdf.Text(M + 110, 26, PdfDocument.Fit(x.ReportName, 420, 12, true), 12, true, "#FFFFFF");
-            pdf.Text(M + 110, 42, sub, 8.5, false, "#C8D7E6");
+            var tx = M + 110;
+            if (headerLogo is not null)
+            {
+                pdf.Rect(tx, 7, 40, 40, "#FFFFFF").Image(tx + 3, 10, 34, 34, headerLogo);   // white tile: logos are drawn for light backgrounds
+                tx += 50;
+            }
+            pdf.Text(tx, 26, PdfDocument.Fit(x.ReportName, 530 - tx, 12, true), 12, true, "#FFFFFF");
+            pdf.Text(tx, 42, sub, 8.5, false, "#C8D7E6");
             pdf.TextRight(PdfDocument.Width - M, 26, $"Generated {Csv.Format(x.GeneratedAt, x.Zone)}", 8.5, false, "#FFFFFF");
             pdf.TextRight(PdfDocument.Width - M, 42, $"by {x.GeneratedBy} · data as of {Csv.Format(x.Cutoff, x.Zone)}", 8.5, false, "#C8D7E6");
         }
@@ -199,7 +229,17 @@ public static class CasesExportFiles
                 foreach (var r in page.Rows.Skip(p * perPage).Take(perPage))
                 {
                     cx = M;
-                    for (var c = 0; c < cols.Count; c++) { pdf.Text(cx + 3, y - 2, PdfDocument.Fit(Text(cols[c], CasesFields.Value(r, cols[c]), x.Zone, label), widths[c] - 6, 7.5), 7.5); cx += widths[c]; }
+                    for (var c = 0; c < cols.Count; c++)
+                    {
+                        var pad = 3.0;
+                        if (cols[c].Key is "clientCode" or "clientName" && r.ClientId is { } rc && images.TryGetValue(rc, out var li))
+                        {
+                            pdf.Image(cx + 3, y - 11, 11, 11, li);
+                            pad = 17;
+                        }
+                        pdf.Text(cx + pad, y - 2, PdfDocument.Fit(Text(cols[c], CasesFields.Value(r, cols[c]), x.Zone, label), widths[c] - pad - 3, 7.5), 7.5);
+                        cx += widths[c];
+                    }
                     pdf.Line(M, y + 3, M + W, y + 3, "#E3E7EA", 0.4);
                     y += rowH;
                 }

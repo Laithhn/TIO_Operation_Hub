@@ -223,6 +223,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.ParentOrganization).HasMaxLength(150);
             e.Property(x => x.Partner).HasMaxLength(150);
             e.Property(x => x.ResponsibleOrganization).HasMaxLength(150);
+            e.Property(x => x.LogoPath).HasMaxLength(200);
+            e.Property(x => x.LogoContentType).HasMaxLength(50);
+            e.Property(x => x.LogoVersion).HasMaxLength(32);
             e.Ignore(x => x.ScopeClientId);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
             e.HasOne(x => x.CountryFollowUpOwner).WithMany().HasForeignKey(x => x.CountryFollowUpOwnerId);
@@ -1155,7 +1158,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
     private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
     private static readonly HashSet<string> QuietProperties =
-        [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope"];
+        [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope",
+         // A71: the logo's storage path and type are technical; its history shows as a LogoVersion change with the reason "Client logo …".
+         "LogoPath", "LogoContentType"];
     private static readonly JsonSerializerOptions AuditJson = new(JsonSerializerDefaults.Web);
 
     /// <summary>"Entity.Property" names whose values are restricted technical detail (IAM-04); masked when audit is read without the grant.</summary>

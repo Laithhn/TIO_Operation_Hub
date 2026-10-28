@@ -120,7 +120,28 @@ public sealed class AttachmentStore(IOptions<AttachmentOptions> options, IWebHos
         return (relative, size, Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant());
     }
 
-    public Stream Open(string relative) => new FileStream(Full(relative), FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+    /// <summary>A71: writes a small file that was already read and validated (a client logo) as <c>{folder}/{random id}{extension}</c>.
+    /// Folder and extension are fixed by the caller's code, never taken from the upload.</summary>
+    public async Task<string> SaveBytesAsync(byte[] data, string folder, string extension, CancellationToken ct)
+    {
+        var relative = $"{folder}/{Guid.NewGuid():N}{extension}";
+        var full = Full(relative);
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(full)!);
+        var temp = full + ".part";
+        try
+        {
+            await File.WriteAllBytesAsync(temp, data, ct);
+            File.Move(temp, full);
+        }
+        catch
+        {
+            TryDelete(temp);
+            throw;
+        }
+        return relative;
+    }
+
+    public Stream Open(string relative) =>new FileStream(Full(relative), FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
     public bool Exists(string relative) => File.Exists(Full(relative));
 
     public void Delete(IEnumerable<string> relatives) { foreach (var r in relatives) TryDelete(Full(r)); }

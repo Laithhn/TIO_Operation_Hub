@@ -7,6 +7,7 @@ import { useDebounced, useEnumLabel, useLeaveGuard, useMe } from '../../hooks';
 import { Icon } from '../../ui/Icon';
 import { TimeZoneSelect } from '../../ui/pickers';
 import { Badge, DataTable, Dialog, SelectInput, StateMessage, TextInput, useToast, type Column } from '../../ui/kit';
+import { ClientDisplay, ClientLogo } from '../../ui/ClientLogo';
 import { apiError, ChipPick, download, MultiPick, size, TERMINAL, useAssignable, useJob, useReportZone, WEEKDAYS, type ExportJob } from './shared';
 
 /* ---------------------------------------------------------------------------------------------------------------------------
@@ -511,8 +512,10 @@ export function CasesBuilder() {
   if (f.q) chips.push({ key: 'q', text: `Search: “${f.q}”`, remove: () => setF({ q: undefined }) });
   if (countRules(f.conditions)) chips.push({ key: 'cond', text: `${countRules(f.conditions)} advanced condition(s)`, remove: () => setF({ conditions: undefined }) });
 
-  const display = (col: Preview['columns'][number], v: unknown, id: number): ReactNode => {
+  const display = (col: Preview['columns'][number], v: unknown, id: number, clientId?: number | null): ReactNode => {
     if (v === null || v === undefined || v === '') return <span className="muted">—</span>;
+    // A71: the client columns show the client's logo (from the shared logo lookup; no request per row).
+    if ((col.key === 'clientCode' || col.key === 'clientName') && clientId) return <ClientDisplay id={clientId} code={String(v)} link={false} />;
     if (col.key === 'caseId') return <Link to={`/cases/${id}`}>{String(v)}</Link>;
     if (Array.isArray(v)) return v.join(' ');
     if (col.type === 'Bool') return v ? 'Yes' : 'No';
@@ -524,9 +527,9 @@ export function CasesBuilder() {
     if (col.key === 'type') return nameOf(o.types, String(v)).replace(/^#/, '');
     return String(v);
   };
-  const tableColumns: Column<{ id: number; cells: unknown[] }>[] = (p?.columns ?? []).map((c, i) => ({
+  const tableColumns: Column<{ id: number; cells: unknown[]; clientId?: number | null }>[] = (p?.columns ?? []).map((c, i) => ({
     key: c.key, header: c.label, className: c.type === 'Number' ? 'num' : undefined, maxWidth: c.key === 'title' || c.key === 'nextAction' ? '22rem' : undefined,
-    priority: i < 2 || c.key === 'status' ? 'primary' : 'secondary', render: r => display(c, r.cells[i], r.id)
+    priority: i < 2 || c.key === 'status' ? 'primary' : 'secondary', render: r => display(c, r.cells[i], r.id, r.clientId)
   }));
   const resetAll = () => { setDef(saved ? JSON.parse(baseline) : emptyDefinition()); setConfirmReset(false); };
   const startNew = () => { setParams({}, { replace: false }); setDef(emptyDefinition()); setBaseline(JSON.stringify(clean(emptyDefinition()))); setSaved(null); setLoadWarnings([]); };
@@ -553,7 +556,7 @@ export function CasesBuilder() {
         <details className="rb-sec" open>
           <summary>1 · Filters {chips.length > 0 && <span className="rb-count">{chips.length}</span>}</summary>
           <div className="rb-sec-body">
-            <MultiPick label="Client" options={o.clients.map(c => ({ value: String(c.id), label: c.label, sub: c.sub }))} value={ids(f.clientIds)} all="All authorized clients"
+            <MultiPick label="Client" options={o.clients.map(c => ({ value: String(c.id), label: c.label, sub: c.sub, icon: <ClientLogo clientId={Number(c.id)} code={c.label} name={c.sub} size="xs" decorative /> }))} value={ids(f.clientIds)} all="All authorized clients"
               onChange={v => setF({ clientIds: nums(v), environmentIds: (f.environmentIds ?? []).filter(e => { const env = o.environments.find(x => x.id === e); return !v.length || (env && v.includes(String(env.clientId))); }) })} />
             <div className="rb-row3">
               <SelectInput label="Date field" value={f.dateField ?? 'createdAt'} onChange={v => setF({ dateField: v })} options={m.dateFields.map(d => ({ value: d.key, label: d.label }))} empty={null} />
@@ -670,7 +673,7 @@ export function CasesBuilder() {
           )}
           {p.total === 0 ? <StateMessage kind="nomatch">No cases match this configuration. Remove a filter or widen the date range.</StateMessage> : (
             <div className={pending ? 'rb-stale' : undefined}>
-              <DataTable<{ id: number; cells: unknown[] }> caption="Cases report preview" rows={p.rows} rowKey={r => r.id} tools={false} pageSize={100} tableWrapClassName="rc-preview rb-table" columns={tableColumns} />
+              <DataTable<{ id: number; cells: unknown[]; clientId?: number | null }> caption="Cases report preview" rows={p.rows} rowKey={r => r.id} tools={false} pageSize={100} tableWrapClassName="rc-preview rb-table" columns={tableColumns} />
               <nav className="pager rb-pager" aria-label="Preview pages">
                 <span>Rows {fromIdx.toLocaleString()}–{toIdx.toLocaleString()} of {p.total.toLocaleString()}</span>
                 <span className="right">
