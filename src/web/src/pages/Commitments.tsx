@@ -8,7 +8,7 @@ import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useTeamOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 
 const typeLabel = (t: string) => (t === 'RecordedContractualDeadline' ? 'Recorded deadline' : label(t));
 
@@ -146,7 +146,7 @@ export function CommitmentDetail() {
           {e.completedAt && <> fulfilled {fmtDateTime(e.completedAt)}</>}{e.reason && <> — {e.reason}</>}{e.evidence && <> · evidence: {e.evidence}</>}
           <div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul>
       </Panel>
-      <AttachmentsPanel recordType="Commitment" recordId={c.id} />
+      <AttachmentsWorkspace recordType="Commitment" recordId={c.id} />
       <HistoryPanel entityType="Commitment" entityId={c.id} />
       {dialog === 'revise' && <ActionDialog title="Revise deadline" path={`/commitments/${id}/revise`} version={c.version} onClose={close} submitLabel="Revise" intro="The original and every earlier deadline are kept."
         initial={{ dueLocal: toLocalInput(c.currentDueAt).length ? c.currentDueLocal.slice(0, 16).replace(' ', 'T') : '', timeZone: c.timeZone }}

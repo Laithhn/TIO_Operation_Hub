@@ -9,7 +9,7 @@ import { ProjectDialog, ProjectTabs } from './Clients';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { MyNotesPanel } from './Notes';
 
 // CLI-04 contracts with recorded SLA terms. Targets are what the contract says; the hub never measures them or calculates compliance.
@@ -191,7 +191,7 @@ export function ContractDetail() {
             {c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
           </Panel>
         </div>
-        <AttachmentsPanel recordType="Contract" recordId={c.id} title="Contract and SLA documents" />
+        <AttachmentsWorkspace recordType="Contract" recordId={c.id} title="Contract and SLA documents" />
         <HistoryPanel entityType="Contract" entityId={c.id} />
         {archive && <ArchiveDialog what="contract" path={`/contracts/${c.id}/archive`} version={c.version} onClose={() => setArchive(false)} onDone={() => nav(`/projects/${c.project.id}`)} />}
       </>)}
@@ -480,7 +480,7 @@ export function ProjectDetail() {
           ]} />}
       </Panel>
       <MyNotesPanel projectId={p.id} />
-      <AttachmentsPanel recordType="Project" recordId={p.id} />
+      <AttachmentsWorkspace recordType="Project" recordId={p.id} />
       <HistoryPanel entityType="Project" entityId={p.id} />
       {dialog === 'edit' && <ProjectDialog clientId={p.clientId} projectId={p.id} onClose={() => setDialog(null)} />}
       {dialog === 'archive' && <ArchiveDialog what="project" path={`/projects/${p.id}/archive`} version={p.version} onClose={() => setDialog(null)} onDone={() => nav(`/projects?clientId=${p.clientId}`)} />}

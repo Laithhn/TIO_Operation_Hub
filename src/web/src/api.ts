@@ -99,6 +99,27 @@ export async function upload<T = unknown>(path: string, form: FormData, method: 
   return data as T;
 }
 
+/** The multipart upload with progress (XMLHttpRequest: fetch reports no upload progress); same headers and errors as upload(). */
+export function uploadWithProgress<T = unknown>(path: string, form: FormData, onProgress: (fraction: number) => void): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open('POST', BASE + path);
+    x.withCredentials = true;
+    x.setRequestHeader('Accept', 'application/json');
+    const t = xsrf(); if (t) x.setRequestHeader('X-XSRF-TOKEN', t);
+    x.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    x.onerror = () => reject(new Error('The upload failed. Check your connection.'));
+    x.onload = () => {
+      let data: unknown = undefined;
+      if (x.responseText) { try { data = JSON.parse(x.responseText); } catch { data = { title: x.responseText.slice(0, 200) }; } }
+      if (x.status === 413) reject(new ApiError(413, { title: 'The upload is too large for the server.' }));
+      else if (x.status < 200 || x.status >= 300) reject(new ApiError(x.status, (data as object) ?? { title: x.statusText }));
+      else resolve(data as T);
+    };
+    x.send(form);
+  });
+}
+
 export type Params = Record<string, string | number | boolean | null | undefined>;
 
 /** Query string from params, skipping empty values. */

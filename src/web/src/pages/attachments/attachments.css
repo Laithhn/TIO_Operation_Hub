@@ -1,0 +1,135 @@
+/* A74 attachments on every record page (29 Oct 2026 redesign): summary cards, toolbar, file list, upload dialog and the preview beside the list.
+   Values come from the framework-derived custom properties in styles/tokens.scss. */
+.att-ws { display: block; }
+.att-ws.with-preview { display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 34%); gap: var(--gap); align-items: start; }
+.att-ws .panel { margin-bottom: var(--gap); }
+.att-head h2 { flex: 1; }
+.att-ws .btn .ic, .att-pv .btn .ic, .dialog .att-drop .btn .ic { margin-right: 4px; vertical-align: -3px; }
+.att-icon-btn { min-width: 28px; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; }
+.att-ws .att-icon-btn .ic, .att-pv .att-icon-btn .ic, .att-picked .att-icon-btn .ic { margin: 0; }
+.att-wrap { overflow-wrap: anywhere; }
+
+/* summary cards */
+.att-summary { list-style: none; margin: 0; padding: 10px 12px; display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px;
+  border-bottom: 1px solid var(--line); background: var(--surface-2); }
+.att-summary li { display: flex; gap: 10px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--dash-shadow); padding: 8px 12px; min-width: 0; }
+.att-summary li > div { min-width: 0; }
+.att-summary-icon { flex: none; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: var(--info-soft); color: var(--navy); }
+.att-summary-label { font-size: var(--fs-xs); color: var(--fg-2); text-transform: uppercase; letter-spacing: .03em; }
+.att-summary-value { font-size: var(--fs-title); font-weight: 700; color: var(--navy); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.att-summary .hint { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+
+/* toolbar and selection */
+.att-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.att-toolbar select.input { width: auto; min-width: 150px; }
+.att-search { position: relative; flex: 1 1 240px; min-width: 200px; max-width: 380px; }
+.att-search .ic { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.att-search .input { width: 100%; padding-left: 30px; }
+.att-sort { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs); }
+.att-count { margin-left: auto; font-size: var(--fs-xs); }
+.att-selbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 6px 12px; background: var(--info-soft); border-bottom: 1px solid var(--line); font-size: var(--fs); }
+
+/* table */
+.att-table-wrap { overflow-x: auto; }
+.att-table th { padding: 6px 8px; font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: .03em; color: var(--fg-2); }
+.att-table td { padding: 4px 8px; }
+.att-table .att-col-check { width: 34px; text-align: center; }
+.att-table .att-col-act { width: 40px; text-align: right; }
+.att-table tbody tr.is-selected td { background: var(--info-soft); }
+.att-table tbody tr.is-open td { background: color-mix(in srgb, var(--navy) 7%, transparent); }
+.att-table tbody tr.is-open td:first-child { box-shadow: inset 3px 0 0 var(--navy); }
+.att-name-cell { display: flex; align-items: center; gap: 8px; min-width: 220px; max-width: 32rem; }
+.att-name-wrap { display: flex; flex-direction: column; min-width: 0; }
+.att-table .att-name { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; color: var(--link); font-weight: 600; padding: 0; min-height: 0; }
+.att-name:hover { text-decoration: underline; }
+.att-desc-line { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+.att-col-type { font-size: var(--fs-xs); color: var(--fg-2); }
+.att-col-by { white-space: nowrap; }
+/* Beside the preview the list keeps name, category, size and date; the preview header shows the type and the uploader. */
+.att-ws.with-preview .att-table .att-col-type, .att-ws.with-preview .att-table .att-col-by { display: none; }
+.att-ws.with-preview .att-name-cell { min-width: 180px; max-width: 22rem; }
+.att-ws.with-preview .att-summary-value { font-size: var(--fs-md); }
+
+/* file icons and category labels: the label always carries the text, the colour only helps scanning */
+.att-ficon { flex: none; display: inline-flex; align-items: center; justify-content: center; color: var(--fg-2); }
+.att-ficon.big { width: 64px; height: 64px; background: var(--surface-2); }
+.att-ficon.cat-pdf { color: var(--bad); }
+.att-ficon.cat-document, .att-ficon.cat-diagram { color: var(--link); }
+.att-ficon.cat-spreadsheet { color: #1d7a46; }
+.att-ficon.cat-presentation { color: var(--warn); }
+.att-ficon.cat-image { color: #6b3fa0; }
+.att-ficon.cat-email { color: var(--navy); }
+.att-cat { display: inline-block; padding: 1px 8px; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap; background: var(--surface-2); color: var(--fg); }
+.att-cat.cat-pdf { background: var(--bad-soft); }
+.att-cat.cat-document, .att-cat.cat-diagram { background: var(--info-soft); }
+.att-cat.cat-spreadsheet { background: var(--good-soft); }
+.att-cat.cat-presentation { background: var(--warn-soft); }
+.att-cat.cat-image { background: color-mix(in srgb, #6b3fa0 14%, transparent); }
+.att-cat.cat-email { background: color-mix(in srgb, var(--navy) 10%, transparent); }
+.att-menu { z-index: 90; min-width: 180px; }
+.att-menu [role="menuitem"] { display: flex; align-items: center; gap: 8px; }
+
+/* pages */
+.att-pager .right { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.att-pager label { margin-right: 10px; }
+.att-pager .att-page { min-width: 30px; }
+.att-pager .att-page.on { background: var(--navy); color: var(--on-navy); border-color: var(--navy); }
+
+/* empty states */
+.att-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 32px 16px; color: var(--fg-2); }
+.att-empty p { margin: 0; }
+.att-empty .btn { margin-top: 8px; }
+.att-empty.small { padding: 20px 16px; }
+
+/* upload dialog */
+.att-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; border: 1.5px dashed var(--line-strong); padding: 22px 16px; background: var(--surface-2); color: var(--fg-2); }
+.att-drop.over { border-color: var(--navy); background: var(--info-soft); }
+.att-drop > .ic { color: var(--navy); }
+.att-picked { list-style: none; margin: 10px 0 0; padding: 0; border: 1px solid var(--line); max-height: 220px; overflow-y: auto; }
+.att-picked li { display: flex; align-items: center; gap: 8px; padding: 4px 8px; border-bottom: 1px solid var(--line); font-size: var(--fs); }
+.att-picked li:last-child { border-bottom: 0; }
+.att-picked-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.att-desc { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: var(--fs); }
+.att-upload-err { margin: 10px 0 0; padding-left: 26px; }
+.att-progress { margin-top: 10px; background: linear-gradient(var(--surface-2), var(--surface-2)) top / 100% 6px no-repeat; }
+.att-progress > span { display: block; height: 6px; background: var(--navy); transition: width .15s linear; }
+.att-total { margin-right: auto; align-self: center; font-size: var(--fs-xs); }
+.att-confirm-list { max-height: 180px; overflow-y: auto; margin: 0 0 10px; padding-left: 20px; font-size: var(--fs); }
+
+/* preview panel */
+.att-pv { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--dash-shadow); display: flex; flex-direction: column; position: sticky; top: var(--gap);
+  height: calc(100vh - var(--hdr) - var(--title-h) - var(--status) - 3 * var(--gap)); min-height: 420px; margin-bottom: var(--gap); }
+.att-pv-head { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.att-pv-title { flex: 1; min-width: 0; }
+.att-pv-title h3 { margin: 0; font-size: var(--fs-md); color: var(--navy); overflow-wrap: anywhere; }
+.att-pv-title .muted { font-size: var(--fs-xs); margin-top: 2px; }
+.att-pv .vt-tabs { flex: none; padding: 0 8px; border-bottom: 1px solid var(--line); }
+.att-pv-body { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; }
+.att-pv-body.fill { padding: 0; overflow: hidden; }
+.att-pv-body .dl { grid-template-columns: minmax(100px, max-content) 1fr; }
+.att-pv-frame { display: block; width: 100%; height: 100%; border: 0; background: var(--surface-2); }
+.att-pv-image { display: flex; align-items: center; justify-content: center; min-height: 100%; background: var(--surface-2); padding: 8px; }
+.att-pv-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.att-pv-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--mono); font-size: var(--fs-xs); background: var(--surface-2); padding: 10px; min-height: 100%; }
+.att-pv-note { margin: 0 0 8px; }
+.att-pv-none { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 32px 12px; }
+.att-pv-none p { margin: 0; }
+.att-pv-foot { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--line); background: var(--surface); }
+.att-pv-foot .btn-danger-outline { margin-left: auto; }
+
+/* narrower screens: the preview is a drawer over the page */
+.att-pv.drawer { position: fixed; top: var(--hdr); right: 0; bottom: var(--status); width: min(600px, 100vw); height: auto; min-height: 0; margin: 0; z-index: 75; box-shadow: var(--shadow); }
+.att-pv-scrim { position: fixed; inset: var(--hdr) 0 var(--status) 0; background: var(--scrim); z-index: 74; }
+
+@media (max-width: 760px) {
+  .att-table .att-col-cat, .att-table .att-col-by, .att-table .att-col-type { display: none; }
+  .att-name-cell { min-width: 160px; }
+  .att-count { margin-left: 0; flex-basis: 100%; }
+  .att-search { max-width: none; flex-basis: 100%; }
+}
+@media (max-width: 600px) {
+  .att-summary { gap: 6px; padding: 8px; grid-template-columns: 1fr 1fr; }
+  .att-summary-value { font-size: var(--fs-md); }
+  .att-table .att-col-date { display: none; }
+  .att-name-cell { min-width: 0; max-width: calc(100vw - 200px); } /* room for the check box, size and ⋮ columns */
+}

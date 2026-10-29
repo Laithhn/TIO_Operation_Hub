@@ -179,6 +179,13 @@ public static partial class AttachmentEndpoints
         _ => null
     };
 
+    /// <summary>Types the preview endpoint shows inline, with the type fixed here rather than taken from the stored metadata.</summary>
+    public static readonly Dictionary<string, string> PreviewTypes = new()
+    {
+        [".pdf"] = "application/pdf", [".png"] = "image/png", [".jpg"] = "image/jpeg", [".jpeg"] = "image/jpeg",
+        [".gif"] = "image/gif", [".bmp"] = "image/bmp", [".webp"] = "image/webp"
+    };
+
     [GeneratedRegex(@"[\x00-\x1F\x7F""<>|:*?\\/]+")]
     private static partial Regex UnsafeChars();
 
@@ -275,6 +282,23 @@ public static partial class AttachmentEndpoints
             if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
             // Always a download, never rendered by the browser as a page.
             return Results.Stream(store.Open(a.StoredPath), a.ContentType, a.FileName, enableRangeProcessing: true);
+        });
+
+        // Attachments tab redesign (29 Oct 2026): PDFs and images shown beside the list. Same access as the download; other types are never
+        // rendered inline. The response may be framed by the hub's own pages only, and the shown document may load nothing else.
+        g.MapGet("/{id:long}/preview", async (long id, HttpContext http, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
+        {
+            access.RequireBusiness();
+            var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
+            _ = await ResolveAsync(db, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
+            if (!PreviewTypes.TryGetValue(Path.GetExtension(a.FileName).ToLowerInvariant(), out var type))
+                throw new ValidationException("file", "This file type has no preview. Download the file to open it.");
+            if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
+            var h = http.Response.Headers;
+            h["X-Frame-Options"] = "SAMEORIGIN";
+            h["Content-Security-Policy"] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; frame-ancestors 'self'";
+            h.ContentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("inline") { FileNameStar = a.FileName }.ToString();
+            return Results.Stream(store.Open(a.StoredPath), type, enableRangeProcessing: true);
         });
 
         g.MapPut("/{id:long}", async (long id, DescriptionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>

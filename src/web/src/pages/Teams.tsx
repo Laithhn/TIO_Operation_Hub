@@ -6,7 +6,7 @@ import { fmtDateTime, fromLocalInput, inDays, label } from '../format';
 import { usePermission, useForm, useLookup, useReference, useRefresh } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { RecordLink } from './common';
 
 type TeamRow = { id: number; code: string; name: string; description?: string; isActive: boolean; lead?: UserRef; manager?: UserRef; memberCount: number };
@@ -135,7 +135,7 @@ export function TeamDetail() {
           <Panel title={`Unassigned team cases (${a.data.unassigned.length})`}>{a.data.unassigned.length === 0 ? <StateMessage kind="none">No unassigned cases.</StateMessage> : <ul className="timeline">{a.data.unassigned.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /><div className="when">{c.nextAction}</div></li>)}</ul>}</Panel>
           <Panel title={`Coverage gaps (${a.data.coverageGaps.length})`}>{a.data.coverageGaps.length === 0 ? <StateMessage kind="none">No coverage gaps under the configured policy.</StateMessage> : <ul className="timeline">{a.data.coverageGaps.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /> — no active backup owner</li>)}</ul>}</Panel>
         </div>
-        <AttachmentsPanel recordType="Team" recordId={Number(id)} />
+        <AttachmentsWorkspace recordType="Team" recordId={Number(id)} />
       </>)}
       {open && <MemberDialog teamId={id!} onClose={() => setOpen(false)} />}
       {editing && <MemberDialog teamId={id!} member={editing} onClose={() => setEditing(null)} />}

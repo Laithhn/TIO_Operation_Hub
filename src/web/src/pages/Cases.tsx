@@ -8,7 +8,7 @@ import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
 
 type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
@@ -318,7 +318,7 @@ export function CaseDetail() {
       {tab === 'commitments' && <Panel title="Linked commitments" actions={canCreateCommitment && <Link className="btn" to={`/commitments/new?caseId=${id}${c.client ? `&clientId=${c.client.id}` : `&teamId=${c.team?.id ?? ''}`}`}>+ Commitment</Link>}>
         {c.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{c.commitments.map(m => <li key={m.id}><Link to={`/commitments/${m.id}`}>{m.ref}</Link> {m.description} <StatusBadge value={m.status} /><div className="when">due {fmtDateTime(m.currentDueAt)}</div></li>)}</ul>}
       </Panel>}
-      {tab === 'files' && <AttachmentsPanel recordType="Case" recordId={c.id} />}
+      {tab === 'files' && <AttachmentsWorkspace recordType="Case" recordId={c.id} />}
       {tab === 'history' && <HistoryPanel entityType="Case" entityId={c.id} />}
 
       {dialog === 'triage' && <ActionDialog {...common} title="Triage case" path={`/cases/${id}/triage`} submitLabel="Confirm triage" intro="Confirm scope, team, impact, priority and next-review time. Next action is optional."

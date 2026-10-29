@@ -1790,6 +1790,35 @@ public class AC46_Attachments(HubFactory hub) : Scenario(hub)
         Assert.DoesNotContain(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories), f => File.ReadAllBytes(f).SequenceEqual(letter));
         Assert.True(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories).Length <= before - 3);
     }
+
+    /// <summary>Attachments tab: PDFs and images are previewed inline, framed only by the hub's own pages; other types are never rendered inline.</summary>
+    [Fact]
+    public async Task Pdf_and_image_previews_are_inline_and_other_types_are_refused()
+    {
+        var e = await Hub.As(HubFactory.Engineer);
+        var c = await NewClient();
+        var pdf = "%PDF-1.4 fictional"u8.ToArray();
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, "Client", c, ("annex.pdf", pdf), ("notes.txt", "Fictional"u8.ToArray()))).Status);
+        var list = (await e.Get($"/attachments?recordType=Client&recordId={c}")).Body!.AsArray();
+        var pdfRow = list.First(x => x!["fileName"]!.GetValue<string>() == "annex.pdf")!;
+        var txtRow = list.First(x => x!["fileName"]!.GetValue<string>() == "notes.txt")!;
+
+        var shown = await e.Http.GetAsync($"/api/v1/attachments/{Id(pdfRow)}/preview");
+        Assert.Equal(HttpStatusCode.OK, shown.StatusCode);
+        Assert.Equal(pdf, await shown.Content.ReadAsByteArrayAsync());
+        Assert.Equal("application/pdf", shown.Content.Headers.ContentType!.MediaType);
+        Assert.Equal("inline", shown.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Equal("SAMEORIGIN", shown.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Contains("frame-ancestors 'self'", shown.Headers.GetValues("Content-Security-Policy").Single());
+        Assert.Contains("default-src 'none'", shown.Headers.GetValues("Content-Security-Policy").Single());
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await e.Http.GetAsync($"/api/v1/attachments/{Id(txtRow)}/preview")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await e.Http.GetAsync("/api/v1/attachments/999999999/preview")).StatusCode);
+        // The download keeps its own headers: still a file, never framed.
+        var dl = await e.Http.GetAsync($"/api/v1/attachments/{Id(pdfRow)}/download");
+        Assert.Equal("attachment", dl.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Equal("DENY", dl.Headers.GetValues("X-Frame-Options").Single());
+    }
 }
 
 [Collection("hub")]

@@ -10,7 +10,7 @@ import { ClientDisplay } from '../ui/ClientLogo';
 import { InfraSummary, type Infra } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 
 export function InstallationDialog({ environmentId, clientId, onClose }: { environmentId: number; clientId: number; onClose: () => void }) {
   const ref = useReference().data;
@@ -350,7 +350,7 @@ export function InstallationDetail() {
           { key: 'o', header: 'Owner', render: c => <Person u={c.owner} /> }, { key: 'del', header: '', className: 'row-actions', render: c => <DeleteAction path={`/components/${c.id}`} what={`component ${c.name}`} /> }
         ]} />
       </Panel>
-      <AttachmentsPanel recordType="Installation" recordId={i.id} />
+      <AttachmentsWorkspace recordType="Installation" recordId={i.id} />
       {dialog === 'version' && <ActionDialog title="Confirm version change" path={`/installations/${i.id}/version`} version={i.etag} onClose={() => setDialog(null)} submitLabel="Confirm version"
         intro="Version changes need a reason and evidence; old and new values are kept. A downgrade alone is not treated as a rollback."
         fields={[{ name: 'productVersionId', label: `New ${i.product.code} version`, kind: 'select', options: [{ value: '', label: 'Unknown' }, ...versions.map(v => ({ value: String(v.id), label: v.version }))] },
@@ -410,7 +410,7 @@ export function ComponentDetail() {
         sub={`Component · ${c.role}`} actions={<>{canEng && <button className="btn" onClick={() => setEdit(true)}>Edit</button>}<DeleteAction button path={`/components/${c.id}`} what={`component ${c.name}`} afterTo={`/installations/${c.installationId}`} /></>} />
       <Panel title="Component"><DL items={[['Role', c.role], ['Component version', c.componentVersion ?? 'Not recorded'], ['Owner', <Person u={c.owner} gap="Environment owner" />],
         ['Supporting servers', c.hosts.length ? c.hosts.map(h => <div key={h.assetId}><Link to={`/assets/${h.assetId}`}>{h.name}</Link> ({T.name('AssetType', h.type)})</div>) : <Badge tone="warn">Hosting unresolved</Badge>]]} /></Panel>
-      <AttachmentsPanel recordType="Component" recordId={c.id} />
+      <AttachmentsWorkspace recordType="Component" recordId={c.id} />
       <HistoryPanel entityType="Component" entityId={c.id} />
       {edit && <ComponentDialog installationId={c.installationId} environmentId={c.environmentId} clientId={c.clientId} component={c} onClose={() => setEdit(false)} />}
     </>)}</QueryState>
@@ -462,7 +462,7 @@ export function AssetDetail() {
         ]} />
       </Panel>
       <Panel title="Firewall rules (from and to this server)" pad={false}><FirewallRulesPanel assetId={a.id} clientId={a.environment.clientId} /></Panel>
-      <AttachmentsPanel recordType="Asset" recordId={a.id} />
+      <AttachmentsWorkspace recordType="Asset" recordId={a.id} />
       <HistoryPanel entityType="Asset" entityId={a.id} />
       {dialog === 'edit' && <AssetDialog environmentId={a.environment.id} clientId={a.environment.clientId} asset={a} onClose={() => setDialog(null)} />}
       {dialog === 'volume' && <VolumeDialog assetId={a.id} clientId={a.environment.clientId} onClose={() => setDialog(null)} />}

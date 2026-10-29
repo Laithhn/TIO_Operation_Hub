@@ -292,15 +292,7 @@ table.grid th .grid-sort{white-space:nowrap}
 .clone-renames{margin-bottom:8px}
 .clone-renames .input{height:26px;min-width:110px}
 
-/* A46 attachments */
-.attach-drop-wrap{padding:10px 12px;border-bottom:1px solid var(--line)}
-.attach-drop{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;border:1.5px dashed var(--line-strong);border-radius:0;padding:12px 14px;color:var(--fg-2);background:var(--surface)}
-.attach-drop.over{border-color:var(--navy);background:var(--info-soft)}
-.attach-drop .hint{flex-basis:100%;margin:0}
-.attach-picked{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}
-.attach-picked ul{list-style:none;margin:0;padding:0;flex-basis:100%;display:flex;flex-wrap:wrap;gap:4px 14px;font-size:var(--fs)}
-.attach-picked .input{flex:1;min-width:220px}
-.attach-err{margin:8px 0 0;padding-left:18px}
+/* A46 attachments: pages/attachments/attachments.css (A74) */
 
 /* A47 notes workspace (OneNote-like) */
 .notes{display:grid;grid-template-columns:250px 290px minmax(0,1fr);height:calc(100vh - var(--hdr) - var(--status));margin:0 calc(-1 * var(--content-pad-x, var(--gap))) calc(-1 * var(--content-pad-bottom, 24px));background:var(--surface);border-top:1px solid var(--line);min-width:0}

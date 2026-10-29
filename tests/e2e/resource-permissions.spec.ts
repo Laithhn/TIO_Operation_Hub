@@ -116,10 +116,13 @@ test.describe('Resource permissions in application actions', () => {
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Edit', exact: true })).toHaveCount(0);
     const fileName = `${unique('permission-evidence')}.txt`;
+    await page.getByRole('button', { name: 'Upload files', exact: true }).first().click();
     await page.getByLabel('Choose files to attach to this product', { exact: true }).setInputFiles({ name: fileName, mimeType: 'text/plain', buffer: Buffer.from('Resource permission browser regression') });
     await page.getByRole('button', { name: 'Upload 1 file(s)', exact: true }).click();
-    await expect(page.getByRole('link', { name: fileName, exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: `Remove ${fileName}`, exact: true })).toBeVisible();
+    await expect(page.getByRole('button', { name: `Preview ${fileName}`, exact: true })).toBeVisible();
+    // The uploader may remove their own file (A74: in the file's ⋮ menu).
+    await page.getByRole('button', { name: `Actions for ${fileName}`, exact: true }).click();
+    await expect(page.getByRole('menuitem', { name: 'Delete', exact: true })).toBeVisible();
   });
 
   test('non-administrator restore role can navigate archives and cannot restore other resource types', async ({ page }) => {
