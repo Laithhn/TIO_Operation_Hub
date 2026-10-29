@@ -16,3 +16,8 @@ appsettings.Local.json
 App_Data/
 
 *.tsbuildinfo
+
+# Local document/marketing build scratch and .NET test output
+.marketing-build/
+.pdf-build/
+TestResults/
