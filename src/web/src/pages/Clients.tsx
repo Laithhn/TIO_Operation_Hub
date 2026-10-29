@@ -9,7 +9,6 @@ import {
   Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState,
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
-import { AttachmentsPanel } from './Attachments';
 import { AttachmentsWorkspace } from './AttachmentsWorkspace';
 import { MyNotesPanel } from './Notes';
 import { ClientContracts } from './Contracts';
@@ -430,7 +429,7 @@ export function RegionDetail() {
           {r.environments.length > 0 && <p className="hint" style={{ padding: 10 }}>Archiving is blocked while active environments remain; reassign them first. Environments are never moved or deleted silently.</p>}
         </Panel>
       </div>
-      <AttachmentsPanel recordType="Region" recordId={r.id} canEdit={canEng} />
+      <AttachmentsWorkspace recordType="Region" recordId={r.id} canEdit={canEng} />
       <HistoryPanel entityType="Region" entityId={r.id} />
       {dialog === 'edit' && <RegionDialog clientId={r.clientId} region={{ id: r.id, code: r.code, name: r.name, ownerId: r.owner?.id, description: r.description, version: r.version }} onClose={() => setDialog(null)} />}
       {dialog === 'archive' && <ArchiveDialog what="region" path={`/regions/${r.id}/archive`} version={r.version} onClose={() => setDialog(null)} />}

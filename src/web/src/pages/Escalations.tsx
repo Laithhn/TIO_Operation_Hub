@@ -7,7 +7,7 @@ import { useCan, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrl
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DeleteAction, DL, FormError, FormSection, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When } from '../ui/kit';
 import { ContactCard, ContactFields, contactFrom, contactOut, HistoryPanel, toNum, useClientOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './AttachmentsWorkspace';
 
 /** A41: escalation management. Channels (e-mail, formal letter, verbal, Jira…) are a configuration list. */
 type Row = {
@@ -223,7 +223,7 @@ export function EscalationDetail() {
           </li>))}
         </ul>
       </Panel>
-      <AttachmentsPanel recordType="Escalation" recordId={e.id} canEdit={e.permissions.canEdit} title="Letters, e-mails and other files" />
+      <AttachmentsWorkspace recordType="Escalation" recordId={e.id} canEdit={e.permissions.canEdit} title="Letters, e-mails and other files" />
       <HistoryPanel entityType="Escalation" entityId={e.id} />
       {dialog === 'log' && <ActionDialog title="Log communication" path={`/escalations/${id}/communications`} onClose={close} submitLabel="Log"
         intro="Record what was sent or received and through which channel. A reply to an open escalation acknowledges it. The hub does not send anything."

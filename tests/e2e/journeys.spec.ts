@@ -1055,28 +1055,42 @@ test.describe('Client attachments workspace (A63)', () => {
 test.describe('Attachments (A46)', () => {
   test('files are attached to a server and an escalation, downloaded and removed', async ({ page }) => {
     const name = `${unique('Rack photo')}.png`;
+    const notes = `${unique('cabling notes')}.txt`;
+    const upload = async (ws: ReturnType<Page['locator']>, files: { name: string; mimeType: string; buffer: Buffer }[], description?: string) => {
+      await ws.getByRole('button', { name: 'Upload files' }).first().click();
+      const dlg = page.getByRole('dialog', { name: 'Upload files' });
+      await dlg.getByLabel(/Choose files to attach/).setInputFiles(files);
+      if (description) await dlg.getByLabel('Description (optional)').fill(description);
+      await dlg.getByRole('button', { name: `Upload ${files.length} file${files.length === 1 ? '' : 's'}` }).click();
+      await expect(dlg).toHaveCount(0);
+    };
+    const remove = async (ws: ReturnType<Page['locator']>, file: string) => {
+      await ws.getByRole('button', { name: `Actions for ${file}` }).click();
+      await page.getByRole('menuitem', { name: 'Delete' }).click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+      await expect(ws.getByRole('button', { name: file, exact: true })).toHaveCount(0);
+    };
     await page.goto('/assets?q=nta-r1-app01');
     await page.getByRole('link', { name: 'nta-r1-app01', exact: true }).first().click();
-    const panel = page.locator('section.panel', { has: page.getByRole('heading', { name: /^Attachments/ }) });
-    await expect(panel.getByText('Drag files here or')).toBeVisible();
+    const panel = page.locator('section.att-main', { has: page.getByRole('heading', { name: /^Attachments/ }) });
+    await expect(panel.getByRole('list', { name: 'Attachment summary' })).toBeVisible();
     // A refused type is explained before anything is sent.
-    await panel.getByLabel(/Choose files to attach/).setInputFiles({ name: 'installer.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('MZ') });
-    await expect(panel.getByRole('alert')).toContainText('.exe not accepted');
-    await panel.getByLabel(/Choose files to attach/).setInputFiles([
+    await panel.getByRole('button', { name: 'Upload files' }).first().click();
+    const dlg = page.getByRole('dialog', { name: 'Upload files' });
+    await dlg.getByLabel(/Choose files to attach to this server/).setInputFiles({ name: 'installer.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('MZ') });
+    await expect(dlg.getByRole('alert')).toContainText('.exe not accepted');
+    await dlg.getByRole('button', { name: 'Cancel' }).click();
+    await upload(panel, [
       { name, mimeType: 'image/png', buffer: Buffer.from('fictional image bytes') },
-      { name: 'cabling notes.txt', mimeType: 'text/plain', buffer: Buffer.from('Fictional cabling notes') }]);
-    await panel.getByLabel('Description of the files (optional)').fill('Taken during the site visit (fictional)');
-    await panel.getByRole('button', { name: 'Upload 2 file(s)' }).click();
-    await expect(panel.getByRole('link', { name })).toBeVisible();
+      { name: notes, mimeType: 'text/plain', buffer: Buffer.from('Fictional cabling notes') }], 'Taken during the site visit (fictional)');
+    await expect(panel.getByRole('button', { name, exact: true })).toBeVisible();
     await expect(panel.getByRole('row').filter({ hasText: name })).toContainText('Taken during the site visit');
+    await panel.getByRole('button', { name: `Actions for ${name}` }).click();
     const download = page.waitForEvent('download');
-    await panel.getByRole('link', { name }).click();
+    await page.getByRole('menuitem', { name: 'Download' }).click();
     expect((await download).suggestedFilename()).toBe(name);
-    page.once('dialog', d => d.accept());
-    await panel.getByRole('button', { name: `Remove ${name}` }).click();
-    await expect(panel.getByRole('link', { name })).toHaveCount(0);
-    page.once('dialog', d => d.accept());
-    await panel.getByRole('button', { name: 'Remove cabling notes.txt' }).first().click();
+    await remove(panel, name);
+    await remove(panel, notes);
     await page.screenshot({ path: 'test-results/visual-attachments-1600.png', fullPage: true });
 
     // Escalations, cases and clients take files too (here: a letter on an escalation).
@@ -1089,12 +1103,10 @@ test.describe('Attachments (A46)', () => {
       return (await r.json()).id as number;
     });
     await page.goto(`/escalations/${esc}`);
-    const letters = page.locator('section.panel', { has: page.getByRole('heading', { name: /^Letters, e-mails and other files/ }) });
-    await letters.getByLabel(/Choose files to attach/).setInputFiles({ name: 'customer letter.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 fictional') });
-    await letters.getByRole('button', { name: 'Upload 1 file(s)' }).click();
-    await expect(letters.getByRole('link', { name: 'customer letter.pdf' }).first()).toBeVisible();
-    page.once('dialog', d => d.accept());
-    await letters.getByRole('button', { name: 'Remove customer letter.pdf' }).first().click();
+    const letters = page.locator('section.att-main', { has: page.getByRole('heading', { name: /^Letters, e-mails and other files/ }) });
+    await upload(letters, [{ name: 'customer letter.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 fictional') }]);
+    await expect(letters.getByRole('button', { name: 'customer letter.pdf', exact: true })).toBeVisible();
+    await remove(letters, 'customer letter.pdf');
   });
 });
 

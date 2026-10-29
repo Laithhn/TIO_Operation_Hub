@@ -11,7 +11,7 @@ import {
 import { BoundaryPerson, type BoundaryRow } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
 import { HistoryPanel, toNum, useClientOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './AttachmentsWorkspace';
 import { AssetDialog, CloneDialog, InstallationDialog } from './Inventory';
 
 const HOSTING_LABEL: Record<string, string> = { OnPrem: 'On-prem', Cloud: 'Cloud', Unknown: 'Unknown' };
@@ -238,7 +238,7 @@ export function EnvironmentDetail() {
           ]} />
         </Panel>
       )}
-      {tab === 'files' && <AttachmentsPanel recordType="Environment" recordId={e.id} canEdit={e.canEdit} />}
+      {tab === 'files' && <AttachmentsWorkspace recordType="Environment" recordId={e.id} canEdit={e.canEdit} />}
       {tab === 'history' && <HistoryPanel entityType="Environment" entityId={e.id} />}
       {dialog === 'condition' && <ConditionDialog envId={e.id} onClose={() => setDialog(null)} />}
       {dialog === 'install' && <InstallationDialog environmentId={e.id} clientId={e.client.id} onClose={() => setDialog(null)} />}

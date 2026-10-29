@@ -11,16 +11,18 @@ import {
 } from './attachmentView';
 
 /**
- * A63 (owner request, 29 Oct 2026): the client's Attachments tab as a document workspace — summary cards, search / category / type
- * filters, sorting, paging, row selection, an actions menu per file and a preview pane beside the list. Same endpoints and rules as A46:
- * uploading needs Edit records on the record, the uploader or a holder of Delete records removes a file, and every file is read through
- * the scope-checked download endpoint. Other records keep the compact AttachmentsPanel.
+ * A63 (owner request, 29 Oct 2026): the attachments of every record that takes files (A46), as a document workspace — summary cards,
+ * search / category / type filters, sorting, paging, row selection, an actions menu per file and a preview pane beside the list. Same
+ * endpoints and rules as A46: uploading needs Edit records on the record, the uploader or a holder of Delete records removes a file, and
+ * every file is read through the scope-checked download endpoint.
  */
 
 const PAGE_SIZES = [8, 15, 25, 50];
 /** Files above this size are not loaded for preview; the user downloads them instead. */
 const PREVIEW_MAX = 30 * 1048576;
 const TEXT_MAX = 512 * 1024;
+/** How the record is named in messages; servers are stored as assets. */
+const noun = (recordType: string) => (recordType === 'Asset' ? 'server' : recordType.toLowerCase());
 const href = (a: Pick<Attachment, 'id'>) => `/api/v1/attachments/${a.id}/download`;
 const errorList = (e: unknown) => {
   if (!(e instanceof ApiError)) return [(e as Error).message];
@@ -118,7 +120,7 @@ export function AttachmentsWorkspace({ recordType, recordId, canEdit, title = 'A
           {files.length === 0 ? (
             <div className="att-empty">
               <Icon name="file" size={28} />
-              <p><b>No files attached to this {recordType.toLowerCase()} yet.</b></p>
+              <p><b>No files attached to this {noun(recordType)} yet.</b></p>
               <p className="hint">{canEdit ? 'Upload contracts, scope documents, test reports or any other file the team needs.' : 'Files appear here once someone with Edit records uploads them.'}</p>
               {canEdit && <button className="btn btn-primary" onClick={() => setUploading([])}><Icon name="upload" /> Upload files</button>}
             </div>
@@ -525,7 +527,7 @@ function UploadDialog({ recordType, recordId, limits, initial, onClose, onDone }
         <b>Drag and drop files here</b>
         <span className="hint">or</span>
         <button type="button" className="btn" disabled={busy} onClick={() => input.current?.click()}>Browse files</button>
-        <input ref={input} type="file" multiple hidden aria-label={`Choose files to attach to this ${recordType.toLowerCase()}`} accept={limits?.extensions.join(',')}
+        <input ref={input} type="file" multiple hidden aria-label={`Choose files to attach to this ${noun(recordType)}`} accept={limits?.extensions.join(',')}
           onChange={e => { if (e.target.files) choose(Array.from(e.target.files)); e.target.value = ''; }} />
         {limits && <span className="hint att-limits">Up to {limits.maxFilesPerUpload} files per upload, {limits.maxFileMB} MB each. Accepted: {limits.extensions.join(' ')}</span>}
       </div>

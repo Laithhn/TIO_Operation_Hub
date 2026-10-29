@@ -5,7 +5,7 @@ import { del, get, post, put } from '../api';
 import { fmtDate, label } from '../format';
 import { useCan, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './AttachmentsWorkspace';
 
 // Products — the business also calls them applications: the software TIO delivers and supports.
 // Every user reads the catalogue; Operation Engineers and the TIO Manager maintain it. Retiring keeps history.
@@ -164,7 +164,7 @@ export function ProductDetail() {
             {p.contracts.length === 0 ? <StateMessage kind="none" /> : <ul className="plain" style={{ padding: 12 }}>{p.contracts.map(x => <li key={x.id}><Link to={`/contracts/${x.id}`}>{x.ref} · {x.title}</Link> <span className="muted">({x.clientCode}, {label(x.status)})</span></li>)}</ul>}
           </Panel>
         </div>
-        <AttachmentsPanel recordType="Product" recordId={p.id} canEdit={can} title="Product documents" />
+        <AttachmentsWorkspace recordType="Product" recordId={p.id} canEdit={can} title="Product documents" />
         {dialog?.kind === 'module' && <ModuleDialog productId={p.id} item={dialog.item} onClose={() => setDialog(null)} />}
         {dialog?.kind === 'feature' && <FeatureDialog productId={p.id} modules={p.modules} versions={p.versions} item={dialog.item} onClose={() => setDialog(null)} />}
         {dialog?.kind === 'notes' && <ReleaseNotesDialog item={dialog.item} productCode={p.code} onClose={() => setDialog(null)} />}
