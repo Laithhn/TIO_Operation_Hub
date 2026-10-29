@@ -129,6 +129,13 @@ AC-16 (scope independence) is covered by the structural no-integration test and 
 - `dotnet test tests/TioHub.Tests`: **97 passed, 0 failed**. `AC03b_MicroserviceDeployment` extended: three versions with release notes (newest first with numeric ordering — 1.10.0 above 1.2.0), duplicate number refused, secrets in release notes refused, notes editable, renaming a version refused, latest version shown on the product; application developers saved in order with Lead/Developer roles, an unknown role refused, developers listed on the product list.
 - `tests/e2e`: **13 passed, 0 failed**. Products journey extended: no Owning team field, add a lead developer, add a microservice, add version 1.0.0 with two lines of release notes and see them on the microservice page.
 
+## Release 2.40.1 — 29 Oct 2026 (UX audit remediation UX-001 … UX-005)
+
+- Release script `build/Build-Release.ps1` on the clean commit `a0f3eb1` (`TIOHUB_TEST_SQL=(localdb)\TioHubQALocalDB`): front-end build, `dotnet test` (Release) **268 passed, 0 failed**, publish. Repackaged with `-SkipTests` after this entry was added (documentation only; `BUILD-INFO.txt` names the final commit); the SHA-256 is in `release/TioHub-2.40.1.zip.sha256`. No migration: `database/01-schema.sql` is byte-identical to 2.40.0.
+- Package checks: assembly version `2.40.1+<commit>`, entry chunk 881,993 bytes, notifications and sign-in chunks separate, no `appsettings.Development.json`, no secrets in the configuration or deploy scripts.
+- Before packaging: .NET **268/268** in three consecutive full runs after the order-dependent `A73_ClientMap` test was fixed (`751febd`); typecheck clean. Vitest 42/42 and Playwright 141/141 are from the remediation commit `68d85f4` (entry below); the front end is unchanged since then.
+- Not covered: the acceptance suite against the running package, IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, and the actual UAT environment and its database.
+
 ## UX audit remediation — 29 Oct 2026 (UX-001 … UX-005, branch claude/ux-audit-remediation)
 
 Isolated `(localdb)\TioHubQALocalDB`, Playwright port 5196, Edge. Details: [UX-AUDIT-REMEDIATION-2026-10-27.md](UX-AUDIT-REMEDIATION-2026-10-27.md).
