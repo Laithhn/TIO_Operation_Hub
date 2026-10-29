@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 using System.Text.Json.Nodes;
 
@@ -1767,6 +1767,96 @@ public class AC46_Attachments(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/clients/{c}")).Status);
         Assert.DoesNotContain(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories), f => File.ReadAllBytes(f).SequenceEqual(letter));
         Assert.True(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories).Length <= before - 3);
+    }
+}
+
+[Collection("hub")]
+public class AC64_AttachmentCategoriesAndPdfPreview(HubFactory hub) : Scenario(hub)
+{
+    private static async Task<Res> Upload(Api a, long clientId, string name, byte[] bytes, string? category)
+    {
+        using var form = new MultipartFormDataContent { { new StringContent("Client"), "recordType" }, { new StringContent(clientId.ToString()), "recordId" } };
+        if (category is not null) form.Add(new StringContent(category), "category");
+        form.Add(new ByteArrayContent(bytes), "files", name);
+        var res = await a.Http.PostAsync("/api/v1/attachments", form);
+        var text = await res.Content.ReadAsStringAsync();
+        return new Res(res.StatusCode, text.TrimStart().StartsWith('{') || text.TrimStart().StartsWith('[') ? JsonNode.Parse(text) : null, null, text);
+    }
+
+    /// <summary>A64: an optional business category from a configuration list, set at upload or later; a value in use cannot be deleted.</summary>
+    [Fact]
+    public async Task Files_take_a_category_from_the_configured_list()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var e = await Hub.As(HubFactory.Engineer);
+        // A read-only role (no rights): sees the client and its files, changes nothing.
+        var readOnly = await m.Create("/admin/roles", new { name = U("ReadOnly"), description = "Read only", rights = Array.Empty<string>() });
+        var acct = $@"DEV\{U("reader")}";
+        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Reader", workingTimeZone = "UTC", roleId = readOnly });
+        var reader = await Hub.As(acct);
+        var c = await NewClient();
+        var seeded = (await m.Get("/admin/lookups")).Body!.AsArray().Where(x => x!["listName"]!.GetValue<string>() == "AttachmentCategory").Select(x => x!["code"]!.GetValue<string>()).ToList();
+        Assert.Equal(["Commercial", "Contract", "Scope", "Technical", "Testing", "Compliance", "Hardware"], seeded);
+
+        Assert.NotNull((await Upload(e, c, "quote.docx", "x"u8.ToArray(), "NoSuchCategory")).Error("category"));
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, c, "quote.docx", "x"u8.ToArray(), "Commercial")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, c, "notes.txt", "y"u8.ToArray(), null)).Status);
+        var list = (await e.Get($"/attachments?recordType=Client&recordId={c}")).Body!.AsArray();
+        var quote = list.First(x => x!["fileName"]!.GetValue<string>() == "quote.docx")!;
+        var notes = list.First(x => x!["fileName"]!.GetValue<string>() == "notes.txt")!;
+        Assert.Equal("Commercial", quote["category"]!.GetValue<string>());
+        Assert.Null(notes["category"]);
+
+        // Changed later by someone who may edit the record; cleared with null; a reader sees the files but may not change them.
+        Assert.Equal(HttpStatusCode.OK, (await reader.Get($"/attachments?recordType=Client&recordId={c}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await reader.Put($"/attachments/{Id(notes)}/category", new { category = "Technical" })).Status);
+        Assert.NotNull((await e.Put($"/attachments/{Id(notes)}/category", new { category = "Nope" })).Error("category"));
+        Assert.Equal(HttpStatusCode.NoContent, (await e.Put($"/attachments/{Id(notes)}/category", new { category = "Technical" })).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await e.Put($"/attachments/{Id(quote)}/category", new { category = (string?)null })).Status);
+        list = (await e.Get($"/attachments?recordType=Client&recordId={c}")).Body!.AsArray();
+        Assert.Equal("Technical", list.First(x => Id(x!) == Id(notes))!["category"]!.GetValue<string>());
+        Assert.Null(list.First(x => Id(x!) == Id(quote))!["category"]);
+
+        // A category in use is counted and cannot be deleted; an unused new one can.
+        var technical = (await m.Get("/admin/lookups")).Body!.AsArray().First(x => x!["listName"]!.GetValue<string>() == "AttachmentCategory" && x["code"]!.GetValue<string>() == "Technical")!;
+        Assert.True((await m.Get("/admin/lookups/AttachmentCategory/usage")).Body!["Technical"]!.GetValue<int>() >= 1);
+        Assert.Equal(HttpStatusCode.Conflict, (await m.Send(HttpMethod.Delete, $"/admin/lookups/{Id(technical)}")).Status);
+        var extra = await m.Create("/admin/lookups", new { listName = "AttachmentCategory", label = U("Legal") });
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/admin/lookups/{extra}")).Status);
+    }
+
+    /// <summary>A64: PDF files are served inline for the preview pane, framable by the hub only; nothing else is.</summary>
+    [Fact]
+    public async Task Pdf_preview_is_inline_and_framed_only_by_the_hub()
+    {
+        var e = await Hub.As(HubFactory.Engineer);
+        var c = await NewClient();
+        var pdf = "%PDF-1.4 fictional preview"u8.ToArray();
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, c, "scope.pdf", pdf, null)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, c, "fake.pdf", "<html><script>alert(1)</script>"u8.ToArray(), null)).Status);
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, c, "notes.txt", "z"u8.ToArray(), null)).Status);
+        var list = (await e.Get($"/attachments?recordType=Client&recordId={c}")).Body!.AsArray();
+        long IdOf(string name) => Id(list.First(x => x!["fileName"]!.GetValue<string>() == name)!);
+
+        var res = await e.Http.GetAsync($"/api/v1/attachments/{IdOf("scope.pdf")}/preview");
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        Assert.Equal(pdf, await res.Content.ReadAsByteArrayAsync());
+        Assert.Equal("application/pdf", res.Content.Headers.ContentType!.MediaType);
+        Assert.Equal("inline", res.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Equal("SAMEORIGIN", res.Headers.GetValues("X-Frame-Options").Single());
+        var csp = res.Headers.GetValues("Content-Security-Policy").Single();
+        Assert.Contains("frame-ancestors 'self'", csp);
+        Assert.Contains("default-src 'none'", csp);
+        Assert.Equal("nosniff", res.Headers.GetValues("X-Content-Type-Options").Single());
+
+        // Not a PDF by name or by content: refused; downloads are unchanged and every other response still refuses framing.
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await e.Http.GetAsync($"/api/v1/attachments/{IdOf("notes.txt")}/preview")).StatusCode);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await e.Http.GetAsync($"/api/v1/attachments/{IdOf("fake.pdf")}/preview")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await e.Http.GetAsync("/api/v1/attachments/999999999/preview")).StatusCode);
+        var dl = await e.Http.GetAsync($"/api/v1/attachments/{IdOf("scope.pdf")}/download");
+        Assert.Equal("attachment", dl.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Equal("DENY", dl.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Contains("frame-ancestors 'none'", dl.Headers.GetValues("Content-Security-Policy").Single());
     }
 }
 

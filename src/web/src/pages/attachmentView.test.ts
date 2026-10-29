@@ -1,27 +1,27 @@
 import { describe, expect, it } from 'vitest';
-import { checkFiles, DEFAULT_FILTER, fileCategory, fileType, fmtSize, pageList, previewKind, previewMime, summarize, viewAttachments, type Attachment } from './attachmentView';
+import { checkFiles, DEFAULT_FILTER, fileKind, fileType, fmtSize, NO_CATEGORY, pageList, previewKind, previewMime, summarize, viewAttachments, type Attachment } from './attachmentView';
 
-const file = (id: number, fileName: string, sizeBytes: number, createdAt: string, uploadedById?: number): Attachment =>
-  ({ id, fileName, sizeBytes, createdAt, contentType: '', sha256: '', uploadedById, uploadedBy: uploadedById ? { id: uploadedById, name: `User ${uploadedById}`, isActive: true } : undefined });
+const file = (id: number, fileName: string, sizeBytes: number, createdAt: string, uploadedById?: number, category?: string): Attachment =>
+  ({ id, fileName, sizeBytes, createdAt, category, contentType: '', sha256: '', uploadedById, uploadedBy: uploadedById ? { id: uploadedById, name: `User ${uploadedById}`, isActive: true } : undefined });
 
 const files = [
-  file(1, 'Scope.V1.0.docx', 5_000_000, '2026-10-20T10:00:00Z', 1),
-  file(2, 'scope-annex.pdf', 300_000, '2026-10-22T10:00:00Z', 2),
-  file(3, 'Hardware.xlsx', 36_000, '2026-10-21T10:00:00Z', 1),
+  file(1, 'Scope.V1.0.docx', 5_000_000, '2026-10-20T10:00:00Z', 1, 'Scope'),
+  file(2, 'scope-annex.pdf', 300_000, '2026-10-22T10:00:00Z', 2, 'Commercial'),
+  file(3, 'Hardware.xlsx', 36_000, '2026-10-21T10:00:00Z', 1, 'Scope'),
   file(4, 'README', 10, '2026-10-19T10:00:00Z', 1),
   file(5, 'file10.txt', 20, '2026-10-18T10:00:00Z', 1),
   file(6, 'file9.txt', 20, '2026-10-18T10:00:00Z', 1)
 ];
 const ids = (rows: Attachment[]) => rows.map(a => a.id);
 
-describe('attachment view (A63)', () => {
-  it('derives type and category from the extension', () => {
+describe('attachment view (A63, A64)', () => {
+  it('derives type and kind from the extension', () => {
     expect(fileType('a.b.PDF')).toBe('PDF');
     expect(fileType('README')).toBe('');
-    expect(fileCategory('x.docx')).toBe('Document');
-    expect(fileCategory('x.csv')).toBe('Spreadsheet');
-    expect(fileCategory('x.exe')).toBe('Other');
-    expect(fileCategory('README')).toBe('Other');
+    expect(fileKind('x.docx')).toBe('Document');
+    expect(fileKind('x.csv')).toBe('Spreadsheet');
+    expect(fileKind('x.exe')).toBe('Other');
+    expect(fileKind('README')).toBe('Other');
   });
 
   it('previews PDF, images and text only, with a type fixed by the extension', () => {
@@ -36,7 +36,9 @@ describe('attachment view (A63)', () => {
 
   it('searches case-insensitively and combines filters', () => {
     expect(ids(viewAttachments(files, { ...DEFAULT_FILTER, search: 'SCOPE' }))).toEqual([2, 1]);
-    expect(ids(viewAttachments(files, { ...DEFAULT_FILTER, search: 'scope', category: 'PDF' }))).toEqual([2]);
+    expect(ids(viewAttachments(files, { ...DEFAULT_FILTER, search: 'scope', category: 'Commercial' }))).toEqual([2]);
+    expect(ids(viewAttachments(files, { ...DEFAULT_FILTER, category: 'Scope' }))).toEqual([3, 1]);
+    expect(ids(viewAttachments(files, { ...DEFAULT_FILTER, category: NO_CATEGORY }))).toEqual([4, 6, 5]);
     expect(ids(viewAttachments(files, { ...DEFAULT_FILTER, type: 'XLSX' }))).toEqual([3]);
     expect(viewAttachments(files, { ...DEFAULT_FILTER, search: 'nothing' })).toEqual([]);
   });
@@ -52,8 +54,8 @@ describe('attachment view (A63)', () => {
     expect(files).toEqual(copy);
   });
 
-  it('summarizes from the data, with unknown uploaders not counted as zero', () => {
-    expect(summarize(files)).toEqual({ total: 6, categories: 5, uploaders: 2, latest: '2026-10-22T10:00:00Z' });
+  it('summarizes from the data: categories in use, unknown uploaders not counted as zero', () => {
+    expect(summarize(files)).toEqual({ total: 6, categories: 2, uploaders: 2, latest: '2026-10-22T10:00:00Z' });
     expect(summarize([])).toEqual({ total: 0, categories: 0, uploaders: 0, latest: null });
     expect(summarize([file(9, 'a.pdf', 1, '2026-10-01T00:00:00Z')]).uploaders).toBeNull();
   });

@@ -1,7 +1,7 @@
-// A63: search, filter, sort, page and summary of a record's attachments, done in the browser (the list endpoint returns every file of the record).
+// A63/A64: search, filter, sort, page and summary of a record's attachments, done in the browser (the list endpoint returns every file of the record).
 import type { UserRef } from '../api';
 
-export type Attachment = { id: number; fileName: string; contentType: string; sizeBytes: number; sha256: string; description?: string; createdAt: string; uploadedBy?: UserRef; uploadedById?: number };
+export type Attachment = { id: number; fileName: string; contentType: string; sizeBytes: number; sha256: string; description?: string; category?: string | null; createdAt: string; uploadedBy?: UserRef; uploadedById?: number };
 export type Limits = { maxFileMB: number; maxFilesPerUpload: number; extensions: string[] };
 
 export const fmtSize = (b: number) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
@@ -9,10 +9,7 @@ export const fmtSize = (b: number) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b
 /** File extension in capitals without the dot ("PDF", "DOCX"), or "" when the name has none. */
 export const fileType = (name: string) => (/\.([^./\\]+)$/.exec(name)?.[1] ?? '').toUpperCase();
 
-/**
- * Attachments have no category field; the category is the kind of file, derived from its extension, so it is always true and needs no
- * extra input. A business category (Commercial, Testing…) would need a new column and is not invented here.
- */
+/** The kind of file, from its extension; used for the file icon. The business category (A64) is the file's own field. */
 const KINDS: [string, string[]][] = [
   ['PDF', ['PDF']],
   ['Document', ['DOC', 'DOCX', 'ODT', 'RTF']],
@@ -25,12 +22,12 @@ const KINDS: [string, string[]][] = [
   ['Data', ['XML', 'JSON']],
   ['Archive', ['ZIP', '7Z']]
 ];
-export const fileCategory = (name: string) => {
+export const fileKind = (name: string) => {
   const t = fileType(name);
   return KINDS.find(([, exts]) => exts.includes(t))?.[0] ?? 'Other';
 };
 
-/** How the hub can show the file: PDF (in a new tab, the browser's own viewer), an image or plain text in the pane, or not at all. */
+/** How the hub can show the file in its preview pane: PDF (the browser's viewer, A64), an image, plain text, or not at all. */
 export type PreviewKind = 'pdf' | 'image' | 'text' | 'none';
 const IMAGE_TYPES: Record<string, string> = { PNG: 'image/png', JPG: 'image/jpeg', JPEG: 'image/jpeg', GIF: 'image/gif', BMP: 'image/bmp', WEBP: 'image/webp' };
 export function previewKind(name: string): PreviewKind {
@@ -53,6 +50,8 @@ export const SORTS: { value: SortKey; label: string }[] = [
   { value: 'size-asc', label: 'Size (smallest first)' }, { value: 'size-desc', label: 'Size (largest first)' }
 ];
 
+/** Filter on the business category: a code, NO_CATEGORY for files without one, or '' for all. */
+export const NO_CATEGORY = '-';
 export type ViewFilter = { search: string; category: string; type: string; sort: SortKey };
 export const DEFAULT_FILTER: ViewFilter = { search: '', category: '', type: '', sort: 'newest' };
 
@@ -63,7 +62,7 @@ const time = (a: Attachment) => Date.parse(a.createdAt) || 0;
 export function viewAttachments(files: Attachment[], f: ViewFilter): Attachment[] {
   const term = f.search.trim().toLowerCase();
   const rows = files.filter(a => (!term || a.fileName.toLowerCase().includes(term))
-    && (!f.category || fileCategory(a.fileName) === f.category)
+    && (!f.category || (f.category === NO_CATEGORY ? !a.category : a.category === f.category))
     && (!f.type || fileType(a.fileName) === f.type));
   const cmp: Record<SortKey, (a: Attachment, b: Attachment) => number> = {
     'newest': (a, b) => time(b) - time(a),
@@ -77,11 +76,11 @@ export function viewAttachments(files: Attachment[], f: ViewFilter): Attachment[
 }
 
 export type Summary = { total: number; categories: number; uploaders: number | null; latest: string | null };
-/** Figures for the summary cards; uploaders is null when no file records who uploaded it (shown as unknown, not zero). */
+/** Figures for the summary cards: categories counts the business categories in use; uploaders is null when no file records who uploaded it (shown as unknown, not zero). */
 export function summarize(files: Attachment[]): Summary {
   const people = new Set(files.map(a => a.uploadedById ?? a.uploadedBy?.id).filter((x): x is number => x !== undefined && x !== null));
   const latest = files.reduce<Attachment | null>((m, a) => (!m || time(a) > time(m) ? a : m), null);
-  return { total: files.length, categories: new Set(files.map(a => fileCategory(a.fileName))).size, uploaders: files.length && people.size === 0 ? null : people.size, latest: latest?.createdAt ?? null };
+  return { total: files.length, categories: new Set(files.map(a => a.category).filter(Boolean)).size, uploaders: files.length && people.size === 0 ? null : people.size, latest: latest?.createdAt ?? null };
 }
 
 /** Page numbers to show, with null for a gap: 1 … 4 5 6 … 12. */

@@ -6288,3 +6288,31 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261029050629_AttachmentCategories'
+)
+BEGIN
+    ALTER TABLE [files].[Attachment] ADD [Category] nvarchar(100) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261029050629_AttachmentCategories'
+)
+BEGIN
+    EXEC(N'INSERT INTO [admin].[LookupValue] ([ListName], [Code], [Label], [SortOrder], [IsRetired], [CreatedAt], [UpdatedAt]) SELECT N''AttachmentCategory'', v.[Code], v.[Label], v.[SortOrder], 0, SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET() FROM (VALUES (N''Commercial'', N''Commercial'', 10), (N''Contract'', N''Contract'', 20), (N''Scope'', N''Scope'', 30), (N''Technical'', N''Technical'', 40), (N''Testing'', N''Testing'', 50), (N''Compliance'', N''Compliance'', 60), (N''Hardware'', N''Hardware'', 70)) AS v([Code], [Label], [SortOrder]) WHERE NOT EXISTS (SELECT 1 FROM [admin].[LookupValue] l WHERE l.[ListName] = N''AttachmentCategory'' AND l.[Code] = v.[Code]);')
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261029050629_AttachmentCategories'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261029050629_AttachmentCategories', N'10.0.13');
+END;
+
+COMMIT;
+GO

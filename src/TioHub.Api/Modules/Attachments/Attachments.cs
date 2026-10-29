@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Access;
 using TioHub.Api.Modules.Shared;
 using TioHub.Api.Security;
@@ -31,6 +32,8 @@ public class Attachment : Entity, IClientOwned
     public long SizeBytes { get; set; }
     public string Sha256 { get; set; } = "";
     public string? Description { get; set; }
+    /// <summary>A64: code from the AttachmentCategory configuration list (Commercial, Technical…); null = uncategorised.</summary>
+    public string? Category { get; set; }
     public long? UploadedById { get; set; }
     public User? UploadedBy { get; set; }
     public long? ScopeClientId => ClientId;
@@ -171,7 +174,7 @@ public static partial class AttachmentEndpoints
 
     private static object Row(Attachment a) => new
     {
-        a.Id, a.RecordType, a.RecordId, a.FileName, a.ContentType, a.SizeBytes, a.Sha256, a.Description, a.CreatedAt,
+        a.Id, a.RecordType, a.RecordId, a.FileName, a.ContentType, a.SizeBytes, a.Sha256, a.Description, a.Category, a.CreatedAt,
         uploadedBy = a.UploadedBy == null ? null : new UserRef(a.UploadedBy.Id, a.UploadedBy.DisplayName, a.UploadedBy.IsActive), a.UploadedById
     };
 
@@ -193,7 +196,7 @@ public static partial class AttachmentEndpoints
             return Results.Ok(rows.Select(Row));
         });
 
-        // Multipart upload: recordType, recordId, description (optional) and one or more "files".
+        // Multipart upload: recordType, recordId, description and category (optional) and one or more "files".
         g.MapPost("", async (HttpRequest req, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             access.Me.Require(Role.Engineer);
@@ -205,6 +208,7 @@ public static partial class AttachmentEndpoints
             access.RequireMaintain(target.ClientId, target.TeamId);
             var description = Text.Clean(form["description"].ToString());
             var check = new Check().Text("description", description, 500, "Description");
+            var category = await new LookupService(db).CheckAsync(check, "category", LookupLists.AttachmentCategory, form["category"].ToString(), "the category", null, ct);
             var files = form.Files.GetFiles("files");
             if (files.Count == 0) check.Add("files", "Choose at least one file.");
             if (files.Count > store.Options.MaxFilesPerUpload) check.Add("files", $"Upload at most {store.Options.MaxFilesPerUpload} files at a time.");
@@ -229,7 +233,7 @@ public static partial class AttachmentEndpoints
                     {
                         RecordType = type, RecordId = recordId, ClientId = target.ClientId, TeamId = target.TeamId, FileName = name, StoredPath = rel,
                         ContentType = types.TryGetContentType(name, out var ctype) ? ctype : "application/octet-stream", SizeBytes = size, Sha256 = hash,
-                        Description = description, UploadedById = access.Me.UserId
+                        Description = description, Category = category, UploadedById = access.Me.UserId
                     };
                     saved.Add(a);
                     db.Attachments.Add(a);
@@ -254,6 +258,46 @@ public static partial class AttachmentEndpoints
             if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
             // Always a download, never rendered by the browser as a page.
             return Results.Stream(store.Open(a.StoredPath), a.ContentType, a.FileName, enableRangeProcessing: true);
+        });
+
+        // A64: PDF files shown inside the hub's preview pane. Only PDF content (by extension and by its %PDF- signature) is served inline,
+        // framable by the hub's own pages only; every other response keeps X-Frame-Options DENY and frame-ancestors 'none'.
+        g.MapGet("/{id:long}/preview", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
+        {
+            access.RequireBusiness();
+            var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
+            _ = await ResolveAsync(db, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
+            if (!string.Equals(Path.GetExtension(a.FileName), ".pdf", StringComparison.OrdinalIgnoreCase))
+                throw new ValidationException("file", "Only PDF files are previewed in the hub. Download the file to open it.");
+            if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
+            var stream = store.Open(a.StoredPath);
+            var head = new byte[5];
+            var read = await stream.ReadAtLeastAsync(head, head.Length, throwOnEndOfStream: false, ct);
+            if (read < head.Length || !head.AsSpan().SequenceEqual("%PDF-"u8))
+            {
+                await stream.DisposeAsync();
+                throw new ValidationException("file", "The file is not a valid PDF document. Download it to open it.");
+            }
+            stream.Position = 0;
+            var h = ctx.Response.Headers;
+            h["X-Frame-Options"] = "SAMEORIGIN";
+            h["Content-Security-Policy"] = PreviewCsp;
+            h.ContentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("inline") { FileNameStar = a.FileName }.ToString();
+            return Results.Stream(stream, "application/pdf", enableRangeProcessing: true);
+        });
+
+        // A64: the category of a file; the uploader's Edit right on the record is enough, like the description.
+        g.MapPut("/{id:long}/category", async (long id, CategoryInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
+        {
+            var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
+            access.RequireMaintain(a.ClientId, a.TeamId);
+            var check = new Check();
+            var category = await new LookupService(db).CheckAsync(check, "category", LookupLists.AttachmentCategory, input.Category, "the category", a.Category, ct);
+            check.ThrowIfAny();
+            a.Category = category;
+            db.AuditReason = $"Category of file {a.FileName} changed";
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
         });
 
         g.MapPut("/{id:long}", async (long id, DescriptionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
@@ -281,4 +325,8 @@ public static partial class AttachmentEndpoints
     }
 
     public sealed record DescriptionInput(string? Description);
+    public sealed record CategoryInput(string? Category);
+
+    /// <summary>The preview is a PDF shown by the browser's viewer: nothing to load besides itself, framable by the hub only.</summary>
+    public const string PreviewCsp = "default-src 'none'; frame-ancestors 'self'; base-uri 'none'; form-action 'none'";
 }

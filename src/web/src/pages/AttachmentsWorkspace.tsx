@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { ApiError, del, get, qs, uploadWithProgress } from '../api';
+import { ApiError, del, get, put, qs, uploadWithProgress } from '../api';
 import { fmtDate, fmtDateTime } from '../format';
-import { useCan, useMe } from '../hooks';
+import { useCan, useMe, useReference, type Lookup } from '../hooks';
 import { Icon } from '../ui/Icon';
-import { ConfirmDelete, Dialog, DL, Person, StateMessage, Tabs, TextInput, useToast } from '../ui/kit';
+import { ConfirmDelete, Dialog, DL, Person, SelectInput, StateMessage, Tabs, TextInput, useToast } from '../ui/kit';
 import {
-  checkFiles, DEFAULT_FILTER, fileCategory, fileType, fmtSize, pageList, previewKind, previewMime, SORTS, summarize, viewAttachments,
+  checkFiles, DEFAULT_FILTER, fileKind, fileType, fmtSize, NO_CATEGORY, pageList, previewKind, previewMime, SORTS, summarize, viewAttachments,
   type Attachment, type Limits, type SortKey, type Summary, type ViewFilter
 } from './attachmentView';
 
@@ -14,7 +14,8 @@ import {
  * A63 (owner request, 29 Oct 2026): the attachments of every record that takes files (A46), as a document workspace — summary cards,
  * search / category / type filters, sorting, paging, row selection, an actions menu per file and a preview pane beside the list. Same
  * endpoints and rules as A46: uploading needs Edit records on the record, the uploader or a holder of Delete records removes a file, and
- * every file is read through the scope-checked download endpoint.
+ * every file is read through the scope-checked download endpoint. A64: each file may carry a business category from the configured list
+ * Attachment categories, and PDF files are shown in the pane from the preview endpoint (inline, framable by the hub only).
  */
 
 const PAGE_SIZES = [8, 15, 25, 50];
@@ -24,6 +25,18 @@ const TEXT_MAX = 512 * 1024;
 /** How the record is named in messages; servers are stored as assets. */
 const noun = (recordType: string) => (recordType === 'Asset' ? 'server' : recordType.toLowerCase());
 const href = (a: Pick<Attachment, 'id'>) => `/api/v1/attachments/${a.id}/download`;
+const previewHref = (id: number) => `/api/v1/attachments/${id}/preview`;
+
+/** A64: the configured attachment categories (retired ones too, so old files keep their label). */
+function useCategories() {
+  const all: Lookup[] = useReference().data?.lookups.AttachmentCategory ?? [];
+  return { all, active: all.filter(l => !l.isRetired), label: (code?: string | null) => (code ? all.find(l => l.code === code)?.label ?? code : null) };
+}
+/** One of eight soft colours, fixed per category code, so a category looks the same everywhere. */
+const tone = (code: string) => [...code].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) >>> 0, 7) % 8;
+function CategoryTag({ code, label }: { code?: string | null; label: string | null }) {
+  return code ? <span className={`att-cat t${tone(code)}`}>{label}</span> : <span className="att-cat none">Uncategorised</span>;
+}
 const errorList = (e: unknown) => {
   if (!(e instanceof ApiError)) return [(e as Error).message];
   const fields = Object.values(e.errors ?? {}).flat();
@@ -53,7 +66,14 @@ export function AttachmentsWorkspace({ recordType, recordId, canEdit, title = 'A
   const files = useMemo(() => q.data ?? [], [q.data]);
   const rows = useMemo(() => viewAttachments(files, filter), [files, filter]);
   const summary = useMemo(() => summarize(files), [files]);
-  const categories = useMemo(() => [...new Set(files.map(a => fileCategory(a.fileName)))].sort(), [files]);
+  const cats = useCategories();
+  // Filter options: the categories in use, in the configured order, then Uncategorised when some file has none.
+  const categories = [
+    ...[...new Set(files.map(a => a.category).filter((c): c is string => !!c))]
+      .sort((x, y) => (cats.all.findIndex(l => l.code === x) + 1 || 999) - (cats.all.findIndex(l => l.code === y) + 1 || 999))
+      .map(c => ({ value: c, label: cats.label(c)! })),
+    ...(files.some(a => !a.category) ? [{ value: NO_CATEGORY, label: 'Uncategorised' }] : [])
+  ];
   const types = useMemo(() => [...new Set(files.map(a => fileType(a.fileName)).filter(Boolean))].sort(), [files]);
   const last = Math.max(1, Math.ceil(rows.length / size));
   const at = Math.min(page, last);
@@ -158,7 +178,6 @@ export function AttachmentsWorkspace({ recordType, recordId, canEdit, title = 'A
                   </thead>
                   <tbody>
                     {shown.map(a => {
-                      const cat = fileCategory(a.fileName);
                       return (
                         <tr key={a.id} className={a.id === previewId ? 'active' : selected.has(a.id) ? 'picked' : undefined}>
                           <td className="att-col-sel"><input type="checkbox" checked={selected.has(a.id)} onChange={e => select([a.id], e.target.checked)} aria-label={`Select ${a.fileName}`} /></td>
@@ -169,7 +188,7 @@ export function AttachmentsWorkspace({ recordType, recordId, canEdit, title = 'A
                             </span>
                             {a.description && <div className="hint att-desc" title={a.description}>{a.description}</div>}
                           </td>
-                          <td className="att-col-cat"><span className="att-cat" data-cat={cat}>{cat}</span></td>
+                          <td className="att-col-cat"><CategoryTag code={a.category} label={cats.label(a.category)} /></td>
                           <td className="att-col-type">{fileType(a.fileName) || <span className="muted">—</span>}</td>
                           <td className="num nowrap">{fmtSize(a.sizeBytes)}</td>
                           <td className="nowrap">{fmtDateTime(a.createdAt)}</td>
@@ -189,7 +208,7 @@ export function AttachmentsWorkspace({ recordType, recordId, canEdit, title = 'A
       </section>
       {current && <>
         <div className="att-scrim" onClick={closePreview} aria-hidden="true" />
-        <AttachmentPreview key={current.id} a={current} canDelete={canDelete(current)} onClose={closePreview} onDelete={() => setDeleting([current])} />
+        <AttachmentPreview key={current.id} a={current} canEdit={canEdit} canDelete={canDelete(current)} onClose={closePreview} onDelete={() => setDeleting([current])} onChanged={reload} />
       </>}
       {uploading && <UploadDialog recordType={recordType} recordId={recordId} limits={limits.data} initial={uploading} onClose={() => setUploading(null)} onDone={reload} />}
       {deleting && deleting.length === 1 && (
@@ -207,7 +226,7 @@ function SortMark({ dir }: { dir?: 'ascending' | 'descending' }) {
 function AttachmentSummary({ s }: { s: Summary }) {
   const cards = [
     { icon: 'file', value: s.total, label: s.total === 1 ? 'Total file' : 'Total files' },
-    { icon: 'layers', value: s.categories, label: s.categories === 1 ? 'Document category' : 'Document categories', hint: 'Kinds of file (PDF, document, spreadsheet…), from the file type' },
+    { icon: 'layers', value: s.categories, label: s.categories === 1 ? 'Document category' : 'Document categories', hint: 'Business categories in use (Administration → Configuration → Attachment categories)' },
     { icon: 'user', value: s.uploaders ?? '—', label: s.uploaders === 1 ? 'Uploader' : 'Uploaders', hint: s.uploaders === null ? 'No file records who uploaded it' : undefined },
     { icon: 'calendar', value: s.latest ? fmtDate(s.latest) : '—', label: 'Latest upload', hint: s.latest ? fmtDateTime(s.latest) : 'Nothing uploaded yet' }
   ];
@@ -224,7 +243,7 @@ function AttachmentSummary({ s }: { s: Summary }) {
 }
 
 function AttachmentToolbar({ filter, categories, types, onChange, onReset }: {
-  filter: ViewFilter; categories: string[]; types: string[]; onChange: (p: Partial<ViewFilter>) => void; onReset: () => void;
+  filter: ViewFilter; categories: { value: string; label: string }[]; types: string[]; onChange: (p: Partial<ViewFilter>) => void; onReset: () => void;
 }) {
   const changed = JSON.stringify(filter) !== JSON.stringify(DEFAULT_FILTER);
   return (
@@ -236,7 +255,7 @@ function AttachmentToolbar({ filter, categories, types, onChange, onReset }: {
       </label>
       <select className="input" aria-label="Category" value={filter.category} onChange={e => onChange({ category: e.target.value })}>
         <option value="">All categories</option>
-        {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        {categories.map(c => <option key={c.value} value={c.value}>{c.label}</option>)}
       </select>
       <select className="input" aria-label="File type" value={filter.type} onChange={e => onChange({ type: e.target.value })}>
         <option value="">All file types</option>
@@ -250,28 +269,34 @@ function AttachmentToolbar({ filter, categories, types, onChange, onReset }: {
   );
 }
 
-/** The ⋯ menu of a row. Drawn with fixed position so the table's scroll area never cuts it off. Keyboard: arrows move, Escape closes. */
+/**
+ * The ⋯ menu of a row. Drawn with fixed position so the table's scroll area never cuts it off; it follows its button while the page
+ * scrolls (a late scroll event must not close a menu that was just opened) and closes when the button leaves the window.
+ * Keyboard: arrows move, Escape closes.
+ */
 function AttachmentActions({ a, canDelete, onPreview, onDelete }: { a: Attachment; canDelete: boolean; onPreview: () => void; onDelete: () => void }) {
   const [pos, setPos] = useState<{ top: number; right: number; up: boolean } | null>(null);
   const btn = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
   const close = useCallback((focus?: boolean) => { setPos(null); if (focus) btn.current?.focus(); }, []);
+  const place = useCallback(() => {
+    const r = btn.current?.getBoundingClientRect();
+    if (!r || r.bottom < 0 || r.top > window.innerHeight) return null;
+    const up = window.innerHeight - r.bottom < 140;
+    return { top: up ? r.top - 4 : r.bottom + 4, right: Math.max(8, window.innerWidth - r.right), up };
+  }, []);
+  const open = !!pos;
   useEffect(() => {
-    if (!pos) return;
+    if (!open) return;
     list.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
     const away = (e: MouseEvent) => { if (!list.current?.contains(e.target as Node) && !btn.current?.contains(e.target as Node)) close(); };
-    const gone = () => close();
+    const follow = () => setPos(place());
     document.addEventListener('mousedown', away);
-    window.addEventListener('resize', gone);
-    window.addEventListener('scroll', gone, true);
-    return () => { document.removeEventListener('mousedown', away); window.removeEventListener('resize', gone); window.removeEventListener('scroll', gone, true); };
-  }, [pos, close]);
-  const toggle = () => {
-    if (pos) { close(); return; }
-    const r = btn.current!.getBoundingClientRect();
-    const up = window.innerHeight - r.bottom < 140;
-    setPos({ top: up ? r.top - 4 : r.bottom + 4, right: Math.max(8, window.innerWidth - r.right), up });
-  };
+    window.addEventListener('resize', follow);
+    window.addEventListener('scroll', follow, true);
+    return () => { document.removeEventListener('mousedown', away); window.removeEventListener('resize', follow); window.removeEventListener('scroll', follow, true); };
+  }, [open, close, place]);
+  const toggle = () => { if (pos) close(); else setPos(place()); };
   const keys = (e: React.KeyboardEvent) => {
     const items = Array.from(list.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
     const i = items.indexOf(document.activeElement as HTMLElement);
@@ -323,7 +348,7 @@ const GLYPH: Record<string, [string, string]> = {
 };
 /** Small coloured document mark per kind of file; decorative (the type is written in its own column). */
 function FileGlyph({ name, size = 16 }: { name: string; size?: number }) {
-  const [color, mark] = GLYPH[fileCategory(name)];
+  const [color, mark] = GLYPH[fileKind(name)];
   return (
     <svg className="att-glyph" width={size} height={size * 1.2} viewBox="0 0 20 24" aria-hidden="true">
       <path d="M2 1h11l5 5v17H2z" fill={color} />
@@ -349,12 +374,20 @@ const dataUrl = (blob: Blob) => new Promise<string>((resolve, reject) => {
   r.readAsDataURL(blob);
 });
 
+/** Why the preview endpoint refused a file (not a valid PDF, missing content…), from its problem details. */
+async function problemText(res: Response) {
+  try { const p = await res.json(); return Object.values(p.errors ?? {}).flat()[0] as string ?? p.detail ?? p.title; }
+  catch { return `The file could not be loaded (${res.status}).`; }
+}
+
 /**
- * The file beside the list. Images are shown inline as data: addresses (the CSP allows data: images) and text files as plain text.
- * PDF files are not embedded: the CSP has no frame source for them (frame-src falls back to 'self', downloads are attachments), so
- * they open in a new tab or download. Office files have no viewer in the hub and are offered for download.
+ * The file beside the list. A64: PDF files are framed from the preview endpoint (served inline and framable by the hub's own pages only;
+ * the page CSP is unchanged). Images are shown as data: addresses (the CSP allows data: images) and text files as plain text. Office
+ * files have no viewer in the hub and are offered for download.
  */
-function AttachmentPreview({ a, canDelete, onClose, onDelete }: { a: Attachment; canDelete: boolean; onClose: () => void; onDelete: () => void }) {
+function AttachmentPreview({ a, canEdit, canDelete, onClose, onDelete, onChanged }: {
+  a: Attachment; canEdit: boolean; canDelete: boolean; onClose: () => void; onDelete: () => void; onChanged: () => void;
+}) {
   const [tab, setTab] = useState('preview');
   const [loaded, setLoaded] = useState<Loaded>({ status: 'idle' });
   const head = useRef<HTMLHeadingElement>(null);
@@ -388,10 +421,27 @@ function AttachmentPreview({ a, canDelete, onClose, onDelete }: { a: Attachment;
     })();
     return () => ctl.abort();
   }, [id, fileName, kind, inline, tooLarge]);
+  // A64: a 5-byte request first, so a refused or missing PDF shows its reason instead of an empty frame.
+  useEffect(() => {
+    if (kind !== 'pdf') return;
+    const ctl = new AbortController();
+    setLoaded({ status: 'loading' });
+    (async () => {
+      try {
+        const res = await fetch(previewHref(id), { credentials: 'same-origin', headers: { Range: 'bytes=0-4' }, signal: ctl.signal });
+        const result: Loaded = res.ok ? { status: 'ready', src: previewHref(id) } : { status: 'error', error: await problemText(res) };
+        if (!ctl.signal.aborted) setLoaded(result);
+      } catch (e) {
+        if (!ctl.signal.aborted) setLoaded({ status: 'error', error: (e as Error).message });
+      }
+    })();
+    return () => ctl.abort();
+  }, [id, kind]);
 
   // The tab is opened at once (inside the click, so pop-up blockers allow it), then shown the file from a short-lived blob: address.
   const [opening, setOpening] = useState<string | null>(null);
   const openInTab = async () => {
+    if (kind === 'pdf') { window.open(previewHref(id), '_blank', 'noopener'); return; }
     const w = window.open('', '_blank');
     if (!w) { setOpening('The browser blocked the new tab. Allow pop-ups for the hub, or download the file.'); return; }
     w.opener = null;
@@ -421,9 +471,9 @@ function AttachmentPreview({ a, canDelete, onClose, onDelete }: { a: Attachment;
         {tab === 'preview' && (
           tooLarge ? <NoPreview a={a} onOpen={openInTab}>This file is larger than {PREVIEW_MAX / 1048576} MB and is not loaded into the pane. Open it in a new tab or download it.</NoPreview>
           : kind === 'none' ? <NoPreview a={a}><b>No preview for {type ? `${type} files` : 'this file'}.</b> The hub previews images and text files. Download the file to open it in its application.</NoPreview>
-          : kind === 'pdf' ? <NoPreview a={a} onOpen={openInTab}><b>PDF files open in a new tab.</b> The hub's security policy does not allow documents to be embedded in the page.</NoPreview>
           : loaded.status === 'error' ? <NoPreview a={a} error>{loaded.error}</NoPreview>
           : loaded.status !== 'ready' ? <StateMessage kind="loading" />
+          : kind === 'pdf' ? <iframe className="att-frame" src={loaded.src} title={`Preview of ${a.fileName}`} />
           : kind === 'image' ? <div className="att-img"><img src={loaded.src} alt={`Preview of ${a.fileName}`} /></div>
           : <>
               {loaded.truncated && <div className="notice">Showing the first {TEXT_MAX / 1024} KB. Download the file to see all of it.</div>}
@@ -435,7 +485,7 @@ function AttachmentPreview({ a, canDelete, onClose, onDelete }: { a: Attachment;
             ['File name', <span className="att-break">{a.fileName}</span>],
             ['File type', `${type || 'No extension'}${a.contentType ? ` (${a.contentType})` : ''}`],
             ['File size', `${fmtSize(a.sizeBytes)} (${a.sizeBytes.toLocaleString('en-GB')} bytes)`],
-            ['Category', <>{fileCategory(a.fileName)} <span className="hint">from the file type</span></>],
+            ['Category', <CategoryField a={a} canEdit={canEdit} onChanged={onChanged} />],
             ['Uploaded on', fmtDateTime(a.createdAt)],
             ['Uploaded by', <Person u={a.uploadedBy} gap="Unknown" />],
             ['Description', a.description || <span className="muted">None</span>],
@@ -455,6 +505,27 @@ function AttachmentPreview({ a, canDelete, onClose, onDelete }: { a: Attachment;
         {canDelete && <button className="btn btn-danger-outline" onClick={onDelete}><Icon name="trash" size={14} /> Delete</button>}
       </footer>
     </aside>
+  );
+}
+
+/** A64: the file's category; changed here by people who may edit the record (saved at once). */
+function CategoryField({ a, canEdit, onChanged }: { a: Attachment; canEdit: boolean; onChanged: () => void }) {
+  const cats = useCategories();
+  const [busy, setBusy] = useState(false);
+  const toast = useToast();
+  if (!canEdit) return <CategoryTag code={a.category} label={cats.label(a.category)} />;
+  const options = cats.all.filter(l => !l.isRetired || l.code === a.category);
+  const change = async (code: string) => {
+    setBusy(true);
+    try { await put(`/attachments/${a.id}/category`, { category: code || null }); toast(`Category of ${a.fileName} ${code ? `set to ${cats.label(code)}` : 'cleared'}.`); onChanged(); }
+    catch (e) { toast(errorList(e).join(' '), true); }
+    finally { setBusy(false); }
+  };
+  return (
+    <select className="input att-cat-select" aria-label={`Category of ${a.fileName}`} value={a.category ?? ''} disabled={busy} onChange={e => change(e.target.value)}>
+      <option value="">Uncategorised</option>
+      {options.map(l => <option key={l.code} value={l.code}>{l.label}{l.isRetired ? ' (retired)' : ''}</option>)}
+    </select>
   );
 }
 
@@ -478,6 +549,8 @@ function UploadDialog({ recordType, recordId, limits, initial, onClose, onDone }
   const [picked, setPicked] = useState<File[]>([]);
   const [problems, setProblems] = useState<string[]>([]);
   const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const cats = useCategories();
   const [progress, setProgress] = useState<number | null>(null);
   const [drag, setDrag] = useState(false);
   const input = useRef<HTMLInputElement>(null);
@@ -504,6 +577,7 @@ function UploadDialog({ recordType, recordId, limits, initial, onClose, onDone }
     form.append('recordType', recordType);
     form.append('recordId', String(recordId));
     if (description.trim()) form.append('description', description.trim());
+    if (category) form.append('category', category);
     picked.forEach(f => form.append('files', f, f.name));
     try {
       await uploadWithProgress('/attachments', form, setProgress, c.signal);
@@ -543,6 +617,8 @@ function UploadDialog({ recordType, recordId, limits, initial, onClose, onDone }
           ))}
         </ul>
       )}
+      <SelectInput label="Category (optional)" value={category} onChange={setCategory} options={cats.active.map(l => ({ value: l.code, label: l.label }))}
+        empty="Uncategorised" disabled={busy} hint="Applies to every file in this upload; it can be changed per file later." />
       <TextInput label="Description (optional)" value={description} onChange={setDescription} maxLength={500} disabled={busy}
         placeholder="e.g. Signed SLA annex" hint="Saved with every file in this upload." />
       {problems.length > 0 && <ul className="err attach-err" role="alert">{problems.map((x, i) => <li key={i}>{x}</li>)}</ul>}

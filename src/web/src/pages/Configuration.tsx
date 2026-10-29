@@ -52,6 +52,8 @@ export const CONFIG_LISTS: ConfigList[] = [
     about: 'How escalations arrive or are raised and how replies go out, for example e-mail, formal letter, verbal or Jira. The hub records the channel and its reference; it never sends anything.' },
   { slug: 'team-member-roles', list: 'TeamMemberRole', group: 'Teams', title: 'Team member roles', usedBy: 'team members',
     about: 'Roles offered when adding or editing a member of an internal team (Teams), for example Team lead or Support engineer.' },
+  { slug: 'attachment-categories', list: 'AttachmentCategory', group: 'Files', title: 'Attachment categories', usedBy: 'attachments',
+    about: 'Business categories offered when uploading a file or on its details, for example Commercial, Technical or Testing. A file may also stay uncategorised.' },
   { slug: 'priority-guidance', list: 'PriorityGuidance', group: 'Contracts & cases', title: 'Priority guidance', usedBy: 'the case form (guidance text)',
     about: 'The explanation shown for each case priority. Rename or reword it to match your service levels.' }
 ];

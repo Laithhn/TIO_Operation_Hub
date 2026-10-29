@@ -1017,16 +1017,27 @@ test.describe('Client attachments workspace (A63)', () => {
     await up.getByLabel(/Choose files to attach/).setInputFiles([
       { name: pdf, mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 fictional') },
       { name: notes, mimeType: 'text/plain', buffer: Buffer.from('Fictional site notes') }]);
+    // A64: a business category from the configured list, for every file of the upload.
+    await up.getByLabel('Category (optional)').selectOption({ label: 'Testing' });
     await up.getByRole('button', { name: 'Upload 2 files' }).click();
     await expect(page.getByText('2 files uploaded.')).toBeVisible();
+    await expect(ws.getByRole('row').filter({ hasText: pdf })).toContainText('Testing');
 
     // Search is case-insensitive; the category filter combines with it.
     await ws.getByPlaceholder('Search by file name…').fill(notes.toUpperCase());
     await expect(ws.locator('.att-table tbody tr')).toHaveCount(1);
-    await ws.getByPlaceholder('Search by file name…').fill('');
-    await ws.getByLabel('Category').selectOption('Text');
+    await ws.getByLabel('Category').selectOption({ label: 'Testing' });
     await expect(ws.getByRole('button', { name: notes, exact: true })).toBeVisible();
     await ws.getByRole('button', { name: /^Reset$/ }).click();
+
+    // A64: a PDF is shown in the pane from the preview endpoint; its category is changed in Details.
+    await ws.getByRole('button', { name: pdf, exact: true }).click();
+    const pdfFrame = page.locator('aside.att-preview iframe.att-frame');
+    await expect(pdfFrame).toHaveAttribute('src', /\/api\/v1\/attachments\/\d+\/preview$/);
+    await page.locator('aside.att-preview').getByRole('tab', { name: 'Details' }).click();
+    await page.getByLabel(`Category of ${pdf}`).selectOption({ label: 'Commercial' });
+    await expect(ws.getByRole('row').filter({ hasText: pdf })).toContainText('Commercial');
+    await page.keyboard.press('Escape');
 
     // Preview beside the list: text inline, details, no invented versions; Escape closes.
     await ws.getByRole('button', { name: notes, exact: true }).click();

@@ -41,7 +41,10 @@ public static class LookupLists
     /// <summary>A53: roles of the members of an internal team (Teams), separate from the client project team roles.</summary>
     public const string TeamMemberRole = "TeamMemberRole";
 
-    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole];
+    /// <summary>A64: business categories of attachments (Commercial, Technical, Testing…); optional on each file.</summary>
+    public const string AttachmentCategory = "AttachmentCategory";
+
+    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole, AttachmentCategory];
 
     /// <summary>The category enum of each type list.</summary>
     public static readonly Dictionary<string, Type> Categories = new()

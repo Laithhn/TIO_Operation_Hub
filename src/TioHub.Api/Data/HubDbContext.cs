@@ -871,6 +871,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.ContentType).HasMaxLength(150);
             e.Property(x => x.Sha256).HasMaxLength(64);
             e.Property(x => x.Description).HasMaxLength(500);
+            e.Property(x => x.Category).HasMaxLength(100);
             e.Ignore(x => x.ScopeClientId);
             e.HasIndex(x => new { x.RecordType, x.RecordId });
             e.HasOne(x => x.UploadedBy).WithMany().HasForeignKey(x => x.UploadedById).OnDelete(DeleteBehavior.Restrict);

@@ -222,6 +222,7 @@ public static class LookupUsage
             LookupLists.EscalationChannel => (await db.Escalations.IgnoreQueryFilters().Select(x => x.Channel)
                     .Concat(db.EscalationEvents.Where(x => x.Channel != null && x.Type == Escalations.EscalationEventType.Communication).Select(x => x.Channel!)).ToListAsync(ct))
                 .GroupBy(x => x).Select(x => new { code = x.Key, n = x.Count() }).ToList(),
+            LookupLists.AttachmentCategory => await db.Attachments.IgnoreQueryFilters().Where(x => x.Category != null).GroupBy(x => x.Category!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             _ => []
         };
         return rows.ToDictionary(x => x.code, x => x.n);
