@@ -15,7 +15,7 @@ type Rec = { id: number } & Record<string, unknown>;
 const firstOf = (j: unknown): Rec | undefined => (Array.isArray(j) ? j : ((j as { items?: Rec[] } | null)?.items ?? []))[0] as Rec | undefined;
 
 const STATIC = [
-  '/', '/map', '/actions', '/notifications', '/data-quality', '/reporting-center', '/reports',
+  '/', '/actions', '/notifications', '/data-quality', '/reporting-center', '/reports',
   '/reporting-center/library', '/reporting-center/builder/cases', '/reporting-center/my-reports', '/reporting-center/schedules', '/reporting-center/history', '/reporting-center/templates',
   '/clients', '/clients/new', '/projects', '/contracts', '/contracts/new', '/environments', '/environments/new', '/versions', '/assets', '/firewall-rules',
   '/products', '/products/new', '/cases', '/cases/new', '/commitments', '/commitments/new', '/escalations', '/escalations/new',
@@ -73,6 +73,17 @@ test.describe('VtWebGuiFramework frame on every page', () => {
     expect(paths.length).toBeGreaterThanOrEqual(10);
     // Detail pages without their own sidebar entry (regions, microservices, ...) show the sidebar without an active marker.
     for (const path of paths) await expectFramed(page, path, false);
+  });
+
+  // A73: the Client Map is a full-width, map-first page with its own title bar (no section menu, no framework toolbar title).
+  test('the Client Map uses the full width of the frame with its own title bar', async ({ page }) => {
+    await page.goto('/map');
+    await expect(page.locator('header.hdr')).toBeVisible();
+    await expect(page.getByRole('navigation', { name: 'Main' }).locator('a[aria-current="page"]')).toHaveCount(1);
+    await expect(page.locator('footer.status')).toContainText('TIO Operations Hub');
+    await expect(page.locator('aside.side')).toHaveCount(0);
+    await expect(page.getByRole('heading', { level: 1, name: 'Client Map' })).toBeVisible();
+    await expect(page.locator('.state-msg.error')).toHaveCount(0);
   });
 
   test('the Notes workspace uses the full width of the frame', async ({ page }) => {

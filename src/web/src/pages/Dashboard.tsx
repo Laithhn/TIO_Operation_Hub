@@ -1,20 +1,17 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
 import { useCan, useEnumLabel, useMe, useUrlState } from '../hooks';
 import {
-  CAT, Columns, Donut, HBars, Kpi, normalizeCountry, PartBar, RAMP, SERIES, SlaMatrix, STATUS, TrendLines, VizPanel, fmtMinutes,
+  CAT, Columns, Donut, HBars, Kpi, PartBar, RAMP, SERIES, SlaMatrix, STATUS, TrendLines, VizPanel, fmtMinutes,
   type CountryDatum, type SlaRow
 } from '../ui/charts';
 import { Icon } from '../ui/Icon';
-import type { MapMetric } from '../ui/LeafletMap';
 import { Badge, DataTable, PageHead, SelectInput, StateMessage, TextInput } from '../ui/kit';
-import { ClientDisplay, ClientLogo, useClientLogos } from '../ui/ClientLogo';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { useClientOptions, useProductOptions, useTeamOptions } from './common';
-
-const LeafletMap = lazy(() => import('../ui/LeafletMap'));
 
 type Measure = { key: string; label: string; value: number; definition: string; drilldown: string };
 type Dash = { evaluatedAt: string; upcomingDays: number; cases: Measure[]; commitments: Measure[]; caseAge: { averageDays: number | null; oldestDays: number | null; totalWaitingHours: number; definition: string }; deferred: string };
@@ -75,8 +72,6 @@ type ActionRow = {
   nextAction?: string | null; dueAt?: string | null; link: string; severity: string; priority?: string | null;
 };
 
-/** Per-country figures for the map, with servers and contracts added from the per-client rows. */
-type MapDatum = CountryDatum & { servers: number; activeContracts: number; renewalAttention: number };
 
 // Reported condition uses the reserved status colours, always with a glyph and a label (never colour alone).
 const STATUS_OF: Record<string, string> = { Healthy: STATUS.good, Degraded: STATUS.warning, Unavailable: STATUS.critical, Unknown: STATUS.neutral };
@@ -91,13 +86,6 @@ const SUPPORT_OF: Record<string, string> = { Remote: CAT[0], OnSite: CAT[1], Hyb
 const tableOf = (rows: BarT[], col = 'Count') => ({ columns: ['Category', col], rows: rows.map(r => [r.label, r.value]) });
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
-const METRICS: (MapMetric & { short: string })[] = [
-  { key: 'clients', label: 'Clients', short: 'Clients', value: d => d.clients },
-  { key: 'servers', label: 'Servers', short: 'Servers', value: d => (d as MapDatum).servers ?? 0 },
-  { key: 'cases', label: 'Open cases', short: 'Open cases', value: d => d.openCases, alert: d => d.overdueCases > 0 },
-  { key: 'overdue', label: 'Overdue items', short: 'Overdue', value: d => d.overdueCases + d.overdueCommitments, alert: d => d.overdueCases + d.overdueCommitments > 0 },
-  { key: 'contracts', label: 'Active contracts', short: 'Contracts', value: d => (d as MapDatum).activeContracts ?? 0, alert: d => ((d as MapDatum).renewalAttention ?? 0) > 0 }
-];
 
 const rate = (met: number, measured: number) => (measured ? `${Math.round((met / measured) * 100)} %` : null);
 const PERIOD_LABEL: Record<string, string> = { today: 'today', '7d': 'the last 7 days', '30d': 'the last 30 days', quarter: 'this quarter', custom: 'the chosen dates' };
@@ -302,98 +290,6 @@ function ActionCenter({ params }: { params: Record<string, string> }) {
           <span className="hint">Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record; other warnings on it are listed under Status.</span>
         </div>
       </section>
-    </section>
-  );
-}
-
-/** A39: interactive map/** A39: interactive map — metric switch, country selection with its clients beside the map, filter and zoom. */
-/** A59: the map page — the overview is opened for a country instead of filtering in place. */
-function Geography({ countries, overviewFor, initial }: { countries: InsightsT['countries']; overviewFor: (country: string) => string; initial?: string }) {
-  const me = useMe().data!;
-  const tiles = me.app.map;
-  const nav = useNavigate();
-  const [metricKey, setMetricKey] = useState('clients');
-  const [selected, setSelected] = useState<string | null>(initial || null);
-  const metric = METRICS.find(x => x.key === metricKey)!;
-  // Servers and contracts per country, summed from the per-client rows.
-  const data: MapDatum[] = useMemo(() => countries.rows.map(r => {
-    const cs = countries.clients.filter(c => c.country && normalizeCountry(c.country) === normalizeCountry(r.country));
-    return { ...r, servers: cs.reduce((s, c) => s + c.servers, 0), activeContracts: cs.reduce((s, c) => s + c.activeContracts, 0), renewalAttention: cs.reduce((s, c) => s + c.renewalAttention, 0) };
-  }), [countries]);
-  const sel = selected ? data.find(d => d.country === selected) : undefined;
-  // A71: logos for the map popups, from the shared logo lookup (one request for all clients).
-  const logos = useClientLogos();
-  const mapClients = useMemo(() => countries.clients.map(c => ({ ...c, logoUrl: logos.get(c.id) ?? null })), [countries.clients, logos]);
-  const selClients = sel ? countries.clients.filter(c => c.country && normalizeCountry(c.country) === normalizeCountry(sel.country)) : [];
-  const ranked = [...data].sort((a, b) => metric.value(b) - metric.value(a) || b.clients - a.clients);
-  const max = Math.max(1, ...ranked.map(metric.value));
-  return (
-    <section className="map-panel panel">
-      <div className="map-main">
-        <div className="panel-head" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0 }}>Client footprint</h2>
-          <div className="map-metric" style={{ marginLeft: 'auto' }}>
-            <span className="muted" style={{ fontSize: 12 }}>Show</span>
-            <div className="seg" role="group" aria-label="Map figure">
-              {METRICS.map(x => <button key={x.key} aria-pressed={x.key === metricKey} onClick={() => setMetricKey(x.key)}>{x.short}</button>)}
-            </div>
-          </div>
-        </div>
-        <Suspense fallback={<div className="viz-empty" style={{ height: 460 }}><span className="spin" /> Loading map…</div>}>
-          <LeafletMap data={data} clients={mapClients} metric={metric} selected={selected ?? undefined} onSelect={setSelected}
-            onOpenClient={id => nav(`/clients/${id}`)} tileUrl={tiles?.tileUrl} attribution={tiles?.attribution} />
-        </Suspense>
-        {countries.unknownCountryClients > 0 && <p className="hint" style={{ marginTop: 6 }}>Country unknown (not placed): {countries.unknownCountryCodes.join(', ')}</p>}
-      </div>
-      <aside className="map-side" aria-label={sel ? `Clients in ${sel.country}` : 'Countries'}>
-        {sel ? (
-          <>
-            <div className="map-side-head"><h3>{sel.country}</h3><button className="linkbtn" onClick={() => setSelected(null)} aria-label="Back to all countries">✕ All countries</button></div>
-            <div className="map-stats">
-              <div><b>{sel.clients}</b><span>clients</span></div>
-              <div><b>{sel.environments}</b><span>environments</span></div>
-              <div><b>{sel.servers}</b><span>servers</span></div>
-              <div><b>{sel.openCases}</b><span>open cases</span></div>
-              <div><b style={{ color: sel.overdueCases + sel.overdueCommitments ? STATUS.critical : undefined }}>{sel.overdueCases + sel.overdueCommitments}</b><span>overdue items</span></div>
-              <div><b>{sel.activeContracts}</b><span>active contracts</span></div>
-            </div>
-            <div className="map-side-body">
-              {selClients.map(c => (
-                <Link key={c.id} className="map-client" to={`/clients/${c.id}`}>
-                  <ClientLogo clientId={c.id} code={c.code} name={c.name} size="xs" decorative /> <b>{c.code}</b> <span className="muted">· {c.name}</span>{c.parentClientId && <span className="sub"> (sub-client)</span>}
-                  <div className="figs">
-                    <span>{c.environments} env.</span><span>{c.servers} servers</span><span>{c.openCases} open cases</span>
-                    {c.overdueCases + c.overdueCommitments > 0 && <Badge tone="bad">{c.overdueCases + c.overdueCommitments} overdue</Badge>}
-                    <span>{c.activeContracts} contracts</span>{c.renewalAttention > 0 && <Badge tone="warn">{c.renewalAttention} renewal due</Badge>}
-                  </div>
-                </Link>
-              ))}
-            </div>
-            <div className="map-side-actions">
-              <Link className="btn btn-primary" to={overviewFor(sel.country)}>Show the overview for {sel.country}</Link>
-              <Link className="btn" to={`/clients${qs({ country: sel.country })}`}>Open client list</Link>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="map-side-head"><h3>Countries by {metric.label.toLowerCase()}</h3></div>
-            <div className="map-side-body">
-              {ranked.length === 0 && <p className="muted" style={{ padding: 12 }}>No records entered.</p>}
-              {ranked.map(c => {
-                const v = metric.value(c);
-                return (
-                  <button key={c.country} className="map-country" onClick={() => setSelected(c.country)} aria-label={`${c.country}: ${v} ${metric.label.toLowerCase()}. Show its clients`}>
-                    <span><b>{c.country}</b><span className="hint">{c.clientCodes.join(', ')}</span></span>
-                    <span className="rank-bar" style={{ width: 70 }}><span style={{ width: `${(v / max) * 100}%` }} /></span>
-                    <b style={{ minWidth: 22, textAlign: 'right' }}>{v}</b>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="hint" style={{ padding: '8px 12px', margin: 0 }}>Click a country on the map or in this list to see its clients; zoom with the buttons or the mouse wheel.</p>
-          </>
-        )}
-      </aside>
     </section>
   );
 }
@@ -882,34 +778,6 @@ export function Dashboard() {
         <HealthCharts d={insights.data} cc={cc.data} />
         <QualityCharts d={insights.data} deferred={dash.data.deferred} />
       </>}
-    </div>
-  );
-}
-
-/** A59 (owner request, 22 Oct 2026): the client map on its own page; client, team and product filters as on the overview. */
-export function ClientMap() {
-  const me = useMe().data!;
-  const [f, set] = useUrlState({ clientId: '', teamId: '', productId: '', country: '' });
-  const params = { clientId: f.clientId, teamId: f.teamId, productId: f.productId };
-  const insights = useQuery({ queryKey: ['insights', params], queryFn: () => get<InsightsT>(`/dashboard/insights${qs(params)}`), placeholderData: keepPreviousData });
-  const clients = useClientOptions();
-  const teams = useTeamOptions();
-  const products = useProductOptions();
-  const filtered = !!(f.clientId || f.teamId || f.productId);
-  const countries = insights.data?.countries;
-  const total = countries ? countries.rows.reduce((s, r) => s + r.clients, 0) + countries.unknownCountryClients : 0;
-  return (
-    <div className="dash map-page">
-      <PageHead title="Client map" sub={insights.data && <>{total} client(s) in {countries!.rows.length} countr{countries!.rows.length === 1 ? 'y' : 'ies'} · as of {fmtDateTime(insights.data.evaluatedAt)} ({me.timeZone}). Click a country for its clients.</>}
-        actions={<Link className="btn btn-primary" to={`/${qs(params)}`}>Executive overview</Link>} />
-      <div className="toolbar dash-filters">
-        <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
-        <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
-        <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
-        {filtered && <button className="btn" style={{ alignSelf: 'flex-end' }} onClick={() => set({ clientId: '', teamId: '', productId: '' })}>Clear filters</button>}
-      </div>
-      {insights.isLoading && <StateMessage kind="loading" />}
-      {countries && <Geography countries={countries} initial={f.country} overviewFor={c => `/${qs({ ...params, country: c })}`} />}
     </div>
   );
 }

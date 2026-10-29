@@ -43,7 +43,7 @@ const ContractForm = page(() => import('./pages/Contracts'), 'ContractForm');
 const ContractList = page(() => import('./pages/Contracts'), 'ContractList');
 const ProjectDetail = page(() => import('./pages/Contracts'), 'ProjectDetail');
 const ActionList = page(() => import('./pages/Actions'), 'ActionList');
-const ClientMap = page(() => import('./pages/Dashboard'), 'ClientMap');
+const ClientMap = page(() => import('./pages/ClientMap'), 'ClientMap');
 const Dashboard = page(() => import('./pages/Dashboard'), 'Dashboard');
 const MicroserviceDetail = page(() => import('./pages/Products'), 'MicroserviceDetail');
 const ProductDetail = page(() => import('./pages/Products'), 'ProductDetail');

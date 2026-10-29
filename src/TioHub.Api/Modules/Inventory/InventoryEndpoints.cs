@@ -25,11 +25,11 @@ public static class InventoryEndpoints
         var ag = api.MapGroup("/assets").WithTags("Assets");
 
         ag.MapGet("", async (long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone, string? q, int? page, int? pageSize,
-            HubDbContext db, HubAccess access, CancellationToken ct) =>
+            HubDbContext db, HubAccess access, CancellationToken ct, string? country = null) =>
         {
             access.RequireBusiness();
             var tech = access.Me.SeesTechnical;
-            var query = FilterAssets(db, clientId, regionId, environmentId, productId, type, lifecycle, role, phase, tech ? zone : null, q);
+            var query = FilterAssets(db, clientId, regionId, environmentId, productId, type, lifecycle, role, phase, tech ? zone : null, q, country);
             return Results.Ok(await query.OrderBy(a => a.Environment!.Client!.Code).ThenBy(a => a.Environment!.Name).ThenBy(a => a.Name).Select(a => new
             {
                 a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle, networkZone = tech ? a.NetworkZone : null, networkZoneRestricted = !tech && a.NetworkZone != null,
@@ -340,9 +340,11 @@ public static class InventoryEndpoints
         };
     }
 
-    public static IQueryable<Asset> FilterAssets(HubDbContext db, long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone, string? q)
+    public static IQueryable<Asset> FilterAssets(HubDbContext db, long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone, string? q, string? country = null)
     {
         var query = db.Assets.AsQueryable();
+        // A73: the client map's servers of one country (the client's country, like the other lists' country filter).
+        if (!string.IsNullOrWhiteSpace(country)) query = query.Where(a => a.Environment!.Client!.Country == country);
         if (clientId is not null) query = query.Where(a => a.ClientId == clientId);
         if (regionId is not null) query = query.Where(a => a.Environment!.RegionId == regionId);
         if (environmentId is not null) query = query.Where(a => a.EnvironmentId == environmentId);

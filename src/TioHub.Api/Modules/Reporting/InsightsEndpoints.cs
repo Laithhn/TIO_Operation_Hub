@@ -253,6 +253,9 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
             overdueCommitments = db.Commitments.Count(x => x.ClientId == c.Id && x.Status == CommitmentStatus.Open && x.CurrentDueAt < now),
             // A39: per-client figures for the interactive map.
             c.Id, c.Name, c.ParentClientId,
+            // A73: what the client map's country panel lists per client (product codes from installations; the project manager).
+            products = db.Installations.Where(i => i.ClientId == c.Id).Select(i => i.Product!.Code).Distinct().OrderBy(x => x).ToList(),
+            projectManager = c.Owner == null ? null : c.Owner.DisplayName,
             servers = db.Assets.Count(a => a.ClientId == c.Id && a.TypeCategory != AssetType.LogicalEndpoint),
             activeContracts = db.Contracts.Count(k => k.ClientId == c.Id && k.Status == ContractStatus.Active),
             renewalAttention = db.Contracts.Count(k => k.ClientId == c.Id && k.Status == ContractStatus.Active && (k.EndDate == null || k.EndDate.Value.AddDays(-(k.NoticeDays ?? 0)) <= DateOnly.FromDateTime(now.UtcDateTime).AddDays(ContractQuery.RenewalWindowDays)))
@@ -264,7 +267,7 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
         var clientRows = rows.OrderBy(r => r.Code).Select(r => new
         {
             r.Id, r.Code, r.Name, country = r.CountryUnknown ? null : r.Country, r.ParentClientId, r.environments, r.servers, r.openCases, r.overdueCases,
-            r.openCommitments, r.overdueCommitments, r.activeContracts, r.renewalAttention
+            r.openCommitments, r.overdueCommitments, r.activeContracts, r.renewalAttention, r.products, r.projectManager
         }).ToList();
         return new { rows = byCountry, unknownCountryClients = unknown.Count, unknownCountryCodes = unknown.Select(u => u.Code).Order().ToList(), clients = clientRows };
     }

@@ -198,7 +198,8 @@ export function Shell({ children }: { children: ReactNode }) {
   const submenu = useRef<HTMLDivElement>(null);
   const visible = useMemo(() => me ? SECTIONS.filter(s => (s.show?.(me) ?? true) && s.side.some(i => i.show?.(me) ?? true)) : [], [me]);
   const section = visible.find(s => s.match.test(loc.pathname)) ?? visible[0];
-  const withSidebar = !section?.bare;
+  // A73: the Client Map is a full-width, map-first page (its own toolbar links back to the Operations Command Center).
+  const withSidebar = !section?.bare && !/^\/map\/?$/.test(loc.pathname);
   const fitting = useFittingSections(visible, section?.key, !drawer);
   const inHeader = fitting.shown ? visible.filter(s => fitting.shown!.includes(s.key)) : visible;
   const overflow = fitting.shown ? visible.filter(s => !fitting.shown!.includes(s.key)) : [];

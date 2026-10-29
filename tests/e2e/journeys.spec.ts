@@ -731,8 +731,9 @@ test.describe('Dashboard visualizations', () => {
     const sa = map.getByRole('button', { name: /Saudi Arabia: \d+ client/ });
     await sa.focus();
     await page.keyboard.press('Enter');
-    const side = page.getByRole('complementary', { name: 'Clients in Saudi Arabia' });
-    await expect(side).toBeVisible();
+    // A73: the country details panel beside the map.
+    const side = page.getByRole('complementary', { name: 'Country details' });
+    await expect(side.getByRole('heading', { name: 'Saudi Arabia' })).toBeVisible();
     await expect(side.getByRole('link').first()).toBeVisible();
     await side.getByRole('link', { name: 'Show the overview for Saudi Arabia' }).click();
     await expect(page).toHaveURL(/\/\?.*country=Saudi/);
@@ -755,9 +756,11 @@ test.describe('Dashboard visualizations', () => {
     await expect(page.getByRole('heading', { name: 'Active contracts ending, next 12 months' })).toBeVisible();
     await page.screenshot({ path: 'test-results/visual-dashboard-1600.png', fullPage: true });
     await page.getByRole('link', { name: 'Client map' }).first().click();
-    await page.getByRole('group', { name: 'Map figure' }).getByRole('button', { name: 'Contracts' }).click();
+    await page.getByRole('radiogroup', { name: 'Map layer' }).getByRole('radio', { name: /Contracts/ }).click();
     await expect(page.getByLabel('Active contracts per country')).toBeVisible();
     await page.screenshot({ path: 'test-results/visual-dashboard-map-1600.png', fullPage: true });
+    // A73: the map is full width (no section menu); its toolbar leads back to the Command Center.
+    await page.getByRole('link', { name: 'Operations Command Center', exact: true }).click();
     await page.getByRole('link', { name: 'Action list' }).first().click();
     await expect(page.getByRole('heading', { level: 1, name: 'Action list' })).toBeVisible();
     await expect(page.getByRole('tab', { name: /Unassigned/ })).toBeVisible();
@@ -775,7 +778,10 @@ test.describe('Dashboard visualizations', () => {
       const href = await first.getAttribute('href');
       expect(href).toMatch(/^\//);
     } else await expect(strip).toContainText('all clear');
-    // Section tabs scroll to their section and mark it current.
+    // Section tabs scroll to their section and mark it current (once the sections have rendered: on a cold server the data
+    // arrives after the first paint and would move the target while the smooth scroll runs).
+    await expect(page.getByRole('heading', { name: 'Contracts & SLAs' })).toBeAttached();
+    await expect(page.getByRole('heading', { name: 'Data quality', exact: true }).first()).toBeAttached();
     await nav.getByRole('link', { name: 'Contracts & SLAs' }).click();
     await expect(page.getByRole('heading', { name: 'Contracts & SLAs' })).toBeInViewport();
     await expect(nav.getByRole('link', { name: 'Contracts & SLAs' })).toHaveAttribute('aria-current', 'true');
@@ -796,10 +802,10 @@ test.describe('Dashboard visualizations', () => {
     // Opening a country shows one marker per client; its popup opens the client inside the app.
     await map.getByRole('button', { name: /Saudi Arabia: \d+ client/ }).click();
     // Pick a client of the opened country (markers of neighbouring countries may lie outside the visible map).
-    const code = (await page.getByRole('complementary', { name: 'Clients in Saudi Arabia' }).locator('.map-client b').first().textContent())!.trim();
+    const code = (await page.getByRole('complementary', { name: 'Country details' }).locator('.cmap-cell-client b').first().textContent())!.trim();
     const marker = page.locator('.osm-client').filter({ hasText: new RegExp(`^${code}$`) });
     await expect(marker).toBeInViewport({ timeout: 10000 });
-    await page.locator('.map-panel').screenshot({ path: 'test-results/visual-dashboard-leaflet-clients.png' });
+    await page.locator('.cmap-center').screenshot({ path: 'test-results/visual-dashboard-leaflet-clients.png' });
     await marker.click();
     await page.locator('.osm-pop a').click();
     await expect(page).toHaveURL(/\/clients\/\d+$/);

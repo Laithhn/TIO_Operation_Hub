@@ -57,7 +57,10 @@ function whenSettled(m: L.Map, fn: () => void): (() => void) | undefined {
   return () => { m.off('zoomend', fn); };
 }
 
-export type MapMetric = { key: string; label: string; value: (d: CountryDatum) => number; alert?: (d: CountryDatum) => boolean };
+export type MapMetric = { key: string; label: string; value: (d: CountryDatum) => number; alert?: (d: CountryDatum) => boolean; alertLabel?: string };
+
+// A73: the Client Map page's dark variant — darkened tiles, a dark blue ramp ending in the electric accent, light borders.
+const DARK = { ramp: ['#0b3d66', '#0a568f', '#0b6fbd', '#0789e8', '#00b8e6'], none: '#22364b', border: '#36506a', sel: '#00b8e6' };
 export type MapClientPoint = {
   id: number; code: string; name: string; country?: string | null; parentClientId?: number | null; environments: number; servers: number;
   openCases: number; overdueCases: number; openCommitments: number; overdueCommitments: number; activeContracts: number; renewalAttention: number;
@@ -73,10 +76,13 @@ function clientState(c: MapClientPoint): { tone: 'bad' | 'warn' | 'ok'; label: s
   return { tone: 'ok', label: 'Nothing overdue' };
 }
 
-export default function LeafletMap({ data, clients, metric, selected, onSelect, onOpenClient, tileUrl, attribution }: {
+export default function LeafletMap({ data, clients, metric, selected, onSelect, onOpenClient, tileUrl, attribution, variant = 'light' }: {
   data: CountryRow[]; clients: MapClientPoint[]; metric: MapMetric; selected?: string; onSelect: (country: string | null) => void;
-  onOpenClient: (id: number) => void; tileUrl?: string; attribution?: string;
+  onOpenClient: (id: number) => void; tileUrl?: string; attribution?: string; variant?: 'light' | 'dark';
 }) {
+  const dark = variant === 'dark';
+  const ramp = dark ? DARK.ramp : RAMP;
+  const noneFill = dark ? DARK.none : '#c9ced6';
   const wrap = useRef<HTMLDivElement>(null);
   const el = useRef<HTMLDivElement>(null);
   const map = useRef<L.Map | null>(null);
@@ -90,7 +96,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
   const [showClients, setShowClients] = useState(true);
   const byName = useMemo(() => new Map(data.map(d => [normalizeCountry(d.country), d])), [data]);
   const max = Math.max(1, ...data.map(metric.value));
-  const step = (n: number) => (n <= 0 ? -1 : max <= RAMP.length ? n - 1 : Math.min(RAMP.length - 1, Math.floor(((n - 1) / max) * RAMP.length)));
+  const step = (n: number) => (n <= 0 ? -1 : max <= ramp.length ? n - 1 : Math.min(ramp.length - 1, Math.floor(((n - 1) / max) * ramp.length)));
   const sel = selected ? normalizeCountry(selected) : undefined;
   const fns = useRef({ onSelect, onOpenClient });
   fns.current = { onSelect, onOpenClient };
@@ -139,6 +145,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
       const tiles = (className: string) => L.tileLayer(tileUrl, { attribution: esc(attribution ?? ''), maxZoom: 9, className, referrerPolicy: 'strict-origin-when-cross-origin' } as L.TileLayerOptions)
         .on('tileerror', () => { if (++errors >= 4) setTilesFailed(true); })
         .on('tileload', () => { errors = 0; setTilesFailed(false); });
+      if (dark) bases['Dark'] = tiles('tiles-dark');
       bases['Muted'] = tiles('tiles-muted');
       bases['Standard'] = tiles('');
     }
@@ -172,7 +179,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
     const ro = new ResizeObserver(() => m.invalidateSize({ pan: false }));
     ro.observe(el.current);
     return () => { ro.disconnect(); m.remove(); map.current = null; };
-  }, [tileUrl, attribution]);
+  }, [tileUrl, attribution, dark]);
 
   // Full screen: the frame covers the window; Esc leaves.
   useEffect(() => {
@@ -200,7 +207,9 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
         const v = metric.value(d);
         const isSel = f.properties.name === sel;
         const toggle = () => fns.current.onSelect(isSel ? null : d.country);
-        const base = { color: isSel ? '#001e46' : '#fafbfc', weight: isSel ? 2.5 : 1, fillColor: v > 0 ? RAMP[step(v)] : '#c9ced6', fillOpacity: isSel ? 0.75 : 0.6 };
+        const base = dark
+          ? { color: isSel ? DARK.sel : DARK.border, weight: isSel ? 2.5 : 1, fillColor: v > 0 ? ramp[step(v)] : noneFill, fillOpacity: isSel ? 0.9 : 0.72 }
+          : { color: isSel ? '#001e46' : '#fafbfc', weight: isSel ? 2.5 : 1, fillColor: v > 0 ? RAMP[step(v)] : '#c9ced6', fillOpacity: isSel ? 0.75 : 0.6 };
         L.geoJSON(f as never, { style: base })
           .bindTooltip(tip(f.properties.name, d), { sticky: true, className: 'osm-tip' }).on('click', toggle)
           .on('mouseover', e => (e.target as L.GeoJSON).setStyle({ fillOpacity: 0.85, weight: 2 }))
@@ -224,7 +233,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
       }
     };
     return whenSettled(m, draw);
-  }, [features, mine, byName, sel, metric]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [features, mine, byName, sel, metric, dark]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Client markers: a ring around the country's centre, laid out in screen pixels for the current zoom.
   // Redrawn once per finished zoom (Leaflet's zoomend), never in the middle of an animation, so an open popup is not
@@ -271,17 +280,18 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
   }, [features, mine, clients, showClients, sel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const unmatched = features ? data.filter(d => !features.some(f => f.properties.name === normalizeCountry(d.country))) : [];
-  const legend = max <= RAMP.length ? Array.from({ length: max }, (_, i) => ({ c: RAMP[i], t: String(i + 1) }))
-    : RAMP.map((c, i) => ({ c, t: `${Math.floor((i * max) / RAMP.length) + 1}–${Math.floor(((i + 1) * max) / RAMP.length)}` }));
+  const legend = max <= ramp.length ? Array.from({ length: max }, (_, i) => ({ c: ramp[i], t: String(i + 1) }))
+    : ramp.map((c, i) => ({ c, t: `${Math.floor((i * max) / ramp.length) + 1}–${Math.floor(((i + 1) * max) / ramp.length)}` }));
 
   return (
-    <div className={`osm-wrap${full ? ' full' : ''}`} ref={wrap}>
+    <div className={`osm-wrap${full ? ' full' : ''}${dark ? ' osm-dark' : ''}`} ref={wrap}>
       <div className="map-tools">
         <div className="legend" aria-label={`${metric.label} per country`}>
           <span className="muted">{metric.label}</span>
-          <span><span className="key sq" style={{ background: '#c9ced6' }} />0</span>
+          <span><span className="key sq" style={{ background: noneFill }} />{dark ? '0 recorded' : '0'}</span>
           {legend.map(s => <span key={s.t}><span className="key sq" style={{ background: s.c }} />{s.t}</span>)}
-          <span><span className="key dot" style={{ background: STATUS.critical }} />{metric.key === 'contracts' ? 'renewal decision due' : 'has overdue work'}</span>
+          <span><span className="key dot" style={{ background: STATUS.critical }} />{metric.alertLabel ?? (metric.key === 'contracts' ? 'renewal decision due' : 'has overdue work')}</span>
+          {dark && <span className="muted">Only countries with authorized clients are coloured</span>}
         </div>
         {full && <button className="btn" onClick={() => setFull(false)}>Exit full screen</button>}
       </div>

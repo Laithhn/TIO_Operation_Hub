@@ -94,8 +94,10 @@ test.describe.serial('A71 client logos', () => {
     if (await attention.count()) await expect(logoIn(attention)).toHaveClass(/has-img/);
     if (client.country) {
       await page.getByRole('complementary', { name: 'Section menu' }).getByRole('link', { name: 'Client map' }).click();
-      await page.locator('.map-country', { hasText: client.country }).first().click();
-      const side = page.locator('.map-client', { hasText: client.code }).first();
+      // A73: the country explorer, then the client in the country details panel.
+      await page.locator('.cmap-country', { hasText: client.country }).first().click();
+      const side = page.getByRole('complementary', { name: 'Country details' }).locator('tr', { hasText: client.code }).first();
+      await side.scrollIntoViewIfNeeded();   // logos load lazily, when their row is in view
       await expect(logoIn(side)).toHaveClass(/has-img/);
     }
 

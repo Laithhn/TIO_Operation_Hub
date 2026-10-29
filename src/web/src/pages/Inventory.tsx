@@ -501,7 +501,8 @@ type AssetRow = { ownerName?: string; id: number; name: string; type: string; ro
 
 export function AssetList() {
   const T = useTypes();
-  const [f, set] = useUrlState({ clientId: '', regionId: '', environmentId: '', productId: '', type: '', lifecycle: '', role: '', phase: '', q: '', page: '1', pageSize: '15' });
+  // A73: country comes from the client map's "View all servers" link (the client's country).
+  const [f, set] = useUrlState({ clientId: '', regionId: '', environmentId: '', productId: '', type: '', lifecycle: '', role: '', phase: '', q: '', country: '', page: '1', pageSize: '15' });
   const filters = { clientId: f.clientId, regionId: f.regionId, environmentId: f.environmentId, productId: f.productId, type: f.type, lifecycle: f.lifecycle, role: f.role, phase: f.phase };
   const q = useQuery({ queryKey: ['assets', f], queryFn: () => get<Paged<AssetRow>>(`/assets${qs(f)}`) });
   const sum = useQuery({ queryKey: ['infra', filters], queryFn: () => get<Infra>(`/infrastructure/summary${qs(filters)}`) });
@@ -515,6 +516,7 @@ export function AssetList() {
     <>
       <PageHead title="Infrastructure assets" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/environments', label: 'Environments' }, { label: 'Assets' }]} sub="Recorded provisioning by client, region, environment, product, phase, role and lifecycle."
         actions={me.grants.export && <button className="btn" onClick={() => exportCsv('assets', filters)}>Export CSV</button>} />
+      {f.country && <div className="notice" role="status">Servers of clients in {f.country}. <button className="linkbtn" onClick={() => set({ country: '', page: '1' })}>Show every country</button></div>}
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
