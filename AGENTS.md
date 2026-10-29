@@ -48,10 +48,14 @@ frontend application for software operations management.
 - Do not start external services without approval.
 
 ## Git collaboration
-- Never commit directly to main from an AI worktree.
-- Each agent owns its own branch and working directory.
+- Develop directly on `main` (owner decision, 29 Oct 2026);
+  do not create feature branches unless asked.
+- Fetch and check `origin/main` before committing and before
+  pushing; integrate new remote commits first.
+- Commit only your own task's files; never commit another
+  agent's uncommitted work.
 - Never edit the other agent's worktree.
-- Never merge branches automatically.
+- Never merge other branches into main without approval.
 - Never force push, hard reset, or discard user changes.
 - Keep changes focused on the assigned task.
 
