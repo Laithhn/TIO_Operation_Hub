@@ -14,10 +14,11 @@ public class A73_ClientMap(HubFactory hub) : Scenario(hub)
         Assert.NotEmpty(clients);
         Assert.All(clients, c => Assert.NotNull(c["products"]));
         // Product codes come from the client's installations; the project manager is the client's owner.
-        var withServers = clients.First(c => c["servers"]!.GetValue<int>() > 0 && c["country"] is not null);
+        // Other tests in the collection add clients with servers but no installations, so pick a seeded client that has products.
+        var withServers = clients.FirstOrDefault(c => c["servers"]!.GetValue<int>() > 0 && c["country"] is not null && c["products"]!.AsArray().Count > 0);
+        Assert.NotNull(withServers);
         var detail = (await m.Get($"/clients/{Id(withServers)}")).Body!;
         Assert.Equal(detail["owner"]?["name"]?.GetValue<string>(), withServers["projectManager"]?.GetValue<string>());
-        Assert.True(withServers["products"]!.AsArray().Count > 0);
 
         // The asset list's country filter returns only servers of that country's clients (the client's country).
         var country = withServers["country"]!.GetValue<string>();
