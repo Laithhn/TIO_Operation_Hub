@@ -998,6 +998,60 @@ test.describe('Delete with dependencies and time zones (A43, A44)', () => {
   });
 });
 
+test.describe('Client attachments workspace (A63)', () => {
+  test('upload, find, preview, download and delete files on the client Attachments tab', async ({ page }) => {
+    const pdf = `${unique('Scope')}.pdf`;
+    const notes = `${unique('Site notes')}.txt`;
+    await page.goto('/clients?q=DEMO-NTA');
+    await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).first().click();
+    await page.getByRole('tab', { name: 'Attachments' }).click();
+    const ws = page.locator('section.att-main');
+    await expect(ws.getByRole('heading', { name: /^Attachments \(\d+\)/ })).toBeVisible();
+    await expect(ws.getByRole('list', { name: 'Attachment summary' })).toContainText('Total files');
+
+    // Upload: refused type explained first, then two files with progress and a refreshed list.
+    await ws.getByRole('button', { name: 'Upload files' }).first().click();
+    const up = page.getByRole('dialog', { name: 'Upload files' });
+    await up.getByLabel(/Choose files to attach/).setInputFiles({ name: 'installer.exe', mimeType: 'application/octet-stream', buffer: Buffer.from('MZ') });
+    await expect(up.getByRole('alert')).toContainText('.exe not accepted');
+    await up.getByLabel(/Choose files to attach/).setInputFiles([
+      { name: pdf, mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 fictional') },
+      { name: notes, mimeType: 'text/plain', buffer: Buffer.from('Fictional site notes') }]);
+    await up.getByRole('button', { name: 'Upload 2 files' }).click();
+    await expect(page.getByText('2 files uploaded.')).toBeVisible();
+
+    // Search is case-insensitive; the category filter combines with it.
+    await ws.getByPlaceholder('Search by file name…').fill(notes.toUpperCase());
+    await expect(ws.locator('.att-table tbody tr')).toHaveCount(1);
+    await ws.getByPlaceholder('Search by file name…').fill('');
+    await ws.getByLabel('Category').selectOption('Text');
+    await expect(ws.getByRole('button', { name: notes, exact: true })).toBeVisible();
+    await ws.getByRole('button', { name: /^Reset$/ }).click();
+
+    // Preview beside the list: text inline, details, no invented versions; Escape closes.
+    await ws.getByRole('button', { name: notes, exact: true }).click();
+    const pv = page.locator('aside.att-preview');
+    await expect(pv.locator('pre.att-text')).toHaveText('Fictional site notes');
+    await pv.getByRole('tab', { name: 'Version history' }).click();
+    await expect(pv).toContainText('Version history is not kept');
+    await page.screenshot({ path: 'test-results/visual-client-attachments-1600.png' });
+    await page.keyboard.press('Escape');
+    await expect(pv).toHaveCount(0);
+
+    // Actions menu: download, then delete with confirmation.
+    await ws.getByRole('button', { name: `Actions for ${pdf}` }).click();
+    const download = page.waitForEvent('download');
+    await page.getByRole('menuitem', { name: 'Download' }).click();
+    expect((await download).suggestedFilename()).toBe(pdf);
+    for (const name of [pdf, notes]) {
+      await ws.getByRole('button', { name: `Actions for ${name}` }).click();
+      await page.getByRole('menuitem', { name: 'Delete' }).click();
+      await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
+      await expect(ws.getByRole('button', { name, exact: true })).toHaveCount(0);
+    }
+  });
+});
+
 test.describe('Attachments (A46)', () => {
   test('files are attached to a server and an escalation, downloaded and removed', async ({ page }) => {
     const name = `${unique('Rack photo')}.png`;

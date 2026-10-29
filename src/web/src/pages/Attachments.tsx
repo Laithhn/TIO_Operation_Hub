@@ -1,16 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
-import { ApiError, del, get, qs, upload, type UserRef } from '../api';
+import { ApiError, del, get, qs, upload } from '../api';
 import { fmtDateTime } from '../format';
 import { useCan, useMe, useRefresh } from '../hooks';
 import { Icon } from '../ui/Icon';
 import { Panel, StateMessage, useToast } from '../ui/kit';
+import { checkFiles, fmtSize, type Attachment, type Limits } from './attachmentView';
 
 /** A46: files attached to a record. The files are kept on the server's disk (configured folder); only their details are in the database. */
-type Attachment = { id: number; fileName: string; contentType: string; sizeBytes: number; sha256: string; description?: string; createdAt: string; uploadedBy?: UserRef; uploadedById?: number };
-type Limits = { maxFileMB: number; maxFilesPerUpload: number; extensions: string[] };
-
-export const fmtSize = (b: number) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(b < 10240 ? 1 : 0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
 
 export function AttachmentsPanel({ recordType, recordId, canEdit, title = 'Attachments' }: { recordType: string; recordId: number; canEdit: boolean; title?: string }) {
   const me = useMe().data!;
@@ -30,16 +27,7 @@ export function AttachmentsPanel({ recordType, recordId, canEdit, title = 'Attac
   // Checked here for a quick answer; the server checks again.
   const choose = (files: FileList | File[]) => {
     const list = Array.from(files);
-    const problems: string[] = [];
-    if (l) {
-      for (const f of list) {
-        const ext = f.name.includes('.') ? f.name.slice(f.name.lastIndexOf('.')).toLowerCase() : '';
-        if (!l.extensions.includes(ext)) problems.push(`${f.name}: ${ext || 'files without an extension'} not accepted.`);
-        else if (f.size > l.maxFileMB * 1048576) problems.push(`${f.name}: larger than ${l.maxFileMB} MB.`);
-        else if (f.size === 0) problems.push(`${f.name}: empty.`);
-      }
-      if (picked.length + list.length > l.maxFilesPerUpload) problems.push(`Upload at most ${l.maxFilesPerUpload} files at a time.`);
-    }
+    const problems = checkFiles(list, l, picked.length);
     setError(problems);
     if (problems.length === 0) setPicked(p => [...p, ...list]);
   };

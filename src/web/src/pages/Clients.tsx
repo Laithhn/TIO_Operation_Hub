@@ -10,6 +10,7 @@ import {
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './AttachmentsWorkspace';
 import { MyNotesPanel } from './Notes';
 import { ClientContracts } from './Contracts';
 import { EscalationTable } from './Escalations';
@@ -366,7 +367,7 @@ export function ClientDetail() {
           </Panel>
         </>))}
         {tab === 'notes' && <MyNotesPanel clientId={Number(id)} />}
-        {tab === 'files' && <AttachmentsPanel recordType="Client" recordId={Number(id)} canEdit={canEng} />}
+        {tab === 'files' && <AttachmentsWorkspace recordType="Client" recordId={Number(id)} canEdit={canEng} />}
         {tab === 'history' && <HistoryPanel entityType="Client" entityId={Number(id)} />}
         {dialog === 'region' && <RegionDialog clientId={Number(id)} onClose={() => setDialog(null)} />}
         {dialog === 'project' && <ProjectDialog clientId={Number(id)} onClose={() => setDialog(null)} />}

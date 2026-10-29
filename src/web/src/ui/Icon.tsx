@@ -34,7 +34,16 @@ const P: Record<string, string> = {
   signout: 'M15 4h4a1 1 0 011 1v14a1 1 0 01-1 1h-4M10 17l-5-5 5-5M5 12h11',
   lock: 'M5 11h14v10H5zM8 11V7a4 4 0 018 0v4',
   key: 'M15 7a4 4 0 11-3.9 5H8v3H5v-3H3v-3h8.1A4 4 0 0115 7z',
-  storage: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3v12c0 1.7-3.6 3-8 3s-8-1.3-8-3zM4 6c0 1.7 3.6 3 8 3s8-1.3 8-3M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3'
+  storage: 'M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3v12c0 1.7-3.6 3-8 3s-8-1.3-8-3zM4 6c0 1.7 3.6 3 8 3s8-1.3 8-3M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3',
+  upload: 'M12 15V3M7 8l5-5 5 5M4 21h16',
+  file: 'M6 3h9l4 4v14H6zM14 3v5h5',
+  layers: 'M12 3l9 5-9 5-9-5zM3 13l9 5 9-5M3 17.5l9 5 9-5',
+  calendar: 'M4 5h16v16H4zM4 10h16M9 3v4M15 3v4',
+  more: 'M5 11a1 1 0 100 2 1 1 0 000-2zM12 11a1 1 0 100 2 1 1 0 000-2zM19 11a1 1 0 100 2 1 1 0 000-2z',
+  eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12zM12 15a3 3 0 100-6 3 3 0 000 6z',
+  external: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6',
+  reset: 'M4 11a8 8 0 112.3 5.7M4 4v7h7'
 };
 
 export function Icon({ name, size = 16, title }: { name: string; size?: number; title?: string }) {

@@ -93,6 +93,32 @@ export async function upload<T = unknown>(path: string, form: FormData): Promise
   return data as T;
 }
 
+/**
+ * A63: the same multipart upload, reporting progress (0–1) while the body is sent. fetch cannot report upload progress, so this uses
+ * XMLHttpRequest with the same antiforgery header and error handling. Aborting the signal cancels the upload.
+ */
+export function uploadWithProgress<T = unknown>(path: string, form: FormData, onProgress: (fraction: number) => void, signal?: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', BASE + path);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Accept', 'application/json');
+    const t = xsrf(); if (t) xhr.setRequestHeader('X-XSRF-TOKEN', t);
+    xhr.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    xhr.onload = () => {
+      let data: unknown = undefined;
+      if (xhr.responseText) { try { data = JSON.parse(xhr.responseText); } catch { data = { title: xhr.responseText.slice(0, 200) }; } }
+      if (xhr.status === 413) reject(new ApiError(413, { title: 'The upload is too large for the server.' }));
+      else if (xhr.status < 200 || xhr.status >= 300) reject(new ApiError(xhr.status, (data as object) ?? { title: xhr.statusText }));
+      else { onProgress(1); resolve(data as T); }
+    };
+    xhr.onerror = () => reject(new Error('The upload failed. Check the connection and try again.'));
+    xhr.onabort = () => reject(new DOMException('The upload was cancelled.', 'AbortError'));
+    if (signal) { if (signal.aborted) { reject(new DOMException('The upload was cancelled.', 'AbortError')); return; } signal.addEventListener('abort', () => xhr.abort(), { once: true }); }
+    xhr.send(form);
+  });
+}
+
 export type Params = Record<string, string | number | boolean | null | undefined>;
 
 /** Query string from params, skipping empty values. */
