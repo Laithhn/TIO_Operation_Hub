@@ -7,7 +7,7 @@ import { fmtDate, label } from '../format';
 import { usePermission, useDebounced, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
-  Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState,
+  Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, Restricted,
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsPanel } from './Attachments';
@@ -154,9 +154,10 @@ function LogoField({ current, draft, onChange, error, setError, name, code }: {
         <ClientLogo name={name || 'New client'} code={code} logoUrl={shown} size="lg" />
         <div className="logo-actions">
           <div className="row">
-            <input ref={input} id="client-logo-file" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp"
-              aria-labelledby="logo-label" aria-describedby="logo-hint" onChange={e => pick(e.target.files?.[0])} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
-            <button type="button" className="btn" onClick={() => input.current?.click()}>{shown ? 'Replace logo…' : 'Upload logo…'}</button>
+            {/* UX-004: the visible button is the only target and Tab stop; the 1 px file input it opens stays out of the focus order. */}
+            <input ref={input} id="client-logo-file" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" tabIndex={-1} aria-hidden="true"
+              onChange={e => pick(e.target.files?.[0])} style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }} />
+            <button type="button" className="btn" onClick={() => input.current?.click()} aria-describedby="logo-hint">{shown ? 'Replace logo…' : 'Upload logo…'}</button>
             {shown && <button type="button" className="btn" onClick={() => { onChange(current ? 'remove' : null); setError(null); if (input.current) input.current.value = ''; }}>Remove logo</button>}
             {draft && <button type="button" className="linkbtn" onClick={() => { onChange(null); setError(null); if (input.current) input.current.value = ''; }}>Undo logo change</button>}
           </div>
@@ -432,7 +433,7 @@ export function ClientDetail() {
             ]} />
           </Panel>
         )}
-        {o && tab === 'contacts' && (o.personalDataRestricted ? <StateMessage kind="restricted">Contacts and responsibility boundaries need client scope.</StateMessage> : (<>
+        {o && tab === 'contacts' && (o.personalDataRestricted ? <Restricted need="Contacts and responsibility boundaries need client scope." help="scope" /> : (<>
           <Panel title="Contacts" actions={canOtherCreate && <button className="btn" onClick={() => setDialog('contact')}>+ Contact</button>} pad={false}>
             <DataTable rowKey={x => x.id} rows={o.contacts} columns={[
               { key: 'n', header: 'Name', render: x => x.name }, { key: 'r', header: 'Role', render: x => x.role }, { key: 'o', header: 'Organization', render: x => x.organization },

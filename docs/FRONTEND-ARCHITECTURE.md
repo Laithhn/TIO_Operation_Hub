@@ -97,6 +97,20 @@ Every value comes from `vendor/vt-web-gui-framework/src/assets/defines/index.js`
 
 The chart palette also uses the framework colours: series attention and attentionHigh; status calmingGreen, attentionHigh and signalError; and a ramp from attention to primary.
 
+## Responsive and accessibility patterns
+
+These are the shared behaviours that pages get from the shell and the kit (GUI-01 … GUI-13 of 27 Oct, UX-001 … UX-005 of 29 Oct 2026; see [UX-AUDIT-REMEDIATION-2026-10-27.md](UX-AUDIT-REMEDIATION-2026-10-27.md)). A new page gets them by using `PageHead`, `DataTable`, `Tabs`, `QueryState`/`ErrorBox` and `Restricted`.
+
+| Width | Navigation (`ui/Shell.tsx`, `styles/frame.scss`) | Tables (`DataTable`, `styles/kit.scss`) |
+|---|---|---|
+| > 900 px | Header links; links that do not fit move into *More*; the active section always keeps its header place | All columns. A table wider than its panel shows edge shadows, its scroll area is focusable (left and right arrow keys) and named "… scroll sideways for more columns", the first named column (the record identifier) stays at the left edge (capped at 14rem below 1200 px) and the action column at the right edge. Styles that follow the overflow state must not change the table's width, or the overflow check never settles |
+| 601–900 px | Menu button with the current section's name opens the drawer (`role=dialog`, focus kept inside, Escape returns focus) | As above |
+| ≤ 600 px | Menu button shows the icon only (its accessible name keeps the section); the section is shown above the page title (`SectionLabel`, included in `PageHead`; pages with their own toolbar place it themselves). Pages without a main toolbar keep the short label in the header | Primary columns (identifier, status, actions; set with `Column.priority`) stay in the row; every other column is in the row's details (button with `aria-expanded`). Nothing is dropped: filters, sorting, the column chooser and CSV export work on all columns |
+
+- **Targets (WCAG 2.2 SC 2.5.8):** at least 24 × 24 px or the spacing exception; 40 px and more on touch screens (`pointer: coarse`). Record links in table cells get vertical padding (hit area, not layout). Hidden helper inputs (the logo file input) are not Tab stops; the visible button is the target. `ux-remediation.spec.ts` measures this on representative routes.
+- **Loading:** pages are lazy chunks (GUI-13). The notifications pop-up and the sign-in screens are lazy too (UX-003). `LoadBoundary` (in `App.tsx` around the page outlet, and around the bell pop-up) turns a chunk that cannot be downloaded into a message with *Reload*, keeping the shell usable. The entry chunk budget is 900 kB minified, Vite's kB (1000 bytes), checked in `gui-fixes.spec.ts`.
+- **Guidance (UX-005):** an access denial uses `Restricted` (what is needed, then where it is granted: `ACCESS_HELP`); it names no person and shows no record. `ErrorBox` gives server and connection failures *Try again* (it refetches the failed queries) and, when the server sent one, the trace ID to quote.
+
 ## Developer handover
 
 - **Running.**

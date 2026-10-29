@@ -1,0 +1,11 @@
+{
+ "profile": "cache disabled; 1.6 Mbit/s down, 750 kbit/s up, 150 ms RTT; CPU 4x slower; Edge; local server",
+ "route": "/clients",
+ "transferredBytes": 1402983,
+ "scriptBytes": 1077598,
+ "entryEncodedBytes": 907431,
+ "domContentLoaded": 6202,
+ "load": 6314,
+ "firstContentfulPaint": 6540,
+ "tableVisible": 9799
+}

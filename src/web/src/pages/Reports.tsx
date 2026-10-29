@@ -6,7 +6,7 @@ import { fmtDateTime, label } from '../format';
 import { useEnumLabel, useMe, useTypes, useUrlState } from '../hooks';
 import { Icon } from '../ui/Icon';
 import { TimeZoneSelect } from '../ui/pickers';
-import { Badge, DataTable, Dialog, PageHead, Pager, Panel, SelectInput, StateMessage, StatusBadge, TextInput, useToast, type Option } from '../ui/kit';
+import { Badge, DataTable, Dialog, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, StatusBadge, TextInput, useToast, type Option } from '../ui/kit';
 import { useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { BuilderScheduleDialog, CasesBuilder } from './reporting/CasesBuilder';
 import { MyReports, Templates } from './reporting/MyReports';
@@ -675,7 +675,7 @@ export function Reports() {
   const area = loc.pathname.replace(/^\/reporting-center\/?/, '').replace(/\/$/, '');
   const refreshing = useIsFetching({ predicate: q => /^(report-|rc-|rb-)/.test(String(q.queryKey[0])) }) > 0;
   // GUI-01: the hub's own access-denied page with a way back; the server refuses the report endpoints to this user as well.
-  if (!me.grants.export) return <><PageHead title="Reporting Center" /><StateMessage kind="restricted">The Reporting Center needs the Export permission. Ask a TIO Manager to give it to your role.</StateMessage>
+  if (!me.grants.export) return <><PageHead title="Reporting Center" /><Restricted need="The Reporting Center needs the Export permission." />
     <p className="rc-back"><Link className="btn" to="/">Back to the dashboard</Link></p></>;
   const legacy = area === '' ? legacyTarget(loc.search) : null;
   if (legacy) return <Navigate to={legacy} replace />;

@@ -1,9 +1,9 @@
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
-import { ChangePasswordPage, LoginPage } from './pages/SignIn';
-import { ErrorBox, PageHead, StateMessage } from './ui/kit';
+import { ErrorBox, PageHead, Restricted, StateMessage } from './ui/kit';
+import { LoadBoundary } from './ui/LoadBoundary';
 import { Shell } from './ui/Shell';
 
 // GUI-13: pages load with their route (one chunk per page module), so the first screen does not download every page. The shell
@@ -11,6 +11,9 @@ import { Shell } from './ui/Shell';
 function page<M, K extends keyof M & string>(load: () => Promise<M>, name: K) {
   return lazy(() => load().then(m => ({ default: m[name] as ComponentType })));
 }
+// The sign-in screens are outside the shell and are not needed once signed in (UX-003).
+const LoginPage = page(() => import('./pages/SignIn'), 'LoginPage');
+const ChangePasswordPage = page(() => import('./pages/SignIn'), 'ChangePasswordPage');
 const AdminArchived = page(() => import('./pages/Admin'), 'AdminArchived');
 const AdminAudit = page(() => import('./pages/Admin'), 'AdminAudit');
 const AdminGroups = page(() => import('./pages/Admin'), 'AdminGroups');
@@ -69,12 +72,18 @@ const TeamList = page(() => import('./pages/Teams'), 'TeamList');
 
 function Root() {
   const me = useMe();
+  const loc = useLocation();
   // Set during render (not in an effect) so pages opened directly already show and parse times in the user's zone.
   setDisplayZone(me.data?.timeZone);
   if (me.isLoading) return <div style={{ padding: 24 }}><StateMessage kind="loading" /></div>;
   if (me.data?.app.mustChangePassword) return <Navigate to="/account/password" replace />;
   if (me.error) return <div style={{ padding: 24 }}><ErrorBox error={me.error} /></div>;
-  return <Shell><Suspense fallback={<StateMessage kind="loading" />}><Outlet /></Suspense></Shell>;
+  return <Shell><LoadBoundary resetKey={loc.pathname}><Suspense fallback={<StateMessage kind="loading" />}><Outlet /></Suspense></LoadBoundary></Shell>;
+}
+
+/** Sign-in pages render without the shell, so they get their own loading and failure states. */
+function Outside({ children }: { children: ReactNode }) {
+  return <LoadBoundary><Suspense fallback={<div style={{ padding: 24 }}><StateMessage kind="loading" /></div>}>{children}</Suspense></LoadBoundary>;
 }
 
 function Home() {
@@ -92,7 +101,7 @@ function MapHome() {
 function NoAccess() {
   return (<>
     <PageHead title="No business access" />
-    <StateMessage kind="restricted">Your account has no business role or scope, so client and internal records are not shown. Ask an Application Administrator.</StateMessage>
+    <Restricted need="Your account has no business role or scope, so client and internal records are not shown." help="role" />
   </>);
 }
 
@@ -111,8 +120,8 @@ function NotFound() {
 }
 
 export const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
-  { path: '/account/password', element: <ChangePasswordPage /> },
+  { path: '/login', element: <Outside><LoginPage /></Outside> },
+  { path: '/account/password', element: <Outside><ChangePasswordPage /></Outside> },
   {
     path: '/', element: <Root />, children: [
       { index: true, element: <Home /> },

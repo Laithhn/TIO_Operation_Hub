@@ -129,6 +129,14 @@ AC-16 (scope independence) is covered by the structural no-integration test and 
 - `dotnet test tests/TioHub.Tests`: **97 passed, 0 failed**. `AC03b_MicroserviceDeployment` extended: three versions with release notes (newest first with numeric ordering — 1.10.0 above 1.2.0), duplicate number refused, secrets in release notes refused, notes editable, renaming a version refused, latest version shown on the product; application developers saved in order with Lead/Developer roles, an unknown role refused, developers listed on the product list.
 - `tests/e2e`: **13 passed, 0 failed**. Products journey extended: no Owning team field, add a lead developer, add a microservice, add version 1.0.0 with two lines of release notes and see them on the microservice page.
 
+## UX audit remediation — 29 Oct 2026 (UX-001 … UX-005, branch claude/ux-audit-remediation)
+
+Isolated `(localdb)\TioHubQALocalDB`, Playwright port 5196, Edge. Details: [UX-AUDIT-REMEDIATION-2026-10-27.md](UX-AUDIT-REMEDIATION-2026-10-27.md).
+
+- `dotnet test tests/TioHub.Tests`: **268 passed, 0 failed** (one earlier run: 267/268, the intermittent `A73_ClientMap` test; it passed alone and in the next full run).
+- `src/web`: typecheck passed; Vitest **42 passed** (+2 `LoadBoundary`); build passed, entry chunk 881.99 kB (was 907.43 kB, over the 900 kB limit); `npm audit --omit=dev` 0 vulnerabilities.
+- `tests/e2e`: **141 passed, 0 failed** (125 existing + 16 in `ux-remediation.spec.ts`). The GUI-13 budget assertion now uses Vite's kB (1000 bytes).
+
 ## Release 2.40.0 — 29 Oct 2026 (Client Map redesign; local UAT of the package)
 
 - Release script `build/Build-Release.ps1`: front-end build, `dotnet test` (Release) **268 passed, 0 failed**, publish, `release/TioHub-2.40.0.zip` (SHA-256 `9863fcbea780dec5ee334df40b8473d048a844e5f5f6d8b216448733779e44ce`, after the release notes and test results were added to the package). Built from uncommitted changes on top of `930643a` (`BUILD-INFO.txt` says so). No migration: `database/01-schema.sql` is byte-identical to 2.39.0.

@@ -3,7 +3,7 @@ import { Link } from 'react-router';
 import { get, qs, type Paged } from '../api';
 import { fmtDateTime } from '../format';
 import { useMe, useReference } from '../hooks';
-import { DataTable, Panel, StateMessage, TextInput, type Option } from '../ui/kit';
+import { DataTable, Panel, Restricted, TextInput, type Option } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 
 export type ClientLite = { id: number; code: string; name: string };
@@ -31,7 +31,7 @@ export function HistoryPanel({ entityType, entityId }: { entityType: string; ent
   const me = useMe().data;
   const allowed = !!me?.grants.audit;
   const q = useQuery({ queryKey: ['audit', entityType, entityId], queryFn: () => get<Paged<{ id: number; at: string; userName: string; action: string; reason?: string; changes?: string }>>(`/admin/audit${qs({ entityType, entityId, pageSize: 50 })}`), enabled: allowed });
-  if (!allowed) return <Panel title="Change history"><StateMessage kind="restricted">Change history needs the Audit permission.</StateMessage></Panel>;
+  if (!allowed) return <Panel title="Change history"><Restricted need="Change history needs the Audit permission." /></Panel>;
   return (
     <Panel title="Change history" pad={false}>
       <DataTable rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} columns={[

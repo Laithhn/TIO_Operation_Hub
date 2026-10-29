@@ -127,30 +127,27 @@ function tabKeys(e: ReactKeyboardEvent<HTMLDivElement>) {
   t.focus(); t.click();
 }
 
-/** Header bell: unread count (checked every minute) and the notices by severity. */
-export function NotificationBell() {
-  const [open, setOpen] = useState(false);
+/**
+ * The header bell's pop-up (the bell itself is ui/NotificationBell.tsx, in the entry chunk). UX-003: this module, with the notifications
+ * center, loads only when the pop-up is first opened. The unread count shown on the bell is refreshed from the list while it is open.
+ */
+export function NotificationPopover({ onClose }: { onClose: () => void }) {
   const [filter, setFilter] = useState<Filter>('all');
-  const root = useRef<HTMLDivElement>(null);
-  const btn = useRef<HTMLButtonElement>(null);
+  const pop = useRef<HTMLDivElement>(null);
   const nav = useNavigate();
+  const qc = useQueryClient();
   const act = useNoticeActions();
   const [busy, setBusy] = useState(false);
   const count = useQuery({ queryKey: ['notifications', 'count'], queryFn: () => get<{ count: number }>('/notifications/unread-count'), refetchInterval: 60_000, refetchOnWindowFocus: true });
-  const list = useQuery({ queryKey: ['notifications', 'pop', filter], queryFn: () => get<NoticePage>(`/notifications${qs({ ...filterQuery(filter), sort: 'severity', pageSize: 50 })}`), enabled: open });
-  useEffect(() => {
-    if (!open) return;
-    const away = (e: MouseEvent) => { if (!root.current?.contains(e.target as Node)) setOpen(false); };
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); btn.current?.focus(); } };
-    document.addEventListener('mousedown', away); document.addEventListener('keydown', esc);
-    root.current?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]')?.focus();
-    return () => { document.removeEventListener('mousedown', away); document.removeEventListener('keydown', esc); };
-  }, [open]);
+  const list = useQuery({ queryKey: ['notifications', 'pop', filter], queryFn: () => get<NoticePage>(`/notifications${qs({ ...filterQuery(filter), sort: 'severity', pageSize: 50 })}`) });
+  useEffect(() => { pop.current?.querySelector<HTMLButtonElement>('[role="tab"][aria-selected="true"]')?.focus(); }, []);
   // The list's counters are fresher than the bell's minute check while the pop-up is open.
-  const n = list.data?.unreadCount ?? count.data?.count ?? 0;
+  const unread = list.data?.unreadCount;
+  useEffect(() => { if (unread !== undefined) qc.setQueryData(['notifications', 'count'], { count: unread }); }, [unread, qc]);
+  const n = unread ?? count.data?.count ?? 0;
   const critical = list.data?.criticalCount;
   const openNotice = async (x: Notice) => {
-    if (x.link) setOpen(false);
+    if (x.link) onClose();
     await act.read(x);
     if (x.link) nav(x.link);
   };
@@ -160,30 +157,23 @@ export function NotificationBell() {
   ];
   const d = list.data;
   return (
-    <div className="bell" ref={root}>
-      <button ref={btn} className="hdr-btn bell-btn" onClick={() => setOpen(o => !o)} aria-haspopup="dialog" aria-expanded={open} aria-label={n ? `Notifications, ${n} unread` : 'Notifications'} title="Notifications">
-        <Icon name="bell" size={18} />{n > 0 && <span className="bell-count" aria-hidden="true">{n > 99 ? '99+' : n}</span>}
-      </button>
-      {open && (
-        <div className="bell-pop ntf-pop" role="dialog" aria-label="Notifications">
-          <div className="ntf-head">
-            <h2>Notifications</h2>
-            {n > 0 && <span className="ntf-count" aria-label={`${n} unread`}>{n > 99 ? '99+' : n}</span>}
-            <button type="button" className="linkbtn ntf-readall" onClick={readAll} disabled={n === 0 || busy}>{busy ? 'Marking…' : 'Mark all as read'}</button>
-          </div>
-          <div className="ntf-tabs" role="tablist" aria-label="Show" onKeyDown={tabKeys}>
-            {tabs.map(t => <button key={t.key} type="button" role="tab" aria-selected={filter === t.key} tabIndex={filter === t.key ? 0 : -1} onClick={() => setFilter(t.key)}>{t.label}</button>)}
-          </div>
-          <div className="ntf-list" role="tabpanel" aria-label={tabs.find(t => t.key === filter)!.label} aria-busy={list.isFetching}>
-            {list.isLoading && <div className="state-msg"><span className="spin" /> Loading…</div>}
-            {list.isError && <div className="state-msg ntf-error" role="alert">Notifications could not be loaded. <button type="button" className="linkbtn" onClick={() => list.refetch()}>Try again</button></div>}
-            {d && d.items.length === 0 && <div className="state-msg ntf-empty">{EMPTY[filter]}</div>}
-            {d && <NoticeSections items={d.items} onOpen={openNotice} onReadAll={act.readMany} />}
-            {d && d.totalCount > d.items.length && <p className="hint ntf-more">{d.totalCount - d.items.length} more in the notifications center.</p>}
-          </div>
-          <div className="bell-foot"><Link to="/notifications" onClick={() => setOpen(false)}><Icon name="list" size={16} /> Open the notifications center</Link></div>
-        </div>
-      )}
+    <div className="bell-pop ntf-pop" role="dialog" aria-label="Notifications" ref={pop}>
+      <div className="ntf-head">
+        <h2>Notifications</h2>
+        {n > 0 && <span className="ntf-count" aria-label={`${n} unread`}>{n > 99 ? '99+' : n}</span>}
+        <button type="button" className="linkbtn ntf-readall" onClick={readAll} disabled={n === 0 || busy}>{busy ? 'Marking…' : 'Mark all as read'}</button>
+      </div>
+      <div className="ntf-tabs" role="tablist" aria-label="Show" onKeyDown={tabKeys}>
+        {tabs.map(t => <button key={t.key} type="button" role="tab" aria-selected={filter === t.key} tabIndex={filter === t.key ? 0 : -1} onClick={() => setFilter(t.key)}>{t.label}</button>)}
+      </div>
+      <div className="ntf-list" role="tabpanel" aria-label={tabs.find(t => t.key === filter)!.label} aria-busy={list.isFetching}>
+        {list.isLoading && <div className="state-msg"><span className="spin" /> Loading…</div>}
+        {list.isError && <div className="state-msg ntf-error" role="alert">Notifications could not be loaded. <button type="button" className="linkbtn" onClick={() => list.refetch()}>Try again</button></div>}
+        {d && d.items.length === 0 && <div className="state-msg ntf-empty">{EMPTY[filter]}</div>}
+        {d && <NoticeSections items={d.items} onOpen={openNotice} onReadAll={act.readMany} />}
+        {d && d.totalCount > d.items.length && <p className="hint ntf-more">{d.totalCount - d.items.length} more in the notifications center.</p>}
+      </div>
+      <div className="bell-foot"><Link to="/notifications" onClick={onClose}><Icon name="list" size={16} /> Open the notifications center</Link></div>
     </div>
   );
 }

@@ -81,6 +81,11 @@ export const post = <T = unknown>(path: string, body?: unknown, version?: string
 export const put = <T = unknown>(path: string, body: unknown, version?: string) => api<T>(path, { method: 'PUT', body, version });
 export const del = <T = unknown>(path: string, version?: string, body?: unknown) => api<T>(path, { method: 'DELETE', version, body });
 
+/** Forms sign-out (header button and the password page); here rather than in pages/SignIn so the shell does not load the sign-in screens. */
+export async function signOut() {
+  try { await post('/auth/logout'); } finally { location.assign('/login?signedOut=1'); }
+}
+
 /** A46: multipart upload (the browser sets the boundary); same antiforgery header and error handling as the JSON calls. A71: PUT for the client logo. */
 export async function upload<T = unknown>(path: string, form: FormData, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };

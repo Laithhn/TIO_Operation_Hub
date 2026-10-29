@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router';
-import { ApiError, get, post } from '../api';
+import { ApiError, get, post, signOut } from '../api';
 import { useForm } from '../hooks';
 import { Logo, Icon } from '../ui/Icon';
 import { FormError, StateMessage, TextInput } from '../ui/kit';
@@ -161,6 +161,3 @@ export function ChangePasswordPage() {
   );
 }
 
-export async function signOut() {
-  try { await post('/auth/logout'); } finally { location.assign('/login?signedOut=1'); }
-}

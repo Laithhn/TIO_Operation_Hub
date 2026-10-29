@@ -35,6 +35,9 @@ strong, b { font-weight: vt.typo(fontWeight, bold); }
   .actions { margin-left: auto; display: flex; gap: vt.spacePx(small); flex-wrap: wrap; align-items: center; }
   .crumbs { width: 100%; }
 }
+// UX-001: on phones the header's menu button keeps only its icon on pages that show the section here, above the page title (frame.scss).
+.page-section { display: none; width: 100%; @include vt.typoSet(label, $disabled: false); text-transform: uppercase; letter-spacing: .04em; }
+@media (max-width: 600px) { .page-section { display: block; } }
 .crumbs { display: flex; gap: vt.spacePx(xs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); flex-wrap: wrap;
   a { color: vt.typo(color, dark, weak); }
   span[aria-hidden] { color: vt.typo(color, dark, extraWeak); }
@@ -150,6 +153,9 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
 .state-msg { display: flex; gap: vt.spacePx(xs); align-items: flex-start; padding: vt.spacePx(small); font-size: vt.typo(fontSize, small); background: vt.color(paleGray); color: vt.typo(color, dark, weak);
   &.restricted { background: vt.colorA(attentionHigh, 0.16); color: vt.typo(color, dark, normal); }
   &.error { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); }
+  // UX-003: a page or pop-up chunk that could not load (ui/LoadBoundary.tsx).
+  &.load-error { flex-wrap: wrap; align-items: center; justify-content: space-between; background: vt.colorA(signalError, 0.08); color: vt.typo(color, dark, normal); }
+  .load-error-actions { display: inline-flex; gap: vt.spacePx(small); align-items: center; }
 }
 .notice { padding: vt.spacePx(xs) vt.spacePx(small); background: vt.colorA(attention, 0.12); border-left: 4px solid vt.color(attention); font-size: vt.typo(fontSize, small); margin-bottom: vt.spacePx(small);
   &.warn { background: vt.colorA(attentionHigh, 0.14); border-left-color: vt.color(attentionHigh); }
@@ -262,6 +268,16 @@ table.vt-grid { width: max-content; min-width: 100%; }
   th.col-disclose, td.col-disclose { width: 44px; padding: 0; }
 }
 .vt-table-scroll.is-overflowing .vt-grid .col-actions { box-shadow: -8px 0 8px -8px #{vt.colorA(primary, 0.35)}; }
+// UX-002: beside the phone layout (row details), a table wider than its panel keeps the identifying column at the left edge. Only the
+// sticky placement follows the overflow state: a width change there would change the overflow itself and never settle (React #185).
+@media (min-width: 601px) {
+  .vt-table-scroll.is-overflowing .vt-grid .col-identity { position: sticky; left: 0; z-index: 1; background: vt.color(offWhite); box-shadow: 8px 0 8px -8px #{vt.colorA(primary, 0.35)}; }
+  .vt-table-scroll.is-overflowing .vt-grid tbody tr.vt-row:hover td.col-identity { background: linear-gradient(#{vt.colorA(structureSilver, 0.08)}, #{vt.colorA(structureSilver, 0.08)}), vt.color(offWhite); }
+}
+// On tablets the identifier is capped at 14rem, so the pinned part never takes most of the panel; long identifiers wrap instead of being cut.
+@media (min-width: 601px) and (max-width: 1199px) {
+  .vt-grid .col-identity .vt-cell { max-width: 14rem; }
+}
 .row-disclose { display: grid; place-items: center; width: 40px; height: 40px; border: 0; color: vt.typo(color, dark, attention);
   svg { fill: currentColor; }
   &:focus-visible { outline-offset: -2px; }
@@ -328,9 +344,13 @@ table.vt-grid { width: max-content; min-width: 100%; }
 .pager button { min-height: 24px; min-width: 44px; padding: 0 vt.spacePx(xs); }
 .pager select { min-height: 24px; }
 .check { min-height: 24px; }
+// UX-004: record links in table cells were 19-22 px high and closer than 24 px to the next target (measured at 768 px). Vertical padding on
+// an inline link widens its hit area without changing the line box, so rows keep their height and density.
+.vt-grid td a[href] { padding-block: 3px; }
 @media (pointer: coarse) {
   .vt-grid .linkbtn, .row-actions .linkbtn, .pager button, .pager select { min-height: 40px; }
   .check { min-height: 40px; }
+  .vt-grid td a[href] { padding-block: 6px; }
 }
 
 // ---------- KPI cards (ui/charts.tsx Kpi): one design for every dashboard (owner brief, 28 Oct 2026) ----------

@@ -7,12 +7,12 @@ import { fmtDateTime, label } from '../format';
 import { useForm, useMe, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, computerZone, TimeZoneSelect, timeZoneOptions } from '../ui/pickers';
 import { configCrumbs } from '../configRegistry';
-import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Pager, Panel, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Changes, RecordLink } from './common';
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.isAdministrator) return <StateMessage kind="restricted">This page needs the Administration right.</StateMessage>;
+  if (!me.isAdministrator) return <Restricted need="This page needs the Administration right." />;
   return <>{children}</>;
 }
 

@@ -1,3 +1,4 @@
+import { SectionLabel } from '../ui/kit';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -270,6 +271,7 @@ export function ClientMap() {
     <div className={`cmap${leftOpen ? ' left-open' : ' left-closed'}${showRight ? ' right-open' : ' right-closed'}`}>
       <div className="cmap-bar" role="region" aria-label="Client Map toolbar">
         <div className="cmap-title">
+          <SectionLabel />
           <h1>Client Map</h1>
           <p>{insights.data ? <>{clients.length} client{clients.length === 1 ? '' : 's'} in {rows.length} countr{rows.length === 1 ? 'y' : 'ies'} · as of <time dateTime={insights.data.evaluatedAt}>{fmtDateTime(insights.data.evaluatedAt)}</time> ({me.timeZone})</> : 'Loading…'}</p>
         </div>

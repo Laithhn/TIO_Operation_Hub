@@ -91,6 +91,8 @@ export function NotesWorkspace() {
 
   return (
     <div className="notes" data-pane={pane} ref={root}>
+      {/* UX-001 coverage: the workspace has no main toolbar; the page still has its level-1 heading for screen readers. */}
+      <h1 className="sr">Notes</h1>
       <aside className="notes-nav" aria-label="Notebooks">
         <form className="notes-search" onSubmit={e => { e.preventDefault(); if (search.trim()) showList({ kind: 'search', q: search.trim() }); }} role="search">
           <Icon name="search" size={14} />

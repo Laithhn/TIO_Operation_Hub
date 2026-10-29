@@ -191,6 +191,10 @@ body .hub-app.hub-app {
   .hdr .hdr-right > :has(> .hdr-select), .hdr .hdr-right > :has(> .menu) { display: none; }
   .hdr [class*="headerLogo__headerLogo"] svg { width: 92px; }
   .hdr .hdr-right [class*="menuNode__menuNode"] { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
+  // UX-001: 360-390 px leave 27-97 px beside the logo, too little for "Commitments" or "Administration" (99/105 px). The menu button keeps
+  // its icon and its name ("Menu, current section …"); the main toolbar shows the section above the page title (kit.scss .page-section).
+  // Pages without a main toolbar (the Notes workspace) keep the short label in the header.
+  .hub-app:has(.page-section) .hdr .menu-btn-label { display: none; }
 }
 
 // ---------- tablet / phone: the first sidebar becomes an off-canvas drawer ----------

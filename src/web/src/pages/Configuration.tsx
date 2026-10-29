@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { get, post, put } from '../api';
 import { useForm, useMe, useRefresh } from '../hooks';
-import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 import { CONFIG_CATEGORIES, CONFIG_HOME, CONFIG_LISTS, categoryRoute, configCrumbs, configTree, type ConfigKind, type ConfigList } from '../configRegistry';
 
@@ -12,7 +12,7 @@ import { CONFIG_CATEGORIES, CONFIG_HOME, CONFIG_LISTS, categoryRoute, configCrum
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.isAdministrator) return <StateMessage kind="restricted">This page needs the Administration right.</StateMessage>;
+  if (!me.isAdministrator) return <Restricted need="This page needs the Administration right." />;
   return <>{children}</>;
 }
 

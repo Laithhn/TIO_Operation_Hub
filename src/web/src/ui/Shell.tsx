@@ -1,13 +1,12 @@
 import { hasPermission, hasAnyPermission } from '../permissions';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
-import { get } from '../api';
+import { get, signOut } from '../api';
 import { useMe, type Me } from '../hooks';
-import { signOut } from '../pages/SignIn';
-import { Menu } from './kit';
+import { Menu, SectionContext } from './kit';
 import { ConfigNav } from './ConfigNav';
 import { configAt } from '../configRegistry';
-import { NotificationBell } from '../pages/Notifications';
+import { NotificationBell } from './NotificationBell';
 import { Icon, Logo } from './Icon';
 import { cx, frameCss, PrimaryLinksMarker, SidebarMarker, SidebarTitle } from '../vt/frame';
 import { ClientLogo } from './ClientLogo';
@@ -362,7 +361,7 @@ export function Shell({ children }: { children: ReactNode }) {
         </aside>
       )}
       <div className="scrim-nav" onClick={() => closeDrawer(false)} />
-      <main className={cx(f.mainScope.mainScope, 'content')} id="main" tabIndex={-1}>{framed && children}</main>
+      <main className={cx(f.mainScope.mainScope, 'content')} id="main" tabIndex={-1}><SectionContext.Provider value={section?.label}>{framed && children}</SectionContext.Provider></main>
       <footer className={cx(f.footer.footer, 'status')}>
         <span>© VITRONIC</span>
         <span className="app">TIO Operations Hub&nbsp;&nbsp;{me?.app.version}</span>

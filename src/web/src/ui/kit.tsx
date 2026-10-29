@@ -12,12 +12,22 @@ import { activeCriteriaCount, DEFAULT_OPERATOR, isCriterionIncomplete, rowMatche
 
 // ---------- page structure ----------
 
+/** The current header section (Shell provides it). UX-001: phones show it above the page title, where it is never cut. */
+export const SectionContext = createContext<string | undefined>(undefined);
+
+/** The section line of a page title (shown on phones only); PageHead has it, pages with their own toolbar place it themselves. */
+export function SectionLabel() {
+  const section = useContext(SectionContext);
+  return section ? <div className="page-section"><span className="sr">Section: </span>{section}</div> : null;
+}
+
 /** The page's main toolbar (VtWebGuiFramework MainToolbar): rendered into the frame's #viMainToolbar slot when present. */
 export function PageHead({ title, sub, crumbs, actions }: { title: ReactNode; sub?: ReactNode; crumbs?: { to?: string; label: string }[]; actions?: ReactNode }) {
   useEffect(() => { if (typeof title === 'string') document.title = `${title} · TIO Operations Hub`; }, [title]);
   const slot = typeof document !== 'undefined' ? document.getElementById('viMainToolbar') : null;
   const head = (
     <div className="page-head">
+      <SectionLabel />
       {crumbs && crumbs.length > 0 && (
         <nav className="crumbs" aria-label="Breadcrumb">
           {crumbs.map((c, i) => (
@@ -73,13 +83,38 @@ export function QueryState({ q, children }: { q: { isLoading: boolean; error: un
   return <>{children}</>;
 }
 
+/**
+ * UX-005: the next step after an access denial. Rights belong to roles; roles and client/team scopes belong to accounts. Both are changed
+ * under Administration by a user with the Administration right (Security/UserContext.RequireAdministrator). The text names no person
+ * and no record, so it discloses nothing the reader may not see.
+ */
+export const ACCESS_HELP = {
+  right: 'Rights come with your role; a user with the Administration right can change the role under Administration › Roles.',
+  role: 'A user with the Administration right can give your account a role under Administration › Users.',
+  scope: 'Client and team scopes are set per account under Administration › Users by a user with the Administration right.'
+} as const;
+
+/** An access denial: what is needed, then where it is granted (ACCESS_HELP). */
+export function Restricted({ need, help = 'right', children }: { need: ReactNode; help?: keyof typeof ACCESS_HELP; children?: ReactNode }) {
+  return <StateMessage kind="restricted"><span>{need} <span className="access-help">{ACCESS_HELP[help]}</span>{children}</span></StateMessage>;
+}
+
+/** Retries the failed queries on the screen (the request that produced this message among them). */
+function RetryButton() {
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+  const retry = async () => { setBusy(true); try { await qc.refetchQueries({ type: 'active', predicate: q => q.state.status === 'error' }); } finally { setBusy(false); } };
+  return <button type="button" className="linkbtn" onClick={retry} disabled={busy}>{busy ? 'Trying again…' : 'Try again'}</button>;
+}
+
 export function ErrorBox({ error }: { error: unknown }) {
   if (error instanceof ApiError) {
-    if (error.status === 404) return <StateMessage kind="restricted">Not found, or you do not have access to it.</StateMessage>;
-    if (error.status === 403) return <StateMessage kind="restricted">{error.detail ?? 'Access restricted.'}</StateMessage>;
-    return <StateMessage kind="error">{error.summary}{error.traceId ? <span className="muted"> (trace {error.traceId})</span> : null}</StateMessage>;
+    if (error.status === 404) return <StateMessage kind="restricted">Not found, or you do not have access to it. Check the address, or open the record from its list.</StateMessage>;
+    if (error.status === 403) return <Restricted need={error.detail ?? 'Access restricted.'} />;
+    // UX-005: a server failure says what to do next; the trace ID lets the administrator find the request in the server log.
+    return <StateMessage kind="error"><span>{error.summary} <RetryButton />{error.traceId && <span className="muted error-trace"> If it fails again, give the hub administrator the trace ID <span className="mono">{error.traceId}</span>.</span>}</span></StateMessage>;
   }
-  return <StateMessage kind="error">The request failed. Check your connection and try again.</StateMessage>;
+  return <StateMessage kind="error"><span>The request failed. Check your connection. <RetryButton /></span></StateMessage>;
 }
 
 /** Form-level error summary; field messages appear beside each input. */
@@ -460,8 +495,10 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const showTools = tools && !error && (hasRows || hadRows.current);
   const total = rows?.length ?? 0;
   const clearFilters = () => { setColumnFilters({}); setFilterOperators({}); };
-  // Unnamed columns hold the row actions: they stay at the right edge while the table scrolls sideways (GUI-11).
-  const cellClass = (c: Column<T>) => [c.className, primary.has(c.key) ? undefined : 'col-secondary', headerText(c) ? undefined : 'col-actions'].filter(Boolean).join(' ') || undefined;
+  // Unnamed columns hold the row actions: they stay at the right edge while the table scrolls sideways (GUI-11). UX-002: the first named
+  // column identifies the record and stays at the left edge, so a row scrolled sideways on a tablet still says which record it is.
+  const identityKey = visibleCols.find(c => headerText(c))?.key;
+  const cellClass = (c: Column<T>) => [c.className, primary.has(c.key) ? undefined : 'col-secondary', headerText(c) ? undefined : 'col-actions', c.key === identityKey ? 'col-identity' : undefined].filter(Boolean).join(' ') || undefined;
   // On the cell's content: browsers ignore max-width on the cells of an auto-layout table.
   const cellStyle = (c: Column<T>) => (c.maxWidth ? { maxWidth: c.maxWidth } : undefined);
   const columnMatches = columns.filter(c => (headerText(c) || c.key).toLowerCase().includes(columnSearch.trim().toLowerCase()) && headerText(c));
@@ -845,8 +882,28 @@ export const useToast = () => useContext(ToastCtx);
 
 /** VtWebGuiFramework TabBar: tab list semantics, aria-selected and arrow-key navigation come with the framework (v4). */
 export function Tabs({ tabs, value, onChange }: { tabs: { key: string; label: ReactNode }[]; value: string; onChange: (k: string) => void }) {
+  // UX-004: the framework TabBar's scroll arrows (helpers/scrollButton) are icon-only role="button" elements without a name, and the
+  // vendored source stays unmodified. They are named here by their side of the tab row; they appear only while the tabs overflow.
+  const root = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    // TabBar renders each arrow only while it can scroll that way (either may be alone): the side comes from its position.
+    const name = () => {
+      const box = el.getBoundingClientRect();
+      el.querySelectorAll<HTMLElement>('[role="button"]').forEach(b => {
+        if (b.closest('[role="tab"]')) return;
+        const r = b.getBoundingClientRect();
+        b.setAttribute('aria-label', r.left + r.width / 2 < box.left + box.width / 2 ? 'Scroll tabs left' : 'Scroll tabs right');
+      });
+    };
+    name();
+    const mo = new MutationObserver(name);
+    mo.observe(el, { childList: true, subtree: true });
+    return () => mo.disconnect();
+  }, []);
   return (
-    <div className="vt-tabs">
+    <div className="vt-tabs" ref={root}>
       <TabBar selectedId={value}>
         {tabs.map(t => <TabBarTitleItem key={t.key} id={t.key} title={nodeText(t.label)} selected={t.key === value} onClick={() => onChange(t.key)} />)}
       </TabBar>

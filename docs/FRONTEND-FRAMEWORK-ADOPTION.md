@@ -60,5 +60,6 @@ The components need the framework's store (i18n, RTL, the viewport and a few fra
 - Native buttons, form controls and tables replace the framework's div-based widgets, as explained in the architecture document.
 - The TabBar wrapper adds `aria-selected` and keyboard activation.
 - First-sidebar sub-items are always shown, instead of the framework's expand-on-active behaviour, so that every page stays reachable in one click.
-- No burger or mega menu: primary links scroll horizontally on narrow screens, and the first sidebar becomes a drawer below 900 px.
+- No mega menu. Up to 900 px a menu button opens a drawer with every section the user may open (GUI-10); above 900 px the links that do not fit move into *More*. On phones (≤ 600 px) the current section is shown above the page title (UX-001). See *Responsive and accessibility patterns* in the architecture document.
+- The TabBar's icon-only scroll arrows get accessible names from the hub's `Tabs` wrapper (UX-004).
 - English only and left-to-right, because the hub has no i18n requirement. The framework's i18n helpers are wired in, so other languages could be added.

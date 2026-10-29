@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { get, post, put, qs, type Paged } from '../api';
 import { usePermission, useForm, useMe, useRefresh, useUrlState } from '../hooks';
-import { Badge, DataTable, DeleteAction, Dialog, FormError, PageHead, Pager, SelectInput, StateMessage, TextInput, useToast, type Column } from '../ui/kit';
+import { Badge, DataTable, DeleteAction, Dialog, FormError, PageHead, Pager, Restricted, SelectInput, TextInput, useToast, type Column } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { toNum, useClientOptions } from './common';
 
@@ -22,7 +22,7 @@ const arrow = (d: string) => d === 'Bidirectional' ? '⇄' : '→';
 
 function TechGate({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.grants.technicalDetail) return <StateMessage kind="restricted">Firewall rules need the Technical detail right.</StateMessage>;
+  if (!me.grants.technicalDetail) return <Restricted need="Firewall rules need the Technical detail right." />;
   return <>{children}</>;
 }
 
@@ -75,7 +75,7 @@ export function FirewallRulesPanel({ environmentId, assetId, clientId }: { envir
   const canCreate = usePermission('OtherOperations', 'Create');
   const [edit, setEdit] = useState<RuleRow | 'new' | null>(null);
   const q = useQuery({ queryKey: ['firewall-rules', { environmentId, assetId }], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs({ environmentId, assetId, pageSize: 200 })}`), enabled: me.grants.technicalDetail });
-  if (!me.grants.technicalDetail) return <StateMessage kind="restricted">Firewall rules need the Technical detail right.</StateMessage>;
+  if (!me.grants.technicalDetail) return <Restricted need="Firewall rules need the Technical detail right." />;
   return (
     <>
       {canCreate && <div className="toolbar"><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New firewall rule</button></div>}

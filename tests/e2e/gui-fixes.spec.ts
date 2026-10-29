@@ -553,10 +553,11 @@ test.describe('GUI-13 Initial JavaScript', () => {
     expect(scripts.filter(s => /countries-50m|LeafletMap/.test(s))).toEqual([]);
     // Pages come with their routes: the client list does not fetch the Reporting Center or the dashboard page.
     expect(scripts.filter(s => /\/(Reports|Dashboard|Inventory|Contracts)-/.test(s))).toEqual([]);
-    // Budget (docs/GUI-FIXES-2026-10-27.md): entry chunk at most 900 kB minified (Vite chunkSizeWarningLimit).
+    // Budget (docs/GUI-FIXES-2026-10-27.md): entry chunk at most 900 kB minified (Vite chunkSizeWarningLimit). Vite's kB is 1000 bytes;
+    // UX-003 found that comparing against 900 × 1024 let a 907 kB entry chunk (2.40.0) pass while the build warned.
     const entry = await page.evaluate(() => (document.querySelector('script[type="module"][src*="/assets/index-"]') as HTMLScriptElement).src);
     const size = await page.evaluate(async u => (await (await fetch(u)).arrayBuffer()).byteLength, entry);
-    expect(size).toBeLessThanOrEqual(900 * 1024);
+    expect(size).toBeLessThanOrEqual(900 * 1000);
     // The map still works and fetches the geometry when opened.
     await page.goto('/map');
     await expect.poll(() => scripts.some(s => /LeafletMap/.test(s))).toBe(true);
