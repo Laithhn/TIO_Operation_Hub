@@ -30,6 +30,7 @@ builder.Services.AddScoped<UserContext>();
 builder.Services.AddScoped<UserResolver>();
 builder.Services.AddSingleton<SetupCode>(); // used only in forms mode; the setup endpoint answers 404 otherwise
 builder.Services.AddHubServices();
+builder.Services.AddHubDataProtection(config);
 
 var connectionString = config.GetConnectionString("TioHub");
 if (string.IsNullOrWhiteSpace(connectionString))

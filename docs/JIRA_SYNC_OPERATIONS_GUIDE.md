@@ -49,7 +49,7 @@ While the application is stopped nothing runs. The next run catches up from the 
 |---|---|---|
 | Run failed, 401 | Token expired or wrong | Rotate credentials, run test |
 | Run failed, 403 | Account or token scope too narrow | Grant browse rights or scopes |
-| "cannot be decrypted on this server" | Data-protection keys differ or were lost | See the security guide; rotate credentials |
+| "cannot be decrypted on this server" | The token was saved with keys this instance does not have: another instance, a restored database, a moved site or a changed identity | Rotate credentials, then set `DataProtection__KeysFolder` as in the security guide so it does not recur |
 | Many runs with 429 | Rate limit | Lengthen intervals |
 | Missing user mapping | New assignee | Map under Jira conflicts |
 | Unknown workflow status | New status in Jira | Map under Jira conflicts |

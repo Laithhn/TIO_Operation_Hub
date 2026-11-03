@@ -15,8 +15,18 @@ No API returns a token. Responses carry only whether one exists, the provider, t
 
 `OPERATIONS.md` used to say losing these keys only signs users out. With the encrypted provider, losing them also makes stored Jira tokens unreadable. Recovery is to enter the token again with **Rotate credentials**; no other data is affected.
 
-- Back up the keys with the database. Several servers must share one key folder.
-- Or use the environment-variable provider, which does not depend on them.
+By default the keys are under the app-pool profile on one server and tied to the application's path. A token saved from another instance, a database restored from another server, a moved site or a changed identity then gives "cannot be decrypted".
+
+**To keep tokens readable across these changes,** set `DataProtection__KeysFolder` (or `DataProtection:KeysFolder` in `appsettings.Production.json`) to a full path outside the application folder, the same one on every server and instance using this database:
+
+1. Create the folder and give only the app-pool identity and administrators access. **The keys in it are not encrypted at rest,** so that a copy works on another server; these permissions are their protection.
+2. Set the value and restart. The application refuses to start if the path is relative or it cannot write there.
+3. Users are signed out once, and forms in open pages must be reloaded, because the keys are new. Tokens stored earlier cannot be read: enter them again with **Rotate credentials**.
+4. Back up the folder, and keep it apart from the database backups if you can: together they can decrypt the stored tokens. `Backup-TioHub.ps1` does not copy it.
+
+Leaving the value empty keeps the default behavior.
+
+The environment-variable provider does not depend on the keys at all; each server then needs the variable.
 
 ## Other protections
 

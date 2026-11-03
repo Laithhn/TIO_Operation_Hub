@@ -52,7 +52,7 @@ public sealed partial class JiraSecretStore(HubDbContext db, IDataProtectionProv
         {
             var cipher = await db.JiraCredentials.AsNoTracking().Where(x => x.JiraConnectionId == c.Id).Select(x => x.Ciphertext).FirstOrDefaultAsync(ct);
             try { token = cipher is null ? null : Protector.Unprotect(cipher); }
-            catch (CryptographicException) { throw new JiraApiException(null, "The stored API token cannot be decrypted on this server. Enter it again with Rotate credentials, and check that all servers share the data-protection keys."); }
+            catch (CryptographicException) { throw new JiraApiException(null, "The stored API token cannot be decrypted on this server. Enter it again with Rotate credentials, and check that every server uses the same DataProtection:KeysFolder."); }
         }
         if (string.IsNullOrEmpty(token)) throw new JiraApiException(null, "No API token is configured for this connection.");
         if (string.IsNullOrWhiteSpace(c.AccountEmail)) throw new JiraApiException(null, "No Atlassian account e-mail is configured for this connection.");
