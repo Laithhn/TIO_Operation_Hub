@@ -289,8 +289,11 @@ public static class NotificationEndpoints
             || teams && n.Link == "/handovers" && db.Handovers.Any(h => n.Key.StartsWith("handover:" + h.Id.ToString() + ":"))
             || other && db.Escalations.Any(e => n.Link == "/escalations/" + e.Id.ToString())
             || (n.Link.StartsWith("/reporting-center") || n.Link.StartsWith("/reports"))
-                && db.ExportJobs.Any(j => j.UserId == me.UserId && j.AccessFingerprint == fingerprint && reports.Contains(j.Report)
-                    && (j.Source != "Schedule" || j.Status == Modules.Reporting.ExportStatus.Completed)
+                && db.ExportJobs.Any(j => j.UserId == me.UserId && reports.Contains(j.Report)
+                    && ((j.AccessFingerprint == fingerprint && (j.Source != "Schedule" || j.Status == Modules.Reporting.ExportStatus.Completed))
+                        // A failed run produced no data and never has a current fingerprint. Its own recipient must still learn it failed:
+                        // schedule history masks the reason, so this notice is the only place they can see it.
+                        || (j.Source == "Schedule" && j.Status == Modules.Reporting.ExportStatus.Failed))
                     && n.Link.EndsWith("export=" + j.Id.ToString()))));
     }
 

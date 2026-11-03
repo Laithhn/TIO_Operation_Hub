@@ -35,13 +35,21 @@ public sealed class DeletionScopeTests
     }
 
     [Fact]
-    public void Unfiltered_cascade_preview_and_mutation_require_global_scope()
+    public void Cascade_needs_full_scope_over_every_affected_client_and_team()
     {
-        Assert.Throws<NotFoundException>(() => Cascade.RequireGlobalScope(User(true, false, [10], [], true)));
-        Assert.Throws<NotFoundException>(() => Cascade.RequireGlobalScope(User(true, true, [], [], false)));
-        Assert.Throws<NotFoundException>(() => Cascade.RequireGlobalScope(User(false, true, [], [], true)));
-        Cascade.RequireGlobalScope(User(true, true, [], [], true));
-        Cascade.RequireGlobalScope(new UserContext());
+        static Cascade.Footprint Touching(long[] clients, long[] teams, bool unscoped = false) => new(clients.ToHashSet(), teams.ToHashSet(), unscoped);
+        // Delegated: all rows in the caller's own client succeed without global scope.
+        Cascade.RequireFootprintInScope(User(true, false, [10], []), Touching([10], []));
+        // One unlinked row in another client stops everything, with the same answer as a missing record.
+        Assert.Throws<NotFoundException>(() => Cascade.RequireFootprintInScope(User(true, false, [10], []), Touching([10, 11], [])));
+        // A project grant never authorizes changes to a client's records.
+        Assert.Throws<NotFoundException>(() => Cascade.RequireFootprintInScope(User(true, false, [], [10]), Touching([10], [])));
+        Assert.Throws<NotFoundException>(() => Cascade.RequireFootprintInScope(User(true, true, [], []), Touching([10], [5])));
+        // An internal row without a team needs all-internal scope.
+        Assert.Throws<NotFoundException>(() => Cascade.RequireFootprintInScope(User(true, true, [], []), Touching([], [], unscoped: true)));
+        Cascade.RequireFootprintInScope(User(true, true, [], [], true), Touching([10], [5], unscoped: true));
+        Assert.Throws<NotFoundException>(() => Cascade.RequireFootprintInScope(User(false, true, [], [], true), Touching([10], [])));
+        Cascade.RequireFootprintInScope(new UserContext(), Touching([10], [5], unscoped: true));
     }
 
     [Fact]

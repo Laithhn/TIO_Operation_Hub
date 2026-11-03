@@ -206,7 +206,7 @@ public class A71_ClientLogos(HubFactory hub) : Scenario(hub)
         var c = await NewClient();
         var role = await m.Create("/admin/roles", new { name = U("LogoViewer"), description = "Read only", rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(new[] { "ClientStructure:View", "ClientStructure:DetailsView" }, Right.None) });
         var acct = $@"DEV\{U("logoviewer")}";
-        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Logo Viewer", workingTimeZone = "UTC", roleId = role });
+        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Logo Viewer", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId = role });
         var v = await Hub.As(acct);
         Assert.Equal(HttpStatusCode.Forbidden, (await PutLogo(v, c, LogoFiles.Png, "x.png")).Status);
         var (up, file) = await Stored(() => PutLogo(m, c, LogoFiles.SolidPng(3, 2), "x.png"));

@@ -1412,7 +1412,7 @@ test.describe('Product parts edit and delete (A56)', () => {
     await row.getByRole('button', { name: /^Delete version / }).click();
     const dlg = page.getByRole('dialog');
     await dlg.getByRole('button', { name: /^Delete/ }).click();
-    await expect(dlg).toContainText('used by installations');
+    await expect(dlg).toContainText('referenced by existing records');
     await dlg.getByRole('button', { name: 'Cancel' }).click();
   });
 });

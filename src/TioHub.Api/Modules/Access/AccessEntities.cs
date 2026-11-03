@@ -55,10 +55,16 @@ public class RolePermission
 /// <summary>An explicit, optionally temporary exception to role-based access.</summary>
 public class UserPermissionOverride
 {
+    public long Id { get; set; }
     public long UserId { get; set; }
     public string PermissionKey { get; set; } = "";
     public string Effect { get; set; } = "";
     public DateTimeOffset? ExpiresAt { get; set; }
+    /// <summary>At most one of these is set; all empty means the exception applies throughout the person's data scope.</summary>
+    public long? ClientId { get; set; }
+    public long? ProjectId { get; set; }
+    public long? TeamId { get; set; }
+    public bool IsGlobal => ClientId is null && ProjectId is null && TeamId is null;
 }
 
 /// <summary>Stable, system-managed metadata for a resource/action permission. Role grants remain in RolePermission.</summary>

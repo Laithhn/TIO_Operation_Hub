@@ -89,14 +89,69 @@ public static class Cascade
 
     public static bool Supports(string path) => Kinds.Any(k => k.Path == path);
 
+    /// <summary>Every client and internal team an operation would touch, read from the stored rows it deletes or unlinks.</summary>
+    public sealed record Footprint(IReadOnlySet<long> ClientIds, IReadOnlySet<long> TeamIds, bool UnscopedInternal);
+
     /// <summary>
-    /// The dependency graph is collected with unfiltered SQL, including optional references from
-    /// other scopes. Until every affected row can be authorized individually, require global scope.
-    /// Apply this to previews too: they reveal labels and counts of affected records.
+    /// The dependency graph is collected with unfiltered SQL and can reach other scopes through optional references. Every affected client
+    /// and team must lie inside the caller's full data scope. Previews apply this too, because they reveal labels and counts. One row out of
+    /// scope stops the whole operation with the same answer as a missing record, so nothing about the hidden row can be inferred.
+    /// Project-only visibility never suffices: a project grant does not authorize changes to a client's records.
     /// </summary>
-    public static void RequireGlobalScope(UserContext me)
+    public static void RequireFootprintInScope(UserContext me, Footprint footprint)
     {
-        if (!me.IsSystem && !(me.AllClients && me.AllInternal)) throw new NotFoundException("The record");
+        if (me.IsSystem) return;
+        if (!footprint.ClientIds.All(me.HasClient) || !footprint.TeamIds.All(t => me.SeesInternal(t)) || (footprint.UnscopedInternal && !me.SeesInternal(null)))
+            throw new NotFoundException("The record");
+    }
+
+    // Access metadata rows name a scope but are not records in it; they go with the record without widening the footprint.
+    private static readonly HashSet<Type> NoFootprint = [typeof(Modules.Access.UserScope), typeof(Modules.Access.GroupMappingScope), typeof(Modules.Access.UserPermissionOverride)];
+    private static readonly string[] TeamColumns = ["TeamId", "ResponsibleTeamId", "OwningTeamId"];
+
+    private static async Task<Footprint> FootprintAsync(HubDbContext db, Plan plan, CancellationToken ct)
+    {
+        var clients = new HashSet<long>();
+        var teams = new HashSet<long>();
+        var unscoped = false;
+        async Task ReadAsync(IEntityType t, string where)
+        {
+            if (NoFootprint.Contains(t.ClrType)) return;
+            if (t.ClrType == typeof(Client) || t.ClrType == typeof(Team))
+            {
+                var ids = await db.Database.SqlQueryRaw<long>($"SELECT x.{Col(t, SingleKey(t)!)} AS [Value] FROM {Table(t)} x WHERE {where}").ToListAsync(ct);
+                (t.ClrType == typeof(Client) ? clients : teams).UnionWith(ids);
+                return;
+            }
+            var client = t.FindProperty("ClientId");
+            var team = TeamColumns.Select(t.FindProperty).FirstOrDefault(p => p is not null);
+            if (client is null && team is null) return;   // hangs from an owned row through a required reference
+            var clientSql = client is null ? "CAST(NULL AS bigint)" : $"x.{Col(t, client)}";
+            var teamSql = team is null ? "CAST(NULL AS bigint)" : $"x.{Col(t, team)}";
+            var rows = await db.Database.SqlQueryRaw<ScopeRow>($"SELECT DISTINCT {clientSql} AS [ClientId], {teamSql} AS [TeamId] FROM {Table(t)} x WHERE {where}").ToListAsync(ct);
+            foreach (var row in rows)
+            {
+                if (row.ClientId is { } c) clients.Add(c);
+                else if (row.TeamId is { } id) teams.Add(id);
+                else if (client is not null && team is not null) unscoped = true;   // an internal record without a team
+            }
+        }
+        foreach (var t in plan.Order) await ReadAsync(t, Owned(plan, t));
+        foreach (var g in plan.Unlinks.GroupBy(u => u.Child))
+        {
+            var refers = string.Join(" OR ", g.Select(u => $"x.{u.Column} IN (SELECT id FROM #own WHERE t = N'{Name(u.Parent)}')"));
+            await ReadAsync(g.Key, $"({refers})");
+        }
+        return new Footprint(clients, teams, unscoped);
+    }
+
+    private sealed class ScopeRow { public long? ClientId { get; set; } public long? TeamId { get; set; } }
+
+    /// <summary>The table names an operation owns and the columns it unlinks, for model checks without a database.</summary>
+    internal static (string[] Owned, string[] Unlinked) Describe(HubDbContext db, string path)
+    {
+        var plan = Build(db, KindOf(path));
+        return (plan.Order.Select(Name).ToArray(), plan.Unlinks.Select(u => $"{Name(u.Child)}.{u.Column}").ToArray());
     }
 
     // Table and column names come exclusively from the EF model; delimit them as SQL Server identifiers.
@@ -126,8 +181,11 @@ public static class Cascade
                     var prop = fk.Properties[0];
                     var scope = fk.PrincipalEntityType == root && kind.ScopeColumn == prop.Name;
                     // A project owns its contextual edges. Clearing ProjectId would promote them into the client-wide graph.
-                    var contextOwned = t.ClrType == typeof(OrganizationRelationship) && fk.PrincipalEntityType.ClrType == typeof(Project)
-                        && prop.Name == nameof(OrganizationRelationship.ProjectId);
+                    var contextOwned = (t.ClrType == typeof(OrganizationRelationship) && fk.PrincipalEntityType.ClrType == typeof(Project)
+                        && prop.Name == nameof(OrganizationRelationship.ProjectId))
+                        // Clearing a scope column would turn a scoped exception into a global one, so it is removed with its scope.
+                        || (t.ClrType == typeof(Modules.Access.UserPermissionOverride)
+                            && prop.Name is nameof(Modules.Access.UserPermissionOverride.ClientId) or nameof(Modules.Access.UserPermissionOverride.ProjectId) or nameof(Modules.Access.UserPermissionOverride.TeamId));
                     if (!fk.IsRequired && !scope && !contextOwned) continue;
                     var parentKey = fk.PrincipalKey.Properties[0];
                     var edge = new Edge(t, Col(t, prop), fk.PrincipalEntityType, Col(fk.PrincipalEntityType, parentKey));
@@ -192,7 +250,7 @@ public static class Cascade
         {
             "ClientEnvironment" => "Environments", "Asset" => "Servers", "ComponentHost" => "Server–component links", "Client" => "Sub-clients", "ClientTeamMember" => "Project team members",
             "ResponsibilityBoundary" => "Responsibility boundaries", "FirewallRule" => "Firewall rules", "SlaTarget" => "SLA targets", "ContractEnvironment" => "Contract coverage",
-            "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
+            "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "UserPermissionOverride" => "Individual permission exceptions", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
             "CaseWaitingInterval" => "Case waiting periods", "InstallationVersionChange" => "Version changes", "ConditionReport" => "Condition reports", "DataQualityItem" => "Data-quality items",
             "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Case–server links",
             "CaseEnvironment" => "Case–environment links", "CaseComponent" => "Case–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
@@ -265,11 +323,11 @@ public static class Cascade
         var kind = KindOf(path);
         PermissionHierarchy.RequireRecordSection(me, kind.RecordType, "Delete");
         me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
-        RequireGlobalScope(me);
         var (label, _) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await CollectAsync(db, plan, id, ct);
+        RequireFootprintInScope(me, await FootprintAsync(db, plan, ct));
         var del = await GroupsAsync(db, plan, ct);
         var unlink = await UnlinkGroupsAsync(db, plan, ct);
         RequireDependentPermissions(me, del, unlink);
@@ -282,7 +340,6 @@ public static class Cascade
         var kind = KindOf(path);
         PermissionHierarchy.RequireRecordSection(me, kind.RecordType, "Delete");
         me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
-        RequireGlobalScope(me);
         var (label, clientId) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         // Range locks keep new descendants and optional references from appearing between authorization and mutation.
@@ -296,6 +353,8 @@ public static class Cascade
                 await OrganizationEndpoints.LockContextAsync(project.ClientId, project.Id, db, ct);
         }
         await CollectAsync(db, plan, id, ct);
+        // Serializable range locks hold from here to commit, so the authorized set is the set that is changed.
+        RequireFootprintInScope(me, await FootprintAsync(db, plan, ct));
         var deletedGroups = await GroupsAsync(db, plan, ct);
         var unlinkedGroups = await UnlinkGroupsAsync(db, plan, ct);
         RequireDependentPermissions(me, deletedGroups, unlinkedGroups);

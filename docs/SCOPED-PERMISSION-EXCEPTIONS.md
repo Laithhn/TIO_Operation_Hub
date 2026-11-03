@@ -1,9 +1,11 @@
 # Scoped permission exceptions: implementation and cutover requirements
 
-This is an implementation design, not a description of an enabled feature. Individual
-permission exceptions currently apply throughout a person's independently assigned data
-scope. The exception API rejects unknown scope fields. Do not enable those fields until
-the enforcement and validation described here are complete.
+**Status in 2.45.0:** implemented for an explicit allowlist in `ScopedPermissions`:
+`Contracts:Maintain`, `Commitments:Maintain` and `Environments:Maintain`. The API refuses a
+scope on every other permission. `ScopedPermissionCoverageTests` fails if a global check on an
+eligible key reappears. The rest of this document stays the contract for adding more keys, and
+read permissions need the database filters in slice 3 first. See
+[RELEASE-VALIDATION-2.45.0.md](RELEASE-VALIDATION-2.45.0.md) for what has been proven.
 
 ## Security contract
 
@@ -89,5 +91,3 @@ users on both sides of each boundary. Verify cached permissions and generated ex
 are rejected immediately after a change or expiry.
 
 Test the upgrade and recovery on an explicitly approved isolated database first.
-This repository currently has database-free tests, but no scoped-exception feature or
-database-backed evidence sufficient to claim this contract is implemented.

@@ -26,7 +26,7 @@ async function role(page: Page, permissions: string[]) {
   const compatibilityActions = registry.permissions.filter(p => p.key.startsWith('tab.') && p.requires.some(key => permissions.includes(key))).map(p => p.key);
   const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('Browser permissions'), rights: [], permissions: [...new Set([...visibility, ...permissions, ...compatibilityActions])] });
   const accountName = `DEV\\${unique('permissions')}`;
-  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleId: created.id });
+  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', allClients: true, allInternal: true, roleId: created.id });
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(accountName), url: test.info().project.use.baseURL as string }]);
 }
 async function fixture(page: Page) {

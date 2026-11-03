@@ -336,7 +336,7 @@ public static class TeamEndpoints
     private static async Task ApplyAsync(HubDbContext db, HubAccess access, UserResolver resolver, Handover ho, HandoverStatus status, DateTimeOffset now, CancellationToken ct)
     {
         var check = new Check();
-        var receiver = await resolver.ForUserAsync(ho.ReceivingOwnerId, ct);
+        var receiver = await resolver.ForUserAsync(ho.ReceivingOwnerId, ct, directWhenGroupsUnknown: true);
         if (receiver is null || !receiver.IsActive)
             check.Add("receivingOwnerId", "The receiving owner is no longer active. Cancel this handover and select an active owner.");
         else if (!receiver.HasAccess)

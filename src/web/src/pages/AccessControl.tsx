@@ -21,6 +21,8 @@ type Access = {
   effectivePermissions: { key: string; displayName: string; description: string; module: string; riskLevel: string; sources: string[]; effect?: string | null; expiresAt?: string | null; overrideApplied?: boolean }[];
   restrictedPermissions: { key: string; displayName: string; module: string; effect?: string | null; expiresAt?: string | null; restrictionReason?: string; overrideApplied?: boolean }[];
   scopes: { allClients: boolean; clientIds: number[]; projectIds: number[]; allInternal: boolean; teamIds: number[] } | null;
+  scopedExceptions?: { key: string; effect: string; expiresAt?: string | null; scope?: string | null; applied: boolean }[];
+  directoryEvidence?: { source: 'live' | 'lastObserved' | 'notApplicable' | 'unavailable'; observedAt?: string | null };
 };
 
 /** Live administrative overview. Each query is enabled only when the corresponding area is accessible. */
@@ -112,6 +114,8 @@ export function AccessControl() {
         <div className="access-person-summary"><div><strong>{access.data.user.displayName}</strong><span>{access.data.user.accountName} · {access.data.user.isActive ? 'Active' : 'Inactive'}</span></div>
           <div><strong>Active roles</strong><span>{access.data.roles.map(r => r.name).join(', ') || 'None'}</span></div>
           <div><strong>Data scope</strong><span>{scopeSummary(access.data.scopes)}</span></div>
+          {access.data.directoryEvidence && access.data.directoryEvidence.source !== 'notApplicable' && <div><strong>Directory groups</strong><span>{directoryEvidence(access.data.directoryEvidence)}</span></div>}
+          {(access.data.scopedExceptions?.length ?? 0) > 0 && <div><strong>Limited exceptions</strong><span>{access.data.scopedExceptions!.map(s => `${s.effect} ${s.key} — ${s.scope ?? 'scope'}${s.expiresAt ? ` until ${new Date(s.expiresAt).toLocaleString()}` : ''}${s.applied ? '' : ' (not applied to administrators)'}`).join('; ')}</span></div>}
         </div>
         <p className="access-note">This snapshot shows registered permissions resolved for the account and their role sources. A real request can still be denied by prerequisite permissions, data scope, account state, or other server policies.</p>
         {canMaintainUsers && canRoles && registry.data && Number(userId) !== me?.id && users.data?.find(u => u.id === Number(userId)) &&
@@ -131,6 +135,12 @@ export function AccessControl() {
 
 function Metric({ title, value, loading, error, detail }: { title: string; value?: number; loading: boolean; error: unknown; detail: string }) {
   return <div className="access-metric"><span>{title}</span><strong>{loading ? '…' : error || value === undefined ? '—' : value}</strong><small>{error ? 'Unable to load' : detail}</small></div>;
+}
+
+function directoryEvidence(evidence: NonNullable<Access['directoryEvidence']>) {
+  if (evidence.source === 'live') return 'Current membership from the directory';
+  if (evidence.source === 'unavailable') return 'Unavailable until the person signs in again; access is evaluated without them';
+  return `Last observed at sign-in${evidence.observedAt ? ` (${new Date(evidence.observedAt).toLocaleString()})` : ''}; may have changed since`;
 }
 
 function scopeSummary(scope: Access['scopes']) {

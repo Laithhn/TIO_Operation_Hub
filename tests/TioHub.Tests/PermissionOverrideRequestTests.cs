@@ -19,6 +19,15 @@ public sealed class PermissionOverrideRequestTests
         Assert.Equal(DateTimeOffset.Parse("2030-01-01T00:00:00Z"), entry.ExpiresAt);
     }
 
+    [Fact]
+    public void Scope_columns_deserialize_so_the_server_can_validate_them()
+    {
+        const string json = """{"overrides":[{"key":"Contracts:Maintain","effect":"Deny","expiresAt":null,"projectId":9}]}""";
+        var entry = Assert.Single(JsonSerializer.Deserialize<UserPermissionOverrideEndpoints.ReplaceInput>(json, WebOptions)!.Overrides!);
+        Assert.Equal(9, entry.ProjectId);
+        Assert.Null(entry.ClientId);
+    }
+
     [Theory]
     [InlineData("scope", "{\"kind\":\"client\",\"id\":3}")]
     [InlineData("scopeId", "3")]

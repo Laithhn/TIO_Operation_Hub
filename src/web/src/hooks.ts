@@ -12,6 +12,8 @@ const SHORTHAND: Record<Role, RightKey> = { Engineer: 'Edit', Manager: 'Manage' 
 
 export type Me = {
   id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: RightKey[]; permissions: string[]; businessRole: Role | null; isAdministrator: boolean;
+  /** Permissions allowed only for some clients, projects or teams. They open the page; the record's own permission flags decide its actions. */
+  scopedAllowPermissions?: string[];
   grants: { export: boolean; technicalDetail: boolean; audit: boolean };
   scope: { allClients: boolean; clientCount: number; projectCount: number; allInternal: boolean; internalTeamCount: number; hasBusinessAccess: boolean };
   app: { version: string; environmentName: string; supportContact: string; devSignIn: boolean; authMode: string; mustChangePassword: boolean; map: { tileUrl: string; attribution: string } | null };

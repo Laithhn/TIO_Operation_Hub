@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Scoped permission exceptions (2.45.0)
+
+Run `database/04-access-control-upgrade-review.sql` before and after applying `database/01-schema.sql`, and keep the output. `ScopedPermissionExceptions` only adds an identity key, three nullable scope columns and constraints; existing exceptions stay global. An earlier application applies scoped rows globally, so a rollback needs the precondition in DEPLOYMENT-GUIDE section 8. `Auth:LiveDirectoryLookup` stays off until validated on your domain (`Auth:DirectoryUpnSuffix` turns DOMAIN\name into name@suffix). See RELEASE-VALIDATION-2.45.0.md for what must be verified in the target environment.
+
 ### Roles comparison UI (2.44.1)
 
 The Roles page adds a read-only permission comparison matrix and links into the existing Rights editor. This patch adds no migration beyond the 2.44.0 schema. Installations already on 2.44.0 need only the application package; installations upgrading from earlier versions must still follow the four-level permission migration procedure above before replacing application files.

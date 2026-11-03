@@ -117,7 +117,7 @@ test('dashboard displays server snapshot and saves a reviewed direct deny with e
   await expect.poll(() => state.submitted()).not.toBeNull();
   const submitted = state.submitted() as { ifMatch: string; body: { overrides: Override[] } };
   expect(submitted.ifMatch).toBe('"v1"');
-  expect(submitted.body.overrides).toEqual([{ key: 'Cases:Delete', effect: 'Deny', expiresAt: new Date('2030-05-01T12:00:00').toISOString() }]);
+  expect(submitted.body.overrides).toEqual([{ key: 'Cases:Delete', effect: 'Deny', expiresAt: new Date('2030-05-01T12:00:00').toISOString(), clientId: null, projectId: null, teamId: null }]);
   await expect(editor.getByRole('combobox', { name: 'Effect' })).toHaveValue('Deny');
 });
 
@@ -195,8 +195,8 @@ test('exception review compares added, changed and removed entries before saving
   await editor.getByRole('button', { name: 'Review changes' }).click();
   const review = editor.getByRole('region', { name: 'Review permission exceptions' });
   await expect(review).toContainText('Change:');
-  await expect(review).toContainText('Current: Allow · no expiry');
-  await expect(review).toContainText('After saving: Deny · no expiry');
+  await expect(review).toContainText('Current: Allow · everywhere in their data scope · no expiry');
+  await expect(review).toContainText('After saving: Deny · everywhere in their data scope · no expiry');
   await expect(review).toContainText('Remove:');
   await expect(review).toContainText('After saving: No direct exception');
   await expect(review).toContainText('Add:');

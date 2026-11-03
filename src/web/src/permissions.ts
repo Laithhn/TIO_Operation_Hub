@@ -94,5 +94,7 @@ export function canAccessPath(me: Me | undefined, pathname: string, search = '')
   }
   if (root === 'regions' && !canViewTab(me, 'ClientStructure', 'structure')) return false;
   if (routeAreas[root] && !hasPermission(me, routeAreas[root], 'View')) return false;
-  return routePermissions(pathname).every(key => hasPermissionKey(me, key));
+  // A limited allow cannot be judged from the path alone: the page opens, the record's canEdit decides, and the API enforces.
+  const scoped = new Set((me.scopedAllowPermissions ?? []).map(key => key.toLowerCase()));
+  return routePermissions(pathname).every(key => hasPermissionKey(me, key) || (parts[2] === 'edit' && key.endsWith(':Maintain') && scoped.has(key.toLowerCase())));
 }

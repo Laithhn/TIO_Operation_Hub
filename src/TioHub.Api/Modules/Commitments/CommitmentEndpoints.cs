@@ -89,7 +89,7 @@ public static class CommitmentEndpoints
             var caseRef = c.CaseId is null ? null : await db.Cases.AsNoTracking().Where(x => x.Id == c.CaseId).Select(x => new { x.Id, x.Ref, x.Title }).FirstOrDefaultAsync(ct);
             var project = c.ProjectId is null ? null : await db.Projects.AsNoTracking().Where(x => x.Id == c.ProjectId).Select(x => new { x.Id, x.Code, x.Name }).FirstOrDefaultAsync(ct);
             var coordinator = await access.UserRefAsync(c.CoordinatorUserId, ct);
-            var maintain = access.Me.SeesScope(c.ClientId, c.ResponsibleTeamId) && access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.Maintain);
+            var maintain = access.Me.SeesScope(c.ClientId, c.ResponsibleTeamId) && access.Me.HasPermissionIn(ResourcePermissions.Commitments, ResourcePermissions.Maintain, await ResourceContexts.ForCommitmentAsync(db, c, ct));
             return ctx.WithETag(c, new
             {
                 c.Id, c.Ref, c.Scope, c.Description, c.Type, c.Status, c.TimeZone,
@@ -145,7 +145,9 @@ public static class CommitmentEndpoints
         g.MapPut("/{id:long}", async (long id, CommitmentUpdateInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            // Relinking needs authority over both the stored links and the proposed ones.
+            access.RequireIn(ResourcePermissions.Commitments, ResourcePermissions.Maintain, (await ResourceContexts.ForCommitmentAsync(db, c, ct))
+                .Merge(await ResourceContexts.ForCommitmentAsync(db, c.ClientId, c.ResponsibleTeamId, input.ProjectId, input.CaseId, ct)));
             db.ExpectVersion(ctx, c);
             var check = new Check().Text("description", input.Description, 2000, "the description", true).When(input.Type is null, "type", "Select the type.")
                 .When(input.OwnerUserId is null, "ownerUserId", "Select the accountable owner.").Text("responsibleOrganization", input.ResponsibleOrganization, 150, "Responsible organization");
@@ -176,7 +178,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/revise", async (long id, ReviseInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireIn(ResourcePermissions.Commitments, ResourcePermissions.Maintain, await ResourceContexts.ForCommitmentAsync(db, c, ct));
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("dueLocal", "Only open commitments can be revised. Reopen it first.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reason for the revision");
@@ -199,7 +201,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/complete", async (long id, CompleteInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireIn(ResourcePermissions.Commitments, ResourcePermissions.Maintain, await ResourceContexts.ForCommitmentAsync(db, c, ct));
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("completedAt", "Only open commitments can be completed.");
             var now = clock.GetUtcNow();
@@ -222,7 +224,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/cancel", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireIn(ResourcePermissions.Commitments, ResourcePermissions.Maintain, await ResourceContexts.ForCommitmentAsync(db, c, ct));
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("reason", "Only open commitments can be cancelled.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the cancellation reason");
@@ -239,7 +241,7 @@ public static class CommitmentEndpoints
         g.MapPost("/{id:long}/reopen", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
-            access.RequireMaintain(ResourcePermissions.Commitments, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireIn(ResourcePermissions.Commitments, ResourcePermissions.Maintain, await ResourceContexts.ForCommitmentAsync(db, c, ct));
             db.ExpectVersion(ctx, c);
             if (c.Status == CommitmentStatus.Open) throw new ValidationException("reason", "The commitment is already open.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reopening reason");

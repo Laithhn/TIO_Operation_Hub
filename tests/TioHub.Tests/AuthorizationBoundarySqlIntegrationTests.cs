@@ -106,7 +106,7 @@ public sealed class AuthorizationBoundarySqlIntegrationTests
         var admin = await hub.As(HubFactory.Manager);
         var clientId = await admin.Create("/clients", new { code = Unique("C"), name = Unique("Client"), country = "Oman", ownerUserId = admin.UserId, status = "Active" });
         var projectId = await admin.Create("/projects", new { clientId, code = Unique("P"), name = Unique("Project"), ownerUserId = admin.UserId, status = "Active" });
-        var role = await CreateRole(admin, "ClientStructure:Delete", "ClientStructure:View", "Projects:View");
+        var role = await CreateRole(admin, ["ClientStructure:Delete", "Projects:DetailsView", .. CapabilityPermissions.BusinessViewKeys]);
         var account = $@"DEV\{Unique("project")}";
         await admin.Create("/admin/users", new
         {
@@ -136,7 +136,7 @@ public sealed class AuthorizationBoundarySqlIntegrationTests
             clientId, projectId, name = "Production", type = "Production", criticality = "Normal", ownerUserId = admin.UserId, backupGapReason = "Not assigned"
         };
         var environmentId = await admin.Create("/environments", EnvironmentInput(visibleProject));
-        var role = await CreateRole(admin, "Environments:View");
+        var role = await CreateRole(admin, "Environments:View", "Environments:DetailsView");
         var account = $@"DEV\{Unique("environment")}";
         await admin.Create("/admin/users", new
         {

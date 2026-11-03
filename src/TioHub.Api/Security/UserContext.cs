@@ -7,7 +7,8 @@ public sealed record ResolvedUser(
     long UserId, string AccountName, string DisplayName, string TimeZone, bool IsActive,
     string[] Roles, Right Rights, string[] Permissions, Grant Grants,
     bool AllClients, long[] ClientIds, long[] ProjectIds, long[] ProjectClientIds, long[] ProjectEnvironmentIds,
-    bool AllInternal, long[] TeamIds, DateTimeOffset? NextPermissionExpiry = null, string? AccessRestriction = null)
+    bool AllInternal, long[] TeamIds, DateTimeOffset? NextPermissionExpiry = null, string? AccessRestriction = null,
+    string[]? AssignedPermissions = null, ScopedException[]? ScopedExceptions = null)
 {
     /// <summary>Admission uses only effective permissions, after expiration, denies, and prerequisites.</summary>
     public bool HasAccess => IsActive && (Roles.Length > 0 || Permissions.Length > 0);
@@ -31,6 +32,9 @@ public sealed class UserContext
     public string[] PermissionKeys { get; private set; } = [];
     private HashSet<string> PermissionSet { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Grant Grants { get; private set; }
+    /// <summary>Role and global exception keys before prerequisites; the input of contextual decisions.</summary>
+    private string[] AssignedKeys { get; set; } = [];
+    public ScopedException[] ScopedExceptions { get; private set; } = [];
 
     /// <summary>Legacy business-access indicator, derived from effective permissions for roleless users.</summary>
     public Role? BusinessRole { get; private set; }
@@ -60,6 +64,8 @@ public sealed class UserContext
         Rights = u.Rights;
         PermissionKeys = u.IsActive ? PermissionHierarchy.Resolve(u.Permissions) : [];
         PermissionSet = PermissionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        AssignedKeys = u.IsActive ? u.AssignedPermissions ?? u.Permissions : [];
+        ScopedExceptions = u.IsActive ? u.ScopedExceptions ?? [] : [];
         Grants = u.Grants;
         // Preserve the legacy role indicator for existing role holders, while allowing explicitly
         // granted capabilities to work without a role. Scope remains a separate mandatory boundary.
@@ -103,6 +109,30 @@ public sealed class UserContext
     {
         if (!HasPermission(key)) throw new ForbiddenException($"This needs {PermissionHierarchy.Find(key)?.DisplayName ?? key} ({key}) and its parent access grants.");
     }
+
+    /// <summary>The decision for one record. Data scope stays a separate check: a scoped allow never adds visibility.</summary>
+    public AuthorizationDecision Decide(string key, ResourceContext context, DateTimeOffset? at = null) =>
+        IsSystem ? new(true, "System execution context.")
+        : !HasBusinessRole ? new(false, "The account has no effective access.")
+        : AuthorizationDecisions.Decide(AssignedKeys, ScopedExceptions, key, context, at ?? DateTimeOffset.UtcNow);
+
+    public bool HasPermissionIn(string resource, string action, ResourceContext context) =>
+        Decide(ResourcePermissions.KeyOf(resource, action), context).Allowed;
+
+    public void RequirePermissionIn(string resource, string action, ResourceContext context)
+    {
+        var decision = Decide(ResourcePermissions.KeyOf(resource, action), context);
+        if (decision.Allowed) return;
+        if (ScopedExceptions.Length > 0 && HasPermission(resource, action)) throw new ForbiddenException(decision.Reason);
+        RequirePermission(resource, action);
+        throw new ForbiddenException(decision.Reason);
+    }
+
+    /// <summary>Every part of the operation must lie inside the caller's data scope.</summary>
+    public bool SeesContext(ResourceContext context) =>
+        context.ClientIds.Length > 0 ? context.ClientIds.All(HasClient) && context.TeamIds.All(t => SeesInternal(t))
+        : context.TeamIds.Length > 0 ? context.TeamIds.All(t => SeesInternal(t))
+        : SeesInternal(null);
 
     public bool HasAny(string action) => IsSystem || (HasBusinessRole && PermissionSet.Any(p =>
         ResourcePermissions.TryParse(p, out var resource, out var candidate) && candidate == action && HasPermission(resource, candidate)));

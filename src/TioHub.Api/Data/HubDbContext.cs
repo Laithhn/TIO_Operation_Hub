@@ -192,13 +192,26 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         });
         m.Entity<UserPermissionOverride>(e =>
         {
-            e.ToTable("UserPermissionOverride", "iam", t => t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')"));
-            e.HasKey(x => new { x.UserId, x.PermissionKey });
+            e.ToTable("UserPermissionOverride", "iam", t =>
+            {
+                t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')");
+                t.HasCheckConstraint("CK_UserPermissionOverride_SingleScope",
+                    "(CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1");
+            });
+            e.HasKey(x => x.Id);
             e.Property(x => x.PermissionKey).HasMaxLength(120);
             e.Property(x => x.Effect).HasMaxLength(5);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.PermissionKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.ExpiresAt);
+            // One exception per user, permission and scope; different scopes can carry different effects.
+            e.HasIndex(x => new { x.UserId, x.PermissionKey }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Global").HasFilter("[ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL");
+            e.HasIndex(x => new { x.UserId, x.PermissionKey, x.ClientId }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Client").HasFilter("[ClientId] IS NOT NULL");
+            e.HasIndex(x => new { x.UserId, x.PermissionKey, x.ProjectId }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Project").HasFilter("[ProjectId] IS NOT NULL");
+            e.HasIndex(x => new { x.UserId, x.PermissionKey, x.TeamId }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Team").HasFilter("[TeamId] IS NOT NULL");
         });
         m.Entity<PermissionDefinition>(e =>
         {
@@ -1427,6 +1440,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static long? KeyOf(EntityEntry e)
     {
+        if (e.Entity is UserPermissionOverride exception) return exception.UserId;
         var key = e.Metadata.FindPrimaryKey();
         if (key is null) return null;
         // Link rows: use the first key part (the parent) so their history appears with the parent.

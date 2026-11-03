@@ -48,7 +48,7 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
 
     /// <summary>Whether an active account can be assigned before a new record has a scope.</summary>
     public async Task<bool> HasAssignableAccessAsync(long? userId, CancellationToken ct) =>
-        userId is { } id && (await resolver.ForUserAsync(id, ct))?.HasAccess == true;
+        userId is { } id && (await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true))?.HasAccess == true;
 
     public void RequireBusiness()
     {
@@ -58,15 +58,13 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
     /// <summary>TIO Manager actions: client structure (clients, regions, projects), archive/restore, triage, assignment, handovers.</summary>
     public void RequireLeadFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Structure)
     {
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
-        me.RequirePermission(resource, ResourcePermissions.Coordinate);
+        RequireIn(resource, ResourcePermissions.Coordinate, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>A31: archiving and restoring needs the Archive right.</summary>
     public void RequireArchiveFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Other)
     {
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
-        me.RequirePermission(resource, ResourcePermissions.ArchiveRestore);
+        RequireIn(resource, ResourcePermissions.ArchiveRestore, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>Day-to-day work that any Operation Engineer may do (environments, contracts, network, products…).</summary>
@@ -75,25 +73,28 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
 
     public void RequireCreateFor(string resource, long? clientId, long? teamId = null)
     {
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
-        me.RequirePermission(resource, ResourcePermissions.Create);
+        RequireIn(resource, ResourcePermissions.Create, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>Maintain a record: every Operation Engineer and the TIO Manager (owner decision, 19 Oct 2026). Ownership changes stay with the Manager (CheckOwnerChange).</summary>
     public void RequireMaintain(long? clientId, long? teamId, params long?[] responsibleUserIds) =>
         RequireMaintain(ResourcePermissions.Other, clientId, teamId, responsibleUserIds);
 
-    public void RequireMaintain(string resource, long? clientId, long? teamId, params long?[] responsibleUserIds)
+    public void RequireMaintain(string resource, long? clientId, long? teamId, params long?[] responsibleUserIds) =>
+        RequireIn(resource, ResourcePermissions.Maintain, ResourceContext.ForRecord(clientId, teamId));
+
+    /// <summary>Data scope first (hidden records answer 404), then the contextual decision. The context comes from the stored record.</summary>
+    public void RequireIn(string resource, string action, ResourceContext context)
     {
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
-        me.RequirePermission(resource, ResourcePermissions.Maintain);
+        if (!me.SeesContext(context)) throw new NotFoundException("The record");
+        me.RequirePermissionIn(resource, action, context);
     }
 
     /// <summary>Validates an assignee/owner: exists, is active, has access and can access the record's scope.</summary>
     public async Task CheckAssignableAsync(Check check, string field, long? userId, long? clientId, long? teamId, string label, CancellationToken ct, long? environmentId = null)
     {
         if (userId is null) return;
-        var u = await resolver.ForUserAsync(userId.Value, ct);
+        var u = await resolver.ForUserAsync(userId.Value, ct, directWhenGroupsUnknown: true);
         if (u is null) { check.Add(field, $"Select an existing person as {label}."); return; }
         if (!u.IsActive) { check.Add(field, $"{u.DisplayName} is deactivated and cannot be {label}."); return; }
         var business = u.HasAccess;

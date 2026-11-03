@@ -790,7 +790,7 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var acct = $@"DEV\rev{Guid.NewGuid().ToString("N")[..5]}";
-        var uid = await m.Create("/admin/users", new { accountName = acct, displayName = "Revocable", workingTimeZone = "UTC", roles = new[] { "Engineer" } });
+        var uid = await m.Create("/admin/users", new { accountName = acct, displayName = "Revocable", workingTimeZone = "UTC", allClients = true, allInternal = true, roles = new[] { "Engineer" } });
         var user = await Hub.As(acct);
         Assert.Equal(HttpStatusCode.OK, (await user.Get("/clients")).Status);
         var u = await m.Get($"/admin/users/{uid}");
@@ -1061,7 +1061,7 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Conflict, (await m.Post("/admin/roles", new { name = manager["name"]!.GetValue<string>(), rights = Array.Empty<string>() })).Status);
         Assert.NotNull((await m.Post("/admin/roles", new { name = U("Bad"), rights = new[] { "Fly" } })).Error("rights"));
         var acct = $@"DEV\{U("viewer")}";
-        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", roleId = viewerRole });
+        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId = viewerRole });
         var v = await Hub.As(acct);
         var me = v.Me;
         Assert.Empty(me["rights"]!.AsArray());
@@ -1209,7 +1209,7 @@ public class AC12_NoSelfGrantThroughGroups(HubFactory hub) : Scenario(hub)
         var managers = $@"DEV\{U("Hub-Managers")}";
         var unmappedOwn = $@"DEV\{U("Hub-Ops")}";
         // A second administrator gets the role through a group mapping created by someone else.
-        await admin.Create("/admin/group-mappings", new { groupName = admins, role = "Manager", allClients = false, allInternal = false, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>() });
+        await admin.Create("/admin/group-mappings", new { groupName = admins, role = "Manager", allClients = true, allInternal = true, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>() });
         var second = await Hub.As($@"DEV\{U("second-admin")}", groups: $"{admins};{unmappedOwn}");
         Assert.Equal(HttpStatusCode.OK, second.SignInStatus);
         Assert.Contains("TIO Manager", second.Me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
@@ -2273,7 +2273,7 @@ public class AC56_ProductPartsEditAndDelete(HubFactory hub) : Scenario(hub)
         Assert.NotNull((await m.Put($"/products/versions/{used}", new { version = "1.0.1", isActive = true }, Rv(used))).Error("version"));
         var refused = await m.Send(HttpMethod.Delete, $"/products/versions/{used}");
         Assert.Equal(HttpStatusCode.Conflict, refused.Status);
-        Assert.Contains("used by installations", refused.Text);
+        Assert.Contains("referenced by existing records", refused.Text);
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/versions/{spare}")).Status);
         Assert.Equal(new[] { "1.0" }, (await m.Get($"/products/{pid}")).Body!["versions"]!.AsArray().Select(v => v!["version"]!.GetValue<string>()));
 

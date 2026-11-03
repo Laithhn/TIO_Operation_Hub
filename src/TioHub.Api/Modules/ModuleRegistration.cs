@@ -25,6 +25,7 @@ public static class ModuleRegistration
         services.AddOptions<Attachments.AttachmentOptions>().BindConfiguration("Attachments");
         services.AddSingleton<Attachments.AttachmentStore>();
         services.AddOptions<Clients.ClientLogoOptions>().BindConfiguration("ClientLogos");
+        services.AddSingleton<IDirectoryGroupLookup, WindowsDirectoryGroupLookup>();
         services.AddScoped<HubSettings>();
         services.AddScoped<HubAccess>();
         services.AddScoped<FreshnessService>();

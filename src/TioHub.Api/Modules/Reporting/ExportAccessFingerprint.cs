@@ -17,6 +17,11 @@ public static class ExportAccessFingerprint
             Teams = user.TeamIds.Order().ToArray(), user.Grants,
             Permissions = user.PermissionKeys.Select(p => p.ToUpperInvariant()).Order(StringComparer.Ordinal).ToArray()
         });
+        // Scoped exceptions are hashed only when present, so a person without any keeps files generated before this release.
+        if (user.ScopedExceptions.Length > 0)
+            data = [.. data, .. JsonSerializer.SerializeToUtf8Bytes(user.ScopedExceptions
+                .Select(s => new { Key = s.Key.ToUpperInvariant(), s.Allow, s.ClientId, s.ProjectId, s.TeamId, s.ExpiresAt })
+                .OrderBy(s => s.Key, StringComparer.Ordinal).ThenBy(s => s.ClientId).ThenBy(s => s.ProjectId).ThenBy(s => s.TeamId))];
         return Convert.ToHexString(SHA256.HashData(data));
     }
 

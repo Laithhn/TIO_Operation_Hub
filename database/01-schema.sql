@@ -7448,3 +7448,152 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] DROP CONSTRAINT [PK_UserPermissionOverride];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD [Id] bigint NOT NULL IDENTITY;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD [ClientId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD [ProjectId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD [TeamId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD CONSTRAINT [PK_UserPermissionOverride] PRIMARY KEY ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    CREATE INDEX [IX_UserPermissionOverride_ClientId] ON [iam].[UserPermissionOverride] ([ClientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    CREATE INDEX [IX_UserPermissionOverride_ProjectId] ON [iam].[UserPermissionOverride] ([ProjectId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    CREATE INDEX [IX_UserPermissionOverride_TeamId] ON [iam].[UserPermissionOverride] ([TeamId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [UX_UserPermissionOverride_Client] ON [iam].[UserPermissionOverride] ([UserId], [PermissionKey], [ClientId]) WHERE [ClientId] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [UX_UserPermissionOverride_Global] ON [iam].[UserPermissionOverride] ([UserId], [PermissionKey]) WHERE [ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [UX_UserPermissionOverride_Project] ON [iam].[UserPermissionOverride] ([UserId], [PermissionKey], [ProjectId]) WHERE [ProjectId] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [UX_UserPermissionOverride_Team] ON [iam].[UserPermissionOverride] ([UserId], [PermissionKey], [TeamId]) WHERE [TeamId] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    EXEC(N'ALTER TABLE [iam].[UserPermissionOverride] ADD CONSTRAINT [CK_UserPermissionOverride_SingleScope] CHECK ((CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1)');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD CONSTRAINT [FK_UserPermissionOverride_Client_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [clients].[Client] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD CONSTRAINT [FK_UserPermissionOverride_Project_ProjectId] FOREIGN KEY ([ProjectId]) REFERENCES [clients].[Project] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    ALTER TABLE [iam].[UserPermissionOverride] ADD CONSTRAINT [FK_UserPermissionOverride_Team_TeamId] FOREIGN KEY ([TeamId]) REFERENCES [teams].[Team] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103060859_ScopedPermissionExceptions'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261103060859_ScopedPermissionExceptions', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

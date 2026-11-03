@@ -8,7 +8,7 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
 {
     private static Task<long> User(Api m, string name) => m.Create("/admin/users", new
     {
-        accountName = $@"DEV\{U("workload-user")}", displayName = name, workingTimeZone = "UTC", roles = new[] { "Engineer" }
+        accountName = $@"DEV\{U("workload-user")}", displayName = name, workingTimeZone = "UTC", allClients = true, allInternal = true, roles = new[] { "Engineer" }
     });
 
     private static Task<long> NewTeam(Api m, string name) => m.Create("/teams", new { code = U("WLT"), name, isActive = true });

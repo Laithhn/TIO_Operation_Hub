@@ -17,6 +17,8 @@ if (overrideDatabase && !/^TioHub_E2E_Codex_[A-Za-z0-9_]+$/.test(overrideDatabas
 const database = overrideDatabase ?? `TioHub_E2E_${process.pid}_${randomUUID().replaceAll('-', '')}`;
 export default defineConfig({
   testDir: '.',
+  // These intercept every request and run under their own configs, with no server or database.
+  testIgnore: /-isolated\.spec\.ts$/,
   timeout: 60_000,
   workers: 1,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],

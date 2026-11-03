@@ -25,7 +25,7 @@ public sealed class AccessControlSqlIntegrationTests
 
     private static Task<long> Role(Api admin, string permission) => admin.Create("/admin/roles", new
     {
-        name = Unique("sql-role"), permissions = PermissionHierarchy.WithAncestors([permission]), rights = Array.Empty<string>()
+        name = Unique("sql-role"), permissions = PermissionHierarchy.WithAncestors([.. CapabilityPermissions.Dependencies(permission), permission]), rights = Array.Empty<string>()
     });
 
     private static object UserInput(string account, long[] roles, object[] scopes) => new
@@ -53,7 +53,7 @@ public sealed class AccessControlSqlIntegrationTests
         async Task<long> Project() => await admin.Create("/projects", new { clientId = client, code = Unique("P"), name = Unique("Project"), ownerUserId = admin.UserId, status = "Active" });
         var first = await Project();
         var second = await Project();
-        var role = await Role(admin, "Projects:View");
+        var role = await Role(admin, "Projects:DetailsView");
         var account = $@"DEV\{Unique("scope")}";
         var id = await admin.Create("/admin/users", UserInput(account, [role], [ProjectScope(first)]));
         var reader = await hub.As(account);

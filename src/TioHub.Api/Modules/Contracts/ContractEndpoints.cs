@@ -135,7 +135,7 @@ public static class ContractEndpoints
             var project = await db.Projects.IgnoreQueryFilters(["Archive"]).AsNoTracking().Where(x => x.Id == c.ProjectId)
                 .Select(x => new { x.Id, x.Code, x.Name, x.Status }).FirstOrDefaultAsync(ct);
             var productIds = await db.ProjectProducts.AsNoTracking().Where(pp => pp.ProjectId == c.ProjectId).Select(pp => pp.ProductId).ToListAsync(ct);
-            var maintain = access.Me.HasClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.Maintain);
+            var maintain = access.Me.HasClient(c.ClientId) && access.Me.HasPermissionIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId]));
             var archive = access.Me.HasClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.ArchiveRestore);
             var state = ContractQuery.State(c, now);
             return ctx.WithETag(c, new
@@ -186,7 +186,8 @@ public static class ContractEndpoints
         {
             var c = await db.Contracts.Include(x => x.Environments).Include(x => x.SlaTargets).Include(x => x.Milestones).Include(x => x.Fees).Include(x => x.Payments).Include(x => x.PenaltyClauses).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct)
                 ?? throw new NotFoundException("The contract");
-            access.RequireMaintain(ResourcePermissions.Contracts, c.ClientId, null, c.OwnerUserId);
+            // A move between projects needs authority over both the old and the proposed project.
+            access.RequireIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId, input.ProjectId ?? c.ProjectId]));
             db.ExpectVersion(ctx, c);
             await ApplyAsync(c, input, db, access, ct);
             // Saving the contract after checking it against the document counts as a review.

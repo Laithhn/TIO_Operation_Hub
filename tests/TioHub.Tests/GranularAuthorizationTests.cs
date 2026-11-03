@@ -25,7 +25,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
     private async Task<(Api Api, long Id)> User(Api manager, params long[] roleIds)
     {
         var accountName = $@"DEV\{U("granular")}";
-        var id = await manager.Create("/admin/users", new { accountName, displayName = "Granular authorization test", workingTimeZone = "UTC", roleIds });
+        var id = await manager.Create("/admin/users", new { accountName, displayName = "Granular authorization test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleIds });
         return (await Hub.As(accountName), id);
     }
 
@@ -134,7 +134,8 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
             // Each call represents a request on another app instance: a fresh scoped DbContext, its own long-lived cache.
             await using var scope = Hub.Services.CreateAsyncScope();
             var resolver = new UserResolver(scope.ServiceProvider.GetRequiredService<HubDbContext>(), otherInstanceCache,
-                Options.Create(new AuthOptions { Mode = "Development", CacheSeconds = 3600 }), TimeProvider.System, NullLogger<UserResolver>.Instance);
+                Options.Create(new AuthOptions { Mode = "Development", CacheSeconds = 3600 }), TimeProvider.System, NullLogger<UserResolver>.Instance,
+                scope.ServiceProvider.GetRequiredService<IDirectoryGroupLookup>());
             return await resolver.ResolveAsync(principal, CancellationToken.None);
         }
 

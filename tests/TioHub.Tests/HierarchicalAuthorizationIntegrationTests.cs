@@ -14,7 +14,7 @@ public sealed class HierarchicalAuthorizationIntegrationTests(HubFactory hub) : 
     private async Task<Api> CreateUser(Api admin, params long[] roles)
     {
         var accountName = $@"DEV\{U("hierarchy-user")}";
-        await admin.Create("/admin/users", new { accountName, displayName = "Hierarchy test", workingTimeZone = "UTC", roleIds = roles });
+        await admin.Create("/admin/users", new { accountName, displayName = "Hierarchy test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleIds = roles });
         return await Hub.As(accountName);
     }
 

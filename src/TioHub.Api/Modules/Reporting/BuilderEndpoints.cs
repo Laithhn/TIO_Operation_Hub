@@ -524,7 +524,7 @@ public static class BuilderEndpoints
         foreach (var id in ids)
         {
             // Recipients are checked now and again at every run: each receives only what their own access allows.
-            var r = await resolver.ForUserAsync(id, ct);
+            var r = await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true);
             if (r is null || !r.IsActive) check.Add("recipientIds", $"Recipient #{id} is not an active hub user.");
             else if ((r.Grants & Grant.Export) != Grant.Export || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
         }

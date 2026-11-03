@@ -16,6 +16,8 @@ appsettings.Local.json
 App_Data/
 
 *.tsbuildinfo
+# Office lock files
+~$*
 
 # Local document/marketing build scratch and .NET test output
 .marketing-build/

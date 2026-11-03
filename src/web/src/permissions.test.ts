@@ -15,6 +15,12 @@ describe('permission aware routes and navigation', () => {
     expect(canAccessPath(user(['Cases:View']), '/clients')).toBe(false);
     expect(canAccessPath(user(['ClientStructure:View']), '/clients')).toBe(true);
     expect(routePermissions('/clients')).toEqual(['ClientStructure:View']);
+    const viewer = user(['Contracts:View', 'Contracts:DetailsView']);
+    expect(canAccessPath(viewer, '/contracts/5/edit')).toBe(false);
+    expect(canAccessPath({ ...viewer, scopedAllowPermissions: ['Contracts:Maintain'] }, '/contracts/5/edit')).toBe(true);
+    expect(canAccessPath({ ...viewer, scopedAllowPermissions: ['Cases:Maintain'] }, '/contracts/5/edit')).toBe(false);
+    // A limited Maintain never replaces the View the page itself needs.
+    expect(canAccessPath({ ...user([]), scopedAllowPermissions: ['Contracts:Maintain'] }, '/contracts/5/edit')).toBe(false);
   });
 
   it('separates detail access from list access and requires explicit edit rights', () => {

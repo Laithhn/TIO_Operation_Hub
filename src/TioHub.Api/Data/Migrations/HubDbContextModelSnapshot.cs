@@ -424,12 +424,14 @@ namespace TioHub.Api.Data.Migrations
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.UserPermissionOverride", b =>
                 {
-                    b.Property<long>("UserId")
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    b.Property<string>("PermissionKey")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("ClientId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Effect")
                         .IsRequired()
@@ -439,15 +441,57 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("ExpiresAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.HasKey("UserId", "PermissionKey");
+                    b.Property<string>("PermissionKey")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<long?>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("TeamId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
 
                     b.HasIndex("ExpiresAt");
 
                     b.HasIndex("PermissionKey");
 
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("UserId", "PermissionKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_UserPermissionOverride_Global")
+                        .HasFilter("[ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL");
+
+                    b.HasIndex("UserId", "PermissionKey", "ClientId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_UserPermissionOverride_Client")
+                        .HasFilter("[ClientId] IS NOT NULL");
+
+                    b.HasIndex("UserId", "PermissionKey", "ProjectId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_UserPermissionOverride_Project")
+                        .HasFilter("[ProjectId] IS NOT NULL");
+
+                    b.HasIndex("UserId", "PermissionKey", "TeamId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_UserPermissionOverride_Team")
+                        .HasFilter("[TeamId] IS NOT NULL");
+
                     b.ToTable("UserPermissionOverride", "iam", t =>
                         {
                             t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')");
+
+                            t.HasCheckConstraint("CK_UserPermissionOverride_SingleScope", "(CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1");
                         });
                 });
 
@@ -5742,12 +5786,27 @@ namespace TioHub.Api.Data.Migrations
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.UserPermissionOverride", b =>
                 {
+                    b.HasOne("TioHub.Api.Modules.Clients.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("TioHub.Api.Modules.Access.PermissionDefinition", null)
                         .WithMany()
                         .HasForeignKey("PermissionKey")
                         .HasPrincipalKey("Key")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Clients.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Teams.Team", null)
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("TioHub.Api.Modules.Access.User", null)
                         .WithMany()

@@ -83,7 +83,7 @@ public class A63PermissionApiTests(HubFactory hub) : Scenario(hub)
             name = U("CasesMaintain"), rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Cases:View", "Cases:Maintain" }, Right.None)
         });
         var account = $@"DEV\{U("a63")}";
-        await manager.Create("/admin/users", new { accountName = account, displayName = "A63 permission test", workingTimeZone = "UTC", roleId });
+        await manager.Create("/admin/users", new { accountName = account, displayName = "A63 permission test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
 
         var limited = await Hub.As(account);
         var permissionKeys = limited.Me["permissions"]!.AsArray().Select(x => x!.GetValue<string>()).ToArray();

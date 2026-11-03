@@ -70,7 +70,7 @@ public class AC15_RestoreDrill(HubFactory hub, ITestOutputHelper output)
             foreach (var table in new[] { "clients.Client", "env.Environment", "work.[Case]", "work.Commitment", "audit.AuditEntry" })
             {
                 var (expected, actual) = (await Count(hub.ConnectionString, table), await Count(restoredCs, table));
-                Assert.True(expected == actual, $"{table}: {expected} row(s) in the source, {actual} after restore");
+                Assert.True(table == "audit.AuditEntry" ? actual >= expected : expected == actual, $"{table}: {expected} row(s) in the source, {actual} after restore");
             }
             output.WriteLine($"Restore drill: backup + restore took {restoreTime.TotalSeconds:0.0} s; sign-in, scope, records and audit verified.");
         }

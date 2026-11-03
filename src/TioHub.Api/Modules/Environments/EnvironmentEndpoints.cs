@@ -95,7 +95,7 @@ public static class EnvironmentEndpoints
                 },
                 e.LastReviewedAt, e.InventoryReviewedAt, e.DependenciesReviewedAt, e.NextReviewAt,
                 e.ArchivedAt, e.ArchiveReason, e.CreatedAt, e.UpdatedAt,
-                canEdit = access.Me.HasClient(e.ClientId) && access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.Maintain)
+                canEdit = access.Me.HasClient(e.ClientId) && access.Me.HasPermissionIn(ResourcePermissions.Environments, ResourcePermissions.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId]))
             });
         });
 
@@ -114,7 +114,8 @@ public static class EnvironmentEndpoints
         g.MapPut("/{id:long}", async (long id, EnvironmentInput input, HttpContext ctx, HubDbContext db, HubAccess access, LookupService lookups, CancellationToken ct) =>
         {
             var e = await db.Environments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireMaintain(ResourcePermissions.Environments, e.ClientId, null, e.OwnerUserId, e.BackupOwnerUserId, e.CoordinatorUserId);
+            // A move between projects needs authority over both the old and the proposed project.
+            access.RequireIn(ResourcePermissions.Environments, ResourcePermissions.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId, input.ProjectId]));
             db.ExpectVersion(ctx, e);
             await ApplyAsync(e, input, db, access, lookups, isNew: false, ct);
             await db.SaveChangesAsync(ct);
@@ -153,7 +154,7 @@ public static class EnvironmentEndpoints
         g.MapPost("/{id:long}/conditions", async (long id, ConditionInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var e = await db.Environments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireMaintain(ResourcePermissions.Environments, e.ClientId, null, e.OwnerUserId, e.BackupOwnerUserId, e.CoordinatorUserId);
+            access.RequireIn(ResourcePermissions.Environments, ResourcePermissions.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId]));
             var now = clock.GetUtcNow();
             var check = new Check();
             check.When(input.Condition is null, "condition", "Select the reported condition.")

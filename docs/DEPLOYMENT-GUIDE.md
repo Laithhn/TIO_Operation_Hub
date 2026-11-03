@@ -151,6 +151,11 @@ database, run the backup and `01-schema.sql` first and add `-SkipDatabase`.
 additive, so the previous version runs on the upgraded database; if a database rollback is ever needed, restore the backup taken by the
 upgrade into an isolated database first (OPERATIONS.md section 7).
 
+**Rolling back from 2.45.0 or later has one precondition.** Earlier applications ignore the scope of an individual permission exception and
+would apply it everywhere, so a client-limited allow becomes a global grant. Run `database\04-access-control-upgrade-review.sql` first. If
+section 5 reports any scoped exceptions, restore the backup, or review and remove those rows through your approved change process, before
+starting the earlier application. The migration's `Down` refuses for the same reason.
+
 ## 9. Troubleshooting
 
 | Symptom | Cause and fix |

@@ -53,11 +53,11 @@ public static class DevelopmentData
         var all = Grant.Export | Grant.TechnicalDetail | Grant.Audit;
         var manager = U("DEV\\manager", "Mara Okafor (demo manager)", "Asia/Riyadh", all, true, true, Role.Manager);
         var lead = U("DEV\\lead", "Leon Brandt (demo lead)", "Asia/Dubai", Grant.Export | Grant.TechnicalDetail, true, true, Role.Manager);
-        var eng1 = U("DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Riyadh", Grant.TechnicalDetail, false, false, Role.Engineer);
-        var eng2 = U("DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Dubai", Grant.TechnicalDetail, false, false, Role.Engineer);
-        var viewer = U("DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", Grant.None, false, false, Role.Engineer);
-        var admin = U("DEV\\admin", "Adam Reyes (demo administrator)", "UTC", Grant.Audit, false, false, Role.Manager);
-        var former = U("DEV\\former", "Farid Haddad (demo, deactivated)", "Asia/Riyadh", Grant.None, false, false, Role.Engineer);
+        var eng1 = U("DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Riyadh", Grant.TechnicalDetail, true, true, Role.Engineer);
+        var eng2 = U("DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Dubai", Grant.TechnicalDetail, true, true, Role.Engineer);
+        var viewer = U("DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", Grant.None, true, true, Role.Engineer);
+        var admin = U("DEV\\admin", "Adam Reyes (demo administrator)", "UTC", Grant.Audit, true, true, Role.Manager);
+        var former = U("DEV\\former", "Farid Haddad (demo, deactivated)", "Asia/Riyadh", Grant.None, true, true, Role.Engineer);
         await db.SaveChangesAsync(ct);
 
         var ops = new Team { Code = "OPS", Name = "TIO Operations", LeadUserId = lead.Id, ManagerUserId = manager.Id, Description = "Fictional demo team" };

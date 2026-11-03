@@ -29,7 +29,7 @@ public static partial class Deletion
         ["Volume"] = "volumes", ["FirewallRule"] = "firewall rules", ["Region"] = "regions", ["Project"] = "projects", ["Contract"] = "contracts", ["ContractEnvironment"] = "contract coverage",
         ["Contact"] = "contacts", ["ResponsibilityBoundary"] = "responsibility boundaries", ["Case"] = "cases", ["CaseEnvironment"] = "cases", ["CaseAsset"] = "cases",
         ["CaseComponent"] = "cases", ["Commitment"] = "commitments", ["Client"] = "clients (sub-clients)", ["ClientTeamMember"] = "project teams", ["Team"] = "teams",
-        ["TeamMember"] = "team members", ["UserScope"] = "user access scopes", ["GroupMappingScope"] = "group mappings", ["Product"] = "products", ["Handover"] = "handovers",
+        ["TeamMember"] = "team members", ["UserScope"] = "user access scopes", ["UserPermissionOverride"] = "individual permission exceptions", ["GroupMappingScope"] = "group mappings", ["Product"] = "products", ["Handover"] = "handovers",
         ["SharedStorage"] = "shared storage", ["ProjectProduct"] = "projects", ["JiraReference"] = "Jira links", ["User"] = "users",
         ["Organization"] = "organizations", ["OrganizationRelationship"] = "organization relationships"
     };
@@ -83,7 +83,8 @@ public static partial class Deletion
     {
         static async Task<T> Load<T>(IQueryable<T> q, string what, CancellationToken ct) where T : class =>
             await q.FirstOrDefaultAsync(ct) ?? throw new NotFoundException(what);
-        static void Scope(HubAccess access, long clientId) { if (!access.Me.SeesClient(clientId)) throw new NotFoundException("The record"); }
+        // The same boundary as editing and archiving: project-only summary visibility never authorizes removing a client's records.
+        static void Scope(HubAccess access, long clientId) => RequireWholeClientScope(access.Me, clientId);
         string[] archive = [HubDbContext.ArchiveFilter];
 
         api.MapDelete("/clients/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>

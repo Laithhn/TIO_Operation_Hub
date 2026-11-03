@@ -19,16 +19,41 @@ public static class PermissionOverrides
     public static string[] Resolve(IEnumerable<string> roleKeys, IEnumerable<UserPermissionOverride> overrides,
         DateTimeOffset now, ISet<string>? active = null)
     {
+        return PermissionHierarchy.Resolve(Assigned(roleKeys, overrides, now), active);
+    }
+
+    /// <summary>
+    /// Role keys with the global exceptions applied, before prerequisites. Scoped rows take no part: they never make a
+    /// permission globally effective and are evaluated per record by <see cref="AuthorizationDecisions"/>.
+    /// </summary>
+    public static HashSet<string> Assigned(IEnumerable<string> roleKeys, IEnumerable<UserPermissionOverride> overrides, DateTimeOffset now)
+    {
         var keys = roleKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var current = overrides.Where(o => o.ExpiresAt is null || o.ExpiresAt > now).ToArray();
+        var current = overrides.Where(o => o.IsGlobal && (o.ExpiresAt is null || o.ExpiresAt > now)).ToArray();
         foreach (var entry in current.Where(o => string.Equals(o.Effect, "Allow", StringComparison.Ordinal)))
             keys.Add(entry.PermissionKey);
         // Any unknown stored effect fails closed too. Denies precede hierarchy resolution so denying a
         // prerequisite makes all dependent capabilities ineffective, even if directly allowed.
         foreach (var entry in current.Where(o => !string.Equals(o.Effect, "Allow", StringComparison.Ordinal)))
             keys.Remove(entry.PermissionKey);
-        return PermissionHierarchy.Resolve(keys, active);
+        return keys;
     }
+
+    /// <summary>The scoped rows that apply to this account. Administrators derive authority only from roles, so scoped allows never apply to them.</summary>
+    public static ScopedException[] Scoped(IEnumerable<UserPermissionOverride> overrides, Right rights, ISet<string>? active = null) => overrides
+        .Where(o => !o.IsGlobal)
+        .Where(o => !string.Equals(o.Effect, "Allow", StringComparison.Ordinal) || (!rights.HasFlag(Right.Administer) && (active is null || active.Contains(o.PermissionKey))))
+        .Select(o => new ScopedException(o.PermissionKey, string.Equals(o.Effect, "Allow", StringComparison.Ordinal), o.ClientId, o.ProjectId, o.TeamId, o.ExpiresAt))
+        .ToArray();
+
+    /// <summary>
+    /// Delegation must consider everything an account could use somewhere. For these checks a scoped allow counts as if it were global and
+    /// a scoped deny is ignored; that only ever enlarges the set an administrator must already hold.
+    /// </summary>
+    private static UserPermissionOverride[] DelegationView(IEnumerable<UserPermissionOverride> overrides) => overrides
+        .Where(o => o.IsGlobal || string.Equals(o.Effect, "Allow", StringComparison.Ordinal))
+        .Select(o => new UserPermissionOverride { UserId = o.UserId, PermissionKey = o.PermissionKey, Effect = o.Effect, ExpiresAt = o.ExpiresAt })
+        .ToArray();
 
     /// <summary>
     /// The capabilities a role change can enable now or when a temporary exception expires.
@@ -40,7 +65,7 @@ public static class PermissionOverrides
     {
         var oldKeys = before.ToArray();
         var newKeys = after.ToArray();
-        var entries = overrides.ToArray();
+        var entries = DelegationView(overrides);
         var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var at in EvaluationTimes(entries, now))
         {
@@ -55,7 +80,7 @@ public static class PermissionOverrides
         DateTimeOffset now, ISet<string>? active = null)
     {
         var keys = roleKeys.ToArray();
-        var entries = overrides.ToArray();
+        var entries = DelegationView(overrides);
         return EvaluationTimes(entries, now).SelectMany(at => Resolve(keys, entries, at, active))
             .Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
     }

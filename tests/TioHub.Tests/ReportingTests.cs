@@ -323,7 +323,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.NotFound, (await Download(m, Id(theirs))).Status);
         Assert.Equal(HttpStatusCode.OK, (await Download(scoped, Id(theirs))).Status);
         var refused = runs.First(r => r!["status"]!.GetValue<string>() == "Failed")!;
-        Assert.Contains("not an active hub user", refused["error"]!.GetValue<string>());
+        Assert.Null(refused["error"]);   // masked in schedule history; see CanSeeJobDetails
         Assert.Contains((await m.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>() == "Scheduled report ready: Weekly client cases");
         Assert.Contains((await scoped.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>() == "Scheduled report ready: Weekly client cases");
         var after = (await m.Get($"/reports/schedules/{sid}")).Body!["schedule"]!;
@@ -337,7 +337,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
             .SetProperty(x => x.NextRunAt, DateTimeOffset.UtcNow.AddMinutes(-1))));
         await ReportScheduler.RunDueAsync(Hub.Services.GetRequiredService<IServiceScopeFactory>(), DateTimeOffset.UtcNow, CancellationToken.None);
         var failedRuns = (await m.Get($"/reports/schedules/{invalidScheduleId}/runs")).Body!["items"]!.AsArray();
-        var invalidRun = failedRuns.First(r => r!["error"]?.GetValue<string>().Contains("filters are not valid") == true && r["user"]!.GetValue<string>() == "Fictional Report Engineer")!;
+        var invalidRun = failedRuns.First(r => r!["status"]!.GetValue<string>() == "Failed" && r["user"]!.GetValue<string>() == "Fictional Report Engineer")!;
         Assert.True(Id(invalidRun) > 0);
         Assert.Contains((await scoped.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(),
             n => n!["title"]!.GetValue<string>() == "Scheduled report failed: Invalid filters"

@@ -228,19 +228,9 @@ public static class RoleEndpoints
 
     private static async Task EnsureAdministratorRemainsAsync(HubDbContext db, AppRole proposedRole, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
     {
-        if (resolver.IsForms)
-        {
-            var activeUsers = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ToListAsync(ct);
-            var candidates = activeUsers.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray()));
-            if (!await RoleConflicts.HasFormsUserAdministratorAsync(db, candidates, now, ct, proposedRole))
-                throw new ValidationException("role", "Keep an active administrator with a Forms password and effective user administration permissions.");
-            return;
-        }
-        var privilegedGroups = (await db.GroupMappings.AsNoTracking().Where(m => m.Role == Role.Manager)
-            .Select(m => m.GroupName).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ThenInclude(r => r.AppRole).ToListAsync(ct);
-        var remains = users.Any(u => u.Roles.Any(r => r.AppRole is { IsActive: true } role && role.Id != proposedRole.Id && (role.IsLocked || role.Rights.HasFlag(Right.Administer)))
-            || resolver.Groups(u.MappedGroups).Any(privilegedGroups.Contains));
-        if (!remains) throw new ValidationException("role", "This change would remove the last active administrator. Assign Administration to another active user first.");
+        if (await AdministratorRecovery.RemainsAsync(db, resolver, now, ct, proposedRole: proposedRole)) return;
+        throw new ValidationException("role", resolver.IsForms
+            ? "Keep an active administrator with a Forms password and effective user administration permissions."
+            : "This change would remove the last administrator with effective user administration permissions. Assign them to another active user first.");
     }
 }

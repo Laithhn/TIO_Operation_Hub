@@ -131,9 +131,9 @@ public static partial class AuthEndpoints
             // retain the setup code so a suitable account or configuration can be used instead.
             if (await SetupCode.RequiredAsync(db, ct))
                 throw new ConflictException("The administrator cannot manage users under the current access policy. Choose another account or restore the required permissions before retrying setup.");
+            await db.AuditActionAsync("FirstAdministratorSetUp", "User", user.Id, user.AccountName, null, "One-time setup code used", null, ct, "Access");
             await tx.CommitAsync(ct);
             setup.Consume();
-            await db.AuditActionAsync("FirstAdministratorSetUp", "User", user.Id, user.AccountName, null, "One-time setup code used", null, ct, "Access");
             UserResolver.InvalidateAll(cache);
             await SignInAsync(ctx, af, user, cred);
             return Results.Ok(new { mustChangePassword = false });

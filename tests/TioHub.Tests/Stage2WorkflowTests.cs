@@ -73,7 +73,7 @@ public class Stage2WorkflowTests(HubFactory hub) : Scenario(hub)
     {
         var manager = await Hub.As(HubFactory.Manager);
         var account = $@"DEV\{U("receiver")}";
-        var id = await manager.Create("/admin/users", new { accountName = account, displayName = U("Receiver"), workingTimeZone = "UTC", roles = new[] { "Engineer" } });
+        var id = await manager.Create("/admin/users", new { accountName = account, displayName = U("Receiver"), workingTimeZone = "UTC", allClients = true, allInternal = true, roles = new[] { "Engineer" } });
         return (id, account);
     }
 

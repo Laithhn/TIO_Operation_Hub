@@ -63,7 +63,7 @@ public static class AdminEndpoints
             me.RequireAdministrator();
             var user = await db.Users.AsNoTracking().Include(u => u.Roles).ThenInclude(r => r.AppRole).ThenInclude(r => r!.Permissions)
                 .FirstOrDefaultAsync(u => u.Id == id, ct) ?? throw new NotFoundException("The user");
-            var access = await resolver.ForUserAsync(id, ct);
+            var access = await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true);
             var effective = (access?.Permissions ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var definitions = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).OrderBy(p => p.Module).ThenBy(p => p.DisplayName).ToListAsync(ct);
             var held = await db.AppRoles.AsNoTracking().Include(r => r.Permissions)
@@ -74,8 +74,10 @@ public static class AdminEndpoints
                 return keys.Select(key => new { key, role = role.Name });
             }).GroupBy(x => x.key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Select(x => x.role).Distinct().Order().ToArray(), StringComparer.OrdinalIgnoreCase);
             var now = clock.GetUtcNow();
-            var overrides = (await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct))
-                .ToDictionary(o => o.PermissionKey, StringComparer.OrdinalIgnoreCase);
+            var exceptionRows = await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct);
+            var overrides = exceptionRows.Where(o => o.IsGlobal).ToDictionary(o => o.PermissionKey, StringComparer.OrdinalIgnoreCase);
+            var scopeLabels = await UserPermissionOverrideEndpoints.ScopeLabelsAsync(exceptionRows, db, ct);
+            var scopeNotApplied = access?.Rights.HasFlag(Right.Administer) == true;
             return Results.Ok(new
             {
                 user = new { user.Id, user.AccountName, user.DisplayName, user.IsActive },
@@ -100,7 +102,14 @@ public static class AdminEndpoints
                         CapabilityPermissions.Dependencies(d.Key).Any(key => !effective.Contains(key)) ? "Missing prerequisite" : "Not granted"
                 }),
                 scopes = access is null ? null : new { access.AllClients, access.ClientIds, access.ProjectIds, access.AllInternal, access.TeamIds },
-                grants = access?.Grants.ToString()
+                grants = access?.Grants.ToString(),
+                // Contextual: these never appear in the effective list above and apply only inside the named scope.
+                scopedExceptions = exceptionRows.Where(o => !o.IsGlobal).OrderBy(o => o.PermissionKey).Select(o => new
+                {
+                    key = o.PermissionKey, effect = o.Effect, expiresAt = o.ExpiresAt, scope = scopeLabels.GetValueOrDefault(o.Id),
+                    applied = o.Effect != "Allow" || !scopeNotApplied
+                }),
+                directoryEvidence = await resolver.DirectoryEvidenceAsync(user.AccountName, user.MappedGroups, user.LastSignInAt, ct)
             });
         });
         g.MapPost("/users", async (UserInput input, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
@@ -594,48 +603,19 @@ public static class AdminEndpoints
 
     private static async Task EnsureAdministratorRemainsAsync(HubDbContext db, long changedUserId, bool targetActive, IReadOnlyCollection<long>? targetRoleIds, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
     {
-        if (resolver.IsForms)
-        {
-            var users = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Id != changedUserId).Include(u => u.Roles).ToListAsync(ct);
-            var candidates = users.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())).ToList();
-            if (targetActive && changedUserId != 0)
-            {
-                var ids = targetRoleIds?.ToArray() ?? await db.UserRoles.AsNoTracking().Where(r => r.UserId == changedUserId).Select(r => r.AppRoleId).ToArrayAsync(ct);
-                candidates.Add((changedUserId, ids));
-            }
-            if (!await RoleConflicts.HasFormsUserAdministratorAsync(db, candidates, now, ct))
-                throw new ValidationException("roles", "Keep an active administrator with a Forms password and effective user administration permissions.");
-            return;
-        }
-        var privilegedGroups = (await db.GroupMappings.AsNoTracking().Where(m => m.Role == Role.Manager)
-            .Select(m => m.GroupName).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var activeUsers = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Id != changedUserId)
-            .Include(u => u.Roles).ThenInclude(r => r.AppRole).ToListAsync(ct);
-        bool IsEligible(User u) => u.Roles.Any(r => r.AppRole is { IsActive: true } role && (role.IsLocked || role.Rights.HasFlag(Right.Administer)))
-            || resolver.Groups(u.MappedGroups).Any(privilegedGroups.Contains);
-        var othersRemain = activeUsers.Any(IsEligible);
-        if (!othersRemain && targetActive)
-        {
-            var target = changedUserId == 0 ? null : await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == changedUserId, ct);
-            var groupsEligible = resolver.Groups(target?.MappedGroups).Any(privilegedGroups.Contains);
-            var ids = targetRoleIds?.ToArray() ?? target?.Roles.Select(x => x.AppRoleId).ToArray() ?? [];
-            var targetRoles = ids.Length == 0 ? [] : await db.AppRoles.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync(ct);
-            othersRemain = groupsEligible || targetRoles.Any(r => r.IsActive && (r.Key == BuiltInRoles.ManagerKey || r.Rights.HasFlag(Right.Administer)));
-        }
-        if (!othersRemain) throw new ValidationException("roles", "This change would remove the last active administrator. Assign Administration to another active user first.");
+        if (await AdministratorRecovery.RemainsAsync(db, resolver, now, ct, changedUserId, targetActive, targetRoleIds)) return;
+        throw new ValidationException("roles", resolver.IsForms
+            ? "Keep an active administrator with a Forms password and effective user administration permissions."
+            : "This change would remove the last administrator with effective user administration permissions. Assign them to another active user first.");
     }
 
-    private static async Task EnsureAdministratorMappingRemainsAsync(HubDbContext db, long mappingId, string proposedGroup, Role? proposedRole, UserResolver resolver, CancellationToken ct)
+    private static async Task EnsureAdministratorMappingRemainsAsync(HubDbContext db, long mappingId, string proposedGroup, Role? proposedRole, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
     {
         if (resolver.IsForms) return; // Directory mappings cannot grant Forms access.
-        var managerGroups = await db.GroupMappings.AsNoTracking().Where(m => m.Role == Role.Manager && m.Id != mappingId)
-            .Select(m => m.GroupName).ToListAsync(ct);
-        if (proposedRole == Role.Manager) managerGroups.Add(proposedGroup);
-        var privilegedGroups = managerGroups.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ThenInclude(r => r.AppRole).ToListAsync(ct);
-        var remains = users.Any(u => u.Roles.Any(r => r.AppRole is { IsActive: true } role && (role.IsLocked || role.Rights.HasFlag(Right.Administer)))
-            || resolver.Groups(u.MappedGroups).Any(privilegedGroups.Contains));
-        if (!remains) throw new ValidationException("role", "This mapping change would remove the last active administrator. Keep or assign an active administrator first.");
+        var mappings = (await db.GroupMappings.AsNoTracking().Where(m => m.Id != mappingId).Select(m => new { m.GroupName, m.Role }).ToListAsync(ct))
+            .Select(m => new AdministratorRecovery.Mapping(m.GroupName, m.Role)).Append(new AdministratorRecovery.Mapping(proposedGroup, proposedRole)).ToArray();
+        if (!await AdministratorRecovery.RemainsAsync(db, resolver, now, ct, proposedMappings: mappings))
+            throw new ValidationException("role", "This mapping change would remove the last administrator with effective user administration permissions. Keep or assign one first.");
     }
 
     /// <summary>
@@ -818,7 +798,7 @@ public static class AdminEndpoints
         check.ThrowIfAny();
         var name = i.GroupName!.Trim();
         if (await db.GroupMappings.AnyAsync(x => x.GroupName == name && x.Id != m.Id, ct)) throw new ConflictException("This group already has a mapping.");
-        await EnsureAdministratorMappingRemainsAsync(db, m.Id, name, i.Role, resolver, ct);
+        await EnsureAdministratorMappingRemainsAsync(db, m.Id, name, i.Role, resolver, DateTimeOffset.UtcNow, ct);
         m.GroupName = name;
         m.Role = i.Role;
         m.AllClients = i.AllClients;

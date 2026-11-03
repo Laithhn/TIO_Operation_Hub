@@ -40,6 +40,7 @@ public static class MeEndpoints
                 roles = me.Roles,
                 roleLabels = me.Roles,
                 rights = legacyRights.OrderBy(x => x).ToArray(), permissions = me.PermissionKeys,
+                scopedAllowPermissions = me.ScopedExceptions.Where(s => s.Allow).Select(s => s.Key).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
                 businessRole = me.BusinessRole,
                 isAdministrator = me.IsAdministrator,
                 grants = new { export = me.Has(Grant.Export), technicalDetail = me.SeesTechnical, audit = me.Has(Grant.Audit) },
@@ -107,7 +108,7 @@ public static class MeEndpoints
             var result = new List<object>();
             foreach (var u in users)
             {
-                var r = await resolver.ForUserAsync(u.Id, ct);
+                var r = await resolver.ForUserAsync(u.Id, ct, directWhenGroupsUnknown: true);
                 if (r is null || !r.HasAccess) continue;
                 if (!u.IsActive) { result.Add(new { id = u.Id, name = u.DisplayName + " (deactivated)", account = u.AccountName }); continue; }
                 var ok = clientId is { } cid ? r.AllClients || r.ClientIds.Contains(cid) : teamId is { } tid ? r.AllInternal || r.TeamIds.Contains(tid) : true;

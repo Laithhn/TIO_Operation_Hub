@@ -16,6 +16,11 @@ namespace TioHub.Api.Security;
 
 public sealed class AuthOptions
 {
+    /// <summary>Windows mode only: ask the directory for an account's current groups in administrative checks. See <see cref="WindowsDirectoryGroupLookup"/>.</summary>
+    public bool LiveDirectoryLookup { get; set; }
+    /// <summary>Turns DOMAIN\name into name@suffix for the live lookup.</summary>
+    public string? DirectoryUpnSuffix { get; set; }
+
     /// <summary>
     /// "Forms" (account name + password held by the hub), "Windows" (Negotiate through IIS) or "Development" (Development/Testing only).
     /// </summary>
@@ -74,7 +79,7 @@ public sealed class DevAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> 
 /// Turns the authenticated organization identity into an effective permission snapshot. Provisions a user on first sign-in only
 /// when a group mapping or bootstrap entry admits them; refuses deactivated or unmapped accounts (ACC-01).
 /// </summary>
-public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<AuthOptions> options, TimeProvider clock, ILogger<UserResolver> log)
+public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<AuthOptions> options, TimeProvider clock, ILogger<UserResolver> log, IDirectoryGroupLookup directory)
 {
     private readonly AuthOptions _opt = options.Value;
     private const string GenerationKey = "access-generation";
@@ -144,7 +149,8 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
     public bool IsForms => _opt.IsForms;
     public bool TryGroups(string? value, out string[] groups) => TryGroupsForMode(value, _opt.Mode, out groups);
     public string[] Groups(string? value) => TryGroups(value, out var groups) ? groups : [];
-    public string[] RequireGroups(string? value) => _opt.IsForms ? [] : RequireStoredGroups(value, _opt.Mode);
+    /// <summary>A stored snapshot that cannot be read blocks a change. An account that never signed in has none, exactly like one being created.</summary>
+    public string[] RequireGroups(string? value) => _opt.IsForms || value is null ? [] : RequireStoredGroups(value, _opt.Mode);
     public void MarkFormsSnapshot(User user) { if (_opt.IsForms) user.MappedGroups = FormsGroupSnapshot; }
     public HashSet<string> PrincipalGroups(ClaimsPrincipal principal) => _opt.IsForms ? new(StringComparer.OrdinalIgnoreCase) : GroupNames(principal);
 
@@ -245,16 +251,35 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
     }
 
     /// <summary>Effective access of any user from stored roles, scopes and last mapped groups (used for owner/assignee checks).</summary>
-    public async Task<ResolvedUser?> ForUserAsync(long userId, CancellationToken ct)
+    /// <param name="directWhenGroupsUnknown">For naming someone (owner, recipient) and for read-only inspection, an unreadable snapshot means "direct
+    /// assignments only" rather than "no access". Being named grants nothing. Delegation and authorization decisions leave this off and fail closed.</param>
+    public async Task<ResolvedUser?> ForUserAsync(long userId, CancellationToken ct, bool directWhenGroupsUnknown = false)
     {
         var user = await db.Users.AsNoTracking().Include(u => u.Roles).Include(u => u.Scopes).FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user is null) return null;
-        if (!TryGroups(user.MappedGroups, out var storedGroups))
+        // A live answer replaces the snapshot, including a stale or missing one; a failed lookup falls back to it and never adds access.
+        var liveGroups = _opt.IsForms ? null : await directory.GroupsAsync(user.AccountName, ct);
+        var storedGroups = liveGroups;
+        if (storedGroups is null && user.MappedGroups is null) storedGroups = [];
+        if (storedGroups is null)
+        {
+            if (TryGroups(user.MappedGroups, out var decoded)) storedGroups = decoded;
+            else if (directWhenGroupsUnknown) storedGroups = [];
+        }
+        if (storedGroups is null)
             return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive,
                 [], Right.None, [], Grant.None, false, [], [], [], [], false, [], AccessRestriction: "directory_groups_unavailable");
         var names = storedGroups.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var mappings = names.Count == 0 ? [] : await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).Where(m => names.Contains(m.GroupName)).ToListAsync(ct);
         return await AccessCalculator.ComputeAsync(db, user, mappings, ct, clock.GetUtcNow());
+    }
+
+    /// <summary>What an administrator's view of this account's directory groups rests on.</summary>
+    public async Task<DirectoryEvidence> DirectoryEvidenceAsync(string accountName, string? stored, DateTimeOffset? lastSignIn, CancellationToken ct)
+    {
+        if (_opt.IsForms) return new(DirectoryEvidence.NotApplicable, null);
+        if (await directory.GroupsAsync(accountName, ct) is not null) return new(DirectoryEvidence.Live, clock.GetUtcNow());
+        return TryGroups(stored, out _) ? new(DirectoryEvidence.LastObserved, lastSignIn) : new(DirectoryEvidence.Unavailable, null);
     }
 
     /// <summary>Directory groups of the signed-in principal (Windows groups, or test/development group claims).</summary>
@@ -347,6 +372,8 @@ public static class AccessCalculator
         var now = asOf ?? DateTimeOffset.UtcNow;
         var overrides = await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == user.Id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct);
         var permissions = PermissionOverrides.ResolveForRights(permissionSet, overrides, rights, now, activePermissions);
+        var assigned = PermissionOverrides.Assigned(permissionSet, rights.HasFlag(Right.Administer)
+            ? overrides.Where(o => !string.Equals(o.Effect, "Allow", StringComparison.Ordinal)) : overrides, now).Where(activePermissions.Contains).ToArray();
         var nextExpiry = overrides.Where(o => o.ExpiresAt != null).Select(o => o.ExpiresAt).Min();
         var scopes = user.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId))
             .Concat(matched.SelectMany(m => m.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)))).ToList();
@@ -363,6 +390,7 @@ public static class AccessCalculator
             projectEnvIds = await db.Environments.IgnoreQueryFilters().Where(e => e.ProjectId != null && projectIds.Contains(e.ProjectId.Value)).Select(e => e.Id).ToArrayAsync(ct);
         }
         return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights, permissions, grants,
-            allClients, clientIds, projectIds, projectClientIds, projectEnvIds, allInternal, teamIds, nextExpiry);
+            allClients, clientIds, projectIds, projectClientIds, projectEnvIds, allInternal, teamIds, nextExpiry,
+            AssignedPermissions: assigned, ScopedExceptions: PermissionOverrides.Scoped(overrides, rights, activePermissions));
     }
 }

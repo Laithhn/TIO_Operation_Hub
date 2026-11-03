@@ -70,14 +70,23 @@ public static class RoleConflicts
     }
 
     /// <summary>Verify that at least one Forms account can manage users after the proposed role change.</summary>
-    public static async Task<bool> HasFormsUserAdministratorAsync(HubDbContext db,
-        IEnumerable<(long UserId, long[] RoleIds)> candidates, DateTimeOffset now, CancellationToken ct, AppRole? proposedRole = null)
+    public static Task<bool> HasFormsUserAdministratorAsync(HubDbContext db,
+        IEnumerable<(long UserId, long[] RoleIds)> candidates, DateTimeOffset now, CancellationToken ct, AppRole? proposedRole = null) =>
+        HasUserAdministratorAsync(db, candidates.Where(c => c.UserId > 0), requireFormsCredential: true, now, ct, proposedRole);
+
+    /// <summary>Whether any candidate can manage users once denies, prerequisites, inactive roles and role conflicts are applied.</summary>
+    public static async Task<bool> HasUserAdministratorAsync(HubDbContext db, IEnumerable<(long UserId, long[] RoleIds)> candidates,
+        bool requireFormsCredential, DateTimeOffset now, CancellationToken ct, AppRole? proposedRole = null)
     {
-        var candidateList = candidates.Where(c => c.UserId > 0).ToArray();
+        var candidateList = candidates.ToArray();
         var ids = candidateList.Select(c => c.UserId).ToArray();
-        var credentials = await db.UserCredentials.AsNoTracking().Where(c => ids.Contains(c.UserId))
-            .Select(c => new { c.UserId, c.PasswordHash }).ToListAsync(ct);
-        var usableIds = credentials.Where(c => IsUsableFormsCredential(c.PasswordHash)).Select(c => c.UserId).ToHashSet();
+        var usableIds = new HashSet<long>();
+        if (requireFormsCredential)
+        {
+            var credentials = await db.UserCredentials.AsNoTracking().Where(c => ids.Contains(c.UserId))
+                .Select(c => new { c.UserId, c.PasswordHash }).ToListAsync(ct);
+            usableIds = credentials.Where(c => IsUsableFormsCredential(c.PasswordHash)).Select(c => c.UserId).ToHashSet();
+        }
         var roleIds = candidateList.SelectMany(c => c.RoleIds).Distinct().ToArray();
         var roles = await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => r.IsActive && roleIds.Contains(r.Id)).ToListAsync(ct);
         if (proposedRole is not null)
@@ -88,7 +97,7 @@ public static class RoleConflicts
         var entries = await db.UserPermissionOverrides.AsNoTracking().Where(o => ids.Contains(o.UserId)).ToListAsync(ct);
         var active = (await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var pairs = await LoadAsync(db, ct);
-        return candidateList.Any(c => usableIds.Contains(c.UserId)
+        return candidateList.Any(c => (!requireFormsCredential || usableIds.Contains(c.UserId))
             && !Conflicts(roles.Where(r => c.RoleIds.Contains(r.Id)).Select(r => r.Id), pairs)
             && HasUserAdministrationPermissions(roles.Where(r => c.RoleIds.Contains(r.Id)), entries.Where(o => o.UserId == c.UserId), active, now));
     }

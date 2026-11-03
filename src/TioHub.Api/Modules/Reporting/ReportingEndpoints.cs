@@ -317,7 +317,7 @@ public static class ReportingEndpoints
         foreach (var id in ids)
         {
             // Recipients are hub users who may export themselves; each receives only what their own access allows.
-            var r = await resolver.ForUserAsync(id, ct);
+            var r = await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true);
             if (r is null || !r.IsActive) check.Add("recipientIds", $"Recipient #{id} is not an active hub user.");
             else if ((r.Grants & Grant.Export) != Grant.Export || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
         }

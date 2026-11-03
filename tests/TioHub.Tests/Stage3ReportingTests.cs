@@ -103,7 +103,8 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
         await Run();
         var run = Assert.Single((await m.Get($"/reports/schedules/{id}/runs")).Body!["items"]!.AsArray())!;
         Assert.Equal("Failed", run["status"]!.GetValue<string>());
-        Assert.Contains("removedFilter", run["error"]!.GetValue<string>());
+        // Schedule history masks failure text: it can disclose scoped data to someone whose access has changed.
+        Assert.Null(run["error"]);
         Assert.False(run["canDownload"]!.GetValue<bool>());
         var schedule = (await m.Get($"/reports/schedules/{id}")).Body!["schedule"]!;
         Assert.True(schedule["nextRunAt"]!.GetValue<DateTimeOffset>() > DateTimeOffset.UtcNow);
@@ -118,7 +119,7 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
         var roleName = U("ExportOnly");
         var role = await m.Create("/admin/roles", new { name = roleName, rights = new[] { "Export" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Reporting:View", "Servers:View", "Servers:Export", "ClientStructure:View", "Environments:View" }, Right.Export) });
         var account = $@"DEV\{U("reporter")}";
-        var recipientId = await m.Create("/admin/users", new { accountName = account, displayName = "Export without technical details", workingTimeZone = "UTC", roleId = role });
+        var recipientId = await m.Create("/admin/users", new { accountName = account, displayName = "Export without technical details", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId = role });
         var recipient = await Hub.As(account);
         var client = await NewClient();
         var env = await NewEnv(client, "Zone regression");
@@ -136,7 +137,7 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
         var runs = (await m.Get($"/reports/schedules/{id}/runs")).Body!["items"]!.AsArray();
         Assert.Equal(2, runs.Count);
         var failed = Assert.Single(runs, r => r!["status"]!.GetValue<string>() == "Failed")!;
-        Assert.Contains("Technical detail", failed["error"]!.GetValue<string>());
+        Assert.Null(failed["error"]);
         Assert.False(failed["canDownload"]!.GetValue<bool>());
         Assert.Equal(1, Assert.Single(runs, r => r!["status"]!.GetValue<string>() == "Completed")!["rowCount"]!.GetValue<int>());
 
@@ -149,7 +150,7 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
         {
             var jobs = await db.ExportJobs.Where(j => j.ScheduleId == id && j.UserId == recipientId).OrderBy(j => j.Id).ToListAsync();
             Assert.Equal(2, jobs.Count);
-            Assert.Contains("Export permission", jobs[^1].Error);
+            Assert.Contains("export authority", jobs[^1].Error);
             Assert.All(jobs, j => Assert.Null(j.StoredPath));
             var ownJobs = await db.ExportJobs.Where(j => j.ScheduleId == id && j.UserId == m.UserId).ToListAsync();
             Assert.Equal(2, ownJobs.Count);
