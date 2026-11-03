@@ -7597,3 +7597,765 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    IF SCHEMA_ID(N'jira') IS NULL EXEC(N'CREATE SCHEMA [jira];');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    ALTER TABLE [work].[JiraReference] ADD [Origin] nvarchar(40) NOT NULL DEFAULT N'Manual';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [work].[CaseComment] (
+        [Id] bigint NOT NULL IDENTITY,
+        [CaseId] bigint NOT NULL,
+        [AuthorId] bigint NOT NULL,
+        [Body] nvarchar(max) NOT NULL,
+        [At] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_CaseComment] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_CaseComment_Case_CaseId] FOREIGN KEY ([CaseId]) REFERENCES [work].[Case] ([Id]),
+        CONSTRAINT [FK_CaseComment_User_AuthorId] FOREIGN KEY ([AuthorId]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraConnection] (
+        [Id] bigint NOT NULL IDENTITY,
+        [Name] nvarchar(100) NOT NULL,
+        [SiteUrl] nvarchar(300) NOT NULL,
+        [AuthMode] nvarchar(40) NOT NULL,
+        [AccountEmail] nvarchar(254) NULL,
+        [CloudId] nvarchar(64) NULL,
+        [IsEnabled] bit NOT NULL,
+        [JiraInstanceId] bigint NOT NULL,
+        [SecretProvider] nvarchar(40) NOT NULL,
+        [SecretReference] nvarchar(200) NULL,
+        [CredentialRotatedAt] datetimeoffset NULL,
+        [AccountTimeZone] nvarchar(64) NULL,
+        [LastTestAt] datetimeoffset NULL,
+        [LastTestOk] bit NULL,
+        [LastTestDurationMs] int NULL,
+        [LastTestJson] nvarchar(4000) NULL,
+        [LastSuccessfulTestAt] datetimeoffset NULL,
+        [LastDiscoveryAt] datetimeoffset NULL,
+        [LastDiscoveryError] nvarchar(1000) NULL,
+        [DetailFieldNames] nvarchar(500) NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_JiraConnection] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraConnection_JiraInstance_JiraInstanceId] FOREIGN KEY ([JiraInstanceId]) REFERENCES [work].[JiraInstance] ([Id]),
+        CONSTRAINT [FK_JiraConnection_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_JiraConnection_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[ClientJiraSettings] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientId] bigint NOT NULL,
+        [IsEnabled] bit NOT NULL,
+        [JiraConnectionId] bigint NULL,
+        [DefaultResponsibleTeamId] bigint NULL,
+        [DefaultCaseType] nvarchar(40) NULL,
+        [DefaultPriority] nvarchar(40) NOT NULL,
+        [NextReviewHours] int NOT NULL,
+        [ImportDoneIssues] bit NOT NULL,
+        [ImportFrom] date NULL,
+        [SyncOnStartup] bit NOT NULL,
+        [FullReconciliation] bit NOT NULL,
+        [FullReconciliationDays] int NOT NULL,
+        [SyncIntervalMinutes] int NOT NULL,
+        [LastPreviewAt] datetimeoffset NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_ClientJiraSettings] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ClientJiraSettings_Client_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [clients].[Client] ([Id]),
+        CONSTRAINT [FK_ClientJiraSettings_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id]),
+        CONSTRAINT [FK_ClientJiraSettings_Team_DefaultResponsibleTeamId] FOREIGN KEY ([DefaultResponsibleTeamId]) REFERENCES [teams].[Team] ([Id]),
+        CONSTRAINT [FK_ClientJiraSettings_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_ClientJiraSettings_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[ClientJiraSpace] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientId] bigint NOT NULL,
+        [JiraConnectionId] bigint NOT NULL,
+        [JiraProjectId] nvarchar(40) NOT NULL,
+        [ProjectKey] nvarchar(40) NOT NULL,
+        [ProjectName] nvarchar(255) NOT NULL,
+        [IsEnabled] bit NOT NULL,
+        [ReleasedAt] datetimeoffset NULL,
+        [ReleaseReason] nvarchar(1000) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_ClientJiraSpace] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ClientJiraSpace_Client_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [clients].[Client] ([Id]),
+        CONSTRAINT [FK_ClientJiraSpace_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id]),
+        CONSTRAINT [FK_ClientJiraSpace_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_ClientJiraSpace_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraActivity] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [ExternalEventId] nvarchar(60) NOT NULL,
+        [JiraIssueId] nvarchar(40) NOT NULL,
+        [CaseId] bigint NOT NULL,
+        [Type] nvarchar(40) NOT NULL,
+        [Field] nvarchar(120) NOT NULL,
+        [ActorName] nvarchar(255) NULL,
+        [At] datetimeoffset NOT NULL,
+        [FromValue] nvarchar(400) NULL,
+        [ToValue] nvarchar(400) NULL,
+        [ImportedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_JiraActivity] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraActivity_Case_CaseId] FOREIGN KEY ([CaseId]) REFERENCES [work].[Case] ([Id]),
+        CONSTRAINT [FK_JiraActivity_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraComment] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [JiraCommentId] nvarchar(40) NOT NULL,
+        [JiraIssueId] nvarchar(40) NOT NULL,
+        [CaseId] bigint NOT NULL,
+        [AuthorAccountId] nvarchar(128) NULL,
+        [AuthorName] nvarchar(255) NULL,
+        [BodyText] nvarchar(400) NOT NULL,
+        [JiraCreatedAt] datetimeoffset NOT NULL,
+        [JiraUpdatedAt] datetimeoffset NULL,
+        [VisibilityType] nvarchar(40) NULL,
+        [VisibilityValue] nvarchar(255) NULL,
+        [Withheld] bit NOT NULL,
+        [DeletedInJiraAt] datetimeoffset NULL,
+        [ImportedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_JiraComment] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraComment_Case_CaseId] FOREIGN KEY ([CaseId]) REFERENCES [work].[Case] ([Id]),
+        CONSTRAINT [FK_JiraComment_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraCredential] (
+        [JiraConnectionId] bigint NOT NULL,
+        [Ciphertext] nvarchar(400) NOT NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        CONSTRAINT [PK_JiraCredential] PRIMARY KEY ([JiraConnectionId]),
+        CONSTRAINT [FK_JiraCredential_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraDiscoveredSpace] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [JiraProjectId] nvarchar(40) NOT NULL,
+        [ProjectKey] nvarchar(40) NOT NULL,
+        [ProjectName] nvarchar(255) NOT NULL,
+        [FirstSeenAt] datetimeoffset NOT NULL,
+        [LastSeenAt] datetimeoffset NOT NULL,
+        [Missing] bit NOT NULL,
+        CONSTRAINT [PK_JiraDiscoveredSpace] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraDiscoveredSpace_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraIntegrationIssue] (
+        [Id] bigint NOT NULL IDENTITY,
+        [Type] nvarchar(40) NOT NULL,
+        [Status] nvarchar(40) NOT NULL,
+        [Fingerprint] nvarchar(200) NOT NULL,
+        [JiraConnectionId] bigint NOT NULL,
+        [ClientId] bigint NULL,
+        [ProjectKey] nvarchar(40) NULL,
+        [JiraProjectId] nvarchar(40) NULL,
+        [JiraIssueId] nvarchar(40) NULL,
+        [IssueKey] nvarchar(60) NULL,
+        [CaseId] bigint NULL,
+        [CandidateCaseId] bigint NULL,
+        [Subject] nvarchar(128) NULL,
+        [Description] nvarchar(1000) NOT NULL,
+        [SuggestedAction] nvarchar(500) NOT NULL,
+        [LastSeenAt] datetimeoffset NOT NULL,
+        [Occurrences] int NOT NULL,
+        [Resolution] nvarchar(40) NULL,
+        [ResolutionNote] nvarchar(1000) NULL,
+        [ResolvedById] bigint NULL,
+        [ResolvedAt] datetimeoffset NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_JiraIntegrationIssue] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraIntegrationIssue_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id]),
+        CONSTRAINT [FK_JiraIntegrationIssue_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_JiraIntegrationIssue_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraSyncRun] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [ClientId] bigint NULL,
+        [ClientJiraSpaceId] bigint NULL,
+        [ProjectKey] nvarchar(40) NULL,
+        [Type] nvarchar(40) NOT NULL,
+        [Trigger] nvarchar(40) NOT NULL,
+        [Status] nvarchar(40) NOT NULL,
+        [StartedAt] datetimeoffset NOT NULL,
+        [EndedAt] datetimeoffset NULL,
+        [IssuesRetrieved] int NOT NULL,
+        [CasesCreated] int NOT NULL,
+        [CasesUpdated] int NOT NULL,
+        [CommentsImported] int NOT NULL,
+        [ActivitiesImported] int NOT NULL,
+        [FailedRecords] int NOT NULL,
+        [Error] nvarchar(1000) NULL,
+        CONSTRAINT [PK_JiraSyncRun] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraSyncRun_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraUserMapping] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [JiraAccountId] nvarchar(128) NOT NULL,
+        [JiraDisplayName] nvarchar(255) NULL,
+        [TioUserId] bigint NULL,
+        [LastSeenAt] datetimeoffset NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_JiraUserMapping] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraUserMapping_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id]),
+        CONSTRAINT [FK_JiraUserMapping_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_JiraUserMapping_User_TioUserId] FOREIGN KEY ([TioUserId]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_JiraUserMapping_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraWorkflowStatusMapping] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [JiraProjectId] nvarchar(40) NOT NULL,
+        [JiraStatusId] nvarchar(40) NOT NULL,
+        [JiraStatusName] nvarchar(120) NOT NULL,
+        [JiraStatusCategory] nvarchar(40) NULL,
+        [TargetStatus] nvarchar(40) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_JiraWorkflowStatusMapping] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraWorkflowStatusMapping_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id]),
+        CONSTRAINT [FK_JiraWorkflowStatusMapping_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_JiraWorkflowStatusMapping_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraCaseMapping] (
+        [Id] bigint NOT NULL IDENTITY,
+        [JiraConnectionId] bigint NOT NULL,
+        [JiraIssueId] nvarchar(40) NOT NULL,
+        [IssueKey] nvarchar(60) NOT NULL,
+        [JiraProjectId] nvarchar(40) NOT NULL,
+        [ClientId] bigint NOT NULL,
+        [ClientJiraSpaceId] bigint NOT NULL,
+        [CaseId] bigint NULL,
+        [Source] nvarchar(40) NOT NULL,
+        [Url] nvarchar(500) NOT NULL,
+        [Summary] nvarchar(400) NULL,
+        [DescriptionText] nvarchar(400) NULL,
+        [StatusId] nvarchar(40) NULL,
+        [StatusName] nvarchar(120) NULL,
+        [StatusCategory] nvarchar(40) NULL,
+        [PriorityName] nvarchar(120) NULL,
+        [IssueTypeName] nvarchar(120) NULL,
+        [AssigneeAccountId] nvarchar(128) NULL,
+        [AssigneeName] nvarchar(255) NULL,
+        [ReporterName] nvarchar(255) NULL,
+        [JiraCreatedAt] datetimeoffset NULL,
+        [JiraUpdatedAt] datetimeoffset NULL,
+        [JiraDueDate] date NULL,
+        [Resolution] nvarchar(120) NULL,
+        [Labels] nvarchar(1000) NULL,
+        [Components] nvarchar(1000) NULL,
+        [DetailsJson] nvarchar(4000) NULL,
+        [LastSyncedAt] datetimeoffset NOT NULL,
+        [AppliedAssigneeAccountId] nvarchar(128) NULL,
+        [AppliedStatusId] nvarchar(40) NULL,
+        [OwnerFromJira] bit NOT NULL,
+        [ChildrenSyncedFor] datetimeoffset NULL,
+        [MissingInJiraAt] datetimeoffset NULL,
+        CONSTRAINT [PK_JiraCaseMapping] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraCaseMapping_Case_CaseId] FOREIGN KEY ([CaseId]) REFERENCES [work].[Case] ([Id]),
+        CONSTRAINT [FK_JiraCaseMapping_ClientJiraSpace_ClientJiraSpaceId] FOREIGN KEY ([ClientJiraSpaceId]) REFERENCES [jira].[ClientJiraSpace] ([Id]),
+        CONSTRAINT [FK_JiraCaseMapping_JiraConnection_JiraConnectionId] FOREIGN KEY ([JiraConnectionId]) REFERENCES [jira].[JiraConnection] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraSpaceSyncState] (
+        [ClientJiraSpaceId] bigint NOT NULL,
+        [IssueCheckpoint] datetimeoffset NULL,
+        [LastRunAt] datetimeoffset NULL,
+        [LastSuccessAt] datetimeoffset NULL,
+        [LastFullAt] datetimeoffset NULL,
+        [LastStatus] nvarchar(40) NULL,
+        [LastError] nvarchar(1000) NULL,
+        [ConsecutiveFailures] int NOT NULL,
+        [ForceFullNext] bit NOT NULL,
+        [ManualRequestedAt] datetimeoffset NULL,
+        [LeaseOwner] nvarchar(120) NULL,
+        [LeaseUntil] datetimeoffset NULL,
+        CONSTRAINT [PK_JiraSpaceSyncState] PRIMARY KEY ([ClientJiraSpaceId]),
+        CONSTRAINT [FK_JiraSpaceSyncState_ClientJiraSpace_ClientJiraSpaceId] FOREIGN KEY ([ClientJiraSpaceId]) REFERENCES [jira].[ClientJiraSpace] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_CaseComment_AuthorId] ON [work].[CaseComment] ([AuthorId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_CaseComment_CaseId_At] ON [work].[CaseComment] ([CaseId], [At]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ClientJiraSettings_ClientId] ON [jira].[ClientJiraSettings] ([ClientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSettings_CreatedById] ON [jira].[ClientJiraSettings] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSettings_DefaultResponsibleTeamId] ON [jira].[ClientJiraSettings] ([DefaultResponsibleTeamId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSettings_JiraConnectionId] ON [jira].[ClientJiraSettings] ([JiraConnectionId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSettings_UpdatedById] ON [jira].[ClientJiraSettings] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSpace_ClientId] ON [jira].[ClientJiraSpace] ([ClientId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSpace_CreatedById] ON [jira].[ClientJiraSpace] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_ClientJiraSpace_JiraConnectionId_JiraProjectId] ON [jira].[ClientJiraSpace] ([JiraConnectionId], [JiraProjectId]) WHERE [ReleasedAt] IS NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSpace_UpdatedById] ON [jira].[ClientJiraSpace] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraActivity_CaseId_At] ON [jira].[JiraActivity] ([CaseId], [At]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraActivity_JiraConnectionId_ExternalEventId] ON [jira].[JiraActivity] ([JiraConnectionId], [ExternalEventId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraActivity_JiraConnectionId_JiraIssueId] ON [jira].[JiraActivity] ([JiraConnectionId], [JiraIssueId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_JiraCaseMapping_CaseId] ON [jira].[JiraCaseMapping] ([CaseId]) WHERE [CaseId] IS NOT NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraCaseMapping_ClientJiraSpaceId] ON [jira].[JiraCaseMapping] ([ClientJiraSpaceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraCaseMapping_JiraConnectionId_IssueKey] ON [jira].[JiraCaseMapping] ([JiraConnectionId], [IssueKey]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraCaseMapping_JiraConnectionId_JiraIssueId] ON [jira].[JiraCaseMapping] ([JiraConnectionId], [JiraIssueId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraComment_CaseId_JiraCreatedAt] ON [jira].[JiraComment] ([CaseId], [JiraCreatedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraComment_JiraConnectionId_JiraCommentId] ON [jira].[JiraComment] ([JiraConnectionId], [JiraCommentId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraComment_JiraConnectionId_JiraIssueId] ON [jira].[JiraComment] ([JiraConnectionId], [JiraIssueId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraConnection_CreatedById] ON [jira].[JiraConnection] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraConnection_JiraInstanceId] ON [jira].[JiraConnection] ([JiraInstanceId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraConnection_Name] ON [jira].[JiraConnection] ([Name]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraConnection_SiteUrl] ON [jira].[JiraConnection] ([SiteUrl]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraConnection_UpdatedById] ON [jira].[JiraConnection] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraDiscoveredSpace_JiraConnectionId_JiraProjectId] ON [jira].[JiraDiscoveredSpace] ([JiraConnectionId], [JiraProjectId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraIntegrationIssue_CreatedById] ON [jira].[JiraIntegrationIssue] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    EXEC(N'CREATE UNIQUE INDEX [IX_JiraIntegrationIssue_Fingerprint] ON [jira].[JiraIntegrationIssue] ([Fingerprint]) WHERE [Status] = N''Open''');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraIntegrationIssue_JiraConnectionId] ON [jira].[JiraIntegrationIssue] ([JiraConnectionId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraIntegrationIssue_Status_Type] ON [jira].[JiraIntegrationIssue] ([Status], [Type]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraIntegrationIssue_UpdatedById] ON [jira].[JiraIntegrationIssue] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraSyncRun_ClientId_StartedAt] ON [jira].[JiraSyncRun] ([ClientId], [StartedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraSyncRun_ClientJiraSpaceId_StartedAt] ON [jira].[JiraSyncRun] ([ClientJiraSpaceId], [StartedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraSyncRun_JiraConnectionId] ON [jira].[JiraSyncRun] ([JiraConnectionId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraSyncRun_StartedAt] ON [jira].[JiraSyncRun] ([StartedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraUserMapping_CreatedById] ON [jira].[JiraUserMapping] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraUserMapping_JiraConnectionId_JiraAccountId] ON [jira].[JiraUserMapping] ([JiraConnectionId], [JiraAccountId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraUserMapping_TioUserId] ON [jira].[JiraUserMapping] ([TioUserId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraUserMapping_UpdatedById] ON [jira].[JiraUserMapping] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraWorkflowStatusMapping_CreatedById] ON [jira].[JiraWorkflowStatusMapping] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraWorkflowStatusMapping_JiraConnectionId_JiraProjectId_JiraStatusId] ON [jira].[JiraWorkflowStatusMapping] ([JiraConnectionId], [JiraProjectId], [JiraStatusId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    CREATE INDEX [IX_JiraWorkflowStatusMapping_UpdatedById] ON [jira].[JiraWorkflowStatusMapping] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103083834_JiraIntegration'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261103083834_JiraIntegration', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

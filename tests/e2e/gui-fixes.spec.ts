@@ -10,6 +10,8 @@ const WIDTHS = [320, 360, 390, 600, 768, 1024, 1440];
 
 async function api<T>(page: Page, path: string, body?: unknown, method = body === undefined ? 'GET' : 'POST'): Promise<T> {
   return page.evaluate(async ({ path, body, method }) => {
+    // The page's own first request issues the antiforgery cookie; a write can arrive before that request has finished.
+    if (!document.cookie.includes('XSRF-TOKEN=')) await fetch('/api/v1/me');
     const token = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1];
     const response = await fetch(`/api/v1${path}`, {
       method, headers: { Accept: 'application/json', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }), ...(token ? { 'X-XSRF-TOKEN': decodeURIComponent(token) } : {}) },

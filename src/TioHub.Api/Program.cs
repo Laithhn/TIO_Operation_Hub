@@ -98,7 +98,7 @@ builder.Services.AddOpenApi("v1", o => o.AddDocumentTransformer((doc, _, _) =>
 {
     doc.Info.Title = "TIO Operations Hub API";
     doc.Info.Version = "v1";
-    doc.Info.Description = "Versioned REST API of the TIO Operations Hub. Every operation enforces sign-in, role, scope and grants on the server. No Jira integration exists.";
+    doc.Info.Description = "Versioned REST API of the TIO Operations Hub. Every operation enforces sign-in, role, scope and grants on the server. The Jira integration reads from Jira Cloud and never writes to it.";
     return Task.CompletedTask;
 }));
 

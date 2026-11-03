@@ -105,7 +105,8 @@ public static class CaseEndpoints
                 reviewOverdue = CaseQuery.IsOpen(c.Status) && c.NextReviewAt < now,
                 overdue = CaseQuery.IsOpen(c.Status) && c.DueAt < now,
                 environments = envs, assets, components = comps,
-                jiraReferences = c.JiraReferences.Where(j => canJira && j.RemovedAt == null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, kind = j.JiraInstance.Kind, j.JiraInstanceId, j.IssueKey, j.Url, j.ReuseReason }),
+                jiraReferences = c.JiraReferences.Where(j => canJira && j.RemovedAt == null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, kind = j.JiraInstance.Kind, j.JiraInstanceId, j.IssueKey, j.Url, j.ReuseReason, j.Origin }),
+                jiraSource = canJira ? await Jira.JiraCaseEndpoints.SourceAsync(db, c.Id, now, ct) : null,
                 removedJiraReferences = c.JiraReferences.Where(j => canJira && canHistory && j.RemovedAt != null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, j.IssueKey, j.RemovedAt }),
                 commitments, events,
                 contract = c.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == c.ContractId).Select(k => new { k.Id, k.Ref, k.Title, k.Status }).FirstOrDefaultAsync(ct),
@@ -317,6 +318,8 @@ public static class CaseEndpoints
                 var names = await access.UserRefsAsync([c.OwnerUserId, input.OwnerUserId], ct);
                 AddEvent(db, c, CaseEventType.OwnerChanged, c.OwnerUserId is { } o ? names.GetValueOrDefault(o)?.Name : "Unassigned", input.OwnerUserId is { } n ? names.GetValueOrDefault(n)?.Name : "Unassigned", input.Reason, access.Me, now);
             }
+            // A76: a person's assignment holds until the Jira assignee changes again.
+            if (input.OwnerUserId != c.OwnerUserId && await db.JiraCaseMappings.FirstOrDefaultAsync(m => m.CaseId == id, ct) is { } jiraSource) jiraSource.OwnerFromJira = false;
             c.OwnerUserId = input.OwnerUserId;
             c.BackupOwnerUserId = input.BackupOwnerUserId;
             await db.SaveChangesAsync(ct);
@@ -584,6 +587,8 @@ public static class CaseEndpoints
             var c = await LoadForChangeAsync(db, id, ct);
             access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             var j = await db.JiraReferences.FirstOrDefaultAsync(x => x.Id == refId && x.CaseId == id && x.RemovedAt == null, ct) ?? throw new NotFoundException("The Jira reference");
+            if (j.Origin != JiraReferenceOrigin.Manual && await db.JiraCaseMappings.AnyAsync(m => m.CaseId == id && m.IssueKey == j.IssueKey, ct))
+                throw new ValidationException("reason", "This is the synchronized source issue of the case, so it stays while the case is synchronized.");
             var reason = Rules.RequireReason(input.Reason);
             var now = clock.GetUtcNow();
             j.RemovedAt = now;
@@ -612,9 +617,10 @@ public static class CaseEndpoints
 
     public sealed record CaseListQuery(long? ClientId, long? RegionId, long? EnvironmentId, long? ProductId, long? TeamId, long? OwnerId, bool? Unassigned, string? Status,
         Priority? Priority, WorkScope? Scope, string? Due, bool? Waiting, bool? ReviewOverdue, bool? Stale, string? JiraKey, string? Q, DateTimeOffset? CreatedFrom, DateTimeOffset? CreatedTo,
-        bool? CoverageGap, bool? DeactivatedOwner, string? Country, DateTimeOffset? AsOf, string? Sort, int? Page, int? PageSize, long? ContractId = null, string? Sla = null)
+        bool? CoverageGap, bool? DeactivatedOwner, string? Country, DateTimeOffset? AsOf, string? Sort, int? Page, int? PageSize, long? ContractId = null, string? Sla = null,
+        string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null)
     {
-        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, Priority, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla);
+        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, Priority, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla, JiraSource, JiraConnectionId, JiraSpace);
     }
 
     public static Expression<Func<Case, CaseRow>> Row(DateTimeOffset now, Quality.ReviewPolicy? policy)
@@ -632,13 +638,15 @@ public static class CaseEndpoints
             c.JiraReferences.Where(j => j.RemovedAt == null).Select(j => j.IssueKey).ToList(),
             c.Contract == null ? null : c.Contract.Ref,
             c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now ? SlaState.Breached : c.ResponseSlaStatus,
-            c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now ? SlaState.Breached : c.ResolutionSlaStatus);
+            c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now ? SlaState.Breached : c.ResolutionSlaStatus,
+            c.JiraSource == null ? null : c.JiraSource.IssueKey, c.JiraSource == null ? null : c.JiraSource.JiraConnection!.Name, c.JiraSource == null ? null : c.JiraSource.StatusName);
     }
 
     public sealed record CaseRow(long Id, string Ref, string Title, string Type, WorkScope Scope, CaseStatus Status, Priority Priority,
         long? ClientId, string? ClientCode, string? TeamName, long? OwnerUserId, string? OwnerName, bool OwnerDeactivated,
         WaitingReason? WaitingReason, DateTimeOffset? WaitingSince, string NextAction, DateTimeOffset NextReviewAt, DateTimeOffset? DueAt, string? DueTimeZone, DateTimeOffset CreatedAt,
-        bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys, string? ContractRef = null, SlaState ResponseSla = SlaState.NotApplicable, SlaState ResolutionSla = SlaState.NotApplicable);
+        bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys, string? ContractRef = null, SlaState ResponseSla = SlaState.NotApplicable, SlaState ResolutionSla = SlaState.NotApplicable,
+        string? JiraSourceKey = null, string? JiraConnectionName = null, string? JiraStatus = null);
 
     private static object Permissions(Case c, UserContext me, bool belongsToTeam)
     {
@@ -681,7 +689,8 @@ public static class CaseEndpoints
         if (i.NextReviewAt is not null) c.NextReviewAt = i.NextReviewAt.Value;
     }
 
-    private static void Transition(HubDbContext db, Case c, CaseStatus to, CaseEventType type, string? note, UserContext me, DateTimeOffset now)
+    /// <summary>The one way a case changes status, for people and for the Jira synchronization (A76).</summary>
+    internal static void Transition(HubDbContext db, Case c, CaseStatus to, CaseEventType type, string? note, UserContext me, DateTimeOffset now)
     {
         AddEvent(db, c, type, c.Status.ToString(), to.ToString(), note, me, now);
         // A61: resolved = first move into Pending validation or Closed; a rejected validation clears it; a later reopen keeps it.

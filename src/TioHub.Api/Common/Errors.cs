@@ -77,6 +77,8 @@ public sealed class Check
 
     public bool Has(string field) => _errors.ContainsKey(field);
 
+    public string? First(string field) => _errors.TryGetValue(field, out var list) ? list.FirstOrDefault() : null;
+
     public void ThrowIfAny(string title = "Some values need attention.")
     {
         if (_errors.Count > 0)

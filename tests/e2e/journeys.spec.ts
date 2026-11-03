@@ -195,7 +195,7 @@ test.describe('Business journeys', () => {
     await expect(page.getByRole('dialog').getByText(/active owner is required/)).toBeVisible();
     await page.getByRole('dialog').getByRole('button', { name: 'Cancel' }).click();
 
-    await page.getByRole('button', { name: 'Assign' }).click();
+    await page.getByRole('button', { name: 'Assign', exact: true }).click();
     await page.getByRole('dialog').getByLabel('Owner', { exact: true }).selectOption({ label: 'Esra Demir (demo engineer)' });
     await confirmDialog(page, 'Assign');
     await page.getByRole('button', { name: 'Start work' }).click();

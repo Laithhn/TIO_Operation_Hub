@@ -13,9 +13,10 @@ import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
+import { CaseActivity, JiraBanner, JiraDetailsPanel, jiraOriginLabel, type JiraSource } from './jira/CaseJira';
 
 type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
-  contractRef?: string; responseSla: string; resolutionSla: string };
+  contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string };
 
 /** A61: contractual SLA filters of the case list (also the dashboard drill-downs). */
 export const SLA_FILTERS = [
@@ -34,7 +35,7 @@ export function SlaPair({ response, resolution }: { response: string; resolution
 export function CaseList() {
   const caseStatusLabel = useEnumLabel('CaseStatus');
   const me = useMe().data!;
-  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', createdFrom: '', createdTo: '', sort: '-created', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', jiraSource: '', jiraSpace: '', jiraConnectionId: '', createdFrom: '', createdTo: '', sort: '-created', page: '1', pageSize: '15' });
   const [text, setText] = useState(f.q);
   const dq = useDebounced(text);
   useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -49,7 +50,7 @@ export function CaseList() {
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
   return (
     <>
-      <PageHead title="Cases" sub="Hub management records. Status is independent of any Jira ticket; Unassigned is an ownership gap, not a status."
+      <PageHead title="Cases" sub="Hub management records. Synchronized cases follow their Jira status through validated mappings; other cases are independent of any Jira ticket. Unassigned is an ownership gap, not a status."
         actions={<>{canExportReport(me, 'cases') && <button className="btn" onClick={() => exportCsv('cases', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/cases/new">+ New Case</Link>}</>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
@@ -62,6 +63,8 @@ export function CaseList() {
           options={[{ value: 'waiting', label: 'Waiting' }, { value: 'review', label: 'Next review passed' }, { value: 'stale', label: 'Stale review' }, { value: 'coverage', label: 'No backup (coverage policy)' }]} empty="Any" />
         <SelectInput label="Contractual SLA" value={f.sla} onChange={v => set({ sla: v })} options={SLA_FILTERS} empty="Any" />
         <TextInput label="Jira key" value={f.jiraKey} onChange={v => set({ jiraKey: v })} placeholder="ABC-123" />
+        <SelectInput label="Jira source" value={f.jiraSource} onChange={v => set({ jiraSource: v })} options={[{ value: 'synchronized', label: 'Synchronized from Jira' }, { value: 'notSynchronized', label: 'Not synchronized' }]} empty="Any" />
+        <TextInput label="Jira space" value={f.jiraSpace} onChange={v => set({ jiraSpace: v.toUpperCase() })} placeholder="TAH" />
         {(f.contractId || f.createdFrom || f.createdTo) && <div className="notice" style={{ margin: 0 }}>
           {f.contractId && <>Contract #{f.contractId}. </>}{(f.createdFrom || f.createdTo) && <>Opened {f.createdFrom ? `from ${fmtDateTime(f.createdFrom)}` : ''} {f.createdTo ? `until ${fmtDateTime(f.createdTo)}` : ''} (from dashboard). </>}
           <button className="linkbtn" onClick={() => set({ contractId: '', createdFrom: '', createdTo: '' })}>Clear</button></div>}
@@ -77,13 +80,14 @@ export function CaseList() {
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s} value={s}>{caseStatusLabel(s)}</option>)}</select> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} />,
             filter: <select className="input" aria-label="Filter by priority" value={f.priority} onChange={e => set({ priority: e.target.value })}><option value="">All</option>{priorities.map(s => <option key={s}>{s}</option>)}</select> },
+          { key: 'jira', header: 'Jira', render: r => <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <div className="hint"><Badge tone="info">Synchronized</Badge> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</div>}</> },
           { key: 'owner', header: 'Owner', sort: 'owner', render: r => r.ownerName ? <>{r.ownerName}{r.ownerDeactivated && <> <Badge tone="bad">Deactivated</Badge></>}</> : <span className="muted">Unassigned</span> },
           { key: 'team', header: 'Team', render: r => r.teamName },
           { key: 'next', header: 'Next action / review', render: r => <>{r.nextAction}<div className="hint">{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</div></> },
           { key: 'due', header: 'Due', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">No deadline</span> },
           { key: 'sla', header: 'Contractual SLA', render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
           { key: 'flags', header: 'Flags', render: r => <>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</> },
-          { key: 'jira', header: 'Jira', render: r => r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>) }, { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/cases/${r.id}`} what={`case ${r.ref}`} /> }
+          { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/cases/${r.id}`} what={`case ${r.ref}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
     </>
@@ -132,7 +136,7 @@ type CaseDto = {
   evidenceException?: { reason: string; approvedBy?: UserRef; followUpOwner?: UserRef; followUpDate?: string }; cancelReason?: string; closedAt?: string; cancelledAt?: string; createdAt: string; lastReviewedAt?: string;
   freshness: FreshnessT; reviewOverdue: boolean; overdue: boolean;
   environments: { id: number; name: string; type: string; regionCode?: string }[]; assets: { id: number; name: string; type: string }[]; components: { id: number; name: string; role: string; installation: string }[];
-  jiraReferences: { id: number; instance: string; kind: string; jiraInstanceId: number; issueKey: string; url: string; reuseReason?: string }[]; removedJiraReferences: { id: number; instance: string; issueKey: string; removedAt: string }[];
+  jiraReferences: { id: number; instance: string; kind: string; jiraInstanceId: number; issueKey: string; url: string; reuseReason?: string; origin: string }[]; jiraSource?: JiraSource; removedJiraReferences: { id: number; instance: string; issueKey: string; removedAt: string }[];
   commitments: { id: number; ref: string; description: string; status: string; currentDueAt: string; timeZone: string }[];
   events: { id: number; type: string; fromValue?: string; toValue?: string; note?: string; at: string; by?: string }[];
   contract?: { id: number; ref: string; title: string; status: string };
@@ -221,7 +225,7 @@ export function CaseForm() {
           {(isNew || canViewTab(me, 'Cases', 'affected')) && <AffectedPicker clientId={cid} value={v.affected} onChange={x => f.set('affected', x)} error={f.fieldError('affected.environmentIds') ?? f.fieldError('affected.assetIds')} />}
           {!isNew && <TextInput label="Change note (kept in the timeline)" wide value={v.changeNote} onChange={x => f.set('changeNote', x)} />}
         </div>
-        <p className="hint" style={{ marginTop: 8 }}>Jira tickets are created and updated in Jira by staff; the hub stores manual references only.{!isNew && ' Change the owner, due date or status with the actions on the case page.'}</p>
+        <p className="hint" style={{ marginTop: 8 }}>Jira tickets are created and updated in Jira by staff; the hub never writes to Jira.{!isNew && ' Change the owner, due date or status with the actions on the case page.'}</p>
         <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{f.busy ? 'Saving…' : isNew ? 'Create case' : 'Save case'}</button></div>
       </Panel>
     </>
@@ -267,10 +271,11 @@ export function CaseDetail() {
           {p.canReopen && <button className="btn" onClick={() => setDialog('reopen')}>Reopen</button>}
         <DeleteAction button path={`/cases/${c.id}`} what={`case ${c.ref}`} afterTo={'/cases'} /></>} />
       {c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
-      <div className="cols">
+      {c.jiraSource && <JiraBanner s={c.jiraSource} />}
+      <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>
         <Panel title="Management summary">
           <DL items={[
-            ['Owner', <Person u={c.owner} />], ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
+            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
             ['Responsible party', `${label(c.responsibleParty)}${c.responsibleOrganization ? ` · ${c.responsibleOrganization}` : ''}`],
             ['Impact', c.impactSummary], ['Progress', c.progressSummary ?? <span className="muted">No progress recorded</span>],
             ['Next action', c.nextAction], ['Next review', <><When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</>],
@@ -287,11 +292,12 @@ export function CaseDetail() {
             ...(c.cancelReason ? [['Cancellation reason', c.cancelReason] as [string, string]] : [])
           ]} />
         </Panel>
+        {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} />}
       </div>
       {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open} canChangeContract={canCoordinate} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
       {tab === 'escalations' && <Panel title="Escalations about this case" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
-      {tab === 'timeline' && <Panel title="Timeline"><ul className="timeline">{c.events.map(e => <li key={e.id}><b>{label(e.type)}</b>{(e.fromValue || e.toValue) && <> {e.fromValue ?? '—'} → {e.toValue ?? '—'}</>}{e.note && <> — {e.note}</>}<div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul></Panel>}
+      {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
       {tab === 'affected' && <Panel title="Affected records">
         {c.environments.length === 0 && c.unknownEnvironmentReason && <div className="notice warn">Environment not yet identified: {c.unknownEnvironmentReason}</div>}
         <DL items={[
@@ -300,13 +306,13 @@ export function CaseDetail() {
           ['Components', c.components.length ? c.components.map(x => <div key={x.id}>{x.name} ({x.installation})</div>) : <span className="muted">None</span>],
         ]} />
       </Panel>}
-      {tab === 'jira' && <Panel title="Manual Jira references" actions={p.canEdit && hasPermission(me, 'tab.Cases.jira', 'Create') && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
-        <p className="hint" style={{ marginBottom: 8 }}>Customer Cloud Jira and Internal On-prem Jira are disconnected. The hub never creates, reads or synchronizes tickets; status here is managed separately.</p>
-        {c.jiraReferences.length === 0 ? <StateMessage kind="none" /> : <DataTable caption="Manual Jira references" rows={c.jiraReferences} rowKey={j => j.id} columns={[
-          { key: 'instance', header: 'Instance', render: j => j.instance }, { key: 'key', header: 'Key', render: j => <span className="mono">{j.issueKey}</span> },
+      {tab === 'jira' && <Panel title="Jira references" actions={p.canEdit && hasPermission(me, 'tab.Cases.jira', 'Create') && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
+        <p className="hint" style={{ marginBottom: 8 }}>Customer Cloud Jira and Internal On-prem Jira are separate systems. Internal On-prem references are manual links only. A synchronized source issue appears here automatically and manual references stay.</p>
+        {c.jiraReferences.length === 0 ? <StateMessage kind="none" /> : <DataTable caption="Jira references" rows={c.jiraReferences} rowKey={j => j.id} columns={[
+          { key: 'instance', header: 'Instance', render: j => j.instance }, { key: 'origin', header: 'Type', render: j => jiraOriginLabel(j.origin) }, { key: 'key', header: 'Key', render: j => <span className="mono">{j.issueKey}</span> },
           { key: 'link', header: 'Link', render: j => <a href={j.url} target="_blank" rel="noopener noreferrer">{j.url}</a> },
           { key: 'reason', header: 'Link reason', render: j => j.reuseReason },
-          { key: 'actions', header: '', render: j => p.canEdit && hasPermission(me, 'tab.Cases.jira', 'Delete') && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
+          { key: 'actions', header: '', render: j => p.canEdit && j.origin === 'Manual' && hasPermission(me, 'tab.Cases.jira', 'Delete') && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
         ]} />}
         {c.removedJiraReferences.length > 0 && <p className="hint" style={{ marginTop: 8 }}>Removed (kept in history): {c.removedJiraReferences.map(j => `${j.instance} ${j.issueKey}`).join(', ')}</p>}
       </Panel>}

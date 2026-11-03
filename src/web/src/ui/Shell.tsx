@@ -1,7 +1,7 @@
 import { canAccessPath, hasPermission, hasAnyPermission } from '../permissions';
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Link, NavLink, useLocation, useNavigate } from 'react-router';
-import { get, signOut } from '../api';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Link, NavLink, useLocation } from 'react-router';
+import { signOut } from '../api';
 import { useMe, type Me } from '../hooks';
 import { Menu, SectionContext } from './kit';
 import { ConfigNav } from './ConfigNav';
@@ -9,7 +9,6 @@ import { configAt } from '../configRegistry';
 import { NotificationBell } from './NotificationBell';
 import { Icon, Logo } from './Icon';
 import { cx, frameCss, PrimaryLinksMarker, SidebarMarker, SidebarTitle } from '../vt/frame';
-import { ClientLogo } from './ClientLogo';
 
 /** tree 'config': the entry carries the Configuration tree (ConfigNav) instead of fixed children. */
 type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m: Me) => boolean; children?: Item[]; tree?: 'config' };
@@ -19,7 +18,10 @@ type Section = { key: string; label: string; to: string; match: RegExp; show?: (
 const biz = (m: Me) => !!m.businessRole;
 const action = (resource: string, operation: string) => (m: Me) => hasPermission(m, resource, operation);
 const tech = (m: Me) => biz(m) && m.grants.technicalDetail;
+// GUI-13: the search palette loads when it is first opened, which keeps the entry chunk within its budget.
+const SearchPalette = lazy(() => import('./SearchPalette').then(m => ({ default: m.SearchPalette })));
 const admin = (m: Me) => m.isAdministrator;
+const integrations = (m: Me) => m.isAdministrator && hasPermission(m, 'AdminIntegrations', 'View');
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
@@ -95,6 +97,10 @@ const SECTIONS: Section[] = [
     // A34: each configurable list has its own page. The Configuration tree (categories, search, System pages) comes from the
     // configuration registry and is drawn by ConfigNav; review policies, Jira instances and settings sit in its System category.
     { to: '/admin/config', label: 'Configuration', icon: 'list', show: admin, tree: 'config' },
+    { to: '/admin/integrations/jira', label: 'Jira Connections', icon: 'online', show: integrations, end: true },
+    { to: '/admin/integrations/jira/review', label: 'Jira import review', icon: 'list', show: integrations },
+    { to: '/admin/integrations/jira/conflicts', label: 'Jira conflicts', icon: 'warning', show: integrations },
+    { to: '/admin/integrations/jira/monitoring', label: 'Jira sync monitor', icon: 'history', show: integrations },
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => m.grants.audit || m.isAdministrator },
     { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
   ] }
@@ -387,53 +393,8 @@ export function Shell({ children }: { children: ReactNode }) {
           <span className="online"><Icon name="online" size={16} />Server Online</span>
         </span>
       </footer>
-      {palette && <SearchPalette onClose={() => setPalette(false)} />}
+      {palette && <Suspense fallback={null}><SearchPalette onClose={() => setPalette(false)} /></Suspense>}
     </div>
   );
 }
 
-type Hit = { group: string; title: string; subtitle: string; link: string };
-
-function SearchPalette({ onClose }: { onClose: () => void }) {
-  const [q, setQ] = useState('');
-  const [hits, setHits] = useState<Hit[]>([]);
-  const [busy, setBusy] = useState(false);
-  const [sel, setSel] = useState(0);
-  const nav = useNavigate();
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => { input.current?.focus(); }, []);
-  useEffect(() => {
-    const t = q.trim();
-    if (t.length < 2) { setHits([]); return; }
-    setBusy(true);
-    const h = setTimeout(() => get<Hit[]>(`/search?q=${encodeURIComponent(t)}`).then(r => { setHits(r); setSel(0); }).catch(() => setHits([])).finally(() => setBusy(false)), 200);
-    return () => clearTimeout(h);
-  }, [q]);
-  const go = (h: Hit) => { onClose(); nav(h.link); };
-  return (
-    <div className="scrim" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="dialog palette" role="dialog" aria-modal="true" aria-label="Search">
-        <input ref={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, environments, contracts, cases, Jira keys, commitments…" aria-label="Search"
-          onKeyDown={e => {
-            if (e.key === 'Escape') onClose();
-            else if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.min(s + 1, hits.length - 1)); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(s => Math.max(s - 1, 0)); }
-            else if (e.key === 'Enter' && hits[sel]) go(hits[sel]);
-          }} />
-        <ul role="listbox" aria-label="Results">
-          {busy && <li className="g">Searching…</li>}
-          {!busy && q.trim().length >= 2 && hits.length === 0 && <li className="g">No matching records in your scope.</li>}
-          {hits.map((h, i) => (
-            <li key={h.link + i}>
-              {(i === 0 || hits[i - 1].group !== h.group) && <div className="g">{h.group}</div>}
-              <a href={h.link} role="option" aria-selected={i === sel} onClick={e => { e.preventDefault(); go(h); }} onMouseEnter={() => setSel(i)}>
-                {/^\/clients\/\d+$/.test(h.link) && <><ClientLogo clientId={Number(h.link.slice(9))} code={h.title.split(' · ')[0]} name={h.title.split(' · ')[1]} size="xs" decorative />{' '}</>}
-                <b>{h.title}</b> <span className="muted">· {h.subtitle}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
-}

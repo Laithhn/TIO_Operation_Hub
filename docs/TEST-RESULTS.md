@@ -347,3 +347,30 @@ Isolated `(localdb)\TioHubQALocalDB`, Playwright port 5196, Edge. Details: [UX-A
 
 - `dotnet test tests/TioHub.Tests`: **97 passed, 0 failed**. `AC03b_MicroserviceDeployment` extended: a server created with two hosted microservices in one request appears with them on the installation's deployment view and in the server's options (pre-ticked); editing the server replaces its microservices; a selection for an installation of another environment refuses the whole request and no server is created.
 - `tests/e2e`: **13 passed, 0 failed**. Microservices journey extended: from the environment page, add a server, tick a microservice of "PSOP Main" (installations are labelled groups, so two PSOP installations are unambiguous), save, and see it on the installation's deployment view.
+
+## Release 2.46.0: Jira integration (A76), 3 November 2026
+
+Actual runs on the final working tree, on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval for this run.
+
+| Suite | Result |
+|---|---|
+| Backend, `dotnet test tests/TioHub.Tests` (real SQL Server) | **589 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | **163 passed, 0 failed** |
+| Playwright, access-control isolated | 9 passed |
+| Playwright, access-roles isolated | 5 passed |
+| Frontend, `vitest` | 82 passed |
+| `tsc -b --noEmit` | Clean |
+
+The Jira tests use a **fake Jira**. They are not evidence that a real site works: no run has reached a real Jira site.
+
+Changes to existing tests:
+
+- `Api_has_no_outbound_http_client_dependencies` became `Only_the_read_only_jira_client_makes_outbound_http_calls`, because A76 reverses the no-integration rule of AC-16. The Jira client is the only exception.
+- `No_entity_has_a_password_secret_or_token_field` exempts `JiraAuth.Token`, an in-memory value whose `ToString` omits it.
+- The schema readiness test lists the new migration.
+- The case lifecycle journey clicks **Assign** with an exact name, because the new **Assignments** filter also matched.
+- `gui-fixes.spec.ts`: the `api` helper now fetches `/me` when the antiforgery cookie is missing. **GUI-02 failed the same way on untouched commit 2ddbc77**, so this was an existing race in the test, not a regression.
+
+The entry chunk grew past the 900 kB budget by 817 bytes. The budget is unchanged: the search palette now loads on first use, and the chunk is 896,571 bytes.
+
+Not run: a real Jira site; scoped tokens through the real gateway; the upgrade script on a restored UAT backup; `Install`/`Upgrade` on IIS.

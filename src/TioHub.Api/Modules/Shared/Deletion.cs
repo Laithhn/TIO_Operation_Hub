@@ -186,6 +186,11 @@ public static partial class Deletion
                 await db.CaseWaitingIntervals.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
                 await db.CaseEvents.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
                 await db.JiraReferences.IgnoreQueryFilters().Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
+                await db.CaseComments.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
+                await db.JiraComments.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
+                await db.JiraActivities.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
+                // A76: the mapping stays without its case, so the next synchronization does not import the deleted case again.
+                await db.JiraCaseMappings.IgnoreQueryFilters().Where(r => r.CaseId == id).ExecuteUpdateAsync(u => u.SetProperty(r => r.CaseId, (long?)null), ct);
             }, ct);
         }).WithTags("Delete");
         api.MapDelete("/commitments/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>

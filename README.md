@@ -9,7 +9,7 @@ One dependable operational view of TIO's clients (with or without regions), thei
 | Front end | React 18 + TypeScript + Vite + TanStack Query (`src/web`), built into the API's `wwwroot` |
 | Tests | xUnit unit + SQL Server acceptance tests (`tests/TioHub.Tests`), Playwright browser journeys in Microsoft Edge (`tests/e2e`) |
 
-The hub never calls Jira, vaults, client systems or messaging: Jira tickets are stored as manual references only. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
+The hub never calls vaults, client systems or messaging. It reads from Jira Cloud and never writes to it (A76, off by default); other Jira tickets are stored as manual references. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
 
 ## Documents
 
@@ -31,6 +31,11 @@ The hub never calls Jira, vaults, client systems or messaging: Jira tickets are 
 | [docs/AUTHORIZATION-AUDIT-2.45.md](docs/AUTHORIZATION-AUDIT-2.45.md) | Endpoint audit findings and open items |
 | [docs/AUTHORIZATION-2.43.md](docs/AUTHORIZATION-2.43.md) | Current Rights editor, dependencies, verification, migration and revocation guarantees |
 | [docs/AUTHORIZATION-CAPABILITY-MATRIX.md](docs/AUTHORIZATION-CAPABILITY-MATRIX.md) | Current 134-key permission inventory and enforcement paths |
+| [docs/JIRA_INTEGRATION_ARCHITECTURE.md](docs/JIRA_INTEGRATION_ARCHITECTURE.md) | Jira integration: architecture, data model, API use |
+| [docs/JIRA_BUSINESS_LOGIC_MAPPING.md](docs/JIRA_BUSINESS_LOGIC_MAPPING.md) | What Jira may change on a case, SLA onboarding, open owner decisions |
+| [docs/JIRA_UI_IMPLEMENTATION.md](docs/JIRA_UI_IMPLEMENTATION.md) | The eight screens and deviations from the approved mockups |
+| [docs/JIRA_SYNC_OPERATIONS_GUIDE.md](docs/JIRA_SYNC_OPERATIONS_GUIDE.md) | First use, schedule, monitoring, rollback |
+| [docs/JIRA_SECURITY_AND_DEPLOYMENT.md](docs/JIRA_SECURITY_AND_DEPLOYMENT.md) | Credentials, protections, deployment steps |
 | [docs/TEST-RESULTS.md](docs/TEST-RESULTS.md) | Actual test results and known gaps |
 
 ## Run locally

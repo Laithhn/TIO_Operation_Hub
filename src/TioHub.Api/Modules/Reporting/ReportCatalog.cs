@@ -139,7 +139,7 @@ public static class ReportCatalog
 
     private static CaseFilter CaseFilterOf(ReportContext x) => new(x.L("clientId"), x.L("regionId"), x.L("environmentId"), x.L("productId"), x.L("teamId"), x.L("ownerId"), x.B("unassigned"), x.S("status"),
         x.E<Priority>("priority"), x.E<WorkScope>("scope"), x.S("due"), x.B("waiting"), x.B("reviewOverdue"), x.B("stale"), x.S("jiraKey"), x.S("q"), x.From("createdFrom"), x.To("createdTo"),
-        x.B("coverageGap"), x.B("deactivatedOwner"), x.S("country"), x.L("contractId"), x.S("sla"));
+        x.B("coverageGap"), x.B("deactivatedOwner"), x.S("country"), x.L("contractId"), x.S("sla"), x.S("jiraSource"), x.L("jiraConnectionId"), x.S("jiraSpace"));
 
     public static readonly IReadOnlyList<ReportDefinition> All = Build();
 
@@ -161,7 +161,7 @@ public static class ReportCatalog
                 .. Range("createdFrom", "createdTo", "Created"),
                 new("due", "Deadline", FilterKind.Select, true, ["overdue", "24h", "upcoming", "none"]),
                 new("waiting", "Waiting only", FilterKind.Bool, true), new("q", "Title or reference contains", FilterKind.Text, true)],
-            ListKeys = ["regionId", "environmentId", "unassigned", "reviewOverdue", "stale", "jiraKey", "coverageGap", "deactivatedOwner", "country", "contractId", "sla", "asOf"],
+            ListKeys = ["regionId", "environmentId", "unassigned", "reviewOverdue", "stale", "jiraKey", "coverageGap", "deactivatedOwner", "country", "contractId", "sla", "asOf", "jiraSource", "jiraSpace", "jiraConnectionId"],
             Query = async (x, ct) => (await Cases(x, CaseFilterOf(x), ct)).OrderBy(c => c.Id).Select(CaseEndpoints.Row(x.Now, (await x.Fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record)))),
             Cols = [
                 new("Reference", "Hub case reference", r => r.Ref),

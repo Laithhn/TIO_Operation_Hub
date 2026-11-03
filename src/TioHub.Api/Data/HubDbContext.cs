@@ -91,6 +91,20 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<CaseEvent> CaseEvents => Set<CaseEvent>();
     public DbSet<JiraInstance> JiraInstances => Set<JiraInstance>();
     public DbSet<JiraReference> JiraReferences => Set<JiraReference>();
+    public DbSet<Modules.Jira.JiraConnection> JiraConnections => Set<Modules.Jira.JiraConnection>();
+    public DbSet<Modules.Jira.JiraCredential> JiraCredentials => Set<Modules.Jira.JiraCredential>();
+    public DbSet<Modules.Jira.JiraDiscoveredSpace> JiraDiscoveredSpaces => Set<Modules.Jira.JiraDiscoveredSpace>();
+    public DbSet<Modules.Jira.ClientJiraSettings> ClientJiraSettings => Set<Modules.Jira.ClientJiraSettings>();
+    public DbSet<Modules.Jira.ClientJiraSpace> ClientJiraSpaces => Set<Modules.Jira.ClientJiraSpace>();
+    public DbSet<Modules.Jira.JiraSpaceSyncState> JiraSpaceSyncStates => Set<Modules.Jira.JiraSpaceSyncState>();
+    public DbSet<Modules.Jira.JiraCaseMapping> JiraCaseMappings => Set<Modules.Jira.JiraCaseMapping>();
+    public DbSet<Modules.Jira.JiraUserMapping> JiraUserMappings => Set<Modules.Jira.JiraUserMapping>();
+    public DbSet<Modules.Jira.JiraWorkflowStatusMapping> JiraWorkflowStatusMappings => Set<Modules.Jira.JiraWorkflowStatusMapping>();
+    public DbSet<Modules.Jira.JiraComment> JiraComments => Set<Modules.Jira.JiraComment>();
+    public DbSet<Modules.Jira.JiraActivity> JiraActivities => Set<Modules.Jira.JiraActivity>();
+    public DbSet<Modules.Jira.CaseComment> CaseComments => Set<Modules.Jira.CaseComment>();
+    public DbSet<Modules.Jira.JiraSyncRun> JiraSyncRuns => Set<Modules.Jira.JiraSyncRun>();
+    public DbSet<Modules.Jira.JiraIntegrationIssue> JiraIntegrationIssues => Set<Modules.Jira.JiraIntegrationIssue>();
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<ContractEnvironment> ContractEnvironments => Set<ContractEnvironment>();
     public DbSet<SlaTarget> SlaTargets => Set<SlaTarget>();
@@ -687,6 +701,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         {
             e.ToTable("JiraReference", "work");
             e.Property(x => x.IssueKey).HasMaxLength(40);
+            // A76: every reference that existed before the Jira integration is manual.
+            e.Property(x => x.Origin).HasDefaultValue(JiraReferenceOrigin.Manual);
             e.Property(x => x.Url).HasMaxLength(500);
             e.Property(x => x.ReuseReason).HasMaxLength(1000);
             e.HasIndex(x => new { x.CaseId, x.JiraInstanceId, x.IssueKey }).IsUnique().HasFilter("[RemovedAt] IS NULL");
@@ -1205,6 +1221,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<Team>().HasQueryFilter(ArchiveFilter, x => x.ArchivedAt == null);
         m.Entity<DocumentReference>().HasQueryFilter(ArchiveFilter, x => x.ArchivedAt == null);
 
+        ConfigureJira(m);
+
         // Nothing is deleted through cascades except link rows owned by their parent.
         foreach (var fk in m.Model.GetEntityTypes().SelectMany(t => t.GetForeignKeys()))
             fk.DeleteBehavior = DeleteBehavior.NoAction;
@@ -1232,10 +1250,195 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     }
 
 
+    /// <summary>A76: schema "jira". Tables holding client data carry the same client scope filter as the case module.</summary>
+    private void ConfigureJira(ModelBuilder m)
+    {
+        const string S = "jira";
+        m.Entity<Modules.Jira.JiraConnection>(e =>
+        {
+            e.ToTable("JiraConnection", S);
+            e.Property(x => x.Name).HasMaxLength(100);
+            e.HasIndex(x => x.Name).IsUnique();
+            e.Property(x => x.SiteUrl).HasMaxLength(300);
+            e.HasIndex(x => x.SiteUrl).IsUnique();
+            e.Property(x => x.AccountEmail).HasMaxLength(254);
+            e.Property(x => x.CloudId).HasMaxLength(64);
+            e.Property(x => x.SecretReference).HasMaxLength(200);
+            e.Property(x => x.AccountTimeZone).HasMaxLength(64);
+            e.Property(x => x.LastTestJson).HasMaxLength(4000);
+            e.Property(x => x.LastDiscoveryError).HasMaxLength(1000);
+            e.Property(x => x.DetailFieldNames).HasMaxLength(500);
+            e.HasOne(x => x.JiraInstance).WithMany().HasForeignKey(x => x.JiraInstanceId);
+        });
+        m.Entity<Modules.Jira.JiraCredential>(e =>
+        {
+            e.ToTable("JiraCredential", S);
+            e.HasKey(x => x.JiraConnectionId);
+            e.HasOne<Modules.Jira.JiraConnection>().WithOne().HasForeignKey<Modules.Jira.JiraCredential>(x => x.JiraConnectionId);
+        });
+        m.Entity<Modules.Jira.JiraDiscoveredSpace>(e =>
+        {
+            e.ToTable("JiraDiscoveredSpace", S);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.ProjectName).HasMaxLength(255);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraProjectId }).IsUnique();
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+        });
+        m.Entity<Modules.Jira.ClientJiraSettings>(e =>
+        {
+            e.ToTable("ClientJiraSettings", S);
+            e.HasIndex(x => x.ClientId).IsUnique();
+            e.Property(x => x.DefaultCaseType).HasMaxLength(40);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Team>().WithMany().HasForeignKey(x => x.DefaultResponsibleTeamId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.ClientJiraSpace>(e =>
+        {
+            e.ToTable("ClientJiraSpace", S);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.ProjectName).HasMaxLength(255);
+            e.Property(x => x.ReleaseReason).HasMaxLength(1000);
+            // One space belongs to one active client per connection, whatever the application does.
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraProjectId }).IsUnique().HasFilter("[ReleasedAt] IS NULL");
+            e.HasIndex(x => x.ClientId);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
+            e.HasOne(x => x.JiraConnection).WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.JiraSpaceSyncState>(e =>
+        {
+            e.ToTable("JiraSpaceSyncState", S);
+            e.HasKey(x => x.ClientJiraSpaceId);
+            e.Property(x => x.LastError).HasMaxLength(1000);
+            e.Property(x => x.LeaseOwner).HasMaxLength(120);
+            e.HasOne<Modules.Jira.ClientJiraSpace>().WithOne().HasForeignKey<Modules.Jira.JiraSpaceSyncState>(x => x.ClientJiraSpaceId);
+        });
+        m.Entity<Modules.Jira.JiraCaseMapping>(e =>
+        {
+            e.ToTable("JiraCaseMapping", S);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.IssueKey).HasMaxLength(60);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.Url).HasMaxLength(500);
+            e.Property(x => x.Summary).HasMaxLength(400);
+            e.Property(x => x.StatusId).HasMaxLength(40);
+            e.Property(x => x.StatusName).HasMaxLength(120);
+            e.Property(x => x.StatusCategory).HasMaxLength(40);
+            e.Property(x => x.PriorityName).HasMaxLength(120);
+            e.Property(x => x.IssueTypeName).HasMaxLength(120);
+            e.Property(x => x.AssigneeAccountId).HasMaxLength(128);
+            e.Property(x => x.AssigneeName).HasMaxLength(255);
+            e.Property(x => x.ReporterName).HasMaxLength(255);
+            e.Property(x => x.Resolution).HasMaxLength(120);
+            e.Property(x => x.Labels).HasMaxLength(1000);
+            e.Property(x => x.Components).HasMaxLength(1000);
+            e.Property(x => x.DetailsJson).HasMaxLength(4000);
+            e.Property(x => x.AppliedAssigneeAccountId).HasMaxLength(128);
+            e.Property(x => x.AppliedStatusId).HasMaxLength(40);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId }).IsUnique();
+            e.HasIndex(x => new { x.JiraConnectionId, x.IssueKey });
+            e.HasIndex(x => x.ClientJiraSpaceId);
+            e.HasOne(x => x.JiraConnection).WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Modules.Jira.ClientJiraSpace>().WithMany().HasForeignKey(x => x.ClientJiraSpaceId);
+            e.HasOne(x => x.Case).WithOne(c => c.JiraSource).HasForeignKey<Modules.Jira.JiraCaseMapping>(x => x.CaseId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.JiraUserMapping>(e =>
+        {
+            e.ToTable("JiraUserMapping", S);
+            e.Property(x => x.JiraAccountId).HasMaxLength(128);
+            e.Property(x => x.JiraDisplayName).HasMaxLength(255);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraAccountId }).IsUnique();
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne(x => x.TioUser).WithMany().HasForeignKey(x => x.TioUserId);
+        });
+        m.Entity<Modules.Jira.JiraWorkflowStatusMapping>(e =>
+        {
+            e.ToTable("JiraWorkflowStatusMapping", S);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.JiraStatusId).HasMaxLength(40);
+            e.Property(x => x.JiraStatusName).HasMaxLength(120);
+            e.Property(x => x.JiraStatusCategory).HasMaxLength(40);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraProjectId, x.JiraStatusId }).IsUnique();
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+        });
+        m.Entity<Modules.Jira.JiraComment>(e =>
+        {
+            e.ToTable("JiraComment", S);
+            e.Property(x => x.JiraCommentId).HasMaxLength(40);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.AuthorAccountId).HasMaxLength(128);
+            e.Property(x => x.AuthorName).HasMaxLength(255);
+            e.Property(x => x.VisibilityType).HasMaxLength(40);
+            e.Property(x => x.VisibilityValue).HasMaxLength(255);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraCommentId }).IsUnique();
+            e.HasIndex(x => new { x.CaseId, x.JiraCreatedAt });
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId });
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
+        });
+        m.Entity<Modules.Jira.JiraActivity>(e =>
+        {
+            e.ToTable("JiraActivity", S);
+            e.Property(x => x.ExternalEventId).HasMaxLength(60);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.Field).HasMaxLength(120);
+            e.Property(x => x.ActorName).HasMaxLength(255);
+            e.Property(x => x.FromValue).HasMaxLength(400);
+            e.Property(x => x.ToValue).HasMaxLength(400);
+            e.HasIndex(x => new { x.JiraConnectionId, x.ExternalEventId }).IsUnique();
+            e.HasIndex(x => new { x.CaseId, x.At });
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId });
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
+        });
+        m.Entity<Modules.Jira.CaseComment>(e =>
+        {
+            e.ToTable("CaseComment", "work");
+            e.Property(x => x.Body).HasMaxLength(8000);
+            e.HasIndex(x => new { x.CaseId, x.At });
+            e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
+            e.HasOne(x => x.Author).WithMany().HasForeignKey(x => x.AuthorId);
+        });
+        m.Entity<Modules.Jira.JiraSyncRun>(e =>
+        {
+            e.ToTable("JiraSyncRun", S);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.Error).HasMaxLength(1000);
+            e.HasIndex(x => new { x.ClientJiraSpaceId, x.StartedAt });
+            e.HasIndex(x => new { x.ClientId, x.StartedAt });
+            e.HasIndex(x => x.StartedAt);
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || (x.ClientId != null && ClientIds.Contains(x.ClientId.Value)));
+        });
+        m.Entity<Modules.Jira.JiraIntegrationIssue>(e =>
+        {
+            e.ToTable("JiraIntegrationIssue", S);
+            e.Property(x => x.Fingerprint).HasMaxLength(200);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.IssueKey).HasMaxLength(60);
+            e.Property(x => x.Subject).HasMaxLength(128);
+            e.Property(x => x.Description).HasMaxLength(1000);
+            e.Property(x => x.SuggestedAction).HasMaxLength(500);
+            e.Property(x => x.Resolution).HasMaxLength(40);
+            e.Property(x => x.ResolutionNote).HasMaxLength(1000);
+            e.HasIndex(x => x.Fingerprint).IsUnique().HasFilter("[Status] = N'Open'");
+            e.HasIndex(x => new { x.Status, x.Type });
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || (x.ClientId != null && ClientIds.Contains(x.ClientId.Value)));
+        });
+    }
+
     // ---------- Save: stamps and audit in the same transaction (NFR-03, atomic business changes) ----------
 
     private static readonly HashSet<Type> NotAudited =
-        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
+        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Jira.JiraCredential), typeof(Modules.Jira.JiraCaseMapping), typeof(Modules.Jira.JiraComment), typeof(Modules.Jira.JiraActivity), typeof(Modules.Jira.JiraSpaceSyncState), typeof(Modules.Jira.JiraSyncRun), typeof(Modules.Jira.JiraDiscoveredSpace), typeof(Modules.Jira.CaseComment), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
     private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(RolePermission), typeof(UserPermissionOverride), typeof(PermissionDefinition), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
     // Scope snapshots also contain the client and environment IDs derived from assigned projects.
     // Changes to either relationship must invalidate cached snapshots across application instances.

@@ -571,7 +571,7 @@ export function AdminJira() {
   const [edit, setEdit] = useState<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string } | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Jira instances" crumbs={configCrumbs('jira-instances')} sub="The two disconnected Jira systems. Only the approved HTTPS host is stored for validating manual ticket links; the hub never calls Jira." />
+      <PageHead title="Jira instances" crumbs={configCrumbs('jira-instances')} sub="The two Jira systems. Only the approved HTTPS host is stored here, for validating manual ticket links; these entries never call Jira. Synchronization is configured under Jira Connections." />
       <DataTable rowKey={j => j.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'n', header: 'Name', render: j => j.name }, { key: 'k', header: 'Kind', render: j => label(j.kind) }, { key: 'h', header: 'Approved host', render: j => j.approvedHost || <Badge tone="warn">Not configured</Badge> },
         { key: 'x', header: '', render: j => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(j)}>Edit</button> }

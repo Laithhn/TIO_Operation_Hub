@@ -12,6 +12,7 @@ import {
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
+import { ClientJiraIntegration } from './jira/ClientJira';
 import { ClientDisplay, ClientLogo, logoProblem, type LogoRules } from '../ui/ClientLogo';
 import { MyNotesPanel } from './Notes';
 import { ClientContracts } from './Contracts';
@@ -300,6 +301,7 @@ const clientTabSpecs = [
   { key: 'escalations', label: 'Escalations', permissions: ['OtherOperations:View'] },
   { key: 'infra', label: 'Infrastructure', permissions: ['Servers:View'] },
   { key: 'projects', label: 'Projects', permissions: ['Projects:View'] },
+  { key: 'jira', label: 'Jira integration', permissions: ['ClientStructure:View'] },
   { key: 'contacts', label: 'Contacts & responsibilities', permissions: ['OtherOperations:View'] },
   { key: 'files', label: 'Attachments', permissions: ['ClientStructure:AttachmentsView'] },
   { key: 'notes', label: 'My notes', permissions: ['PersonalNotes:View'] },
@@ -428,6 +430,7 @@ export function ClientDetail() {
         <Tabs value={activeTab} onChange={setTab} tabs={visibleTabs.map(({ key, label }) => ({ key, label }))} />
         {overviewTabs.includes(activeTab) && ov.error && <ErrorBox error={ov.error} />}
         {overviewTabs.includes(activeTab) && !o && !ov.error && <StateMessage kind="loading" />}
+        {activeTab === 'jira' && <ClientJiraIntegration clientId={Number(id)} />}
         {activeTab === 'organizations' && <OrganizationStructure clientId={Number(id)} projects={o?.projects} />}
         {o && activeTab === 'structure' && (<>
           {o.regions.length > 0 && (

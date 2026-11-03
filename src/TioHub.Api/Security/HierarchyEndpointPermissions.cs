@@ -7,7 +7,8 @@ public static class HierarchyEndpointPermissions
     {
         "users" or "scope-targets" => "AdminUsers", "roles" => "AdminRoles", "group-mappings" => "AdminGroups",
         "settings" or "attachments" or "attachment-storage" => "AdminSettings", "audit" => "AdminAudit", "exports" => "ReportHistory",
-        "corrections" or "lookups" or "jira-instances" or "review-policies" or "configuration" => "AdminConfig", _ => null
+        "corrections" or "lookups" or "jira-instances" or "review-policies" or "configuration" => "AdminConfig",
+        "jira-connections" or "jira-sync" or "jira-issues" or "jira-status-mappings" or "jira-user-mappings" => "AdminIntegrations", _ => null
     };
 
     public static string[] Required(string path, string method, string? tab = null)
@@ -37,6 +38,8 @@ public static class HierarchyEndpointPermissions
         }
         if (root == "clients" && p.Length == 3 && p[2] == "overview")
             return [PermissionHierarchy.Tab("ClientStructure", tab?.ToLowerInvariant() ?? "structure", "View")];
+        // A76: the tab opens the page; each change also needs Client structure Coordinate in the client's scope (in the handler).
+        if (root == "clients" && p.Length > 2 && p[2] == "jira") return [PermissionHierarchy.Tab("ClientStructure", "jira", "View")];
         var clientTab = root switch
         {
             "regions" => "structure", "organizations" or "organization-relationships" => "organizations",

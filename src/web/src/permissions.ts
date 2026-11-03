@@ -64,7 +64,7 @@ const routeAreas: Record<string, string> = {
   map: 'ClientMap', actions: 'ActionList', 'data-quality': 'DataQuality', handovers: 'Handovers', reassignment: 'Reassignment'
 };
 const reportingAreas: Record<string, string> = { '': 'ReportOverview', library: 'ReportLibrary', builder: 'ReportBuilder', 'my-reports': 'SavedReports', schedules: 'ReportSchedules', history: 'ReportHistory', templates: 'ReportTemplates' };
-const adminAreas: Record<string, string> = { '': 'AdminUsers', users: 'AdminUsers', roles: 'AdminRoles', rights: 'AdminRoles', groups: 'AdminGroups', config: 'AdminConfig', reference: 'AdminConfig', 'network-zones': 'AdminConfig', policies: 'AdminConfig', jira: 'AdminConfig', settings: 'AdminSettings', audit: 'AdminAudit' };
+const adminAreas: Record<string, string> = { integrations: 'AdminIntegrations', '': 'AdminUsers', users: 'AdminUsers', roles: 'AdminRoles', rights: 'AdminRoles', groups: 'AdminGroups', config: 'AdminConfig', reference: 'AdminConfig', 'network-zones': 'AdminConfig', policies: 'AdminConfig', jira: 'AdminConfig', settings: 'AdminSettings', audit: 'AdminAudit' };
 
 export function canAccessPath(me: Me | undefined, pathname: string, search = ''): boolean {
   if (!me) return false;

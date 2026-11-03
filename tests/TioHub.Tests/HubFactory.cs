@@ -41,7 +41,13 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         // A70: builder export jobs are run by the tests themselves (ExportWorker.RunAllAsync).
         builder.UseSetting("Reporting:ExportWorkerSeconds", "0");
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
+        // A76: the tests run synchronization themselves, against a fake Jira.
+        builder.UseSetting("Jira:WorkerSeconds", "0");
+        if (ExtraServices is not null) builder.ConfigureServices(ExtraServices);
     }
+
+    /// <summary>Set before the first request: replaces services of the host (for example the Jira client).</summary>
+    public Action<Microsoft.Extensions.DependencyInjection.IServiceCollection>? ExtraServices { get; set; }
 
     public Task InitializeAsync() => Task.CompletedTask;
 

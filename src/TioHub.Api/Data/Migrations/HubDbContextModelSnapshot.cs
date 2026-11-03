@@ -3779,6 +3779,1023 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("Volume", "inventory");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.CaseComment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("AuthorId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(8000)
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("CaseId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorId");
+
+                    b.HasIndex("CaseId", "At");
+
+                    b.ToTable("CaseComment", "work");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSettings", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("DefaultCaseType")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("DefaultPriority")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long?>("DefaultResponsibleTeamId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("FullReconciliation")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("FullReconciliationDays")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ImportDoneIssues")
+                        .HasColumnType("bit");
+
+                    b.Property<DateOnly?>("ImportFrom")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<long?>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("LastPreviewAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("NextReviewHours")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SyncIntervalMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("SyncOnStartup")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId")
+                        .IsUnique();
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("DefaultResponsibleTeamId");
+
+                    b.HasIndex("JiraConnectionId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("ClientJiraSettings", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSpace", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraProjectId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ProjectKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ProjectName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("ReleaseReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("ReleasedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("JiraConnectionId", "JiraProjectId")
+                        .IsUnique()
+                        .HasFilter("[ReleasedAt] IS NULL");
+
+                    b.ToTable("ClientJiraSpace", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraActivity", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ActorName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTimeOffset>("At")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("CaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ExternalEventId")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("FromValue")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<DateTimeOffset>("ImportedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraIssueId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ToValue")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaseId", "At");
+
+                    b.HasIndex("JiraConnectionId", "ExternalEventId")
+                        .IsUnique();
+
+                    b.HasIndex("JiraConnectionId", "JiraIssueId");
+
+                    b.ToTable("JiraActivity", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraCaseMapping", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AppliedAssigneeAccountId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("AppliedStatusId")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("AssigneeAccountId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("AssigneeName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<long?>("CaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("ChildrenSyncedFor")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ClientJiraSpaceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Components")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DescriptionText")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("DetailsJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<string>("IssueKey")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("IssueTypeName")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("JiraCreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateOnly?>("JiraDueDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("JiraIssueId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("JiraProjectId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset?>("JiraUpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Labels")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("LastSyncedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("MissingInJiraAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("OwnerFromJira")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PriorityName")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("ReporterName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("StatusCategory")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("StatusId")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("StatusName")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Summary")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaseId")
+                        .IsUnique()
+                        .HasFilter("[CaseId] IS NOT NULL");
+
+                    b.HasIndex("ClientJiraSpaceId");
+
+                    b.HasIndex("JiraConnectionId", "IssueKey");
+
+                    b.HasIndex("JiraConnectionId", "JiraIssueId")
+                        .IsUnique();
+
+                    b.ToTable("JiraCaseMapping", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraComment", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AuthorAccountId")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("AuthorName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("BodyText")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<long>("CaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("DeletedInJiraAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset>("ImportedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("JiraCommentId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("JiraCreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("JiraIssueId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset?>("JiraUpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("VisibilityType")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("VisibilityValue")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<bool>("Withheld")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaseId", "JiraCreatedAt");
+
+                    b.HasIndex("JiraConnectionId", "JiraCommentId")
+                        .IsUnique();
+
+                    b.HasIndex("JiraConnectionId", "JiraIssueId");
+
+                    b.ToTable("JiraComment", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraConnection", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("AccountEmail")
+                        .HasMaxLength(254)
+                        .HasColumnType("nvarchar(254)");
+
+                    b.Property<string>("AccountTimeZone")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("AuthMode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("CloudId")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("CredentialRotatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DetailFieldNames")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<long>("JiraInstanceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset?>("LastDiscoveryAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastDiscoveryError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("LastSuccessfulTestAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LastTestAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int?>("LastTestDurationMs")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LastTestJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<bool?>("LastTestOk")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SecretProvider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("SecretReference")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SiteUrl")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("JiraInstanceId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("SiteUrl")
+                        .IsUnique();
+
+                    b.HasIndex("UpdatedById");
+
+                    b.ToTable("JiraConnection", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraCredential", b =>
+                {
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Ciphertext")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("JiraConnectionId");
+
+                    b.ToTable("JiraCredential", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraDiscoveredSpace", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("FirstSeenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraProjectId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("Missing")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ProjectKey")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ProjectName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JiraConnectionId", "JiraProjectId")
+                        .IsUnique();
+
+                    b.ToTable("JiraDiscoveredSpace", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraIntegrationIssue", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long?>("CandidateCaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CaseId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("IssueKey")
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraIssueId")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("JiraProjectId")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Occurrences")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProjectKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Resolution")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("ResolutionNote")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("ResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("ResolvedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("SuggestedAction")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("Fingerprint")
+                        .IsUnique()
+                        .HasFilter("[Status] = N'Open'");
+
+                    b.HasIndex("JiraConnectionId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("Status", "Type");
+
+                    b.ToTable("JiraIntegrationIssue", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraSpaceSyncState", b =>
+                {
+                    b.Property<long>("ClientJiraSpaceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("ConsecutiveFailures")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("ForceFullNext")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset?>("IssueCheckpoint")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset?>("LastFullAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("LastRunAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LastStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset?>("LastSuccessAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("LeaseOwner")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<DateTimeOffset?>("LeaseUntil")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("ManualRequestedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("ClientJiraSpaceId");
+
+                    b.ToTable("JiraSpaceSyncState", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraSyncRun", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<int>("ActivitiesImported")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CasesCreated")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CasesUpdated")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("ClientJiraSpaceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CommentsImported")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("EndedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("FailedRecords")
+                        .HasColumnType("int");
+
+                    b.Property<int>("IssuesRetrieved")
+                        .HasColumnType("int");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ProjectKey")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("StartedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("JiraConnectionId");
+
+                    b.HasIndex("StartedAt");
+
+                    b.HasIndex("ClientId", "StartedAt");
+
+                    b.HasIndex("ClientJiraSpaceId", "StartedAt");
+
+                    b.ToTable("JiraSyncRun", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraUserMapping", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraAccountId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraDisplayName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTimeOffset>("LastSeenAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<long?>("TioUserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("TioUserId");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("JiraConnectionId", "JiraAccountId")
+                        .IsUnique();
+
+                    b.ToTable("JiraUserMapping", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraWorkflowStatusMapping", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("JiraConnectionId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraProjectId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("JiraStatusCategory")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("JiraStatusId")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("JiraStatusName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("TargetStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("JiraConnectionId", "JiraProjectId", "JiraStatusId")
+                        .IsUnique();
+
+                    b.ToTable("JiraWorkflowStatusMapping", "jira");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Notes.NoteFile", b =>
                 {
                     b.Property<long>("Id")
@@ -5613,6 +6630,13 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long>("JiraInstanceId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("Manual");
+
                     b.Property<DateTimeOffset?>("RemovedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -6994,6 +8018,258 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("SharedStorage");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.CaseComment", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Work.Case", null)
+                        .WithMany()
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSettings", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Clients.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Teams.Team", null)
+                        .WithMany()
+                        .HasForeignKey("DefaultResponsibleTeamId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Client");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSpace", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Clients.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", "JiraConnection")
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("Client");
+
+                    b.Navigation("JiraConnection");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraActivity", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Work.Case", null)
+                        .WithMany()
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraCaseMapping", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Work.Case", "Case")
+                        .WithOne("JiraSource")
+                        .HasForeignKey("TioHub.Api.Modules.Jira.JiraCaseMapping", "CaseId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Jira.ClientJiraSpace", null)
+                        .WithMany()
+                        .HasForeignKey("ClientJiraSpaceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", "JiraConnection")
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Case");
+
+                    b.Navigation("JiraConnection");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraComment", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Work.Case", null)
+                        .WithMany()
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraConnection", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Work.JiraInstance", "JiraInstance")
+                        .WithMany()
+                        .HasForeignKey("JiraInstanceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("JiraInstance");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraCredential", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithOne()
+                        .HasForeignKey("TioHub.Api.Modules.Jira.JiraCredential", "JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraDiscoveredSpace", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraIntegrationIssue", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraSpaceSyncState", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Jira.ClientJiraSpace", null)
+                        .WithOne()
+                        .HasForeignKey("TioHub.Api.Modules.Jira.JiraSpaceSyncState", "ClientJiraSpaceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraSyncRun", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraUserMapping", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", "TioUser")
+                        .WithMany()
+                        .HasForeignKey("TioUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("TioUser");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraWorkflowStatusMapping", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Jira.JiraConnection", null)
+                        .WithMany()
+                        .HasForeignKey("JiraConnectionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Notes.NoteFile", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Notes.NotePage", null)
@@ -7676,6 +8952,8 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("Environments");
 
                     b.Navigation("JiraReferences");
+
+                    b.Navigation("JiraSource");
 
                     b.Navigation("WaitingIntervals");
                 });

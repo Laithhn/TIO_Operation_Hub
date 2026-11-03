@@ -98,6 +98,8 @@ public class Case : Entity, IClientOwned, IAccountable
     public List<CaseComponent> Components { get; set; } = [];
     public List<JiraReference> JiraReferences { get; set; } = [];
     public List<CaseWaitingInterval> WaitingIntervals { get; set; } = [];
+    /// <summary>A76: the Jira issue this case is synchronized from, when it has one.</summary>
+    public Jira.JiraCaseMapping? JiraSource { get; set; }
 }
 
 public class CaseEnvironment { public long CaseId { get; set; } public long EnvironmentId { get; set; } public long ClientId { get; set; } }
@@ -139,7 +141,7 @@ public class CaseEvent
     public DateTimeOffset At { get; set; }
 }
 
-/// <summary>One of the two disconnected Jira systems. The hub never calls it (Section 3).</summary>
+/// <summary>One of the two Jira systems. References are manual; only the Jira connections of A76 read from a Customer Cloud site.</summary>
 public class JiraInstance : Entity
 {
     public string Name { get; set; } = "";
@@ -148,6 +150,9 @@ public class JiraInstance : Entity
     public string ApprovedHost { get; set; } = "";
     public bool IsActive { get; set; } = true;
 }
+
+/// <summary>A76: how a reference came to the case. Manual references behave as before; source references are kept while the case is synchronized.</summary>
+public enum JiraReferenceOrigin { Manual, ImportedSource, AdoptedSource }
 
 /// <summary>Manual reference: instance + normalized key + approved HTTPS URL (WRK-03). Unique per case/instance/key, not by key alone.</summary>
 public class JiraReference : Entity
@@ -159,6 +164,7 @@ public class JiraReference : Entity
     public string IssueKey { get; set; } = "";
     public string Url { get; set; } = "";
     public string? ReuseReason { get; set; }
+    public JiraReferenceOrigin Origin { get; set; }
     /// <summary>Removal keeps the row and its audit history.</summary>
     public DateTimeOffset? RemovedAt { get; set; }
     public long? RemovedById { get; set; }

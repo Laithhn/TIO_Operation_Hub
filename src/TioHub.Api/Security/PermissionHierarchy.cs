@@ -28,6 +28,7 @@ public static class PermissionHierarchy
         ("ClientStructure", "escalations", "Escalations", ["OtherOperations:View"]),
         ("ClientStructure", "infra", "Infrastructure", ["Servers:View"]),
         ("ClientStructure", "projects", "Projects", ["Projects:View"]),
+        ("ClientStructure", "jira", "Jira integration", ["ClientStructure:View"]),
         ("ClientStructure", "contacts", "Contacts & responsibilities", ["OtherOperations:View"]),
         ("ClientStructure", "notes", "My notes", ["PersonalNotes:View"]),
         ("Environments", "apps", "Applications", ["Installations:View", "Products:View", "Servers:View"]),
@@ -52,7 +53,8 @@ public static class PermissionHierarchy
         ("ReportBuilder", "reporting", "Cases report builder"), ("SavedReports", "reporting", "My reports"),
         ("ReportSchedules", "reporting", "Scheduled reports"), ("ReportHistory", "reporting", "Export history"), ("ReportTemplates", "reporting", "Templates"),
         ("AdminUsers", "admin", "Users & access"), ("AdminRoles", "admin", "Roles and rights"), ("AdminGroups", "admin", "Group mappings"),
-        ("AdminConfig", "admin", "Configuration"), ("AdminSettings", "admin", "Settings"), ("AdminAudit", "admin", "Change history")
+        ("AdminConfig", "admin", "Configuration"), ("AdminSettings", "admin", "Settings"), ("AdminAudit", "admin", "Change history"),
+        ("AdminIntegrations", "admin", "Integrations")
     ];
 
     public static string ModuleOf(string resource) => resource switch
@@ -75,6 +77,7 @@ public static class PermissionHierarchy
         "ReportBuilder" => ["View", "Export"],
         "ReportLibrary" => ["View", "Create", "Delete", "Export"],
         "AdminSettings" or "DataQuality" => ["View", "Maintain"],
+        "AdminIntegrations" => ["View", "Create", "Maintain"],
         "AdminGroups" or "Handovers" => ["View", "Create", "Maintain"],
         _ => ["View", "Create", "Maintain", "Delete"]
     };

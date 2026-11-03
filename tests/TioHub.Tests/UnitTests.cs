@@ -215,18 +215,19 @@ public class StructuralTests
     [Fact]
     public void No_entity_has_a_password_secret_or_token_field()
     {
-        var bad = ApiAssembly.GetTypes().Where(t => t.Namespace?.StartsWith("TioHub.Api.Modules") == true && t.IsClass)
+        // A76: JiraAuth.Token is the in-memory value of one Jira call. It is no entity field, and JiraAuth.ToString omits it.
+        var bad = ApiAssembly.GetTypes().Where(t => t.Namespace?.StartsWith("TioHub.Api.Modules") == true && t.IsClass && t != typeof(TioHub.Api.Modules.Jira.JiraAuth))
             .SelectMany(t => t.GetProperties().Select(p => $"{t.Name}.{p.Name}"))
             .Where(n => n.Contains("Password", StringComparison.OrdinalIgnoreCase) || n.EndsWith("Secret", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".Token", StringComparison.OrdinalIgnoreCase) || n.Contains("PrivateKey", StringComparison.OrdinalIgnoreCase))
             .ToList();
         Assert.Empty(bad);
     }
 
-    /// <summary>AC-16: no Jira or client-system integration — the API makes no outbound HTTP calls.</summary>
+    /// <summary>AC-16 as changed by A76: the read-only Jira client is the only outbound HTTP in the API; there is no other integration.</summary>
     [Fact]
-    public void Api_has_no_outbound_http_client_dependencies()
+    public void Only_the_read_only_jira_client_makes_outbound_http_calls()
     {
-        var types = ApiAssembly.GetTypes();
+        var types = ApiAssembly.GetTypes().Where(t => t != typeof(TioHub.Api.Modules.Jira.JiraApiClient));
         var uses = types.SelectMany(t => t.GetConstructors().SelectMany(c => c.GetParameters()).Select(p => p.ParameterType)
                 .Concat(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Select(f => f.FieldType)))
             .Where(t => t == typeof(HttpClient) || t.Name == "IHttpClientFactory").ToList();

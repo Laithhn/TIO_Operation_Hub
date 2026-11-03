@@ -19,6 +19,10 @@ const AdminArchived = page(() => import('./pages/Admin'), 'AdminArchived');
 const AdminAudit = page(() => import('./pages/Admin'), 'AdminAudit');
 const AdminGroups = page(() => import('./pages/Admin'), 'AdminGroups');
 const AdminJira = page(() => import('./pages/Admin'), 'AdminJira');
+const JiraConnections = page(() => import('./pages/jira/JiraConnections'), 'JiraConnections');
+const JiraImportReview = page(() => import('./pages/jira/JiraAdminPages'), 'JiraImportReview');
+const JiraConflicts = page(() => import('./pages/jira/JiraAdminPages'), 'JiraConflicts');
+const JiraMonitoring = page(() => import('./pages/jira/JiraAdminPages'), 'JiraMonitoring');
 const AdminPolicies = page(() => import('./pages/Admin'), 'AdminPolicies');
 const AdminSettings = page(() => import('./pages/Admin'), 'AdminSettings');
 const AdminUsers = page(() => import('./pages/Admin'), 'AdminUsers');
@@ -203,6 +207,10 @@ export const router = createBrowserRouter([
       { path: 'admin/products', element: <Navigate to="/products" replace /> },
       { path: 'admin/policies', element: <AdminRoute><AdminPolicies /></AdminRoute> },
       { path: 'admin/jira', element: <AdminRoute><AdminJira /></AdminRoute> },
+      { path: 'admin/integrations/jira', element: <AdminRoute><JiraConnections /></AdminRoute> },
+      { path: 'admin/integrations/jira/review', element: <AdminRoute><JiraImportReview /></AdminRoute> },
+      { path: 'admin/integrations/jira/conflicts', element: <AdminRoute><JiraConflicts /></AdminRoute> },
+      { path: 'admin/integrations/jira/monitoring', element: <AdminRoute><JiraMonitoring /></AdminRoute> },
       { path: 'admin/settings', element: <AdminRoute><AdminSettings /></AdminRoute> },
       { path: 'admin/audit', element: <AdminAudit /> },
       { path: 'admin/archived', element: <AdminArchived /> },

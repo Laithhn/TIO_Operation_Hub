@@ -44,7 +44,7 @@ public class SchemaReadinessTests
             var lookupsBefore = await db.LookupValues.CountAsync();
             var result = await DatabaseReadiness.CheckAsync(db, CancellationToken.None);
             Assert.True(result.Reachable);
-            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions", "20261102120000_PreserveLegacyEffectiveScopes", "20261102120037_UserPermissionOverrides", "20261102140000_ExportAccessFingerprint", "20261103060859_ScopedPermissionExceptions"], result.MissingMigrations);
+            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions", "20261102120000_PreserveLegacyEffectiveScopes", "20261102120037_UserPermissionOverrides", "20261102140000_ExportAccessFingerprint", "20261103060859_ScopedPermissionExceptions", "20261103083834_JiraIntegration"], result.MissingMigrations);
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
             {
                 b.UseEnvironment("Testing");

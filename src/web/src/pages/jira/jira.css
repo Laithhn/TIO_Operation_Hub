@@ -1,0 +1,55 @@
+/* A76: Jira integration screens. Built from the hub's tokens; the approved mockups set layout and hierarchy, the framework sets geometry (square corners). */
+.jira-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:var(--gap);margin-bottom:var(--gap)}
+.jira-card{background:var(--surface);border:1px solid var(--line);padding:10px 14px;display:flex;gap:12px;align-items:flex-start;min-width:0}
+.jira-card-icon{color:var(--link);flex:none;margin-top:2px}
+.jira-card-label{font-size:var(--fs-xs);color:var(--muted)}
+.jira-card-value{font-size:var(--fs-headline);font-weight:600;line-height:1.2;overflow-wrap:anywhere}
+.jira-card-hint{font-size:var(--fs-xs);color:var(--muted)}
+
+.jira-admin-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--gap);align-items:start;margin-bottom:var(--gap)}
+.jira-client-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:var(--gap);align-items:start;margin-bottom:var(--gap)}
+.jira-col{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
+.jira-col .panel{margin-bottom:0}
+@media (max-width:1200px){.jira-admin-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){.jira-admin-grid,.jira-client-grid{grid-template-columns:minmax(0,1fr)}}
+
+.jira-kv{display:grid;grid-template-columns:minmax(120px,auto) minmax(0,1fr);gap:4px 14px;margin:0}
+.jira-kv dt{color:var(--muted);font-weight:400}
+.jira-kv dd{margin:0;overflow-wrap:anywhere}
+.jira-row-selected{font-weight:600}
+.jira-steps{list-style:none;margin:8px 0 0;padding:0}
+.jira-steps li{display:grid;grid-template-columns:auto 1fr;gap:2px 8px;padding:3px 0}
+.jira-steps .detail{grid-column:2;color:var(--muted);font-size:var(--fs-xs)}
+.jira-check-row{display:flex;justify-content:space-between;gap:12px;padding:4px 0;border-bottom:1px solid var(--line)}
+.jira-check-row:last-child{border-bottom:0}
+.jira-issue-line{padding:6px 10px;margin-bottom:4px;border-left:4px solid var(--line-strong);background:var(--surface-2)}
+.jira-issue-line.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.jira-issue-line.bad{border-left-color:var(--bad);background:var(--bad-soft)}
+.jira-issue-line.info{border-left-color:var(--info);background:var(--info-soft)}
+.jira-behavior{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--gap)}
+.jira-behavior h4{margin:0 0 6px;font-size:var(--fs)}
+.jira-behavior ul{margin:0;padding-left:18px}
+@media (max-width:700px){.jira-behavior{grid-template-columns:minmax(0,1fr)}}
+.jira-switches{display:flex;flex-wrap:wrap;gap:8px 18px;margin:6px 0}
+
+/* Case page */
+.jira-banner{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--link);padding:10px 14px;margin-bottom:var(--gap);display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center;justify-content:space-between}
+.jira-banner-main{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center}
+.jira-banner-title{font-weight:600}
+.jira-banner-times{font-size:var(--fs-xs);color:var(--muted);text-align:right}
+.jira-case-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1.1fr);gap:var(--gap);margin-bottom:var(--gap);align-items:start}
+.jira-case-grid .panel{margin-bottom:0}
+@media (max-width:1200px){.jira-case-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:800px){.jira-case-grid{grid-template-columns:minmax(0,1fr)}}
+.jira-desc{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;border:1px solid var(--line);padding:6px 8px;background:var(--surface-2)}
+
+/* Activity */
+.activity-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.activity-filters .spacer{flex:1}
+.activity-chip{border:1px solid var(--line-strong);background:var(--surface);padding:3px 10px;cursor:pointer;font:inherit;color:var(--fg)}
+.activity-chip[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
+.timeline li.activity-item{list-style:none;border-left:3px solid var(--line-strong);padding-left:10px;margin-bottom:6px}
+.timeline li.activity-item.source-jira{border-left-color:var(--link)}
+.timeline li.activity-item.source-comment{border-left-color:var(--good)}
+.activity-body{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:2px}
+.activity-composer{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}

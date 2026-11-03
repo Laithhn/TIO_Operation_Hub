@@ -46,6 +46,16 @@ public static class ModuleRegistration
         services.AddScoped<CasesReportService>();
         services.AddSingleton<ExportQueue>();
         services.AddHostedService<ExportWorker>();
+        // A76: Jira Cloud synchronization (read-only)
+        services.AddOptions<Jira.JiraOptions>().BindConfiguration("Jira");
+        services.AddTransient<Jira.JiraReadOnlyHandler>();
+        services.AddHttpClient<Jira.IJiraApiClient, Jira.JiraApiClient>(c => c.DefaultRequestHeaders.UserAgent.ParseAdd("TioOperationsHub"))
+            .AddHttpMessageHandler<Jira.JiraReadOnlyHandler>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+        services.AddScoped<Jira.JiraSecretStore>();
+        services.AddScoped<Jira.JiraCaseBridge>();
+        services.AddScoped<Jira.JiraSyncService>();
+        services.AddSingleton<Jira.JiraSyncSignal>();
+        services.AddHostedService<Jira.JiraSyncWorker>();
         return services;
     }
 
@@ -70,6 +80,9 @@ public static class ModuleRegistration
         Notes.NoteEndpoints.MapNoteEndpoints(api);
         api.MapNotificationEndpoints();
         api.MapCaseEndpoints();
+        Jira.JiraCaseEndpoints.MapJiraCaseEndpoints(api);
+        Jira.JiraClientEndpoints.MapJiraClientEndpoints(api);
+        Jira.JiraAdminEndpoints.MapJiraAdminEndpoints(api);
         api.MapCommitmentEndpoints();
         api.MapEscalationEndpoints();
         api.MapContractEndpoints();

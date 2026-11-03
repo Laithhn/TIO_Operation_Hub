@@ -12,7 +12,8 @@ public sealed record CaseFilter(
     long? ClientId = null, long? RegionId = null, long? EnvironmentId = null, long? ProductId = null, long? TeamId = null, long? OwnerId = null,
     bool? Unassigned = null, string? Status = null, Priority? Priority = null, WorkScope? Scope = null, string? Due = null, bool? Waiting = null,
     bool? ReviewOverdue = null, bool? Stale = null, string? JiraKey = null, string? Q = null, DateTimeOffset? CreatedFrom = null, DateTimeOffset? CreatedTo = null,
-    bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null);
+    bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null,
+    string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null);
 
 public static class CaseQuery
 {
@@ -62,6 +63,15 @@ public static class CaseQuery
         }
         if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || c.NextAction.Contains(f.Q));
         if (f.ContractId is not null) q = q.Where(c => c.ContractId == f.ContractId);
+        // A76: synchronized source of a case.
+        if (f.JiraSource == "synchronized") q = q.Where(c => c.JiraSource != null);
+        if (f.JiraSource == "notSynchronized") q = q.Where(c => c.JiraSource == null);
+        if (f.JiraConnectionId is not null) q = q.Where(c => c.JiraSource != null && c.JiraSource.JiraConnectionId == f.JiraConnectionId);
+        if (!string.IsNullOrWhiteSpace(f.JiraSpace))
+        {
+            var prefix = f.JiraSpace.Trim().ToUpperInvariant() + "-";
+            q = q.Where(c => c.JiraSource != null && c.JiraSource.IssueKey.StartsWith(prefix));
+        }
         // A61: contractual SLA outcome; a pending obligation whose deadline passed counts as breached (same rule as the dashboard).
         q = f.Sla switch
         {
