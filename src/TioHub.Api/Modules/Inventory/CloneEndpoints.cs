@@ -26,6 +26,24 @@ public static class CloneEndpoints
     public sealed record CloneInput(long? TargetEnvironmentId, List<long>? AssetIds, List<long>? InstallationIds, string? Find, string? Replace,
         AssetLifecycle? Lifecycle, bool IncludeVolumes = true, bool IncludeDeployment = true, bool CopyVersions = false, string? VersionEvidence = null);
 
+    // Creation authority on the destination must not reveal source fields from another
+    // module. Copying deployment can also read and replicate component details.
+    public static void RequireSourcePermissions(UserContext me, bool environmentDetails, bool assets, bool installations, bool deployment)
+    {
+        me.RequirePermission(ResourcePermissions.Environments, ResourcePermissions.View);
+        if (environmentDetails) me.RequirePermission(ResourcePermissions.Environments, ResourcePermissions.DetailsView);
+        if (assets || deployment)
+        {
+            me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.View);
+            me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.DetailsView);
+        }
+        if (installations || deployment)
+        {
+            me.RequirePermission(ResourcePermissions.Installations, ResourcePermissions.View);
+            me.RequirePermission(ResourcePermissions.Installations, ResourcePermissions.DetailsView);
+        }
+    }
+
     /// <summary>Case-insensitive replace that follows the case of each match (r1→r2, R1→R2).</summary>
     public static string Rename(string name, string? find, string? replace)
     {
@@ -41,6 +59,7 @@ public static class CloneEndpoints
     {
         api.MapPost("/environments/{id:long}/clone", async (long id, CloneInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
+            RequireSourcePermissions(access.Me, false, input.AssetIds?.Count > 0, input.InstallationIds?.Count > 0, input.IncludeDeployment);
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
             access.RequireBusiness();
             if (input.TargetEnvironmentId is null) throw new ValidationException("targetEnvironmentId", "Select the environment to copy to.");
@@ -56,6 +75,7 @@ public static class CloneEndpoints
         // client, in any region, including the same environment (a duplicate under a new name). Each target has its own rename rule. All or nothing.
         api.MapPost("/environments/{id:long}/clone-to-many", async (long id, CloneManyInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
+            RequireSourcePermissions(access.Me, false, input.AssetIds?.Count > 0, input.InstallationIds?.Count > 0, input.IncludeDeployment);
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
             access.RequireBusiness();
             var targets = (input.Targets ?? []).Where(t => t.EnvironmentId is not null).ToList();
@@ -95,6 +115,10 @@ public static class CloneEndpoints
         api.MapPost("/environments/{id:long}/clone-environment", async (long id, EnvironmentCloneInput input, HubDbContext db, HubAccess access, LookupService lookups,
             TimeProvider clock, CancellationToken ct) =>
         {
+            // Null selection means copy all records, so authorize both source modules
+            // before enumerating the IDs as well as before any destination writes.
+            RequireSourcePermissions(access.Me, true, input.AssetIds is null || input.AssetIds.Count > 0,
+                input.InstallationIds is null || input.InstallationIds.Count > 0, input.IncludeDeployment);
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
             access.RequireCreateFor(ResourcePermissions.Environments, source.ClientId);
             if (input.RegionId == source.RegionId && string.Equals((input.Name ?? source.Name).Trim(), source.Name, StringComparison.OrdinalIgnoreCase))

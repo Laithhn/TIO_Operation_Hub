@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { get } from '../../api';
+import { useMe } from '../../hooks';
+import { canExportReport } from '../../exportPermissions';
 import { fmtDateTime } from '../../format';
 import { CAT, Donut, Kpi, SERIES, STATUS, VizPanel } from '../../ui/charts';
 import { Icon } from '../../ui/Icon';
@@ -42,6 +44,7 @@ function ActivityChart({ data }: { data: Overview['perDay'] }) {
 }
 
 export function ReportingOverview() {
+  const me = useMe().data;
   const toast = useToast();
   const [days, setDays] = useState(30);
   const q = useQuery({ queryKey: ['rc-overview', days], queryFn: () => get<Overview>(`/reporting/overview?days=${days}`) });
@@ -103,7 +106,7 @@ export function ReportingOverview() {
                 { key: 'at', header: 'Requested', render: r => fmtDateTime(r.requestedAt) },
                 { key: 'status', header: 'Status', render: r => <Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{r.status}</Badge> },
                 { key: 'rows', header: 'Rows', className: 'num', render: r => r.rowCount?.toLocaleString() ?? '—' },
-                { key: 'dl', header: '', render: r => r.canDownload ? <button className="linkbtn" onClick={() => download(r, toast)}>Download</button> : null }
+                { key: 'dl', header: '', render: r => r.canDownload && canExportReport(me, r.report) ? <button className="linkbtn" onClick={() => download(r, toast)}>Download</button> : null }
               ]} />
           </div>
         </section>

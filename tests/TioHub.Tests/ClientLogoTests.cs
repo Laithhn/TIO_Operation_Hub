@@ -1,3 +1,4 @@
+using TioHub.Api.Security;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
@@ -203,7 +204,7 @@ public class A71_ClientLogos(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var c = await NewClient();
-        var role = await m.Create("/admin/roles", new { name = U("LogoViewer"), description = "Read only", rights = Array.Empty<string>() });
+        var role = await m.Create("/admin/roles", new { name = U("LogoViewer"), description = "Read only", rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(new[] { "ClientStructure:View", "ClientStructure:DetailsView" }, Right.None) });
         var acct = $@"DEV\{U("logoviewer")}";
         await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Logo Viewer", workingTimeZone = "UTC", roleId = role });
         var v = await Hub.As(acct);

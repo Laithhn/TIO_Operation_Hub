@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Access;
+using TioHub.Api.Modules.Teams;
 using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Reporting;
@@ -29,15 +30,29 @@ public static class BuilderEndpoints
 
     private static object? Out(CaseField f, CaseReportRow r) => f.Key == "jiraKeys" ? r.JiraKeys : CasesFields.Value(r, f) is Enum e ? e.ToString() : CasesFields.Value(r, f);
 
-    public static object JobDto(ExportJob j, string? user, bool mine) => new
+    // Job history is retained after access changes and can also be viewed by auditors or
+    // schedule owners. Its filter labels, row counts and errors can disclose scoped data.
+    public static bool CanSeeJobDetails(ExportJob job, UserContext viewer) =>
+        job.UserId == viewer.UserId && ExportAccessFingerprint.IsCurrent(job.AccessFingerprint, viewer)
+        && (job.Source != "Schedule" || job.Status == ExportStatus.Completed);
+
+    public static object JobDto(ExportJob j, string? user, UserContext viewer)
     {
-        j.Id, j.AuditId, j.Report, j.ReportName, format = j.Format.ToString().ToLowerInvariant(), status = j.Status == ExportStatus.Pending ? "Queued" : j.Status.ToString(),
-        j.FilterSummary, j.TimeZone, j.RequestedAt, j.StartedAt, j.CompletedAt, j.RowCount, j.FileSize, j.FileName, j.ExpiresAt, j.Error, j.Source, j.ScheduleId, j.RetryOfId,
-        j.SavedReportId, j.Attempts, j.CutoffAt, user, builder = j.DefinitionJson != null,
-        canDownload = mine && j.Status == ExportStatus.Completed && j.StoredPath != null,
-        canRetry = mine && j.Status is ExportStatus.Failed or ExportStatus.Expired or ExportStatus.Cancelled,
-        canCancel = mine && j.DefinitionJson != null && j.Status is ExportStatus.Pending or ExportStatus.Processing && !j.CancelRequested
-    };
+        var mine = j.UserId == viewer.UserId;
+        var details = CanSeeJobDetails(j, viewer);
+        return new
+        {
+            j.Id, j.AuditId, j.Report, ReportName = details ? j.ReportName : ReportCatalog.Find(j.Report)?.Name ?? "Report",
+            format = j.Format.ToString().ToLowerInvariant(), status = j.Status == ExportStatus.Pending ? "Queued" : j.Status.ToString(),
+            FilterSummary = details ? j.FilterSummary : "Details unavailable", j.TimeZone, j.RequestedAt, j.StartedAt, j.CompletedAt,
+            RowCount = details ? j.RowCount : null, FileSize = details ? j.FileSize : null, FileName = details ? j.FileName : null,
+            j.ExpiresAt, Error = details ? j.Error : null, j.Source, j.ScheduleId, j.RetryOfId,
+            j.SavedReportId, j.Attempts, j.CutoffAt, user, builder = j.DefinitionJson != null,
+            canDownload = details && j.Status == ExportStatus.Completed && j.StoredPath != null,
+            canRetry = details && j.Status is (ExportStatus.Failed or ExportStatus.Expired or ExportStatus.Cancelled),
+            canCancel = mine && j.DefinitionJson != null && j.Status is (ExportStatus.Pending or ExportStatus.Processing) && !j.CancelRequested
+        };
+    }
 
     private static async Task<List<long>> MyTeamsAsync(HubDbContext db, UserContext me, CancellationToken ct) =>
         await db.TeamMembers.AsNoTracking().Where(m => m.UserId == me.UserId && m.IsActive).Select(m => m.TeamId).Distinct().ToListAsync(ct);
@@ -101,10 +116,10 @@ public static class BuilderEndpoints
         g.MapGet("/report-types/cases/filters", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var clients = await db.Clients.AsNoTracking().OrderBy(c => c.Code).Select(c => new { id = c.Id, label = c.Code, sub = c.Name }).ToListAsync(ct);
-            var teams = await db.Teams.AsNoTracking().OrderBy(t => t.Name).Select(t => new { id = t.Id, label = t.Name }).ToListAsync(ct);
-            var products = await db.Products.AsNoTracking().OrderBy(p => p.Code).Select(p => new { id = p.Id, label = p.Code, sub = p.Name }).ToListAsync(ct);
-            var environments = await db.Environments.AsNoTracking().OrderBy(e => e.Client!.Code).ThenBy(e => e.Name).Take(1000)
+            var clients = await db.Clients.AsNoTracking().Where(_ => me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View)).OrderBy(c => c.Code).Select(c => new { id = c.Id, label = c.Code, sub = c.Name }).ToListAsync(ct);
+            var teams = await TeamEndpoints.VisibleTeams(db.Teams.AsNoTracking(), me).Where(_ => me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View)).OrderBy(t => t.Name).Select(t => new { id = t.Id, label = t.Name }).ToListAsync(ct);
+            var products = await db.Products.AsNoTracking().Where(_ => me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View)).OrderBy(p => p.Code).Select(p => new { id = p.Id, label = p.Code, sub = p.Name }).ToListAsync(ct);
+            var environments = await db.Environments.AsNoTracking().Where(_ => me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View)).OrderBy(e => e.Client!.Code).ThenBy(e => e.Name).Take(1000)
                 .Select(e => new { id = e.Id, label = e.Name, sub = e.Client!.Code, clientId = e.ClientId }).ToListAsync(ct);
             var owners = await db.Users.AsNoTracking().Where(u => u.IsActive || db.Cases.Any(c => c.OwnerUserId == u.Id)).OrderBy(u => u.DisplayName)
                 .Select(u => new { id = u.Id, label = u.DisplayName, active = u.IsActive }).ToListAsync(ct);
@@ -272,7 +287,7 @@ public static class BuilderEndpoints
             var key = (http.Headers["Idempotency-Key"].FirstOrDefault() ?? input.IdempotencyKey)?.Trim();
             if (key is { Length: > 80 }) throw new ValidationException("idempotencyKey", "The idempotency key is too long.");
             if (!string.IsNullOrEmpty(key) && await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(j => j.UserId == me.UserId && j.IdempotencyKey == key, ct) is { } same)
-                return Results.Ok(JobDto(same, me.DisplayName, true));
+                return Results.Ok(JobDto(same, me.DisplayName, me));
             var format = (input.Format ?? "").ToLowerInvariant() switch
             {
                 "xlsx" or "excel" => ExportFormat.Xlsx,
@@ -308,7 +323,7 @@ public static class BuilderEndpoints
             {
                 UserId = me.UserId!.Value, Report = "cases", ReportName = saved?.Name ?? "Cases report", Format = format, FiltersJson = "{}", FilterSummary = summary.Length > 2000 ? summary[..2000] : summary,
                 ColumnsJson = JsonSerializer.Serialize(v.Columns.Select(x => x.Key)), TimeZone = zone.Id, Status = ExportStatus.Pending, RequestedAt = now, Source = "Report builder",
-                DefinitionJson = CasesReportService.Serialize(v.Definition), OptionsJson = JsonSerializer.Serialize(options, Json), IdempotencyKey = string.IsNullOrEmpty(key) ? null : key,
+                AccessFingerprint = ExportAccessFingerprint.For(me), DefinitionJson = CasesReportService.Serialize(v.Definition), OptionsJson = JsonSerializer.Serialize(options, Json), IdempotencyKey = string.IsNullOrEmpty(key) ? null : key,
                 SavedReportId = saved?.Id, CutoffAt = cutoff
             };
             db.ExportJobs.Add(job);
@@ -317,12 +332,12 @@ public static class BuilderEndpoints
             {
                 // A concurrent request with the same key won the race: return its job.
                 var first = await db.ExportJobs.AsNoTracking().FirstAsync(j => j.UserId == me.UserId && j.IdempotencyKey == key, ct);
-                return Results.Ok(JobDto(first, me.DisplayName, true));
+                return Results.Ok(JobDto(first, me.DisplayName, me));
             }
             await db.AuditActionAsync("ExportRequested", "Report", job.Id, job.ReportName, null, null, new { exportId = job.AuditId, format = format.ToString(), rows = total, filters = job.FilterSummary }, ct);
             await db.SaveChangesAsync(ct);
             queue.Signal();
-            return Results.Accepted($"/api/v1/reporting/exports/{job.Id}", JobDto(job, me.DisplayName, true));
+            return Results.Accepted($"/api/v1/reporting/exports/{job.Id}", JobDto(job, me.DisplayName, me));
         });
 
         g.MapGet("/exports/{id:long}", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
@@ -330,8 +345,9 @@ public static class BuilderEndpoints
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
             if (j is null || (j.UserId != me.UserId && !me.Has(Grant.Audit))) throw new NotFoundException("The export");
+            CapabilityPermissions.RequireReport(me, j.Report);
             var user = await db.Users.AsNoTracking().Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefaultAsync(ct);
-            return Results.Ok(JobDto(j, user, j.UserId == me.UserId));
+            return Results.Ok(JobDto(j, user, me));
         });
 
         g.MapGet("/exports/{id:long}/download", (long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct) => ReportingEndpoints.DownloadAsync(id, db, me, store, clock, ct));
@@ -357,6 +373,7 @@ public static class BuilderEndpoints
         {
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId && x.DefinitionJson != null, ct) ?? throw new NotFoundException("The export");
+            if (!CanSeeJobDetails(j, me)) throw new ForbiddenException("Your access may have changed since this export was requested. Create a new report instead.");
             if (j.Status is not (ExportStatus.Failed or ExportStatus.Expired or ExportStatus.Cancelled)) throw new ValidationException("status", "Only a failed, cancelled or expired export can be generated again.");
             // The new job runs with today's data (a new cutoff) and is validated again under the requester's access by the worker.
             var now = clock.GetUtcNow();
@@ -364,12 +381,12 @@ public static class BuilderEndpoints
             {
                 UserId = j.UserId, Report = j.Report, ReportName = j.ReportName, Format = j.Format, FiltersJson = j.FiltersJson, FilterSummary = j.FilterSummary, ColumnsJson = j.ColumnsJson, TimeZone = j.TimeZone,
                 Status = ExportStatus.Pending, RequestedAt = now, Source = j.Source == "Schedule" ? "Report builder" : j.Source, RetryOfId = j.Id, DefinitionJson = j.DefinitionJson, OptionsJson = j.OptionsJson,
-                SavedReportId = j.SavedReportId, CutoffAt = now
+                SavedReportId = j.SavedReportId, CutoffAt = now, AccessFingerprint = ExportAccessFingerprint.For(me)
             };
             db.ExportJobs.Add(job);
             await db.SaveChangesAsync(ct);
             queue.Signal();
-            return Results.Accepted($"/api/v1/reporting/exports/{job.Id}", JobDto(job, me.DisplayName, true));
+            return Results.Accepted($"/api/v1/reporting/exports/{job.Id}", JobDto(job, me.DisplayName, me));
         });
 
         // ---------------------------------------------------------------- schedules ----------------------------------------------------------------
@@ -409,7 +426,8 @@ public static class BuilderEndpoints
             DateTimeOffset Day(DateTime d) => new DateTimeOffset(d, zone.GetUtcOffset(d)).ToUniversalTime();
             var start = Day(today.AddDays(-(span - 1)));
             var prevStart = Day(today.AddDays(-(2 * span - 1)));
-            var mine = db.ExportJobs.AsNoTracking().Where(j => j.UserId == me.UserId);
+            var readable = CapabilityPermissions.ReadableReports(me);
+            var mine = db.ExportJobs.AsNoTracking().Where(j => j.UserId == me.UserId && readable.Contains(j.Report));
             var window = await mine.Where(j => j.RequestedAt >= prevStart).Select(j => new { j.RequestedAt, j.Status, j.Report }).ToListAsync(ct);
             var current = window.Where(j => j.RequestedAt >= start).ToList();
             var previous = window.Where(j => j.RequestedAt < start).ToList();
@@ -427,10 +445,10 @@ public static class BuilderEndpoints
             var categories = current.GroupBy(j => ReportCatalog.Find(j.Report)?.Category ?? ReportCatalog.Operations).Select(x => new { category = x.Key, count = x.Count() }).OrderByDescending(x => x.count).ToList();
             var top = current.GroupBy(j => j.Report).Select(x => new { report = x.Key, name = ReportCatalog.Find(x.Key)?.Name ?? x.Key, count = x.Count() }).OrderByDescending(x => x.count).Take(5).ToList();
             var recent = await mine.OrderByDescending(j => j.RequestedAt).ThenByDescending(j => j.Id).Take(6).ToListAsync(ct);
-            var schedules = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Include(s => s.SavedReport).Where(s => s.OwnerUserId == me.UserId)
+            var schedules = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Include(s => s.SavedReport).Where(s => s.OwnerUserId == me.UserId && readable.Contains(s.Report))
                 .OrderByDescending(s => s.IsActive).ThenBy(s => s.NextRunAt).Take(6).ToListAsync(ct);
-            var activeSchedules = await db.ReportSchedules.CountAsync(s => s.OwnerUserId == me.UserId && s.IsActive, ct);
-            var nextRun = await db.ReportSchedules.Where(s => s.OwnerUserId == me.UserId && s.IsActive).OrderBy(s => s.NextRunAt).Select(s => (DateTimeOffset?)s.NextRunAt).FirstOrDefaultAsync(ct);
+            var activeSchedules = await db.ReportSchedules.CountAsync(s => s.OwnerUserId == me.UserId && readable.Contains(s.Report) && s.IsActive, ct);
+            var nextRun = await db.ReportSchedules.Where(s => s.OwnerUserId == me.UserId && readable.Contains(s.Report) && s.IsActive).OrderBy(s => s.NextRunAt).Select(s => (DateTimeOffset?)s.NextRunAt).FirstOrDefaultAsync(ct);
             var savedReports = await VisibleReports(db, me.UserId!.Value, await MyTeamsAsync(db, me, ct)).CountAsync(ct);
             return Results.Ok(new
             {
@@ -439,9 +457,9 @@ public static class BuilderEndpoints
                     successRate = completed + failed == 0 ? (double?)null : Math.Round(100.0 * completed / (completed + failed), 1),
                     inProgress = current.Count(j => j.Status is ExportStatus.Pending or ExportStatus.Processing) },
                 schedules = new { active = activeSchedules, nextRunAt = nextRun },
-                availableReports = ReportCatalog.All.Count, savedReports,
+                availableReports = readable.Length, savedReports,
                 perDay, categories, topReports = top,
-                recent = recent.Select(j => JobDto(j, me.DisplayName, true)), upcoming = schedules.Select(ReportingEndpoints.ScheduleDto),
+                recent = recent.Select(j => JobDto(j, me.DisplayName, me)), upcoming = schedules.Select(ReportingEndpoints.ScheduleDto),
                 retentionDays = store.Options.RetentionDays, maxRows = store.Options.MaxRows
             });
         });
@@ -508,7 +526,7 @@ public static class BuilderEndpoints
             // Recipients are checked now and again at every run: each receives only what their own access allows.
             var r = await resolver.ForUserAsync(id, ct);
             if (r is null || !r.IsActive) check.Add("recipientIds", $"Recipient #{id} is not an active hub user.");
-            else if ((r.Grants & Grant.Export) != Grant.Export || r.Roles.Length == 0) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
+            else if ((r.Grants & Grant.Export) != Grant.Export || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
         }
         check.ThrowIfAny();
         s.Name = input.Name!.Trim();

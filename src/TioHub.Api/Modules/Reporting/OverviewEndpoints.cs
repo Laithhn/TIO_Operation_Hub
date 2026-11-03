@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Firewall;
 using TioHub.Api.Modules.Environments;
 using TioHub.Api.Modules.Inventory;
 using TioHub.Api.Modules.Shared;
@@ -13,14 +14,24 @@ public static class OverviewEndpoints
 {
     public static void MapOverviewEndpoints(this RouteGroupBuilder api)
     {
-        api.MapGet("/clients/{id:long}/overview", async (long id, long? regionId, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
+        api.MapGet("/clients/{id:long}/overview", async (long id, string? tab, long? regionId, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            var section = (tab ?? "structure").ToLowerInvariant();
+            access.Me.RequirePermission(PermissionHierarchy.Tab("ClientStructure", section, "View"));
+            CapabilityPermissions.RequireViews(access.Me, CapabilityPermissions.ClientTabViews(section));
+            if (!access.Me.SeesClient(id)) throw new NotFoundException("The client");
             var c = await db.Clients.AsNoTracking().Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
             var now = DateTimeOffset.UtcNow;
             var policies = await fresh.PoliciesAsync(ct);
-            var regions = await db.Regions.AsNoTracking().Where(r => r.ClientId == id).OrderBy(r => r.Code)
-                .Select(r => new { r.Id, r.Code, r.Name, owner = r.Owner == null ? null : r.Owner.DisplayName }).ToListAsync(ct);
+            var fullClientScope = access.Me.HasClient(id);
+            // Project-only users need labels for the regions of their visible environments, not
+            // client-wide region records or owners. Keep the archive filter and constrain IDs
+            // using environments already filtered by their project scope.
+            var permittedRegionIds = fullClientScope ? [] : await db.Environments.AsNoTracking()
+                .Where(e => e.ClientId == id && e.RegionId != null).Select(e => e.RegionId!.Value).Distinct().ToArrayAsync(ct);
+            var regionQuery = fullClientScope ? db.Regions.AsNoTracking() : db.Regions.IgnoreQueryFilters([HubDbContext.ScopeFilter]).AsNoTracking().Where(r => permittedRegionIds.Contains(r.Id));
+            var regions = await regionQuery.Where(r => r.ClientId == id).OrderBy(r => r.Code)
+                .Select(r => new { r.Id, r.Code, r.Name, owner = fullClientScope && r.Owner != null ? r.Owner.DisplayName : null }).ToListAsync(ct);
             var envQuery = db.Environments.AsNoTracking().Where(e => e.ClientId == id);
             if (regionId is not null) envQuery = envQuery.Where(e => e.RegionId == regionId);
             var envs = await envQuery.OrderBy(e => e.Name).Select(e => new
@@ -36,7 +47,10 @@ public static class OverviewEndpoints
             var invPolicy = policies.GetValueOrDefault((RecordTypes.Environment, ReviewScope.Inventory));
             var envView = envs.Select(e => new
             {
-                e.Id, e.Name, e.Type, e.Criticality, e.RegionId, e.owner, e.hasBackup, e.installations, e.assetCount, e.openCases,
+                e.Id, e.Name, e.Type, e.Criticality, e.RegionId, e.owner, e.hasBackup,
+                installations = access.Me.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View) && access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) ? e.installations : null,
+                assetCount = access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View) ? (int?)e.assetCount : null,
+                openCases = access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View) ? (int?)e.openCases : null,
                 condition = EnvironmentEndpoints.ConditionView(e.Condition, e.ConditionObservedAt, condPolicy, now),
                 inventoryFreshness = FreshnessService.Evaluate(invPolicy, e.CreatedAt, e.InventoryReviewedAt, e.NextReviewAt, now)
             }).ToList();
@@ -57,8 +71,10 @@ public static class OverviewEndpoints
                 .ToListAsync(ct);
             var commitments = await db.Commitments.AsNoTracking().Where(x => x.ClientId == id && x.Status == CommitmentStatus.Open).OrderBy(x => x.CurrentDueAt)
                 .Select(x => new { x.Id, x.Ref, x.Description, x.Type, x.CurrentDueAt, x.TimeZone, overdue = x.CurrentDueAt < now, owner = x.Owner == null ? null : x.Owner.DisplayName }).ToListAsync(ct);
-            var projects = await db.Projects.AsNoTracking().Where(x => x.ClientId == id).OrderBy(x => x.Name)
-                .Select(x => new { x.Id, x.Code, x.Name, x.Status, owner = x.Owner == null ? null : x.Owner.DisplayName, x.ServiceStart, x.ServiceEnd }).ToListAsync(ct);
+            var projects = access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View)
+                ? await db.Projects.AsNoTracking().Where(x => x.ClientId == id).OrderBy(x => x.Name)
+                    .Select(x => new { x.Id, x.Code, x.Name, x.Status, owner = x.Owner == null ? null : x.Owner.DisplayName, x.ServiceStart, x.ServiceEnd }).ToListAsync(ct)
+                : [];
             var full = access.Me.HasClient(id);
             var contacts = full ? await db.Contacts.AsNoTracking().Where(x => x.ClientId == id).OrderBy(x => x.Name).Select(x => new { x.Id, x.Name, x.Role, x.Organization, x.Email, x.Phone, x.AuthorizedSupport }).ToListAsync(ct) : null;
             var boundaries = full ? await db.Boundaries.AsNoTracking().Where(x => x.ClientId == id).OrderBy(x => x.Area).Select(b => new { b.Id, b.Area, b.Party, b.Organization, b.EnvironmentId, b.CoordinatorUserId, coordinator = b.Coordinator == null ? null : b.Coordinator.DisplayName,
@@ -70,24 +86,39 @@ public static class OverviewEndpoints
             if (c.CountryUnknown) gaps.Add("Country is Unknown (onboarding follow-up assigned).");
             gaps.AddRange(envView.Where(e => e.owner is null).Select(e => $"{e.Name}: no technical owner."));
             gaps.AddRange(envView.Where(e => !e.hasBackup).Select(e => $"{e.Name}: no active backup owner (coverage gap)."));
-            gaps.AddRange(envView.Where(e => e.installations.Any(i => i.version is null)).Select(e => $"{e.Name}: installation with unknown version."));
+            gaps.AddRange(envView.Where(e => e.installations?.Any(i => i.version is null) == true).Select(e => $"{e.Name}: installation with unknown version."));
+            var structureTab = section == "structure";
+            var casesTab = section == "cases";
+            var commitmentsTab = section == "commitments";
+            var projectsTab = section == "projects";
+            var contactsTab = section == "contacts";
+            var infraTab = section == "infra";
+            var canViewStructure = fullClientScope && access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View);
             return Results.Ok(new
             {
-                client = new { c.Id, c.Code, c.Name, c.Country, c.CountryUnknown, c.Status, owner = c.Owner == null ? null : new UserRef(c.Owner.Id, c.Owner.DisplayName, c.Owner.IsActive), c.LastReviewedAt },
-                structure = regions.Count == 0 ? "Direct" : envView.Any(e => e.RegionId is null) ? "Regional and direct" : "Regional",
-                regions = regions.Select(r => new { r.Id, r.Code, r.Name, r.owner, environments = envView.Where(e => e.RegionId == r.Id) }),
-                directEnvironments = envView.Where(e => e.RegionId is null),
+                client = new
+                {
+                    c.Id, c.Code, c.Name, c.Country, c.Status,
+                    countryUnknown = canViewStructure && c.CountryUnknown,
+                    owner = canViewStructure && c.Owner != null ? new UserRef(c.Owner.Id, c.Owner.DisplayName, c.Owner.IsActive) : null,
+                    lastReviewedAt = canViewStructure ? c.LastReviewedAt : null
+                },
+                structure = structureTab ? (regions.Count == 0 ? "Direct" : envView.Any(e => e.RegionId is null) ? "Regional and direct" : "Regional") : null,
+                regions = structureTab ? regions.Select(r => new { r.Id, r.Code, r.Name, r.owner, environments = envView.Where(e => e.RegionId == r.Id) }) : [],
+                directEnvironments = structureTab ? envView.Where(e => e.RegionId is null) : [],
                 counts = new
                 {
-                    environments = envView.Count,
-                    installations = envView.Sum(e => e.installations.Count),
-                    environmentsWithInstallations = envView.Count(e => e.installations.Count > 0),
-                    openCases = cases.Count, overdueCases = cases.Count(x => x.overdue),
-                    openCommitments = commitments.Count, overdueCommitments = commitments.Count(x => x.overdue)
+                    environments = structureTab && access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) ? envView.Count : 0,
+                    installations = structureTab && access.Me.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View) && access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) ? envView.Sum(e => e.installations?.Count ?? 0) : 0,
+                    environmentsWithInstallations = structureTab && access.Me.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View) && access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) ? envView.Count(e => (e.installations?.Count ?? 0) > 0) : 0,
+                    openCases = casesTab ? cases.Count : 0, overdueCases = casesTab ? cases.Count(x => x.overdue) : 0,
+                    openCommitments = commitmentsTab ? commitments.Count : 0, overdueCommitments = commitmentsTab ? commitments.Count(x => x.overdue) : 0
                 },
-                infrastructure = infra, cases, commitments, projects,
-                contacts, boundaries, personalDataRestricted = !full,
-                documents, dataQuality = dq, gaps,
+                infrastructure = infraTab ? infra : null,
+                cases = casesTab ? cases : [], commitments = commitmentsTab ? commitments : [],
+                projects = (projectsTab || section == "organizations") && access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View) ? projects : [],
+                contacts = contactsTab ? contacts : null, boundaries = contactsTab ? boundaries : null, personalDataRestricted = !full,
+                documents = Array.Empty<object>(), dataQuality = Array.Empty<object>(), gaps = Array.Empty<string>(),
                 changeRecords = (object?)null
             });
         }).WithTags("Clients");
@@ -96,7 +127,10 @@ public static class OverviewEndpoints
         {
             access.RequireBusiness();
             var e = await db.Environments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
-            var tech = access.Me.SeesTechnical;
+            bool CanTab(string tab) => HierarchyEndpointPermissions.CanViewTab(access.Me, "Environments", tab);
+            if (!new[] { "apps", "assets", "work", "network", "quality" }.Any(CanTab))
+                throw new ForbiddenException("No environment overview section is granted.");
+            var tech = access.Me.SeesTechnical && CanTab("network");
             var installations = await db.Installations.AsNoTracking().Where(i => i.EnvironmentId == id).OrderBy(i => i.Product!.Code).ThenBy(i => i.InstanceName)
                 .Select(i => new
                 {
@@ -116,7 +150,7 @@ public static class OverviewEndpoints
             var caseIds = cases.Select(c => c.Id).ToList();
             var commitments = await db.Commitments.AsNoTracking().Where(m => m.Status == CommitmentStatus.Open && ((m.CaseId != null && caseIds.Contains(m.CaseId.Value)) || (e.ProjectId != null && m.ProjectId == e.ProjectId)))
                 .Select(m => new { m.Id, m.Ref, m.Description, m.CurrentDueAt, m.TimeZone }).ToListAsync(ct);
-            var firewallRuleCount = tech ? await db.FirewallRules.CountAsync(x => x.EnvironmentId == id || x.DestinationAsset!.EnvironmentId == id, ct) : 0;
+            var firewallRuleCount = tech && access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.View) && access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View) ? await FirewallEndpoints.VisibleRules(db).CountAsync(x => x.EnvironmentId == id || x.DestinationAsset!.EnvironmentId == id, ct) : 0;
             var boundaries = await db.Boundaries.AsNoTracking().Where(b => b.EnvironmentId == id || (b.ClientId == e.ClientId && b.EnvironmentId == null))
                 .Select(b => new { b.Id, b.Area, b.Party, b.Organization, environmentSpecific = b.EnvironmentId != null, coordinator = b.Coordinator == null ? null : b.Coordinator.DisplayName,
                     responsibleUser = b.ResponsibleUser == null ? null : b.ResponsibleUser.DisplayName, b.ResponsibleUserId,
@@ -128,7 +162,9 @@ public static class OverviewEndpoints
                 .Select(i => new { i.Id, i.Rule, i.RecordType, i.RecordLabel, i.Detail, i.NextAction }).ToListAsync(ct);
             return Results.Ok(new
             {
-                installations, assets, cases, commitments, boundaries, documents, reviews, dataQuality = dq,
+                installations = CanTab("apps") ? installations : [], assets = CanTab("assets") ? assets : [],
+                cases = CanTab("work") ? cases : [], commitments = CanTab("work") ? commitments : [], boundaries = CanTab("work") ? boundaries : [],
+                documents = Array.Empty<object>(), reviews = Array.Empty<object>(), dataQuality = CanTab("quality") ? dq : [],
                 network = new { firewallRuleCount, detailRestricted = !tech },
                 technicalRestricted = !tech,
                 impactNote = "Infrastructure is recorded documentation, not live monitoring."

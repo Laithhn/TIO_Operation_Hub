@@ -21,6 +21,8 @@ async function api<T>(page: Page, path: string, body?: unknown, method = body ==
 
 /** A fresh account holding a new role with exactly these rights and permissions, signed in through the development cookie. */
 async function signInWithRole(page: Page, rights: string[], permissions: string[]) {
+  // GET /me issues the anti-forgery cookie; the initial SPA request may still be loading.
+  await api(page, '/me');
   const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('UX role'), rights, permissions });
   const accountName = `DEV\\${unique('ux')}`;
   await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleId: created.id });
@@ -37,8 +39,8 @@ const scriptsOf = (page: Page) => {
 const PROFILES: { name: string; signIn: (page: Page) => Promise<void> }[] = [
   { name: 'TIO Manager', signIn: async () => undefined },
   { name: 'Operation Engineer', signIn: async page => page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent('DEV\\engineer'), url: test.info().project.use.baseURL as string }]) },
-  { name: 'restricted custom role', signIn: page => signInWithRole(page, [], ['Cases:Create']) },
-  { name: 'Administration right without resource permissions', signIn: page => signInWithRole(page, ['Administer'], []) }
+  { name: 'restricted custom role', signIn: page => signInWithRole(page, [], ['module.cases:Access', 'area.Cases:Access', 'Cases:View', 'Cases:Create']) },
+  { name: 'Administration right with user-management access', signIn: page => signInWithRole(page, ['Administer'], ['module.admin:Access', 'area.AdminUsers:Access', 'AdminUsers:View']) }
 ];
 
 /** Whether an element's text is fully shown: not cut by its own box and inside the viewport. */
@@ -359,15 +361,15 @@ test.describe('UX-003 Loading cost', () => {
 test.describe('UX-005 Contextual guidance', () => {
   test('an access denial says what is needed and where it is granted, without showing the record', async ({ page }) => {
     await page.goto('/');
-    await signInWithRole(page, [], []);
+    await signInWithRole(page, [], ['module.escalations:Access', 'area.OtherOperations:Access', 'OtherOperations:View']);
     await page.goto('/firewall-rules');
     const denial = page.locator('.state-msg.restricted');
     await expect(denial).toContainText('Firewall rules need the Technical detail right.');
     await expect(denial).toContainText('under Administration › Roles');
     await expect(page.locator('table')).toHaveCount(0);
     await page.goto('/admin/users');
-    await expect(page.locator('.state-msg.restricted')).toContainText('This page needs the Administration right.');
-    await expect(page.locator('.state-msg.restricted')).toContainText('Administration › Roles');
+    await expect(page.locator('.state-msg.restricted')).toContainText('Your roles do not grant the permissions required for this page.');
+    await expect(page.locator('.state-msg.restricted')).toContainText('Administration › Users');
   });
 
   test('a server failure offers Try again and the trace ID; retrying recovers once the server answers', async ({ page }) => {

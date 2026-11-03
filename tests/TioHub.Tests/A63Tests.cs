@@ -13,7 +13,7 @@ public class A63PermissionTests
     {
         var user = new UserContext();
         user.Set(new ResolvedUser(7, "engineer", "Engineer", "UTC", true, ["Custom"], Right.None,
-            [ResourcePermissions.KeyOf(ResourcePermissions.Cases, ResourcePermissions.Maintain)], Grant.None,
+            PermissionHierarchy.WithAncestors([ResourcePermissions.KeyOf(ResourcePermissions.Cases, ResourcePermissions.View), ResourcePermissions.KeyOf(ResourcePermissions.Cases, ResourcePermissions.Maintain)]), Grant.None,
             true, [], [], [], [], true, []));
 
         Assert.True(user.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Maintain));
@@ -80,7 +80,7 @@ public class A63PermissionApiTests(HubFactory hub) : Scenario(hub)
         var manager = await Hub.As(HubFactory.Manager);
         var roleId = await manager.Create("/admin/roles", new
         {
-            name = U("CasesMaintain"), rights = Array.Empty<string>(), permissions = new[] { "Cases:Maintain" }
+            name = U("CasesMaintain"), rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Cases:View", "Cases:Maintain" }, Right.None)
         });
         var account = $@"DEV\{U("a63")}";
         await manager.Create("/admin/users", new { accountName = account, displayName = "A63 permission test", workingTimeZone = "UTC", roleId });

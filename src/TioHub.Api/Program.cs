@@ -113,6 +113,7 @@ using (var scope = app.Services.CreateScope())
         await db.Database.MigrateAsync();
     // Stop before seeding, backfills, or hosted services touch a schema from an older release.
     (await DatabaseReadiness.CheckAsync(db, CancellationToken.None)).RequireReady();
+    await PermissionRegistry.SynchronizeAsync(db, CancellationToken.None);
     if (config.GetValue("Database:SeedReferenceData", true))
         await ReferenceData.SeedAsync(db);
     if (config.GetValue("Database:SeedDevelopmentData", false))
@@ -186,7 +187,7 @@ app.MapGet("/api/health/ready", async (HubDbContext db, CancellationToken ct) =>
     .AllowAnonymous().ExcludeFromDescription();
 app.MapOpenApi("/openapi/{documentName}.json");
 
-app.MapGroup("/api/v1").MapHubModules();
+app.MapGroup("/api/v1").AddEndpointFilter<CapabilityPermissionFilter>().AddEndpointFilter<AuthorizationAdministrationFilter>().MapHubModules();
 
 app.Map("/api/{**rest}", (HttpContext ctx) => ProblemWriter.WriteAsync(ctx, 404, "Not found", "There is no API endpoint at this address.")).ExcludeFromDescription();
 // The SPA shell holds no data (every /api call is authorized), so it loads without a session and shows the sign-in page.

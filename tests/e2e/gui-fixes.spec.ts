@@ -27,6 +27,8 @@ async function apiStatus(page: Page, path: string) {
 
 /** A fresh account holding a new role with exactly these rights and permissions, signed in through the development cookie. */
 async function signInWithRole(page: Page, rights: string[], permissions: string[]) {
+  // GET /me issues the anti-forgery cookie before direct API writes.
+  await api(page, '/me');
   const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('GUI role'), rights, permissions });
   const accountName = `DEV\\${unique('gui')}`;
   await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleId: created.id });
@@ -83,13 +85,13 @@ test.describe('GUI-01 Reporting Center route', () => {
     await page.goto('/reporting-center');
     const me = await api<{ grants: { export: boolean } }>(page, '/me');
     expect(me.grants.export).toBe(false);
-    await expect(page.getByRole('heading', { level: 1, name: 'Reporting Center' })).toBeVisible();
-    await expect(page.getByText('The Reporting Center needs the Export permission.')).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Access denied' })).toBeVisible();
+    await expect(page.getByText('Your roles do not grant the permissions required for this page. Ask an administrator to review your access.')).toBeVisible();
     await expect(page.getByText(/Report Manager/)).toHaveCount(0);
     expect(await apiStatus(page, '/reports/catalog')).toBe(403);
     await page.reload();
-    await expect(page.getByText('The Reporting Center needs the Export permission.')).toBeVisible();
-    await page.getByRole('link', { name: 'Back to the dashboard' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Access denied' })).toBeVisible();
+    await page.getByRole('link', { name: 'TIO Operations Hub home' }).click();
     await expect(page).toHaveURL(/\/$/);
   });
 });
@@ -371,7 +373,7 @@ test.describe('GUI-07 Table toolbar on phones', () => {
 
   test('Export CSV is offered only with the Export permission', async ({ page }) => {
     await page.goto('/products');
-    await signInWithRole(page, [], []);
+    await signInWithRole(page, [], ['module.products:Access', 'area.Products:Access', 'Products:View']);
     await page.goto('/products');
     await expect(vtTable(page).getByRole('button', { name: /^Filter/ })).toBeVisible();
     await expect(vtTable(page).getByRole('button', { name: 'Export CSV' })).toHaveCount(0);
@@ -532,7 +534,7 @@ test.describe('GUI-12 Target sizes', () => {
     await page.goto('/admin/roles');
     await atLeast(page.getByRole('button', { name: /^Edit role / }).first(), 'row action');
     await page.goto('/admin/rights');
-    await atLeast(page.locator('.right-hit').first(), 'rights checkbox target', 32);
+    await atLeast(page.locator('.rights-node .rights-leaf label').first(), 'rights checkbox target', 32);
     // Phones: the details toggle and the drawer controls are 40 px or more.
     await page.setViewportSize({ width: 390, height: 800 });
     await page.goto('/clients');

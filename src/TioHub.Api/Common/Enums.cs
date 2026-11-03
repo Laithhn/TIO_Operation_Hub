@@ -9,7 +9,7 @@ public enum Role { Engineer, Manager }
 [Flags]
 public enum Grant { None = 0, Export = 1, TechnicalDetail = 2, Audit = 4 }
 
-/// <summary>A31: rights held by configurable roles. Viewing needs no right.</summary>
+/// <summary>Legacy rights held by configurable roles. Module reads/actions are explicit resource permissions.</summary>
 [Flags]
 public enum Right { None = 0, Edit = 1, Manage = 2, Archive = 4, Delete = 8, Export = 16, TechnicalDetail = 32, Audit = 64, Administer = 128 }
 

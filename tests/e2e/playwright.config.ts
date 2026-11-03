@@ -11,7 +11,10 @@ if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('TIO
 const sqlServer = process.env.TIOHUB_E2E_SQL ?? '(localdb)\\MSSQLLocalDB';
 // LocalDB materializes a named database as a fixed MDF path. Give every Playwright process its own name so Claude Code,
 // Codex and concurrent local runs cannot race to create or migrate the same TioHub_E2E.mdf file.
-const database = `TioHub_E2E_${process.pid}_${randomUUID().replaceAll('-', '')}`;
+const overrideDatabase = process.env.TIOHUB_E2E_DATABASE;
+if (overrideDatabase && !/^TioHub_E2E_Codex_[A-Za-z0-9_]+$/.test(overrideDatabase))
+  throw new Error('TIOHUB_E2E_DATABASE must be an isolated TioHub_E2E_Codex_ database.');
+const database = overrideDatabase ?? `TioHub_E2E_${process.pid}_${randomUUID().replaceAll('-', '')}`;
 export default defineConfig({
   testDir: '.',
   timeout: 60_000,

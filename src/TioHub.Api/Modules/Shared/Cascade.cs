@@ -89,8 +89,20 @@ public static class Cascade
 
     public static bool Supports(string path) => Kinds.Any(k => k.Path == path);
 
-    private static string Table(IEntityType e) => $"[{e.GetSchema() ?? "dbo"}].[{e.GetTableName()}]";
-    private static string Col(IEntityType e, IProperty p) => $"[{p.GetColumnName(StoreObjectIdentifier.Table(e.GetTableName()!, e.GetSchema()))}]";
+    /// <summary>
+    /// The dependency graph is collected with unfiltered SQL, including optional references from
+    /// other scopes. Until every affected row can be authorized individually, require global scope.
+    /// Apply this to previews too: they reveal labels and counts of affected records.
+    /// </summary>
+    public static void RequireGlobalScope(UserContext me)
+    {
+        if (!me.IsSystem && !(me.AllClients && me.AllInternal)) throw new NotFoundException("The record");
+    }
+
+    // Table and column names come exclusively from the EF model; delimit them as SQL Server identifiers.
+    private static string Identifier(string value) => "[" + value.Replace("]", "]]", StringComparison.Ordinal) + "]";
+    private static string Table(IEntityType e) => $"{Identifier(e.GetSchema() ?? "dbo")}.{Identifier(e.GetTableName()!)}";
+    private static string Col(IEntityType e, IProperty p) => Identifier(p.GetColumnName(StoreObjectIdentifier.Table(e.GetTableName()!, e.GetSchema()))!);
     private static IProperty? SingleKey(IEntityType e) => e.FindPrimaryKey() is { Properties.Count: 1 } k && k.Properties[0].ClrType == typeof(long) ? k.Properties[0] : null;
     private static bool Mapped(IEntityType e) => e.GetTableName() is not null && !e.IsOwned() && e.FindPrimaryKey() is not null && !Never.Contains(e.ClrType) && e.GetViewName() is null;
 
@@ -163,7 +175,7 @@ public static class Cascade
     private static async Task CollectAsync(HubDbContext db, Plan plan, long id, CancellationToken ct)
     {
         await db.Database.ExecuteSqlRawAsync("IF OBJECT_ID('tempdb..#own') IS NOT NULL DROP TABLE #own; CREATE TABLE #own (t nvarchar(200) NOT NULL, id bigint NOT NULL, PRIMARY KEY (t, id));", ct);
-        await db.Database.ExecuteSqlRawAsync($"INSERT #own (t, id) VALUES (N'{Name(plan.Root)}', {id});", ct);
+        await db.Database.ExecuteSqlRawAsync($"INSERT #own (t, id) VALUES (N'{Name(plan.Root)}', {{0}});", [id], ct);
         foreach (var t in plan.Order.Where(t => t != plan.Root && SingleKey(t) is not null))
             await db.Database.ExecuteSqlRawAsync($"INSERT #own (t, id) SELECT DISTINCT N'{Name(t)}', x.{Col(t, SingleKey(t)!)} FROM {Table(t)} x WHERE {Where(plan, t)} AND NOT EXISTS (SELECT 1 FROM #own o WHERE o.t = N'{Name(t)}' AND o.id = x.{Col(t, SingleKey(t)!)});", ct);
     }
@@ -240,9 +252,9 @@ public static class Cascade
             .MakeGenericMethod(kind.Entity).Invoke(null, [db])!;
         if (!await q.AnyAsync(e => EF.Property<long>(e, "Id") == id, ct)) throw new NotFoundException("The record");
         var labelCol = LabelColumns.Select(c => et.FindProperty(c)).FirstOrDefault(p => p is not null && p.ClrType == typeof(string));
-        var label = labelCol is null ? $"#{id}" : await db.Database.SqlQueryRaw<string>($"SELECT {Col(et, labelCol)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {id}").SingleAsync(ct);
+        var label = labelCol is null ? $"#{id}" : await db.Database.SqlQueryRaw<string>($"SELECT {Col(et, labelCol)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {{0}}", id).SingleAsync(ct);
         long? clientId = kind.Entity == typeof(Client) ? id
-            : et.FindProperty("ClientId") is { } cp ? await db.Database.SqlQueryRaw<long?>($"SELECT {Col(et, cp)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {id}").SingleAsync(ct) : null;
+            : et.FindProperty("ClientId") is { } cp ? await db.Database.SqlQueryRaw<long?>($"SELECT {Col(et, cp)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {{0}}", id).SingleAsync(ct) : null;
         return (label, clientId);
     }
 
@@ -251,7 +263,9 @@ public static class Cascade
     public static async Task<Preview> PreviewAsync(HubDbContext db, UserContext me, string path, long id, CancellationToken ct)
     {
         var kind = KindOf(path);
+        PermissionHierarchy.RequireRecordSection(me, kind.RecordType, "Delete");
         me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
+        RequireGlobalScope(me);
         var (label, _) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -266,7 +280,9 @@ public static class Cascade
     public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct)
     {
         var kind = KindOf(path);
+        PermissionHierarchy.RequireRecordSection(me, kind.RecordType, "Delete");
         me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
+        RequireGlobalScope(me);
         var (label, clientId) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         // Range locks keep new descendants and optional references from appearing between authorization and mutation.
@@ -283,6 +299,9 @@ public static class Cascade
         var deletedGroups = await GroupsAsync(db, plan, ct);
         var unlinkedGroups = await UnlinkGroupsAsync(db, plan, ct);
         RequireDependentPermissions(me, deletedGroups, unlinkedGroups);
+        // Raw SQL below can remove scopes, projects, or environments without EF change tracking.
+        // Invalidate the derived authorization snapshots atomically with the graph deletion.
+        await db.AdvanceAuthorizationVersionAsync(ct);
         var summary = deletedGroups.ToDictionary(g => g.Label, g => g.Count);
         var unlinked = unlinkedGroups.ToDictionary(g => g.Label, g => g.Count);
         if (kind.Entity == typeof(Client))
@@ -325,9 +344,15 @@ public static class Cascade
     {
         // History and link cleanup inherit the owning record's permission; independent business records keep their own rights.
         foreach (var group in deleted.Where(g => IndependentRecords.Contains(g.Type)))
+        {
+            PermissionHierarchy.RequireRecordSection(me, group.Type, "Delete");
             me.RequirePermission(ResourcePermissions.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), ResourcePermissions.Delete);
+        }
         foreach (var group in unlinked.Where(g => IndependentRecords.Contains(g.Type)))
+        {
+            PermissionHierarchy.RequireRecordSection(me, group.Type, "Maintain");
             me.RequirePermission(ResourcePermissions.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), ResourcePermissions.Maintain);
+        }
     }
 
     public static void MapCascadeEndpoints(this RouteGroupBuilder api)

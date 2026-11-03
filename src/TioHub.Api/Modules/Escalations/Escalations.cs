@@ -165,7 +165,8 @@ public static class EscalationEndpoints
             access.RequireBusiness();
             var e = await db.Escalations.AsNoTracking().Include(x => x.Client).Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The escalation");
             var now = DateTimeOffset.UtcNow;
-            var events = await db.EscalationEvents.AsNoTracking().Where(x => x.EscalationId == id).OrderBy(x => x.At).ThenBy(x => x.Id)
+            var canHistory = access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.HistoryView) && access.Me.Has(Grant.Audit);
+            var events = await db.EscalationEvents.AsNoTracking().Where(x => canHistory && x.EscalationId == id).OrderBy(x => x.At).ThenBy(x => x.Id)
                 .Select(x => new { x.Id, x.Type, x.Status, x.Channel, x.Outgoing, x.Level, x.Note, x.At, by = x.By == null ? null : x.By.DisplayName }).ToListAsync(ct);
             var project = e.ProjectId is null ? null : await db.Projects.AsNoTracking().Where(x => x.Id == e.ProjectId).Select(x => new { x.Id, x.Code, x.Name }).FirstOrDefaultAsync(ct);
             var contract = e.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(x => x.Id == e.ContractId).Select(x => new { x.Id, x.Ref, x.Title }).FirstOrDefaultAsync(ct);

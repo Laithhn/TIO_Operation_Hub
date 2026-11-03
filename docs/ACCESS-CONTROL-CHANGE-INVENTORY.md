@@ -1,0 +1,119 @@
+# Access-control work: change inventory
+
+This lists files touched for the access-control continuation. Many files were already modified or untracked before the work began; this list does not attribute the entire current Git diff to this task.
+
+## Backend and data
+
+- `src/TioHub.Api/Modules/Access/AccessEntities.cs`
+- `src/TioHub.Api/Modules/Access/MeEndpoints.cs`
+- `src/TioHub.Api/Modules/Admin/AdminEndpoints.cs`
+- `src/TioHub.Api/Modules/Admin/RoleEndpoints.cs`
+- `src/TioHub.Api/Modules/Admin/AccessSimulation.cs`
+- `src/TioHub.Api/Modules/Admin/RoleConflictEndpoints.cs`
+- `src/TioHub.Api/Modules/Admin/UserPermissionOverrideEndpoints.cs`
+- `src/TioHub.Api/Modules/ModuleRegistration.cs`
+- `src/TioHub.Api/Modules/Attachments/Attachments.cs`
+- `src/TioHub.Api/Modules/Catalogue/CatalogueEndpoints.cs`
+- `src/TioHub.Api/Modules/Clients/ClientEndpoints.cs`
+- `src/TioHub.Api/Modules/Clients/OrganizationEndpoints.cs`
+- `src/TioHub.Api/Modules/Contracts/ContractEndpoints.cs`
+- `src/TioHub.Api/Modules/Environments/EnvironmentEndpoints.cs`
+- `src/TioHub.Api/Modules/Firewall/FirewallRules.cs`
+- `src/TioHub.Api/Modules/Inventory/InventoryEndpoints.cs`
+- `src/TioHub.Api/Modules/Inventory/CloneEndpoints.cs`
+- `src/TioHub.Api/Modules/Work/DocumentedImpact.cs`
+- `src/TioHub.Api/Modules/Work/CaseEndpoints.cs`
+- `src/TioHub.Api/Modules/Quality/QualityEndpoints.cs`
+- `src/TioHub.Api/Modules/Quality/DataQualityEngine.cs`
+- `src/TioHub.Api/Modules/Shared/Deletion.cs`
+- `src/TioHub.Api/Modules/Shared/Cascade.cs`
+- `src/TioHub.Api/Modules/Shared/Services.cs`
+- `src/TioHub.Api/Modules/Teams/TeamEndpoints.cs`
+- `src/TioHub.Api/Modules/Notifications/Notifications.cs`
+- `src/TioHub.Api/Modules/Notes/Notes.cs`
+- `src/TioHub.Api/Modules/Reporting/ExportAccessFingerprint.cs`
+- `src/TioHub.Api/Modules/Reporting/ExportService.cs`
+- `src/TioHub.Api/Modules/Reporting/ExportWorker.cs`
+- `src/TioHub.Api/Modules/Reporting/ScheduledExportAccess.cs`
+- `src/TioHub.Api/Modules/Reporting/BuilderEndpoints.cs`
+- `src/TioHub.Api/Modules/Reporting/OverviewEndpoints.cs`
+- `src/TioHub.Api/Modules/Reporting/ReportingEndpoints.cs`
+- `src/TioHub.Api/Modules/Reporting/ReportingEntities.cs`
+- `src/TioHub.Api/Modules/Reporting/SearchExportEndpoints.cs`
+- `src/TioHub.Api/Security/AuthEndpoints.cs`
+- `src/TioHub.Api/Security/Passwords.cs`
+- `src/TioHub.Api/Security/CapabilityPermissions.cs`
+- `src/TioHub.Api/Security/PermissionOverrides.cs`
+- `src/TioHub.Api/Security/RoleConflicts.cs`
+- `src/TioHub.Api/Security/AuthorizationAdministrationFilter.cs`
+- `src/TioHub.Api/Security/SignIn.cs`
+- `src/TioHub.Api/Security/UserContext.cs`
+- `src/TioHub.Api/Modules/Shared/RelatedRecordAccess.cs`
+- `src/TioHub.Api/Data/HubDbContext.cs`
+- `src/TioHub.Api/Data/Migrations/HubDbContextModelSnapshot.cs`
+- `src/TioHub.Api/Data/Migrations/20261102120000_PreserveLegacyEffectiveScopes.cs`
+- `src/TioHub.Api/Data/Migrations/20261102120037_UserPermissionOverrides.cs`
+- `src/TioHub.Api/Data/Migrations/20261102120037_UserPermissionOverrides.Designer.cs`
+- `src/TioHub.Api/Data/Migrations/20261102140000_ExportAccessFingerprint.cs`
+- `database/01-schema.sql`
+- `build/Build-Release.ps1`
+
+## Frontend
+
+- `src/web/src/App.tsx`
+- `src/web/src/permissions.ts`
+- `src/web/src/ui/Shell.tsx`
+- `src/web/src/pages/Admin.tsx`
+- `src/web/src/pages/AccessControl.tsx`
+- `src/web/src/pages/AccessRoles.tsx`
+- `src/web/src/pages/AccessRoleConflicts.tsx`
+- `src/web/src/pages/AccessUserAssignments.tsx`
+- `src/web/src/pages/PermissionOverrides.tsx`
+- `src/web/src/pages/PermissionSimulation.tsx`
+- `src/web/src/pages/UserScopeEditor.tsx`
+- `src/web/src/pages/Cases.tsx`
+- `src/web/src/pages/Clients.tsx`
+- `src/web/src/pages/Contracts.tsx`
+- `src/web/src/pages/Quality.tsx`
+- `src/web/src/pages/access-control.css`
+
+## Tests and documentation
+
+- `tests/TioHub.Tests/AccessSimulationTests.cs`
+- `tests/TioHub.Tests/ArchiveAuthorizationTests.cs`
+- `tests/TioHub.Tests/AccessControlSqlIntegrationTests.cs`
+- `tests/TioHub.Tests/AuthorizationBoundarySqlIntegrationTests.cs`
+- `tests/TioHub.Tests/ClientDuplicateAuthorizationTests.cs`
+- `tests/TioHub.Tests/FirewallScopeTests.cs`
+- `tests/TioHub.Tests/FormsRecoverySqlIntegrationTests.cs`
+- `tests/TioHub.Tests/DirectoryGroupEncodingTests.cs`
+- `tests/TioHub.Tests/ExportHistoryScopeTests.cs`
+- `tests/TioHub.Tests/LinkedRecordScopeTests.cs`
+- `tests/TioHub.Tests/HandoverAuthorizationTests.cs`
+- `tests/TioHub.Tests/JiraReuseAuthorizationTests.cs`
+- `tests/TioHub.Tests/PasswordResetAuthorizationTests.cs`
+- `tests/TioHub.Tests/QualityFindingScopeTests.cs`
+- `tests/TioHub.Tests/QualityScopeSqlIntegrationTests.cs`
+- `tests/TioHub.Tests/QualityScanAuthorizationTests.cs`
+- `tests/TioHub.Tests/ScheduledExportAccessTests.cs`
+- `tests/TioHub.Tests/DataScopeTests.cs`
+- `tests/TioHub.Tests/DeletionScopeTests.cs`
+- `tests/TioHub.Tests/RoleConflictTests.cs`
+- `tests/TioHub.Tests/RelatedRecordAuthorizationTests.cs`
+- `tests/TioHub.Tests/NotificationScopeTests.cs`
+- `tests/TioHub.Tests/OrganizationScopeTests.cs`
+- `tests/TioHub.Tests/RolelessAccessTests.cs`
+- `tests/TioHub.Tests/PermissionOverrideTests.cs`
+- `tests/TioHub.Tests/PermissionOverrideIntegrationTests.cs`
+- `tests/TioHub.Tests/PermissionOverrideRequestTests.cs`
+- `tests/e2e/access-control-isolated.spec.ts`
+- `tests/e2e/playwright.access-control-isolated.config.ts`
+- `tests/e2e/access-roles-isolated.spec.ts`
+- `tests/e2e/hierarchy-ui.spec.ts`
+- `tests/e2e/playwright.access-roles-isolated.config.ts`
+- `docs/ACCESS-CONTROL-IMPLEMENTATION.md`
+- `docs/SCOPED-PERMISSION-EXCEPTIONS.md`
+- `docs/AUTHORIZATION-DATA-SCOPE-UPGRADE.md`
+- `docs/AUTHORIZATION-ADMIN-GUIDE.md`
+- `docs/OPERATIONS.md`
+- `docs/ACCESS-CONTROL-CHANGE-INVENTORY.md`

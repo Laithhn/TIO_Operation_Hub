@@ -82,12 +82,20 @@ public static class QualityEndpoints
         });
         dg.MapPost("/scan", async (UserContext me, IServiceScopeFactory scopes, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Other, ResourcePermissions.Maintain);
+            RequireGlobalScanAccess(me);
             using var scope = scopes.CreateScope();
             var (opened, resolved) = await scope.ServiceProvider.GetRequiredService<DataQualityEngine>().ScanAsync(ct);
             return Results.Ok(new { opened, resolved });
         });
 
+    }
+
+    /// <summary>A manual scan runs in system context and mutates quality items across all scopes.</summary>
+    public static void RequireGlobalScanAccess(UserContext me)
+    {
+        me.RequirePermission(ResourcePermissions.Other, ResourcePermissions.Maintain);
+        if (!me.IsSystem && (!me.AllClients || !me.AllInternal))
+            throw new ForbiddenException("Running a global data-quality scan requires all client and internal scopes.");
     }
 
     public static IQueryable<DataQualityItem> Filter(IQueryable<DataQualityItem> q, string? rule, long? clientId, long? coordinatorId, string? status, string? recordType)

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Modules.Catalogue;
+using TioHub.Api.Modules.Firewall;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Shared;
@@ -52,7 +53,7 @@ public static class InventoryEndpoints
             var components = await db.ComponentHosts.AsNoTracking().Where(h => h.AssetId == id)
                 .Select(h => new { h.ComponentId, h.Component!.Name, h.Component.Role, h.Component.InstallationId, installationName = h.Component.Installation!.InstanceName, productCode = h.Component.Installation.Product!.Code }).ToListAsync(ct);
             // A35: the firewall rules from and to this server (technical detail).
-            var firewallRules = tech ? await db.FirewallRules.AsNoTracking().Where(r => r.SourceAssetId == id || r.DestinationAssetId == id)
+            var firewallRules = tech && access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.View) ? await FirewallEndpoints.VisibleRules(db).AsNoTracking().Where(r => r.SourceAssetId == id || r.DestinationAssetId == id)
                 .Select(r => new { r.Id, r.SourceAssetId, source = r.SourceAsset!.Name, r.DestinationAssetId, destination = r.DestinationAsset!.Name, r.Ports, r.Protocol, r.Direction, r.Purpose }).ToListAsync(ct) : null;
             return ctx.WithETag(a, new
             {

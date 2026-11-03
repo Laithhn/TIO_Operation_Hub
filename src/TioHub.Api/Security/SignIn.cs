@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Security.Principal;
+using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
@@ -78,6 +81,73 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
 
     public static string CacheKey(string account, long generation) => $"user:{generation}:{account.ToUpperInvariant()}";
 
+    /// <summary>Group identities are encoded without separator ambiguity before being hashed for the cache key.</summary>
+    public static string GroupCacheKey(IEnumerable<string> groups)
+    {
+        var normalized = groups.Select(g => g.ToUpperInvariant()).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(normalized))));
+    }
+
+    // A snapshot is evidence from a particular authentication mode. Earlier formats
+    // (including v3) did not identify Development vs Windows and must be refreshed.
+    private const string FormsGroupSnapshot = "\0forms";
+    private const string UnavailableGroupSnapshot = "\0unavailable";
+    private const int StoredGroupLimit = 400;
+
+    private static string? StoredGroupPrefix(string mode) => mode.ToUpperInvariant() switch
+    {
+        "WINDOWS" => "\0v4:w:",
+        "DEVELOPMENT" => "\0v4:d:",
+        _ => null
+    };
+
+    /// <summary>Store mode-specific last-observed groups; oversized snapshots fail closed.</summary>
+    public static string EncodeStoredGroups(IEnumerable<string> groups, string mode)
+    {
+        var prefix = StoredGroupPrefix(mode) ?? throw new ArgumentException("A directory authentication mode is required.", nameof(mode));
+        var names = groups.Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        if (names.Any(name => string.IsNullOrWhiteSpace(name) || name.Contains('\0'))) return UnavailableGroupSnapshot;
+        var encoded = prefix + JsonSerializer.Serialize(names);
+        return encoded.Length <= StoredGroupLimit ? encoded : UnavailableGroupSnapshot;
+    }
+
+    /// <summary>Only a fresh snapshot from the current authentication mode can support a security decision.</summary>
+    public static bool TryDecodeStoredGroups(string? value, string mode, out string[] groups)
+    {
+        groups = [];
+        var prefix = StoredGroupPrefix(mode);
+        if (prefix is null || value is null || !value.StartsWith(prefix, StringComparison.Ordinal)) return false;
+        try
+        {
+            var decoded = JsonSerializer.Deserialize<string[]>(value[prefix.Length..]);
+            if (decoded is null || decoded.Any(name => string.IsNullOrWhiteSpace(name) || name.Contains('\0'))) return false;
+            groups = decoded.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            return true;
+        }
+        catch (JsonException) { return false; }
+    }
+
+    public static string[] RequireStoredGroups(string? value, string mode)
+    {
+        if (!TryDecodeStoredGroups(value, mode, out var groups))
+            throw new ValidationException("groups", "This account's directory group snapshot is unavailable. An authenticated sign-in must refresh it before access can be changed.");
+        return groups;
+    }
+
+    // Forms identities cannot have directory groups. Never persist their empty group set as
+    // directory evidence: after a switch to Windows only a fresh directory sign-in suffices.
+    public static bool TryGroupsForMode(string? value, string mode, out string[] groups)
+    {
+        if (string.Equals(mode, "Forms", StringComparison.OrdinalIgnoreCase)) { groups = []; return true; }
+        return TryDecodeStoredGroups(value, mode, out groups);
+    }
+    public bool IsForms => _opt.IsForms;
+    public bool TryGroups(string? value, out string[] groups) => TryGroupsForMode(value, _opt.Mode, out groups);
+    public string[] Groups(string? value) => TryGroups(value, out var groups) ? groups : [];
+    public string[] RequireGroups(string? value) => _opt.IsForms ? [] : RequireStoredGroups(value, _opt.Mode);
+    public void MarkFormsSnapshot(User user) { if (_opt.IsForms) user.MappedGroups = FormsGroupSnapshot; }
+    public HashSet<string> PrincipalGroups(ClaimsPrincipal principal) => _opt.IsForms ? new(StringComparer.OrdinalIgnoreCase) : GroupNames(principal);
+
     /// <summary>Access changes take effect for active sessions at once: every cached snapshot is dropped (Section 3).</summary>
     public static void InvalidateAll(IMemoryCache cache) => cache.Set(GenerationKey, cache.Get<long>(GenerationKey) + 1);
 
@@ -85,13 +155,16 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
     {
         var account = principal.Identity?.Name;
         if (string.IsNullOrWhiteSpace(account)) return null;
+        // One lightweight authoritative read per request prevents a second application instance from serving revoked grants.
+        // Failure to read the generation fails the request closed; existing authenticated operations are not cancelled mid-flight.
+        var databaseGeneration = await db.AuthorizationVersions.AsNoTracking().Where(v => v.Id == 1).Select(v => v.Version).SingleAsync(ct);
         var generation = cache.Get<long>(GenerationKey);
-        var groups = GroupNames(principal);
-        var key = CacheKey(account, generation) + "|" + string.Join(';', groups.Order());
+        var groups = PrincipalGroups(principal);
+        var key = CacheKey(account, generation) + $"|db:{databaseGeneration}|" + GroupCacheKey(groups);
         if (cache.TryGetValue(key, out ResolvedUser? cached) && cached is not null) return cached;
 
         var mappings = await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).ToListAsync(ct);
-        var matched = mappings.Where(m => groups.Contains(m.GroupName.Trim())).ToList();
+        var matched = mappings.Where(m => !m.GroupName.Contains('\0') && groups.Contains(m.GroupName.Trim())).ToList();
         var isBootstrap = _opt.BootstrapAdministrators.Any(a => string.Equals(a.Trim(), account, StringComparison.OrdinalIgnoreCase));
 
         var user = await db.Users.Include(u => u.Roles).Include(u => u.Scopes).FirstOrDefaultAsync(u => u.AccountName == account, ct);
@@ -106,27 +179,69 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
             }
             var zone = await db.Settings.Where(s => s.Key == Modules.Admin.SettingKeys.DefaultTimeZone).Select(s => s.Value).FirstOrDefaultAsync(ct);
             user = new User { AccountName = account, DisplayName = DisplayNameOf(account), IsActive = true, LastSignInAt = now, WorkingTimeZone = Zones.Find(zone) is not null ? zone! : "UTC" };
-            if (isBootstrap) user.Roles.Add(new UserRole { AppRoleId = (await BuiltInRoles.EnsureAsync(db, ct))[Role.Manager] });
+            if (isBootstrap)
+            {
+                user.AllClients = true;
+                user.AllInternal = true;
+                user.Roles.Add(new UserRole { AppRoleId = (await BuiltInRoles.EnsureAsync(db, ct))[Role.Manager] });
+            }
             db.Users.Add(user);
-            await db.SaveChangesAsync(ct);
-            log.LogInformation("Provisioned hub user {UserId} on first sign-in", user.Id);
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                log.LogInformation("Provisioned hub user {UserId} on first sign-in", user.Id);
+            }
+            catch (DbUpdateException ex) when (SqlErrors.IsUniqueViolation(ex))
+            {
+                // Another first request of the same session provisioned the account a moment earlier (rolled back here): use that row.
+                db.ChangeTracker.Clear();
+                user = await db.Users.Include(u => u.Roles).Include(u => u.Scopes).FirstAsync(u => u.AccountName == account, ct);
+            }
         }
-        else if (user.LastSignInAt is null || now - user.LastSignInAt > TimeSpan.FromMinutes(30))
+        else
         {
-            user.LastSignInAt = now;
-            await db.SaveChangesAsync(ct);
+            await RecordSignInAsync(user, u =>
+            {
+                if (u.LastSignInAt is not null && now - u.LastSignInAt <= TimeSpan.FromMinutes(30)) return false;
+                u.LastSignInAt = now;
+                return true;
+            }, ct);
         }
 
-        var matchedNames = string.Join(';', matched.Select(m => m.GroupName).Order());
-        if ((user.MappedGroups ?? "") != matchedNames)
+        var matchedNames = _opt.IsForms ? FormsGroupSnapshot : EncodeStoredGroups(matched.Select(m => m.GroupName), _opt.Mode);
+        await RecordSignInAsync(user, u =>
         {
-            user.MappedGroups = matchedNames.Length == 0 ? null : matchedNames;
-            await db.SaveChangesAsync(ct);
-        }
-        var resolved = await AccessCalculator.ComputeAsync(db, user, matched, ct);
-        if (resolved.Roles.Length == 0 && user.IsActive) return null;
-        cache.Set(key, resolved, TimeSpan.FromSeconds(Math.Max(5, _opt.CacheSeconds)));
+            if (u.MappedGroups == matchedNames) return false;
+            u.MappedGroups = matchedNames;
+            return true;
+        }, ct);
+        var resolved = await AccessCalculator.ComputeAsync(db, user, matched, ct, now);
+        if (user.IsActive && !resolved.HasAccess) return null;
+        var cacheUntil = now.AddSeconds(Math.Max(5, _opt.CacheSeconds));
+        if (resolved.NextPermissionExpiry is { } expiry && expiry < cacheUntil) cacheUntil = expiry;
+        cache.Set(key, resolved, new MemoryCacheEntryOptions { AbsoluteExpiration = cacheUntil });
         return resolved;
+    }
+
+    /// <summary>
+    /// Sign-in bookkeeping on the user row. A session's first requests run in parallel and each records the sign-in, so the one that
+    /// saves second meets a changed row version. It reloads the row and applies the change again only if still needed; bookkeeping
+    /// never turns a read into 412. <paramref name="apply"/> returns false when the row already holds the value.
+    /// </summary>
+    private async Task RecordSignInAsync(User user, Func<User, bool> apply, CancellationToken ct)
+    {
+        for (var attempt = 1; attempt <= 3 && apply(user); attempt++)
+        {
+            try
+            {
+                await db.SaveChangesAsync(ct);
+                return;
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                await db.Entry(user).ReloadAsync(ct);
+            }
+        }
     }
 
     /// <summary>Effective access of any user from stored roles, scopes and last mapped groups (used for owner/assignee checks).</summary>
@@ -134,9 +249,12 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
     {
         var user = await db.Users.AsNoTracking().Include(u => u.Roles).Include(u => u.Scopes).FirstOrDefaultAsync(u => u.Id == userId, ct);
         if (user is null) return null;
-        var names = (user.MappedGroups ?? "").Split(';', StringSplitOptions.RemoveEmptyEntries).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if (!TryGroups(user.MappedGroups, out var storedGroups))
+            return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive,
+                [], Right.None, [], Grant.None, false, [], [], [], [], false, [], AccessRestriction: "directory_groups_unavailable");
+        var names = storedGroups.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var mappings = names.Count == 0 ? [] : await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).Where(m => names.Contains(m.GroupName)).ToListAsync(ct);
-        return await AccessCalculator.ComputeAsync(db, user, mappings, ct);
+        return await AccessCalculator.ComputeAsync(db, user, mappings, ct, clock.GetUtcNow());
     }
 
     /// <summary>Directory groups of the signed-in principal (Windows groups, or test/development group claims).</summary>
@@ -204,27 +322,37 @@ public sealed class UserContextMiddleware(RequestDelegate next)
 
 public static class AccessCalculator
 {
-    public static async Task<ResolvedUser> ComputeAsync(HubDbContext db, User user, IReadOnlyCollection<GroupMapping> matched, CancellationToken ct)
+    public static async Task<ResolvedUser> ComputeAsync(HubDbContext db, User user, IReadOnlyCollection<GroupMapping> matched, CancellationToken ct, DateTimeOffset? asOf = null)
     {
+        if (!user.IsActive)
+            return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, false,
+                [], Right.None, [], Grant.None, false, [], [], [], [], false, []);
         // A31: the user's roles plus the built-in roles of matched group mappings; rights are the union of the roles' rights.
         var mappedKeys = matched.Where(m => m.Role is not null).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).Distinct().ToList();
         var roleIds = user.Roles.Select(r => r.AppRoleId).ToList();
         var held = roleIds.Count == 0 && mappedKeys.Count == 0 ? []
-            : await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => roleIds.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key))).ToListAsync(ct);
+            : await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => r.IsActive && (roleIds.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key)))).ToListAsync(ct);
+        if (RoleConflicts.Conflicts(held.Select(r => r.Id), await RoleConflicts.LoadAsync(db, ct)))
+            return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive,
+                [], Right.None, [], Grant.None, false, [], [], [], [], false, [], AccessRestriction: "incompatible_roles");
+        var activePermissionKeys = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
+        var activePermissions = activePermissionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var roles = held.Select(r => r.Name).Order().ToArray();
         var rights = held.Aggregate(Right.None, (a, r) => a | (r.IsLocked ? BuiltInRoles.All : r.Rights));
-        var permissions = held.SelectMany(r => r.IsLocked ? ResourcePermissions.All : r.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)))
-            .Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        // One TIO team: any role sees every client and internal team (owner decision, 19 Oct 2026); grants follow the rights.
-        if (roles.Length > 0)
-            return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights, permissions,
-                (rights.HasFlag(Right.Export) ? Grant.Export : 0) | (rights.HasFlag(Right.TechnicalDetail) ? Grant.TechnicalDetail : 0) | (rights.HasFlag(Right.Audit) ? Grant.Audit : 0),
-                true, [], [], [], [], true, []);
+        var permissionSet = held.SelectMany(r => r.IsLocked ? ResourcePermissions.All : r.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)))
+            .Where(activePermissions.Contains)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // A checked action with an absent prerequisite is assigned but ineffective. Return the same decision to UI,
+        // background jobs and access inspection that UserContext enforces on the server.
+        var now = asOf ?? DateTimeOffset.UtcNow;
+        var overrides = await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == user.Id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct);
+        var permissions = PermissionOverrides.ResolveForRights(permissionSet, overrides, rights, now, activePermissions);
+        var nextExpiry = overrides.Where(o => o.ExpiresAt != null).Select(o => o.ExpiresAt).Min();
         var scopes = user.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId))
             .Concat(matched.SelectMany(m => m.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)))).ToList();
         var allClients = user.AllClients || matched.Any(m => m.AllClients);
         var allInternal = user.AllInternal || matched.Any(m => m.AllInternal);
-        var grants = matched.Aggregate(user.Grants, (g, m) => g | m.Grants);
+        var grants = (rights.HasFlag(Right.Export) ? Grant.Export : 0) | (rights.HasFlag(Right.TechnicalDetail) ? Grant.TechnicalDetail : 0) | (rights.HasFlag(Right.Audit) ? Grant.Audit : 0);
         var clientIds = scopes.Where(s => s.Kind == ScopeKind.Client && s.ClientId is not null).Select(s => s.ClientId!.Value).Distinct().ToArray();
         var projectIds = scopes.Where(s => s.Kind == ScopeKind.Project && s.ProjectId is not null).Select(s => s.ProjectId!.Value).Distinct().ToArray();
         var teamIds = scopes.Where(s => s.Kind == ScopeKind.InternalTeam && s.TeamId is not null).Select(s => s.TeamId!.Value).Distinct().ToArray();
@@ -234,7 +362,7 @@ public static class AccessCalculator
             projectClientIds = await db.Projects.IgnoreQueryFilters().Where(p => projectIds.Contains(p.Id)).Select(p => p.ClientId).Distinct().ToArrayAsync(ct);
             projectEnvIds = await db.Environments.IgnoreQueryFilters().Where(e => e.ProjectId != null && projectIds.Contains(e.ProjectId.Value)).Select(e => e.Id).ToArrayAsync(ct);
         }
-        return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, Right.None, [], grants,
-            allClients, clientIds, projectIds, projectClientIds, projectEnvIds, allInternal, teamIds);
+        return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights, permissions, grants,
+            allClients, clientIds, projectIds, projectClientIds, projectEnvIds, allInternal, teamIds, nextExpiry);
     }
 }

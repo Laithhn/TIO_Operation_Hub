@@ -1,3 +1,4 @@
+using TioHub.Api.Security;
 using System.Net;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
@@ -115,7 +116,7 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var roleName = U("ExportOnly");
-        var role = await m.Create("/admin/roles", new { name = roleName, rights = new[] { "Export" }, permissions = Array.Empty<string>() });
+        var role = await m.Create("/admin/roles", new { name = roleName, rights = new[] { "Export" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Reporting:View", "Servers:View", "Servers:Export", "ClientStructure:View", "Environments:View" }, Right.Export) });
         var account = $@"DEV\{U("reporter")}";
         var recipientId = await m.Create("/admin/users", new { accountName = account, displayName = "Export without technical details", workingTimeZone = "UTC", roleId = role });
         var recipient = await Hub.As(account);

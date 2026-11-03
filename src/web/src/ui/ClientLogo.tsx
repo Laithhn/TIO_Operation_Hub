@@ -2,6 +2,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { get } from '../api';
+import { useMe } from '../hooks';
+import { hasPermission } from '../permissions';
 import './ClientLogo.css';
 
 /**
@@ -18,8 +20,9 @@ type LogoEntry = { id: number; code: string; logoUrl: string };
 
 /** Every visible client that has a logo: id → address. One request, shared by all screens, refreshed after a save (useRefresh). */
 export function useClientLogos(enabled = true): Map<number, string> {
-  const q = useQuery({ queryKey: ['client-logos'], queryFn: () => get<LogoEntry[]>('/clients/logos'), staleTime: 5 * 60_000, enabled });
-  return useMemo(() => new Map((q.data ?? []).map(x => [x.id, x.logoUrl])), [q.data]);
+  const allowed = hasPermission(useMe().data, 'ClientStructure', 'View');
+  const q = useQuery({ queryKey: ['client-logos'], queryFn: () => get<LogoEntry[]>('/clients/logos'), staleTime: 5 * 60_000, enabled: enabled && allowed });
+  return useMemo(() => new Map((allowed ? q.data ?? [] : []).map(x => [x.id, x.logoUrl])), [q.data, allowed]);
 }
 
 /** Up to two letters: the first letters of the first two words of the name, otherwise of the alias. */
@@ -46,8 +49,9 @@ export function ClientLogo({ clientId, name, code, logoUrl, size = 'sm', decorat
   decorative?: boolean; className?: string;
 }) {
   const known = logoUrl !== undefined;
+  const allowed = hasPermission(useMe().data, 'ClientStructure', 'View');
   const map = useClientLogos(!known && clientId != null);
-  const url = known ? logoUrl : clientId != null ? map.get(clientId) : undefined;
+  const url = allowed ? known ? logoUrl : clientId != null ? map.get(clientId) : undefined : undefined;
   const [failed, setFailed] = useState<string | null>(null);
   const [loaded, setLoaded] = useState<string | null>(null);
   const label = name || code || 'client';
@@ -76,8 +80,9 @@ type DisplayProps = {
 const displayText = ({ code, name, show = 'code' }: DisplayProps) => (show === 'name' ? (name || code) : show === 'both' ? [code, name].filter(Boolean).join(' · ') : (code || name)) ?? '';
 
 export function ClientDisplay({ id, code, name, logoUrl, size = 'sm', show = 'code', link = true, sub, className }: DisplayProps) {
+  const canOpen = hasPermission(useMe().data, 'ClientStructure', 'DetailsView');
   const text = displayText({ code, name, show });
-  const label = link && id != null ? <Link to={`/clients/${id}`}>{text}</Link> : <span>{text}</span>;
+  const label = link && canOpen && id != null ? <Link to={`/clients/${id}`}>{text}</Link> : <span>{text}</span>;
   return (
     <span className={`client-display cd-${size}${className ? ' ' + className : ''}`}>
       <ClientLogo clientId={id} code={code} name={name} logoUrl={logoUrl} size={size} decorative />

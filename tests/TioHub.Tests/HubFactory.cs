@@ -29,6 +29,9 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Database:ApplyMigrationsOnStartup", "true");
         builder.UseSetting("Database:SeedDevelopmentData", "true");
         builder.UseSetting("Quality:ScanMinutes", "0");
+        // SLA sweeps and notification scans are run by the tests themselves; timed runs would change rows under a test (AC-15 drill counts).
+        builder.UseSetting("Sla:SweepMinutes", "0");
+        builder.UseSetting("Notifications:ScanMinutes", "0");
         // A46: attachment files of this test run go to their own temporary folder, 1 MB maximum so the limit can be tested.
         builder.UseSetting("Attachments:Path", AttachmentRoot);
         builder.UseSetting("Attachments:MaxFileMB", "1");

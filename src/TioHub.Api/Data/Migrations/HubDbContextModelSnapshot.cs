@@ -55,6 +55,11 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
                     b.Property<string>("Key")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -94,6 +99,29 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("AppRole", "iam");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Access.AuthorizationVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuthorizationVersion", "iam", t =>
+                        {
+                            t.HasCheckConstraint("CK_AuthorizationVersion_Singleton", "[Id] = 1");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Version = 0L
+                        });
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMapping", b =>
@@ -188,6 +216,109 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("TeamId");
 
                     b.ToTable("GroupMappingScope", "iam");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Access.PermissionDefinition", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("DisplayName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSystemManaged")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Module")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("NodeType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ParentKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("ResourceType")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<string>("RiskLevel")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<bool>("SupportsScope")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.HasIndex("ParentKey");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ParentKey", "DisplayOrder");
+
+                    b.HasIndex("Module", "ResourceType", "Action");
+
+                    b.ToTable("PermissionDefinition", "iam", t =>
+                        {
+                            t.HasCheckConstraint("CK_PermissionDefinition_NodeType", "[NodeType] IN ('Module','Submodule','Tab','Action')");
+                        });
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.RolePermission", b =>
@@ -289,6 +420,35 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("User", "iam");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Access.UserPermissionOverride", b =>
+                {
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PermissionKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<string>("Effect")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
+
+                    b.Property<DateTimeOffset?>("ExpiresAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("UserId", "PermissionKey");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("PermissionKey");
+
+                    b.ToTable("UserPermissionOverride", "iam", t =>
+                        {
+                            t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')");
+                        });
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.UserRole", b =>
@@ -4202,6 +4362,10 @@ namespace TioHub.Api.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<string>("AccessFingerprint")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<int>("Attempts")
                         .HasColumnType("int");
 
@@ -5533,6 +5697,25 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Access.PermissionDefinition", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.PermissionDefinition", null)
+                        .WithMany()
+                        .HasForeignKey("ParentKey")
+                        .HasPrincipalKey("Key")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Access.RolePermission", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Access.AppRole", "AppRole")
@@ -5555,6 +5738,22 @@ namespace TioHub.Api.Data.Migrations
                         .WithMany()
                         .HasForeignKey("UpdatedById")
                         .OnDelete(DeleteBehavior.NoAction);
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Access.UserPermissionOverride", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.PermissionDefinition", null)
+                        .WithMany()
+                        .HasForeignKey("PermissionKey")
+                        .HasPrincipalKey("Key")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.UserRole", b =>

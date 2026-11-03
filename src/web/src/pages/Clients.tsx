@@ -5,9 +5,10 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, del, exportCsv, get, post, put, qs, upload, type Paged, type UserRef } from '../api';
 import { fmtDate, label } from '../format';
 import { usePermission, useDebounced, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { canViewTab, hasPermission } from '../permissions';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
-  Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, Restricted,
+  Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, ErrorBox, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, Restricted,
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
@@ -29,9 +30,16 @@ export function ClientList() {
   const dq = useDebounced(text);
   useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
   const statuses = useEnum('ClientStatus');
-  const q = useQuery({ queryKey: ['clients', f], queryFn: () => get<Paged<ClientRow>>(`/clients${qs(f)}`) });
+  const me = useMe().data;
+  const canViewStructure = hasPermission(me, 'ClientStructure', 'View');
+  const canViewEnvironments = hasPermission(me, 'Environments', 'View');
+  const canFilterRegionalStructure = canViewStructure && canViewEnvironments;
+  const listFilters = canViewStructure
+    ? { ...f, structure: canFilterRegionalStructure ? f.structure : '' }
+    : { q: f.q, country: f.country, status: f.status, sort: f.sort === 'tree' ? 'name' : f.sort, page: f.page, pageSize: f.pageSize };
+  const q = useQuery({ queryKey: ['clients', listFilters], queryFn: () => get<Paged<ClientRow>>(`/clients${qs(listFilters)}`) });
   const canCreate = usePermission('ClientStructure', 'Create');
-  const filtered = !!(f.q || f.country || f.status || f.structure || f.level);
+  const filtered = !!(f.q || f.country || f.status || canViewStructure && f.level || canFilterRegionalStructure && f.structure);
   return (
     <>
       <PageHead title="Clients" sub="Countries group clients for reporting; regions are optional and shown only where a client has them."
@@ -43,18 +51,19 @@ export function ClientList() {
               ? <span className="sub-client"><span aria-hidden="true">↳ </span><ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} /></span> : <ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} />,
             filter: <input className="input" placeholder="Search by name or alias" aria-label="Search clients by name or alias" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 200 }} /> },
           { key: 'name', header: 'Client', sort: 'name', priority: 'primary', render: r => <><Link to={`/clients/${r.id}`}>{r.name}</Link>
-              {r.parentClientId ? <div className="hint">Sub-client of {r.parentCode}</div> : r.subClientCount > 0 ? <div className="hint">{r.subClientCount} sub-client(s)</div> : null}</>,
-            filter: <select className="input" aria-label="Filter by level" value={f.level} onChange={e => set({ level: e.target.value, page: '1' })}><option value="">All levels</option><option value="main">Main clients</option><option value="sub">Sub-clients</option></select> },
+              {canViewStructure && (r.parentClientId ? <div className="hint">Sub-client of {r.parentCode}</div> : r.subClientCount > 0 ? <div className="hint">{r.subClientCount} sub-client(s)</div> : null)}</>,
+            ...(canViewStructure ? { filter: <select className="input" aria-label="Filter by level" value={f.level} onChange={e => set({ level: e.target.value, page: '1' })}><option value="">All levels</option><option value="main">Main clients</option><option value="sub">Sub-clients</option></select> } : {}) },
           { key: 'country', header: 'Country', sort: 'country', render: r => r.country,
             filter: <input className="input" aria-label="Filter by country" placeholder="Country" value={f.country} onChange={e => set({ country: e.target.value })} /> },
           { key: 'status', header: 'Status', sort: 'status', priority: 'primary', render: r => <StatusBadge value={r.status} />,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="">All</option>{statuses.filter(s => s !== 'Archived').map(s => <option key={s}>{s}</option>)}</select> },
-          { key: 'structure', header: 'Structure', render: r => <span className="nowrap" title={r.regionCount === 0 ? 'Environments directly under the client, no regions' : undefined}>{r.regionCount === 0 ? 'Direct' : `${r.regionCount} region${r.regionCount > 1 ? 's' : ''}${r.directEnvironmentCount ? ' + direct' : ''}`}</span>,
-            filter: <select className="input" aria-label="Filter by structure" value={f.structure} onChange={e => set({ structure: e.target.value })}><option value="">All</option><option value="regional">With regions</option><option value="direct">Without regions</option></select> },
-          { key: 'env', header: 'Environments', className: 'num', render: r => r.environmentCount },
-          { key: 'cases', header: 'Open cases', className: 'num', render: r => r.openCases },
-          { key: 'od', header: 'Overdue commitments', className: 'num', render: r => r.overdueCommitments ? <Badge tone="bad">{r.overdueCommitments}</Badge> : 0 },
-          { key: 'owner', header: 'Project manager', render: r => <Person u={r.owner} /> }, { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/clients/${r.id}`} what={`client ${r.code}`} /> }
+          ...(canFilterRegionalStructure ? [{ key: 'structure', header: 'Structure', render: (r: ClientRow) => <span className="nowrap" title={r.regionCount === 0 ? 'Environments directly under the client, no regions' : undefined}>{r.regionCount === 0 ? 'Direct' : `${r.regionCount} region${r.regionCount > 1 ? 's' : ''}${r.directEnvironmentCount ? ' + direct' : ''}`}</span>,
+            filter: <select className="input" aria-label="Filter by structure" value={f.structure} onChange={e => set({ structure: e.target.value })}><option value="">All</option><option value="regional">With regions</option><option value="direct">Without regions</option></select> }] : []),
+          ...(canViewEnvironments ? [{ key: 'env', header: 'Environments', className: 'num', render: (r: ClientRow) => r.environmentCount }] : []),
+          ...(hasPermission(me, 'Cases', 'View') ? [{ key: 'cases', header: 'Open cases', className: 'num', render: (r: ClientRow) => r.openCases }] : []),
+          ...(hasPermission(me, 'Commitments', 'View') ? [{ key: 'od', header: 'Overdue commitments', className: 'num', render: (r: ClientRow) => r.overdueCommitments ? <Badge tone="bad">{r.overdueCommitments}</Badge> : 0 }] : []),
+          ...(canViewStructure ? [{ key: 'owner', header: 'Project manager', render: (r: ClientRow) => <Person u={r.owner} /> }] : []),
+          { key: 'del', header: '', className: 'row-actions', render: (r: ClientRow) => <DeleteAction path={`/clients/${r.id}`} what={`client ${r.code}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
     </>
@@ -62,12 +71,12 @@ export function ClientList() {
 }
 
 type ClientDto = {
-  id: number; code: string; name: string; country?: string; countryUnknown: boolean; status: string; parentOrganization?: string; partner?: string;
-  owner?: UserRef; countryFollowUpOwner?: UserRef; responsibleParty: string; responsibleOrganization?: string; coordinator?: UserRef; lastReviewedAt?: string; nextReviewAt?: string;
-  freshness: FreshnessT; createdAt: string; updatedAt: string; version: string; accessLevel: string; logoUrl?: string | null;
+  id: number; code: string; name: string; country?: string; countryUnknown: boolean; status: string; parentOrganization?: string | null; partner?: string | null;
+  owner?: UserRef | null; countryFollowUpOwner?: UserRef | null; responsibleParty?: string | null; responsibleOrganization?: string | null; coordinator?: UserRef | null; lastReviewedAt?: string | null; nextReviewAt?: string | null;
+  freshness: FreshnessT | null; createdAt?: string | null; updatedAt?: string | null; version: string; accessLevel: string; logoUrl?: string | null;
   parentClientId?: number; parent?: { id: number; code: string; name: string; logoUrl?: string | null };
   subClients: { id: number; code: string; name: string; status: string; logoUrl?: string | null; country?: string; owner?: UserRef; regionCount: number; environmentCount: number; serverCount: number; products: string[]; teamSize: number }[];
-  team: { userId: number; name: string; isActive: boolean; role: string }[];
+  team: { userId: number; name: string; isActive: boolean; role: string }[] | null;
 };
 
 type TeamRow = { userId: number | null; role: string };
@@ -179,6 +188,7 @@ export function ClientForm() {
   // Owner decision (UAT 19 Oct 2026): alias, name, country from the world list, Opportunity/Active, project manager. Always the TIO team.
   const statuses = useEnum('ClientStatus').filter(s => s !== 'Archived');
   const countries = useReference().data?.countries ?? [];
+  const canViewTeam = usePermission('Teams', 'View');
   const existing = useQuery({ queryKey: ['client', id], queryFn: () => get<ClientDto>(`/clients/${id}`), enabled: !isNew });
   const [sp] = useSearchParams();
   const mains = useQuery({ queryKey: ['main-clients'], queryFn: () => get<Paged<ClientRow>>('/clients?level=main&sort=code&pageSize=200') });
@@ -192,7 +202,7 @@ export function ClientForm() {
     if (!c) return;
     setVersion(c.version);
     f.reset({ code: c.code, name: c.name, country: c.country ?? '', status: c.status, ownerUserId: c.owner?.id ?? null, parentClientId: c.parentClientId ? String(c.parentClientId) : '',
-      team: c.team.map(t => ({ userId: t.userId, role: t.role })), organizationRelationships: [] });
+      team: (c.team ?? []).map(t => ({ userId: t.userId, role: t.role })), organizationRelationships: [] });
   }, [existing.data]); // eslint-disable-line react-hooks/exhaustive-deps
   const dupCode = useDebounced(f.values.code);
   const dupName = useDebounced(f.values.name);
@@ -200,7 +210,7 @@ export function ClientForm() {
   const save = async () => {
     const body = (v: typeof f.values) => {
       const { organizationRelationships, ...client } = v;
-      return { ...client, parentClientId: toNum(v.parentClientId), team: v.team,
+      return { ...client, parentClientId: toNum(v.parentClientId), ...(canViewTeam ? { team: v.team } : {}),
         ...(isNew && organizationRelationships.length ? { organizationRelationships: organizationRelationships.map(({ label: _label, ...relationship }) => relationship) } : {}) };
     };
     const r = await f.submit(async v => isNew ? post<{ id: number }>('/clients', body(v)) : put(`/clients/${id}`, body(v), version).then(() => ({ id: Number(id) })));
@@ -253,7 +263,7 @@ export function ClientForm() {
           <UserPicker label="Project manager" required value={f.values.ownerUserId} onChange={v => f.set('ownerUserId', v)} clientId={isNew ? undefined : Number(id)} error={f.fieldError('ownerUserId')} empty="— Select —"
             hint="The team member managing this client. Only a Team Lead or the TIO Manager can change it." />
           <LogoField current={existing.data?.logoUrl} draft={logo} onChange={setLogo} error={logoError} setError={setLogoError} name={f.values.name} code={f.values.code} />
-          <TeamEditor rows={f.values.team} onChange={r => f.set('team', r)} clientId={isNew ? undefined : Number(id)} error={k => f.fieldError(k)} />
+          {canViewTeam && <TeamEditor rows={f.values.team} onChange={r => f.set('team', r)} clientId={isNew ? undefined : Number(id)} error={k => f.fieldError(k)} />}
         </div>
         {isNew ? <InitialOrganizationStructure drafts={f.values.organizationRelationships} onChange={v => f.set('organizationRelationships', v)} error={f.fieldError('organizationRelationships')} />
           : <details className="org-optional"><summary>Organizational Structure <span className="muted">(optional)</span></summary>
@@ -269,18 +279,32 @@ export function ClientForm() {
   );
 }
 
-type EnvCard = { id: number; name: string; type: string; criticality: string; regionId?: number; owner?: UserRef; hasBackup: boolean; installations: { id: number; instanceName: string; product: string; version?: string }[]; assetCount: number; openCases: number; condition: ConditionT; inventoryFreshness: FreshnessT };
+type EnvCard = { id: number; name: string; type: string; criticality: string; regionId?: number; owner?: UserRef; hasBackup: boolean; installations?: { id: number; instanceName: string; product: string; version?: string }[] | null; assetCount?: number | null; openCases?: number | null; condition: ConditionT; inventoryFreshness: FreshnessT };
 type Overview = {
   client: { id: number; code: string; name: string; status: string; owner?: UserRef };
   structure: string; regions: { id: number; code: string; name: string; owner?: string; environments: EnvCard[] }[]; directEnvironments: EnvCard[];
   counts: { environments: number; installations: number; environmentsWithInstallations: number; openCases: number; overdueCases: number; openCommitments: number; overdueCommitments: number };
-  infrastructure: Infra; cases: { id: number; ref: string; title: string; status: string; priority: string; owner: string; dueAt?: string; overdue: boolean; waitingReason?: string; nextAction: string }[];
+  infrastructure: Infra | null; cases: { id: number; ref: string; title: string; status: string; priority: string; owner: string; dueAt?: string; overdue: boolean; waitingReason?: string; nextAction: string }[];
   commitments: { id: number; ref: string; description: string; type: string; currentDueAt: string; timeZone: string; overdue: boolean; owner?: string }[];
   projects: { id: number; code: string; name: string; status: string; owner?: string; serviceStart?: string; serviceEnd?: string }[];
   contacts?: { id: number; name: string; role?: string; organization?: string; email?: string; phone?: string; authorizedSupport: boolean }[];
   boundaries?: BoundaryRow[];
   personalDataRestricted: boolean; dataQuality: { rule: string; count: number }[]; gaps: string[];
 };
+const clientTabSpecs = [
+  { key: 'structure', label: 'Regions & environments', permissions: ['ClientStructure:View', 'Environments:View'] },
+  { key: 'organizations', label: 'Organizations', permissions: ['ClientStructure:View'] },
+  { key: 'contracts', label: 'Contracts & SLAs', permissions: ['Contracts:View'] },
+  { key: 'cases', label: 'Cases', permissions: ['Cases:View'] },
+  { key: 'commitments', label: 'Commitments', permissions: ['Commitments:View'] },
+  { key: 'escalations', label: 'Escalations', permissions: ['OtherOperations:View'] },
+  { key: 'infra', label: 'Infrastructure', permissions: ['Servers:View'] },
+  { key: 'projects', label: 'Projects', permissions: ['Projects:View'] },
+  { key: 'contacts', label: 'Contacts & responsibilities', permissions: ['OtherOperations:View'] },
+  { key: 'files', label: 'Attachments', permissions: ['ClientStructure:AttachmentsView'] },
+  { key: 'notes', label: 'My notes', permissions: ['PersonalNotes:View'] },
+  { key: 'history', label: 'History', permissions: ['ClientStructure:HistoryView'] }
+] as const;
 export type Infra = { label: string; assets: { total: number; vm: number; physical: number; logicalEndpoints: number; unverified: number }; cpu: { vCpu: number; physicalCores: number; unknownCount: number }; ram: { gb: number; gib: number; unknownCount: number }; storage: { dedicated: Record<string, number>; dedicatedUnknownCount: number; shared: Record<string, number>; sharedUnknownCount: number; sharedPools: number; volumesOnShared: number } };
 
 export function InfraSummary({ i }: { i: Infra }) {
@@ -302,15 +326,19 @@ export function InfraSummary({ i }: { i: Infra }) {
 
 function EnvTable({ envs }: { envs: EnvCard[] }) {
   const T = useTypes();
+  const me = useMe().data;
+  const showApps = hasPermission(me, 'Installations', 'View') && hasPermission(me, 'Products', 'View');
+  const showAssets = hasPermission(me, 'Servers', 'View');
+  const showCases = hasPermission(me, 'Cases', 'View');
   if (envs.length === 0) return <StateMessage kind="none">No environments recorded here.</StateMessage>;
   return (
     <DataTable caption="Environments" rows={envs} rowKey={e => e.id} columns={[
       { key: 'n', header: 'Environment', render: e => <Link to={`/environments/${e.id}`}>{e.name}</Link> },
       { key: 't', header: 'Type', render: e => T.name('EnvironmentType', e.type) },
       { key: 'c', header: 'Criticality', render: e => <StatusBadge value={e.criticality} /> },
-      { key: 'a', header: 'Applications', render: e => e.installations.length === 0 ? <span className="muted">None recorded</span> : e.installations.map(i => <div key={i.id}><Link to={`/installations/${i.id}`}>{i.product} · {i.instanceName}</Link> <span className="chip">{i.version ?? 'Unknown version'}</span></div>) },
-      { key: 's', header: 'Assets', className: 'num', render: e => e.assetCount },
-      { key: 'o', header: 'Open cases', className: 'num', render: e => e.openCases },
+      ...(showApps ? [{ key: 'a', header: 'Applications', render: (e: EnvCard) => !e.installations?.length ? <span className="muted">None recorded</span> : e.installations.map(i => <div key={i.id}><Link to={`/installations/${i.id}`}>{i.product} · {i.instanceName}</Link> <span className="chip">{i.version ?? 'Unknown version'}</span></div>) }] : []),
+      ...(showAssets ? [{ key: 's', header: 'Assets', className: 'num', render: (e: EnvCard) => e.assetCount ?? 0 }] : []),
+      ...(showCases ? [{ key: 'o', header: 'Open cases', className: 'num', render: (e: EnvCard) => e.openCases ?? 0 }] : []),
       { key: 'r', header: 'Reported condition', render: e => <ConditionBadge c={e.condition} /> },
       { key: 'f', header: 'Inventory review', render: e => <FreshnessBadge f={e.inventoryFreshness} /> },
       { key: 'w', header: 'Owner / backup', render: e => <><Person u={e.owner} gap="No owner (gap)" />{!e.hasBackup && <> <Badge tone="warn">No backup</Badge></>}</> },
@@ -325,9 +353,17 @@ export function ClientDetail() {
   const [tab, setTab] = useState(() => detailSearch.get('tab') ?? 'structure');
   const [regionFilter, setRegionFilter] = useState('');
   const me = useMe().data!;
+  const visibleTabs = clientTabSpecs.filter(spec => canViewTab(me, 'ClientStructure', spec.key) && (spec.key !== 'history' || me.grants.audit) && spec.permissions.every(key => {
+    const [resource, action] = key.split(':');
+    return hasPermission(me, resource, action);
+  }));
+  const activeTab = visibleTabs.some(spec => spec.key === tab) ? tab : (visibleTabs[0]?.key ?? '');
+  const canViewStructure = hasPermission(me, 'ClientStructure', 'View');
   const client = useQuery({ queryKey: ['client', id], queryFn: () => get<ClientDto>(`/clients/${id}`) });
-  const ov = useQuery({ queryKey: ['client-overview', id, regionFilter], queryFn: () => get<Overview>(`/clients/${id}/overview${qs({ regionId: regionFilter })}`) });
+  const overviewTabs = ['structure', 'organizations', 'contracts', 'cases', 'commitments', 'escalations', 'infra', 'projects', 'contacts'];
+  const ov = useQuery({ queryKey: ['client-overview', id, activeTab, regionFilter], queryFn: () => get<Overview>(`/clients/${id}/overview${qs({ tab: activeTab, regionId: activeTab === 'structure' ? regionFilter : '' })}`), enabled: overviewTabs.includes(activeTab) });
   const canStructureCreate = usePermission('ClientStructure', 'Create');
+  const canProjectCreate = usePermission('Projects', 'Create');
   const canStructureMaintain = usePermission('ClientStructure', 'Maintain');
   const canArchive = usePermission('ClientStructure', 'ArchiveRestore');
   const canEnvironmentCreate = usePermission('Environments', 'Create');
@@ -348,8 +384,8 @@ export function ClientDetail() {
             {canStructureMaintain && full && <Link className="btn" to={`/clients/${id}/edit`}>Edit</Link>}
             {full && <Menu label="+ Add" primary items={[
               { label: 'Environment', to: `/environments/new?clientId=${id}`, hidden: !canEnvironmentCreate },
-              { label: 'Region', onClick: () => setDialog('region'), hidden: !canStructureCreate },
-              { label: 'Project', onClick: () => setDialog('project'), hidden: !canStructureCreate },
+              { label: 'Region', onClick: () => setDialog('region'), hidden: !canStructureCreate || !hasPermission(me, 'tab.ClientStructure.structure', 'Create') },
+              { label: 'Project', onClick: () => setDialog('project'), hidden: !canProjectCreate },
               { label: 'Sub-client', to: `/clients/new?parentId=${id}`, hidden: !canStructureCreate || !!c.parent },
               { label: 'Contract', to: `/contracts/new?clientId=${id}`, hidden: !canContractCreate }
             ]} />}
@@ -360,24 +396,22 @@ export function ClientDetail() {
           <div className="client-head-text"><div className="client-head-name">{c.name}</div><div className="muted">{c.code}{c.country ? ` · ${c.country}` : ''}{c.parent ? ` · sub-client of ${c.parent.code}` : ''}</div></div>
         </div>
         {!full && <div className="notice warn">You see this client through a project scope only: summary and project-linked records are shown; other details are restricted.</div>}
-        <div className="cols">
+        {canViewStructure && <div className="cols">
           <Panel title="Management">
             <DL items={[
               ['Project manager', <Person u={c.owner} gap="Not assigned" />],
-              ['Project team', c.team.length === 0 ? <span className="muted">Not recorded</span> : <ul className="plain">{c.team.map(t => <li key={t.userId}>{t.name}{!t.isActive && ' (inactive)'} <span className="muted">· {t.role}</span></li>)}</ul>],
+              ...(hasPermission(me, 'Teams', 'View') ? [['Project team', !c.team?.length ? <span className="muted">Not recorded</span> : <ul className="plain">{c.team.map(t => <li key={t.userId}>{t.name}{!t.isActive && ' (inactive)'} <span className="muted">· {t.role}</span></li>)}</ul>] as [React.ReactNode, React.ReactNode]] : []),
               ['Last reviewed', <When v={c.lastReviewedAt} />], ['Freshness', <FreshnessBadge f={c.freshness} />], ['Operational state', <StatusBadge value={c.status} />]
             ]} />
           </Panel>
-          {o && <Panel title="At a glance">
+          {o && activeTab === 'structure' && <Panel title="At a glance">
             <DL items={[
-              ['Environments', `${o.counts.environments} (${o.counts.environmentsWithInstallations} with applications)`], ['Application installations', o.counts.installations],
-              ['Open cases', `${o.counts.openCases} (${o.counts.overdueCases} overdue)`], ['Open commitments', `${o.counts.openCommitments} (${o.counts.overdueCommitments} overdue)`],
-              ['Data-quality items', o.dataQuality.reduce((n, d) => n + d.count, 0)]
+              ...(hasPermission(me, 'Environments', 'View') ? [['Environments', `${o.counts.environments} (${o.counts.environmentsWithInstallations} with applications)`] as [string, React.ReactNode]] : []),
+              ...(hasPermission(me, 'Installations', 'View') && hasPermission(me, 'Products', 'View') ? [['Application installations', o.counts.installations] as [string, React.ReactNode]] : [])
             ]} />
-            {o.gaps.length > 0 && <><h3 style={{ fontSize: 12.5, margin: '10px 0 4px' }}>Gaps to resolve</h3><ul style={{ margin: 0, paddingLeft: 18 }}>{o.gaps.map((g, i) => <li key={i}>{g}</li>)}</ul></>}
           </Panel>}
-        </div>
-        {c.subClients.length > 0 && (
+        </div>}
+        {c.subClients.length > 0 && ['ClientStructure:View', 'Environments:View', 'Servers:View', 'Installations:View', 'Teams:View'].every(key => { const [r, a] = key.split(':'); return hasPermission(me, r, a); }) && (
           <Panel title={`Sub-clients (${c.subClients.length})`} pad={false}>
             <DataTable rowKey={x => x.id} rows={c.subClients} caption="Sub-clients" columns={[
               { key: 'c', header: 'Sub-client', render: x => <ClientDisplay id={x.id} code={x.code} name={x.name} logoUrl={x.logoUrl ?? null} sub={x.name} /> },
@@ -391,13 +425,11 @@ export function ClientDetail() {
             ]} />
           </Panel>
         )}
-        <Tabs value={tab} onChange={setTab} tabs={[
-          { key: 'structure', label: 'Regions & environments' }, { key: 'organizations', label: 'Organizations' }, { key: 'contracts', label: 'Contracts & SLAs' }, { key: 'cases', label: 'Cases' }, { key: 'commitments', label: 'Commitments' }, { key: 'escalations', label: 'Escalations' }, { key: 'infra', label: 'Infrastructure' },
-          { key: 'projects', label: 'Projects' }, { key: 'contacts', label: 'Contacts & responsibilities' }, { key: 'files', label: 'Attachments' }, { key: 'notes', label: 'My notes' }, { key: 'history', label: 'History' }
-        ]} />
-        {!o && <StateMessage kind="loading" />}
-        {tab === 'organizations' && <OrganizationStructure clientId={Number(id)} projects={o?.projects} />}
-        {o && tab === 'structure' && (<>
+        <Tabs value={activeTab} onChange={setTab} tabs={visibleTabs.map(({ key, label }) => ({ key, label }))} />
+        {overviewTabs.includes(activeTab) && ov.error && <ErrorBox error={ov.error} />}
+        {overviewTabs.includes(activeTab) && !o && !ov.error && <StateMessage kind="loading" />}
+        {activeTab === 'organizations' && <OrganizationStructure clientId={Number(id)} projects={o?.projects} />}
+        {o && activeTab === 'structure' && (<>
           {o.regions.length > 0 && (
             <div className="toolbar"><SelectInput label="Filter by region (optional)" value={regionFilter} onChange={setRegionFilter} options={o.regions.map(r => ({ value: String(r.id), label: `${r.code} · ${r.name}` }))} empty="All regions and direct" /></div>
           )}
@@ -412,20 +444,20 @@ export function ClientDetail() {
             </Panel>
           )}
         </>)}
-        {tab === 'contracts' && <ClientContracts clientId={Number(id)} canCreate={canContractCreate && full} />}
-        {o && tab === 'cases' && (
+        {activeTab === 'contracts' && <ClientContracts clientId={Number(id)} canCreate={canContractCreate && full} />}
+        {o && activeTab === 'cases' && (
           <Panel title={`Open cases (${o.cases.length})`} actions={<Link className="btn" to={`/cases?clientId=${id}`}>Open list</Link>}>
             {o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(k => <li key={k.id}><Link to={`/cases/${k.id}`}>{k.ref}</Link> {k.title} <StatusBadge value={k.status} enumName="CaseStatus" /> {k.overdue && <Badge tone="bad">Overdue</Badge>}{k.waitingReason && <Badge tone="warn">Waiting: {label(k.waitingReason)}</Badge>}<div className="when">{k.owner} · next: {k.nextAction}</div></li>)}</ul>}
           </Panel>
         )}
-        {tab === 'escalations' && <Panel title="Escalations" pad={false} actions={canOtherCreate && <Link className="btn" to={`/escalations/new?clientId=${id}`}>+ Escalation</Link>}><EscalationTable clientId={Number(id)} compact /></Panel>}
-        {o && tab === 'commitments' && (
+        {activeTab === 'escalations' && <Panel title="Escalations" pad={false} actions={canOtherCreate && <Link className="btn" to={`/escalations/new?clientId=${id}`}>+ Escalation</Link>}><EscalationTable clientId={Number(id)} compact /></Panel>}
+        {o && activeTab === 'commitments' && (
           <Panel title={`Open commitments (${o.commitments.length})`} actions={<Link className="btn" to={`/commitments?clientId=${id}`}>Open list</Link>}>
             {o.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.commitments.map(m => <li key={m.id}><Link to={`/commitments/${m.id}`}>{m.ref}</Link> {m.description} {m.overdue && <Badge tone="bad">Overdue</Badge>}<div className="when">{m.type === 'RecordedContractualDeadline' ? 'Recorded deadline' : label(m.type)} · due <When v={m.currentDueAt} /> · {m.owner}</div></li>)}</ul>}
           </Panel>
         )}
-        {o && tab === 'infra' && <Panel title="Infrastructure (recorded)" actions={<Link className="btn" to={`/assets?clientId=${id}`}>Asset list</Link>}><InfraSummary i={o.infrastructure} /></Panel>}
-        {o && tab === 'projects' && (
+        {o && activeTab === 'infra' && o.infrastructure && <Panel title="Infrastructure (recorded)" actions={<Link className="btn" to={`/assets?clientId=${id}`}>Asset list</Link>}><InfraSummary i={o.infrastructure} /></Panel>}
+        {o && activeTab === 'projects' && (
           <Panel title="Projects and their contracts" pad={false} actions={<Link className="btn" to={`/projects?clientId=${id}`}>Open list</Link>}>
             <DataTable rowKey={p => p.id} rows={o.projects} columns={[
               { key: 'c', header: 'Code', render: p => <Link to={`/projects/${p.id}`}>{p.code}</Link> }, { key: 'n', header: 'Project', render: p => <Link to={`/projects/${p.id}`}>{p.name}</Link> }, { key: 's', header: 'Status', render: p => <StatusBadge value={p.status} /> },
@@ -433,25 +465,25 @@ export function ClientDetail() {
             ]} />
           </Panel>
         )}
-        {o && tab === 'contacts' && (o.personalDataRestricted ? <Restricted need="Contacts and responsibility boundaries need client scope." help="scope" /> : (<>
-          <Panel title="Contacts" actions={canOtherCreate && <button className="btn" onClick={() => setDialog('contact')}>+ Contact</button>} pad={false}>
+        {o && activeTab === 'contacts' && (o.personalDataRestricted ? <Restricted need="Contacts and responsibility boundaries need client scope." help="scope" /> : (<>
+          <Panel title="Contacts" actions={canOtherCreate && hasPermission(me, 'tab.ClientStructure.contacts', 'Create') && <button className="btn" onClick={() => setDialog('contact')}>+ Contact</button>} pad={false}>
             <DataTable rowKey={x => x.id} rows={o.contacts} columns={[
               { key: 'n', header: 'Name', render: x => x.name }, { key: 'r', header: 'Role', render: x => x.role }, { key: 'o', header: 'Organization', render: x => x.organization },
               { key: 'e', header: 'Email', render: x => x.email }, { key: 'p', header: 'Phone', render: x => x.phone }, { key: 'a', header: 'Authorized support', render: x => x.authorizedSupport ? 'Yes' : 'No' }, { key: 'del', header: '', className: 'row-actions', render: x => <DeleteAction path={`/contacts/${x.id}`} what={`contact ${x.name}`} /> }
             ]} />
           </Panel>
-          <Panel title="Responsibility boundaries" actions={canOtherCreate && <button className="btn" onClick={() => setDialog('boundary')}>+ Boundary</button>} pad={false}>
+          <Panel title="Responsibility boundaries" actions={canOtherCreate && hasPermission(me, 'tab.ClientStructure.contacts', 'Create') && <button className="btn" onClick={() => setDialog('boundary')}>+ Boundary</button>} pad={false}>
             <DataTable rowKey={x => x.id} rows={o.boundaries} caption="Responsibility boundaries" columns={[
               { key: 'a', header: 'Area', render: x => x.area }, { key: 'p', header: 'Responsible party', render: x => <>{label(x.party)}{x.organization && <div className="hint">{x.organization}</div>}</> },
               { key: 'r', header: 'Responsible person', render: x => <BoundaryPerson b={x} /> },
               { key: 'e', header: 'Scope', render: x => x.environmentId ? 'One environment' : 'Whole client' }, { key: 'c', header: 'Internal coordinator', render: x => x.coordinator ?? <span className="muted">—</span> },
-              { key: 'x', header: '', className: 'row-actions nowrap', render: x => <>{canOtherMaintain && <button className="linkbtn" onClick={() => setEditBoundary(x)}>Edit</button>} <DeleteAction path={`/boundaries/${x.id}`} what={`responsibility boundary ${x.area}`} /></> }
+              { key: 'x', header: '', className: 'row-actions nowrap', render: x => <>{canOtherMaintain && hasPermission(me, 'tab.ClientStructure.contacts', 'Maintain') && <button className="linkbtn" onClick={() => setEditBoundary(x)}>Edit</button>} <DeleteAction path={`/boundaries/${x.id}`} what={`responsibility boundary ${x.area}`} /></> }
             ]} />
           </Panel>
         </>))}
-        {tab === 'notes' && <MyNotesPanel clientId={Number(id)} />}
-        {tab === 'files' && <AttachmentsWorkspace recordType="Client" recordId={Number(id)} scopeAllowed={!!full} />}
-        {tab === 'history' && <HistoryPanel entityType="Client" entityId={Number(id)} />}
+        {activeTab === 'notes' && <MyNotesPanel clientId={Number(id)} />}
+        {activeTab === 'files' && <AttachmentsWorkspace recordType="Client" recordId={Number(id)} scopeAllowed={!!full} />}
+        {activeTab === 'history' && <HistoryPanel entityType="Client" entityId={Number(id)} />}
         {dialog === 'region' && <RegionDialog clientId={Number(id)} onClose={() => setDialog(null)} />}
         {dialog === 'project' && <ProjectDialog clientId={Number(id)} onClose={() => setDialog(null)} />}
         {dialog === 'contact' && <ContactDialog clientId={Number(id)} onClose={() => setDialog(null)} />}
@@ -491,9 +523,9 @@ export function RegionDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['region', id], queryFn: () => get<{ id: number; code: string; name: string; description?: string; clientId: number; clientName: string; clientCode: string; owner?: UserRef; environments: { id: number; name: string; type: string; criticality: string; condition: string }[]; version: string }>(`/regions/${id}`) });
-  const canLead = usePermission('ClientStructure', 'Maintain');
+  const canLead = usePermission('tab.ClientStructure.structure', 'Maintain');
   const canEng = usePermission('Environments', 'Create');
-  const canArchive = usePermission('ClientStructure', 'ArchiveRestore');
+  const canArchive = usePermission('tab.ClientStructure.structure', 'ArchiveRestore');
   const [dialog, setDialog] = useState<string | null>(null);
   const r = q.data;
   const newEnv = r ? `/environments/new?clientId=${r.clientId}&regionId=${r.id}` : '';
@@ -537,7 +569,8 @@ export function ProjectList() {
   const q = useQuery({ queryKey: ['projects', f], queryFn: () => get<Paged<ProjectRow>>(`/projects${qs(f)}`) });
   const statuses = useEnum('ProjectStatus');
   const clients = useClientOptions();
-  const canLead = usePermission('ClientStructure', 'Create');
+  const canLead = usePermission('Projects', 'Create');
+  const canViewProducts = usePermission('Products', 'View');
   const [adding, setAdding] = useState(false);
   return (
     <>
@@ -554,7 +587,7 @@ export function ProjectList() {
           { key: 'name', header: 'Project', sort: 'name', render: p => <Link to={`/projects/${p.id}`}>{p.name}</Link> },
           { key: 'client', header: 'Client', sort: 'client', render: p => <ClientDisplay id={p.clientId} code={p.clientCode} name={p.clientName} /> },
           { key: 'status', header: 'Status', sort: 'status', render: p => <StatusBadge value={p.status} />, filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="">All</option>{statuses.map(s => <option key={s} value={s}>{label(s)}</option>)}</select> },
-          { key: 'products', header: 'Supported products', render: p => p.products.map(x => x.code).join(', ') },
+          { key: 'products', header: 'Supported products', render: p => canViewProducts ? p.products.map(x => x.code).join(', ') : <span className="muted">Unavailable</span> },
           { key: 'contracts', header: 'Contracts', render: p => p.contracts === 0 ? <span className="muted">None</span> : <>
             {p.activeContracts} active{p.contracts > p.activeContracts ? ` of ${p.contracts}` : ''}
             {p.renewalAttention > 0 && <div><Badge tone="warn">{p.renewalAttention} need renewal attention</Badge></div>}
@@ -570,6 +603,7 @@ export function ProjectList() {
 
 export function ProjectDialog({ clientId: fixedClient, projectId, onClose }: { clientId?: number; projectId?: number; onClose: () => void }) {
   const statuses = useEnum('ProjectStatus').filter(s => s !== 'Archived');
+  const canViewProducts = usePermission('Products', 'View');
   const products = useProductOptions();
   const clients = useClientOptions();
   const [pickedClient, setPickedClient] = useState('');
@@ -597,7 +631,7 @@ export function ProjectDialog({ clientId: fixedClient, projectId, onClose }: { c
         <TextInput label="Service end" type="date" value={f.values.serviceEnd} onChange={v => f.set('serviceEnd', v)} error={f.fieldError('serviceEnd')} />
         <TextInput label="Scope summary" wide multiline value={f.values.scopeSummary} onChange={v => f.set('scopeSummary', v)} error={f.fieldError('scopeSummary')} />
         <fieldset className="wide" style={{ border: 0, padding: 0 }}><legend className="flabel">Supported products</legend>
-          {products.map(p => <label key={p.value} className="check" style={{ marginRight: 14 }}><input type="checkbox" checked={f.values.productIds.includes(Number(p.value))}
+          {!canViewProducts ? <span className="hint">Products are unavailable with your current access; existing links will be preserved.</span> : products.map(p => <label key={p.value} className="check" style={{ marginRight: 14 }}><input type="checkbox" checked={f.values.productIds.includes(Number(p.value))}
             onChange={e => f.set('productIds', e.target.checked ? [...f.values.productIds, Number(p.value)] : f.values.productIds.filter(x => x !== Number(p.value)))} /> {p.label}</label>)}
         </fieldset>
       </div>

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
@@ -515,7 +516,7 @@ export function AssetList() {
   return (
     <>
       <PageHead title="Infrastructure assets" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/environments', label: 'Environments' }, { label: 'Assets' }]} sub="Recorded provisioning by client, region, environment, product, phase, role and lifecycle."
-        actions={me.grants.export && <button className="btn" onClick={() => exportCsv('assets', filters)}>Export CSV</button>} />
+        actions={canExportReport(me, 'assets') && <button className="btn" onClick={() => exportCsv('assets', filters)}>Export CSV</button>} />
       {f.country && <div className="notice" role="status">Servers of clients in {f.country}. <button className="linkbtn" onClick={() => set({ country: '', page: '1' })}>Show every country</button></div>}
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
@@ -559,7 +560,7 @@ export function VersionMatrix() {
   return (
     <>
       <PageHead title="Product version matrix" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/environments', label: 'Environments' }, { label: 'Version matrix' }]} sub="Versions are compared only within the same product. An environment with several installations is counted once in environment totals."
-        actions={me.grants.export && <button className="btn" onClick={() => exportCsv('versions', f)}>Export CSV</button>} />
+        actions={canExportReport(me, 'versions') && <button className="btn" onClick={() => exportCsv('versions', f)}>Export CSV</button>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
@@ -73,7 +74,7 @@ export function ContractList() {
       <PageHead title="Projects & contracts" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, { label: 'Contract register' }]}
         sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; cases linked to a contract are measured against them."
         actions={<>
-          {me.grants.export && <button className="btn" onClick={() => exportCsv('contracts', f)}>Export CSV</button>}
+          {canExportReport(me, 'contracts') && <button className="btn" onClick={() => exportCsv('contracts', f)}>Export CSV</button>}
           {canLead && <Link className="btn btn-primary" to={`/contracts/new${f.clientId ? `?clientId=${f.clientId}` : ''}`}>+ New contract</Link>}
         </>} />
       <ProjectTabs value="contracts" />
@@ -130,6 +131,8 @@ export function ClientContracts({ clientId, canCreate }: { clientId: number; can
 
 export function ContractDetail() {
   const T = useTypes();
+  const canViewProducts = usePermission('Products', 'View');
+  const canViewEnvironments = usePermission('Environments', 'View');
   const { id } = useParams();
   const q = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail>(`/contracts/${id}`) });
   const nav = useNavigate();
@@ -185,10 +188,10 @@ export function ContractDetail() {
         <PenaltyAssessments contractId={c.id} clauses={c.penaltyClauses} />
         <div className="cols">
           <Panel title="Covered products (from the project)">
-            {c.products.length === 0 ? <StateMessage kind="none">The project has no products recorded.</StateMessage> : <ul className="plain">{c.products.map(p => <li key={p.id}>{p.code} · {p.name}</li>)}</ul>}
+            {!canViewProducts ? <span className="muted">Products are unavailable with your current access.</span> : c.products.length === 0 ? <StateMessage kind="none">The project has no products recorded.</StateMessage> : <ul className="plain">{c.products.map(p => <li key={p.id}>{p.code} · {p.name}</li>)}</ul>}
           </Panel>
           <Panel title="Covered environments">
-            {c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
+            {!canViewEnvironments ? <span className="muted">Environments are unavailable with your current access.</span> : c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
           </Panel>
         </div>
         <AttachmentsWorkspace recordType="Contract" recordId={c.id} title="Contract and SLA documents" />
@@ -278,6 +281,8 @@ export function ContractForm() {
   const models = useEnum('SupportModel');
   const priorities = useEnum('Priority');
   const bases = useEnum('SlaBasis');
+  const canViewProducts = usePermission('Products', 'View');
+  const canViewEnvironments = usePermission('Environments', 'View');
   const existing = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail & { productIds?: number[] }>(`/contracts/${id}`), enabled: !isNew });
   const f = useForm({
     projectId: sp.get('projectId') ?? '', title: '', contractReference: '', type: 'SlaSupport', status: 'Draft', ownerUserId: null as number | null,
@@ -309,7 +314,7 @@ export function ContractForm() {
   const projects = useQuery({ queryKey: ['projects-of', onlyClient], queryFn: () => get<Paged<{ id: number; code: string; name: string; clientId: number; clientCode: string; products: { code: string }[] }>>(`/projects?pageSize=200${onlyClient ? `&clientId=${onlyClient}` : ''}`) });
   const project = projects.data?.items.find(p => String(p.id) === f.values.projectId);
   const clientId = project?.clientId ?? existing.data?.clientId ?? null;
-  const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`), enabled: !!clientId });
+  const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`), enabled: !!clientId && canViewEnvironments });
   const setTarget = (i: number, patch: Partial<TargetForm>) => f.set('targets', f.values.targets.map((t, n) => (n === i ? { ...t, ...patch } : t)));
   const unused = priorities.filter(p => !f.values.targets.some(t => t.priority === p));
   const toggle = (key: 'environmentIds', v: number, on: boolean) => f.set(key, on ? [...f.values[key], v] : f.values[key].filter(x => x !== v));
@@ -345,7 +350,7 @@ export function ContractForm() {
         <div className="form-grid">
           <SelectInput label="Project" required value={f.values.projectId} onChange={v => f.set('projectId', v)} error={f.fieldError('projectId')}
             options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.clientCode} · ${p.code} · ${p.name}` }))} empty="— Select —"
-            hint={project ? `Client ${project.clientCode} · covered products: ${project.products.map(x => x.code).join(', ') || 'none recorded on the project'}` : 'The contract belongs to this project and covers its products.'} />
+            hint={project ? `Client ${project.clientCode}${canViewProducts ? ` · covered products: ${project.products.map(x => x.code).join(', ') || 'none recorded on the project'}` : ''}` : 'The contract belongs to this project and covers its products.'} />
           <TextInput label="Title" required value={f.values.title} onChange={v => f.set('title', v)} error={f.fieldError('title')} />
           <TextInput label="Contract reference" value={f.values.contractReference} onChange={v => f.set('contractReference', v)} error={f.fieldError('contractReference')} hint="Number on the contract document." />
           <SelectInput label="Type" required value={f.values.type} onChange={v => f.set('type', v)} options={T.options('ContractType', f.values.type)} empty={null} />
@@ -367,7 +372,7 @@ export function ContractForm() {
           <TextInput label="Service coverage" wide multiline value={f.values.coverage} onChange={v => f.set('coverage', v)} error={f.fieldError('coverage')} />
           <TextInput label="Obligations" wide multiline value={f.values.obligations} onChange={v => f.set('obligations', v)} error={f.fieldError('obligations')} hint="Reports, staffing, maintenance windows and other duties as written in the contract." />
           <fieldset className="wide" style={{ border: 0, padding: 0 }}><legend className="flabel">Covered environments</legend>
-            {!clientId ? <span className="hint">Select the project first.</span> : (envs.data?.items ?? []).length === 0 ? <span className="hint">No environments recorded for this client.</span>
+            {!canViewEnvironments ? <span className="hint">Environments are unavailable with your current access; existing links will be preserved.</span> : !clientId ? <span className="hint">Select the project first.</span> : (envs.data?.items ?? []).length === 0 ? <span className="hint">No environments recorded for this client.</span>
               : envs.data!.items.map(e => <label key={e.id} className="check" style={{ marginRight: 14 }}><input type="checkbox" checked={f.values.environmentIds.includes(e.id)} onChange={ev => toggle('environmentIds', e.id, ev.target.checked)} /> {e.regionCode ? `${e.regionCode} / ` : ''}{e.name}</label>)}
             {f.fieldError('environmentIds') && <div className="err">{f.fieldError('environmentIds')}</div>}
           </fieldset>
@@ -433,6 +438,8 @@ type ProjectDto = {
 /** A27: the project with its contracts, their SLA targets and renewal state, its products and environments. */
 export function ProjectDetail() {
   const T = useTypes();
+  const canViewProducts = usePermission('Products', 'View');
+  const canViewEnvironments = usePermission('Environments', 'View');
   const { id } = useParams();
   const q = useQuery({ queryKey: ['project', id], queryFn: () => get<ProjectDto>(`/projects/${id}`) });
   const nav = useNavigate();
@@ -458,8 +465,8 @@ export function ProjectDetail() {
         </Panel>
         <Panel title="Products and environments">
           <DL items={[
-            ['Supported products', p.products.length ? p.products.map(x => <span key={x.id} className="chip" style={{ marginRight: 6 }}>{x.code}</span>) : <span className="muted">None recorded</span>],
-            ['Environments', p.environments.length ? p.environments.map(e => <div key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></div>) : <span className="muted">None linked</span>]
+            ['Supported products', !canViewProducts ? <span className="muted">Unavailable with your current access</span> : p.products.length ? p.products.map(x => <span key={x.id} className="chip" style={{ marginRight: 6 }}>{x.code}</span>) : <span className="muted">None recorded</span>],
+            ['Environments', !canViewEnvironments ? <span className="muted">Unavailable with your current access</span> : p.environments.length ? p.environments.map(e => <div key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></div>) : <span className="muted">None linked</span>]
           ]} />
           <p className="hint" style={{ marginTop: 8 }}>The project's contracts cover these products.</p>
         </Panel>

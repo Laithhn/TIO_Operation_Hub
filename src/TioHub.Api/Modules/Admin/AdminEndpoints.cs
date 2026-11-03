@@ -14,9 +14,9 @@ namespace TioHub.Api.Modules.Admin;
 public static class AdminEndpoints
 {
     public sealed record ScopeInput(ScopeKind Kind, long? ClientId, long? ProjectId, long? TeamId);
-    /// <summary>A31: <c>RoleId</c> picks the user's role; <c>Roles</c> (role names or built-in keys Manager/Engineer) is still accepted.</summary>
+    /// <summary><c>RoleIds</c> assigns several roles; <c>RoleId</c> and role names remain for older clients.</summary>
     public sealed record UserInput(string? AccountName, string? DisplayName, string? Email, string? WorkingTimeZone, string[]? Roles, bool AllClients, bool AllInternal,
-        bool Export, bool TechnicalDetail, bool Audit, ScopeInput[]? Scopes, long? RoleId = null);
+        bool Export, bool TechnicalDetail, bool Audit, ScopeInput[]? Scopes, long? RoleId = null, long[]? RoleIds = null);
     public sealed record DeactivateInput(string? Reason);
     public sealed record DeleteUserInput(string? Reason);
     public sealed record MappingInput(string? GroupName, Role? Role, bool AllClients, bool AllInternal, bool Export, bool TechnicalDetail, bool Audit, ScopeInput[]? Scopes);
@@ -30,55 +30,111 @@ public static class AdminEndpoints
 
     private static readonly string[] ArchivableTypes = [RecordTypes.Client, RecordTypes.Region, RecordTypes.Project, RecordTypes.Contract, RecordTypes.Contact, RecordTypes.Environment, RecordTypes.Installation, RecordTypes.Asset, RecordTypes.Component];
 
+    /// <summary>A project grant exposes only a client summary, not client-level archive details.</summary>
+    public static IQueryable<Client> ClientsWithFullScope(IQueryable<Client> clients, UserContext me)
+    {
+        var all = me.IsSystem || me.AllClients;
+        var ids = me.ClientIds;
+        return clients.Where(c => all || ids.Contains(c.Id));
+    }
+
     public static void MapAdminEndpoints(this RouteGroupBuilder api)
     {
         var g = api.MapGroup("/admin").WithTags("Administration");
 
         // ---- users and access (ACC-04, ACC-05) ----
-        g.MapGet("/users", async (string? q, bool? active, HubDbContext db, UserContext me, CancellationToken ct) =>
+        g.MapGet("/users", async (string? q, bool? active, HubDbContext db, UserContext me, UserResolver resolver, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             var query = db.Users.AsNoTracking().Include(u => u.Roles).ThenInclude(r => r.AppRole).Include(u => u.Scopes).AsQueryable();
             if (!string.IsNullOrWhiteSpace(q)) query = query.Where(u => u.DisplayName.Contains(q) || u.AccountName.Contains(q));
             if (active is not null) query = query.Where(u => u.IsActive == active);
             var users = await query.OrderBy(u => u.DisplayName).ToListAsync(ct);
-            return Results.Ok(users.Select(u => UserDto(u)));
+            return Results.Ok(users.Select(u => UserDto(u, resolver)));
         });
-        g.MapGet("/users/{id:long}", async (long id, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
+        g.MapGet("/users/{id:long}", async (long id, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             var u = await db.Users.AsNoTracking().Include(x => x.Roles).ThenInclude(r => r.AppRole).Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
-            return ctx.WithETag(u, UserDto(u));
+            return ctx.WithETag(u, UserDto(u, resolver));
         });
-        g.MapPost("/users", async (UserInput input, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        g.MapGet("/users/{id:long}/access", async (long id, HubDbContext db, UserContext me, UserResolver resolver, TimeProvider clock, CancellationToken ct) =>
+        {
+            me.RequireAdministrator();
+            var user = await db.Users.AsNoTracking().Include(u => u.Roles).ThenInclude(r => r.AppRole).ThenInclude(r => r!.Permissions)
+                .FirstOrDefaultAsync(u => u.Id == id, ct) ?? throw new NotFoundException("The user");
+            var access = await resolver.ForUserAsync(id, ct);
+            var effective = (access?.Permissions ?? []).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var definitions = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).OrderBy(p => p.Module).ThenBy(p => p.DisplayName).ToListAsync(ct);
+            var held = await db.AppRoles.AsNoTracking().Include(r => r.Permissions)
+                .Where(r => r.IsActive && access != null && access.Roles.Contains(r.Name)).ToListAsync(ct);
+            var sources = held.SelectMany(role =>
+            {
+                var keys = role.IsLocked ? ResourcePermissions.All : role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)).ToArray();
+                return keys.Select(key => new { key, role = role.Name });
+            }).GroupBy(x => x.key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Select(x => x.role).Distinct().Order().ToArray(), StringComparer.OrdinalIgnoreCase);
+            var now = clock.GetUtcNow();
+            var overrides = (await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct))
+                .ToDictionary(o => o.PermissionKey, StringComparer.OrdinalIgnoreCase);
+            return Results.Ok(new
+            {
+                user = new { user.Id, user.AccountName, user.DisplayName, user.IsActive },
+                roles = held.Select(r => new { r.Id, r.Name, r.Description, r.IsLocked }),
+                effectiveRights = BuiltInRoles.Catalog.Where(right => access is not null && access.Rights.HasFlag(right.Key)).Select(right => new
+                {
+                    key = right.Key.ToString(), right.Label,
+                    sources = held.Where(role => role.IsLocked || role.Rights.HasFlag(right.Key)).Select(role => role.Name).Distinct().Order()
+                }),
+                effectivePermissions = definitions.Where(d => effective.Contains(d.Key)).Select(d => new {
+                    d.Key, d.DisplayName, d.Description, d.Module, d.RiskLevel,
+                    sources = sources.GetValueOrDefault(d.Key, []).Concat(overrides.TryGetValue(d.Key, out var o) && o.Effect == "Allow" && access?.Rights.HasFlag(Right.Administer) != true ? ["Direct allow"] : Array.Empty<string>()).ToArray(),
+                    effect = overrides.GetValueOrDefault(d.Key)?.Effect, expiresAt = overrides.GetValueOrDefault(d.Key)?.ExpiresAt,
+                    overrideApplied = overrides.GetValueOrDefault(d.Key)?.Effect != "Allow" || access?.Rights.HasFlag(Right.Administer) != true
+                }),
+                restrictedPermissions = definitions.Where(d => !effective.Contains(d.Key)).Select(d => new {
+                    d.Key, d.DisplayName, d.Module,
+                    effect = overrides.GetValueOrDefault(d.Key)?.Effect, expiresAt = overrides.GetValueOrDefault(d.Key)?.ExpiresAt,
+                    overrideApplied = overrides.GetValueOrDefault(d.Key)?.Effect != "Allow" || access?.Rights.HasFlag(Right.Administer) != true,
+                    restrictionReason = !user.IsActive ? "Account inactive" : access?.AccessRestriction is not null ? "Mandatory access restriction" : overrides.GetValueOrDefault(d.Key)?.Effect == "Deny" ? "Explicitly denied" :
+                        overrides.GetValueOrDefault(d.Key)?.Effect == "Allow" && access?.Rights.HasFlag(Right.Administer) == true ? "Direct allows are not applied to administrators" :
+                        CapabilityPermissions.Dependencies(d.Key).Any(key => !effective.Contains(key)) ? "Missing prerequisite" : "Not granted"
+                }),
+                scopes = access is null ? null : new { access.AllClients, access.ClientIds, access.ProjectIds, access.AllInternal, access.TeamIds },
+                grants = access?.Grants.ToString()
+            });
+        });
+        g.MapPost("/users", async (UserInput input, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             var u = new User();
-            await ApplyUserAsync(u, input, db, me, isNew: true, ct);
+            await ApplyUserAsync(u, input, db, me, resolver, isNew: true, clock.GetUtcNow(), ct);
             db.Users.Add(u);
             db.AuditReason = "User provisioned by administrator";
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
             return Results.Created($"/api/v1/admin/users/{u.Id}", new { u.Id });
         });
-        g.MapPut("/users/{id:long}", async (long id, UserInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        g.MapPut("/users/{id:long}", async (long id, UserInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             var u = await db.Users.Include(x => x.Roles).Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
             db.ExpectVersion(ctx, u);
-            await ApplyUserAsync(u, input, db, me, isNew: false, ct);
+            await ApplyUserAsync(u, input, db, me, resolver, isNew: false, clock.GetUtcNow(), ct);
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
             return Results.NoContent();
         });
         // Deactivation preserves identity and history; active records surface in the reassignment queue, never auto-reassigned.
-        g.MapPost("/users/{id:long}/deactivate", async (long id, DeactivateInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
+        g.MapPost("/users/{id:long}/deactivate", async (long id, DeactivateInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             if (id == me.UserId) throw new ValidationException("reason", "You cannot deactivate your own account.");
             var u = await db.Users.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
             db.ExpectVersion(ctx, u);
             var reason = Rules.RequireReason(input.Reason);
+            await EnsureAdministratorRemainsAsync(db, id, false, null, resolver, clock.GetUtcNow(), ct);
+            await EnsureConflictRecoveryAsync(db, id, false, [], resolver, clock.GetUtcNow(), ct);
+            resolver.MarkFormsSnapshot(u);
             u.IsActive = false;
             u.DeactivatedAt = clock.GetUtcNow();
             u.DeactivationReason = reason;
@@ -90,12 +146,39 @@ public static class AdminEndpoints
                 + await db.Environments.IgnoreQueryFilters().CountAsync(e => (e.OwnerUserId == id || e.BackupOwnerUserId == id) && e.ArchivedAt == null, ct);
             return Results.Ok(new { recordsAwaitingReassignment = queue });
         });
-        g.MapPost("/users/{id:long}/reactivate", async (long id, DeactivateInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        g.MapPost("/users/{id:long}/reactivate", async (long id, DeactivateInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             me.RequireAdministrator();
-            var u = await db.Users.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
+            var u = await db.Users.Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
             db.ExpectVersion(ctx, u);
             db.AuditReason = Rules.RequireReason(input.Reason);
+            var groupNames = resolver.RequireGroups(u.MappedGroups);
+            var mappings = await db.GroupMappings.Include(g => g.Scopes).Where(g => groupNames.Contains(g.GroupName)).ToListAsync(ct);
+            var scopeCheck = new Check();
+            await CheckDelegatedScopeAsync(scopeCheck, me, u.AllClients || mappings.Any(m => m.AllClients), u.AllInternal || mappings.Any(m => m.AllInternal),
+                u.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)).Concat(mappings.SelectMany(m => m.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)))), db, ct);
+            scopeCheck.ThrowIfAny();
+            var mappedKeys = mappings.Where(m => m.Role != null).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).ToArray();
+            var ids = db.UserRoles.Where(ur => ur.UserId == id).Select(ur => ur.AppRoleId);
+            var held = await db.AppRoles.Include(role => role.Permissions).Where(role => role.IsActive && (ids.Contains(role.Id) || mappedKeys.Contains(role.Key!))).ToListAsync(ct);
+            if (RoleConflicts.Conflicts(held.Select(role => role.Id), await RoleConflicts.LoadAsync(db, ct)))
+                throw new ValidationException("roles", "This account's assigned and directory-mapped roles conflict under the separation-of-duties policy.");
+            foreach (var role in held)
+            {
+                foreach (var key in (role.IsLocked ? ResourcePermissions.All : role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action))).Where(key => !me.HasPermission(key)))
+                    throw new ForbiddenException($"Reactivating this account would enable {key}, which you do not hold.");
+                if ((ResourcePermissions.CrossCutting(role.Rights) & ~me.Rights) != Right.None)
+                    throw new ForbiddenException("Reactivating this account would grant rights beyond your own.");
+            }
+            if (!me.IsSystem)
+            {
+                var entries = await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == id).ToListAsync(ct);
+                var keys = held.SelectMany(role => role.IsLocked ? ResourcePermissions.All : role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)));
+                var active = (await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+                foreach (var key in PermissionOverrides.PotentiallyEffective(keys, entries, clock.GetUtcNow(), active).Where(key => !me.HasPermission(key)))
+                    throw new ForbiddenException($"Reactivating this account could enable {key}, which you do not hold.");
+            }
+            resolver.MarkFormsSnapshot(u);
             u.IsActive = true;
             u.DeactivatedAt = null;
             u.DeactivationReason = null;
@@ -103,18 +186,21 @@ public static class AdminEndpoints
             UserResolver.InvalidateAll(cache);
             return Results.NoContent();
         });
-        g.MapDelete("/users/{id:long}", async (long id, [Microsoft.AspNetCore.Mvc.FromBody] DeleteUserInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        g.MapDelete("/users/{id:long}", async (long id, [Microsoft.AspNetCore.Mvc.FromBody] DeleteUserInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             if (id == me.UserId) throw new ValidationException("reason", "You cannot delete your own account.");
             var u = await db.Users.Include(x => x.Roles).Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
             db.ExpectVersion(ctx, u);
             var reason = Rules.RequireReason(input.Reason);
+            await EnsureAdministratorRemainsAsync(db, id, false, null, resolver, clock.GetUtcNow(), ct);
+            await EnsureConflictRecoveryAsync(db, id, false, [], resolver, clock.GetUtcNow(), ct);
 
             // Keep business and audit history attached to its original person. Only remove an account
             // when no retained record points to it; use deactivation for users with recorded activity.
             db.UserCredentials.RemoveRange(await db.UserCredentials.Where(c => c.UserId == id).ToListAsync(ct));
             db.Notifications.RemoveRange(await db.Notifications.Where(n => n.UserId == id).ToListAsync(ct));
+            db.UserPermissionOverrides.RemoveRange(await db.UserPermissionOverrides.Where(o => o.UserId == id).ToListAsync(ct));
             db.Users.Remove(u);
             db.AuditReason = reason;
             try
@@ -135,9 +221,9 @@ public static class AdminEndpoints
             me.RequireAdministrator();
             return Results.Ok(new
             {
-                clients = await db.Clients.IgnoreQueryFilters().AsNoTracking().OrderBy(c => c.Code).Select(c => new { c.Id, c.Code, c.Name, archived = c.ArchivedAt != null }).ToListAsync(ct),
-                projects = await db.Projects.IgnoreQueryFilters().AsNoTracking().OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name, p.ClientId }).ToListAsync(ct),
-                teams = await db.Teams.AsNoTracking().OrderBy(t => t.Code).Select(t => new { t.Id, t.Code, t.Name }).ToListAsync(ct)
+                clients = await db.Clients.IgnoreQueryFilters().AsNoTracking().Where(c => me.IsSystem || me.AllClients || me.ClientIds.Contains(c.Id)).OrderBy(c => c.Code).Select(c => new { c.Id, c.Code, c.Name, archived = c.ArchivedAt != null }).ToListAsync(ct),
+                projects = await db.Projects.IgnoreQueryFilters().AsNoTracking().Where(p => me.IsSystem || me.AllClients || me.ClientIds.Contains(p.ClientId) || me.ProjectIds.Contains(p.Id)).OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name, p.ClientId }).ToListAsync(ct),
+                teams = await db.Teams.AsNoTracking().Where(t => me.IsSystem || me.AllInternal || me.TeamIds.Contains(t.Id)).OrderBy(t => t.Code).Select(t => new { t.Id, t.Code, t.Name }).ToListAsync(ct)
             });
         });
 
@@ -147,24 +233,24 @@ public static class AdminEndpoints
             var maps = await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).OrderBy(m => m.GroupName).ToListAsync(ct);
             return Results.Ok(maps.Select(m => new { m.Id, m.GroupName, m.Role, m.AllClients, m.AllInternal, grants = GrantFlags(m.Grants), scopes = m.Scopes.Select(s => new { s.Kind, s.ClientId, s.ProjectId, s.TeamId }), version = Convert.ToBase64String(m.RowVersion) }));
         });
-        g.MapPost("/group-mappings", async (MappingInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        g.MapPost("/group-mappings", async (MappingInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             RefuseOwnGroup(ctx, input.GroupName);
             var m = new GroupMapping();
-            await ApplyMappingAsync(m, input, db, ct);
+            await ApplyMappingAsync(m, input, db, me, resolver, ct);
             db.GroupMappings.Add(m);
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
             return Results.Created($"/api/v1/admin/group-mappings/{m.Id}", new { m.Id });
         });
-        g.MapPut("/group-mappings/{id:long}", async (long id, MappingInput input, HttpContext ctx, HubDbContext db, UserContext me, IMemoryCache cache, CancellationToken ct) =>
+        g.MapPut("/group-mappings/{id:long}", async (long id, MappingInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             var m = await db.GroupMappings.Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The mapping");
             RefuseOwnGroup(ctx, m.GroupName, input.GroupName);
             db.ExpectVersion(ctx, m);
-            await ApplyMappingAsync(m, input, db, ct);
+            await ApplyMappingAsync(m, input, db, me, resolver, ct);
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
             return Results.NoContent();
@@ -182,7 +268,7 @@ public static class AdminEndpoints
         {
             me.RequireAdministrator();
             if (!LookupLists.All.Contains(list)) throw new NotFoundException("The list");
-            return Results.Ok(await LookupUsage.CountsAsync(db, list, ct));
+            return Results.Ok(await LookupUsage.CountsAsync(db, list, ct, scoped: true));
         });
         g.MapPost("/lookups/{list}/order", async (string list, OrderInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
@@ -249,12 +335,12 @@ public static class AdminEndpoints
         g.MapGet("/settings", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             me.RequireAdministrator();
-            return Results.Ok(await db.Settings.AsNoTracking().Where(s => !s.Key.StartsWith("Attachments.") && !s.Key.StartsWith("Sla.")).OrderBy(s => s.Key).Select(s => new { s.Id, s.Key, s.Value, s.Description, version = Convert.ToBase64String(s.RowVersion) }).ToListAsync(ct));
+            return Results.Ok(await db.Settings.AsNoTracking().Where(s => !s.Key.StartsWith("Attachments.") && !s.Key.StartsWith("Sla.") && s.Key != RoleConflicts.SettingKey).OrderBy(s => s.Key).Select(s => new { s.Id, s.Key, s.Value, s.Description, version = Convert.ToBase64String(s.RowVersion) }).ToListAsync(ct));
         });
         g.MapPut("/settings/{id:long}", async (long id, SettingInput input, HttpContext ctx, HubDbContext db, UserContext me, HubSettings settings, CancellationToken ct) =>
         {
             me.RequireAdministrator();
-            var s = await db.Settings.FirstOrDefaultAsync(x => x.Id == id && !x.Key.StartsWith("Attachments.") && !x.Key.StartsWith("Sla."), ct) ?? throw new NotFoundException("The setting");
+            var s = await db.Settings.FirstOrDefaultAsync(x => x.Id == id && !x.Key.StartsWith("Attachments.") && !x.Key.StartsWith("Sla.") && x.Key != RoleConflicts.SettingKey, ct) ?? throw new NotFoundException("The setting");
             db.ExpectVersion(ctx, s);
             new Check().Text("value", input.Value, 2000, "the value", true).ThrowIfAny();
             var value = input.Value!.Trim();
@@ -334,7 +420,7 @@ public static class AdminEndpoints
             access.RequireBusiness();
             string[] f = [HubDbContext.ArchiveFilter];
             var list = new List<object>();
-            if (recordType is null or RecordTypes.Client) list.AddRange(await db.Clients.IgnoreQueryFilters(f).AsNoTracking().Where(x => x.ArchivedAt != null).Select(x => new { recordType = RecordTypes.Client, x.Id, label = x.Code + " · " + x.Name, clientId = (long?)x.Id, x.ArchivedAt, x.ArchiveReason, version = Convert.ToBase64String(x.RowVersion) }).ToListAsync(ct));
+            if (recordType is null or RecordTypes.Client) list.AddRange(await ClientsWithFullScope(db.Clients.IgnoreQueryFilters(f).AsNoTracking(), access.Me).Where(x => x.ArchivedAt != null).Select(x => new { recordType = RecordTypes.Client, x.Id, label = x.Code + " · " + x.Name, clientId = (long?)x.Id, x.ArchivedAt, x.ArchiveReason, version = Convert.ToBase64String(x.RowVersion) }).ToListAsync(ct));
             if (recordType is null or RecordTypes.Region) list.AddRange(await db.Regions.IgnoreQueryFilters(f).AsNoTracking().Where(x => x.ArchivedAt != null).Select(x => new { recordType = RecordTypes.Region, x.Id, label = x.Code + " · " + x.Name, clientId = (long?)x.ClientId, x.ArchivedAt, x.ArchiveReason, version = Convert.ToBase64String(x.RowVersion) }).ToListAsync(ct));
             if (recordType is null or RecordTypes.Project) list.AddRange(await db.Projects.IgnoreQueryFilters(f).AsNoTracking().Where(x => x.ArchivedAt != null).Select(x => new { recordType = RecordTypes.Project, x.Id, label = x.Code + " · " + x.Name, clientId = (long?)x.ClientId, x.ArchivedAt, x.ArchiveReason, version = Convert.ToBase64String(x.RowVersion) }).ToListAsync(ct));
             if (recordType is null or RecordTypes.Contract) list.AddRange(await db.Contracts.IgnoreQueryFilters(f).AsNoTracking().Where(x => x.ArchivedAt != null).Select(x => new { recordType = RecordTypes.Contract, x.Id, label = x.Ref + " · " + x.Title, clientId = (long?)x.ClientId, x.ArchivedAt, x.ArchiveReason, version = Convert.ToBase64String(x.RowVersion) }).ToListAsync(ct));
@@ -457,10 +543,12 @@ public static class AdminEndpoints
 
     private static string[] GrantFlags(Grant g) => Enum.GetValues<Grant>().Where(x => x != Grant.None && g.HasFlag(x)).Select(x => x.ToString()).ToArray();
 
-    private static object UserDto(User u) => new
+    private static object UserDto(User u, UserResolver resolver) => new
     {
-        u.Id, u.AccountName, u.DisplayName, u.Email, u.WorkingTimeZone, u.IsActive, u.DeactivatedAt, u.DeactivationReason, u.LastSignInAt, u.MappedGroups,
-        roles = u.Roles.Select(r => r.AppRole?.Key ?? r.AppRole?.Name), roleId = u.Roles.Select(r => (long?)r.AppRoleId).FirstOrDefault(),
+        u.Id, u.AccountName, u.DisplayName, u.Email, u.WorkingTimeZone, u.IsActive, u.DeactivatedAt, u.DeactivationReason, u.LastSignInAt,
+        mappedGroups = string.Join("; ", resolver.Groups(u.MappedGroups)),
+        mappedGroupsAvailable = resolver.TryGroups(u.MappedGroups, out _),
+        roles = u.Roles.Select(r => r.AppRole?.Key ?? r.AppRole?.Name), roleIds = u.Roles.Select(r => r.AppRoleId), roleId = u.Roles.Select(r => (long?)r.AppRoleId).FirstOrDefault(),
         roleName = u.Roles.Select(r => r.AppRole?.Name).FirstOrDefault(), u.AllClients, u.AllInternal, grants = GrantFlags(u.Grants),
         scopes = u.Scopes.Select(s => new { s.Kind, s.ClientId, s.ProjectId, s.TeamId }), version = Convert.ToBase64String(u.RowVersion)
     };
@@ -474,7 +562,8 @@ public static class AdminEndpoints
             {
                 ScopeKind.Client => s.ClientId is not null && await db.Clients.IgnoreQueryFilters().AnyAsync(c => c.Id == s.ClientId, ct),
                 ScopeKind.Project => s.ProjectId is not null && await db.Projects.IgnoreQueryFilters().AnyAsync(c => c.Id == s.ProjectId, ct),
-                _ => s.TeamId is not null && await db.Teams.AnyAsync(c => c.Id == s.TeamId, ct)
+                ScopeKind.InternalTeam => s.TeamId is not null && await db.Teams.AnyAsync(c => c.Id == s.TeamId, ct),
+                _ => false
             };
             if (!ok) { check.Add($"scopes[{n}]", "Select an existing client, project or team."); continue; }
             var key = (s.Kind, s.Kind == ScopeKind.Client ? s.ClientId : null, s.Kind == ScopeKind.Project ? s.ProjectId : null, s.Kind == ScopeKind.InternalTeam ? s.TeamId : null);
@@ -483,7 +572,71 @@ public static class AdminEndpoints
         return list;
     }
 
+    private static async Task CheckDelegatedScopeAsync(Check check, UserContext me, bool allClients, bool allInternal,
+        IEnumerable<(ScopeKind Kind, long? ClientId, long? ProjectId, long? TeamId)> scopes, HubDbContext db, CancellationToken ct)
+    {
+        if (me.IsSystem) return;
+        if (allClients && !me.AllClients) check.Add("allClients", "You cannot assign access to all clients without that scope yourself.");
+        if (allInternal && !me.AllInternal) check.Add("allInternal", "You cannot assign access to all internal teams without that scope yourself.");
+        var list = scopes.ToList();
+        if (list.Any(s => s.Kind == ScopeKind.Client && s.ClientId is { } id && !me.HasClient(id)) ||
+            list.Any(s => s.Kind == ScopeKind.InternalTeam && s.TeamId is { } id && !me.SeesInternal(id)))
+            check.Add("scopes", "You cannot assign a client or team outside your own scope.");
+        var projectIds = list.Where(s => s.Kind == ScopeKind.Project && s.ProjectId is not null)
+            .Select(s => s.ProjectId!.Value).Distinct().ToArray();
+        if (projectIds.Length == 0 || me.AllClients) return;
+        var permitted = await db.Projects.IgnoreQueryFilters().Where(p => projectIds.Contains(p.Id) &&
+            (me.ProjectIds.Contains(p.Id) || me.ClientIds.Contains(p.ClientId))).Select(p => p.Id).ToListAsync(ct);
+        if (projectIds.Except(permitted).Any()) check.Add("scopes", "You cannot assign a project outside your own scope.");
+    }
+
     private static Grant ToGrants(bool export, bool tech, bool audit) => (export ? Grant.Export : 0) | (tech ? Grant.TechnicalDetail : 0) | (audit ? Grant.Audit : 0);
+
+    private static async Task EnsureAdministratorRemainsAsync(HubDbContext db, long changedUserId, bool targetActive, IReadOnlyCollection<long>? targetRoleIds, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
+    {
+        if (resolver.IsForms)
+        {
+            var users = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Id != changedUserId).Include(u => u.Roles).ToListAsync(ct);
+            var candidates = users.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())).ToList();
+            if (targetActive && changedUserId != 0)
+            {
+                var ids = targetRoleIds?.ToArray() ?? await db.UserRoles.AsNoTracking().Where(r => r.UserId == changedUserId).Select(r => r.AppRoleId).ToArrayAsync(ct);
+                candidates.Add((changedUserId, ids));
+            }
+            if (!await RoleConflicts.HasFormsUserAdministratorAsync(db, candidates, now, ct))
+                throw new ValidationException("roles", "Keep an active administrator with a Forms password and effective user administration permissions.");
+            return;
+        }
+        var privilegedGroups = (await db.GroupMappings.AsNoTracking().Where(m => m.Role == Role.Manager)
+            .Select(m => m.GroupName).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var activeUsers = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Id != changedUserId)
+            .Include(u => u.Roles).ThenInclude(r => r.AppRole).ToListAsync(ct);
+        bool IsEligible(User u) => u.Roles.Any(r => r.AppRole is { IsActive: true } role && (role.IsLocked || role.Rights.HasFlag(Right.Administer)))
+            || resolver.Groups(u.MappedGroups).Any(privilegedGroups.Contains);
+        var othersRemain = activeUsers.Any(IsEligible);
+        if (!othersRemain && targetActive)
+        {
+            var target = changedUserId == 0 ? null : await db.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == changedUserId, ct);
+            var groupsEligible = resolver.Groups(target?.MappedGroups).Any(privilegedGroups.Contains);
+            var ids = targetRoleIds?.ToArray() ?? target?.Roles.Select(x => x.AppRoleId).ToArray() ?? [];
+            var targetRoles = ids.Length == 0 ? [] : await db.AppRoles.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync(ct);
+            othersRemain = groupsEligible || targetRoles.Any(r => r.IsActive && (r.Key == BuiltInRoles.ManagerKey || r.Rights.HasFlag(Right.Administer)));
+        }
+        if (!othersRemain) throw new ValidationException("roles", "This change would remove the last active administrator. Assign Administration to another active user first.");
+    }
+
+    private static async Task EnsureAdministratorMappingRemainsAsync(HubDbContext db, long mappingId, string proposedGroup, Role? proposedRole, UserResolver resolver, CancellationToken ct)
+    {
+        if (resolver.IsForms) return; // Directory mappings cannot grant Forms access.
+        var managerGroups = await db.GroupMappings.AsNoTracking().Where(m => m.Role == Role.Manager && m.Id != mappingId)
+            .Select(m => m.GroupName).ToListAsync(ct);
+        if (proposedRole == Role.Manager) managerGroups.Add(proposedGroup);
+        var privilegedGroups = managerGroups.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ThenInclude(r => r.AppRole).ToListAsync(ct);
+        var remains = users.Any(u => u.Roles.Any(r => r.AppRole is { IsActive: true } role && (role.IsLocked || role.Rights.HasFlag(Right.Administer)))
+            || resolver.Groups(u.MappedGroups).Any(privilegedGroups.Contains));
+        if (!remains) throw new ValidationException("role", "This mapping change would remove the last active administrator. Keep or assign an active administrator first.");
+    }
 
     /// <summary>
     /// Nobody grants their own access (Section 3): an administrator cannot create or change a mapping for a directory group
@@ -496,25 +649,100 @@ public static class AdminEndpoints
             throw new ValidationException("groupName", "You belong to this group, so this mapping would change your own access. Ask another administrator.");
     }
 
-    private static async Task ApplyUserAsync(User u, UserInput i, HubDbContext db, UserContext me, bool isNew, CancellationToken ct)
+    private static async Task ApplyUserAsync(User u, UserInput i, HubDbContext db, UserContext me, UserResolver resolver, bool isNew, DateTimeOffset now, CancellationToken ct)
     {
+        if (!isNew) resolver.RequireGroups(u.MappedGroups);
         var check = new Check().Text("displayName", i.DisplayName, 150, "the display name", true).Text("email", i.Email, 254, "Email");
         if (isNew) check.Text("accountName", i.AccountName, 200, "the organization account (DOMAIN\\name)", true);
         if (Zones.Find(i.WorkingTimeZone) is null) check.Add("workingTimeZone", "Select a valid IANA time zone.");
-        // A31: one configurable role per user (by id, or by name / built-in key).
+        // Multi-role assignment uses union semantics; RoleId remains accepted for old clients.
         var names = (i.Roles ?? []).Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).ToList();
-        var wanted = i.RoleId is { } rid ? await db.AppRoles.Where(r => r.Id == rid).Select(r => r.Id).ToListAsync(ct)
-            : await db.AppRoles.Where(r => names.Contains(r.Name) || (r.Key != null && names.Contains(r.Key))).Select(r => r.Id).ToListAsync(ct);
-        if ((i.RoleId is not null && wanted.Count == 0) || (i.RoleId is null && wanted.Count < names.Count)) check.Add("roleId", "Select an existing role.");
-        if (wanted.Count > 1) check.Add("roleId", "Give each user one role.");
+        var requestedIds = i.RoleIds ?? (i.RoleId is { } single ? [single] : null);
+        var wanted = requestedIds is not null
+            ? await db.AppRoles.Where(r => requestedIds.Contains(r.Id)).Select(r => r.Id).Distinct().ToListAsync(ct)
+            : await db.AppRoles.Where(r => names.Contains(r.Name) || (r.Key != null && names.Contains(r.Key))).Select(r => r.Id).Distinct().ToListAsync(ct);
+        if (requestedIds is not null && wanted.Count != requestedIds.Distinct().Count() || requestedIds is null && names.Count > 0 && wanted.Count < names.Distinct(StringComparer.OrdinalIgnoreCase).Count())
+            check.Add("roleIds", "Select existing roles.");
+        var newlyAssigned = wanted.Except(u.Roles.Select(r => r.AppRoleId)).ToArray();
+        if (!me.IsSystem && newlyAssigned.Length > 0)
+        {
+            var newRoles = await db.AppRoles.Include(r => r.Permissions).Where(r => newlyAssigned.Contains(r.Id)).ToListAsync(ct);
+            foreach (var role in newRoles)
+            {
+                if (!role.IsActive) check.Add("roleIds", $"{role.Name} is inactive and cannot be assigned.");
+                if (role.Rights.HasFlag(Right.Administer) && !me.Rights.HasFlag(Right.Administer))
+                    check.Add("roleIds", $"You cannot assign {role.Name}; it carries authority beyond your own.");
+                foreach (var key in (role.IsLocked ? ResourcePermissions.All : role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action))).Where(k => !me.PermissionKeys.Contains(k, StringComparer.OrdinalIgnoreCase)))
+                    check.Add("roleIds", $"You cannot assign {role.Name}; it grants {key}, which you do not hold.");
+                foreach (var right in Enum.GetValues<Right>().Where(x => x != Right.None && ResourcePermissions.CrossCutting(x) == x && role.Rights.HasFlag(x) && !me.Rights.HasFlag(x)))
+                    check.Add("roleIds", $"You cannot assign {role.Name}; it grants {right}, which you do not hold.");
+            }
+
+            // A newly assigned role can supply a prerequisite for an otherwise ineffective permission
+            // already held in another role. Check the resulting union, including directory-mapped roles.
+            var mappedNames = resolver.Groups(u.MappedGroups);
+            var mapped = await db.GroupMappings.AsNoTracking().Where(m => mappedNames.Contains(m.GroupName) && m.Role != null)
+                .Select(m => m.Role).ToListAsync(ct);
+            var mappedKeys = mapped.Select(role => role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).ToArray();
+            var previousIds = u.Roles.Select(role => role.AppRoleId).ToArray();
+            var relevantIds = wanted.Concat(previousIds).Distinct().ToArray();
+            var relevantRoles = await db.AppRoles.AsNoTracking().Include(role => role.Permissions)
+                .Where(role => role.IsActive && (relevantIds.Contains(role.Id) || (role.Key != null && mappedKeys.Contains(role.Key))))
+                .ToListAsync(ct);
+            IEnumerable<string> Keys(IEnumerable<AppRole> roles) => roles.SelectMany(role => role.IsLocked
+                ? ResourcePermissions.All : role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)));
+            var before = relevantRoles.Where(role => previousIds.Contains(role.Id) || (role.Key != null && mappedKeys.Contains(role.Key)));
+            var after = relevantRoles.Where(role => wanted.Contains(role.Id) || (role.Key != null && mappedKeys.Contains(role.Key)));
+            var activeKeys = (await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var exceptions = isNew ? [] : await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == u.Id).ToListAsync(ct);
+            foreach (var key in PermissionOverrides.NewlyEffective(Keys(before), Keys(after), exceptions, now, activeKeys).Where(key => !me.HasPermission(key)))
+                check.Add("roleIds", $"This assignment would enable {key}, which you do not hold.");
+        }
         // Nobody grants their own access (Section 3).
         if (!isNew && u.Id == me.UserId)
         {
             var newRoles = wanted.Order().ToArray();
-            if (!newRoles.SequenceEqual(u.Roles.Select(r => r.AppRoleId).Order()) || ToGrants(i.Export, i.TechnicalDetail, i.Audit) != u.Grants || i.AllClients != u.AllClients || i.AllInternal != u.AllInternal || (i.Scopes ?? []).Length != u.Scopes.Count)
+            var sameScopes = (i.Scopes ?? []).Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)).ToHashSet()
+                .SetEquals(u.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)));
+            if (!newRoles.SequenceEqual(u.Roles.Select(r => r.AppRoleId).Order()) || ToGrants(i.Export, i.TechnicalDetail, i.Audit) != u.Grants || i.AllClients != u.AllClients || i.AllInternal != u.AllInternal || !sameScopes)
                 check.Add("roles", "You cannot change your own roles, scope or grants. Ask another administrator.");
         }
+        if (u.IsActive)
+        {
+            // Fail closed if the submitted roles would leave no directly assigned active administrator.
+            try { await EnsureAdministratorRemainsAsync(db, u.Id, true, wanted, resolver, now, ct); }
+            catch (ValidationException ex) { check.Add("roles", ex.Message); }
+            try { await EnsureConflictRecoveryAsync(db, u.Id, true, wanted, resolver, now, ct); }
+            catch (ValidationException ex) { check.Add("roles", ex.Message); }
+        }
         var scopes = await CheckScopesAsync(check, i.Scopes, db, ct);
+        var userGroups = resolver.Groups(u.MappedGroups);
+        var userMappings = await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).Where(m => userGroups.Contains(m.GroupName)).ToListAsync(ct);
+        var conflictMappedKeys = userMappings.Where(m => m.Role != null).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).ToArray();
+        var conflictRoles = await db.AppRoles.AsNoTracking().Where(r => r.IsActive && (wanted.Contains(r.Id) || (r.Key != null && conflictMappedKeys.Contains(r.Key)))).Select(r => r.Id).ToListAsync(ct);
+        if (RoleConflicts.Conflicts(conflictRoles, await RoleConflicts.LoadAsync(db, ct)))
+            check.Add("roleIds", "The selected and directory-mapped roles conflict under the separation-of-duties policy.");
+        await CheckDelegatedScopeAsync(check, me, i.AllClients || userMappings.Any(m => m.AllClients), i.AllInternal || userMappings.Any(m => m.AllInternal),
+            scopes.Concat(userMappings.SelectMany(m => m.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)))), db, ct);
+        var scopeIncreased = i.AllClients && !u.AllClients || i.AllInternal && !u.AllInternal
+            || scopes.Except(u.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId))).Any();
+        if (!me.IsSystem && scopeIncreased)
+        {
+            // Scope changes multiply the permissions already held by the recipient. A delegate may
+            // not give someone else's higher operations access to records they could not perform them on.
+            var mappedKeys = userMappings.Where(m => m.Role != null).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).ToArray();
+            var held = await db.AppRoles.AsNoTracking().Include(r => r.Permissions)
+                .Where(r => r.IsActive && (wanted.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key)))).ToListAsync(ct);
+            var entries = isNew ? [] : await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == u.Id).ToListAsync(ct);
+            var roleKeys = held.SelectMany(r => r.IsLocked ? ResourcePermissions.All : r.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)));
+            var active = (await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            foreach (var key in PermissionOverrides.PotentiallyEffective(roleKeys, entries, now, active).Where(key => !me.HasPermission(key)))
+                check.Add("scopes", $"This scope change could enable {key} on additional records, which you do not hold.");
+            var targetRights = held.Aggregate(Right.None, (rights, role) => rights | ResourcePermissions.CrossCutting(role.IsLocked ? BuiltInRoles.All : role.Rights));
+            if ((targetRights & ~ResourcePermissions.CrossCutting(me.Rights)) != Right.None)
+                check.Add("scopes", "This scope change would extend rights beyond your own.");
+        }
         check.ThrowIfAny();
         if (isNew)
         {
@@ -522,6 +750,7 @@ public static class AdminEndpoints
             if (await db.Users.AnyAsync(x => x.AccountName == account, ct)) throw new ConflictException("This account already exists.");
             u.AccountName = account;
         }
+        resolver.MarkFormsSnapshot(u);
         u.DisplayName = i.DisplayName!.Trim();
         u.Email = Text.Clean(i.Email);
         u.WorkingTimeZone = i.WorkingTimeZone!.Trim();
@@ -535,13 +764,61 @@ public static class AdminEndpoints
             u.Scopes.Add(new UserScope { Kind = s.Item1, ClientId = s.Item2, ProjectId = s.Item3, TeamId = s.Item4 });
     }
 
-    private static async Task ApplyMappingAsync(GroupMapping m, MappingInput i, HubDbContext db, CancellationToken ct)
+    private static async Task EnsureConflictRecoveryAsync(HubDbContext db, long userId, bool active, IEnumerable<long> proposedRoles, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
+    {
+        if ((await RoleConflicts.LoadAsync(db, ct)).Length == 0) return;
+        var manager = await db.AppRoles.AsNoTracking().Where(r => r.Key == BuiltInRoles.ManagerKey && r.IsActive).Select(r => r.Id).SingleOrDefaultAsync(ct);
+        var others = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Id != userId).Include(u => u.Roles).ToListAsync(ct);
+        var candidates = others.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())).ToList();
+        if (active) candidates.Add((userId, proposedRoles.ToArray()));
+        if (!await RoleConflicts.HasRecoveryAsync(db, manager, candidates, resolver.IsForms, now, ct))
+            throw new ValidationException("roles", "Keep an active recovery administrator with Manager as their only directly assigned role and effective permission to maintain roles while role conflicts are configured.");
+    }
+
+    private static async Task ApplyMappingAsync(GroupMapping m, MappingInput i, HubDbContext db, UserContext me, UserResolver resolver, CancellationToken ct)
     {
         var check = new Check().Text("groupName", i.GroupName, 256, "the group name", true);
+        if (i.GroupName?.Contains('\0') == true) check.Add("groupName", "The group name cannot contain a NUL character.");
+        // Membership of an unmapped directory group is not available here. A new or renamed
+        // role-bearing mapping could enable permissions retained by any of its unknown members.
+        // Require full active capability authority until membership can be evaluated authoritatively.
+        if (!me.IsSystem && i.Role is not null && (m.Id == 0 || m.Role != i.Role
+            || !string.Equals(m.GroupName, i.GroupName?.Trim(), StringComparison.OrdinalIgnoreCase)))
+        {
+            var activeKeys = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
+            if (activeKeys.Any(key => !me.HasPermission(key)))
+                check.Add("role", "Changing a group role or its group requires all active permissions because group membership cannot be checked in advance.");
+        }
+        if (i.Role is { } mappedRole && !me.IsSystem)
+        {
+            var key = mappedRole == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey;
+            var target = await db.AppRoles.AsNoTracking().Include(r => r.Permissions).FirstOrDefaultAsync(r => r.Key == key, ct);
+            if (target is not null)
+            {
+                if (!target.IsActive || target.Rights.HasFlag(Right.Administer) && !me.Rights.HasFlag(Right.Administer))
+                    check.Add("role", "This group mapping would grant authority beyond your own.");
+                foreach (var permission in (target.IsLocked ? ResourcePermissions.All : target.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action))).Where(p => !me.PermissionKeys.Contains(p, StringComparer.OrdinalIgnoreCase)))
+                    check.Add("role", $"This group mapping would grant {permission}, which you do not hold.");
+                foreach (var right in Enum.GetValues<Right>().Where(x => x != Right.None && ResourcePermissions.CrossCutting(x) == x && target.Rights.HasFlag(x) && !me.Rights.HasFlag(x)))
+                    check.Add("role", $"This group mapping would grant {right}, which you do not hold.");
+            }
+        }
         var scopes = await CheckScopesAsync(check, i.Scopes, db, ct);
+        await CheckDelegatedScopeAsync(check, me, i.AllClients, i.AllInternal, scopes, db, ct);
+        var scopeIncreased = i.AllClients && !m.AllClients || i.AllInternal && !m.AllInternal
+            || scopes.Except(m.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId))).Any();
+        if (!me.IsSystem && scopeIncreased)
+        {
+            // Directory members and their other assignments are not authoritative here.
+            var active = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
+            var rights = ResourcePermissions.CrossCutting(BuiltInRoles.All);
+            if (active.Any(key => !me.HasPermission(key)) || (ResourcePermissions.CrossCutting(me.Rights) & rights) != rights)
+                check.Add("scopes", "Expanding a group scope requires all active permissions and cross-cutting rights because group members may hold other roles.");
+        }
         check.ThrowIfAny();
         var name = i.GroupName!.Trim();
         if (await db.GroupMappings.AnyAsync(x => x.GroupName == name && x.Id != m.Id, ct)) throw new ConflictException("This group already has a mapping.");
+        await EnsureAdministratorMappingRemainsAsync(db, m.Id, name, i.Role, resolver, ct);
         m.GroupName = name;
         m.Role = i.Role;
         m.AllClients = i.AllClients;

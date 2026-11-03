@@ -62,14 +62,20 @@ public static class CaseEndpoints
             var now = DateTimeOffset.UtcNow;
             var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
             var envIds = c.Environments.Select(e => e.EnvironmentId).ToList();
-            var envs = await db.Environments.AsNoTracking().Where(e => envIds.Contains(e.Id)).Select(e => new { e.Id, e.Name, e.Type, regionCode = e.Region == null ? null : e.Region.Code }).ToListAsync(ct);
+            var canAffected = HierarchyEndpointPermissions.CanViewTab(access.Me, "Cases", "affected");
+            var canJira = HierarchyEndpointPermissions.CanViewTab(access.Me, "Cases", "jira");
+            var canEnvironments = canAffected && access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View);
+            var canServers = canAffected && access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View);
+            var canCommitments = HierarchyEndpointPermissions.CanViewTab(access.Me, "Cases", "commitments") && access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.View);
+            var canHistory = access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.HistoryView) && access.Me.Has(Grant.Audit);
+            var envs = await db.Environments.AsNoTracking().Where(e => canEnvironments && envIds.Contains(e.Id)).Select(e => new { e.Id, e.Name, e.Type, regionCode = e.Region == null ? null : e.Region.Code }).ToListAsync(ct);
             var assetIds = c.Assets.Select(a => a.AssetId).ToList();
-            var assets = await db.Assets.AsNoTracking().Where(a => assetIds.Contains(a.Id)).Select(a => new { a.Id, a.Name, a.Type }).ToListAsync(ct);
+            var assets = await db.Assets.AsNoTracking().Where(a => canServers && assetIds.Contains(a.Id)).Select(a => new { a.Id, a.Name, a.Type }).ToListAsync(ct);
             var compIds = c.Components.Select(x => x.ComponentId).ToList();
-            var comps = await db.Components.AsNoTracking().Where(x => compIds.Contains(x.Id)).Select(x => new { x.Id, x.Name, x.Role, installation = x.Installation!.InstanceName }).ToListAsync(ct);
-            var events = await db.CaseEvents.AsNoTracking().Where(e => e.CaseId == id).OrderByDescending(e => e.At).ThenByDescending(e => e.Id)
+            var comps = await db.Components.AsNoTracking().Where(x => canServers && compIds.Contains(x.Id)).Select(x => new { x.Id, x.Name, x.Role, installation = x.Installation!.InstanceName }).ToListAsync(ct);
+            var events = await db.CaseEvents.AsNoTracking().Where(e => canHistory && access.Me.HasPermission("tab.Cases.timeline:View") && e.CaseId == id).OrderByDescending(e => e.At).ThenByDescending(e => e.Id)
                 .Select(e => new { e.Id, e.Type, e.FromValue, e.ToValue, e.Note, e.At, by = e.By == null ? null : e.By.DisplayName }).ToListAsync(ct);
-            var commitments = await db.Commitments.AsNoTracking().Where(m => m.CaseId == id)
+            var commitments = await db.Commitments.AsNoTracking().Where(m => canCommitments && m.CaseId == id)
                 .Select(m => new { m.Id, m.Ref, m.Description, m.Status, m.CurrentDueAt, m.TimeZone }).ToListAsync(ct);
             var users = await access.UserRefsAsync([c.CoordinatorUserId, c.EvidenceExceptionApprovedById, c.EvidenceExceptionFollowUpOwnerId], ct);
             var waitingSeconds = c.WaitingIntervals.Sum(w => ((w.EndedAt ?? now) - w.StartedAt).TotalSeconds);
@@ -84,11 +90,11 @@ public static class CaseEndpoints
                 coordinator = c.CoordinatorUserId is { } co ? users.GetValueOrDefault(co) : null,
                 c.ResponsibleParty, c.ResponsibleOrganization,
                 waiting = c.WaitingReason == null ? null : new { reason = c.WaitingReason, since = c.WaitingSince },
-                waitingIntervals = c.WaitingIntervals.OrderByDescending(w => w.StartedAt).Select(w => new { w.Reason, w.Note, w.StartedAt, w.EndedAt }),
+                waitingIntervals = c.WaitingIntervals.Where(_ => canHistory).OrderByDescending(w => w.StartedAt).Select(w => new { w.Reason, w.Note, w.StartedAt, w.EndedAt }),
                 waitingHours = Math.Round(waitingSeconds / 3600, 1),
                 ageDays = Math.Round((now - c.CreatedAt).TotalDays, 1),
                 currentCycleAgeDays = c.ReopenCount > 0 ? Math.Round((now - c.CycleStartedAt).TotalDays, 1) : (double?)null,
-                c.ReopenCount, c.UnknownEnvironmentReason, c.ValidationRequest, c.Outcome, c.ValidationEvidence,
+                c.ReopenCount, unknownEnvironmentReason = canAffected ? c.UnknownEnvironmentReason : null, c.ValidationRequest, c.Outcome, c.ValidationEvidence,
                 evidenceException = c.EvidenceExceptionReason == null ? null : new
                 {
                     reason = c.EvidenceExceptionReason, approvedBy = c.EvidenceExceptionApprovedById is { } ab ? users.GetValueOrDefault(ab) : null,
@@ -99,8 +105,8 @@ public static class CaseEndpoints
                 reviewOverdue = CaseQuery.IsOpen(c.Status) && c.NextReviewAt < now,
                 overdue = CaseQuery.IsOpen(c.Status) && c.DueAt < now,
                 environments = envs, assets, components = comps,
-                jiraReferences = c.JiraReferences.Where(j => j.RemovedAt == null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, kind = j.JiraInstance.Kind, j.JiraInstanceId, j.IssueKey, j.Url, j.ReuseReason }),
-                removedJiraReferences = c.JiraReferences.Where(j => j.RemovedAt != null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, j.IssueKey, j.RemovedAt }),
+                jiraReferences = c.JiraReferences.Where(j => canJira && j.RemovedAt == null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, kind = j.JiraInstance.Kind, j.JiraInstanceId, j.IssueKey, j.Url, j.ReuseReason }),
+                removedJiraReferences = c.JiraReferences.Where(j => canJira && canHistory && j.RemovedAt != null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, j.IssueKey, j.RemovedAt }),
                 commitments, events,
                 contract = c.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == c.ContractId).Select(k => new { k.Id, k.Ref, k.Title, k.Status }).FirstOrDefaultAsync(ct),
                 sla = new
@@ -128,6 +134,9 @@ public static class CaseEndpoints
         {
             access.RequireBusiness();
             var c = await db.Cases.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+            // A penalty preview applies monthly caps across all cases on the contract.
+            // A project-only view would omit other cases and produce an incorrect amount.
+            if (c.ClientId is { } clientId && !access.Me.HasClient(clientId)) throw new NotFoundException("The case");
             if (c.ContractId is null || string.IsNullOrWhiteSpace(c.PenaltyTermsSnapshotJson)) return Results.Ok(new { contractRef = c.SlaContractRef, items = Array.Empty<object>() });
             var terms = JsonSerializer.Deserialize<PenaltyClauseSnapshot[]>(c.PenaltyTermsSnapshotJson) ?? [];
             var now = clock.GetUtcNow();
@@ -201,6 +210,7 @@ public static class CaseEndpoints
             db.Cases.Add(c);
             await db.SaveChangesAsync(ct);
             AddEvent(db, c, CaseEventType.Created, null, CaseStatus.New.ToString(), null, access.Me, now);
+            if (input.JiraReferences?.Length > 0) access.Me.RequirePermission(PermissionHierarchy.Tab("Cases", "jira", "Create"));
             foreach (var j in input.JiraReferences ?? []) await AddJiraAsync(db, access, c, j, now, ct);
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
@@ -242,6 +252,7 @@ public static class CaseEndpoints
             if (input.NextReviewAt is not null) c.NextReviewAt = input.NextReviewAt.Value;
             if (input.Affected is not null)
             {
+                access.Me.RequirePermission(PermissionHierarchy.Tab("Cases", "affected", "View"));
                 await ApplyAffectedAsync(c, input.Affected, db, ct);
                 var afterScope = AffectedSummary(c);
                 if (afterScope != beforeScope) AddEvent(db, c, CaseEventType.ScopeChanged, beforeScope, afterScope, input.ChangeNote, access.Me, now);
@@ -585,6 +596,7 @@ public static class CaseEndpoints
         api.MapGet("/jira/reuse", async (long instanceId, string key, long? exceptCaseId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             access.RequireBusiness();
+            access.Me.RequirePermission(PermissionHierarchy.Tab("Cases", "jira", "View"));
             return Results.Ok(await ReuseAsync(db, access, instanceId, JiraKeys.Normalize(key), exceptCaseId, ct));
         }).WithTags("Cases");
 
@@ -748,14 +760,20 @@ public static class CaseEndpoints
         c.UnknownEnvironmentReason = Text.Clean(a.UnknownEnvironmentReason);
     }
 
-    /// <summary>Reuse of the same instance + key on other cases. Inaccessible cases are counted, never named (WRK-03).</summary>
+    /// <summary>Only visible matching cases are disclosed; inaccessible Jira references are not counted.</summary>
     public static async Task<object> ReuseAsync(HubDbContext db, HubAccess access, long instanceId, string key, long? exceptCaseId, CancellationToken ct)
     {
-        var all = await db.JiraReferences.AsNoTracking().Where(j => j.JiraInstanceId == instanceId && j.IssueKey == key && j.RemovedAt == null && j.CaseId != exceptCaseId)
-            .Select(j => j.CaseId).Distinct().ToListAsync(ct);
-        var visible = await db.Cases.AsNoTracking().Where(c => all.Contains(c.Id)).Select(c => new { c.Id, c.Ref, c.Title }).ToListAsync(ct);
-        return new { reused = all.Count > 0, visible, hiddenCount = all.Count - visible.Count };
+        var visible = await VisibleJiraMatches(db, instanceId, key, exceptCaseId)
+            .Select(c => new { c.Id, c.Ref, c.Title }).ToListAsync(ct);
+        return new { reused = visible.Count > 0, visible };
     }
+
+    public static IQueryable<Case> VisibleJiraMatches(HubDbContext db, long instanceId, string key, long? exceptCaseId) =>
+        db.Cases.AsNoTracking().Where(c => c.Id != exceptCaseId && db.JiraReferences.Any(j => j.CaseId == c.Id
+            && j.JiraInstanceId == instanceId && j.IssueKey == key && j.RemovedAt == null));
+
+    public static void CheckJiraLinkReason(Check check, string? reason) =>
+        check.Text("reuseReason", reason, 1000, "the reason for linking this issue", required: true);
 
     private static async Task<JiraReference> AddJiraAsync(HubDbContext db, HubAccess access, Case c, JiraInput input, DateTimeOffset now, CancellationToken ct)
     {
@@ -769,14 +787,12 @@ public static class CaseEndpoints
             if (string.IsNullOrWhiteSpace(instance.ApprovedHost)) check.Add("url", "No approved host is configured for this Jira instance. Ask an administrator.");
             else if (JiraKeys.UrlProblem(input.Url ?? "", key, instance.ApprovedHost) is { } p) check.Add("url", p);
         }
-        check.Text("reuseReason", input.ReuseReason, 1000, "Reuse reason");
+        // A reason is required for every link. Making it conditional on hidden reuse would reveal hidden cases.
+        CheckJiraLinkReason(check, input.ReuseReason);
         check.ThrowIfAny();
         if (await db.JiraReferences.AnyAsync(j => j.CaseId == c.Id && j.JiraInstanceId == instance!.Id && j.IssueKey == key && j.RemovedAt == null, ct))
             throw new ConflictException("This Jira reference is already linked to the case.");
-        var reuse = await db.JiraReferences.AnyAsync(j => j.JiraInstanceId == instance!.Id && j.IssueKey == key && j.RemovedAt == null && j.CaseId != c.Id, ct);
-        if (reuse && string.IsNullOrWhiteSpace(input.ReuseReason))
-            throw new ValidationException("This Jira reference is already used by another case.", new Dictionary<string, string[]> { ["reuseReason"] = ["The same instance and key is linked to another case. Enter why it is reused."] });
-        var j = new JiraReference { CaseId = c.Id, ClientId = c.ClientId, JiraInstanceId = instance!.Id, IssueKey = key, Url = input.Url!.Trim(), ReuseReason = reuse ? input.ReuseReason!.Trim() : null };
+        var j = new JiraReference { CaseId = c.Id, ClientId = c.ClientId, JiraInstanceId = instance!.Id, IssueKey = key, Url = input.Url!.Trim(), ReuseReason = input.ReuseReason!.Trim() };
         db.JiraReferences.Add(j);
         AddEvent(db, c, CaseEventType.JiraAdded, null, $"{instance.Name} {key}", j.ReuseReason, access.Me, now);
         return j;

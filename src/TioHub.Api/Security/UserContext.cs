@@ -7,16 +7,20 @@ public sealed record ResolvedUser(
     long UserId, string AccountName, string DisplayName, string TimeZone, bool IsActive,
     string[] Roles, Right Rights, string[] Permissions, Grant Grants,
     bool AllClients, long[] ClientIds, long[] ProjectIds, long[] ProjectClientIds, long[] ProjectEnvironmentIds,
-    bool AllInternal, long[] TeamIds);
+    bool AllInternal, long[] TeamIds, DateTimeOffset? NextPermissionExpiry = null, string? AccessRestriction = null)
+{
+    /// <summary>Admission uses only effective permissions, after expiration, denies, and prerequisites.</summary>
+    public bool HasAccess => IsActive && (Roles.Length > 0 || Permissions.Length > 0);
+}
 
 /// <summary>
-/// The signed-in user for the current request. Two roles (owner decision, 19 Oct 2026): Operation Engineer and TIO Manager. Both see
-/// all clients and internal teams, technical detail and change history, and can export; the TIO Manager also administers users and settings.
-/// The scope and grant machinery is kept (query filters, Has/SeesScope) but every active user with a role holds full scope and all grants.
+/// The signed-in user for the current request. Active role permissions are combined by union; module View is
+/// a prerequisite for that module's mutations. Scope and grant checks remain independent mandatory boundaries.
 /// </summary>
 public sealed class UserContext
 {
     public bool IsResolved { get; private set; }
+    public bool IsActive { get; private set; }
     public long? UserId { get; private set; }
     public string AccountName { get; private set; } = "system";
     public string DisplayName { get; private set; } = "System";
@@ -28,7 +32,7 @@ public sealed class UserContext
     private HashSet<string> PermissionSet { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public Grant Grants { get; private set; }
 
-    /// <summary>Highest business role, or null for users with only the administrator role.</summary>
+    /// <summary>Legacy business-access indicator, derived from effective permissions for roleless users.</summary>
     public Role? BusinessRole { get; private set; }
     public bool IsAdministrator { get; private set; }
 
@@ -47,19 +51,21 @@ public sealed class UserContext
     {
         IsResolved = true;
         IsSystem = false;
+        IsActive = u.IsActive;
         UserId = u.UserId;
         AccountName = u.AccountName;
         DisplayName = u.DisplayName;
         TimeZone = u.TimeZone;
         Roles = u.Roles;
         Rights = u.Rights;
-        PermissionKeys = u.Permissions;
-        PermissionSet = u.Permissions.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        PermissionKeys = u.IsActive ? PermissionHierarchy.Resolve(u.Permissions) : [];
+        PermissionSet = PermissionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
         Grants = u.Grants;
-        // Role identity determines business visibility; resource permissions determine each action.
-        BusinessRole = u.Roles.Length == 0 ? null : PermissionSet.Contains(ResourcePermissions.KeyOf(ResourcePermissions.Structure, ResourcePermissions.Coordinate)) ? Role.Manager : Role.Engineer;
-        IsAdministrator = u.Rights.HasFlag(Right.Administer);
-        // No business role, no business access, whatever scopes were granted.
+        // Preserve the legacy role indicator for existing role holders, while allowing explicitly
+        // granted capabilities to work without a role. Scope remains a separate mandatory boundary.
+        BusinessRole = !u.IsActive || (u.Roles.Length == 0 && PermissionSet.Count == 0) ? null : PermissionSet.Contains(ResourcePermissions.KeyOf(ResourcePermissions.Structure, ResourcePermissions.Coordinate)) ? Role.Manager : Role.Engineer;
+        IsAdministrator = u.IsActive && u.Rights.HasFlag(Right.Administer);
+        // No effective access, no business data, whatever scopes were stored.
         var hasBusiness = BusinessRole is not null;
         AllClients = hasBusiness && u.AllClients;
         ClientIds = hasBusiness ? [.. u.ClientIds] : [];
@@ -75,7 +81,7 @@ public sealed class UserContext
     /// <summary>Compatibility helper. New handlers should check the specific resource and action.</summary>
     public bool Can(Role minimum) => minimum == Role.Manager
         ? HasPermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate)
-        : HasBusinessRole && PermissionSet.Any(p => p.EndsWith($":{ResourcePermissions.Maintain}", StringComparison.OrdinalIgnoreCase));
+        : HasAny(ResourcePermissions.Maintain);
 
     public bool HasRight(Right right) => IsSystem || (right switch
     {
@@ -87,14 +93,26 @@ public sealed class UserContext
     });
 
     public bool HasPermission(string resource, string action) => IsSystem ||
-        (HasBusinessRole && PermissionSet.Contains(ResourcePermissions.KeyOf(resource, action)));
+        (HasBusinessRole && ResourcePermissions.TryParse(ResourcePermissions.KeyOf(resource, action), out _, out _)
+            && PermissionSet.Contains(ResourcePermissions.KeyOf(resource, action))
+            && CapabilityPermissions.Dependencies(ResourcePermissions.KeyOf(resource, action)).All(PermissionSet.Contains));
+
+    public bool HasPermission(string key) => ResourcePermissions.TryParse(key, out var resource, out var action) && HasPermission(resource, action);
+
+    public void RequirePermission(string key)
+    {
+        if (!HasPermission(key)) throw new ForbiddenException($"This needs {PermissionHierarchy.Find(key)?.DisplayName ?? key} ({key}) and its parent access grants.");
+    }
 
     public bool HasAny(string action) => IsSystem || (HasBusinessRole && PermissionSet.Any(p =>
-        p.EndsWith($":{action}", StringComparison.OrdinalIgnoreCase)));
+        ResourcePermissions.TryParse(p, out var resource, out var candidate) && candidate == action && HasPermission(resource, candidate)));
 
     public void RequirePermission(string resource, string action)
     {
         if (HasPermission(resource, action)) return;
+        var missingDependency = CapabilityPermissions.Dependencies(ResourcePermissions.KeyOf(resource, action)).FirstOrDefault(key => !HasPermission(key));
+        if (missingDependency is not null)
+            throw new ForbiddenException($"This also needs {missingDependency} before an action in this module can run.");
         var row = ResourcePermissions.Catalog.FirstOrDefault(x => x.Resource == resource && x.Action == action);
         throw new ForbiddenException($"This needs {row?.ActionLabel ?? action} for {row?.ResourceLabel ?? resource}. Ask the TIO Manager.");
     }
@@ -112,7 +130,7 @@ public sealed class UserContext
     public bool Has(Grant grant) => IsSystem || (HasBusinessRole && (Grants & grant) == grant);
 
     /// <summary>The grant itself, without a business role: lets an administrator holding Audit read access-administration history only.</summary>
-    public bool HoldsGrant(Grant grant) => IsSystem || (Grants & grant) == grant;
+    public bool HoldsGrant(Grant grant) => IsSystem || IsActive && (Grants & grant) == grant;
 
     /// <summary>Technical detail (IAM-04) needs the grant and a business role.</summary>
     public bool SeesTechnical => Has(Grant.TechnicalDetail);

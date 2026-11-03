@@ -146,6 +146,7 @@ public static class ClientLogos
         g.MapGet("/{id:long}/logo", async (long id, string? v, HttpContext ctx, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             access.RequireBusiness();
+            if (!CapabilityPermissions.CanOpenClientPage(access.Me) || !access.Me.SeesClient(id)) throw new NotFoundException("The logo");
             var c = await db.Clients.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.LogoPath, x.LogoContentType, x.LogoVersion }).FirstOrDefaultAsync(ct);
             if (c?.LogoPath is null || !store.Exists(c.LogoPath)) throw new NotFoundException("The logo");
             var h = ctx.Response.Headers;

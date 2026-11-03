@@ -38,6 +38,9 @@ public class ExportJob
     public string? FileName { get; set; }
     /// <summary>Path relative to the export storage folder; null once the file has expired.</summary>
     public string? StoredPath { get; set; }
+    /// <summary>Authorization snapshot taken before reading export data; null for legacy files.</summary>
+    [System.ComponentModel.DataAnnotations.MaxLength(64)]
+    public string? AccessFingerprint { get; set; }
     public DateTimeOffset? ExpiresAt { get; set; }
     public string? Error { get; set; }
     /// <summary>"Reporting Center", "List export" (the download buttons on list pages) or "Schedule".</summary>

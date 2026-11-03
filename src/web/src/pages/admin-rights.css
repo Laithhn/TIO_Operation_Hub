@@ -1,0 +1,51 @@
+.rights-workspace { display: grid; gap: 14px; }
+.rights-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.rights-controls > label { display: grid; gap: 5px; min-width: 145px; flex: 1; font-weight: 600; }
+.rights-controls > label > input, .rights-controls > label > select { width: 100%; font-weight: 400; }
+.rights-controls > label:first-child { flex: 2; }
+.rights-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 12px; }
+.rights-summary p { margin: 0; }
+.rights-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; }
+.rights-toolbar > div { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.rights-filters { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border, #d4d8df); }
+.rights-tree { border: 1px solid var(--border, #d4d8df); }
+.rights-module + .rights-module { border-top: 1px solid var(--border, #d4d8df); }
+.rights-module-head, .rights-resource-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; }
+.rights-module-head { background: var(--surface-alt, #f0f3f7); }
+.rights-module-head > button, .rights-resource-head > button { text-align: left; font-weight: 600; }
+.rights-resource-head { padding-left: 26px; border-top: 1px solid var(--border, #e0e3e8); }
+.rights-group-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: .88rem; }
+.rights-leaf { display: grid; grid-template-columns: minmax(0, 1fr) 125px; gap: 14px; padding: 10px 18px 10px 40px; border-top: 1px solid var(--border, #e4e7ec); }
+.rights-leaf.compare { grid-template-columns: minmax(0, 1fr) 125px 125px; }
+.rights-leaf.changed { background: #f1f7ff; box-shadow: inset 3px 0 #336fb1; }
+.rights-leaf > div:first-child { min-width: 0; }
+.rights-leaf label { display: flex; gap: 10px; align-items: center; min-height: 32px; cursor: pointer; }
+.rights-leaf label input { flex: 0 0 auto; }
+.rights-permission-title { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; font-weight: 600; }
+.rights-permission-key { display: block; overflow-wrap: anywhere; margin-top: 3px; font-size: .82rem; }
+.rights-leaf .hint { margin: 4px 0 0 26px; }
+.rights-decision { align-self: center; font-size: .85rem; }
+.rights-decision strong, .rights-decision small { display: block; }
+.rights-savebar { position: sticky; bottom: 0; background: var(--surface, #fff); padding: 12px 14px; border: 1px solid var(--border, #d4d8df); z-index: 2; }
+.rights-savebar p { margin: 0; }
+.rights-preview { max-height: 340px; overflow-y: auto; padding-left: 22px; }
+.rights-preview li { padding-bottom: 8px; overflow-wrap: anywhere; }
+.rights-preview code { font-size: .8rem; }
+.rights-compare-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: .88rem; }
+@media (max-width: 700px) {
+  .rights-leaf, .rights-leaf.compare { padding-left: 16px; grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .rights-decision { margin-left: 26px; }
+  .rights-decision strong, .rights-decision small { display: inline; margin-right: 7px; }
+  .rights-resource-head { padding-left: 18px; }
+}
+
+/* Four grant levels share the existing editor surface and staged-change treatment. */
+.rights-node { border-top: 1px solid var(--line, #d9dfe7); }
+.rights-children { margin-left: 1.35rem; border-left: 2px solid var(--line, #d9dfe7); }
+.rights-node-title, .rights-node-bulk { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.rights-node-bulk { padding-top: .4rem; font-size: .85rem; }
+.rights-level-module > .rights-leaf { background: var(--strip, #f5f5f6); }
+.rights-level-submodule > .rights-leaf .rights-permission-title { font-weight: 600; }
+.rights-node .rights-leaf.changed { box-shadow: inset 3px 0 var(--info, #2563c9); }
+.rights-node code { overflow-wrap: anywhere; }
+@media (max-width: 700px) { .rights-children { margin-left: .55rem; } }

@@ -233,6 +233,8 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
     /// <summary>Checks the whole definition and resolves date presets/days in the given zone. Throws a ValidationException with field paths.</summary>
     public async Task<ValidCases> ValidateAsync(CasesDefinition? raw, TimeZoneInfo zone, CaseClock k, CancellationToken ct)
     {
+        ExportService.RequireExport(access.Me);
+        CapabilityPermissions.RequireReport(access.Me, "cases-builder");
         var d = raw ?? new CasesDefinition();
         var check = new Check();
         var warnings = new List<string>();
@@ -469,6 +471,8 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
     /// <summary>The filtered (not yet sorted) query: scope from the global filter, then every validated filter and condition.</summary>
     public async Task<IQueryable<Case>> QueryAsync(ValidCases v, CaseClock k, DateTimeOffset? createdUpTo, CancellationToken ct)
     {
+        ExportService.RequireExport(access.Me);
+        CapabilityPermissions.RequireReport(access.Me, "cases-builder");
         var f = v.Definition.Filters ?? new CasesFiltersInput();
         IQueryable<Case> q = db.Cases.AsNoTracking();
         if (createdUpTo is { } cut) q = q.Where(c => c.CreatedAt <= cut);

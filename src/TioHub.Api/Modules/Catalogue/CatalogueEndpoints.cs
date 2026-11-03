@@ -28,9 +28,9 @@ public static class CatalogueEndpoints
         throw new ConflictException("This item is in use and cannot be deleted.", new() { [field] = [message] });
 
     /// <summary>Installations on this product version now, plus version-change history entries naming it.</summary>
-    private static async Task<int> VersionUsesAsync(HubDbContext db, long versionId, CancellationToken ct) =>
-        await db.Installations.IgnoreQueryFilters().CountAsync(i => i.ProductVersionId == versionId, ct)
-        + await db.InstallationVersionChanges.IgnoreQueryFilters().CountAsync(c => c.FromVersionId == versionId || c.ToVersionId == versionId, ct);
+    private static async Task<bool> VersionInUseAsync(HubDbContext db, long versionId, CancellationToken ct) =>
+        await db.Installations.IgnoreQueryFilters().AnyAsync(i => i.ProductVersionId == versionId, ct)
+        || await db.InstallationVersionChanges.IgnoreQueryFilters().AnyAsync(c => c.FromVersionId == versionId || c.ToVersionId == versionId, ct);
 
     public static void MapCatalogueEndpoints(this RouteGroupBuilder api)
     {
@@ -125,12 +125,12 @@ public static class CatalogueEndpoints
             var p = await db.Products.Include(x => x.Modules).Include(x => x.Versions).Include(x => x.Features).Include(x => x.Developers)
                 .Include(x => x.Microservices).ThenInclude(m => m.Versions).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The product");
             if (ctx.Request.Headers.IfMatch.Count > 0) db.ExpectVersion(ctx, p); // table deletes send no version
-            var installs = await db.Installations.IgnoreQueryFilters().CountAsync(i => i.ProductId == id, ct);
-            var projects = await db.ProjectProducts.CountAsync(pp => pp.ProductId == id, ct);
-            if (installs + projects > 0)
+            var installed = await db.Installations.IgnoreQueryFilters().AnyAsync(i => i.ProductId == id, ct);
+            var usedByProject = await db.ProjectProducts.AnyAsync(pp => pp.ProductId == id, ct);
+            if (installed || usedByProject)
                 throw new ConflictException("This product is in use and cannot be deleted.", new()
                 {
-                    ["product"] = [$"{p.Code} is used by {installs} installation(s) and {projects} project(s), including archived ones. Remove it from them, or mark the product Retired instead."]
+                    ["product"] = [$"{p.Code} is referenced by existing records. Remove its dependencies, or mark the product Retired instead."]
                 });
             db.AuditReason = $"Product {p.Code} deleted";
             db.MicroserviceVersions.RemoveRange(p.Microservices.SelectMany(m => m.Versions));
@@ -200,8 +200,8 @@ public static class CatalogueEndpoints
         {
             me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
             var m = await db.ProductModules.FirstOrDefaultAsync(x => x.Id == moduleId, ct) ?? throw new NotFoundException("The module");
-            var installs = await db.Installations.IgnoreQueryFilters().CountAsync(i => i.ModuleId == moduleId, ct);
-            if (installs > 0) InUse("module", $"Module {m.Code} is used by {installs} installation(s), including archived ones. Change them to another module, or untick Active to retire it.");
+            var installed = await db.Installations.IgnoreQueryFilters().AnyAsync(i => i.ModuleId == moduleId, ct);
+            if (installed) InUse("module", $"Module {m.Code} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
             await db.ProductFeatures.Where(f => f.ModuleId == moduleId).ExecuteUpdateAsync(u => u.SetProperty(f => f.ModuleId, (long?)null), ct);
             await db.ProductMicroservices.Where(x => x.ModuleId == moduleId).ExecuteUpdateAsync(u => u.SetProperty(x => x.ModuleId, (long?)null), ct);
             db.AuditReason = $"Module {m.Code} deleted";
@@ -260,8 +260,8 @@ public static class CatalogueEndpoints
         {
             me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
             var m = await db.ProductMicroservices.Include(x => x.Versions).FirstOrDefaultAsync(x => x.Id == microserviceId, ct) ?? throw new NotFoundException("The microservice");
-            var deployed = await db.Components.IgnoreQueryFilters().CountAsync(c => c.MicroserviceId == microserviceId, ct);
-            if (deployed > 0) InUse("microservice", $"{m.Name} is deployed in {deployed} installation(s). Remove it from their servers first, or untick Active to retire it.");
+            var deployed = await db.Components.IgnoreQueryFilters().AnyAsync(c => c.MicroserviceId == microserviceId, ct);
+            if (deployed) InUse("microservice", $"{m.Name} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
             db.AuditReason = $"Microservice {m.Name} deleted";
             db.MicroserviceVersions.RemoveRange(m.Versions);
             db.ProductMicroservices.Remove(m);
@@ -330,8 +330,8 @@ public static class CatalogueEndpoints
         {
             me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
             var mv = await db.MicroserviceVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
-            var servers = await db.ComponentHosts.IgnoreQueryFilters().CountAsync(h => h.MicroserviceVersionId == versionId, ct);
-            if (servers > 0) InUse("version", $"Version {mv.Version} is recorded as deployed on {servers} server(s). Change their deployed version first, or untick Active to retire it.");
+            var deployed = await db.ComponentHosts.IgnoreQueryFilters().AnyAsync(h => h.MicroserviceVersionId == versionId, ct);
+            if (deployed) InUse("version", $"Version {mv.Version} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
             db.AuditReason = $"Microservice version {mv.Version} deleted";
             db.MicroserviceVersions.Remove(mv);
             await db.SaveChangesAsync(ct);
@@ -360,7 +360,7 @@ public static class CatalogueEndpoints
             {
                 // A56: a version label can be corrected while no installation uses it or records it in its history.
                 new Check().Text("version", input.Version, 50, "the version", true).ThrowIfAny();
-                if (await VersionUsesAsync(db, pv.Id, ct) > 0)
+                if (await VersionInUseAsync(db, pv.Id, ct))
                     throw new ValidationException("version", "Installations use this version or record it in their history, so its label cannot change. Retire it and add the correct one.");
                 if (await db.ProductVersions.AnyAsync(x => x.ProductId == pv.ProductId && x.Version == renamed && x.Id != pv.Id, ct))
                     throw new ValidationException("version", "This version already exists for the product.");
@@ -377,8 +377,8 @@ public static class CatalogueEndpoints
         {
             me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
             var pv = await db.ProductVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
-            var uses = await VersionUsesAsync(db, versionId, ct);
-            if (uses > 0) InUse("version", $"Version {pv.Version} is used by installations or recorded in their version history ({uses} reference(s), including archived ones). Untick Active to retire it instead.");
+            if (await VersionInUseAsync(db, versionId, ct))
+                InUse("version", $"Version {pv.Version} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
             db.AuditReason = $"Product version {pv.Version} deleted";
             // A57: its features stay on the product, without an "introduced in" version.
             await db.ProductFeatures.Where(f => f.IntroducedInVersionId == versionId).ExecuteUpdateAsync(u => u.SetProperty(f => f.IntroducedInVersionId, (long?)null), ct);

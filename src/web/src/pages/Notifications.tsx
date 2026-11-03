@@ -1,3 +1,4 @@
+import { usePermission } from '../hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -22,25 +23,29 @@ function When({ iso }: { iso: string }) {
 }
 
 function useNoticeActions() {
+  const canMaintain = usePermission('Notifications', 'Maintain');
+  const canDelete = usePermission('Notifications', 'Delete');
   const qc = useQueryClient();
   const toast = useToast();
   const refresh = () => qc.invalidateQueries({ queryKey: ['notifications'] });
   // Read state changes are idempotent on the server; failures are reported and the lists reloaded from the server.
   const run = async (f: () => Promise<unknown>, failure: string) => { try { await f(); } catch { toast(failure, true); } finally { await refresh(); } };
   return {
-    read: (n: Notice) => n.readAt ? Promise.resolve() : run(() => post(`/notifications/${n.id}/read`), 'The notification could not be marked as read.'),
+    canMaintain, canDelete,
+    read: (n: Notice) => !canMaintain || n.readAt ? Promise.resolve() : run(() => post(`/notifications/${n.id}/read`), 'The notification could not be marked as read.'),
     readMany: (list: Notice[]) => {
-      const ids = list.filter(n => !n.readAt).map(n => n.id);
+      const ids = (canMaintain ? list : []).filter(n => !n.readAt).map(n => n.id);
       return ids.length ? run(() => post('/notifications/read', { ids }), 'The notifications could not be marked as read.') : Promise.resolve();
     },
-    readAll: () => run(() => post('/notifications/read-all'), 'The notifications could not be marked as read.'),
-    remove: (n: Notice) => run(() => del(`/notifications/${n.id}`), 'The notification could not be deleted.')
+    readAll: () => !canMaintain ? Promise.resolve() : run(() => post('/notifications/read-all'), 'The notifications could not be marked as read.'),
+    remove: (n: Notice) => !canDelete ? Promise.resolve() : run(() => del(`/notifications/${n.id}`), 'The notification could not be deleted.')
   };
 }
 
 /** One notice: icon, title, description, source and time, status chip (text, not colour alone), unread dot and its action. */
 function NoticeCard({ n, onOpen, extra, nested }: { n: Notice; onOpen: (n: Notice) => void; extra?: React.ReactNode; nested?: boolean }) {
   const sev = n.resolvedAt ? 'resolved' : severityOf(n);
+  const canMaintain = usePermission('Notifications', 'Maintain');
   const e = entityOf(n);
   const unread = !n.readAt && !n.resolvedAt;
   return (
@@ -55,7 +60,7 @@ function NoticeCard({ n, onOpen, extra, nested }: { n: Notice; onOpen: (n: Notic
       <div className="ntf-side">
         <span className="ntf-chip">{chipOf(n)}</span>
         {n.link ? <button type="button" className="ntf-act" onClick={() => onOpen(n)} aria-label={`${e.action}: ${n.title}`}>{e.action}</button>
-          : unread && <button type="button" className="ntf-act" onClick={() => onOpen(n)}>Mark as read</button>}
+          : canMaintain && unread && <button type="button" className="ntf-act" onClick={() => onOpen(n)}>Mark as read</button>}
         {extra}
       </div>
     </div>
@@ -67,6 +72,7 @@ function GroupCard({ g, onOpen, onReadAll, extra }: { g: Extract<Entry, { type: 
   const [open, setOpen] = useState(false);
   const first = g.notices[0];
   const e = entityOf(first);
+  const canMaintain = usePermission('Notifications', 'Maintain');
   const unread = g.notices.filter(n => !n.readAt).length;
   const sev = severityOf(first);
   const id = `ntf-g-${first.id}`;
@@ -88,7 +94,7 @@ function GroupCard({ g, onOpen, onReadAll, extra }: { g: Extract<Entry, { type: 
       {open && (
         <div className="ntf-members" id={id}>
           {g.notices.map(n => <NoticeCard key={n.id} n={n} onOpen={onOpen} nested extra={extra?.(n)} />)}
-          {unread > 0 && <button type="button" className="linkbtn ntf-group-read" onClick={() => onReadAll(g.notices)}>Mark these {g.notices.length} as read</button>}
+          {canMaintain && unread > 0 && <button type="button" className="linkbtn ntf-group-read" onClick={() => onReadAll(g.notices)}>Mark these {g.notices.length} as read</button>}
         </div>
       )}
     </div>
@@ -161,7 +167,7 @@ export function NotificationPopover({ onClose }: { onClose: () => void }) {
       <div className="ntf-head">
         <h2>Notifications</h2>
         {n > 0 && <span className="ntf-count" aria-label={`${n} unread`}>{n > 99 ? '99+' : n}</span>}
-        <button type="button" className="linkbtn ntf-readall" onClick={readAll} disabled={n === 0 || busy}>{busy ? 'Marking…' : 'Mark all as read'}</button>
+        <button type="button" className="linkbtn ntf-readall" onClick={readAll} disabled={!act.canMaintain || n === 0 || busy}>{busy ? 'Marking…' : 'Mark all as read'}</button>
       </div>
       <div className="ntf-tabs" role="tablist" aria-label="Show" onKeyDown={tabKeys}>
         {tabs.map(t => <button key={t.key} type="button" role="tab" aria-selected={filter === t.key} tabIndex={filter === t.key ? 0 : -1} onClick={() => setFilter(t.key)}>{t.label}</button>)}
@@ -259,13 +265,13 @@ export function NotificationsPage() {
   const d = q.data;
   const filtered = !!(f.q || f.severity || f.status);
   const tools = (x: Notice) => <span className="ntf-row-actions">
-    {!x.readAt && !x.resolvedAt && <button type="button" className="linkbtn" onClick={() => act.read(x)} aria-label={`Mark as read: ${x.title}`}>Mark as read</button>}
-    <button type="button" className="linkbtn danger-link" onClick={() => act.remove(x)} aria-label={`Delete notification ${x.title}`}>Delete</button>
+    {act.canMaintain && !x.readAt && !x.resolvedAt && <button type="button" className="linkbtn" onClick={() => act.read(x)} aria-label={`Mark as read: ${x.title}`}>Mark as read</button>}
+    <button disabled={!act.canDelete} type="button" className="linkbtn danger-link" onClick={() => act.remove(x)} aria-label={`Delete notification ${x.title}`}>Delete</button>
   </span>;
   return (
     <>
       <PageHead title="Notifications" sub="Work assigned to you, due and overdue cases, commitments and escalations, contracts that need a renewal decision and contract payments coming due. Alerts are resolved automatically when their cause is cleared; read and resolved notices are cleared after 90 days."
-        actions={d && d.unreadCount > 0 && <button className="btn" onClick={act.readAll}>Mark all as read ({d.unreadCount})</button>} />
+        actions={act.canMaintain && d && d.unreadCount > 0 && <button className="btn" onClick={act.readAll}>Mark all as read ({d.unreadCount})</button>} />
       <Tabs value={f.show} onChange={v => set({ show: v, page: '1' })} tabs={[{ key: 'all', label: 'All' }, { key: 'unread', label: `Unread${d ? ` (${d.unreadCount})` : ''}` },
         { key: 'critical', label: `Critical${d?.criticalCount !== undefined ? ` (${d.criticalCount})` : ''}` },
         { key: 'payments', label: `Payments${d?.unreadPayments ? ` (${d.unreadPayments} unread)` : ''}` }]} />

@@ -5,7 +5,7 @@ using TioHub.Api.Modules.Access;
 
 namespace TioHub.Api.Security;
 
-/// <summary>A right a role can hold (A31). Viewing clients and records needs no right: every role can view.</summary>
+/// <summary>A legacy cross-cutting right. Module reads and actions require explicit resource permissions.</summary>
 public sealed record RightInfo(Right Key, string Label, string Description);
 
 /// <summary>
@@ -25,7 +25,7 @@ public static class BuiltInRoles
         new(Right.Manage, "Manage clients & structure", "Create clients, sub-clients, regions and projects; assign project managers and owners."),
         new(Right.Archive, "Archive & restore", "Archive records and restore archived ones."),
         new(Right.Delete, "Delete records", "Permanently delete records that nothing else uses: configuration values, products, environments, servers, contracts, teams and more."),
-        new(Right.Export, "Export CSV", "Download lists as CSV files."),
+        new(Right.Export, "Export files", "Enable exporting; each source resource must also grant its Export permission."),
         new(Right.TechnicalDetail, "Technical detail", "See and edit network zones and firewall rules."),
         new(Right.Audit, "Change history", "Read who changed what and when."),
         new(Right.Administer, "Administration", "Users, roles, rights, configuration lists and settings.")

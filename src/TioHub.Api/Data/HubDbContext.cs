@@ -50,6 +50,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AppRole> AppRoles => Set<AppRole>();
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
+    public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
+    public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
+    public DbSet<AuthorizationVersion> AuthorizationVersions => Set<AuthorizationVersion>();
     public DbSet<UserScope> UserScopes => Set<UserScope>();
     public DbSet<GroupMapping> GroupMappings => Set<GroupMapping>();
     public DbSet<GroupMappingScope> GroupMappingScopes => Set<GroupMappingScope>();
@@ -166,11 +169,19 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Name).HasMaxLength(60);
             e.HasIndex(x => x.Name).IsUnique();
             e.Property(x => x.Description).HasMaxLength(300);
+            e.Property(x => x.IsActive).HasDefaultValue(true);
             e.Property(x => x.Key).HasMaxLength(20);
             e.HasIndex(x => x.Key).IsUnique().HasFilter("[Key] IS NOT NULL");
             e.Property(x => x.Rights).HasConversion<int>();
             e.HasMany(x => x.Permissions).WithOne(x => x.AppRole).HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Cascade);
             e.Ignore(x => x.IsLocked);
+        });
+        m.Entity<AuthorizationVersion>(e =>
+        {
+            e.ToTable("AuthorizationVersion", "iam", t => t.HasCheckConstraint("CK_AuthorizationVersion_Singleton", "[Id] = 1"));
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.HasData(new AuthorizationVersion { Id = 1, Version = 0 });
         });
         m.Entity<RolePermission>(e =>
         {
@@ -178,6 +189,35 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasKey(x => new { x.AppRoleId, x.Resource, x.Action });
             e.Property(x => x.Resource).HasMaxLength(40);
             e.Property(x => x.Action).HasMaxLength(40);
+        });
+        m.Entity<UserPermissionOverride>(e =>
+        {
+            e.ToTable("UserPermissionOverride", "iam", t => t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')"));
+            e.HasKey(x => new { x.UserId, x.PermissionKey });
+            e.Property(x => x.PermissionKey).HasMaxLength(120);
+            e.Property(x => x.Effect).HasMaxLength(5);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.PermissionKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.ExpiresAt);
+        });
+        m.Entity<PermissionDefinition>(e =>
+        {
+            e.ToTable("PermissionDefinition", "iam", t => t.HasCheckConstraint("CK_PermissionDefinition_NodeType", "[NodeType] IN ('Module','Submodule','Tab','Action')"));
+            e.Property(x => x.NodeType).HasMaxLength(20);
+            e.HasAlternateKey(x => x.Key);
+            e.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.ParentKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.NoAction);
+            e.HasIndex(x => new { x.ParentKey, x.DisplayOrder });
+            e.Property(x => x.Key).HasMaxLength(120);
+            e.Property(x => x.DisplayName).HasMaxLength(100);
+            e.Property(x => x.Description).HasMaxLength(500);
+            e.Property(x => x.Module).HasMaxLength(60);
+            e.Property(x => x.ResourceType).HasMaxLength(60);
+            e.Property(x => x.ParentKey).HasMaxLength(120);
+            e.Property(x => x.Action).HasMaxLength(40);
+            e.Property(x => x.RiskLevel).HasMaxLength(20);
+            e.HasIndex(x => x.Key).IsUnique();
+            e.HasIndex(x => new { x.Module, x.ResourceType, x.Action });
+            e.HasIndex(x => x.ParentKey);
         });
         // Forms sign-in only: one credential per user, never audited automatically and never projected by any endpoint.
         m.Entity<UserCredential>(e =>
@@ -252,7 +292,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.ClientId, x.Code }).IsUnique();
             e.Ignore(x => x.ScopeClientId);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
-            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || ProjectClientIds.Contains(x.ClientId));
+            // A project grant permits the client summary, not client-wide region details.
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
         });
         m.Entity<Project>(e =>
         {
@@ -592,8 +633,16 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasMany(x => x.Components).WithOne().HasForeignKey(x => x.CaseId);
             e.HasMany(x => x.JiraReferences).WithOne().HasForeignKey(x => x.CaseId);
             e.HasMany(x => x.WaitingIntervals).WithOne().HasForeignKey(x => x.CaseId);
+            // A case contains shared narrative, history and status. Seeing one affected
+            // environment does not authorize disclosing that shared content when any
+            // linked infrastructure or contract belongs to another project.
             e.HasQueryFilter(ScopeFilter, x => Sys
-                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || x.Environments.Any(ce => PEnv.Contains(ce.EnvironmentId))))
+                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value)
+                    || (x.Environments.Any() && x.Environments.All(ce => ce.ClientId == x.ClientId && PEnv.Contains(ce.EnvironmentId)
+                            && Environments.IgnoreQueryFilters().Any(e => e.Id == ce.EnvironmentId && e.ClientId == x.ClientId))
+                        && x.Assets.All(ca => ca.ClientId == x.ClientId && Assets.IgnoreQueryFilters().Any(a => a.Id == ca.AssetId && a.ClientId == x.ClientId && PEnv.Contains(a.EnvironmentId)))
+                        && x.Components.All(cc => cc.ClientId == x.ClientId && Components.IgnoreQueryFilters().Any(c => c.Id == cc.ComponentId && c.ClientId == x.ClientId && PEnv.Contains(c.EnvironmentId)))
+                        && (x.ContractId == null || Contracts.IgnoreQueryFilters().Any(k => k.Id == x.ContractId && k.ClientId == x.ClientId && ProjectIds.Contains(k.ProjectId))))))
                 || (x.ClientId == null && (AllInternal || (x.ResponsibleTeamId != null && TeamIds.Contains(x.ResponsibleTeamId.Value)))));
         });
         m.Entity<CaseEnvironment>(e => { e.ToTable("CaseEnvironment", "work"); e.HasKey(x => new { x.CaseId, x.EnvironmentId }); e.HasOne<ClientEnvironment>().WithMany().HasForeignKey(x => x.EnvironmentId); });
@@ -741,8 +790,12 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
             e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.CommitmentId);
+            // A project-linked commitment can contain narrative about a case spanning
+            // other projects. Project scope alone does not make that case visible.
             e.HasQueryFilter(ScopeFilter, x => Sys
-                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value))))
+                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value)
+                    || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value)
+                        && (x.CaseId == null || Cases.Any(c => c.Id == x.CaseId && c.ClientId == x.ClientId)))))
                 || (x.ClientId == null && (AllInternal || (x.ResponsibleTeamId != null && TeamIds.Contains(x.ResponsibleTeamId.Value)))));
         });
         m.Entity<CommitmentEvent>(e =>
@@ -779,7 +832,12 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<Contract>().WithMany().HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.EscalationId);
-            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value)));
+            // Escalation text and history can describe its linked case or contract.
+            // Both links must be visible when the caller has only project scope.
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId)
+                || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value)
+                    && (x.CaseId == null || Cases.Any(c => c.Id == x.CaseId && c.ClientId == x.ClientId))
+                    && (x.ContractId == null || Contracts.Any(c => c.Id == x.ContractId && c.ClientId == x.ClientId))));
         });
         m.Entity<EscalationEvent>(e =>
         {
@@ -829,8 +887,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ExceptionApprovedById);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ExceptionFollowUpOwnerId);
             e.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.HandoverId);
-            e.HasQueryFilter(ScopeFilter, x => Sys || x.OutgoingOwnerId == Me || x.ReceivingOwnerId == Me
-                || (CoordinatesTeams && ((x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value))) || (x.ClientId == null && AnyInternal))));
+            // A handover can contain records from multiple clients. Ownership alone must not bypass
+            // data scope, and a null ClientId can mean a mixed handover rather than an internal one.
+            e.HasQueryFilter(ScopeFilter, x => Sys ||
+                ((x.OutgoingOwnerId == Me || x.ReceivingOwnerId == Me || CoordinatesTeams)
+                 && (x.ClientId == null || All || ClientIds.Contains(x.ClientId.Value))
+                 && x.Items.Any()
+                 && x.Items.All(i => i.ClientId != null ? (All || ClientIds.Contains(i.ClientId.Value)) : AllInternal)));
         });
         m.Entity<HandoverItem>(e =>
         {
@@ -941,10 +1004,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.Rule, x.RecordType, x.RecordId }).IsUnique().HasFilter("[Status] = 'Open'");
             e.HasIndex(x => new { x.Status, x.ClientId });
             e.HasOne(x => x.Coordinator).WithMany().HasForeignKey(x => x.CoordinatorUserId);
-            e.HasQueryFilter(ScopeFilter, x => Sys
-                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || (x.EnvironmentId != null && PEnv.Contains(x.EnvironmentId.Value))))
-                || (x.ClientId == null && x.TeamId == null && Biz)
-                || (x.ClientId == null && x.TeamId != null && (AllInternal || TeamIds.Contains(x.TeamId.Value))));
+            // A finding can outlive a change in its source's scope until the next scan.
+            // Never expose a case finding unless the current case is also visible.
+            e.HasQueryFilter(ScopeFilter, x => Sys ||
+                ((x.RecordType != RecordTypes.Case || Cases.Any(c => c.Id == x.RecordId))
+                 && ((x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || (x.EnvironmentId != null && PEnv.Contains(x.EnvironmentId.Value))))
+                     || (x.ClientId == null && x.TeamId == null && Biz)
+                     || (x.ClientId == null && x.TeamId != null && (AllInternal || TeamIds.Contains(x.TeamId.Value))))));
         });
         m.Entity<DocumentReference>(e =>
         {
@@ -1024,6 +1090,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.TimeZone).HasMaxLength(64);
             e.Property(x => x.FileName).HasMaxLength(200);
             e.Property(x => x.StoredPath).HasMaxLength(300);
+            e.Property(x => x.AccessFingerprint).HasMaxLength(64);
             e.Property(x => x.Error).HasMaxLength(1000);
             e.Property(x => x.Source).HasMaxLength(40);
             e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
@@ -1156,7 +1223,11 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static readonly HashSet<Type> NotAudited =
         [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
-    private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
+    private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(RolePermission), typeof(UserPermissionOverride), typeof(PermissionDefinition), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
+    // Scope snapshots also contain the client and environment IDs derived from assigned projects.
+    // Changes to either relationship must invalidate cached snapshots across application instances.
+    private static readonly HashSet<Type> ScopeDependencies = [typeof(Project), typeof(ClientEnvironment)];
+    public static bool AffectsAuthorizationSnapshot(Type type) => AccessTypes.Contains(type) || ScopeDependencies.Contains(type);
     private static readonly HashSet<string> QuietProperties =
         [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope",
          // A71: the logo's storage path and type are technical; its history shows as a LogoVersion change with the reason "Client logo …".
@@ -1247,6 +1318,10 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         var ownTx = Database.CurrentTransaction is null && Database.IsRelational() ? await Database.BeginTransactionAsync(ct) : null;
         try
         {
+            // Serialize authorization commits before writing their rows. Every instance observes the same generation;
+            // a grant/revocation and its version are committed or rolled back together with the audit entries.
+            if (pending.Any(p => AffectsAuthorizationSnapshot(p.Entry.Entity.GetType())))
+                await AdvanceAuthorizationVersionAsync(ct);
             var n = await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
             var correlation = Activity.Current?.TraceId.ToString();
             foreach (var p in pending)
@@ -1280,6 +1355,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         {
             if (ownTx is not null) await ownTx.DisposeAsync();
         }
+    }
+
+    /// <summary>Invalidate access snapshots in the current transaction, including for raw SQL graph changes.</summary>
+    public async Task AdvanceAuthorizationVersionAsync(CancellationToken ct)
+    {
+        var changed = await Database.ExecuteSqlRawAsync("UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1", ct);
+        if (changed != 1) throw new InvalidOperationException("Authorization state is not initialized. Apply the deployment schema script.");
     }
 
     /// <summary>Writes an explicit audit entry for actions that change no row (exports, sign-in refusals) in its own save.</summary>
@@ -1333,8 +1415,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static string ActionFor(PendingAudit p)
     {
-        if (p.State == EntityState.Added) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope ? "AccessGranted" : "Create";
-        if (p.State == EntityState.Deleted) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope ? "AccessRevoked" : "Remove";
+        if (p.State == EntityState.Added) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope or UserPermissionOverride ? "AccessGranted" : "Create";
+        if (p.State == EntityState.Deleted) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope or UserPermissionOverride ? "AccessRevoked" : "Remove";
         var c = p.Changes!;
         if (c.TryGetValue(nameof(IArchivable.ArchivedAt), out var a)) return a[1] is null ? "Restore" : "Archive";
         if (p.Entry.Entity is User && (c.ContainsKey(nameof(User.IsActive)) || c.ContainsKey(nameof(User.Grants)) || c.ContainsKey(nameof(User.AllClients)) || c.ContainsKey(nameof(User.AllInternal)))) return "AccessChange";

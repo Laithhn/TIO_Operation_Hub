@@ -1,3 +1,4 @@
+import { legacyTestGrants } from '../testPermissionFixtures';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -6,8 +7,9 @@ import { describe, expect, it } from 'vitest';
 import { ClientDisplay, ClientLogo, initialsOf, LOGO_PX, logoProblem, toneOf } from './ClientLogo';
 
 // A71: the client logo component, rendered to markup in Node (no browser needed).
-function render(el: ReactElement, logos?: { id: number; code: string; logoUrl: string }[]): string {
+function render(el: ReactElement, logos?: { id: number; code: string; logoUrl: string }[], permissions = ['ClientStructure:View', 'ClientStructure:DetailsView']): string {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  qc.setQueryData(['me'], { permissions: legacyTestGrants(permissions) });
   if (logos) qc.setQueryData(['client-logos'], logos);
   return renderToStaticMarkup(createElement(QueryClientProvider, { client: qc }, createElement(MemoryRouter, null, el)));
 }
@@ -27,6 +29,12 @@ describe('initials', () => {
 });
 
 describe('ClientLogo', () => {
+  it('masks cached logos and client links when read access is revoked', () => {
+    const html = render(createElement(ClientDisplay, { id: 9, code: 'FX' }), [{ id: 9, code: 'FX', logoUrl: '/api/v1/clients/9/logo?v=1' }], []);
+    expect(html).not.toContain('<img');
+    expect(html).not.toContain('href="/clients/9"');
+    expect(html).toContain('data-client-logo="initials"');
+  });
   it('shows the logo image with an accessible name and a fixed box', () => {
     const html = render(createElement(ClientLogo, { clientId: 7, name: 'Fictional Client', code: 'FC', logoUrl: '/api/v1/clients/7/logo?v=abc', size: 'md' }));
     expect(html).toContain('src="/api/v1/clients/7/logo?v=abc"');

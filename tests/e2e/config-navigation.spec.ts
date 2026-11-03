@@ -181,10 +181,10 @@ test.describe('Configuration navigation', () => {
     await expect(page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Administration', exact: true })).toHaveCount(0);
     await expect(page.locator('.cfg-nav')).toHaveCount(0);
     await expect(page.getByRole('textbox', { name: 'Search configuration' })).toHaveCount(0);
-    await expect(page.getByText('This page needs the Administration right.')).toBeVisible();
+    await expect(page.getByText('Your roles do not grant the permissions required for this page. Ask an administrator to review your access.')).toBeVisible();
     for (const url of ['/admin/config/category/system', '/admin/config/escalation-channels']) {
       await page.goto(url);
-      await expect(page.getByText('This page needs the Administration right.')).toBeVisible();
+      await expect(page.getByText('Your roles do not grant the permissions required for this page. Ask an administrator to review your access.')).toBeVisible();
       await expect(page.getByRole('main').getByRole('link', { name: 'Settings', exact: true })).toHaveCount(0);
     }
   });

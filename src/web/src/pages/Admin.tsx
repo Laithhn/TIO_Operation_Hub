@@ -1,14 +1,20 @@
 import { hasPermission, resourceForRecord } from '../permissions';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
-import { useForm, useMe, useRefresh, useUrlState } from '../hooks';
+import { useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, computerZone, TimeZoneSelect, timeZoneOptions } from '../ui/pickers';
 import { configCrumbs } from '../configRegistry';
-import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, DataTable, Dialog, ErrorBox, FormError, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Changes, RecordLink } from './common';
+import { dependencyWarnings, filterPermissionRows, permissionTree, selectionState, isGranted, missingDependencies, permissionChanges, permissionRows, sensitive, setPermissions,
+  type AccessSelection, type PermissionDefinition, type PermissionFilters, type PermissionRow, type PermissionTreeNode } from './adminRightsModel';
+import { RoleAccessMatrix } from './RoleAccessMatrix';
+import { userAccessSettings, type UserScope } from './userAccessSettings';
+import { UserScopeEditor, type UserScopeSelection } from './UserScopeEditor';
+import './admin-rights.css';
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
@@ -16,19 +22,22 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-type Scope = { kind: 'Client' | 'Project' | 'InternalTeam'; clientId?: number | null; projectId?: number | null; teamId?: number | null };
-type UserRow = { id: number; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; roles: string[]; roleId?: number; roleName?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
+type Scope = UserScope;
+type UserRow = { id: number; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; mappedGroupsAvailable: boolean; roles: string[]; roleIds?: number[]; roleId?: number; roleName?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
 type Targets = { clients: { id: number; code: string; name: string; archived: boolean }[]; projects: { id: number; code: string; name: string; clientId: number }[]; teams: { id: number; code: string; name: string }[] };
 
 // A31: configurable roles and rights (Administration → Roles, Rights).
 type RightDef = { key: string; label: string; description: string };
-type PermissionDef = { key: string; resource: string; resourceLabel: string; action: string; actionLabel: string; description: string };
-type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; rights: string[]; permissions: string[]; userCount: number; version: string };
+type PermissionDef = PermissionDefinition;
+type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; isActive: boolean; rights: string[]; permissions: string[]; userCount: number; version: string };
 const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ rights: RightDef[]; permissions: PermissionDef[]; roles: RoleDef[] }>('/admin/roles') });
 
 type SignInState = { userId: number; state: 'Active' | 'TemporaryPassword' | 'Locked'; lockedUntil?: string; changedAt: string };
 
 export function AdminUsers() {
+  const canCreate = usePermission('AdminUsers', 'Create');
+  const canMaintain = usePermission('AdminUsers', 'Maintain');
+  const canDelete = usePermission('AdminUsers', 'Delete');
   const me = useMe().data!;
   const forms = me.app.authMode.toLowerCase() === 'forms';
   const q = useQuery({ queryKey: ['admin-users'], queryFn: () => get<UserRow[]>('/admin/users') });
@@ -41,12 +50,12 @@ export function AdminUsers() {
   const [remove, setRemove] = useState<UserRow | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Users and access" sub="Each user holds one role; what a role may do is set on the Rights page."
-        actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>+ New User</button>} />
+      <PageHead title="Users and access" sub="Assign active roles and inspect effective access. Configure their grants on Rights and permissions."
+        actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New User</button>} />
       <DataTable<UserRow> rowKey={u => u.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Name', render: u => <button className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button> }, { key: 'a', header: 'Account', render: u => <span className="mono">{u.accountName}</span> },
-        { key: 'r', header: 'Role', render: u => u.roleName ? <span className="chip">{u.roleName}</span> : <Badge tone="warn">No role — cannot sign in</Badge> },
-        ...(forms ? [] : [{ key: 'm', header: 'Mapped groups', render: (u: UserRow) => u.mappedGroups }]),
+        { key: 'n', header: 'Name', render: u => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button> }, { key: 'a', header: 'Account', render: u => <span className="mono">{u.accountName}</span> },
+        { key: 'r', header: 'Role', render: u => u.roleName ? <span className="chip">{u.roleName}</span> : <Badge tone="warn">No role — check direct permissions</Badge> },
+        { key: 'm', header: 'Mapped groups', render: (u: UserRow) => u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : <span title="An authenticated sign-in must refresh the directory group snapshot.">Unavailable — refresh required</span> },
         { key: 'st', header: 'Status', render: u => u.isActive ? <Badge tone="good">Active</Badge> : <Badge tone="bad">Deactivated</Badge> },
         ...(forms ? [{ key: 'pw', header: 'Password', render: (u: UserRow) => {
           const st = stateOf(u.id);
@@ -55,9 +64,9 @@ export function AdminUsers() {
         } }] : []),
         { key: 'l', header: 'Last sign-in', render: u => fmtDateTime(u.lastSignInAt) },
         { key: 'x', header: '', render: u => <span className="nowrap">
-          {forms && u.id !== me.id && u.isActive && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>{stateOf(u.id) ? 'Reset password' : 'Set password'}</button>}
-          <button className="linkbtn" onClick={() => setDeact(u)}>{u.isActive ? 'Deactivate' : 'Reactivate'}</button>
-          {u.id !== me.id && <> · <button className="linkbtn danger-link" onClick={() => setRemove(u)}>Delete</button></>}
+          {canMaintain && forms && u.id !== me.id && u.isActive && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>Password options</button>}
+          <button disabled={!canMaintain} className="linkbtn" onClick={() => setDeact(u)}>{u.isActive ? 'Deactivate' : 'Reactivate'}</button>
+          {canDelete && u.id !== me.id && <> · <button className="linkbtn danger-link" onClick={() => setRemove(u)}>Delete</button></>}
         </span> }
       ]} />
       {edit && targets.data && <UserDialog user={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)}
@@ -97,6 +106,8 @@ function PasswordDialog({ user, onClose }: { user: { id: number; name: string; a
   const f = useForm({ temporaryPassword: '' });
   const toast = useToast();
   const refresh = useRefresh();
+  const availability = useQuery({ queryKey: ['password-reset-availability', user.id], queryFn: () => get<{ available: boolean; reason?: string | null }>(`/admin/users/${user.id}/password-reset-availability`), retry: false, refetchOnMount: 'always' });
+  const available = !availability.isFetching && !availability.error && availability.data?.available === true;
   const generate = () => {
     // Random blocks from a CSPRNG: readable to pass on, long enough for the policy.
     const a = new Uint32Array(4);
@@ -109,18 +120,20 @@ function PasswordDialog({ user, onClose }: { user: { id: number; name: string; a
   };
   return (
     <Dialog title={`${user.first ? 'Set' : 'Reset'} password for ${user.name}`} onClose={onClose}>
-      <p className="hint" style={{ marginTop: 0 }}>Account <span className="mono">{user.account}</span>. The person must choose their own password at the next sign-in. {user.first ? '' : 'Their current sessions end and a lock is cleared.'}</p>
-      <FormError error={f.error} />
-      <div className="form-grid">
-        <TextInput label="Temporary password" required wide value={f.values.temporaryPassword} onChange={v => f.set('temporaryPassword', v)} error={f.fieldError('temporaryPassword')}
-          hint="At least 12 characters, not containing the account name. It is shown only here; the hub stores only a hash." />
-      </div>
-      <div className="form-actions"><button className="btn" onClick={generate}>Generate</button><span style={{ flex: 1 }} /><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy || !f.values.temporaryPassword} onClick={save}>Save password</button></div>
+      {availability.isFetching ? <StateMessage kind="loading" /> : availability.error ? <StateMessage kind="error">Password options could not be checked. Close this dialog and try again.</StateMessage> : !availability.data?.available ? <StateMessage kind="restricted">{availability.data?.reason || 'Password reset is unavailable for this account.'}</StateMessage> : <>
+        <p className="hint" style={{ marginTop: 0 }}>Account <span className="mono">{user.account}</span>. The person must choose their own password at the next sign-in. {user.first ? '' : 'Their current sessions end and a lock is cleared.'}</p>
+        <FormError error={f.error} />
+        <div className="form-grid">
+          <TextInput label="Temporary password" required wide value={f.values.temporaryPassword} onChange={v => f.set('temporaryPassword', v)} error={f.fieldError('temporaryPassword')}
+            hint="At least 12 characters, not containing the account name. It is shown only here; the hub stores only a hash." />
+        </div>
+      </>}
+      <div className="form-actions">{available && <button className="btn" onClick={generate}>Generate</button>}<span style={{ flex: 1 }} /><button className="btn" onClick={onClose}>Cancel</button>{available && <button className="btn btn-primary" disabled={f.busy || !f.values.temporaryPassword} onClick={save}>Save password</button>}</div>
     </Dialog>
   );
 }
 
-function UserDialog({ user, onClose, onCreated }: { user: UserRow | null; targets?: Targets; onClose: () => void; onCreated?: (u: { id: number; name: string; account: string }) => void }) {
+function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | null; targets: Targets; onClose: () => void; onCreated?: (u: { id: number; name: string; account: string }) => void }) {
   const me = useMe().data!;
   const forms = me.app.authMode.toLowerCase() === 'forms';
   // A44: a new user starts in the configured default time zone, or this computer's when the default is still the shipped UTC.
@@ -129,17 +142,22 @@ function UserDialog({ user, onClose, onCreated }: { user: UserRow | null; target
   const defaultZone = configured && configured !== 'UTC' ? configured : computerZone();
   const f = useForm({
     accountName: user?.accountName ?? '', displayName: user?.displayName ?? '', email: user?.email ?? '', workingTimeZone: user?.workingTimeZone ?? defaultZone,
-    roleId: user?.roleId ? String(user.roleId) : ''
+    roleIds: user?.roleIds?.map(String) ?? (user?.roleId ? [String(user.roleId)] : [])
   });
+  const [scope, setScope] = useState<UserScopeSelection>(() => ({ allClients: user?.allClients ?? false, allInternal: user?.allInternal ?? false, scopes: user?.scopes ?? [] }));
   const roles = useRoles();
+  const access = useQuery({ queryKey: ['admin-user-access', user?.id], queryFn: () => get<{
+    effectivePermissions: { key: string; displayName: string; module: string; riskLevel: string; sources: string[] }[];
+    restrictedPermissions: { key: string; displayName: string; module: string }[];
+    scopes: { allClients: boolean; clientIds: number[]; projectIds: number[]; allInternal: boolean; teamIds: number[] } | null;
+  }>(`/admin/users/${user!.id}/access`), enabled: !!user });
   const toast = useToast();
   const refresh = useRefresh();
   const self = user?.id === me.id;
   const save = async () => {
     const v = f.values;
-    // Every role sees all clients and teams; what it may do comes from its rights.
-    const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleId: v.roleId ? Number(v.roleId) : null, roles: [],
-      allClients: true, allInternal: true, export: true, technicalDetail: true, audit: true, scopes: [] };
+    const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleIds: v.roleIds.map(Number), roles: [],
+      ...userAccessSettings(user), ...scope };
     const res = await f.submit(() => (user ? put(`/admin/users/${user.id}`, body, user.version).then(() => ({ id: user.id })) : post<{ id: number }>('/admin/users', body)));
     if (res) {
       toast('User saved; changes apply to active sessions at once.'); refresh(); onClose();
@@ -155,10 +173,31 @@ function UserDialog({ user, onClose, onCreated }: { user: UserRow | null; target
         <TextInput label="Display name" required value={f.values.displayName} onChange={v => f.set('displayName', v)} error={f.fieldError('displayName')} />
         <TextInput label="Email" value={f.values.email} onChange={v => f.set('email', v)} />
         <TimeZoneSelect label="Working time zone" required value={f.values.workingTimeZone} onChange={v => f.set('workingTimeZone', v)} error={f.fieldError('workingTimeZone')} />
-        <SelectInput label="Role" required value={f.values.roleId} onChange={v => f.set('roleId', v)} disabled={self} error={f.fieldError('roleId') ?? f.fieldError('roles')}
-          options={(roles.data?.roles ?? []).map(r => ({ value: String(r.id), label: r.name }))} empty="— Select —"
-          hint={roles.data?.roles.find(r => String(r.id) === f.values.roleId)?.description ?? 'What each role may do is set under Administration → Rights.'} />
+        <fieldset className="field wide" disabled={self}>
+          <legend>Roles</legend>
+          <div className="hint">Permissions from active roles combine. Data scope and operation permissions are checked separately.</div>
+          {(roles.data?.roles ?? []).map(r => <label key={r.id} className="check-row">
+            <input type="checkbox" checked={f.values.roleIds.includes(String(r.id))}
+              onChange={e => f.set('roleIds', e.target.checked ? [...f.values.roleIds, String(r.id)] : f.values.roleIds.filter(id => id !== String(r.id)))} />
+            <span>{r.name}{r.description ? <small className="hint"> — {r.description}</small> : null}</span>
+          </label>)}
+          {f.fieldError('roleIds') && <div className="field-error">{f.fieldError('roleIds')}</div>}
+        </fieldset>
       </div>
+      <UserScopeEditor value={scope} targets={targets} onChange={setScope} disabled={self} />
+      {f.fieldError('scopes') && <div className="field-error">{f.fieldError('scopes')}</div>}
+      {user && <section className="form-section">
+        <h3>Effective access</h3>
+        {access.isLoading ? <StateMessage kind="loading" /> : access.error ? <ErrorBox error={access.error} /> : <>
+          <p className="hint">This shows saved access; unsaved role changes are not included. Individual operations may have additional restrictions.</p>
+          <p>{access.data?.effectivePermissions.length ?? 0} effective permissions from roles and user exceptions.</p>
+          {access.data?.scopes && <p>Effective scope: {access.data.scopes.allClients ? 'all clients' : `${access.data.scopes.clientIds.length} clients and ${access.data.scopes.projectIds.length} projects`}; {access.data.scopes.allInternal ? 'all internal teams' : `${access.data.scopes.teamIds.length} internal teams`}.</p>}
+          <details><summary>Show effective permissions</summary><ul>{access.data?.effectivePermissions.map(p => <li key={p.key}>
+            <strong>{p.displayName}</strong> <code>{p.key}</code> <span className="hint">from {p.sources.join(', ') || 'no active role source'}</span>
+          </li>)}</ul></details>
+          <details><summary>Show restricted permissions</summary><ul>{access.data?.restrictedPermissions.map(p => <li key={p.key}>{p.displayName} <code>{p.key}</code></li>)}</ul></details>
+        </>}
+      </section>}
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy || self} onClick={save}>Save user</button></div>
     </Dialog>
   );
@@ -167,11 +206,12 @@ function UserDialog({ user, onClose, onCreated }: { user: UserRow | null; target
 type Mapping = { id: number; groupName: string; role?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
 
 export function AdminGroups() {
+  const canCreate = usePermission('AdminGroups', 'Create');
   const q = useQuery({ queryKey: ['mappings'], queryFn: () => get<Mapping[]>('/admin/group-mappings') });
   const [open, setOpen] = useState(false);
   return (
     <AdminOnly>
-      <PageHead title="Organization group mappings" sub="Members of a mapped group are admitted at sign-in with these roles, scopes and grants." actions={<button className="btn btn-primary" onClick={() => setOpen(true)}>+ New Mapping</button>} />
+      <PageHead title="Organization group mappings" sub="Members of a mapped group are admitted at sign-in with these roles, scopes and grants." actions={canCreate && <button className="btn btn-primary" onClick={() => setOpen(true)}>+ New Mapping</button>} />
       <DataTable<Mapping> rowKey={m => m.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'g', header: 'Group', render: m => <span className="mono">{m.groupName}</span> }, { key: 'r', header: 'Role', render: m => m.role ? label(m.role) : '—' },
         { key: 's', header: 'Scope', render: m => [m.allClients && 'All clients', m.allInternal && 'All internal', m.scopes.length && `${m.scopes.length} scope(s)`].filter(Boolean).join(', ') || 'None' },
@@ -190,28 +230,34 @@ type LookupRow = { id: number; listName: string; code: string; label: string; de
 /** A31: Administration → Roles &amp; rights. Rows are rights, columns are roles. */
 /** A40 (owner request, 20 Oct 2026): roles and rights on separate pages. Roles: who exists and who holds them. */
 export function AdminRoles() {
+  const canCreate = usePermission('AdminRoles', 'Create');
+  const canMaintain = usePermission('AdminRoles', 'Maintain');
+  const canDelete = usePermission('AdminRoles', 'Delete');
   const q = useRoles();
   const [edit, setEdit] = useState<RoleDef | 'new' | null>(null);
+  const [clone, setClone] = useState<RoleDef | null>(null);
   const [remove, setRemove] = useState<RoleDef | null>(null);
   const toast = useToast();
   const refresh = useRefresh();
   const d = q.data;
   return (
     <AdminOnly>
-      <PageHead title="Roles" sub="Each user holds one role. Add roles for the way your team works; what each role may do is set on the Rights page."
-        actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
+      <PageHead title="Roles" sub="Users may hold multiple roles. Their grants combine; what each role may do is set on the Rights page."
+        actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button disabled={!canCreate} className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
+      {d && <RoleAccessMatrix roles={d.roles} rights={d.rights} definitions={d.permissions} editable={canMaintain} />}
       <DataTable<RoleDef> caption="Roles" rowKey={r => r.id} rows={d?.roles} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>}</> },
+        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>} {!r.isActive && <Badge tone="warn">Inactive</Badge>}</> },
         { key: 'd', header: 'Description', maxWidth: '18rem', render: r => r.description ?? <span className="muted">—</span> },
         { key: 'u', header: 'Users', className: 'num', render: r => r.userCount },
         // GUI-11: a count with the full list on request, so a long list of rights never widens the table past its actions.
-        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length + r.permissions.length === 0 ? <span className="muted">View only</span>
+        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length + r.permissions.length === 0 ? <span className="muted">No permissions</span>
           : <RightsSummary role={r.name} items={[...r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k), ...r.permissions.map(k => {
             const p = d?.permissions.find(x => x.key === k); return p ? `${p.resourceLabel}: ${p.actionLabel}` : k;
           })]} /> },
-        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button>{!r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)} aria-label={`Delete role ${r.name}`}>Delete</button></>}</> }
+        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button>{canDelete && !r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)} aria-label={`Delete role ${r.name}`}>Delete</button></>}</> }
       ]} />
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
+      {clone && <RoleCloneDialog role={clone} onClose={() => setClone(null)} />}
       {remove && <Dialog title={`Delete role ${remove.name}`} onClose={() => setRemove(null)}>
         <p>{remove.userCount > 0 ? `${remove.userCount} user(s) hold this role. Give them another role first.` : 'Nobody holds this role. Delete it?'}</p>
         <div className="form-actions"><button className="btn" onClick={() => setRemove(null)}>Cancel</button>
@@ -221,6 +267,27 @@ export function AdminRoles() {
       </Dialog>}
     </AdminOnly>
   );
+}
+
+function RoleCloneDialog({ role, onClose }: { role: RoleDef; onClose: () => void }) {
+  const f = useForm({ name: `${role.name} copy`, description: role.description ?? '' });
+  const toast = useToast();
+  const refresh = useRefresh();
+  const nav = useNavigate();
+  const save = async () => {
+    const result = await f.submit(v => post<{ id: number }>(`/admin/roles/${role.id}/clone`, {
+      name: v.name, description: v.description, rights: [], permissions: []
+    }));
+    if (result) { toast('Role cloned. Review its rights before assigning it to users.'); refresh(); onClose(); nav('/admin/rights'); }
+  };
+  return <Dialog title={`Clone ${role.name}`} onClose={onClose}>
+    <FormError error={f.error} fields={['name', 'description', 'permissions', 'rights']} />
+    <div className="form-grid">
+      <TextInput label="New role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} />
+      <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} />
+    </div>
+    <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Clone role</button></div>
+  </Dialog>;
 }
 
 /** The rights of a role as a count that opens the full list (keyboard: the summary is a button). Filter and export read the full list. */
@@ -233,69 +300,185 @@ function RightsSummary({ role, items }: { role: string; items: string[] }) {
   );
 }
 
-/** A40: rights per role as a matrix; a tick saves at once. */
+/** Registry editor. Groups organize independent leaves; edits are staged until reviewed and saved. */
 export function AdminRights() {
   const q = useRoles();
+  const [searchParams] = useSearchParams();
+  const [selected, setSelected] = useState(searchParams.get('role') ?? '');
+  const [dirty, setDirty] = useState(false);
+  const d = q.data;
+  const role = d?.roles.find(r => String(r.id) === selected) ?? d?.roles.find(r => !r.isLocked) ?? d?.roles[0];
+  const selectRole = (id: string) => {
+    if (dirty && !window.confirm('Discard the unsaved permission changes before selecting another role?')) return;
+    setDirty(false); setSelected(id);
+  };
+  return <AdminOnly>
+    <PageHead title="Rights and permissions" sub="Configure independent page, resource and action permissions. Review changes before saving."
+      actions={<Link className="btn" to="/admin/roles">Manage roles</Link>} />
+    {q.error && <ErrorBox error={q.error} />}
+    {!d ? !q.error && <StateMessage kind="loading" /> : !role ? <StateMessage kind="none">Create a role before assigning permissions.</StateMessage>
+      : <RolePermissionsEditor key={role.id} role={role} roles={d.roles} definitions={d.permissions} rights={d.rights}
+        initialSearch={searchParams.get('permission') ?? ''}
+        onRoleChange={selectRole} onDirty={setDirty} reload={async () => (await q.refetch()).data?.roles.find(r => r.id === role.id)} />}
+  </AdminOnly>;
+}
+
+function RolePermissionsEditor({ role, roles, definitions, rights, initialSearch, onRoleChange, onDirty, reload }: {
+  role: RoleDef; roles: RoleDef[]; definitions: PermissionDef[]; rights: RightDef[];
+  initialSearch: string; onRoleChange: (id: string) => void; onDirty: (dirty: boolean) => void; reload: () => Promise<RoleDef | undefined>;
+}) {
   const toast = useToast();
   const refresh = useRefresh();
-  const [busy, setBusy] = useState<string | null>(null);
-  // The tick shows at once; it is undone if the save fails.
-  const [pending, setPending] = useState<Record<string, boolean>>({});
-  const d = q.data;
-  const matrixRows = d ? [
-    { key: 'view-records', label: 'View clients & records', description: 'Every role', resourcePermission: false, always: true },
-    ...d.rights.map(x => ({ ...x, resourcePermission: false, always: false })),
-    ...d.permissions.map(x => ({ key: x.key, label: `${x.resourceLabel}: ${x.actionLabel}`, description: x.description, resourcePermission: true, always: false }))
-  ] : [];
-  const toggle = async (r: RoleDef, key: string, on: boolean, resourcePermission = false) => {
-    setBusy(`${r.id}-${key}`);
-    setPending(p => ({ ...p, [`${r.id}-${key}`]: on }));
-    try {
-      await put(`/admin/roles/${r.id}`, {
-        name: r.name, description: r.description ?? null,
-        rights: resourcePermission ? r.rights : on ? [...r.rights, key] : r.rights.filter(k => k !== key),
-        permissions: resourcePermission ? on ? [...r.permissions, key] : r.permissions.filter(k => k !== key) : r.permissions
-      }, r.version);
-      await refresh();
-      const permission = d?.permissions.find(x => x.key === key);
-      const label0 = resourcePermission && permission ? `${permission.resourceLabel}: ${permission.actionLabel}` : d?.rights.find(x => x.key === key)?.label ?? key;
-      toast(`${r.name}: ${label0} ${on ? 'granted' : 'removed'}.`);
-    } catch (e) { toast((e as Error).message); await refresh(); }
-    finally { setBusy(null); setPending(p => { const n = { ...p }; delete n[`${r.id}-${key}`]; return n; }); }
+  const [base, setBase] = useState(role);
+  const [compareId, setCompareId] = useState('');
+  const [collapsed, setCollapsed] = useState<string[]>(definitions.filter(d => d.nodeType === 'Submodule' || d.nodeType === 'Tab').map(d => `permissions/${d.key}`));
+  const emptyFilters = { search: '', module: '', resource: '', action: '', risk: '', assignment: '' };
+  const [filters, setFilters] = useState<PermissionFilters>({ ...emptyFilters, search: initialSearch });
+  useEffect(() => { if (filters.search || filters.module || filters.resource || filters.action) setCollapsed([]); }, [filters.search, filters.module, filters.resource, filters.action]);
+  const [groupChange, setGroupChange] = useState<{ label: string; rows: PermissionRow[]; grant: boolean } | null>(null);
+  const [review, setReview] = useState(false);
+  const f = useForm<AccessSelection>({ rights: [...role.rights].sort(), permissions: [...role.permissions].sort() });
+  useLeaveGuard(f.dirty);
+  useEffect(() => { onDirty(f.dirty); }, [f.dirty, onDirty]);
+  const stale = base.version !== role.version;
+  const rows = useMemo(() => permissionRows(rights, definitions), [rights, definitions]);
+  const compare = roles.find(r => String(r.id) === compareId);
+  const visible = filterPermissionRows(rows, filters, f.values, base, compare);
+  const tree = permissionTree(rows, visible);
+  const fullGroups = new Map<string, PermissionRow[]>();
+  const indexGroups = (nodes: PermissionTreeNode[]) => nodes.forEach(node => { fullGroups.set(node.row.id, node.shown); indexGroups(node.children); });
+  indexGroups(permissionTree(rows, rows));
+  const changes = permissionChanges(base, f.values, rows);
+  const warnings = dependencyWarnings(rows, f.values);
+  const canMaintain = usePermission('AdminRoles', 'Maintain');
+  const disabled = base.isLocked || f.busy || !canMaintain;
+  const options = (values: string[]) => [...new Set(values)].sort((a, b) => a.localeCompare(b));
+  const updateFilter = (key: keyof PermissionFilters, value: string) => setFilters(p => ({ ...p, [key]: value }));
+  const collapse = (key: string) => setCollapsed(p => p.includes(key) ? p.filter(k => k !== key) : [...p, key]);
+  const reset = (latest: RoleDef) => {
+    setBase(latest); f.reset({ rights: [...latest.rights].sort(), permissions: [...latest.permissions].sort() }); setReview(false);
   };
-  return (
-    <AdminOnly>
-      <PageHead title="Rights" sub="Every role can view clients and records. Tick what each role may do; each change is saved and applies to signed-in users at once. The TIO Manager role always keeps every right."
-        actions={<Link className="btn" to="/admin/roles">Manage roles</Link>} />
-      {!d ? <StateMessage kind="loading" /> : (
-        <Panel pad={false}>
-          {/* One page: the matrix is edited as a whole (55+ rows since resource permissions). */}
-          <DataTable caption="Rights per role" rows={matrixRows} rowKey={r => r.key} tableClassName="rights-matrix" pageSize={Math.max(25, matrixRows.length)} columns={[
-            { key: 'right', header: 'Right', render: r => <><span>{r.label}</span><div className="hint">{r.description}</div></> },
-            ...d.roles.map(role => ({ key: `role-${role.id}`, header: <span title={`${role.userCount} user(s)${role.key ? ' · built-in' : ''}`}>{role.name}</span>, className: 'c', render: (right: typeof matrixRows[number]) => {
-              if (right.always) return <><span className="sr">Allowed</span>✔</>;
-              const values = right.resourcePermission ? role.permissions : role.rights;
-              const on = role.isLocked || (pending[`${role.id}-${right.key}`] ?? values.includes(right.key));
-              return <><span className="sr">{on ? 'Allowed' : 'Not allowed'}</span>
-                {/* GUI-12: the label around the 16 px box is the 32 px target. */}
-                <label className="right-hit"><input type="checkbox" className="right-box" checked={on} disabled={role.isLocked || busy !== null} onChange={e => toggle(role, right.key, e.target.checked, right.resourcePermission)}
-                  aria-label={`${right.label} for ${role.name}`} title={role.isLocked ? 'The TIO Manager role always keeps every right' : undefined} /></label>
-                {busy === `${role.id}-${right.key}` && <span className="spin" />}</>;
-            } }))
-          ]} />
-        </Panel>
-      )}
-    </AdminOnly>
-  );
+  const reloadLatest = async () => {
+    if (f.dirty && !window.confirm('Discard the staged changes and reload the latest saved permissions?')) return;
+    const latest = await reload(); if (latest) reset(latest);
+  };
+  const save = async () => {
+    const ok = await f.submit(async values => {
+      await put(`/admin/roles/${base.id}`, { name: base.name, description: base.description ?? null, isActive: base.isActive, ...values }, base.version);
+      return true;
+    });
+    if (ok) {
+      setReview(false); onDirty(false); toast(`Permissions saved for ${base.name}.`);
+      const latest = await reload(); if (latest) reset(latest);
+      await refresh();
+    } else setReview(false);
+  };
+  const groupButtons = (name: string, groupRows: PermissionRow[]) => <div className="rights-group-actions">
+    <span>{groupRows.filter(r => isGranted(f.values, r)).length} / {groupRows.length} assigned</span>
+    <button className="linkbtn" disabled={disabled || !groupRows.some(r => r.active && !isGranted(f.values, r))}
+      aria-label={`Grant shown permissions in ${name}`} onClick={() => setGroupChange({ label: name, rows: groupRows.filter(r => r.active), grant: true })}>Grant shown</button>
+    <button className="linkbtn danger-link" disabled={disabled || !groupRows.some(r => isGranted(f.values, r))}
+      aria-label={`Revoke shown permissions in ${name}`} onClick={() => setGroupChange({ label: name, rows: groupRows, grant: false })}>Revoke shown</button>
+  </div>;
+  const decision = (selection: AccessSelection, active: boolean, row: PermissionRow) => !active ? 'Inactive role' : !row.active ? 'Deprecated'
+    : !isGranted(selection, row) ? 'Not granted' : missingDependencies(row, rows, selection).length ? 'Blocked by required access' : 'Granted';
+  const renderNode = (node: PermissionTreeNode): React.ReactNode => {
+    const row = node.row;
+    const changed = isGranted(base, row) !== isGranted(f.values, row);
+    const branch = row.nodeType !== 'Action';
+    const open = !collapsed.includes(row.id);
+    const state = selectionState(fullGroups.get(row.id) ?? node.shown, f.values);
+    return <section key={row.id} className={`rights-node rights-level-${row.nodeType.toLowerCase()}`}>
+      <div className={`rights-leaf${compare ? ' compare' : ''}${changed ? ' changed' : ''}`}>
+        <div>
+          <div className="rights-node-title">
+            {branch && <button type="button" className="linkbtn" aria-label={`${open ? 'Collapse' : 'Expand'} ${row.label}`} aria-expanded={open} onClick={() => collapse(row.id)}>{open ? '▾' : '▸'}</button>}
+            <label><input type="checkbox" checked={isGranted(f.values, row)} disabled={disabled || !row.active && !isGranted(f.values, row)}
+              aria-label={`${branch ? `${row.nodeType} ` : ''}${row.label} for ${base.name}`} onChange={e => f.setValues(p => setPermissions(p, [row], e.target.checked))} />
+              <span className="rights-permission-title">{row.label}<Badge>{row.kind === 'rights' ? 'Control' : row.nodeType}</Badge>{sensitive(row) && <Badge tone="warn">{row.risk}</Badge>}{!row.active && <Badge>Deprecated</Badge>}{changed && <Badge tone="info">Staged</Badge>}</span></label>
+          </div>
+          <code className="rights-permission-key">{row.key}</code><p className="hint">{row.description}{row.supportsScope ? ' User record scope applies.' : ''}</p>
+          {branch && <div className="rights-node-bulk"><input type="checkbox" readOnly disabled checked={state === 'all'} ref={el => { if (el) el.indeterminate = state === 'partial'; }} aria-label={`${row.label} descendant selection: ${state}`} />
+            <span>{state === 'partial' ? 'Partially assigned' : state === 'all' ? 'All assigned' : 'None assigned'}</span>{groupButtons(row.label, node.shown)}</div>}
+          {row.requires.length > 0 && <details><summary className="hint">Required access</summary><code>{row.requires.join(', ')}</code></details>}
+        </div>
+        <div className="rights-decision"><strong>{decision(f.values, base.isActive, row)}</strong><small>{base.name}</small></div>
+        {compare && <div className="rights-decision"><strong>{decision(compare, compare.isActive, row)}</strong><small>{compare.name}</small></div>}
+      </div>
+      {branch && open && <div className="rights-children">{node.children.map(renderNode)}</div>}
+    </section>;
+  };
+  return <div className="rights-workspace">
+    <Panel title="Configure role access" actions={<Link className="btn" to="/admin/audit?category=Access">Authorization history</Link>}>
+      <div className="rights-controls">
+        <label>Role to configure<select value={role.id} disabled={f.busy} onChange={e => onRoleChange(e.target.value)}>{roles.map(r => <option value={r.id} key={r.id}>{r.name}{r.isLocked ? ' · protected' : ''}{!r.isActive ? ' · inactive' : ''}</option>)}</select></label>
+        <label>Compare with role<select value={compareId} onChange={e => { setCompareId(e.target.value); if (!e.target.value && filters.assignment === 'different') updateFilter('assignment', ''); }}>
+          <option value="">No comparison</option>{roles.filter(r => r.id !== role.id).map(r => <option value={r.id} key={r.id}>{r.name}{!r.isActive ? ' · inactive' : ''}</option>)}
+        </select></label>
+      </div>
+      <div className="rights-summary"><Badge tone={base.isActive ? 'good' : 'warn'}>{base.isActive ? 'Active role' : 'Inactive role'}</Badge>
+        <span>{base.userCount} active assigned user{base.userCount === 1 ? '' : 's'}</span><span>{rows.filter(r => r.active && isGranted(f.values, r)).length} active permissions assigned</span>
+        {base.isLocked && <Badge tone="info">Protected system role</Badge>}
+      </div>
+      {base.description && <p className="hint">{base.description}</p>}
+      <p className="hint">These are direct role assignments. Unassigned permissions are denied. Users combine permissions from active roles; record scope and security boundaries also apply. Enabling parent access grants only that parent. Revoking it blocks all descendants while retaining their assignments for future re-enablement. Use Grant shown or Revoke shown for explicit bulk changes.</p>
+      {!base.isActive && <div className="notice warn">This role is inactive. Its retained assignments contribute no effective access until activation.</div>}
+      {base.isLocked && <div className="notice">The protected system role keeps all permissions. Clone it under Manage roles to configure a custom role.</div>}
+      <div className="rights-controls rights-filters">
+        <label>Search permissions<input type="search" placeholder="Name, key or description" value={filters.search} onChange={e => updateFilter('search', e.target.value)} /></label>
+        <label>Module<select value={filters.module} onChange={e => updateFilter('module', e.target.value)}><option value="">All modules</option>{options(rows.map(r => r.module)).map(x => <option key={x}>{x}</option>)}</select></label>
+        <label>Resource<select value={filters.resource} onChange={e => updateFilter('resource', e.target.value)}><option value="">All resources</option>{options(rows.map(r => r.resource)).map(x => <option key={x} value={x}>{rows.find(r => r.resource === x)?.resourceLabel ?? x}</option>)}</select></label>
+        <label>Action<select value={filters.action} onChange={e => updateFilter('action', e.target.value)}><option value="">All actions</option>{options(rows.map(r => r.action)).map(x => <option key={x}>{x}</option>)}</select></label>
+        <label>Sensitivity<select value={filters.risk} onChange={e => updateFilter('risk', e.target.value)}><option value="">All sensitivity levels</option>{options(rows.map(r => r.risk)).map(x => <option key={x}>{x}</option>)}</select></label>
+        <label>Assignment<select value={filters.assignment} onChange={e => updateFilter('assignment', e.target.value)}><option value="">All permissions</option><option value="granted">Assigned</option><option value="denied">Not assigned</option><option value="changed">Staged changes</option>{compare && <option value="different">Different from comparison</option>}</select></label>
+      </div>
+    </Panel>
+    <FormError error={f.error} fields={[]} />
+    {(stale || f.error?.isConflict) && <div className="notice warn" role="alert">This role has changed since editing started. Your draft is retained. <button className="linkbtn" onClick={reloadLatest}>Reload latest</button></div>}
+    {warnings.length > 0 && <div className="notice warn"><details><summary>{warnings.length} permission assignment{warnings.length === 1 ? '' : 's'} with missing dependencies</summary>
+      <p>Actions do not automatically grant their required permissions. Review the independent dependencies.</p><ul>{warnings.map(r => <li key={r.id}>{r.label}: requires <code>{missingDependencies(r, rows, f.values).join(', ')}</code></li>)}</ul>
+    </details></div>}
+    <div className="rights-toolbar"><span role="status">Showing {visible.length} of {rows.length} permissions</span><div>
+      <button className="btn" onClick={() => setCollapsed([])}>Expand all</button>
+      <button className="btn" onClick={() => setCollapsed(rows.filter(r => r.nodeType !== 'Action').map(r => r.id))}>Collapse all</button>
+      <button className="btn" onClick={() => setFilters(emptyFilters)}>Clear filters</button>
+    </div></div>
+    {compare && <div className="rights-compare-legend"><strong>Left: {base.name} (includes staged changes)</strong><strong>Right: {compare.name} (saved permissions, read only)</strong></div>}
+    {visible.length === 0 ? <StateMessage kind="nomatch" /> : <div className="rights-tree" aria-label="Permission registry">
+      {tree.map(node => renderNode(node))}
+    </div>}
+    <div className="rights-savebar rights-toolbar"><p aria-live="polite"><strong>{changes.grants.length + changes.revocations.length} staged changes</strong> · {changes.grants.length} grant{changes.grants.length === 1 ? '' : 's'}, {changes.revocations.length} revocation{changes.revocations.length === 1 ? '' : 's'}</p><div>
+      <button className="btn" disabled={!f.dirty || f.busy} onClick={() => { if (window.confirm('Discard the staged permission changes?')) reset(base); }}>Discard changes</button>
+      <button className="btn btn-primary" disabled={!f.dirty || disabled || stale} onClick={() => setReview(true)}>Review and save</button>
+    </div></div>
+    {groupChange && <Dialog title={groupChange.grant ? 'Grant permission group' : 'Revoke permission group'} onClose={() => setGroupChange(null)}>
+      <p>{groupChange.grant ? 'Stage explicit grants' : 'Stage revocations'} for {groupChange.rows.length} shown permissions in <strong>{groupChange.label}</strong>?</p>
+      <p>Only the permissions listed below are included. The changes take effect after Review and save.</p>
+      {groupChange.grant && groupChange.rows.some(sensitive) && <div className="notice warn">This selection includes sensitive permissions. Review each grant.</div>}
+      <ul className="rights-preview">{groupChange.rows.map(r => <li key={r.id}>{r.label} <code>{r.key}</code></li>)}</ul>
+      <div className="form-actions"><button className="btn" onClick={() => setGroupChange(null)}>Cancel</button><button className="btn btn-primary" onClick={() => {
+        f.setValues(p => setPermissions(p, groupChange.rows, groupChange.grant)); setGroupChange(null);
+      }}>Stage group change</button></div>
+    </Dialog>}
+    {review && <Dialog title="Review permission changes" onClose={() => { if (!f.busy) setReview(false); }}>
+      <p>Save {changes.grants.length} grants and {changes.revocations.length} revocations for <strong>{base.name}</strong>?</p>
+      <p>{base.userCount} active directly assigned users may be affected. Other active roles can still grant a revoked permission. Directory group members may also be affected.</p>
+      {changes.grants.some(sensitive) && <div className="notice warn">Sensitive permissions will be granted. Saving confirms that you reviewed these grants.</div>}
+      <ul className="rights-preview">{changes.grants.map(r => <li key={r.id}><Badge tone="good">Grant</Badge> {r.label} <code>{r.key}</code></li>)}
+        {changes.revocations.map(r => <li key={r.id}><Badge tone="warn">Revoke</Badge> {r.label} <code>{r.key}</code></li>)}</ul>
+      <p className="hint">The server validates grant authority and saves this role's changes together. Effective access is resolved again by the server on subsequent requests.</p>
+      <div className="form-actions"><button className="btn" disabled={f.busy} onClick={() => setReview(false)}>Back to editor</button><button className="btn btn-primary" disabled={f.busy || stale} onClick={save}>{f.busy ? 'Saving…' : 'Save permissions'}</button></div>
+    </Dialog>}
+  </div>;
 }
 
 function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => void }) {
-  const f = useForm({ name: role?.name ?? '', description: role?.description ?? '' });
+  const f = useForm({ name: role?.name ?? '', description: role?.description ?? '', isActive: role?.isActive ?? true });
   const toast = useToast();
   const refresh = useRefresh();
   const nav = useNavigate();
   const save = async () => {
-    // New roles start with view access only; an administrator grants actions explicitly on the Rights page.
+    // New roles start with no grants; administrators explicitly configure access on Rights and permissions.
     const ok = await f.submit(async v => {
       const body = { ...v, rights: role?.rights ?? [], permissions: role?.permissions ?? [] };
       if (role) await put(`/admin/roles/${role.id}`, body, role.version); else await post('/admin/roles', body);
@@ -309,6 +492,8 @@ function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => vo
       <div className="form-grid">
         <TextInput label="Role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} maxLength={60} />
         <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} maxLength={300} />
+        {role && <Checkbox label="Role is active" checked={f.values.isActive} onChange={v => f.set('isActive', v)} disabled={role.isLocked}
+          hint={role.isLocked ? 'The protected TIO Manager role cannot be deactivated.' : 'Inactive roles stop contributing permissions on the next access resolution.'} />}
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Save role</button></div>
     </Dialog>
@@ -321,6 +506,8 @@ export function AdminNetworkZones() {
 }
 
 export function AdminReference({ fixedList, title = 'Reference lists', sub }: { fixedList?: string; title?: string; sub?: string } = {}) {
+  const canCreate = usePermission('AdminConfig', 'Create');
+  const canMaintain = usePermission('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['admin-lookups'], queryFn: () => get<LookupRow[]>('/admin/lookups') });
   const [picked, setList] = useState('');
   const list = fixedList ?? picked;
@@ -329,12 +516,12 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
   const fixedWorkflow = list === 'ConditionLabel' || list === 'CaseStatusLabel';
   return (
     <AdminOnly>
-      <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={!fixedWorkflow && <button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />
+      <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={canCreate && !fixedWorkflow && <button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />
       {!fixedList && <div className="toolbar"><SelectInput label="List" value={list} onChange={setList} options={lists.map(l => ({ value: l, label: label(l) }))} empty="All lists" /></div>}
       <DataTable<LookupRow> rowKey={l => l.id} rows={q.data?.filter(l => !list || l.listName === list)} loading={q.isLoading} error={q.error} columns={[
         { key: 'l', header: 'List', render: l => label(l.listName) }, { key: 'c', header: 'Code', render: l => <span className="mono">{l.code}</span> }, { key: 'b', header: 'Label', render: l => l.label },
         { key: 'd', header: 'Description', render: l => l.description }, { key: 's', header: 'Order', className: 'num', render: l => l.sortOrder },
-        { key: 'r', header: 'Status', render: l => fixedWorkflow ? <Badge tone="good">Fixed workflow value</Badge> : l.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'e', header: '', render: l => <button className="linkbtn" onClick={() => setEdit(l)}>Edit</button> }, ...(!fixedWorkflow ? [{ key: 'del', header: '', className: 'row-actions', render: (l: LookupRow) => <DeleteAction path={`/admin/lookups/${l.id}`} what={`${l.label}`} /> }] : [])
+        { key: 'r', header: 'Status', render: l => fixedWorkflow ? <Badge tone="good">Fixed workflow value</Badge> : l.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'e', header: '', render: l => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(l)}>Edit</button> }, ...(!fixedWorkflow ? [{ key: 'del', header: '', className: 'row-actions', render: (l: LookupRow) => <DeleteAction path={`/admin/lookups/${l.id}`} what={`${l.label}`} /> }] : [])
       ]} />
       {edit === 'new' && (fixedWorkflow ? null : fixedList
         ? <ActionDialog title="New network zone" path="/admin/lookups" onClose={() => setEdit(null)} submitLabel="Add zone"
@@ -355,16 +542,18 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
 type Policy = { id: number; recordType: string; scope: string; maxAgeDays?: number; usesNextReviewDate: boolean; effectiveFrom: string; notes?: string; isActive: boolean; version: string };
 
 export function AdminPolicies() {
+  const canCreate = usePermission('AdminConfig', 'Create');
+  const canMaintain = usePermission('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['policies'], queryFn: () => get<Policy[]>('/review-policies') });
   const [edit, setEdit] = useState<Policy | 'new' | null>(null);
   return (
     <AdminOnly>
       <PageHead title="Review policies" crumbs={configCrumbs('review-policies')} sub="Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments."
-        actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>+ New Policy</button>} />
+        actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New Policy</button>} />
       <DataTable<Policy> rowKey={p => p.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 't', header: 'Record type', render: p => p.recordType }, { key: 's', header: 'Scope', render: p => label(p.scope) }, { key: 'm', header: 'Max age (days)', className: 'num', render: p => p.maxAgeDays ?? '—' },
         { key: 'n', header: 'Uses next-review date', render: p => p.usesNextReviewDate ? 'Yes' : 'No' }, { key: 'e', header: 'Effective from', render: p => p.effectiveFrom }, { key: 'no', header: 'Notes', render: p => p.notes },
-        { key: 'a', header: 'Status', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Inactive</Badge> }, { key: 'x', header: '', render: p => <button className="linkbtn" onClick={() => setEdit(p)}>Edit</button> }
+        { key: 'a', header: 'Status', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Inactive</Badge> }, { key: 'x', header: '', render: p => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(p)}>Edit</button> }
       ]} />
       {edit && <ActionDialog title={edit === 'new' ? 'New review policy' : `Edit ${edit.recordType} / ${edit.scope}`} path={edit === 'new' ? '/review-policies' : `/review-policies/${edit.id}`} method={edit === 'new' ? 'POST' : 'PUT'} version={edit === 'new' ? undefined : edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={edit === 'new' ? {} : { recordType: edit.recordType, scope: edit.scope, maxAgeDays: edit.maxAgeDays?.toString() ?? '', usesNextReviewDate: edit.usesNextReviewDate ? 'yes' : '', notes: edit.notes ?? '' }}
@@ -377,6 +566,7 @@ export function AdminPolicies() {
 }
 
 export function AdminJira() {
+  const canMaintain = usePermission('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['admin-jira'], queryFn: () => get<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string }[]>('/admin/jira-instances') });
   const [edit, setEdit] = useState<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string } | null>(null);
   return (
@@ -384,7 +574,7 @@ export function AdminJira() {
       <PageHead title="Jira instances" crumbs={configCrumbs('jira-instances')} sub="The two disconnected Jira systems. Only the approved HTTPS host is stored for validating manual ticket links; the hub never calls Jira." />
       <DataTable rowKey={j => j.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'n', header: 'Name', render: j => j.name }, { key: 'k', header: 'Kind', render: j => label(j.kind) }, { key: 'h', header: 'Approved host', render: j => j.approvedHost || <Badge tone="warn">Not configured</Badge> },
-        { key: 'x', header: '', render: j => <button className="linkbtn" onClick={() => setEdit(j)}>Edit</button> }
+        { key: 'x', header: '', render: j => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(j)}>Edit</button> }
       ]} />
       {edit && <ActionDialog title={`Edit ${edit.name}`} path={`/admin/jira-instances/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={{ name: edit.name, approvedHost: edit.approvedHost }} fields={[{ name: 'name', label: 'Name', required: true }, { name: 'approvedHost', label: 'Approved host (no https://)' }]}
@@ -394,6 +584,7 @@ export function AdminJira() {
 }
 
 export function AdminSettings() {
+  const canMaintain = usePermission('AdminSettings', 'Maintain');
   const q = useQuery({ queryKey: ['admin-settings'], queryFn: () => get<{ id: number; key: string; value: string; description?: string; version: string }[]>('/admin/settings') });
   const [edit, setEdit] = useState<{ id: number; key: string; value: string; version: string } | null>(null);
   return (
@@ -401,7 +592,7 @@ export function AdminSettings() {
       <PageHead title="Settings" crumbs={configCrumbs('settings')} sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
       <DataTable rowKey={s => s.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'k', header: 'Setting', render: s => <span className="mono">{s.key}</span> }, { key: 'v', header: 'Value', render: s => s.key === 'DefaultTimeZone' && s.value ? timeZoneOptions().find(o => o.value === s.value)?.label ?? s.value : s.value || <span className="muted">Empty (open decision)</span> },
-        { key: 'd', header: 'Description', render: s => s.description }, { key: 'x', header: '', render: s => <button className="linkbtn" onClick={() => setEdit(s)}>Edit</button> }
+        { key: 'd', header: 'Description', render: s => s.description }, { key: 'x', header: '', render: s => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(s)}>Edit</button> }
       ]} />
       <AttachmentStorage />
       {edit && edit.key === 'DefaultTimeZone' && <ZoneSettingDialog setting={edit} onClose={() => setEdit(null)} />}
@@ -487,13 +678,14 @@ function ZoneSettingDialog({ setting, onClose }: { setting: { id: number; key: s
 type Storage = { location: string; path?: string; defaultLocation: string; overridden: boolean; maxFileMB: number; maxFilesPerUpload: number; extensions: string[]; files: number; bytes: number;
   defaults: { maxFileMB: number; maxFilesPerUpload: number; extensions: string[] }; blocked: string[]; limits: { maxFileMB: number; maxFilesPerUpload: number } };
 function AttachmentStorage() {
+  const canMaintain = usePermission('AdminSettings', 'Maintain');
   const q = useQuery({ queryKey: ['attachment-storage'], queryFn: () => get<Storage>('/admin/attachment-storage') });
   const [edit, setEdit] = useState(false);
   const d = q.data;
   if (!d) return null;
   const mb = (b: number) => (b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
   return (
-    <Panel title="File attachments" actions={<button className="btn" onClick={() => setEdit(true)}>Edit</button>}>
+    <Panel title="File attachments" actions={<button disabled={!canMaintain} className="btn" onClick={() => setEdit(true)}>Edit</button>}>
       <dl className="dl">
         <dt>Storage folder</dt><dd><span className="mono">{d.location}</span>{!d.path && <span className="hint"> (configuration default)</span>}</dd>
         <dt>Stored now</dt><dd>{d.files} file(s), {mb(d.bytes)}</dd>

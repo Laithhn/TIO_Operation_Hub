@@ -90,6 +90,8 @@ public sealed class TableReport<T> : ReportDefinition
 
     public override async Task<ReportResult> RunAsync(ReportContext ctx, int skip, int? take, CancellationToken ct)
     {
+        ExportService.RequireExport(ctx.Access.Me);
+        CapabilityPermissions.RequireReport(ctx.Access.Me, Key);
         List<T> page;
         int total;
         List<ReportMetric>? summary = null;

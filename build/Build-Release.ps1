@@ -13,7 +13,7 @@ $version = $props.Project.PropertyGroup.Version
 if ($version -notmatch '^\d+\.\d+\.\d+$') { throw 'Release version must have the form major.minor.patch.' }
 # Refuse a package whose deployment SQL omits any application migration, even when -SkipTests is used.
 $schemaText = Get-Content -LiteralPath (Join-Path $root 'database\01-schema.sql') -Raw
-$migrationSources = Get-ChildItem -LiteralPath (Join-Path $root 'src\TioHub.Api\Data\Migrations') -Filter '*.Designer.cs'
+$migrationSources = Get-ChildItem -LiteralPath (Join-Path $root 'src\TioHub.Api\Data\Migrations') -Filter '*.cs'
 $migrationIds = @($migrationSources | Select-String -Pattern '\[Migration\("([^"]+)"\)\]' | ForEach-Object { $_.Matches[0].Groups[1].Value })
 if ($migrationIds.Count -eq 0) { throw 'No application migrations found; cannot verify deployment SQL.' }
 foreach ($migrationId in $migrationIds) {
@@ -34,6 +34,9 @@ $dirty = [bool](git -C $root status --porcelain)
 $node = "$root\.tools\node"
 if (Test-Path "$node\node.exe") { $env:PATH = "$node;$env:PATH" }
 if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw 'Node.js 22 is required (install it, or place it in .tools\node).' }
+
+Write-Host "== Permission manifest (source generation only)" -ForegroundColor Cyan
+dotnet run --project "$root\build\PermissionManifest" -c Release; if ($LASTEXITCODE) { throw 'permission manifest generation failed' }
 
 Write-Host "== Front end" -ForegroundColor Cyan
 Push-Location "$root\src\web"
@@ -61,6 +64,7 @@ if (Test-Path "$root\docs\RELEASE-NOTES-$version.md") { Copy-Item "$root\docs\RE
 TIO Operations Hub $version
 Source commit: $commit
 Working tree had uncommitted changes: $dirty
+SQL-backed release tests executed by this build: $(-not $SkipTests)
 Built at (UTC): $([DateTime]::UtcNow.ToString('yyyy-MM-ddTHH:mm:ssZ'))
 "@ | Set-Content "$out\BUILD-INFO.txt" -Encoding utf8
 

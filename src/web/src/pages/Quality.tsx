@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { useState } from 'react';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, label } from '../format';
@@ -16,7 +17,8 @@ export function DataQuality() {
   const sum = useQuery({ queryKey: ['dq-sum', f.clientId], queryFn: () => get<{ rule: string; label: string; count: number }[]>(`/data-quality/summary${qs({ clientId: f.clientId })}`) });
   const clients = useClientOptions();
   const me = useMe().data!;
-  const canEng = usePermission('OtherOperations', 'Maintain');
+  const canMaintain = usePermission('DataQuality', 'Maintain');
+  const canEng = usePermission('OtherOperations', 'Maintain') && canMaintain;
   const refresh = useRefresh();
   const toast = useToast();
   const [edit, setEdit] = useState<Item | null>(null);
@@ -24,7 +26,7 @@ export function DataQuality() {
   return (
     <>
       <PageHead title="Data quality" sub="Missing owners, unknown environments and versions, and stale verification. Items open and resolve only by rule re-evaluation, so closing one can never falsely verify unknown data."
-        actions={<>{canEng && <button className="btn" onClick={scan}>Re-evaluate now</button>}{me.grants.export && <button className="btn" onClick={() => exportCsv('data-quality', { rule: f.rule, clientId: f.clientId, status: f.status })}>Export CSV</button>}</>} />
+        actions={<>{canEng && me.scope.allClients && me.scope.allInternal && <button className="btn" onClick={scan}>Re-evaluate now</button>}{canExportReport(me, 'data-quality') && <button className="btn" onClick={() => exportCsv('data-quality', { rule: f.rule, clientId: f.clientId, status: f.status })}>Export CSV</button>}</>} />
       <Panel title="Open items by rule" pad={false}>
         <div className="tiles">{(sum.data ?? []).map(s => <a key={s.rule} className="tile" href={`?rule=${s.rule}`} onClick={e => { e.preventDefault(); set({ rule: s.rule }); }}><span className="v">{s.count}</span><span className="l">{s.label}</span></a>)}</div>
       </Panel>

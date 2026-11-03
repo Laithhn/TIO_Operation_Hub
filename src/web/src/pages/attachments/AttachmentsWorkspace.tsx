@@ -3,9 +3,10 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from 'react-dom';
 import { ApiError, del, get, qs } from '../../api';
 import { fmtDate, fmtDateTime } from '../../format';
-import { useMe, usePermission, useRefresh } from '../../hooks';
+import { useMe, useRefresh } from '../../hooks';
+import { hasPermission, resourceForRecord } from '../../permissions';
 import { Icon } from '../../ui/Icon';
-import { Dialog, ErrorBox, Person, StateMessage, useToast } from '../../ui/kit';
+import { Dialog, ErrorBox, Panel, Person, Restricted, StateMessage, useToast } from '../../ui/kit';
 import { AttachmentPreview, downloadUrl } from './AttachmentPreview';
 import { AttachmentUpload } from './AttachmentUpload';
 import './attachments.css';
@@ -168,18 +169,32 @@ function Pages({ page, size, total, onPage, onSize }: { page: number; size: numb
 
 /**
  * A46 files of any record (A74 layout, on every page that takes attachments): summary, search / filters / sort, a selectable list with a
- * ⋮ menu per file, pages, and the document preview beside the list. Edit records (and, for clients, client scope) uploads; the uploader
- * or a holder of Delete records deletes, as the server checks. The server stores neither a category nor versions; the category is the
+ * ⋮ menu per file, pages, and the document preview beside the list. Independent upload, delete-own and delete-any permissions
+ * apply within the record scope, as the server checks. The server stores neither a category nor versions; the category is the
  * file's kind. The files themselves are on the server's disk (configured folder); only their details are in the database.
  */
-export function AttachmentsWorkspace({ recordType, recordId, scopeAllowed = true, title = 'Attachments', what = RECORD_LABEL[recordType] ?? recordType.toLowerCase() }: {
+type WorkspaceProps = {
   recordType: string; recordId: number; scopeAllowed?: boolean; title?: string; what?: string;
-}) {
+};
+
+/** Mount the data workspace only after independent owner and attachment permissions are resolved. */
+export function AttachmentsWorkspace(props: WorkspaceProps) {
+  const me = useMe();
+  const resource = resourceForRecord(props.recordType);
+  const allowed = hasPermission(me.data, resource, 'View') && hasPermission(me.data, resource, 'DetailsView') && hasPermission(me.data, resource, 'AttachmentsView');
+  if (me.isLoading) return <StateMessage kind="loading" />;
+  if (!allowed) return <Panel title={props.title ?? 'Attachments'}><Restricted need="Viewing these files needs the record details and View attachments permissions." /></Panel>;
+  return <AuthorizedAttachmentsWorkspace {...props} />;
+}
+
+function AuthorizedAttachmentsWorkspace({ recordType, recordId, scopeAllowed = true, title = 'Attachments', what = RECORD_LABEL[recordType] ?? recordType.toLowerCase() }: WorkspaceProps) {
   const me = useMe().data!;
   const root = useRef<HTMLDivElement>(null);
   const titleId = 'att-title-' + useId().replace(/[^a-zA-Z0-9]/g, '');
-  const canEdit = usePermission('OtherOperations', 'Maintain') && scopeAllowed;
-  const canDeleteAny = usePermission('OtherOperations', 'Delete') && scopeAllowed;
+  const resource = resourceForRecord(recordType);
+  const canEdit = hasPermission(me, resource, 'AttachmentsUpload') && scopeAllowed;
+  const canDeleteOwn = hasPermission(me, resource, 'AttachmentsDeleteOwn') && scopeAllowed;
+  const canDeleteAny = hasPermission(me, resource, 'AttachmentsDelete') && scopeAllowed;
   const q = useQuery({ queryKey: ['attachments', recordType, recordId], queryFn: () => get<Attachment[]>(`/attachments${qs({ recordType, recordId })}`) });
   const limits = useQuery({ queryKey: ['attachment-limits'], queryFn: () => get<Limits>('/attachments/limits'), staleTime: 10 * 60_000, enabled: canEdit });
   const [view, setView] = useState<View>(DEFAULT_VIEW);
@@ -200,7 +215,7 @@ export function AttachmentsWorkspace({ recordType, recordId, scopeAllowed = true
   const cur = Math.min(page, last);
   const pageRows = shown.slice((cur - 1) * size, cur * size);
   const open = rows.find(a => a.id === openId) ?? null;
-  const removable = (a: Attachment) => canRemove(a, me.id, canEdit, canDeleteAny);
+  const removable = (a: Attachment) => canRemove(a, me.id, canDeleteOwn, canDeleteAny);
   const filtered = view.q.trim() !== '' || view.category !== '' || view.type !== '';
 
   // Files that left the list (deleted here or elsewhere) leave the selection and the preview.
@@ -240,6 +255,7 @@ export function AttachmentsWorkspace({ recordType, recordId, scopeAllowed = true
           <h2 id={titleId} tabIndex={-1}>{title}{q.data ? ` (${rows.length})` : ''}</h2>
           {canEdit && <div className="actions"><button type="button" className="btn btn-primary" onClick={() => setUploading(true)}><Icon name="IMPORT" size={16} /> Upload files</button></div>}
         </div>
+        {q.data && !canEdit && !rows.some(removable) && <p className="hint panel-body">Read only: your current permissions allow viewing and downloading these files.</p>}
         {q.isLoading ? <StateMessage kind="loading" /> : q.error ? <div className="panel-body"><ErrorBox error={q.error} /></div> : (
           <>
             <Summary rows={rows} />
@@ -247,7 +263,7 @@ export function AttachmentsWorkspace({ recordType, recordId, scopeAllowed = true
               <div className="att-empty">
                 <Icon name="attachment" size={32} />
                 <p><b>No files attached to this {what} yet.</b></p>
-                <p className="muted">{canEdit ? 'Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.' : 'Files appear here once someone with the Edit records right uploads them.'}</p>
+                <p className="muted">{canEdit ? 'Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.' : 'Files appear here once someone with the Upload attachments permission uploads them.'}</p>
                 {canEdit && <button type="button" className="btn btn-primary" onClick={() => setUploading(true)}><Icon name="IMPORT" size={16} /> Upload files</button>}
               </div>
             ) : (
@@ -337,8 +353,8 @@ export function AttachmentsWorkspace({ recordType, recordId, scopeAllowed = true
         )}
       </section>
       {open && <AttachmentPreview a={open} drawer={!wide} canDelete={removable(open)} onDelete={() => setRemoving([open])} onClose={closePreview} />}
-      {uploading && <AttachmentUpload recordType={recordType} recordId={recordId} what={what} limits={limits.data} onClose={closeUpload} />}
-      {removing && <ConfirmRemove files={removing} onClose={closeRemove}
+      {uploading && canEdit && <AttachmentUpload recordType={recordType} recordId={recordId} what={what} limits={limits.data} onClose={closeUpload} />}
+      {removing && removing.some(removable) && <ConfirmRemove files={removing.filter(removable)} onClose={closeRemove}
         onDone={ids => {
           setSelected(s => new Set(Array.from(s).filter(id => !ids.includes(id))));
           // The button that opened the dialog may have left with the file: the focus goes to the list's heading.

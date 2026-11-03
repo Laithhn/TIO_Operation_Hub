@@ -19,7 +19,12 @@ async function api<T>(page: Page, path: string, body?: unknown, method = body ==
   }, { path, body, method, version });
 }
 async function role(page: Page, permissions: string[]) {
-  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('Browser permissions'), rights: [], permissions });
+  // These journeys isolate action permissions while retaining explicit page visibility.
+  // Default-deny visibility and revocation have their own granular-rights journeys.
+  const registry = await api<{ permissions: { key: string; action: string; nodeType: string; requires: string[] }[] }>(page, '/admin/roles');
+  const visibility = registry.permissions.filter(permission => permission.action.endsWith('View') || permission.nodeType !== 'Action').map(permission => permission.key);
+  const compatibilityActions = registry.permissions.filter(p => p.key.startsWith('tab.') && p.requires.some(key => permissions.includes(key))).map(p => p.key);
+  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('Browser permissions'), rights: [], permissions: [...new Set([...visibility, ...permissions, ...compatibilityActions])] });
   const accountName = `DEV\\${unique('permissions')}`;
   await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleId: created.id });
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(accountName), url: test.info().project.use.baseURL as string }]);
@@ -43,7 +48,7 @@ test.describe('Resource permissions in application actions', () => {
     await expect(page.getByRole('link', { name: 'Edit', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: '+ Add', exact: true }).click();
     await expect(page.getByRole('menuitem', { name: 'Region', exact: true })).toBeVisible();
-    await expect(page.getByRole('menuitem', { name: 'Project', exact: true })).toBeVisible();
+    await expect(page.getByRole('menuitem', { name: 'Project', exact: true })).toHaveCount(0);
     await expect(page.getByRole('menuitem', { name: 'Environment', exact: true })).toHaveCount(0);
     await expect(page.getByRole('menuitem', { name: 'Contract', exact: true })).toHaveCount(0);
   });
@@ -108,10 +113,10 @@ test.describe('Resource permissions in application actions', () => {
     await expect(dialog).not.toContainText('You can take unassigned work');
   });
 
-  test('attachment maintain is independent of product maintain and preserves uploader removal', async ({ page }) => {
+  test('attachment upload is independent of product maintain and preserves uploader removal', async ({ page }) => {
     await fixture(page);
     const products = await api<{ id: number }[]>(page, '/products');
-    await role(page, ['OtherOperations:Maintain']);
+    await role(page, ['Products:AttachmentsUpload', 'Products:AttachmentsDeleteOwn']);
     await page.goto(`/products/${products[0].id}`);
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Edit', exact: true })).toHaveCount(0);

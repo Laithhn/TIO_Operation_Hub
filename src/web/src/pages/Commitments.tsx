@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
@@ -27,7 +28,7 @@ export function CommitmentList() {
   return (
     <>
       <PageHead title="Commitments" sub="Owned promises with deadlines in their original time zone. Waiting never pauses a deadline; late completion stays Completed with a separate timeliness result."
-        actions={<>{me.grants.export && <button className="btn" onClick={() => exportCsv('commitments', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/commitments/new">+ New Commitment</Link>}</>} />
+        actions={<>{canExportReport(me, 'commitments') && <button className="btn" onClick={() => exportCsv('commitments', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/commitments/new">+ New Commitment</Link>}</>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />

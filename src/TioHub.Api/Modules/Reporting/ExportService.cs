@@ -57,6 +57,7 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
     /// </summary>
     public async Task<ValidFilters> ValidateAsync(ReportDefinition def, IDictionary<string, string?>? raw, bool strict, CancellationToken ct, TimeZoneInfo? zone = null)
     {
+        CapabilityPermissions.RequireReport(access.Me, def.Key);
         var check = new Check();
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var labels = new List<string>();
@@ -185,12 +186,15 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
     public static void RequireExport(UserContext me)
     {
         if (!me.HasBusinessRole) throw new ForbiddenException("Reports need a business role.");
+        me.RequirePermission(ResourcePermissions.Reporting, ResourcePermissions.View);
         me.RequireGrant(Grant.Export);
     }
 
     /// <summary>One page of the report as it would be exported, with the summary for operational reports.</summary>
     public async Task<object> PreviewAsync(ReportDefinition def, ValidFilters f, TimeZoneInfo zone, int page, int pageSize, CancellationToken ct)
     {
+        RequireExport(access.Me);
+        CapabilityPermissions.RequireReport(access.Me, def.Key);
         var now = clock.GetUtcNow();
         var result = await def.RunAsync(Context(f, zone, now), (page - 1) * pageSize, pageSize, ct);
         return new
@@ -212,21 +216,27 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
         long? scheduleId, long? retryOf, CancellationToken ct)
     {
         var me = access.Me;
+        RequireExport(me);
+        me.RequirePermission("ReportLibrary:Export");
+        CapabilityPermissions.RequireReportExport(me, def.Key);
         var now = clock.GetUtcNow();
         var filtersJson = JsonSerializer.Serialize(f.Values);
         var columnsJson = columns is { Count: > 0 } ? JsonSerializer.Serialize(columns) : null;
+        // Capture before any report rows are read. An older file may contain access since revoked.
+        var accessFingerprint = ExportAccessFingerprint.For(me);
         // A second identical request within seconds (double click, retry by the browser) returns the first job.
         if (scheduleId is null && retryOf is null)
         {
             var since = now.AddSeconds(-10);
             var same = await db.ExportJobs.Where(j => j.UserId == me.UserId && j.Report == def.Key && j.Format == format && j.FiltersJson == filtersJson && j.ColumnsJson == columnsJson
-                && j.TimeZone == zone.Id && j.RequestedAt >= since && j.Status != ExportStatus.Failed).OrderByDescending(j => j.Id).FirstOrDefaultAsync(ct);
+                && j.TimeZone == zone.Id && j.RequestedAt >= since && j.Status != ExportStatus.Failed && j.AccessFingerprint == accessFingerprint).OrderByDescending(j => j.Id).FirstOrDefaultAsync(ct);
             if (same is not null) return same;
         }
         var job = new ExportJob
         {
             UserId = me.UserId!.Value, Report = def.Key, ReportName = def.Name, Format = format, FiltersJson = filtersJson, FilterSummary = Cut(f.Summary, 2000), ColumnsJson = columnsJson,
-            TimeZone = zone.Id, Status = ExportStatus.Processing, RequestedAt = now, StartedAt = now, Source = source, ScheduleId = scheduleId, RetryOfId = retryOf
+            TimeZone = zone.Id, Status = ExportStatus.Processing, RequestedAt = now, StartedAt = now, Source = source, ScheduleId = scheduleId, RetryOfId = retryOf,
+            AccessFingerprint = accessFingerprint
         };
         db.ExportJobs.Add(job);
         await db.SaveChangesAsync(ct);

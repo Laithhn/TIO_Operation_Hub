@@ -1,9 +1,11 @@
+import { hasPermission } from '../../permissions';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { api, ApiError, get, post } from '../../api';
 import { fmtDateTime, label } from '../../format';
 import { useDebounced, useEnumLabel, useLeaveGuard, useMe } from '../../hooks';
+import { canDownloadReport, canExportReport } from '../../exportPermissions';
 import { Icon } from '../../ui/Icon';
 import { TimeZoneSelect } from '../../ui/pickers';
 import { Badge, DataTable, Dialog, SelectInput, StateMessage, TextInput, useToast, type Column } from '../../ui/kit';
@@ -376,6 +378,7 @@ export function BuilderScheduleDialog({ savedId, savedName, edit, onClose, onDon
 
 /** One export started from the builder: live status while queued/processing, then download, error or retry. */
 function JobCard({ job, onDismiss }: { job: ExportJob; onDismiss: () => void }) {
+  const me = useMe().data;
   const toast = useToast();
   const qc = useQueryClient();
   const q = useJob(job.id, job);
@@ -392,7 +395,7 @@ function JobCard({ job, onDismiss }: { job: ExportJob; onDismiss: () => void }) 
           : j.status === 'Failed' || j.status === 'Cancelled' ? j.error : j.status === 'Processing' ? 'Generating the file…' : 'Queued — it starts in a moment.'}</div>
       </div>
       {!done && <span className="spin" aria-hidden="true" />}
-      {j.canDownload && <button className="btn btn-primary btn-sm" onClick={() => download(j, toast)}><Icon name="download" size={14} /> Download</button>}
+      {j.canDownload && canDownloadReport(me, j.report) && <button className="btn btn-primary btn-sm" onClick={() => download(j, toast)}><Icon name="download" size={14} /> Download</button>}
       {j.canCancel && <button className="btn btn-sm" onClick={cancel}>Cancel</button>}
       <Link className="linkbtn" to={`/reporting-center/history?export=${j.id}`}>History</Link>
       {done && <button className="linkbtn" aria-label="Dismiss" onClick={onDismiss}>×</button>}
@@ -417,6 +420,8 @@ function MiniBars({ title, data, order, text, tone }: { title: string; data: Rec
 /* -------------------------------------------------------------------- page -------------------------------------------------------------------- */
 
 export function CasesBuilder() {
+  const permissionUser = useMe().data;
+  const exportAllowed = canExportReport(permissionUser, 'cases-builder');
   const toast = useToast();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -693,10 +698,10 @@ export function CasesBuilder() {
       <div className="rb-footer" role="toolbar" aria-label="Report actions">
         <span className="hint rb-footer-state">{exportReason ?? `${p?.total.toLocaleString()} case(s) ready to export · max ${m.limits.maxRows.toLocaleString()} rows · files kept ${m.limits.retentionDays} days`}</span>
         <button className="btn" onClick={() => dirty ? setConfirmReset(true) : resetAll()} disabled={!dirty}>{saved ? 'Revert changes' : 'Reset'}</button>
-        <button className="btn" onClick={() => setDialog('save')} disabled={invalid || (saved !== null && (!saved.isOwner || !dirty))} title={saved && !saved.isOwner ? 'Only the owner can change this report.' : undefined}>Save configuration</button>
+        <button className="btn" onClick={() => setDialog('save')} disabled={!hasPermission(permissionUser, 'SavedReports', saved ? 'Maintain' : 'Create') || invalid || (saved !== null && (!saved.isOwner || !dirty))} title={saved && !saved.isOwner ? 'Only the owner can change this report.' : undefined}>Save configuration</button>
         <button className="btn" onClick={() => setDialog('saveAs')} disabled={invalid}>Save as…</button>
-        <button className="btn btn-primary" onClick={() => setDialog('xlsx')} disabled={exportBlocked} title={exportReason}><Icon name="excel" size={14} /> Export Excel</button>
-        <button className="btn btn-primary" onClick={() => setDialog('pdf')} disabled={exportBlocked} title={exportReason}><Icon name="download" size={14} /> Export PDF</button>
+        {exportAllowed && <button className="btn btn-primary" onClick={() => setDialog('xlsx')} disabled={exportBlocked} title={exportReason}><Icon name="excel" size={14} /> Export Excel</button>}
+        {exportAllowed && <button className="btn btn-primary" onClick={() => setDialog('pdf')} disabled={exportBlocked} title={exportReason}><Icon name="download" size={14} /> Export PDF</button>}
         <button className="btn" onClick={() => setDialog('schedule')} disabled={!saved || dirty || invalid} title={!saved ? 'Save the report first, then schedule it.' : dirty ? 'Save your changes first.' : undefined}><Icon name="calendar" size={14} /> Schedule</button>
       </div>
 
@@ -706,7 +711,7 @@ export function CasesBuilder() {
           if (saved && String(saved.id) === String(id)) setSaved({ ...saved, revision, name });
           else setParams({ report: String(id) });
         }} />}
-      {(dialog === 'xlsx' || dialog === 'pdf') && p && <ExportDialog format={dialog} definition={cleaned} savedId={saved && !dirty ? saved.id : null} total={p.total} cutoff={p.cutoff} zone={zone} limits={m.limits}
+      {exportAllowed && (dialog === 'xlsx' || dialog === 'pdf') && p && <ExportDialog format={dialog} definition={cleaned} savedId={saved && !dirty ? saved.id : null} total={p.total} cutoff={p.cutoff} zone={zone} limits={m.limits}
         defaultName={(saved?.name ?? 'cases-report').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')} onClose={() => setDialog(null)}
         onQueued={j => { setDialog(null); setJobs(js => [j, ...js.filter(x => x.id !== j.id)]); toast('Export queued: it is generated in the background.'); }} />}
       {dialog === 'schedule' && saved && <BuilderScheduleDialog savedId={saved.id} savedName={saved.name} onClose={() => setDialog(null)}

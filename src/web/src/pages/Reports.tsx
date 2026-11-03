@@ -1,9 +1,12 @@
+import { usePermission } from '../hooks';
+import { hasPermission } from '../permissions';
 import { keepPreviousData, useIsFetching, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router';
 import { ApiError, del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
 import { useEnumLabel, useMe, useTypes, useUrlState } from '../hooks';
+import { canDownloadReport, canExportReport } from '../exportPermissions';
 import { Icon } from '../ui/Icon';
 import { TimeZoneSelect } from '../ui/pickers';
 import { Badge, DataTable, Dialog, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, StatusBadge, TextInput, useToast, type Option } from '../ui/kit';
@@ -185,6 +188,8 @@ function Catalog({ reports, onOpen, search, setSearch, category, setCategory, se
 /* --------------------------------------------------------- configure → export -------------------------------------------------------- */
 
 function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; onBack: () => void; onHistory: (id: number) => void; initial?: Values }) {
+  const me = useMe().data;
+  const exportAllowed = canExportReport(me, def.key);
   const T = useTypes();
   const caseStatusLabel = useEnumLabel('CaseStatus');
   const conditionLabel = useEnumLabel('Condition');
@@ -224,7 +229,7 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
   const activeCount = Object.values(clean(draft)).length;
 
   const generate = async () => {
-    if (!applied) return;
+    if (!applied || !exportAllowed) return;
     setBusy(true); setExportError(null); setJob(null);
     try {
       const j = await post<ExportJob>(`/reports/${def.key}/exports`, { filters: applied, format, columns: cols.length === def.columns.length && cols.every((c, i) => c === def.columns[i].key) ? [] : cols, timeZone: zone });
@@ -238,7 +243,7 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
     } finally { setBusy(false); }
   };
   const retry = async () => {
-    if (!job) return;
+    if (!job || !exportAllowed) return;
     setBusy(true);
     try { const j = await post<ExportJob>(`/reports/exports/${job.id}/retry`); setJob(j); qc.invalidateQueries({ queryKey: ['report-history'] }); }
     catch (e) { setExportError(apiError(e)?.summary ?? 'The export could not be retried.'); }
@@ -295,7 +300,7 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
           <summary>Save these filters as a preset</summary>
           <div className="rc-preset-row">
             <TextInput label="Preset name" value={presetName} onChange={setPresetName} maxLength={80} />
-            <button className="btn" disabled={!presetName.trim()} onClick={savePreset}>Save preset</button>
+            <button className="btn" disabled={!presetName.trim() || !hasPermission(me, 'ReportLibrary', 'Create')} onClick={savePreset}>Save preset</button>
             {(presets.data?.length ?? 0) > 0 && <span className="hint">Your presets: {presets.data!.map(x => <span key={x.id} className="chip">{x.name} <button type="button" className="linkbtn" aria-label={`Delete preset ${x.name}`}
               onClick={async () => { await del(`/reports/presets/${x.id}`); presets.refetch(); }}>×</button></span>)}</span>}
           </div>
@@ -337,7 +342,7 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
         </Panel>
       )}
 
-      {applied !== null && p && (
+      {applied !== null && p && exportAllowed && (
         <Panel title="3 · Export options">
           <fieldset className="rc-formats-pick">
             <legend className="flabel">Format</legend>
@@ -372,10 +377,10 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
             <StatusBadge value={job.status} />
             {job.status === 'Completed' ? <>
               <div><b>{job.fileName}</b><div className="hint">{job.format.toUpperCase()} · {job.rowCount?.toLocaleString()} row(s) · {size(job.fileSize)} · generated {fmtDateTime(job.completedAt, zone)} · available until {fmtDateTime(job.expiresAt, zone)}</div></div>
-              <button className="btn btn-primary" onClick={() => download(job, toast)}><Icon name="download" size={14} /> Download</button>
+              {canDownloadReport(me, job.report) && <button className="btn btn-primary" onClick={() => download(job, toast)}><Icon name="download" size={14} /> Download</button>}
             </> : <>
               <div><b>The export failed.</b><div className="hint">{job.error}</div></div>
-              {job.canRetry && <button className="btn" onClick={retry} disabled={busy}>Retry</button>}
+              {job.canRetry && exportAllowed && <button className="btn" onClick={retry} disabled={busy}>Retry</button>}
             </>}
             <button className="linkbtn" onClick={() => onHistory(job.id)}>View in export history</button>
           </div>
@@ -389,6 +394,7 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
 /* ------------------------------------------------------------- history ------------------------------------------------------------- */
 
 function ExportDetails({ id, onClose }: { id: number; onClose: () => void }) {
+  const me = useMe().data;
   const toast = useToast();
   const q = useQuery({ queryKey: ['report-export', id], queryFn: () => get<{ export: ExportJob; filters: Values; columns?: string[] | null; startedAt?: string }>(`/reports/exports/${id}`) });
   const j = q.data?.export;
@@ -404,13 +410,14 @@ function ExportDetails({ id, onClose }: { id: number; onClose: () => void }) {
             ['Columns', q.data?.columns?.length ? q.data.columns.join(', ') : 'All, standard order'], ['Audit reference', <code key="a">{j.auditId}</code>], ...(j.error ? [['Error', j.error] as [string, ReactNode]] : [])] as [string, ReactNode][])
             .map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
-        <div className="form-actions"><button className="btn" onClick={onClose}>Close</button>{j.canDownload && <button className="btn btn-primary" onClick={() => download(j, toast)}>Download</button>}</div>
+        <div className="form-actions"><button className="btn" onClick={onClose}>Close</button>{j.canDownload && canDownloadReport(me, j.report) && <button className="btn btn-primary" onClick={() => download(j, toast)}>Download</button>}</div>
       </>}
     </Dialog>
   );
 }
 
 function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
+  const canMaintain = usePermission('ReportHistory', 'Maintain');
   const me = useMe().data!;
   const toast = useToast();
   const qc = useQueryClient();
@@ -426,6 +433,7 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
     catch (e) { toast(apiError(e)?.summary ?? 'The export could not be cancelled.', true); }
   };
   const retry = async (j: ExportJob) => {
+    if (!canExportReport(me, j.report)) return;
     try {
       const n = await post<ExportJob>(j.builder ? `/reporting/exports/${j.id}/retry` : `/reports/exports/${j.id}/retry`);
       toast(n.status === 'Queued' ? `${n.reportName} queued again.` : n.status === 'Completed' ? `${n.reportName} generated again.` : (n.error ?? 'The export failed again.'), n.status === 'Failed');
@@ -457,13 +465,13 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
           { key: 'expires', header: 'Expires', render: r => r.status === 'Completed' && r.expiresAt ? fmtDateTime(r.expiresAt) : <span className="muted">—</span> },
           { key: 'size', header: 'File size', className: 'num', render: r => size(r.fileSize) },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">
-            {r.canDownload && <button className="linkbtn" onClick={() => download(r, toast, () => {
+            {r.canDownload && canDownloadReport(me, r.report) && <button className="linkbtn" onClick={() => download(r, toast, () => {
               void qc.invalidateQueries({ queryKey: ['report-history'] });
               void qc.invalidateQueries({ queryKey: ['report-export', r.id] });
             })}>Download</button>}
             <button className="linkbtn" onClick={() => setDetails(r.id)}>Details</button>
-            {r.canCancel && <button className="linkbtn" onClick={() => cancel(r)}>Cancel</button>}
-            {r.canRetry && <button className="linkbtn" onClick={() => retry(r)}>Retry</button>}</span> }
+            {canMaintain && r.canCancel && <button className="linkbtn" onClick={() => cancel(r)}>Cancel</button>}
+            {canMaintain && r.canRetry && canExportReport(me, r.report) && <button className="linkbtn" onClick={() => retry(r)}>Retry</button>}</span> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => setF(x => ({ ...x, page: p }))} onSize={s => setF(x => ({ ...x, page: 1, pageSize: s }))} />}
       {details !== null && <ExportDetails id={details} onClose={() => setDetails(null)} />}
@@ -530,6 +538,7 @@ function ScheduleDialog({ reports, edit, onClose }: { reports: ReportDef[]; edit
 }
 
 function ScheduleRuns({ s, onClose }: { s: Schedule; onClose: () => void }) {
+  const me = useMe().data;
   const toast = useToast();
   const [page, setPage] = useState(1);
   const q = useQuery({ queryKey: ['report-runs', s.id, page], queryFn: () => get<Paged<ExportJob>>(`/reports/schedules/${s.id}/runs?page=${page}&pageSize=10`) });
@@ -541,7 +550,7 @@ function ScheduleRuns({ s, onClose }: { s: Schedule; onClose: () => void }) {
           { key: 'at', header: 'Run', render: r => fmtDateTime(r.requestedAt) }, { key: 'user', header: 'Recipient', render: r => r.user },
           { key: 'status', header: 'Status', render: r => <><Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{r.status}</Badge>{r.error && <div className="hint err">{r.error}</div>}</> },
           { key: 'rows', header: 'Records', className: 'num', render: r => r.rowCount ?? '—' },
-          { key: 'dl', header: '', render: r => r.canDownload ? <button className="linkbtn" onClick={() => download(r, toast)}>Download</button> : null }
+          { key: 'dl', header: '', render: r => r.canDownload && canDownloadReport(me, r.report) ? <button className="linkbtn" onClick={() => download(r, toast)}>Download</button> : null }
         ]} />
       {q.data && q.data.totalCount > 10 && <Pager page={q.data.page} pageSize={10} total={q.data.totalCount} onPage={setPage} onSize={() => {}} />}
       <div className="form-actions"><button className="btn" onClick={onClose}>Close</button></div>
@@ -567,6 +576,9 @@ function PickSaved({ onPick, onClose }: { onPick: (r: { id: number; name: string
 }
 
 function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; creating: boolean; setCreating: (b: boolean) => void }) {
+  const canCreate = usePermission('ReportSchedules', 'Create');
+  const canMaintain = usePermission('ReportSchedules', 'Maintain');
+  const canDelete = usePermission('ReportSchedules', 'Delete');
   const toast = useToast();
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ['report-schedules'], queryFn: () => get<Schedule[]>('/reports/schedules') });
@@ -587,8 +599,8 @@ function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; c
   };  return (
     <>
       <div className="rc-sched-head"><p className="hint">Your scheduled reports. Files are generated at the chosen local time and kept in each recipient's export history.</p>
-        <span className="rc-row-actions"><button className="btn" onClick={() => setPickSaved(true)}>+ Schedule a saved report</button>
-          <button className="btn btn-primary" onClick={() => setCreating(true)}>+ Schedule report</button></span></div>
+        <span className="rc-row-actions"><button disabled={!canCreate} className="btn" onClick={() => setPickSaved(true)}>+ Schedule a saved report</button>
+          <button disabled={!canCreate} className="btn btn-primary" onClick={() => setCreating(true)}>+ Schedule report</button></span></div>
       <DataTable<Schedule> rowKey={r => r.id} rows={q.data} loading={q.isLoading} error={q.error} tools={false} caption="Scheduled reports" empty="none"
         columns={[
           { key: 'name', header: 'Name', render: r => <><b>{r.name}</b><div className="hint">{r.builder ? <>Saved report: <Link to={`/reporting-center/builder/cases?report=${r.savedReportId}`}>{r.reportName}</Link></> : <>{r.reportName}{r.filterSummary ? ` · ${r.filterSummary}` : ''}</>}</div></> },
@@ -599,11 +611,11 @@ function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; c
           { key: 'last', header: 'Last run', render: r => r.lastRunAt ? <>{fmtDateTime(r.lastRunAt)}<div className="hint">{r.lastOutcome}</div></> : <span className="muted">Not yet run</span> },
           { key: 'active', header: 'Status', render: r => <Badge tone={r.isActive ? 'good' : 'neutral'}>{r.isActive ? 'Active' : 'Paused'}</Badge> },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">
-            <button className="linkbtn" onClick={() => openEdit(r)}>Edit</button>
-            {r.isActive ? <button className="linkbtn" onClick={() => act(() => post(`/reports/schedules/${r.id}/pause`), 'Schedule paused.')}>Pause</button>
-              : <button className="linkbtn" onClick={() => act(() => post(`/reports/schedules/${r.id}/resume`), 'Schedule resumed.')}>Resume</button>}
+            <button disabled={!canMaintain} className="linkbtn" onClick={() => openEdit(r)}>Edit</button>
+            {r.isActive ? <button disabled={!canMaintain} className="linkbtn" onClick={() => act(() => post(`/reports/schedules/${r.id}/pause`), 'Schedule paused.')}>Pause</button>
+              : <button disabled={!canMaintain} className="linkbtn" onClick={() => act(() => post(`/reports/schedules/${r.id}/resume`), 'Schedule resumed.')}>Resume</button>}
             <button className="linkbtn" onClick={() => setRuns(r)}>Runs</button>
-            <button className="linkbtn err" onClick={() => setRemove(r)}>Delete</button></span> }
+            <button disabled={!canDelete} className="linkbtn err" onClick={() => setRemove(r)}>Delete</button></span> }
         ]} />
       {(creating || edit) && <ScheduleDialog reports={reports} edit={edit ?? undefined} onClose={() => { setCreating(false); setEdit(null); }} />}
       {pickSaved && <PickSaved onClose={() => setPickSaved(false)} onPick={r => { setPickSaved(false); setNewSaved(r); }} />}
@@ -664,6 +676,8 @@ function HistoryArea({ reports }: { reports: ReportDef[] }) {
 }
 
 export function Reports() {
+  const canSchedule = usePermission('ReportSchedules', 'Create');
+  const canBuild = usePermission('ReportBuilder', 'View');
   const me = useMe().data!;
   const loc = useLocation();
   const nav = useNavigate();
@@ -688,8 +702,8 @@ export function Reports() {
         sub={a?.sub ?? 'Generate operational reports, analyze performance, and manage data exports.'}
         actions={<>
           <button className="btn" disabled={refreshing} onClick={() => qc.invalidateQueries({ predicate: q => /^(report-|rc-|rb-)/.test(String(q.queryKey[0])) })}>{refreshing ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
-          <button className="btn" onClick={() => { nav('/reporting-center/schedules'); setCreating(true); }}>Schedule report</button>
-          <button className="btn btn-primary" onClick={() => nav('/reporting-center/builder/cases')}>+ Create report</button>
+          <button disabled={!canSchedule} className="btn" onClick={() => { nav('/reporting-center/schedules'); setCreating(true); }}>Schedule report</button>
+          <button disabled={!canBuild} className="btn btn-primary" onClick={() => nav('/reporting-center/builder/cases')}>+ Create report</button>
         </>} />
       <Routes>
         <Route index element={<ReportingOverview />} />

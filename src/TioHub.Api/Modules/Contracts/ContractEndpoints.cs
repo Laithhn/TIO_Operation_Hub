@@ -32,7 +32,13 @@ public static class ContractQuery
         if (f.Status is not null) q = q.Where(c => c.Status == f.Status);
         if (f.Type is not null) q = q.Where(c => c.Type == f.Type);
         if (f.OwnerId is not null) q = q.Where(c => c.OwnerUserId == f.OwnerId);
-        if (f.ProductId is not null) q = q.Where(c => db.ProjectProducts.Any(p => p.ProjectId == c.ProjectId && p.ProductId == f.ProductId));
+        if (f.ProductId is not null)
+        {
+            // Filtering by a guessed product ID also reveals whether that product is
+            // linked, even when the related-product projection is hidden.
+            db.CurrentUser.RequirePermission(ResourcePermissions.Products, ResourcePermissions.View);
+            q = q.Where(c => db.ProjectProducts.Any(p => p.ProjectId == c.ProjectId && p.ProductId == f.ProductId));
+        }
         if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || (c.ContractReference != null && c.ContractReference.Contains(f.Q))
             || c.Project!.Code.Contains(f.Q) || c.Project.Name.Contains(f.Q));
         q = f.Renewal switch
@@ -129,8 +135,8 @@ public static class ContractEndpoints
             var project = await db.Projects.IgnoreQueryFilters(["Archive"]).AsNoTracking().Where(x => x.Id == c.ProjectId)
                 .Select(x => new { x.Id, x.Code, x.Name, x.Status }).FirstOrDefaultAsync(ct);
             var productIds = await db.ProjectProducts.AsNoTracking().Where(pp => pp.ProjectId == c.ProjectId).Select(pp => pp.ProductId).ToListAsync(ct);
-            var maintain = access.Me.SeesClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.Maintain);
-            var archive = access.Me.SeesClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.ArchiveRestore);
+            var maintain = access.Me.HasClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.Maintain);
+            var archive = access.Me.HasClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.ArchiveRestore);
             var state = ContractQuery.State(c, now);
             return ctx.WithETag(c, new
             {
@@ -151,8 +157,8 @@ public static class ContractEndpoints
                     x.Id, x.Condition, x.Percentage, x.Amount, x.DueDate, x.Status, x.PaidOn, x.Notes,
                     overdue = x.DueDate != null && x.DueDate < DateOnly.FromDateTime(now.UtcDateTime) && (x.Status == PaymentStatus.Pending || x.Status == PaymentStatus.Invoiced)
                 }),
-                products = await db.Products.AsNoTracking().Where(p => productIds.Contains(p.Id)).OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct),
-                environments = await db.Environments.AsNoTracking().Where(e => envIds.Contains(e.Id))
+                products = await db.Products.AsNoTracking().Where(p => access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) && productIds.Contains(p.Id)).OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct),
+                environments = await db.Environments.AsNoTracking().Where(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && envIds.Contains(e.Id))
                     .Select(e => new { e.Id, e.Name, e.Type, region = e.Region == null ? null : e.Region.Code }).ToListAsync(ct),
                 slaTargets = c.SlaTargets.OrderBy(t => t.Priority).Select(t => new { t.Id, t.Priority, t.ResponseMinutes, t.ResolutionMinutes, t.Basis, t.Notes }),
                 penaltyClauses = c.PenaltyClauses.OrderBy(t => t.Id).Select(t => new { t.Id, t.Name, t.Trigger, t.Calculation, t.FixedAmount, t.Percentage, t.ReferenceAmount, t.MonthlyCap, t.BillingTimeZone, currency = c.Currency }),
@@ -206,7 +212,9 @@ public static class ContractEndpoints
         {
             access.RequireBusiness();
             var contract = await db.Contracts.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.ClientId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The contract");
-            if (!access.Me.SeesClient(contract.ClientId)) throw new NotFoundException("The contract");
+            // Assessments contain breach identities from every case on the contract,
+            // including cases outside a project-only user's scope.
+            if (!access.Me.HasClient(contract.ClientId)) throw new NotFoundException("The contract");
             var rows = await db.PenaltyAssessments.AsNoTracking().Where(x => x.ContractId == id).OrderByDescending(x => x.BillingMonth).ThenBy(x => x.ClauseId).ToListAsync(ct);
             return Results.Ok(rows.Select(x => new { x.Id, x.ClauseId, x.TermsKey, x.BillingMonth, x.UncappedAmount, x.Amount, x.BreachCount, x.BreachIdentitiesJson, x.Currency, x.CalculatedAt,
                 x.ReviewedAt, x.ReviewedById, x.ReviewReason, terms = PenaltyRules.TryReadAssessmentTerms(x.TermsSnapshotJson),
@@ -343,7 +351,8 @@ public static class ContractEndpoints
         access.CheckOwnerChange(check, "ownerUserId", c.Id == 0 ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Contracts);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, c.ClientId, null, "the owner", ct);
         var envIds = (i.EnvironmentIds ?? []).Distinct().ToList();
-        if (envIds.Count > 0 && await db.Environments.CountAsync(e => envIds.Contains(e.Id) && e.ClientId == c.ClientId, ct) != envIds.Count) check.Add("environmentIds", "Select environments of the same client.");
+        var applyEnvironments = RelatedRecordAccess.CanApply(access.Me, ResourcePermissions.Environments, envIds);
+        if (applyEnvironments && envIds.Count > 0 && await db.Environments.CountAsync(e => envIds.Contains(e.Id) && e.ClientId == c.ClientId, ct) != envIds.Count) check.Add("environmentIds", "Select environments of the same client.");
         var targets = i.SlaTargets ?? [];
         for (var n = 0; n < targets.Count; n++)
         {
@@ -447,8 +456,11 @@ public static class ContractEndpoints
         c.OnSiteEngineersRequired = i.OnSiteEngineersRequired;
         c.Coverage = Text.Clean(i.Coverage);
         c.Obligations = Text.Clean(i.Obligations);
-        c.Environments.RemoveAll(e => !envIds.Contains(e.EnvironmentId));
-        foreach (var eid in envIds.Where(eid => c.Environments.All(e => e.EnvironmentId != eid))) c.Environments.Add(new ContractEnvironment { EnvironmentId = eid, ClientId = c.ClientId });
+        if (applyEnvironments)
+        {
+            c.Environments.RemoveAll(e => !envIds.Contains(e.EnvironmentId));
+            foreach (var eid in envIds.Where(eid => c.Environments.All(e => e.EnvironmentId != eid))) c.Environments.Add(new ContractEnvironment { EnvironmentId = eid, ClientId = c.ClientId });
+        }
         // SLA rows are keyed by priority: update in place, add new ones, remove the rest.
         c.SlaTargets.RemoveAll(t => targets.All(x => x.Priority != t.Priority));
         foreach (var t in targets)

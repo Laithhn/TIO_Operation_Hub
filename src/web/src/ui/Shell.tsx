@@ -1,4 +1,4 @@
-import { hasPermission, hasAnyPermission } from '../permissions';
+import { canAccessPath, hasPermission, hasAnyPermission } from '../permissions';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router';
 import { get, signOut } from '../api';
@@ -87,6 +87,7 @@ const SECTIONS: Section[] = [
     { to: '/reporting-center/templates', label: 'Templates', icon: 'copy' }
   ] },
   { key: 'admin', label: 'Administration', to: '/admin', match: /^\/admin/, show: admin, side: [
+    { to: '/admin/access', label: 'Access control', icon: 'lock', show: admin },
     { to: '/admin/users', label: 'Users & access', icon: 'users', show: admin },
     { to: '/admin/roles', label: 'Roles', icon: 'users', show: admin },
     { to: '/admin/rights', label: 'Rights', icon: 'lock', show: admin },
@@ -195,7 +196,21 @@ export function Shell({ children }: { children: ReactNode }) {
   useLayoutEffect(() => setFramed(true), []);
   const primaryLinks = useRef<HTMLElement>(null);
   const submenu = useRef<HTMLDivElement>(null);
-  const visible = useMemo(() => me ? SECTIONS.filter(s => (s.show?.(me) ?? true) && s.side.some(i => i.show?.(me) ?? true)) : [], [me]);
+  const visible = useMemo(() => {
+    if (!me) return [];
+    const prune = (item: Item): Item | null => {
+      if (item.show && !item.show(me)) return null;
+      const children = item.children?.map(prune).filter((i): i is Item => i !== null);
+      if (canAccessPath(me, item.to)) return { ...item, children };
+      // A navigation group can contain independently accessible pages; its label grants nothing.
+      return children?.length ? { ...item, to: children[0].to, children } : null;
+    };
+    return SECTIONS.flatMap(s => {
+      if (s.show && !s.show(me)) return [];
+      const side = s.side.map(prune).filter((i): i is Item => i !== null);
+      return side.length ? [{ ...s, side, to: canAccessPath(me, s.to) ? s.to : side[0].to }] : [];
+    });
+  }, [me]);
   const section = visible.find(s => s.match.test(loc.pathname)) ?? visible[0];
   // A73: the Client Map is a full-width, map-first page (its own toolbar links back to the Operations Command Center).
   const withSidebar = !section?.bare && !/^\/map\/?$/.test(loc.pathname);
@@ -312,7 +327,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <button className={f.secondaryNode.menuNode} onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
             <Icon name="search" size={24} />
           </button>
-          {me && <NotificationBell />}
+          {hasPermission(me, 'Notifications', 'View') && <NotificationBell />}
           {forms
             ? <Link className={f.secondaryNode.menuNode} to="/account/password" title={`${me!.displayName} · ${me!.roleLabels.join(', ')} · Change password`} aria-label={`Signed in as ${me!.displayName}. Change password`}><Icon name="user" size={24} /></Link>
             : <span className={f.secondaryNode.menuNode} title={me ? `${me.displayName} · ${me.roleLabels.join(', ')}` : ''}><Icon name="user" size={24} title={me ? `Signed in as ${me.displayName}` : undefined} /></span>}

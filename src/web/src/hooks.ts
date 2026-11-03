@@ -1,3 +1,4 @@
+import { canViewTab, hasPermission } from './permissions';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBlocker, useSearchParams } from 'react-router';
@@ -28,7 +29,7 @@ export type Reference = {
 };
 
 export function useMe() {
-  return useQuery({ queryKey: ['me'], queryFn: () => get<Me>('/me'), staleTime: 5 * 60_000, retry: false });
+  return useQuery({ queryKey: ['me'], queryFn: () => get<Me>('/me'), staleTime: 10_000, refetchInterval: 15_000, refetchOnWindowFocus: true, retry: false });
 }
 
 export function useReference(enabled = true) {
@@ -44,7 +45,7 @@ export function useCan(right: Role | RightKey): boolean {
 
 /** UI hint only; the API enforces the same resource/action key. */
 export function usePermission(resource: string, action: string): boolean {
-  return !!useMe().data?.permissions?.includes(`${resource}:${action}`);
+  return hasPermission(useMe().data, resource, action);
 }
 
 export function useEnum(name: string): string[] {
@@ -164,4 +165,14 @@ export function useLeaveGuard(dirty: boolean) {
       else blocker.reset();
     }
   }, [blocker]);
+}
+
+/** Selected denied tabs never render; changing grants immediately reselects an allowed section. */
+export function usePermittedTab(resource: string, keys: string[], initial = keys[0]) {
+  const me = useMe().data;
+  const [params] = useSearchParams();
+  const [requested, setRequested] = useState(params.get('tab') ?? initial);
+  const allowed = keys.filter(key => canViewTab(me, resource, key));
+  const selected = allowed.includes(requested) ? requested : allowed[0] ?? '';
+  return [selected, setRequested, allowed] as const;
 }

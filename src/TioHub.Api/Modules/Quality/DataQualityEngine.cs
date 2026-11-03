@@ -59,6 +59,7 @@ public sealed class DataQualityEngine(HubDbContext db, FreshnessService fresh, H
                 item.RecordLabel = f.Label;
                 item.ClientId = f.ClientId;
                 item.EnvironmentId = f.EnvironmentId;
+                item.TeamId = f.TeamId;
                 item.CoordinatorUserId ??= f.Coordinator;
                 continue;
             }

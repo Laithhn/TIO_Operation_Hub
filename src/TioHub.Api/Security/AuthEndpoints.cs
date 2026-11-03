@@ -90,6 +90,10 @@ public static partial class AuthEndpoints
         g.MapPost("/setup", async (SetupInput input, HttpContext ctx, HubDbContext db, SetupCode setup, IOptions<AuthOptions> o, IAntiforgery af, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             RequireForms(o.Value);
+            // Serialize setup with authorization administration and other setup requests. Otherwise
+            // two requests could both consume the one-time code based on stale recovery state.
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("UPDATE [iam].[AuthorizationVersion] WITH (UPDLOCK,HOLDLOCK) SET [Version]=[Version] WHERE [Id]=1", ct);
             if (!await SetupCode.RequiredAsync(db, ct)) throw new ConflictException("Setup is already complete. Sign in with an administrator account.");
             var check = new Check();
             if (!setup.Matches(input.SetupCode)) check.Add("setupCode", "The setup code is not correct. Copy it from the setup-code file on the server.");
@@ -102,6 +106,8 @@ public static partial class AuthEndpoints
             var user = await db.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.AccountName == account, ct);
             if (user is not null && !user.Roles.Any(r => r.AppRoleId == managerRole))
                 throw new ConflictException("This account exists without the administrator role. Choose another account name.");
+            if (user is { IsActive: false })
+                throw new ConflictException("This administrator account is inactive. Choose a new account name for recovery.");
             // A44: the computer's time zone becomes the hub default (while still the shipped UTC) and the administrator's own.
             var setting = await db.Settings.FirstOrDefaultAsync(s => s.Key == Modules.Admin.SettingKeys.DefaultTimeZone, ct);
             var pcZone = Zones.Find(input.TimeZone) is not null ? input.TimeZone!.Trim() : null;
@@ -113,9 +119,19 @@ public static partial class AuthEndpoints
                 db.Users.Add(user);
                 await db.SaveChangesAsync(ct);
             }
+            // The server-local one-time recovery code establishes the initial scope administrator.
+            // Store its authority explicitly so subsequent delegation uses the same scope rules as other users.
+            user.AllClients = true;
+            user.AllInternal = true;
             var cred = await db.UserCredentials.FirstOrDefaultAsync(c => c.UserId == user.Id, ct) ?? db.UserCredentials.Add(new UserCredential { UserId = user.Id }).Entity;
             SetPassword(cred, input.Password!, mustChange: false, clock.GetUtcNow());
             await db.SaveChangesAsync(ct);
+            // A denied permission, conflicting roles, or disabled permission definition may make
+            // an otherwise valid password ineffective. Roll back all provisioning in that case and
+            // retain the setup code so a suitable account or configuration can be used instead.
+            if (await SetupCode.RequiredAsync(db, ct))
+                throw new ConflictException("The administrator cannot manage users under the current access policy. Choose another account or restore the required permissions before retrying setup.");
+            await tx.CommitAsync(ct);
             setup.Consume();
             await db.AuditActionAsync("FirstAdministratorSetUp", "User", user.Id, user.AccountName, null, "One-time setup code used", null, ct, "Access");
             UserResolver.InvalidateAll(cache);
@@ -141,12 +157,12 @@ public static partial class AuthEndpoints
             return Results.NoContent();
         });
 
-        api.MapPost("/admin/users/{id:long}/password", async (long id, TemporaryPasswordInput input, HubDbContext db, UserContext me, IOptions<AuthOptions> o, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
+        api.MapPost("/admin/users/{id:long}/password", async (long id, TemporaryPasswordInput input, HubDbContext db, UserContext me, UserResolver resolver, IOptions<AuthOptions> o, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             RequireForms(o.Value);
             me.RequireAdministrator();
-            if (id == me.UserId) throw new ValidationException("temporaryPassword", "Use Change password for your own account.");
-            var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct) ?? throw new NotFoundException("The user");
+            me.RequirePermission("AdminUsers:Maintain");
+            var user = await EnsurePasswordResetTargetAuthorityAsync(id, db, me, resolver, ct);
             var check = new Check();
             PasswordPolicy.Check(check, "temporaryPassword", input.TemporaryPassword, user.AccountName);
             check.ThrowIfAny();
@@ -158,7 +174,53 @@ public static partial class AuthEndpoints
             UserResolver.InvalidateAll(cache);
             return Results.NoContent();
         }).WithTags("Administration");
+        api.MapGet("/admin/users/{id:long}/password-reset-availability", async (long id, HubDbContext db, UserContext me, UserResolver resolver, IOptions<AuthOptions> o, CancellationToken ct) =>
+        {
+            RequireForms(o.Value);
+            me.RequireAdministrator();
+            me.RequirePermission("AdminUsers:Maintain");
+            try
+            {
+                await EnsurePasswordResetTargetAuthorityAsync(id, db, me, resolver, ct);
+                return Results.Ok(new { available = true, reason = (string?)null });
+            }
+            catch (ForbiddenException ex)
+            {
+                return Results.Ok(new { available = false, reason = ex.Message });
+            }
+            catch (ValidationException ex)
+            {
+                return Results.Ok(new { available = false, reason = ex.Message });
+            }
+        }).WithTags("Administration");
         MapSignInStatus(api);
+    }
+
+    private static async Task<User> EnsurePasswordResetTargetAuthorityAsync(long id, HubDbContext db, UserContext me, UserResolver resolver, CancellationToken ct)
+    {
+        if (id == me.UserId) throw new ValidationException("temporaryPassword", "Use Change password for your own account.");
+        var user = await db.Users.FirstOrDefaultAsync(u => u.Id == id, ct) ?? throw new NotFoundException("The user");
+        // A reset hands control of the account to the issuer, including when an assigned role is inactive.
+        var target = await resolver.ForUserAsync(id, ct);
+        var assignedAdministrator = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == id && r.AppRole != null &&
+            (r.AppRole.Key == BuiltInRoles.ManagerKey || (r.AppRole.Rights & Right.Administer) == Right.Administer), ct);
+        var activeKeys = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
+        EnsurePasswordResetAuthority(me, target, assignedAdministrator, activeKeys);
+        return user;
+    }
+
+    /// <summary>Issuing a known password permits impersonation, including future changes to effective access.</summary>
+    public static void EnsurePasswordResetAuthority(UserContext actor, ResolvedUser? target, bool assignedAdministrator, IEnumerable<string> activeKeys)
+    {
+        if (target is null || target.AccessRestriction is not null)
+            throw new ForbiddenException("The target's access could not be evaluated safely.");
+        if (assignedAdministrator || target.Rights.HasFlag(Right.Administer))
+            throw new ForbiddenException("Administrator passwords cannot be reset through this endpoint.");
+        if (actor.IsSystem) return;
+        var crossCutting = ResourcePermissions.CrossCutting(BuiltInRoles.All);
+        if (!actor.IsAdministrator || !actor.HasPermission("AdminUsers:Maintain") || !actor.AllClients || !actor.AllInternal ||
+            (actor.Rights & crossCutting) != crossCutting || activeKeys.Any(key => !actor.HasPermission(key)))
+            throw new ForbiddenException("Resetting a password requires all active permissions, cross-cutting rights, and all client and internal scopes.");
     }
 
     private static void MapSignInStatus(RouteGroupBuilder api) =>

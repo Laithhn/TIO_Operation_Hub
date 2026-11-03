@@ -21,6 +21,13 @@ The hub never calls Jira, vaults, client systems or messaging: Jira tickets are 
 | [docs/DESIGN-RULES.md](docs/DESIGN-RULES.md) | Design rules from the reference screenshot, tokens, components, visual comparison |
 | [docs/API.md](docs/API.md) / [docs/openapi-v1.json](docs/openapi-v1.json) | API conventions and full OpenAPI document |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Deployment (IIS + SQL Server), configuration, backup, restore, rollback |
+| [docs/AUTHORIZATION-DISCOVERY.md](docs/AUTHORIZATION-DISCOVERY.md) | Existing authorization architecture, coverage gaps, and rollout risks |
+| [docs/AUTHORIZATION-COVERAGE-MATRIX.md](docs/AUTHORIZATION-COVERAGE-MATRIX.md) | Module-level permission and enforcement inventory |
+| [docs/AUTHORIZATION-ADMIN-GUIDE.md](docs/AUTHORIZATION-ADMIN-GUIDE.md) | Permission registry, role administration, migration, and rollback guide |
+| [docs/AUTHORIZATION-HIERARCHY-2.44.md](docs/AUTHORIZATION-HIERARCHY-2.44.md) | Four-level rights, migration mappings, implementation and validation |
+| [docs/RELEASE-NOTES-2.44.1.md](docs/RELEASE-NOTES-2.44.1.md) | Roles comparison matrix and 2.44.1 deployment notes |
+| [docs/AUTHORIZATION-2.43.md](docs/AUTHORIZATION-2.43.md) | Current Rights editor, dependencies, verification, migration and revocation guarantees |
+| [docs/AUTHORIZATION-CAPABILITY-MATRIX.md](docs/AUTHORIZATION-CAPABILITY-MATRIX.md) | Current 134-key permission inventory and enforcement paths |
 | [docs/TEST-RESULTS.md](docs/TEST-RESULTS.md) | Actual test results and known gaps |
 
 ## Run locally

@@ -59,6 +59,7 @@ public static class ModuleRegistration
         api.MapInventoryEndpoints();
         api.MapCloneEndpoints();
         api.MapRoleEndpoints();
+        api.MapRoleConflictEndpoints();
         api.MapFirewallEndpoints();
         api.MapDeleteEndpoints();
         api.MapCascadeEndpoints();
@@ -80,6 +81,8 @@ public static class ModuleRegistration
         api.MapReportingEndpoints();
         api.MapBuilderEndpoints();
         api.MapAdminEndpoints();
+        api.MapAccessSimulationEndpoints();
+        api.MapUserPermissionOverrideEndpoints();
         return api;
     }
 }

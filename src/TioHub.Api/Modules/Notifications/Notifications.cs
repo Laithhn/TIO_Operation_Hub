@@ -258,6 +258,42 @@ public static class NotificationEndpoints
 {
     public sealed record IdsInput(List<long>? Ids);
 
+    /// <summary>Stored notices must not reveal record content after module or data-scope access is revoked.</summary>
+    public static IQueryable<Notification> VisibleNotifications(HubDbContext db, UserContext me)
+    {
+        var structure = me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View);
+        var cases = me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View);
+        var commitments = me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.View);
+        var contracts = me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.View);
+        var environments = me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View);
+        var servers = me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View);
+        var teams = me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View);
+        var other = me.HasPermission(ResourcePermissions.Other, ResourcePermissions.View);
+        var projects = me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View);
+        var reports = CapabilityPermissions.ReadableReports(me);
+        var allClients = me.AllClients;
+        var clientIds = me.ClientIds;
+        var allTeams = me.AllInternal;
+        var teamIds = me.TeamIds;
+        var fingerprint = Modules.Reporting.ExportAccessFingerprint.For(me);
+        return db.Notifications.Where(n => n.UserId == me.UserId && n.Link != null && (
+            structure && db.Clients.Any(c => (allClients || clientIds.Contains(c.Id)) && n.Link == "/clients/" + c.Id.ToString())
+            || structure && db.Regions.Any(r => n.Link == "/regions/" + r.Id.ToString())
+            || projects && db.Projects.Any(p => n.Link == "/projects/" + p.Id.ToString())
+            || cases && db.Cases.Any(c => n.Link == "/cases/" + c.Id.ToString())
+            || commitments && db.Commitments.Any(c => n.Link == "/commitments/" + c.Id.ToString())
+            || contracts && db.Contracts.Any(c => n.Link == "/contracts/" + c.Id.ToString())
+            || environments && db.Environments.Any(e => n.Link == "/environments/" + e.Id.ToString())
+            || servers && db.Assets.Any(a => n.Link == "/assets/" + a.Id.ToString())
+            || teams && db.Teams.Any(t => (allTeams || teamIds.Contains(t.Id)) && n.Link == "/teams/" + t.Id.ToString())
+            || teams && n.Link == "/handovers" && db.Handovers.Any(h => n.Key.StartsWith("handover:" + h.Id.ToString() + ":"))
+            || other && db.Escalations.Any(e => n.Link == "/escalations/" + e.Id.ToString())
+            || (n.Link.StartsWith("/reporting-center") || n.Link.StartsWith("/reports"))
+                && db.ExportJobs.Any(j => j.UserId == me.UserId && j.AccessFingerprint == fingerprint && reports.Contains(j.Report)
+                    && (j.Source != "Schedule" || j.Status == Modules.Reporting.ExportStatus.Completed)
+                    && n.Link.EndsWith("export=" + j.Id.ToString()))));
+    }
+
     public static void MapNotificationEndpoints(this RouteGroupBuilder api)
     {
         var g = api.MapGroup("/notifications").WithTags("Notifications");
@@ -267,7 +303,7 @@ public static class NotificationEndpoints
         g.MapGet("", async (bool? unread, string? category, string? severity, string? state, string? q, string? sort, int? page, int? pageSize, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var uid = me.UserId ?? throw new ForbiddenException("Sign in to see notifications.");
-            var query = db.Notifications.AsNoTracking().Where(n => n.UserId == uid);
+            var query = VisibleNotifications(db, me).AsNoTracking();
             if (unread == true) query = query.Where(n => n.ReadAt == null && n.ResolvedAt == null);
             // A50: the Payments tab — payment reminders by their key, so notices written before the PaymentOverdue kind are included.
             if (category == "payments") query = query.Where(n => n.Key.StartsWith("payment-"));
@@ -299,7 +335,7 @@ public static class NotificationEndpoints
                 : query.OrderByDescending(n => n.CreatedAt).ThenByDescending(n => n.Id);
             var paged = await ordered.Select(n => new { n.Id, n.Kind, n.Title, n.Body, n.Link, n.CreatedAt, n.ReadAt, n.ResolvedAt }).ToPagedAsync(PageQuery.From(page, pageSize ?? 20), ct);
             // One grouped query for the counters of the tabs (no query per notice).
-            var counts = await db.Notifications.Where(n => n.UserId == uid && n.ResolvedAt == null)
+            var counts = await VisibleNotifications(db, me).Where(n => n.ResolvedAt == null)
                 .GroupBy(n => 1).Select(x => new
                 {
                     unread = x.Count(n => n.ReadAt == null),
@@ -314,10 +350,10 @@ public static class NotificationEndpoints
             return Results.Ok(new { items, paged.Page, paged.PageSize, paged.TotalCount, unreadCount = counts?.unread ?? 0, criticalCount = counts?.critical ?? 0, unreadPayments = counts?.unreadPayments ?? 0 });
         });
         g.MapGet("/unread-count", async (HubDbContext db, UserContext me, CancellationToken ct) =>
-            Results.Ok(new { count = me.UserId is { } uid ? await db.Notifications.CountAsync(n => n.UserId == uid && n.ReadAt == null && n.ResolvedAt == null, ct) : 0 }));
+            Results.Ok(new { count = me.UserId is not null ? await VisibleNotifications(db, me).CountAsync(n => n.ReadAt == null && n.ResolvedAt == null, ct) : 0 }));
         g.MapPost("/{id:long}/read", async (long id, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
-            await db.Notifications.Where(n => n.Id == id && n.UserId == me.UserId && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
+            await VisibleNotifications(db, me).Where(n => n.Id == id && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
             return Results.NoContent();
         });
         // A72: several notices at once (a group in the pop-up); only the caller's own rows are touched, others are ignored.
@@ -325,17 +361,17 @@ public static class NotificationEndpoints
         {
             var ids = (input.Ids ?? []).Distinct().ToList();
             if (ids.Count == 0 || ids.Count > 500) throw new ValidationException("ids", "Send between 1 and 500 notification ids.");
-            var n = await db.Notifications.Where(n => ids.Contains(n.Id) && n.UserId == me.UserId && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
+            var n = await VisibleNotifications(db, me).Where(n => ids.Contains(n.Id) && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
             return Results.Ok(new { marked = n });
         });
         g.MapPost("/read-all", async (HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
-            await db.Notifications.Where(n => n.UserId == me.UserId && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
+            await VisibleNotifications(db, me).Where(n => n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
             return Results.NoContent();
         });
         g.MapDelete("/{id:long}", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            await db.Notifications.Where(n => n.Id == id && n.UserId == me.UserId).ExecuteDeleteAsync(ct);
+            await VisibleNotifications(db, me).Where(n => n.Id == id).ExecuteDeleteAsync(ct);
             return Results.NoContent();
         });
     }

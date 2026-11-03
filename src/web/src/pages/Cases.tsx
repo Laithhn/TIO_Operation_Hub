@@ -1,4 +1,7 @@
+import { canViewTab, hasPermission } from '../permissions';
+import { usePermittedTab } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
@@ -47,7 +50,7 @@ export function CaseList() {
   return (
     <>
       <PageHead title="Cases" sub="Hub management records. Status is independent of any Jira ticket; Unassigned is an ownership gap, not a status."
-        actions={<>{me.grants.export && <button className="btn" onClick={() => exportCsv('cases', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/cases/new">+ New Case</Link>}</>} />
+        actions={<>{canExportReport(me, 'cases') && <button className="btn" onClick={() => exportCsv('cases', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/cases/new">+ New Case</Link>}</>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
@@ -179,7 +182,7 @@ export function CaseForm() {
     f.set('contractId', active.length === 1 ? String(active[0].id) : '');
   }, [contracts.data, cid]); // eslint-disable-line react-hooks/exhaustive-deps
   const save = async () => {
-    const affected = { ...v.affected, unknownEnvironmentReason: v.affected.unknownEnvironmentReason || null };
+    const affected = isNew || canViewTab(me, 'Cases', 'affected') ? { ...v.affected, unknownEnvironmentReason: v.affected.unknownEnvironmentReason || null } : null;
     const r = await f.submit(async () => {
       if (isNew) return post<{ id: number }>('/cases', { title: v.title, type: v.type || null, scope: v.scope, clientId: cid, responsibleTeamId: toNum(v.responsibleTeamId), impactSummary: v.impactSummary, priority: v.priority,
         ownerUserId: v.ownerUserId, backupOwnerUserId: v.backupOwnerUserId, responsibleParty: v.responsibleParty, responsibleOrganization: v.responsibleOrganization, coordinatorUserId: v.coordinatorUserId,
@@ -215,7 +218,7 @@ export function CaseForm() {
           <TextInput label={`Next review (${me.timeZone})`} required type="datetime-local" value={v.nextReviewAt} onChange={x => f.set('nextReviewAt', x)} error={f.fieldError('nextReviewAt')} />
           {isNew && <TextInput label="Due (optional)" type="datetime-local" value={v.dueLocal} onChange={x => f.set('dueLocal', x)} error={f.fieldError('dueLocal')} hint="Without a deadline the case is listed separately, never as overdue." />}
           {isNew && v.dueLocal && <TimeZoneSelect label="Due time zone" required value={v.dueTimeZone} onChange={x => f.set('dueTimeZone', x)} error={f.fieldError('dueTimeZone')} />}
-          <AffectedPicker clientId={cid} value={v.affected} onChange={x => f.set('affected', x)} error={f.fieldError('affected.environmentIds') ?? f.fieldError('affected.assetIds')} />
+          {(isNew || canViewTab(me, 'Cases', 'affected')) && <AffectedPicker clientId={cid} value={v.affected} onChange={x => f.set('affected', x)} error={f.fieldError('affected.environmentIds') ?? f.fieldError('affected.assetIds')} />}
           {!isNew && <TextInput label="Change note (kept in the timeline)" wide value={v.changeNote} onChange={x => f.set('changeNote', x)} />}
         </div>
         <p className="hint" style={{ marginTop: 8 }}>Jira tickets are created and updated in Jira by staff; the hub stores manual references only.{!isNew && ' Change the owner, due date or status with the actions on the case page.'}</p>
@@ -226,16 +229,17 @@ export function CaseForm() {
 }
 
 export function CaseDetail() {
+  const [tab, setTab, allowedTabs] = usePermittedTab('Cases', ['timeline', 'affected', 'jira', 'impact', 'commitments', 'escalations', 'files', 'history']);
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['case', id], queryFn: () => get<CaseDto>(`/cases/${id}`) });
-  const impact = useQuery({ queryKey: ['impact', id], queryFn: () => get<{ label: string; installations: { id: number; instanceName: string; product: string; environment: string; client: string }[]; clients: { id: number; code: string }[]; components: { id: number; name: string; role: string }[]; firewallRules: { id: number; purpose: string; source: string; destination: string; ports?: string; protocol: string }[] }>(`/cases/${id}/impact`) });
+  const impact = useQuery({ queryKey: ['impact', id], queryFn: () => get<{ label: string; installations: { id: number; instanceName: string; product: string; environment: string; client: string }[]; clients: { id: number; code: string }[]; components: { id: number; name: string; role: string }[]; firewallRules: { id: number; purpose: string; source: string; destination: string; ports?: string; protocol: string }[] }>(`/cases/${id}/impact`), enabled: allowedTabs.includes('impact') });
   const me = useMe().data!;
   const canCoordinate = usePermission('Cases', 'Coordinate');
   const canCreateEscalation = usePermission('OtherOperations', 'Create');
   const canCreateCommitment = usePermission('Commitments', 'Create');
   const teams = useTeamOptions();
-  const [tab, setTab] = useState('timeline');
+
   const [dialog, setDialog] = useState<string | null>(null);
   const c = q.data;
   const p = c?.permissions;
@@ -285,7 +289,7 @@ export function CaseDetail() {
         </Panel>
       </div>
       {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open} canChangeContract={canCoordinate} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
-      <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }]} />
+      <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
       {tab === 'escalations' && <Panel title="Escalations about this case" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
       {tab === 'timeline' && <Panel title="Timeline"><ul className="timeline">{c.events.map(e => <li key={e.id}><b>{label(e.type)}</b>{(e.fromValue || e.toValue) && <> {e.fromValue ?? '—'} → {e.toValue ?? '—'}</>}{e.note && <> — {e.note}</>}<div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul></Panel>}
       {tab === 'affected' && <Panel title="Affected records">
@@ -296,13 +300,13 @@ export function CaseDetail() {
           ['Components', c.components.length ? c.components.map(x => <div key={x.id}>{x.name} ({x.installation})</div>) : <span className="muted">None</span>],
         ]} />
       </Panel>}
-      {tab === 'jira' && <Panel title="Manual Jira references" actions={p.canEdit && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
+      {tab === 'jira' && <Panel title="Manual Jira references" actions={p.canEdit && hasPermission(me, 'tab.Cases.jira', 'Create') && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
         <p className="hint" style={{ marginBottom: 8 }}>Customer Cloud Jira and Internal On-prem Jira are disconnected. The hub never creates, reads or synchronizes tickets; status here is managed separately.</p>
         {c.jiraReferences.length === 0 ? <StateMessage kind="none" /> : <DataTable caption="Manual Jira references" rows={c.jiraReferences} rowKey={j => j.id} columns={[
           { key: 'instance', header: 'Instance', render: j => j.instance }, { key: 'key', header: 'Key', render: j => <span className="mono">{j.issueKey}</span> },
           { key: 'link', header: 'Link', render: j => <a href={j.url} target="_blank" rel="noopener noreferrer">{j.url}</a> },
-          { key: 'reason', header: 'Reuse reason', render: j => j.reuseReason },
-          { key: 'actions', header: '', render: j => p.canEdit && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
+          { key: 'reason', header: 'Link reason', render: j => j.reuseReason },
+          { key: 'actions', header: '', render: j => p.canEdit && hasPermission(me, 'tab.Cases.jira', 'Delete') && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
         ]} />}
         {c.removedJiraReferences.length > 0 && <p className="hint" style={{ marginTop: 8 }}>Removed (kept in history): {c.removedJiraReferences.map(j => `${j.instance} ${j.issueKey}`).join(', ')}</p>}
       </Panel>}
@@ -432,7 +436,7 @@ function JiraDialog({ caseId, onClose }: { caseId: number; onClose: () => void }
   const ref = useReference().data;
   const f = useForm({ jiraInstanceId: '', issueKey: '', url: '', reuseReason: '' });
   const key = useDebounced(f.values.issueKey.trim().toUpperCase());
-  const reuse = useQuery({ queryKey: ['reuse', f.values.jiraInstanceId, key], queryFn: () => get<{ reused: boolean; visible: { id: number; ref: string; title: string }[]; hiddenCount: number }>(`/jira/reuse${qs({ instanceId: f.values.jiraInstanceId, key, exceptCaseId: caseId })}`), enabled: !!f.values.jiraInstanceId && key.length > 2 });
+  const reuse = useQuery({ queryKey: ['reuse', f.values.jiraInstanceId, key], queryFn: () => get<{ reused: boolean; visible: { id: number; ref: string; title: string }[] }>(`/jira/reuse${qs({ instanceId: f.values.jiraInstanceId, key, exceptCaseId: caseId })}`), enabled: !!f.values.jiraInstanceId && key.length > 2 });
   const instance = ref?.jiraInstances.find(j => String(j.id) === f.values.jiraInstanceId);
   const toast = useToast();
   const refresh = useRefresh();
@@ -448,8 +452,8 @@ function JiraDialog({ caseId, onClose }: { caseId: number; onClose: () => void }
         <SelectInput label="Jira instance" required value={f.values.jiraInstanceId} onChange={v => f.set('jiraInstanceId', v)} options={(ref?.jiraInstances ?? []).filter(j => j.isActive).map(j => ({ value: String(j.id), label: j.name }))} error={f.fieldError('jiraInstanceId')} />
         <TextInput label="Issue key" required value={f.values.issueKey} onChange={v => f.set('issueKey', v.toUpperCase())} error={f.fieldError('issueKey')} placeholder="ABC-123" />
         <TextInput label="Ticket URL" required wide value={f.values.url} onChange={v => f.set('url', v)} error={f.fieldError('url')} hint={instance?.approvedHost ? `Must be https://${instance.approvedHost}/… and name the same key.` : 'No approved host configured for this instance.'} />
-        {reuse.data?.reused && <div className="wide notice warn">This instance and key are already linked to {reuse.data.visible.map(v => <span key={v.id}><Link to={`/cases/${v.id}`}>{v.ref}</Link> </span>)}{reuse.data.hiddenCount > 0 && <>{reuse.data.visible.length ? 'and ' : ''}{reuse.data.hiddenCount} case(s) you cannot access</>}. Explain the reuse.</div>}
-        {(reuse.data?.reused || f.fieldError('reuseReason')) && <TextInput label="Reuse reason" required wide value={f.values.reuseReason} onChange={v => f.set('reuseReason', v)} error={f.fieldError('reuseReason')} />}
+        {reuse.data?.reused && <div className="wide notice warn">This instance and key are already linked to {reuse.data.visible.map(v => <span key={v.id}><Link to={`/cases/${v.id}`}>{v.ref}</Link> </span>)}.</div>}
+        <TextInput label="Reason for linking this issue" required wide value={f.values.reuseReason} onChange={v => f.set('reuseReason', v)} error={f.fieldError('reuseReason')} />
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Add reference</button></div>
     </Dialog>

@@ -46,9 +46,13 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
 {
     public UserContext Me => me;
 
+    /// <summary>Whether an active account can be assigned before a new record has a scope.</summary>
+    public async Task<bool> HasAssignableAccessAsync(long? userId, CancellationToken ct) =>
+        userId is { } id && (await resolver.ForUserAsync(id, ct))?.HasAccess == true;
+
     public void RequireBusiness()
     {
-        if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business role, so it cannot see client or internal records.");
+        if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business access, so it cannot see client or internal records.");
     }
 
     /// <summary>TIO Manager actions: client structure (clients, regions, projects), archive/restore, triage, assignment, handovers.</summary>
@@ -85,14 +89,14 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
         me.RequirePermission(resource, ResourcePermissions.Maintain);
     }
 
-    /// <summary>Validates an assignee/owner: exists, active, has a business role and can access the record's scope.</summary>
+    /// <summary>Validates an assignee/owner: exists, is active, has access and can access the record's scope.</summary>
     public async Task CheckAssignableAsync(Check check, string field, long? userId, long? clientId, long? teamId, string label, CancellationToken ct, long? environmentId = null)
     {
         if (userId is null) return;
         var u = await resolver.ForUserAsync(userId.Value, ct);
         if (u is null) { check.Add(field, $"Select an existing person as {label}."); return; }
         if (!u.IsActive) { check.Add(field, $"{u.DisplayName} is deactivated and cannot be {label}."); return; }
-        var business = u.Roles.Length > 0;
+        var business = u.HasAccess;
         var inScope = business && (clientId is { } c
             ? u.AllClients || u.ClientIds.Contains(c) || (environmentId is { } e && u.ProjectEnvironmentIds.Contains(e))
             : u.AllInternal || (teamId is { } t && u.TeamIds.Contains(t)));

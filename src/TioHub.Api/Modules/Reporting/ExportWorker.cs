@@ -35,7 +35,7 @@ public static class ReportingMetrics
 /// A70: runs queued builder exports (Queued → Processing → Completed | Failed | Cancelled). Each job is claimed with a conditional
 /// update, so several servers never run the same job; at most <see cref="ReportingOptions.ExportConcurrency"/> run at once here.
 /// The requester's access is resolved again when the job runs — interactive jobs with the directory groups of their last sign-in,
-/// scheduled jobs with directly assigned access only (as the A62 scheduler) — so a file never holds more than that user may see now.
+/// scheduled jobs with directly assigned access only, after conservatively checking possible directory restrictions.
 /// </summary>
 public sealed class ExportWorker(IServiceScopeFactory scopes, IOptions<ReportingOptions> options, ExportQueue queue, ILogger<ExportWorker> log) : BackgroundService
 {
@@ -123,10 +123,19 @@ public sealed class ExportWorker(IServiceScopeFactory scopes, IOptions<Reporting
             var user = await db.Users.AsNoTracking().Include(u => u.Roles).Include(u => u.Scopes).FirstOrDefaultAsync(u => u.Id == job.UserId, stop);
             if (user is null || !user.IsActive) throw new Refused("The requester is not an active hub user.");
             var resolved = job.Source == "Schedule"
-                ? await AccessCalculator.ComputeAsync(db, user, [], stop)
+                ? await ScheduledExportAccess.ResolveAsync(db, user.Id, clock, stop)
                 : await sp.GetRequiredService<UserResolver>().ForUserAsync(user.Id, stop);
-            if (resolved is null || resolved.Roles.Length == 0 || (resolved.Grants & Grant.Export) != Grant.Export) throw new Refused("The requester no longer has the Export permission.");
+            if (resolved is null || !resolved.HasAccess || (resolved.Grants & Grant.Export) != Grant.Export) throw new Refused("The requester no longer has the Export permission.");
             sp.GetRequiredService<UserContext>().Set(resolved);
+            sp.GetRequiredService<UserContext>().RequirePermission("ReportBuilder:Export");
+            CapabilityPermissions.RequireReportExport(sp.GetRequiredService<UserContext>(), "cases-builder");
+            // A queued user request also retains filter labels from the access that created it.
+            // Never associate those labels with a newer, narrower scope after a queued delay.
+            var requester = sp.GetRequiredService<UserContext>();
+            if (job.Source != "Schedule" && !ExportAccessFingerprint.IsCurrent(job.AccessFingerprint, requester))
+                throw new Refused("Your access changed after this export was requested. Create a new report.");
+            // Schedules are generated under the recipient's access, captured before any data is read.
+            job.AccessFingerprint = ExportAccessFingerprint.For(requester);
 
             // ---- the definition, validated again under that access ----
             var svc = sp.GetRequiredService<CasesReportService>();

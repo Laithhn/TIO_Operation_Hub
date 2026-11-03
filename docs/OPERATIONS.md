@@ -65,6 +65,28 @@ Schema changes in later releases: developers add an EF Core migration and regene
 - Condition and case-status configuration rows are seeded by the application. Administrators can change their display labels; their codes and workflow meaning stay fixed.
 - Production remains `Database__ApplyMigrationsOnStartup=false`. A DBA applies the schema script before the application files, following the backup and rollback procedure above.
 
+### Four-level permissions (2.44.0)
+
+Review `database/03-permission-hierarchy-review.sql` against the intended database, take the deployment backup, then apply the included `database/01-schema.sql` before deploying 2.44.0. `20261102110000_HierarchicalPermissions` adds real parent relationships, node types and display ordering to the existing permission registry, and records one-time compatibility grants in access audit. Keep production startup migrations disabled. The preceding ProjectPermissions migration is included as well.
+
+See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` for assignment semantics, source dependencies, legacy shared-source review and rollback. No database migration is applied by building the production ZIP.
+
+### Access control scope and direct exceptions (pending validation)
+
+The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
+
+### Roles comparison UI (2.44.1)
+
+The Roles page adds a read-only permission comparison matrix and links into the existing Rights editor. This patch adds no migration beyond the 2.44.0 schema. Installations already on 2.44.0 need only the application package; installations upgrading from earlier versions must still follow the four-level permission migration procedure above before replacing application files.
+
+### Permission registry (2026-10-30)
+
+- Release 2.43 also requires `20261030080145_GranularAuthorization`: apply the updated schema before deploying. It adds the shared authorization generation, preserves legacy visibility/file/export grants once, and records those grants in audit. New roles then start with no grants. See `AUTHORIZATION-2.43.md` for the editor, dependencies, multi-instance revocation guarantees and rollback limits.
+
+- Migration `PermissionRegistry` adds `iam.PermissionDefinition`, a metadata catalog for the stable A63 resource/action permission keys. It does not rewrite `iam.AppRolePermission` assignments.
+- The application synchronizes metadata from its explicit permission manifest after schema-readiness validation. New entries are inserted, current entries updated, and removed manifest keys retained as inactive; inactive keys stop appearing in effective permission snapshots. Role assignments are retained for review or rollback.
+- Review and apply the regenerated `database/01-schema.sql` through the DBA procedure before deploying the matching application. Do not enable production startup migrations. See `AUTHORIZATION-ADMIN-GUIDE.md` for verification and rollback instructions.
+
 ### Optional organizational structures (A64)
 
 Apply OptionalOrganizationGraph before deploying the matching application. It creates canonical organization identities for existing clients (including archived clients), adds independent organizations and contextual edges, and preserves all client records/IDs. It does not infer contractor relationships or alter existing sub-client grouping. OrganizationRelationshipType is an extensible configuration list. See ORGANIZATION-HIERARCHY.md for endpoints, limits, concurrency and access rules. Graph responses retain archived participants for authorized cleanup; new links to archived clients are refused.

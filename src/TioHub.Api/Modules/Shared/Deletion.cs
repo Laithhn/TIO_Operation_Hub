@@ -5,6 +5,7 @@ using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Clients;
+using TioHub.Api.Modules.Teams;
 using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Shared;
@@ -16,6 +17,12 @@ namespace TioHub.Api.Modules.Shared;
 /// </summary>
 public static partial class Deletion
 {
+    /// <summary>Deleting a client-wide record needs the entire client, not the summary visibility conferred by a project.</summary>
+    public static void RequireWholeClientScope(UserContext me, long clientId)
+    {
+        if (!me.HasClient(clientId)) throw new NotFoundException("The record");
+    }
+
     private static readonly Dictionary<string, string> TableNames = new(StringComparer.OrdinalIgnoreCase)
     {
         ["Environment"] = "environments", ["Asset"] = "servers", ["Installation"] = "installations", ["Component"] = "components", ["ComponentHost"] = "server–component links",
@@ -34,6 +41,7 @@ public static partial class Deletion
     /// deletes <paramref name="entity"/> and commits — or rolls everything back and explains what still uses the record.</summary>
     public static async Task<IResult> RunAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, object entity, string recordType, long id, string label, Func<Task>? removeOwned, CancellationToken ct)
     {
+        PermissionHierarchy.RequireRecordSection(me, recordType, "Delete");
         if (recordType == "LookupValue") me.RequireAdministrator();
         else me.RequirePermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.Delete);
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
@@ -81,7 +89,7 @@ public static partial class Deletion
         api.MapDelete("/clients/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>
         {
             var x = await Load(db.Clients.IgnoreQueryFilters(archive).Where(c => c.Id == id), "The client", ct);
-            Scope(access, x.Id);
+            RequireWholeClientScope(access.Me, x.Id);
             return await RunAsync(db, files, access.Me, x, RecordTypes.Client, id, $"Client {x.Code}", async () =>
                 await db.ClientTeamMembers.Where(t => t.ClientId == id).ExecuteDeleteAsync(ct), ct);
         }).WithTags("Delete");
@@ -101,7 +109,8 @@ public static partial class Deletion
         api.MapDelete("/contracts/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>
         {
             var x = await Load(db.Contracts.IgnoreQueryFilters(archive).Where(c => c.Id == id), "The contract", ct);
-            Scope(access, x.ClientId);
+            // Contract coverage can include environments belonging to other projects of this client.
+            RequireWholeClientScope(access.Me, x.ClientId);
             return await RunAsync(db, files, access.Me, x, RecordTypes.Contract, id, $"Contract {x.Ref}", async () =>
             {
                 await db.SlaTargets.Where(t => t.ContractId == id).ExecuteDeleteAsync(ct);
@@ -165,7 +174,9 @@ public static partial class Deletion
         api.MapDelete("/cases/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>
         {
             var x = await Load(db.Cases.Where(c => c.Id == id), "The case", ct);
-            if (x.ClientId is { } cid) Scope(access, cid);
+            // A visible case may link to environments outside the caller's project. Deletion
+            // removes the whole case and its links, not just the visible portion.
+            if (x.ClientId is { } cid) RequireWholeClientScope(access.Me, cid);
             return await RunAsync(db, files, access.Me, x, RecordTypes.Case, id, $"Case {x.Ref}", async () =>
             {
                 await db.CaseEnvironments.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
@@ -193,7 +204,7 @@ public static partial class Deletion
         // Owner request (20 Oct 2026): teams can be deleted; their member list goes with them.
         api.MapDelete("/teams/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>
         {
-            var x = await Load(db.Teams.Where(t => t.Id == id), "The team", ct);
+            var x = await Load(TeamEndpoints.VisibleTeams(db.Teams, access.Me).Where(t => t.Id == id), "The team", ct);
             return await RunAsync(db, files, access.Me, x, "Team", id, $"Team {x.Code}", async () =>
                 await db.TeamMembers.Where(m => m.TeamId == id).ExecuteDeleteAsync(ct), ct);
         }).WithTags("Delete");
@@ -204,9 +215,9 @@ public static partial class Deletion
             var x = await Load(db.LookupValues.Where(l => l.Id == id), "The value", ct);
             if (LookupLists.IsFixedWorkflowLabel(x.ListName))
                 throw new ValidationException("record", "Condition and case-status values are fixed; only their display labels can be changed.");
-            var used = (await LookupUsage.CountsAsync(db, x.ListName, ct)).GetValueOrDefault(x.Code);
-            if (used > 0) throw new ConflictException($"{x.Label} is used by {used} record(s). Change those records first, or retire it so it is no longer offered.",
-                new() { ["record"] = [$"Used by {used} record(s)."] });
+            var used = (await LookupUsage.CountsAsync(db, x.ListName, ct, scoped: false)).GetValueOrDefault(x.Code);
+            if (used > 0) throw new ConflictException($"{x.Label} is used by existing records. Change those records first, or retire it so it is no longer offered.",
+                new() { ["record"] = ["This value is in use."] });
             if (LookupLists.Categories.ContainsKey(x.ListName) && !await db.LookupValues.AnyAsync(l => l.ListName == x.ListName && l.Id != id && !l.IsRetired, ct))
                 throw new ValidationException("record", "Keep at least one active value in this list.");
             return await RunAsync(db, files, me, x, "LookupValue", id, $"{x.Label}", null, ct);
@@ -217,26 +228,37 @@ public static partial class Deletion
 /// <summary>How many records use each value of a configuration list (A34/A37).</summary>
 public static class LookupUsage
 {
-    public static async Task<Dictionary<string, int>> CountsAsync(HubDbContext db, string list, CancellationToken ct)
+    /// <summary>Include archived rows while retaining data scope for usage shown to an administrator.</summary>
+    public static IQueryable<T> Records<T>(DbSet<T> source, bool scoped) where T : class => scoped
+        ? source.IgnoreQueryFilters([HubDbContext.ArchiveFilter]) : source.IgnoreQueryFilters();
+
+    /// <summary>Use the current user's scope for visible usage; unscoped counts are reserved for deletion safety checks.</summary>
+    public static async Task<Dictionary<string, int>> CountsAsync(HubDbContext db, string list, CancellationToken ct, bool scoped = true)
     {
+        var me = db.CurrentUser;
+        var allClients = !scoped || me.IsSystem || me.AllClients;
+        var allTeams = !scoped || me.IsSystem || me.AllInternal;
+        var clientIds = me.ClientIds;
+        var teamIds = me.TeamIds;
+        var escalations = Records(db.Escalations, scoped);
         var rows = list switch
         {
-            LookupLists.OrganizationRelationshipType => await db.OrganizationRelationships.IgnoreQueryFilters().Where(x => x.RelationshipType != null).GroupBy(x => x.RelationshipType!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.EnvironmentType => await db.Environments.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.AssetType => await db.Assets.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.ContractType => await db.Contracts.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.CaseType => await db.Cases.IgnoreQueryFilters().GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.AssetRole => await db.Assets.IgnoreQueryFilters().Where(x => x.Role != null).GroupBy(x => x.Role!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.NetworkZone => await db.Assets.IgnoreQueryFilters().Where(x => x.NetworkZone != null).GroupBy(x => x.NetworkZone!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.OsFamily => await db.Assets.IgnoreQueryFilters().Where(x => x.OsFamily != null).GroupBy(x => x.OsFamily!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.ProjectPhase => await db.Assets.IgnoreQueryFilters().Where(x => x.ProjectPhase != null).GroupBy(x => x.ProjectPhase!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.ComponentRole => await db.Components.IgnoreQueryFilters().GroupBy(x => x.Role).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.BoundaryArea => await db.Boundaries.IgnoreQueryFilters().GroupBy(x => x.Area).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.TeamRole => await db.ClientTeamMembers.GroupBy(x => x.Role).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
-            LookupLists.TeamMemberRole => await db.TeamMembers.Where(x => x.TeamRole != null).GroupBy(x => x.TeamRole!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.OrganizationRelationshipType => await Records(db.OrganizationRelationships, scoped).Where(x => x.RelationshipType != null).GroupBy(x => x.RelationshipType!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.EnvironmentType => await Records(db.Environments, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.AssetType => await Records(db.Assets, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.ContractType => await Records(db.Contracts, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.CaseType => await Records(db.Cases, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.AssetRole => await Records(db.Assets, scoped).Where(x => x.Role != null).GroupBy(x => x.Role!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.NetworkZone => await Records(db.Assets, scoped).Where(x => x.NetworkZone != null).GroupBy(x => x.NetworkZone!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.OsFamily => await Records(db.Assets, scoped).Where(x => x.OsFamily != null).GroupBy(x => x.OsFamily!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.ProjectPhase => await Records(db.Assets, scoped).Where(x => x.ProjectPhase != null).GroupBy(x => x.ProjectPhase!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.ComponentRole => await Records(db.Components, scoped).GroupBy(x => x.Role).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.BoundaryArea => await Records(db.Boundaries, scoped).GroupBy(x => x.Area).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.TeamRole => await db.ClientTeamMembers.Where(x => allClients || clientIds.Contains(x.ClientId)).GroupBy(x => x.Role).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.TeamMemberRole => await db.TeamMembers.Where(x => (allTeams || teamIds.Contains(x.TeamId)) && x.TeamRole != null).GroupBy(x => x.TeamRole!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             // An escalation channel counts where an escalation or a logged communication uses it.
-            LookupLists.EscalationChannel => (await db.Escalations.IgnoreQueryFilters().Select(x => x.Channel)
-                    .Concat(db.EscalationEvents.Where(x => x.Channel != null && x.Type == Escalations.EscalationEventType.Communication).Select(x => x.Channel!)).ToListAsync(ct))
+            LookupLists.EscalationChannel => (await escalations.Select(x => x.Channel)
+                    .Concat(db.EscalationEvents.Where(x => x.Channel != null && x.Type == Escalations.EscalationEventType.Communication && escalations.Any(e => e.Id == x.EscalationId)).Select(x => x.Channel!)).ToListAsync(ct))
                 .GroupBy(x => x).Select(x => new { code = x.Key, n = x.Count() }).ToList(),
             _ => []
         };

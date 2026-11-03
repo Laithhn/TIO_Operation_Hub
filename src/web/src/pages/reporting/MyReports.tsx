@@ -1,3 +1,4 @@
+import { usePermission } from '../../hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -15,6 +16,9 @@ type Row = { id: number; name: string; description?: string | null; visibility: 
   updatedAt: string; lastRunAt?: string | null; schedules: number; shares: number };
 
 export function MyReports() {
+  const canCreate = usePermission('SavedReports', 'Create');
+  const canMaintain = usePermission('SavedReports', 'Maintain');
+  const canDelete = usePermission('SavedReports', 'Delete');
   const toast = useToast();
   const nav = useNavigate();
   const qc = useQueryClient();
@@ -37,7 +41,7 @@ export function MyReports() {
       </div>
       <DataTable<Row> caption="Saved reports" rows={list.data} loading={list.isLoading} error={list.error} rowKey={r => r.id} tools={false} empty={term || scope ? 'nomatch' : 'none'}
         columns={[
-          { key: 'fav', header: <span className="sr">Favorite</span>, render: r => <button className="rc-fav" aria-pressed={r.isFavorite} aria-label={r.isFavorite ? `Remove ${r.name} from favorites` : `Add ${r.name} to favorites`}
+          { key: 'fav', header: <span className="sr">Favorite</span>, render: r => <button disabled={!canMaintain} className="rc-fav" aria-pressed={r.isFavorite} aria-label={r.isFavorite ? `Remove ${r.name} from favorites` : `Add ${r.name} to favorites`}
             onClick={() => act(() => api(`/reporting/report-definitions/${r.id}/favorite`, { method: r.isFavorite ? 'DELETE' : 'PUT' }), r.isFavorite ? 'Removed from favorites.' : 'Added to favorites.')}>{r.isFavorite ? '★' : '☆'}</button> },
           { key: 'name', header: 'Report', priority: 'primary', render: r => <><Link to={`/reporting-center/builder/cases?report=${r.id}`}><b>{r.name}</b></Link>{r.description && <div className="hint">{r.description}</div>}</> },
           { key: 'vis', header: 'Visibility', render: r => <Badge tone={r.visibility === 'Private' ? 'neutral' : 'info'}>{r.visibility === 'Team' ? `Team · ${r.team}` : r.visibility === 'Shared' ? `Shared · ${r.shares}` : 'Private'}</Badge> },
@@ -47,8 +51,8 @@ export function MyReports() {
           { key: 'sched', header: 'Schedules', className: 'num', render: r => r.schedules },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">
             <Link className="linkbtn" to={`/reporting-center/builder/cases?report=${r.id}`}>Open</Link>
-            <button className="linkbtn" onClick={() => act(async () => { const c = await post<{ id: number }>(`/reporting/report-definitions/${r.id}/duplicate`, {}); nav(`/reporting-center/builder/cases?report=${c.id}`); }, 'Report duplicated (private copy).')}>Duplicate</button>
-            {r.isOwner && <button className="linkbtn err" onClick={() => setRemove(r)}>Delete</button>}
+            <button disabled={!canCreate} className="linkbtn" onClick={() => act(async () => { const c = await post<{ id: number }>(`/reporting/report-definitions/${r.id}/duplicate`, {}); nav(`/reporting-center/builder/cases?report=${c.id}`); }, 'Report duplicated (private copy).')}>Duplicate</button>
+            {canDelete && r.isOwner && <button className="linkbtn err" onClick={() => setRemove(r)}>Delete</button>}
           </span> }
         ]} />
       <p className="hint">Opening a shared report runs it with your own access: you see only the cases you may see. Only the owner can change or delete a report.</p>

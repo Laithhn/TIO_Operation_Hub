@@ -23,7 +23,7 @@ public class User : Entity
     public List<UserScope> Scopes { get; set; } = [];
 }
 
-/// <summary>A31: the role a user holds (one per user, chosen in Administration).</summary>
+/// <summary>A role assignment. Users may hold multiple active roles; grants combine before prerequisites are evaluated.</summary>
 public class UserRole
 {
     public long UserId { get; set; }
@@ -38,6 +38,7 @@ public class AppRole : Entity
     public string? Description { get; set; }
     public Right Rights { get; set; }
     public string? Key { get; set; }
+    public bool IsActive { get; set; } = true;
     public bool IsLocked => Key == "Manager";
     public List<RolePermission> Permissions { get; set; } = [];
 }
@@ -49,6 +50,33 @@ public class RolePermission
     public AppRole? AppRole { get; set; }
     public string Resource { get; set; } = "";
     public string Action { get; set; } = "";
+}
+
+/// <summary>An explicit, optionally temporary exception to role-based access.</summary>
+public class UserPermissionOverride
+{
+    public long UserId { get; set; }
+    public string PermissionKey { get; set; } = "";
+    public string Effect { get; set; } = "";
+    public DateTimeOffset? ExpiresAt { get; set; }
+}
+
+/// <summary>Stable, system-managed metadata for a resource/action permission. Role grants remain in RolePermission.</summary>
+public class PermissionDefinition : Entity
+{
+    public string Key { get; set; } = "";
+    public string DisplayName { get; set; } = "";
+    public string Description { get; set; } = "";
+    public string Module { get; set; } = "";
+    public string ResourceType { get; set; } = "";
+    public string? ParentKey { get; set; }
+    public string Action { get; set; } = "";
+    public string RiskLevel { get; set; } = "Normal";
+    public string NodeType { get; set; } = "Action";
+    public int DisplayOrder { get; set; }
+    public bool IsSystemManaged { get; set; } = true;
+    public bool IsActive { get; set; } = true;
+    public bool SupportsScope { get; set; }
 }
 
 /// <summary>One client, project or internal-team scope grant.</summary>

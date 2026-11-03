@@ -139,8 +139,10 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.Equal(HttpStatusCode.Conflict, (await (await hub.NewSession()).Post("/auth/setup", new { setupCode = code, accountName = "x.admin", displayName = "X", password = AdminPw })).Status);
         Assert.False((await (await hub.NewSession()).Get("/auth/config")).Body!["setupRequired"]!.GetValue<bool>());
 
-        // ---- administrator creates a Manager and issues a temporary password; never for themselves ----
-        var managerId = (await admin.Post("/admin/users", NewUser("uat.manager", "Manager"))).Body!["id"]!.GetValue<long>();
+        // ---- administrator issues a temporary password to a non-administrator, never to an administrator ----
+        var managerId = (await admin.Post("/admin/users", NewUser("uat.manager", "Engineer"))).Body!["id"]!.GetValue<long>();
+        var protectedId = (await admin.Post("/admin/users", NewUser("uat.protected", "Manager"))).Body!["id"]!.GetValue<long>();
+        Assert.Equal(HttpStatusCode.Forbidden, (await admin.Post($"/admin/users/{protectedId}/password", new { temporaryPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Post($"/admin/users/{managerId}/password", new { temporaryPassword = "uat.manager-12345" })).Status); // contains the account name
         Assert.Equal(HttpStatusCode.NoContent, (await admin.Post($"/admin/users/{managerId}/password", new { temporaryPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Post($"/admin/users/{me["id"]!.GetValue<long>()}/password", new { temporaryPassword = TempPw })).Status);
@@ -165,7 +167,7 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await mgr.Post("/auth/password", new { currentPassword = TempPw, newPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.NoContent, (await mgr.Post("/auth/password", new { currentPassword = TempPw, newPassword = ManagerPw })).Status);
         Assert.Equal(HttpStatusCode.OK, (await mgr.Get("/clients")).Status);
-        Assert.Equal("Manager", (await mgr.Get("/me")).Body!["businessRole"]!.GetValue<string>());
+        Assert.Equal("Engineer", (await mgr.Get("/me")).Body!["businessRole"]!.GetValue<string>());
 
         // ---- a password change ends the account's other sessions ----
         var other = await hub.NewSession();

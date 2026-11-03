@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { get, post, put } from '../api';
-import { useForm, useMe, useRefresh } from '../hooks';
+import { useForm, useMe, usePermission, useRefresh } from '../hooks';
 import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 import { CONFIG_CATEGORIES, CONFIG_HOME, CONFIG_LISTS, categoryRoute, configCrumbs, configTree, type ConfigKind, type ConfigList } from '../configRegistry';
@@ -75,6 +75,8 @@ export function ConfigCategoryPage() {
 
 /** One configuration list: add, rename, describe, order, retire; shows how many records use each value. */
 export function ConfigListPage() {
+  const canCreate = usePermission('AdminConfig', 'Create');
+  const canMaintain = usePermission('AdminConfig', 'Maintain');
   const { slug } = useParams();
   const cfg = CONFIG_LISTS.find(c => c.slug === slug);
   const q = useValues();
@@ -97,13 +99,13 @@ export function ConfigListPage() {
   return (
     <AdminOnly>
       <PageHead title={cfg.title} crumbs={configCrumbs(cfg.slug)} sub={cfg.about}
-        actions={!cfg.labelOnly && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ Add</button>} />
+        actions={canCreate && !cfg.labelOnly && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ Add</button>} />
       {!cfg.labelOnly && <div className="toolbar"><Checkbox label={`Show retired (${all.filter(r => r.isRetired).length})`} checked={showRetired} onChange={setShowRetired} /></div>}
       <DataTable<Row> rowKey={r => r.id} rows={rows} loading={q.isLoading} error={q.error} caption={cfg.title} columns={[
         ...(cfg.labelOnly ? [{ key: 'code', header: 'Workflow code', render: (r: Row) => <span className="mono">{r.code}</span> }] : [{ key: 'o', header: 'Order', render: (r: Row) => <span className="nowrap order-btns">
-          <button className="linkbtn" aria-label={`Move ${r.label} up`} onClick={() => move(r, -1)} disabled={all.indexOf(r) === 0}>▲</button>
-          <button className="linkbtn" aria-label={`Move ${r.label} down`} onClick={() => move(r, 1)} disabled={all.indexOf(r) === all.length - 1}>▼</button></span> }]),
-        { key: 'n', header: cfg.labelOnly ? 'Display label' : 'Name', render: r => <button className="linkbtn" onClick={() => setEdit(r)}>{r.label}</button> },
+          <button className="linkbtn" aria-label={`Move ${r.label} up`} onClick={() => move(r, -1)} disabled={!canMaintain || all.indexOf(r) === 0}>▲</button>
+          <button className="linkbtn" aria-label={`Move ${r.label} down`} onClick={() => move(r, 1)} disabled={!canMaintain || all.indexOf(r) === all.length - 1}>▼</button></span> }]),
+        { key: 'n', header: cfg.labelOnly ? 'Display label' : 'Name', render: r => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}>{r.label}</button> },
         ...(!cfg.labelOnly ? [{ key: 'd', header: 'Description', render: (r: Row) => r.description ?? <span className="muted">—</span> }] : []),
         ...(cfg.categories ? [{ key: 'c', header: 'Behaves as', render: (r: Row) => <span className="chip">{catLabel(r.category)}</span> }] : []),
         ...(!cfg.labelOnly ? [{ key: 'u', header: `In use (${cfg.usedBy})`, className: 'num', render: (r: Row) => usage.data ? (usage.data[r.code] ?? 0) : '…' }] : []),

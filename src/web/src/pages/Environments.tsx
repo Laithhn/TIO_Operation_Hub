@@ -1,4 +1,7 @@
+import { hasPermission } from '../permissions';
+import { usePermittedTab } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
@@ -7,7 +10,7 @@ import { useEnum, useEnumLabel, useForm, useLeaveGuard, useMe, usePermission, us
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput,
-  StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction } from '../ui/kit';
+  ErrorBox, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { BoundaryPerson, type BoundaryRow } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
@@ -35,7 +38,7 @@ export function EnvironmentList() {
   return (
     <>
       <PageHead title="Environments" crumbs={[{ to: '/clients', label: 'Clients' }, { label: 'Environments' }]} sub="Production in two regions are two distinct environments. Direct-client environments have no region by design."
-        actions={<>{me.grants.export && <button className="btn" onClick={() => exportCsv('environments', exportFilters)}>Export CSV</button>}{canLead && <Link className="btn btn-primary" to="/environments/new">+ New Environment</Link>}</>} />
+        actions={<>{canExportReport(me, 'environments') && <button className="btn" onClick={() => exportCsv('environments', exportFilters)}>Export CSV</button>}{canLead && <Link className="btn btn-primary" to="/environments/new">+ New Environment</Link>}</>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v, regionId: '' })} options={clients} empty="All authorized clients" />
         {f.clientId && (regions.data?.length ?? 0) > 0 && <SelectInput label="Region (optional)" value={f.regionId} onChange={v => set({ regionId: v })} options={(regions.data ?? []).map(r => ({ value: String(r.id), label: `${r.code} · ${r.name}` }))} empty="All" />}
@@ -79,6 +82,8 @@ export function EnvironmentForm() {
   const toast = useToast();
   const refresh = useRefresh();
   const existing = useQuery({ queryKey: ['environment', id], queryFn: () => get<EnvDto>(`/environments/${id}`), enabled: !isNew });
+  const canViewProjects = usePermission('Projects', 'View');
+  const canCoordinateProjects = usePermission('Projects', 'Coordinate');
   const f = useForm({ clientId: sp.get('clientId') ?? '', regionId: sp.get('regionId') ?? '', projectId: '', name: '', type: '', typeDescription: '', hosting: 'Unknown', location: '', criticality: 'Unknown',
     ownerUserId: null as number | null, backupOwnerUserId: null as number | null, backupGapReason: '', responsibleParty: 'TIO', responsibleOrganization: '', coordinatorUserId: null as number | null, description: '', regionChangeReason: '' });
   const [version, setVersion] = useState<string>();
@@ -94,7 +99,7 @@ export function EnvironmentForm() {
   const clients = useClientOptions();
   const cid = f.values.clientId;
   const regions = useQuery({ queryKey: ['regions', cid], queryFn: () => get<{ id: number; code: string; name: string }[]>(`/clients/${cid}/regions`), enabled: !!cid });
-  const projects = useQuery({ queryKey: ['projects-of', cid], queryFn: () => get<Paged<{ id: number; code: string; name: string }>>(`/projects?clientId=${cid}&pageSize=100`), enabled: !!cid });
+  const projects = useQuery({ queryKey: ['projects-of', cid], queryFn: () => get<Paged<{ id: number; code: string; name: string }>>(`/projects?clientId=${cid}&pageSize=100`), enabled: !!cid && canViewProjects });
   const crit = useEnum('Criticality');
   // Owner decision (UAT 19 Oct 2026): hosting is Cloud, On-prem or Unknown; a client with regions has no environments outside them.
   const HOSTING = [{ value: 'OnPrem', label: 'On-prem' }, { value: 'Cloud', label: 'Cloud' }, { value: 'Unknown', label: 'Unknown' }];
@@ -119,8 +124,8 @@ export function EnvironmentForm() {
             empty={hasRegions ? '— Select the region —' : 'This client has no regions (valid)'} error={f.fieldError('regionId')}
             hint={hasRegions ? 'This client has regions, so every environment belongs to one of them.' : 'Environments of a client without regions sit directly under the client.'} />
           {regionChanged && <TextInput label="Reason for region change" required wide value={f.values.regionChangeReason} onChange={v => f.set('regionChangeReason', v)} error={f.fieldError('regionChangeReason')} hint="Region reassignment is audited." />}
-          <SelectInput label="Project" value={f.values.projectId} onChange={v => f.set('projectId', v)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')}
-            hint="Optional: the client project this environment was delivered or is supported under (e.g. an SLA project). Used for project filters and project-scoped access." />
+          {canViewProjects && <SelectInput label="Project" value={f.values.projectId} onChange={v => f.set('projectId', v)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} disabled={!canCoordinateProjects}
+            hint={canCoordinateProjects ? 'Optional: link this environment to the client project it supports.' : 'You can view the project link; changing it needs Projects:Coordinate permission.'} />}
           <TextInput label="Environment name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} hint="Unique within the client + region scope." maxLength={100} />
           <SelectInput label="Type" required value={f.values.type} onChange={v => f.set('type', v)} options={T.options('EnvironmentType', f.values.type)} error={f.fieldError('type')} />
           {f.values.type === 'Other' && <TextInput label="Type description" required value={f.values.typeDescription} onChange={v => f.set('typeDescription', v)} error={f.fieldError('typeDescription')} />}
@@ -151,17 +156,18 @@ type EnvOverview = {
 };
 
 export function EnvironmentDetail() {
+  const [tab, setTab, allowedTabs] = usePermittedTab('Environments', ['apps', 'assets', 'work', 'network', 'conditions', 'files', 'quality', 'history']);
   const T = useTypes();
   const { id } = useParams();
   const env = useQuery({ queryKey: ['environment', id], queryFn: () => get<EnvDto>(`/environments/${id}`) });
-  const ov = useQuery({ queryKey: ['environment-overview', id], queryFn: () => get<EnvOverview>(`/environments/${id}/overview`) });
-  const conds = useQuery({ queryKey: ['conditions', id], queryFn: () => get<{ id: number; condition: string; reason?: string; evidence?: string; observedAt: string; recordedAt: string; recordedBy?: string }[]>(`/environments/${id}/conditions`) });
-  const [tab, setTab] = useState('apps');
+  const ov = useQuery({ queryKey: ['environment-overview', id], queryFn: () => get<EnvOverview>(`/environments/${id}/overview`), enabled: allowedTabs.some(t => ['apps', 'assets', 'work', 'network', 'quality'].includes(t)) });
+  const conds = useQuery({ queryKey: ['conditions', id], queryFn: () => get<{ id: number; condition: string; reason?: string; evidence?: string; observedAt: string; recordedAt: string; recordedBy?: string }[]>(`/environments/${id}/conditions`), enabled: allowedTabs.includes('conditions') });
   const [dialog, setDialog] = useState<string | null>(null);
   const canArchive = usePermission('Environments', 'ArchiveRestore');
   const canCreateServer = usePermission('Servers', 'Create');
   const canCreateInstallation = usePermission('Installations', 'Create');
   const canCreateEnvironment = usePermission('Environments', 'Create');
+  const me = useMe().data;
   const e = env.data;
   const o = ov.data;
   return (
@@ -170,7 +176,7 @@ export function EnvironmentDetail() {
         sub={<>{T.name('EnvironmentType', e.type)}{e.typeDescription && ` (${e.typeDescription})`} · {e.region ? `Region ${e.region.code}` : 'Direct under client'} · <StatusBadge value={e.criticality} /></>}
         actions={<>
           {e.canEdit && <Link className="btn" to={`/environments/${id}/edit`}>Edit</Link>}
-          {e.canEdit && <button className="btn" onClick={() => setDialog('condition')}>Report condition</button>}
+          {e.canEdit && hasPermission(me, 'tab.Environments.conditions', 'Create') && <button className="btn" onClick={() => setDialog('condition')}>Report condition</button>}
           {(canCreateServer || canCreateInstallation) && <Menu label="+ Add" primary items={[
             { label: 'Server', onClick: () => setDialog('asset'), hidden: !canCreateServer },
             { label: 'Installation (product)', onClick: () => setDialog('install'), hidden: !canCreateInstallation }
@@ -200,8 +206,8 @@ export function EnvironmentDetail() {
       <Tabs value={tab} onChange={setTab} tabs={[
         { key: 'apps', label: `Applications (${o?.installations.length ?? '…'})` }, { key: 'assets', label: `Servers & assets (${o?.assets.length ?? '…'})` }, { key: 'work', label: 'Work' },
         { key: 'network', label: `Firewall rules${o ? ` (${o.network.firewallRuleCount})` : ''}` }, { key: 'conditions', label: 'Condition history' }, { key: 'files', label: 'Attachments' }, { key: 'quality', label: 'Data quality' }, { key: 'history', label: 'History' }
-      ]} />
-      {!o && <StateMessage kind="loading" />}
+      ].filter(t => allowedTabs.includes(t.key))} />
+      {ov.error ? <div className="panel-body"><ErrorBox error={ov.error} /></div> : !o && <StateMessage kind="loading" />}
       {o && tab === 'apps' && (o.installations.length === 0 ? <StateMessage kind="none">No application installations recorded.</StateMessage> : o.installations.map(i => (
         <Panel key={i.id} title={<><Link to={`/installations/${i.id}`}>{i.product} · {i.instanceName}</Link>{i.module && <span className="chip"> {i.module}</span>} <span className="chip">{i.version ?? 'Unknown version'}</span></>} pad={false}>
           {i.components.length === 0 ? <div className="panel-body"><StateMessage kind="none">No components recorded.</StateMessage></div> : (
@@ -234,10 +240,10 @@ export function EnvironmentDetail() {
       {e && tab === 'network' && <FirewallRulesPanel environmentId={e.id} clientId={e.client.id} />}
       {tab === 'conditions' && (
         <Panel title="Condition reports (history kept)" pad={false}>
-          <DataTable rowKey={r => r.id} rows={conds.data} loading={conds.isLoading} columns={[
+          {conds.error ? <div className="panel-body"><ErrorBox error={conds.error} /></div> : <DataTable rowKey={r => r.id} rows={conds.data} loading={conds.isLoading} columns={[
             { key: 'o', header: 'Observed', render: r => fmtDateTime(r.observedAt) }, { key: 'c', header: 'Condition', render: r => <StatusBadge value={r.condition} enumName="Condition" /> },
             { key: 'r', header: 'Reason', render: r => r.reason }, { key: 'e', header: 'Evidence / note', render: r => r.evidence }, { key: 'b', header: 'Recorded by', render: r => `${r.recordedBy ?? ''} · ${fmtDateTime(r.recordedAt)}` }
-          ]} />
+          ]} />}
         </Panel>
       )}
       {o && tab === 'quality' && (

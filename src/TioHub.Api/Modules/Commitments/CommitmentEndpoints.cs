@@ -83,7 +83,8 @@ public static class CommitmentEndpoints
             access.RequireBusiness();
             var c = await db.Commitments.AsNoTracking().Include(x => x.Client).Include(x => x.ResponsibleTeam).Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
             var now = DateTimeOffset.UtcNow;
-            var events = await db.CommitmentEvents.AsNoTracking().Where(e => e.CommitmentId == id).OrderBy(e => e.At).ThenBy(e => e.Id)
+            var canHistory = access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.HistoryView) && access.Me.Has(Grant.Audit);
+            var events = await db.CommitmentEvents.AsNoTracking().Where(e => canHistory && e.CommitmentId == id).OrderBy(e => e.At).ThenBy(e => e.Id)
                 .Select(e => new { e.Id, e.Type, e.PreviousDueAt, e.NewDueAt, e.CompletedAt, e.Reason, e.Evidence, e.At, by = e.By == null ? null : e.By.DisplayName }).ToListAsync(ct);
             var caseRef = c.CaseId is null ? null : await db.Cases.AsNoTracking().Where(x => x.Id == c.CaseId).Select(x => new { x.Id, x.Ref, x.Title }).FirstOrDefaultAsync(ct);
             var project = c.ProjectId is null ? null : await db.Projects.AsNoTracking().Where(x => x.Id == c.ProjectId).Select(x => new { x.Id, x.Code, x.Name }).FirstOrDefaultAsync(ct);

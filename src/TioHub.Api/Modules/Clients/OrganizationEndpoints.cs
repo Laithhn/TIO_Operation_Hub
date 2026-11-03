@@ -149,11 +149,19 @@ public static class OrganizationEndpoints
         if (row.ClientId is { } c && !me.HasClient(c)) throw new NotFoundException("The organization");
     }
 
-    public static OrganizationDto Dto(Organization row, UserContext me) => new(row.Id, row.ClientId,
-        row.ClientId != null ? row.Client!.Name : row.Name!, row.ClientId != null ? row.Client!.Code : row.Code,
-        row.Description, row.OrganizationType, row.Email, row.Phone, row.Address, row.Status,
-        Convert.ToBase64String(row.RowVersion), row.ClientId == null && (me.AllClients || me.IsSystem) && me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Maintain),
-        row.Client?.ArchivedAt != null);
+    public static OrganizationDto Dto(Organization row, UserContext me)
+    {
+        // A project grant exposes its parent client's identity for hierarchy navigation,
+        // but does not grant access to the client's organization-wide details.
+        var canViewDetails = row.ClientId is not { } clientId || me.HasClient(clientId);
+        return new(row.Id, row.ClientId,
+            row.ClientId != null ? row.Client!.Name : row.Name!, row.ClientId != null ? row.Client!.Code : row.Code,
+            canViewDetails ? row.Description : null, canViewDetails ? row.OrganizationType : null,
+            canViewDetails ? row.Email : null, canViewDetails ? row.Phone : null,
+            canViewDetails ? row.Address : null, canViewDetails ? row.Status : null,
+            Convert.ToBase64String(row.RowVersion), row.ClientId == null && (me.AllClients || me.IsSystem) && me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Maintain),
+            row.Client?.ArchivedAt != null);
+    }
     private static RelationshipDto Dto(OrganizationRelationship row) => new(row.Id, row.ParentOrganizationId, row.ChildOrganizationId,
         row.RelationshipType, row.Description, row.StartDate, row.EndDate, row.SortOrder, row.IsActive, Convert.ToBase64String(row.RowVersion));
 
@@ -264,6 +272,7 @@ public static class OrganizationEndpoints
     public static async Task AddInitialAsync(Client client, List<InitialRelationshipInput>? input, HubDbContext db, HubAccess access, CancellationToken ct)
     {
         if (input is not { Count: > 0 }) return;
+        access.Me.RequirePermission(PermissionHierarchy.Tab("ClientStructure", "organizations", "Create"));
         access.Me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate);
         if (input.Count > 200) throw new ValidationException("organizationRelationships", "Add at most 200 relationships at initial creation; add more on the client page.");
         await LockContextAsync(client.Id, null, db, ct);

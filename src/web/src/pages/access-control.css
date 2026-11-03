@@ -1,0 +1,84 @@
+.access-control { display: grid; gap: 28px; }
+.access-nav { display: flex; gap: 8px; flex-wrap: wrap; padding: 10px; border: 1px solid var(--border, #dce2e9); border-radius: 10px; background: var(--surface, #fff); }
+.access-nav a { padding: 8px 12px; border-radius: 6px; color: inherit; font-weight: 600; text-decoration: none; }
+.access-nav a:hover, .access-nav a:focus-visible { background: #eaf2fa; color: #174a75; }
+.access-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 16px; }
+.access-section-heading h2, .access-panel h3 { margin: 0 0 5px; }
+.access-section-heading p { color: #566778; margin: 0; }
+.access-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.access-metric, .access-panel { background: var(--surface, #fff); border: 1px solid var(--border, #dce2e9); border-radius: 10px; }
+.access-metric { display: grid; gap: 7px; padding: 17px; }
+.access-metric > span { color: #516273; font-size: .88rem; font-weight: 600; }
+.access-metric > strong { font-size: 1.9rem; line-height: 1.1; }
+.access-metric small, .access-activity small { color: #617181; }
+.access-layout { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.access-panel { padding: 20px; }
+.access-panel-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.access-links { display: grid; gap: 7px; margin-top: 16px; }
+.access-links a { display: grid; grid-template-columns: minmax(120px, auto) 1fr auto; gap: 12px; align-items: center; padding: 12px; border: 1px solid #e1e7ed; border-radius: 7px; color: inherit; text-decoration: none; }
+.access-links a:hover, .access-links a:focus-visible { border-color: #5285ad; background: #f3f8fc; }
+.access-links a span { color: #5c6c7a; font-size: .9rem; }
+.access-activity { list-style: none; margin: 10px 0 0; padding: 0; }
+.access-activity li { padding: 10px 0; border-bottom: 1px solid #e9edf1; }
+.access-activity li:last-child { border: 0; }
+.access-activity li div { display: flex; justify-content: space-between; gap: 8px; }
+.access-activity li div span { color: #526577; }
+.access-person { scroll-margin-top: 20px; }
+.access-simulation { scroll-margin-top: 20px; }
+.access-simulation .form-grid label { display: grid; gap: 5px; font-size: .875rem; font-weight: 600; }
+.access-simulation select { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid #aab7c3; border-radius: 5px; background: #fff; color: #1d2a36; font: inherit; font-weight: 400; }
+.access-simulation > section > .btn { margin-top: 14px; }
+.access-person-picker, .access-permission-filters { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin-bottom: 16px; }
+.access-person-picker label, .access-permission-filters label { display: grid; gap: 5px; font-size: .875rem; font-weight: 600; flex: 1 1 200px; }
+.access-person-picker input, .access-person-picker select, .access-permission-filters input, .access-permission-filters select { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid #aab7c3; border-radius: 5px; background: #fff; color: #1d2a36; font: inherit; font-weight: 400; }
+.access-person-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 16px; border: 1px solid #d9e5ef; border-radius: 8px; background: #f5f9fc; }
+.access-person-summary > div { display: grid; gap: 5px; }
+.access-person-summary span { color: #526577; }
+.access-note { color: #4f6171; line-height: 1.5; }
+.access-permission-filters > span { padding-bottom: 8px; color: #526577; }
+.access-table-wrap { overflow-x: auto; background: var(--surface, #fff); border: 1px solid var(--border, #dce2e9); border-radius: 8px; }
+.access-table { width: 100%; border-collapse: collapse; text-align: left; }
+.access-table th, .access-table td { padding: 12px; border-bottom: 1px solid #e5ebef; vertical-align: top; }
+.access-table thead th { color: #506274; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+.access-table tbody th { min-width: 220px; }
+.access-table code, .access-table small { display: block; margin-top: 4px; color: #5c6d7c; font-weight: 400; }
+.access-table code { overflow-wrap: anywhere; font-size: .78rem; }
+.access-status { display: inline-block; padding: 3px 8px; border-radius: 20px; background: #eef1f4; color: #4c5a65; font-size: .8rem; white-space: nowrap; }
+.access-status.included { background: #e5f4ec; color: #1c6540; }
+.access-table .access-risk { color: #975b00; font-weight: 600; }
+.access-empty { padding: 18px; color: #5c6d7c; }
+.access-overrides { margin-top: 20px; padding: 20px; border: 1px solid var(--border, #dce2e9); border-radius: 10px; background: var(--surface, #fff); }
+.access-roles { scroll-margin-top: 20px; }
+.access-role-layout { display: grid; grid-template-columns: minmax(190px, 260px) minmax(0, 1fr); gap: 16px; }
+.access-role-list label, .access-role-fields label { display: grid; gap: 5px; font-size: .875rem; font-weight: 600; }
+.access-role-list input, .access-role-fields input:not([type="checkbox"]), .access-role-fields select { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid #aab7c3; border-radius: 5px; background: #fff; color: #1d2a36; font: inherit; }
+.access-role-list ul { list-style: none; padding: 0; margin: 12px 0 0; }
+.access-role-list li button { display: grid; width: 100%; gap: 4px; padding: 10px; border: 0; border-left: 3px solid transparent; background: transparent; color: inherit; text-align: left; cursor: pointer; }
+.access-role-list li button[aria-pressed="true"] { border-left-color: #174a75; background: #eaf2fa; }
+.access-role-list li small { color: #526577; }
+.access-role-fields { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; align-items: end; }
+.access-role-fields label { flex: 1 1 170px; }
+.access-role-fields label:has(input[type="checkbox"]) { display: flex; align-items: center; }
+.access-role-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.access-role-workspace fieldset { border: 1px solid #dce2e9; }
+.access-role-matrix { max-height: 36rem; overflow: auto; border: 1px solid #dce2e9; }
+.access-role-matrix details { border-bottom: 1px solid #dce2e9; }
+.access-role-matrix summary { padding: 12px; font-weight: 600; cursor: pointer; }
+.access-role-matrix .access-role-actions { padding: 0 12px; }
+.access-role-create { margin-bottom: 16px; }
+.access-role-comparison { margin: 12px 0; padding: 12px; border: 1px solid #dce2e9; }
+.access-role-comparison summary { font-weight: 600; cursor: pointer; }
+.access-overrides h3 { margin-top: 0; }
+.access-overrides p { line-height: 1.5; }
+.override-row { display: grid; grid-template-columns: minmax(200px, 3fr) minmax(110px, 1fr) minmax(190px, 1.4fr) auto; gap: 10px; align-items: end; margin: 12px 0; }
+.override-row label { display: grid; gap: 5px; font-size: .875rem; font-weight: 600; }
+.override-row select, .override-row input { width: 100%; min-height: 38px; padding: 7px 9px; border: 1px solid #aab7c3; border-radius: 5px; background: #fff; color: #1d2a36; font: inherit; font-weight: 400; }
+.override-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.override-review { margin-top: 16px; padding: 16px; border: 1px solid #b9cfe1; border-radius: 8px; background: #f5f9fc; }
+.override-review h4 { margin-top: 0; }
+.override-review li { margin: 7px 0; overflow-wrap: anywhere; }
+.override-changes { padding-left: 20px; }
+.override-changes li { padding: 8px 0; }
+.override-changes li > div { display: grid; gap: 4px; margin-top: 5px; color: #526577; }
+@media (max-width: 800px) { .override-row { grid-template-columns: repeat(2, minmax(0, 1fr)); } .access-role-layout { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .access-section-heading { align-items: start; flex-direction: column; } .access-links a { grid-template-columns: 1fr auto; } .access-links a span:first-of-type { grid-column: 1; } .access-links a span:last-of-type { grid-column: 2; grid-row: 1; } }

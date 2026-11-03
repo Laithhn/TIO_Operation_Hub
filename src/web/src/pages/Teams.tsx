@@ -149,7 +149,8 @@ type HandoverRow = { id: number; ref: string; status: string; effectiveAt: strin
 export function HandoverList() {
   const [status, setStatus] = useState('');
   const q = useQuery({ queryKey: ['handovers', status], queryFn: () => get<HandoverRow[]>(`/handovers${qs({ status })}`) });
-  const canLead = usePermission('Teams', 'Coordinate');
+  const canCreate = usePermission('Handovers', 'Create');
+  const canLead = usePermission('Teams', 'Coordinate') && canCreate;
   const [open, setOpen] = useState(false);
   return (
     <>

@@ -1,3 +1,4 @@
+import { hasPermission } from '../permissions';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
@@ -29,8 +30,8 @@ const display = (o: Organization) => `${o.code ? `${o.code} · ` : ''}${o.name}$
 function useStructurePermissions() {
   const me = useMe().data as (ReturnType<typeof useMe>['data'] & { permissions?: string[] });
   return {
-    canCreate: !!me?.permissions?.includes('ClientStructure:Create'),
-    canCoordinate: !!me?.permissions?.includes('ClientStructure:Coordinate')
+    canCreate: hasPermission(me, 'tab.ClientStructure.organizations', 'Create'),
+    canCoordinate: hasPermission(me, 'ClientStructure', 'Coordinate') && hasPermission(me, 'tab.ClientStructure.organizations', 'Maintain')
   };
 }
 

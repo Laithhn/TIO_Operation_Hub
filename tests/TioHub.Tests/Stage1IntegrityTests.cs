@@ -44,7 +44,7 @@ public class SchemaReadinessTests
             var lookupsBefore = await db.LookupValues.CountAsync();
             var result = await DatabaseReadiness.CheckAsync(db, CancellationToken.None);
             Assert.True(result.Reachable);
-            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution"], result.MissingMigrations);
+            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions"], result.MissingMigrations);
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
             {
                 b.UseEnvironment("Testing");
@@ -96,6 +96,9 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
     private async Task<Api> Limited(params string[] permissions)
     {
         var m = await Hub.As(HubFactory.Manager);
+        // Existing action-boundary scenarios retain explicit read grants so their assertions exercise the action under test.
+        permissions = ResourcePermissions.Catalog.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal)).Select(p => p.Key).Concat(permissions).Distinct().ToArray();
+        permissions = PermissionHierarchy.UpgradeLegacy(permissions, Right.None);
         var roleId = await m.Create("/admin/roles", new { name = U("Stage1"), rights = Array.Empty<string>(), permissions });
         var account = $@"DEV\{U("stage1")}";
         await m.Create("/admin/users", new { accountName = account, displayName = "Stage 1 test", workingTimeZone = "UTC", roleId });
@@ -135,14 +138,16 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.Send(HttpMethod.Delete, $"/dependents/clients/{client}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/environments/{env}")).Status);
         var both = await Limited("ClientStructure:Delete", "Environments:Delete");
-        Assert.Equal(HttpStatusCode.OK, (await both.Send(HttpMethod.Delete, $"/dependents/clients/{client}")).Status);
+        var deletedClient = await both.Send(HttpMethod.Delete, $"/dependents/clients/{client}");
+        Assert.True(deletedClient.Status == HttpStatusCode.OK, deletedClient.Text);
 
         var other = await NewClient();
         var project = await Project(m, other);
         var keptEnv = await m.Create("/environments", new { clientId = other, projectId = project, name = "Keep this environment", type = "Production", criticality = "Normal", ownerUserId = m.UserId });
         Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.Send(HttpMethod.Delete, $"/dependents/projects/{project}")).Status);
-        var unlinker = await Limited("ClientStructure:Delete", "Environments:Maintain");
-        Assert.Equal(HttpStatusCode.OK, (await unlinker.Send(HttpMethod.Delete, $"/dependents/projects/{project}")).Status);
+        var unlinker = await Limited("Projects:Delete", "Environments:Maintain");
+        var deletedProject = await unlinker.Send(HttpMethod.Delete, $"/dependents/projects/{project}");
+        Assert.True(deletedProject.Status == HttpStatusCode.OK, deletedProject.Text);
         Assert.Null((await m.Get($"/environments/{keptEnv}")).Body!["projectId"]);
     }
 
@@ -228,7 +233,7 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
-    public async Task Attachment_delete_allows_other_delete_only_and_denies_unrelated_delete()
+    public async Task Attachment_delete_requires_the_owning_resources_attachment_permission()
     {
         var m = await Hub.As(HubFactory.Manager);
         var client = await NewClient();
@@ -242,7 +247,9 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         var wrongDelete = await Limited("Products:Delete", "OtherOperations:Maintain");
         Assert.Equal(HttpStatusCode.Forbidden, (await wrongDelete.Send(HttpMethod.Delete, $"/attachments/{id}")).Status);
         var otherDelete = await Limited("OtherOperations:Delete");
-        Assert.Equal(HttpStatusCode.NoContent, (await otherDelete.Send(HttpMethod.Delete, $"/attachments/{id}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await otherDelete.Send(HttpMethod.Delete, $"/attachments/{id}")).Status);
+        var attachmentDelete = await Limited("ClientStructure:AttachmentsDelete");
+        Assert.Equal(HttpStatusCode.NoContent, (await attachmentDelete.Send(HttpMethod.Delete, $"/attachments/{id}")).Status);
     }
 
     [Fact]
@@ -294,7 +301,7 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         var client = await NewClient();
         var project = await Project(m, client);
         var env = await NewEnv(client, "Concurrent kept environment");
-        var limited = await Limited("ClientStructure:Delete");
+        var limited = await Limited("Projects:Delete", "Environments:Maintain");
         var barrier = new CascadeUnlinkBarrier();
         using var factory = Hub.WithWebHostBuilder(b =>
         {

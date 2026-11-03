@@ -139,8 +139,19 @@ public static partial class NoteEndpoints
         await db.SaveChangesAsync(ct);
     }
 
-    private static async Task<(long? ClientId, long? ProjectId, string? Label)> LinkAsync(HubDbContext db, Check check, long? clientId, long? projectId, CancellationToken ct)
+    public static void RequireLinkReadAccess(UserContext me, long? clientId, long? projectId)
     {
+        // A link copies the record's name into the note, so scope alone is not
+        // sufficient. Match the permissions of the corresponding list endpoint.
+        if (projectId is not null)
+            me.RequirePermission(ResourcePermissions.Projects, ResourcePermissions.View);
+        else if (clientId is not null && !CapabilityPermissions.CanOpenClientPage(me))
+            throw new ForbiddenException("Linking a client needs View access to at least one client tab.");
+    }
+
+    private static async Task<(long? ClientId, long? ProjectId, string? Label)> LinkAsync(HubDbContext db, UserContext me, Check check, long? clientId, long? projectId, CancellationToken ct)
+    {
+        RequireLinkReadAccess(me, clientId, projectId);
         if (projectId is not null)
         {
             var p = await db.Projects.Where(x => x.Id == projectId).Select(x => new { x.ClientId, label = x.Client!.Code + " · " + x.Code + " " + x.Name }).FirstOrDefaultAsync(ct);
@@ -333,7 +344,7 @@ public static partial class NoteEndpoints
             var p = new NotePage { OwnerUserId = uid, SectionId = sectionId!.Value };
             var check = new Check();
             await ApplyAsync(db, check, p, i, ct);
-            await SetLinkAsync(db, check, p, i.ClientId, i.ProjectId, ct);
+            await SetLinkAsync(db, me, check, p, i.ClientId, i.ProjectId, ct);
             check.ThrowIfAny();
             // New pages go after the given page (sub-pages right under their parent), otherwise at the end.
             var siblings = await db.NotePages.Where(x => x.SectionId == p.SectionId && x.DeletedAt == null).OrderBy(x => x.SortOrder).ThenBy(x => x.Id).ToListAsync(ct);
@@ -375,7 +386,7 @@ public static partial class NoteEndpoints
             var uid = MeId(me);
             var p = await db.NotePages.FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == uid, ct) ?? throw new NotFoundException("The page");
             var check = new Check();
-            await SetLinkAsync(db, check, p, i.ClientId, i.ProjectId, ct);
+            await SetLinkAsync(db, me, check, p, i.ClientId, i.ProjectId, ct);
             check.ThrowIfAny();
             await db.SaveChangesAsync(ct);
             return Results.Ok(new { p.ClientId, p.ProjectId, p.LinkLabel, version = Convert.ToBase64String(p.RowVersion) });
@@ -491,9 +502,9 @@ public static partial class NoteEndpoints
         if (i.IsPinned is not null) p.IsPinned = i.IsPinned.Value;
     }
 
-    private static async Task SetLinkAsync(HubDbContext db, Check check, NotePage p, long? clientId, long? projectId, CancellationToken ct)
+    private static async Task SetLinkAsync(HubDbContext db, UserContext me, Check check, NotePage p, long? clientId, long? projectId, CancellationToken ct)
     {
-        var (c, pr, label) = await LinkAsync(db, check, clientId, projectId, ct);
+        var (c, pr, label) = await LinkAsync(db, me, check, clientId, projectId, ct);
         p.ClientId = c; p.ProjectId = pr; p.LinkLabel = label;
     }
 }

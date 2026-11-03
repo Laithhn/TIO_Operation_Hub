@@ -2,6 +2,7 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
+import { canAccessPath } from './permissions';
 import { ErrorBox, PageHead, Restricted, StateMessage } from './ui/kit';
 import { LoadBoundary } from './ui/LoadBoundary';
 import { Shell } from './ui/Shell';
@@ -23,6 +24,7 @@ const AdminSettings = page(() => import('./pages/Admin'), 'AdminSettings');
 const AdminUsers = page(() => import('./pages/Admin'), 'AdminUsers');
 const AdminRoles = page(() => import('./pages/Admin'), 'AdminRoles');
 const AdminRights = page(() => import('./pages/Admin'), 'AdminRights');
+const AccessControl = page(() => import('./pages/AccessControl'), 'AccessControl');
 const CaseDetail = page(() => import('./pages/Cases'), 'CaseDetail');
 const CaseForm = page(() => import('./pages/Cases'), 'CaseForm');
 const CaseList = page(() => import('./pages/Cases'), 'CaseList');
@@ -78,7 +80,9 @@ function Root() {
   if (me.isLoading) return <div style={{ padding: 24 }}><StateMessage kind="loading" /></div>;
   if (me.data?.app.mustChangePassword) return <Navigate to="/account/password" replace />;
   if (me.error) return <div style={{ padding: 24 }}><ErrorBox error={me.error} /></div>;
-  return <Shell><LoadBoundary resetKey={loc.pathname}><Suspense fallback={<StateMessage kind="loading" />}><Outlet /></Suspense></LoadBoundary></Shell>;
+  return <Shell><LoadBoundary resetKey={loc.pathname}>{!canAccessPath(me.data, loc.pathname, loc.search)
+    ? <><PageHead title="Access denied" /><Restricted need="Your roles do not grant the permissions required for this page. Ask an administrator to review your access." help="role" /></>
+    : <Suspense fallback={<StateMessage kind="loading" />}><Outlet /></Suspense>}</LoadBoundary></Shell>;
 }
 
 /** Sign-in pages render without the shell, so they get their own loading and failure states. */
@@ -103,6 +107,14 @@ function NoAccess() {
     <PageHead title="No business access" />
     <Restricted need="Your account has no business role or scope, so client and internal records are not shown." help="role" />
   </>);
+}
+
+function AdminRoute({ children }: { children: ReactNode }) {
+  const me = useMe();
+  if (me.isLoading) return <StateMessage kind="loading" />;
+  if (me.error) return <ErrorBox error={me.error} />;
+  if (!me.data?.isAdministrator) return <><PageHead title="Access denied" /><Restricted need="The Administration right is required for this page." help="role" /></>;
+  return <>{children}</>;
 }
 
 /**
@@ -176,21 +188,22 @@ export const router = createBrowserRouter([
       { path: 'handovers', element: <HandoverList /> },
       { path: 'handovers/:id', element: <HandoverDetail /> },
       { path: 'reassignment', element: <ReassignmentQueue /> },
-      { path: 'admin', element: <Navigate to="/admin/users" replace /> },
-      { path: 'admin/users', element: <AdminUsers /> },
-      { path: 'admin/groups', element: <AdminGroups /> },
+      { path: 'admin', element: <Navigate to="/admin/access" replace /> },
+      { path: 'admin/access', element: <AdminRoute><AccessControl /></AdminRoute> },
+      { path: 'admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },
+      { path: 'admin/groups', element: <AdminRoute><AdminGroups /></AdminRoute> },
       // A34: one page per configuration list; the old single page and the zones link point to it.
-      { path: 'admin/config', element: <ConfigHome /> },
-      { path: 'admin/config/category/:category', element: <ConfigCategoryPage /> },
-      { path: 'admin/config/:slug', element: <ConfigListPage /> },
+      { path: 'admin/config', element: <AdminRoute><ConfigHome /></AdminRoute> },
+      { path: 'admin/config/category/:category', element: <AdminRoute><ConfigCategoryPage /></AdminRoute> },
+      { path: 'admin/config/:slug', element: <AdminRoute><ConfigListPage /></AdminRoute> },
       { path: 'admin/reference', element: <Navigate to="/admin/config" replace /> },
       { path: 'admin/network-zones', element: <Navigate to="/admin/config/network-zones" replace /> },
-      { path: 'admin/roles', element: <AdminRoles /> },
-      { path: 'admin/rights', element: <AdminRights /> },
+      { path: 'admin/roles', element: <AdminRoute><AdminRoles /></AdminRoute> },
+      { path: 'admin/rights', element: <AdminRoute><AdminRights /></AdminRoute> },
       { path: 'admin/products', element: <Navigate to="/products" replace /> },
-      { path: 'admin/policies', element: <AdminPolicies /> },
-      { path: 'admin/jira', element: <AdminJira /> },
-      { path: 'admin/settings', element: <AdminSettings /> },
+      { path: 'admin/policies', element: <AdminRoute><AdminPolicies /></AdminRoute> },
+      { path: 'admin/jira', element: <AdminRoute><AdminJira /></AdminRoute> },
+      { path: 'admin/settings', element: <AdminRoute><AdminSettings /></AdminRoute> },
       { path: 'admin/audit', element: <AdminAudit /> },
       { path: 'admin/archived', element: <AdminArchived /> },
       { path: '*', element: <NotFound /> }

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json.Nodes;
+using TioHub.Api.Common;
 using TioHub.Api.Security;
 
 namespace TioHub.Tests;
@@ -152,14 +153,12 @@ public class AC02_Onboarding(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
-    public async Task Duplicate_alias_is_reported_to_every_user()
+    public async Task Duplicate_alias_is_available_to_users_authorized_for_client_onboarding()
     {
-        foreach (var account in new[] { HubFactory.Lead, HubFactory.Engineer2 })
-        {
-            var dup = await (await Hub.As(account)).Get("/clients/duplicates?code=DEMO-NTA");
-            Assert.Single(dup.Body!["visible"]!.AsArray());
-            Assert.Equal(0, dup.Body!["hiddenCount"]!.GetValue<int>());
-        }
+        var dup = await (await Hub.As(HubFactory.Lead)).Get("/clients/duplicates?code=DEMO-NTA");
+        Assert.Single(dup.Body!["visible"]!.AsArray());
+        Assert.Equal(0, dup.Body!["hiddenCount"]!.GetValue<int>());
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await Hub.As(HubFactory.Engineer2)).Get("/clients/duplicates?code=DEMO-NTA")).Status);
     }
 }
 
@@ -501,9 +500,9 @@ public class AC07_JiraReferences(HubFactory hub) : Scenario(hub)
         var hcp = await Hub.ClientId("DEMO-HCP");
         var c1 = await NewCase(nta);
         var c2 = await NewCase(nta);
-        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(customer), issueKey = key.ToLowerInvariant(), url = Url(customer, key) });
+        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(customer), issueKey = key.ToLowerInvariant(), url = Url(customer, key), reuseReason = "Track this issue" });
         // Same key in the other instance is a different reference.
-        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = Url(internalJ, key) });
+        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = Url(internalJ, key), reuseReason = "Track this issue internally" });
         // Same instance + key on another case: reason required.
         Assert.NotNull((await m.Post($"/cases/{c2}/jira", new { jiraInstanceId = Id(customer), issueKey = key, url = Url(customer, key) })).Error("reuseReason"));
         await m.Create($"/cases/{c2}/jira", new { jiraInstanceId = Id(customer), issueKey = key, url = Url(customer, key), reuseReason = "Same customer ticket covers two issues" });
@@ -512,13 +511,13 @@ public class AC07_JiraReferences(HubFactory hub) : Scenario(hub)
         Assert.NotNull((await m.Post($"/cases/{c2}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = $"https://user:pw@{internalJ["approvedHost"]}/browse/{key}" })).Error("url"));
         Assert.NotNull((await m.Post($"/cases/{c2}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = Url(internalJ, "ZZZ-1") })).Error("url"));
 
-        // A user without NTA scope sees only a neutral count of the reuse.
+        // Matching cases within the user's scope remain visible, without counts of inaccessible cases.
         var e2 = await Hub.As(HubFactory.Engineer2);
         var c3 = await NewCase(hcp, asUser: HubFactory.Engineer2);
         var reuse = (await e2.Get($"/jira/reuse?instanceId={Id(customer)}&key={key}&exceptCaseId={c3}")).Body!;
         Assert.True(reuse["reused"]!.GetValue<bool>());
         Assert.Equal(2, reuse["visible"]!.AsArray().Count);
-        Assert.Equal(0, reuse["hiddenCount"]!.GetValue<int>());
+        Assert.Null(reuse["hiddenCount"]);
         // Search by key finds both in scope for the manager.
         Assert.Equal(2, (await m.Get($"/cases?jiraKey={key}")).Total);
     }
@@ -1056,8 +1055,9 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         Assert.Equal(ResourcePermissions.All.Order(), manager["permissions"]!.AsArray().Select(r => r!.GetValue<string>()).Order());
         Assert.Equal(HttpStatusCode.Forbidden, (await e.Get("/admin/roles")).Status);
 
-        // A new role "Viewer" with no rights: sees records, changes nothing.
-        var viewerRole = await m.Create("/admin/roles", new { name = U("Viewer"), description = "Read only", rights = Array.Empty<string>() });
+        // Read-only roles explicitly select page visibility and receive no business action permissions.
+        var readPermissions = ResourcePermissions.Catalog.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal)).Select(p => p.Key).ToArray();
+        var viewerRole = await m.Create("/admin/roles", new { name = U("Viewer"), description = "Read only", rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(readPermissions, Right.None) });
         Assert.Equal(HttpStatusCode.Conflict, (await m.Post("/admin/roles", new { name = manager["name"]!.GetValue<string>(), rights = Array.Empty<string>() })).Status);
         Assert.NotNull((await m.Post("/admin/roles", new { name = U("Bad"), rights = new[] { "Fly" } })).Error("rights"));
         var acct = $@"DEV\{U("viewer")}";
@@ -1070,9 +1070,39 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await v.Get("/export/contracts")).Status);
 
+        // Multi-role grants combine, and the user access inspector reports their source roles.
+        var auditRole = await m.Create("/admin/roles", new { name = U("Auditor"), description = "Audit access", rights = new[] { "Audit" } });
+        var userRow = (await m.Get("/admin/users")).Body!.AsArray().Single(x => x!["accountName"]!.GetValue<string>() == acct)!;
+        var userId = Id(userRow);
+        var userDetail = (await m.Get($"/admin/users/{userId}")).Body!;
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/users/{userId}", new
+        {
+            accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", roleIds = new[] { viewerRole, auditRole },
+            allClients = true, allInternal = true, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>()
+        }, userDetail["version"]!.GetValue<string>())).Status);
+        var updatedUser = (await m.Get($"/admin/users/{userId}")).Body!;
+        Assert.Equal(new[] { viewerRole, auditRole }, updatedUser["roleIds"]!.AsArray().Select(x => x!.GetValue<long>()).Order());
+        v = await Hub.As(acct);
+        var updatedMe = (await v.Get("/me")).Body!;
+        Assert.Contains("Audit", updatedMe["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        var inspector = (await m.Get($"/admin/users/{userId}/access")).Body!;
+        Assert.Contains(inspector["effectiveRights"]!.AsArray(), x => x!["key"]!.GetValue<string>() == "Audit"
+            && x["sources"]!.AsArray().Any(s => s!.GetValue<string>().StartsWith("Auditor", StringComparison.Ordinal)));
+
+        var clonedRole = await m.Create($"/admin/roles/{auditRole}/clone", new { name = U("AuditorCopy"), description = "Cloned audit access" });
+        var cloneView = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(x => Id(x) == clonedRole)!;
+        Assert.Contains("Audit", cloneView["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        var auditRoleView = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(x => Id(x) == auditRole)!;
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{auditRole}", new
+        {
+            name = auditRoleView["name"]!.GetValue<string>(), description = "Inactive audit access", rights = new[] { "Audit" }, permissions = Array.Empty<string>(), isActive = false
+        }, auditRoleView["version"]!.GetValue<string>())).Status);
+        var afterDeactivation = (await v.Get("/me")).Body!;
+        Assert.DoesNotContain("Audit", afterDeactivation["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+
         // Giving the role Edit lets its holders work at once; the TIO Manager role cannot lose a right; built-in roles cannot be deleted.
         var rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
-        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = new[] { "Edit", "Export" } }, rv["version"]!.GetValue<string>())).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = new[] { "Export" }, permissions = readPermissions.Concat(ResourcePermissions.ExpandLegacy(Right.Edit | Right.Export)).Distinct().ToArray() }, rv["version"]!.GetValue<string>())).Status);
         Assert.Equal(HttpStatusCode.Created, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.OK, (await v.Get("/export/contracts")).Status);
         Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Edit" } }, manager["version"]!.GetValue<string>())).Error("rights"));

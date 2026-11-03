@@ -1,3 +1,4 @@
+import { usePermission } from '../hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -33,6 +34,9 @@ const cssColor = (c: string) => COLOR[c] ?? COLOR.blue;
 const errText = (e: unknown) => (e instanceof ApiError ? e.summary : (e as Error).message);
 
 export function NotesWorkspace() {
+  const canCreate = usePermission('PersonalNotes', 'Create');
+  const canMaintain = usePermission('PersonalNotes', 'Maintain');
+  const canDelete = usePermission('PersonalNotes', 'Delete');
   const [sp, setSp] = useSearchParams();
   const qc = useQueryClient();
   const toast = useToast();
@@ -113,9 +117,9 @@ export function NotesWorkspace() {
                   <span className="nb-icon" style={{ background: cssColor(nb.color) }} aria-hidden="true" /> <span className="nb-name">{nb.name}</span>
                 </button>
                 <ItemMenu label={`Notebook ${nb.name}`} items={[
-                  { label: 'New section', onClick: () => setDialog({ kind: 'section', notebookId: nb.id }) },
-                  { label: 'Rename or colour…', onClick: () => setDialog({ kind: 'notebook', item: nb }) },
-                  { label: 'Delete notebook…', danger: true, onClick: async () => {
+                  { label: 'New section', hidden: !canCreate, onClick: () => setDialog({ kind: 'section', notebookId: nb.id }) },
+                  { label: 'Rename or colour…', hidden: !canMaintain, onClick: () => setDialog({ kind: 'notebook', item: nb }) },
+                  { label: 'Delete notebook…', hidden: !canDelete, danger: true, onClick: async () => {
                     const n = nb.sections.reduce((a, s) => a + s.pages, 0);
                     if (!window.confirm(`Delete notebook “${nb.name}” with ${nb.sections.length} section(s) and ${n} page(s)? This cannot be undone.`)) return;
                     try { await del(`/notes/notebooks/${nb.id}`); await refresh(); setView(null); } catch (e) { toast(errText(e)); }
@@ -130,20 +134,20 @@ export function NotesWorkspace() {
                         <span className="sec-tab" style={{ background: cssColor(s.color) }} aria-hidden="true" />{s.name}<span className="count">{s.pages}</span>
                       </button>
                       <ItemMenu label={`Section ${s.name}`} items={[
-                        { label: 'Rename, colour or move…', onClick: () => setDialog({ kind: 'section', item: s, notebookId: nb.id }) },
-                        { label: 'Delete section…', danger: true, onClick: async () => {
+                        { label: 'Rename, colour or move…', hidden: !canMaintain, onClick: () => setDialog({ kind: 'section', item: s, notebookId: nb.id }) },
+                        { label: 'Delete section…', hidden: !canDelete, danger: true, onClick: async () => {
                           if (!window.confirm(`Delete section “${s.name}” and its ${s.pages} page(s)? This cannot be undone.`)) return;
                           try { await del(`/notes/sections/${s.id}`); await refresh(); setView(null); } catch (e) { toast(errText(e)); }
                         } }
                       ]} />
                     </li>
                   ))}
-                  <li><button className="linkbtn notes-add" onClick={() => setDialog({ kind: 'section', notebookId: nb.id })}>+ Section</button></li>
+                  <li><button disabled={!canCreate} className="linkbtn notes-add" onClick={() => setDialog({ kind: 'section', notebookId: nb.id })}>+ Section</button></li>
                 </ul>
               )}
             </div>
           ))}
-          <button className="linkbtn notes-add" onClick={() => setDialog({ kind: 'notebook' })}>+ Notebook</button>
+          <button disabled={!canCreate} className="linkbtn notes-add" onClick={() => setDialog({ kind: 'notebook' })}>+ Notebook</button>
         </div>
         <p className="hint notes-private"><Icon name="lock" size={12} /> Only you can see your notes.</p>
       </aside>
@@ -153,8 +157,8 @@ export function NotesWorkspace() {
           <button type="button" className="btn btn-sm notes-back" onClick={() => go('nav')} aria-label="Back to notebooks"><span aria-hidden="true">‹</span> Notebooks</button>
           {sectionName && <span className="sec-tab" style={{ background: cssColor(sectionName.color) }} aria-hidden="true" />}
           <h2 tabIndex={-1} data-pane-focus="pages">{sectionName && <span className="notes-context">{sectionName.notebook.name} › </span>}{listTitle}</h2>
-          {view?.kind === 'section' && <button className="btn btn-sm btn-primary" onClick={() => newPage()}>+ Page</button>}
-          {view?.kind === 'bin' && (pages.data?.length ?? 0) > 0 && <button className="btn btn-sm" onClick={async () => {
+          {canCreate && view?.kind === 'section' && <button className="btn btn-sm btn-primary" onClick={() => newPage()}>+ Page</button>}
+          {canDelete && view?.kind === 'bin' && (pages.data?.length ?? 0) > 0 && <button className="btn btn-sm" onClick={async () => {
             if (!window.confirm('Delete every page in the recycle bin permanently?')) return;
             await post('/notes/recycle-bin/empty'); await refresh(); openPage(null);
           }}>Empty</button>}
@@ -173,7 +177,7 @@ export function NotesWorkspace() {
         {!pageId ? (
           <div className="notes-empty">
             <p>Select a page or create one.</p>
-            {allSections.length > 0 && <button className="btn btn-primary" onClick={() => newPage()}>+ New page</button>}
+            {canCreate && allSections.length > 0 && <button className="btn btn-primary" onClick={() => newPage()}>+ New page</button>}
           </div>
         ) : current.error ? <div className="notes-empty"><StateMessage kind="error">This page does not exist or is not yours.</StateMessage></div>
           : current.data ? <Editor key={current.data.id} page={current.data} onSaved={() => qc.invalidateQueries({ queryKey: ['notes', 'pages'] })} onChanged={refresh} />
@@ -198,11 +202,14 @@ function PageList({ rows, loading, view, selected, onOpen, onRefresh, sections, 
   rows?: PageRow[]; loading: boolean; view: View | null; selected: number | null; onOpen: (id: number | null) => void; onRefresh: () => Promise<unknown>;
   sections: { id: number; label: string }[]; onSubPage: (afterId: number) => void;
 }) {
+  const canCreate = usePermission('PersonalNotes', 'Create');
+  const canMaintain = usePermission('PersonalNotes', 'Maintain');
+  const canDelete = usePermission('PersonalNotes', 'Delete');
   const toast = useToast();
   const [dragId, setDragId] = useState<number | null>(null);
   const [moving, setMoving] = useState<PageRow | null>(null);
   const inBin = view?.kind === 'bin';
-  const reorder = view?.kind === 'section';
+  const reorder = canMaintain && view?.kind === 'section';
   if (loading) return <StateMessage kind="loading" />;
   if (!rows || rows.length === 0) return <p className="notes-none">{inBin ? 'The recycle bin is empty.' : view?.kind === 'section' ? 'No pages yet. Use + Page.' : 'No pages found.'}</p>;
   const drop = async (target: PageRow) => {
@@ -229,15 +236,15 @@ function PageList({ rows, loading, view, selected, onOpen, onRefresh, sections, 
             </button>
             {inBin ? (
               <span className="notes-row-actions">
-                <button className="linkbtn" onClick={async () => { await post(`/notes/pages/${r.id}/restore`); await onRefresh(); }}>Restore</button>
-                <button className="linkbtn danger-link" onClick={async () => { if (!window.confirm('Delete this page permanently?')) return; await del(`/notes/pages/${r.id}/permanent`); onOpen(null); await onRefresh(); }}>Delete</button>
+                <button disabled={!canMaintain} className="linkbtn" onClick={async () => { await post(`/notes/pages/${r.id}/restore`); await onRefresh(); }}>Restore</button>
+                <button disabled={!canDelete} className="linkbtn danger-link" onClick={async () => { if (!window.confirm('Delete this page permanently?')) return; await del(`/notes/pages/${r.id}/permanent`); onOpen(null); await onRefresh(); }}>Delete</button>
               </span>
             ) : (
               <ItemMenu label={`Page ${r.title || 'Untitled page'}`} items={[
-                { label: r.isPinned ? 'Unpin' : 'Pin', onClick: () => save(r, { isPinned: !r.isPinned }) },
-                ...(r.level === 0 ? [{ label: 'Add sub-page', onClick: () => onSubPage(r.id) }, { label: 'Make sub-page', onClick: () => save(r, { level: 1 }) }] : [{ label: 'Promote to page', onClick: () => save(r, { level: 0 }) }]),
-                { label: 'Move to section…', onClick: () => setMoving(r) },
-                { label: 'Delete (to recycle bin)', danger: true, onClick: async () => { await del(`/notes/pages/${r.id}`); if (selected === r.id) onOpen(null); await onRefresh(); } }
+                { label: r.isPinned ? 'Unpin' : 'Pin', hidden: !canMaintain, onClick: () => save(r, { isPinned: !r.isPinned }) },
+                ...(r.level === 0 ? [{ label: 'Add sub-page', hidden: !canCreate, onClick: () => onSubPage(r.id) }, { label: 'Make sub-page', hidden: !canMaintain, onClick: () => save(r, { level: 1 }) }] : [{ label: 'Promote to page', hidden: !canMaintain, onClick: () => save(r, { level: 0 }) }]),
+                { label: 'Move to section…', hidden: !canMaintain, onClick: () => setMoving(r) },
+                { label: 'Delete (to recycle bin)', hidden: !canDelete, danger: true, onClick: async () => { await del(`/notes/pages/${r.id}`); if (selected === r.id) onOpen(null); await onRefresh(); } }
               ]} />
             )}
           </li>
@@ -281,7 +288,7 @@ function NameDialog({ title, item, colors, notebooks, notebookId, onSave, onClos
   );
 }
 
-type MenuItemT = { label: string; onClick: () => void; danger?: boolean };
+type MenuItemT = { label: string; onClick: () => void; danger?: boolean; hidden?: boolean };
 function ItemMenu({ label, items }: { label: string; items: MenuItemT[] }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -294,7 +301,7 @@ function ItemMenu({ label, items }: { label: string; items: MenuItemT[] }) {
   return (
     <div className="item-menu" ref={ref}>
       <button className="item-menu-btn" aria-label={`Actions for ${label}`} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>⋯</button>
-      {open && <div className="menu-pop" role="menu">{items.map(i => <button key={i.label} role="menuitem" className={i.danger ? 'danger' : ''} onClick={() => { setOpen(false); i.onClick(); }}>{i.label}</button>)}</div>}
+      {open && <div className="menu-pop" role="menu">{items.filter(i => !i.hidden).map(i => <button key={i.label} role="menuitem" className={i.danger ? 'danger' : ''} onClick={() => { setOpen(false); i.onClick(); }}>{i.label}</button>)}</div>}
     </div>
   );
 }
@@ -314,7 +321,8 @@ function Editor({ page, onSaved, onChanged }: { page: PageT; onSaved: () => void
   const pending = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
-  const readOnly = !!page.deletedAt;
+  const canMaintain = usePermission('PersonalNotes', 'Maintain');
+  const readOnly = !!page.deletedAt || !canMaintain;
 
   useEffect(() => {
     if (body.current) body.current.innerHTML = page.contentHtml;
@@ -394,7 +402,7 @@ function Editor({ page, onSaved, onChanged }: { page: PageT; onSaved: () => void
     <article className="note">
       <div className="note-crumb">
         <span className="sec-dot" style={{ background: cssColor(page.sectionColor) }} /> {page.notebook} › {page.section}
-        <span className={`note-status ${state}`} role="status">{readOnly ? 'In the recycle bin (read-only)' : status}</span>
+        <span className={`note-status ${state}`} role="status">{readOnly ? 'Read only' : status}</span>
       </div>
       {state === 'conflict' && <div className="notice warn">This page was changed in another window or tab. <button className="linkbtn" onClick={() => window.location.reload()}>Reload the latest version</button> (copy your recent text first if you need it).</div>}
       <input id="note-title" className="note-title" placeholder="Page title" aria-label="Page title" value={title} readOnly={readOnly} maxLength={300}
@@ -486,6 +494,7 @@ function LinkDialog({ page, current, onClose, onSaved }: {
 
 /** "My notes" on a client or project page: the signed-in user's own pages linked to it, and a quick new page. */
 export function MyNotesPanel({ clientId, projectId }: { clientId?: number; projectId?: number }) {
+  const canCreate = usePermission('PersonalNotes', 'Create');
   const nav = useNavigate();
   const toast = useToast();
   const params = projectId ? { projectId } : { clientId };
@@ -496,7 +505,7 @@ export function MyNotesPanel({ clientId, projectId }: { clientId?: number; proje
   };
   const rows = useMemo(() => q.data ?? [], [q.data]);
   return (
-    <Panel title={`My notes${rows.length ? ` (${rows.length})` : ''}`} actions={<button className="btn" onClick={create}>+ New note</button>} pad={false}>
+    <Panel title={`My notes${rows.length ? ` (${rows.length})` : ''}`} actions={canCreate && <button className="btn" onClick={create}>+ New note</button>} pad={false}>
       <p className="hint" style={{ padding: '8px 12px 0', margin: 0 }}><Icon name="lock" size={12} /> Private: only you see your notes.</p>
       {q.isLoading ? <StateMessage kind="loading" /> : rows.length === 0 ? <div className="panel-body"><StateMessage kind="none">You have no notes linked here.</StateMessage></div> : (
         <ul className="my-notes">{rows.map(r => (

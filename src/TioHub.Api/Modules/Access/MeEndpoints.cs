@@ -6,6 +6,7 @@ using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Shared;
+using TioHub.Api.Modules.Teams;
 using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Access;
@@ -65,22 +66,25 @@ public static class MeEndpoints
         });
 
         // Values every screen needs: enums, active reference lists, products, teams, Jira instances.
-        g.MapGet("/reference", async (HubDbContext db, CancellationToken ct) =>
+        g.MapGet("/reference", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var lookups = await db.LookupValues.AsNoTracking().OrderBy(l => l.SortOrder).ThenBy(l => l.Label)
                 .Select(l => new { l.ListName, l.Code, l.Label, l.Description, l.IsRetired, l.Category }).ToListAsync(ct);
             var workflowLabels = lookups.Where(l => LookupLists.IsFixedWorkflowLabel(l.ListName))
                 .GroupBy(l => l.ListName == LookupLists.ConditionLabel ? "Condition" : "CaseStatus")
                 .ToDictionary(g => g.Key, g => g.ToDictionary(x => x.Code, x => x.Label));
-            var products = await db.Products.AsNoTracking().OrderBy(p => p.Code)
+            var readProducts = me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View);
+            var readTeams = me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View);
+            var readJira = me.IsAdministrator || me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View);
+            var products = await db.Products.AsNoTracking().Where(_ => readProducts).OrderBy(p => p.Code)
                 .Select(p => new
                 {
                     p.Id, p.Code, p.Name, p.IsActive,
                     modules = p.Modules.OrderBy(m => m.Code).Select(m => new { m.Id, m.Code, m.Name, m.IsActive }),
                     versions = p.Versions.OrderByDescending(v => v.SortKey).Select(v => new { v.Id, v.Version, v.IsActive })
                 }).ToListAsync(ct);
-            var teams = await db.Teams.AsNoTracking().OrderBy(t => t.Name).Select(t => new { t.Id, t.Code, t.Name, t.IsActive }).ToListAsync(ct);
-            var jira = await db.JiraInstances.AsNoTracking().OrderBy(j => j.Kind).Select(j => new { j.Id, j.Name, j.Kind, j.ApprovedHost, j.IsActive }).ToListAsync(ct);
+            var teams = await TeamEndpoints.VisibleTeams(db.Teams.AsNoTracking(), me).Where(_ => readTeams).OrderBy(t => t.Name).Select(t => new { t.Id, t.Code, t.Name, t.IsActive }).ToListAsync(ct);
+            var jira = await db.JiraInstances.AsNoTracking().Where(_ => readJira).OrderBy(j => j.Kind).Select(j => new { j.Id, j.Name, j.Kind, j.ApprovedHost, j.IsActive }).ToListAsync(ct);
             return Results.Ok(new
             {
                 lookups = lookups.GroupBy(l => l.ListName).ToDictionary(x => x.Key, x => x.ToList()),
@@ -90,10 +94,12 @@ public static class MeEndpoints
             });
         });
 
-        // People who can be assigned in a scope (owner pickers). Business roles only; never exposes scope details.
+        // People who can be assigned in a scope (owner pickers). Never exposes scope details.
         g.MapGet("/users/assignable", async (long? clientId, long? teamId, string? q, bool? includeInactive, UserContext me, HubDbContext db, UserResolver resolver, CancellationToken ct) =>
         {
-            if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business role.");
+            if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business access.");
+            if (!CapabilityPermissions.BusinessResources.Any(r => me.HasPermission(r, ResourcePermissions.View)))
+                throw new ForbiddenException("Viewing assignees requires access to a business module.");
             if (clientId is { } c && !me.SeesClient(c)) throw new NotFoundException("The client");
             var users = await db.Users.AsNoTracking().Where(u => u.IsActive || (includeInactive == true && me.IsLead))
                 .Where(u => q == null || u.DisplayName.Contains(q) || u.AccountName.Contains(q))
@@ -102,7 +108,7 @@ public static class MeEndpoints
             foreach (var u in users)
             {
                 var r = await resolver.ForUserAsync(u.Id, ct);
-                if (r is null || r.Roles.Length == 0) continue;
+                if (r is null || !r.HasAccess) continue;
                 if (!u.IsActive) { result.Add(new { id = u.Id, name = u.DisplayName + " (deactivated)", account = u.AccountName }); continue; }
                 var ok = clientId is { } cid ? r.AllClients || r.ClientIds.Contains(cid) : teamId is { } tid ? r.AllInternal || r.TeamIds.Contains(tid) : true;
                 if (ok) result.Add(new { id = u.Id, name = u.DisplayName, account = u.AccountName });

@@ -161,8 +161,24 @@ public static partial class AttachmentEndpoints
     public static readonly string[] Types = [RecordTypes.Client, RecordTypes.Region, RecordTypes.Project, RecordTypes.Contract, RecordTypes.Environment, RecordTypes.Asset,
         RecordTypes.Installation, RecordTypes.Component, RecordTypes.Case, RecordTypes.Commitment, RecordTypes.Escalation, "Product", "Team"];
 
-    public static async Task<Target?> ResolveAsync(HubDbContext db, string? type, long id, CancellationToken ct) => type switch
+    public static bool CanReadTarget(UserContext me, Target target) => target.Type switch
     {
+        RecordTypes.Client or RecordTypes.Region => target.ClientId is { } clientId && me.HasClient(clientId),
+        "Team" => me.SeesInternal(target.Id),
+        _ => true
+    };
+
+    // Attachment ownership is a snapshot. A target may later move or become inaccessible,
+    // so the snapshot alone must not authorize mutations of its files.
+    public static bool CanModifyTarget(UserContext me, Attachment attachment, Target? target) =>
+        target is not null && target.Type == attachment.RecordType && target.Id == attachment.RecordId
+        && CanReadTarget(me, target) && me.SeesScope(attachment.ClientId, attachment.TeamId)
+        && me.SeesScope(target.ClientId, target.TeamId);
+
+    public static async Task<Target?> ResolveAsync(HubDbContext db, UserContext me, string? type, long id, CancellationToken ct)
+    {
+        var target = type switch
+        {
         RecordTypes.Client => await db.Clients.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.Id, null, x.Code)).FirstOrDefaultAsync(ct),
         RecordTypes.Region => await db.Regions.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, null, x.Code)).FirstOrDefaultAsync(ct),
         RecordTypes.Project => await db.Projects.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, null, x.Code)).FirstOrDefaultAsync(ct),
@@ -175,9 +191,11 @@ public static partial class AttachmentEndpoints
         RecordTypes.Commitment => await db.Commitments.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, x.ClientId == null ? x.ResponsibleTeamId : null, x.Ref)).FirstOrDefaultAsync(ct),
         RecordTypes.Escalation => await db.Escalations.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, null, x.Ref)).FirstOrDefaultAsync(ct),
         "Product" => await db.Products.Where(x => x.Id == id).Select(x => new Target(type, x.Id, null, null, x.Code)).FirstOrDefaultAsync(ct),
-        "Team" => await db.Teams.Where(x => x.Id == id).Select(x => new Target(type, x.Id, null, null, x.Code)).FirstOrDefaultAsync(ct),
-        _ => null
-    };
+        "Team" => await db.Teams.Where(x => x.Id == id).Select(x => new Target(type, x.Id, null, x.Id, x.Code)).FirstOrDefaultAsync(ct),
+            _ => null
+        };
+        return target is not null && CanReadTarget(me, target) ? target : null;
+    }
 
     /// <summary>Types the preview endpoint shows inline, with the type fixed here rather than taken from the stored metadata.</summary>
     public static readonly Dictionary<string, string> PreviewTypes = new()
@@ -215,7 +233,8 @@ public static partial class AttachmentEndpoints
         g.MapGet("", async (string recordType, long recordId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             access.RequireBusiness();
-            _ = await ResolveAsync(db, recordType, recordId, ct) ?? throw new NotFoundException("The record");
+            access.Me.RequirePermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.AttachmentsView);
+            _ = await ResolveAsync(db, access.Me, recordType, recordId, ct) ?? throw new NotFoundException("The record");
             var rows = await db.Attachments.AsNoTracking().Include(a => a.UploadedBy).Where(a => a.RecordType == recordType && a.RecordId == recordId)
                 .OrderByDescending(a => a.CreatedAt).ToListAsync(ct);
             return Results.Ok(rows.Select(Row));
@@ -224,13 +243,14 @@ public static partial class AttachmentEndpoints
         // Multipart upload: recordType, recordId, description (optional) and one or more "files".
         g.MapPost("", async (HttpRequest req, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Other, ResourcePermissions.Maintain);
             if (!req.HasFormContentType) throw new ValidationException("files", "Send the files as a multipart form.");
             var form = await req.ReadFormAsync(ct);
             var type = form["recordType"].ToString();
+            var resource = ResourcePermissions.ForRecord(type);
+            access.Me.RequirePermission(resource, ResourcePermissions.AttachmentsUpload);
             if (!long.TryParse(form["recordId"], out var recordId)) throw new ValidationException("recordId", "Say which record the files belong to.");
-            var target = await ResolveAsync(db, type, recordId, ct) ?? throw new NotFoundException("The record");
-            access.RequireMaintain(ResourcePermissions.Other, target.ClientId, target.TeamId);
+            var target = await ResolveAsync(db, access.Me, type, recordId, ct) ?? throw new NotFoundException("The record");
+            if (!access.Me.SeesScope(target.ClientId, target.TeamId)) throw new NotFoundException("The record");
             var description = Text.Clean(form["description"].ToString());
             var check = new Check().Text("description", description, 500, "Description");
             var files = form.Files.GetFiles("files");
@@ -278,7 +298,8 @@ public static partial class AttachmentEndpoints
         {
             access.RequireBusiness();
             var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            _ = await ResolveAsync(db, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
+            access.Me.RequirePermission(ResourcePermissions.ForRecord(a.RecordType), ResourcePermissions.AttachmentsView);
+            _ = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
             if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
             // Always a download, never rendered by the browser as a page.
             return Results.Stream(store.Open(a.StoredPath), a.ContentType, a.FileName, enableRangeProcessing: true);
@@ -290,7 +311,8 @@ public static partial class AttachmentEndpoints
         {
             access.RequireBusiness();
             var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            _ = await ResolveAsync(db, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
+            access.Me.RequirePermission(ResourcePermissions.ForRecord(a.RecordType), ResourcePermissions.AttachmentsView);
+            _ = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
             if (!PreviewTypes.TryGetValue(Path.GetExtension(a.FileName).ToLowerInvariant(), out var type))
                 throw new ValidationException("file", "This file type has no preview. Download the file to open it.");
             if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
@@ -304,7 +326,10 @@ public static partial class AttachmentEndpoints
         g.MapPut("/{id:long}", async (long id, DescriptionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            access.RequireMaintain(ResourcePermissions.Other, a.ClientId, a.TeamId);
+            var resource = ResourcePermissions.ForRecord(a.RecordType);
+            access.Me.RequirePermission(resource, ResourcePermissions.AttachmentsUpload);
+            var target = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct);
+            if (!CanModifyTarget(access.Me, a, target)) throw new NotFoundException("The file");
             new Check().Text("description", input.Description, 500, "Description").ThrowIfAny();
             a.Description = Text.Clean(input.Description);
             await db.SaveChangesAsync(ct);
@@ -314,9 +339,12 @@ public static partial class AttachmentEndpoints
         g.MapDelete("/{id:long}", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            if (!(a.UploadedById == access.Me.UserId && access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.Maintain)) && !access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.Delete))
-                throw new ForbiddenException("Only the person who uploaded the file, or someone with the Delete records right, can remove it.");
-            if (!access.Me.SeesScope(a.ClientId, a.TeamId)) throw new NotFoundException("The file");
+            var resource = ResourcePermissions.ForRecord(a.RecordType);
+            if (!access.Me.HasPermission(resource, ResourcePermissions.AttachmentsDelete)
+                && !(a.UploadedById == access.Me.UserId && access.Me.HasPermission(resource, ResourcePermissions.AttachmentsDeleteOwn)))
+                throw new ForbiddenException("Removing this file needs Delete own attachments for its uploader, or Delete any attachment for this module.");
+            var target = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct);
+            if (!CanModifyTarget(access.Me, a, target)) throw new NotFoundException("The file");
             db.Attachments.Remove(a);
             db.AuditReason = $"File {a.FileName} removed";
             await db.SaveChangesAsync(ct);

@@ -50,9 +50,9 @@ public static class EnvironmentEndpoints
                 owner = e.Owner == null ? null : new UserRef(e.Owner.Id, e.Owner.DisplayName, e.Owner.IsActive),
                 backupOwner = e.BackupOwner == null ? null : new UserRef(e.BackupOwner.Id, e.BackupOwner.DisplayName, e.BackupOwner.IsActive),
                 e.BackupGapReason, e.CreatedAt, e.InventoryReviewedAt, e.NextReviewAt,
-                installationCount = db.Installations.Count(i => i.EnvironmentId == e.Id),
-                assetCount = db.Assets.Count(a => a.EnvironmentId == e.Id),
-                openCases = db.CaseEnvironments.Count(ce => ce.EnvironmentId == e.Id && db.Cases.Any(c => c.Id == ce.CaseId && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled))
+                installationCount = db.Installations.Count(i => access.Me.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View) && i.EnvironmentId == e.Id),
+                assetCount = db.Assets.Count(a => access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View) && a.EnvironmentId == e.Id),
+                openCases = db.CaseEnvironments.Count(ce => access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View) && ce.EnvironmentId == e.Id && db.Cases.Any(c => c.Id == ce.CaseId && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled))
             }).ToListAsync(ct);
             var policies = await fresh.PoliciesAsync(ct);
             var now = DateTimeOffset.UtcNow;
@@ -81,7 +81,7 @@ public static class EnvironmentEndpoints
                 e.Id, e.Name, e.Type, e.TypeDescription, e.Hosting, e.Location, e.Criticality, e.Description,
                 client = new { e.Client!.Id, e.Client.Code, e.Client.Name, country = e.Client.CountryUnknown ? "Unknown" : e.Client.Country },
                 region = e.Region == null ? null : new { e.Region.Id, e.Region.Code, e.Region.Name },
-                project = e.Project == null ? null : new { e.Project.Id, e.Project.Code, e.Project.Name },
+                project = access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View) && e.Project != null ? new { e.Project.Id, e.Project.Code, e.Project.Name } : null,
                 owner = Ref(e.Owner), backupOwner = Ref(e.BackupOwner), coordinator = Ref(e.Coordinator), e.BackupGapReason,
                 e.ResponsibleParty, e.ResponsibleOrganization, e.ResponsibleTeamId,
                 coverageGap = e.BackupOwnerUserId == null || e.BackupOwner?.IsActive == false || e.Owner?.IsActive == false,
@@ -95,7 +95,7 @@ public static class EnvironmentEndpoints
                 },
                 e.LastReviewedAt, e.InventoryReviewedAt, e.DependenciesReviewedAt, e.NextReviewAt,
                 e.ArchivedAt, e.ArchiveReason, e.CreatedAt, e.UpdatedAt,
-                canEdit = access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.Maintain)
+                canEdit = access.Me.HasClient(e.ClientId) && access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.Maintain)
             });
         });
 
@@ -202,6 +202,10 @@ public static class EnvironmentEndpoints
     {
         var check = new Check();
         if (!isNew && i.ClientId is not null && i.ClientId != e.ClientId) check.Add("clientId", "An environment cannot move to another client.");
+        var canViewProjects = access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View);
+        if (!canViewProjects) i = i with { ProjectId = isNew ? null : e.ProjectId };
+        else if (i.ProjectId != e.ProjectId && !access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.Coordinate))
+            check.Add("projectId", "Changing the linked project needs Projects:Coordinate permission.");
         check.Text("name", i.Name, 100, "the environment name", required: true)
              .Text("typeDescription", i.TypeDescription, 150, "Type description")
              .Text("location", i.Location, 150, "Location")

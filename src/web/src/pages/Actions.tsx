@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportPermissions';
 import { exportCsv, get, qs } from '../api';
 import { fmtDate, fmtDateTime, label } from '../format';
 import { useMe, useUrlState } from '../hooks';
@@ -27,7 +28,7 @@ export function ActionList() {
     <>
       <PageHead title="Action list" crumbs={[{ to: '/', label: 'Dashboard' }, { label: 'Action list' }]}
         sub="Records that need someone to act, by reason. Counts include only records you are authorized to see."
-        actions={me.grants.export && <button className="btn" onClick={() => exportCsv('actions', { ...params, category: f.category })}>Export action list</button>} />
+        actions={canExportReport(me, 'actions') && <button className="btn" onClick={() => exportCsv('actions', { ...params, category: f.category })}>Export action list</button>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
