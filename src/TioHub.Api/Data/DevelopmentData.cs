@@ -28,6 +28,9 @@ public static class DevelopmentData
 {
     public static async Task SeedAsync(HubDbContext db, TimeProvider clock, CancellationToken ct = default)
     {
+        // A77: the demonstration data shows the optional validation step, which production lists do not start with.
+        if (!await db.LookupValues.AnyAsync(l => l.ListName == LookupLists.CaseStatusLabel && l.Code == Modules.Work.CaseStatuses.PendingValidationCode, ct))
+            db.LookupValues.Add(new LookupValue { ListName = LookupLists.CaseStatusLabel, Code = Modules.Work.CaseStatuses.PendingValidationCode, Label = "Pending validation", Category = nameof(CaseStatusBehavior.Resolved), SortOrder = 35 });
         var now = clock.GetUtcNow();
         if (await db.Clients.IgnoreQueryFilters().AnyAsync(c => c.Code == "DEMO-NTA", ct))
         {

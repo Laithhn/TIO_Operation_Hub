@@ -148,7 +148,7 @@ export function Badge({ tone = 'neutral', children }: { tone?: 'good' | 'warn' |
 }
 
 const STATUS_TONE: Record<string, 'good' | 'warn' | 'bad' | 'info' | 'neutral'> = {
-  New: 'info', Triaged: 'info', InProgress: 'warn', PendingValidation: 'warn', Closed: 'good', Cancelled: 'neutral',
+  New: 'info', Triaged: 'info', Opened: 'info', Reopened: 'info', InProgress: 'warn', WaitingForCustomer: 'warn', PendingValidation: 'warn', Closed: 'good', Cancelled: 'neutral',
   Open: 'info', Completed: 'good', Healthy: 'good', Degraded: 'warn', Unavailable: 'bad', Unknown: 'neutral',
   Critical: 'bad', High: 'warn', Normal: 'neutral', Low: 'neutral', Active: 'good', Opportunity: 'info', Archived: 'neutral',
   Planned: 'info', OnHold: 'warn', Retired: 'neutral', PendingAcknowledgment: 'warn', CompletedByException: 'warn', Resolved: 'good',

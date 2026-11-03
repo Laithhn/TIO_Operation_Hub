@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Case statuses and Jira control (2.47.0)
+
+`database/01-schema.sql` changes existing data in this release, and going back needs the database backup. Read `RELEASE-NOTES-2.47.0.md` before upgrading and try it on a restored UAT backup first.
+
 ### Jira integration (2.46.0)
 
 Apply `database/01-schema.sql` first; `JiraIntegration` only adds the `jira` schema, `work.CaseComment` and one defaulted column on `work.JiraReference`. The feature is off until `Jira__Enabled=true`. The server now needs outbound HTTPS to the Jira site and `api.atlassian.com`, and IIS must keep the site running for the 15-minute schedule. See `JIRA_SYNC_OPERATIONS_GUIDE.md` and `JIRA_SECURITY_AND_DEPLOYMENT.md`.

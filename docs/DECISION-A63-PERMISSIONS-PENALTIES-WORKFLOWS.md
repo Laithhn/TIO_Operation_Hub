@@ -56,6 +56,8 @@ Penalty clauses are snapshotted with the SLA terms when a case is linked to a co
 
 ## Condition and case-status configuration
 
+**Case statuses: superseded by A77 (`CASE-STATUSES-A77.md`). This section still applies to Condition values.**
+
 Support **label changes only** for the existing Condition and CaseStatus values. Keep the stable API/storage codes, complete built-in value set, order, and semantics. Administrators may change the display label for a code; they cannot add, retire, delete, reorder, or rename its code.
 
 Condition values (Unknown, Healthy, Degraded, Unavailable) drive dashboard grouping and severity. Case statuses (New, Triaged, InProgress, PendingValidation, Closed, Cancelled) drive transitions, open/closed classification, SLA clocks, reporting and reopen behavior. Custom workflow values would require a separately designed transition graph, terminal-state rules, SLA behavior, reporting semantics and migration strategy. Until that model is approved, the API continues to accept stable codes and custom values are refused.

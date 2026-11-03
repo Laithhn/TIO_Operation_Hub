@@ -282,7 +282,7 @@ public static class AdminEndpoints
         g.MapPost("/lookups/{list}/order", async (string list, OrderInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             me.RequireAdministrator();
-            if (LookupLists.IsFixedWorkflowLabel(list)) throw new ValidationException("ids", "Condition and case-status values keep their built-in workflow order.");
+            if (LookupLists.IsFixedWorkflowLabel(list)) throw new ValidationException("ids", "Condition values keep their built-in workflow order.");
             var rows = await db.LookupValues.Where(l => l.ListName == list).ToListAsync(ct);
             var ids = (input.Ids ?? []).ToList();
             if (ids.Count != rows.Count || rows.Any(r => !ids.Contains(r.Id))) throw new ValidationException("ids", "Send every value of the list once, in the new order.");
@@ -295,7 +295,7 @@ public static class AdminEndpoints
             me.RequireAdministrator();
             var check = new Check().Text("label", input.Label, 150, "the name", true).Text("description", input.Description, 1000, "Description");
             if (input.ListName is null || !LookupLists.All.Contains(input.ListName)) check.Add("listName", "Select a reference list.");
-            if (LookupLists.IsFixedWorkflowLabel(input.ListName)) throw new ValidationException("listName", "Condition and case-status values are fixed; only their display labels can be changed.");
+            if (LookupLists.IsFixedWorkflowLabel(input.ListName)) throw new ValidationException("listName", "Condition values are fixed; only their display labels can be changed.");
             var typed = input.ListName is not null && LookupLists.Categories.TryGetValue(input.ListName, out var categoryEnum) ? categoryEnum : null;
             if (typed is not null && (input.Category is null || !Enum.GetNames(typed).Contains(input.Category))) check.Add("category", "Choose how this type behaves (its category).");
             // The code is stored on records: made from the name when not given (letters and digits), unique in the list.
@@ -331,6 +331,7 @@ public static class AdminEndpoints
                 await db.SaveChangesAsync(ct);
                 return Results.NoContent();
             }
+            if (input.IsRetired) await Work.CaseStatuses.CheckNotLastRequiredAsync(db, l, "isRetired", ct);
             // Forms need at least one active value of a type list.
             if (input.IsRetired && !l.IsRetired && LookupLists.Categories.ContainsKey(l.ListName) && !await db.LookupValues.AnyAsync(x => x.ListName == l.ListName && x.Id != l.Id && !x.IsRetired, ct))
                 throw new ValidationException("isRetired", "Keep at least one active value in this list.");

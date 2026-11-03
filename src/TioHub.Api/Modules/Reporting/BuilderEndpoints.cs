@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Work;
 using TioHub.Api.Modules.Access;
 using TioHub.Api.Modules.Teams;
 using TioHub.Api.Security;
@@ -89,10 +90,11 @@ public static class BuilderEndpoints
             return Results.Ok(new[] { new { key = "cases", name = "Cases report", category = ReportCatalog.Operations, builder = true, catalogKey = "cases" } });
         });
 
-        g.MapGet("/report-types/cases", (UserContext me, ExportStore store) =>
+        g.MapGet("/report-types/cases", async (UserContext me, ExportStore store, HubDbContext db, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var o = store.Options;
+            var statusCodes = await db.LookupValues.AsNoTracking().Where(l => l.ListName == CaseStatuses.List && !l.IsRetired).OrderBy(l => l.SortOrder).Select(l => l.Code).ToListAsync(ct);
             return Results.Ok(new
             {
                 key = "cases", name = "Cases report", schemaVersion = 1,
@@ -100,11 +102,11 @@ public static class BuilderEndpoints
                 fields = CasesFields.VisibleTo(me).Select(f => new
                 {
                     f.Key, f.Label, type = f.Type.ToString(), f.Category, f.Description, f.Sortable, f.Groupable, filterable = f.Filterable && f.Build is not null,
-                    f.Options, operators = f.Filterable && f.Build is not null ? CasesFields.Operators[f.Type] : [], required = f.Key == "caseId"
+                    options = f.Key == "status" ? statusCodes.ToArray() : f.Options, operators = f.Filterable && f.Build is not null ? CasesFields.Operators[f.Type] : [], required = f.Key == "caseId"
                 }),
                 dateFields = CasesFields.DateFields.Select(k => new { key = k, label = CasesFields.ByKey[k].Label }),
                 datePresets = CasesFields.DatePresets, slaStatuses = CasesFields.SlaStatuses, dueOptions = CasesFields.DueOptions,
-                statuses = Enum.GetNames<CaseStatus>(), priorities = Enum.GetNames<Priority>(), scopes = Enum.GetNames<WorkScope>(),
+                statuses = statusCodes, priorities = Enum.GetNames<Priority>(), scopes = Enum.GetNames<WorkScope>(),
                 defaultColumns = CasesFields.DefaultColumns, defaultSort = new[] { new { field = "priority", direction = "asc" }, new { field = "caseId", direction = "asc" } },
                 limits = new { maxRows = o.MaxRows, pdfMaxRows = o.PdfMaxRows, retentionDays = o.RetentionDays, maxColumns = CasesFields.MaxColumns, maxSort = CasesFields.MaxSort,
                     maxRules = CasesFields.MaxRules, maxDepth = CasesFields.MaxDepth, pageSizes = PageSizes, maxActiveExports = o.MaxActiveExportsPerUser },

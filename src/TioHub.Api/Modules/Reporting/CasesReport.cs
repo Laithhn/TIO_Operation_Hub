@@ -49,7 +49,7 @@ public sealed class CaseReportRow
     public string Title { get; set; } = "";
     public string Type { get; set; } = "";
     public WorkScope Scope { get; set; }
-    public CaseStatus Status { get; set; }
+    public string Status { get; set; } = "";
     public Priority Priority { get; set; }
     public long? ClientId { get; set; }
     public string? ClientCode { get; set; }
@@ -108,7 +108,7 @@ public sealed record ValidCases(CasesDefinition Definition, IReadOnlyList<CaseFi
     DateTimeOffset? RangeFrom, DateTimeOffset? RangeTo, IReadOnlyList<(string Label, string Value)> Summary, List<string> Warnings);
 
 public sealed record CasesPage(int Total, List<CaseReportRow> Rows, Dictionary<string, int> ByStatus, Dictionary<string, int> ByPriority, Dictionary<string, int> BySla,
-    List<(string Key, int Count)>? Groups);
+    List<(string Key, int Count)>? Groups, int Open = 0);
 
 public static class CasesFields
 {
@@ -148,7 +148,7 @@ public static class CasesFields
         new() { Key = "title", Label = "Title", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Title), Description = "Case title.", Build = E((c, _) => c.Title) },
         new() { Key = "type", Label = "Type", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Type), Description = "Configured case type.", Build = E((c, _) => c.Type), Groupable = true },
         new() { Key = "scope", Label = "Work scope", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Scope), Description = "Client-related or Internal.", Options = Enum.GetNames<WorkScope>(), Build = E((c, _) => c.Scope), Groupable = true },
-        new() { Key = "status", Label = "Status", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Status), Description = "Hub status (independent of Jira).", Options = Enum.GetNames<CaseStatus>(), Build = E((c, _) => c.Status), Groupable = true },
+        new() { Key = "status", Label = "Status", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Status), Description = "Hub status (independent of Jira).", Build = E((c, _) => c.StatusCode), Groupable = true },
         new() { Key = "priority", Label = "Priority", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Priority), Description = "Priority (Critical, High, Normal, Low).", Options = Enum.GetNames<Priority>(), Build = E((c, _) => c.Priority), Groupable = true },
         new() { Key = "clientCode", Label = "Client", Type = CaseFieldType.Text, Category = "Client", Prop = nameof(CaseReportRow.ClientCode), Description = "Client alias; empty for internal work.", Build = E((c, _) => c.Client!.Code), Groupable = true },
         new() { Key = "clientName", Label = "Client name", Type = CaseFieldType.Text, Category = "Client", Prop = nameof(CaseReportRow.ClientName), Description = "Client name; empty for internal work.", Build = E((c, _) => c.Client!.Name) },
@@ -304,7 +304,8 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
             if (ids.Any(id => id <= 0 || !me.HasClient(id))) check.Add("filters.clientIds", "Select only clients you can access.");
             else summary.Add(("Client", string.Join(", ", await db.Clients.AsNoTracking().Where(c => ids.Contains(c.Id)).OrderBy(c => c.Code).Select(c => c.Code).ToListAsync(ct))));
         }
-        foreach (var s in f0.Statuses ?? []) if (!Enum.TryParse<CaseStatus>(s, true, out _) || int.TryParse(s, out _)) check.Add("filters.statuses", $"'{s}' is not a case status.");
+        var statusCodes = await db.LookupValues.AsNoTracking().Where(l => l.ListName == CaseStatuses.List).Select(l => l.Code).ToListAsync(ct);
+        foreach (var s in f0.Statuses ?? []) if (s != CaseStatuses.AllOpen && !CaseStatuses.StageAliases.Contains(s) && !statusCodes.Contains(s, StringComparer.OrdinalIgnoreCase)) check.Add("filters.statuses", $"'{s}' is not a case status.");
         if (f0.Statuses is { Count: > 0 }) summary.Add(("Status", string.Join(", ", f0.Statuses)));
         foreach (var s in f0.Priorities ?? []) if (!Enum.TryParse<Priority>(s, true, out _) || int.TryParse(s, out _)) check.Add("filters.priorities", $"'{s}' is not a priority.");
         if (f0.Priorities is { Count: > 0 }) summary.Add(("Priority", string.Join(", ", f0.Priorities)));
@@ -440,7 +441,7 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
                 break;
             case CaseFieldType.Enum:
                 if (v is not { ValueKind: JsonValueKind.Array } || v.Value.GetArrayLength() is 0 or > CasesFields.MaxListValues
-                    || v.Value.EnumerateArray().Any(x => x.ValueKind != JsonValueKind.String || !f.Options!.Contains(x.GetString(), StringComparer.OrdinalIgnoreCase)))
+                    || v.Value.EnumerateArray().Any(x => x.ValueKind != JsonValueKind.String || (f.Options is not null && !f.Options.Contains(x.GetString(), StringComparer.OrdinalIgnoreCase))))
                     check.Add(path, $"Select one or more valid values of {f.Label}.");
                 break;
         }
@@ -483,7 +484,12 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
             if (v.RangeTo is { } b) q = q.Where(Lambda(field, x => Expression.LessThan(Nullable(x), Const(b, typeof(DateTimeOffset?)))));
         }
         if (f.ClientIds is { Count: > 0 } clients) q = q.Where(c => c.ClientId != null && clients.Contains(c.ClientId.Value));
-        if (f.Statuses is { Count: > 0 }) { var s = f.Statuses.Select(x => Enum.Parse<CaseStatus>(x, true)).ToList(); q = q.Where(c => s.Contains(c.Status)); }
+        if (f.Statuses is { Count: > 0 })
+        {
+            var allOpen = f.Statuses.Contains(CaseStatuses.AllOpen);
+            var stages = f.Statuses.Where(CaseStatuses.StageAliases.Contains).Select(Enum.Parse<CaseStatus>).ToList();
+            q = q.Where(c => f.Statuses.Contains(c.StatusCode) || stages.Contains(c.Status) || (allOpen && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled));
+        }
         if (f.Priorities is { Count: > 0 }) { var p = f.Priorities.Select(x => Enum.Parse<Priority>(x, true)).ToList(); q = q.Where(c => p.Contains(c.Priority)); }
         if (f.OwnerIds is { Count: > 0 } || f.Unassigned == true)
         {
@@ -607,7 +613,9 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
                 Expression contains;
                 if (x.Type == typeof(string))
                 {
-                    var list = f.Options!.Where(o => values.Contains(o, StringComparer.OrdinalIgnoreCase)).ToList();
+                    // Status codes are configured; the stages named by older saved reports read as their status.
+                    var list = f.Options is null ? values.Select(o => o == nameof(CaseStatus.Triaged) ? CaseStatuses.OpenedCode : o == nameof(CaseStatus.Cancelled) ? CaseStatuses.ClosedCode : o).ToList()
+                        : f.Options.Where(o => values.Contains(o, StringComparer.OrdinalIgnoreCase)).ToList();
                     contains = Expression.Call(Expression.Constant(list), typeof(List<string>).GetMethod(nameof(List<string>.Contains))!, x);
                 }
                 else
@@ -675,16 +683,18 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
             await AttachJiraAsync(v, rows, ct);
         }
         Dictionary<string, int> byStatus = [], byPriority = [], bySla = [];
+        var open = 0;
         List<(string, int)>? groups = null;
         if (breakdowns && total > 0)
         {
-            byStatus = await CountByAsync(q, c => c.Status, ct);
+            byStatus = await CountByAsync(q, c => c.StatusCode, ct);
+            open = await q.CountAsync(c => c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled, ct);
             byPriority = await CountByAsync(q, c => c.Priority, ct);
             bySla = await CountByFieldAsync(q, CasesFields.ByKey["slaStatus"].Build!(k), ct);
             if (v.GroupBy is { } g)
                 groups = (await CountByFieldAsync(q, g.Build!(k), ct)).OrderByDescending(x => x.Value).ThenBy(x => x.Key).Take(200).Select(x => (x.Key, x.Value)).ToList();
         }
-        return new CasesPage(total, rows, byStatus, byPriority, bySla, groups);
+        return new CasesPage(total, rows, byStatus, byPriority, bySla, groups, open);
     }
 
     public async Task AttachJiraAsync(ValidCases v, List<CaseReportRow> rows, CancellationToken ct)
@@ -708,7 +718,7 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
         var types = lookups.Where(l => l.ListName == LookupLists.CaseType).GroupBy(l => l.Code).ToDictionary(g => g.Key, g => g.First().Label);
         return (f, value) => f.Key switch
         {
-            "status" when value is CaseStatus s => status.GetValueOrDefault(s.ToString()) ?? s.ToString(),
+            "status" when value is string s => status.GetValueOrDefault(s) ?? s,
             "type" when value is string t => types.GetValueOrDefault(t) ?? t,
             _ => value
         };

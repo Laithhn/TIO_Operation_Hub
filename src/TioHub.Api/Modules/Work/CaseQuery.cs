@@ -38,6 +38,8 @@ public static class CaseQuery
             null or "" or "open" => q.Where(c => c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled),
             "all" => q,
             "done" => q.Where(c => c.Status == CaseStatus.Closed || c.Status == CaseStatus.Cancelled),
+            // A77: a configured status; other values name a stage (Cancelled, or links from before A77).
+            { } code when code.StartsWith("code:", StringComparison.Ordinal) => q.Where(c => c.StatusCode == code.Substring(5)),
             _ when Enum.TryParse<CaseStatus>(f.Status, true, out var s) => q.Where(c => c.Status == s),
             _ => q
         };

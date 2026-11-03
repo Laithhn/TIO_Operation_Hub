@@ -56,6 +56,8 @@ public enum CaseType { Incident, Request, ProblemFollowUp, MaintenanceCoordinati
 public enum Priority { Critical, High, Normal, Low }
 
 public enum CaseStatus { New, Triaged, InProgress, PendingValidation, Closed, Cancelled }
+/// <summary>A77: what a configured case status does. See Modules/Work/CaseStatuses.cs.</summary>
+public enum CaseStatusBehavior { Initial, Opened, Active, WaitingForCustomer, Resolved, Closed, Reopened }
 
 public enum WaitingReason { Customer, InternalTeam, Vendor, PlannedChange }
 

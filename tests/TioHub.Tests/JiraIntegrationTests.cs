@@ -401,7 +401,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         await RunAsync(f.SpaceId);
         Assert.Equal(CaseStatus.New, (await CaseOfAsync(f.ConnectionId, "70"))!.Status);
         Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.UnknownWorkflowStatus, f.ConnectionId));
-        await MapStatusAsync(f.ConnectionId, "1", "Triaged");
+        await MapStatusAsync(f.ConnectionId, "1", "Opened");
         await RunAsync(f.SpaceId);
         Assert.Equal(CaseStatus.Triaged, (await CaseOfAsync(f.ConnectionId, "70"))!.Status);
         Assert.Equal(0, await OpenIssuesAsync(JiraIssueType.UnknownWorkflowStatus, f.ConnectionId));
@@ -427,7 +427,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task No_owner_blocks_in_progress_and_retries_without_a_new_jira_change()
+    public async Task A_case_follows_jira_into_progress_even_with_no_owner()
     {
         var f = await SetUpAsync();
         _jira.Add("85", "TAH-85", statusId: "3", statusName: "In Progress", category: "indeterminate");
@@ -435,47 +435,130 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         await MapStatusAsync(f.ConnectionId, "3", "InProgress");
         await RunAsync(f.SpaceId);
         var c = await CaseOfAsync(f.ConnectionId, "85");
-        Assert.Equal(CaseStatus.Triaged, c!.Status); // WRK-04 holds for the synchronization too
-        Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.WorkflowTransitionBlocked, f.ConnectionId));
-        var manager = await _hub.As(HubFactory.Manager);
-        var owner = await _hub.UserId(HubFactory.Engineer);
-        await manager.Ok($"/cases/{c.Id}/assign", new { ownerUserId = owner, reason = "Taking it" }, await manager.Version($"/cases/{c.Id}"));
-        await RunAsync(f.SpaceId);
-        Assert.Equal(CaseStatus.InProgress, (await CaseOfAsync(f.ConnectionId, "85"))!.Status);
+        Assert.Equal(CaseStatus.InProgress, c!.Status);
+        Assert.Null(c.OwnerUserId);
         Assert.Equal(0, await OpenIssuesAsync(JiraIssueType.WorkflowTransitionBlocked, f.ConnectionId));
     }
 
     [Fact]
-    public async Task Done_in_jira_never_closes_a_case_and_closed_cannot_be_mapped()
+    public async Task A_status_mapped_to_closed_closes_the_case_with_jira_as_its_evidence()
+    {
+        var f = await SetUpAsync();
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        _jira.Add("95", "TAH-95", statusId: "3", statusName: "In Progress", category: "indeterminate", assigneeId: "acc-95", assigneeName: "Sam");
+        await RunAsync(f.SpaceId);
+        await MapStatusAsync(f.ConnectionId, "3", "InProgress");
+        await MapUserAsync(f.ConnectionId, "acc-95", owner);
+        await RunAsync(f.SpaceId);
+        _jira.Change("95", i => i with { StatusId = "9", StatusName = "Done", StatusCategory = "done" });
+        await MapStatusAsync(f.ConnectionId, "9", "Closed");
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "95");
+        Assert.Equal(CaseStatus.Closed, c!.Status);
+        Assert.Equal("Closed", c.StatusCode);
+        Assert.Contains("TAH-95", c.Outcome);
+        Assert.Contains("TAH-95", c.ValidationEvidence);
+        Assert.NotNull(c.ClosedAt);
+        Assert.NotNull(c.ResolvedAt);
+    }
+
+    [Fact]
+    public async Task A_status_that_is_not_active_cannot_be_mapped()
     {
         var f = await SetUpAsync();
         var manager = await _hub.As(HubFactory.Manager);
         await manager.Ok($"/admin/jira-connections/{f.ConnectionId}/statuses/discover");
         var row = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/statuses")).Body!["rows"]!.AsArray().First(r => r!["jiraStatusId"]!.GetValue<string>() == "9");
-        var refused = await manager.Put($"/admin/jira-status-mappings/{row!["id"]!.GetValue<long>()}", new { targetStatus = "Closed" });
-        Assert.Contains("evidence", refused.Error("targetStatus"));
-        Assert.NotNull((await manager.Put($"/admin/jira-status-mappings/{row["id"]!.GetValue<long>()}", new { targetStatus = "Cancelled" })).Error("targetStatus"));
+        Assert.NotNull((await manager.Put($"/admin/jira-status-mappings/{row!["id"]!.GetValue<long>()}", new { targetStatus = "Cancelled" })).Error("targetStatus"));
+        var targets = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/statuses")).Body!["targets"]!.AsArray().Select(t => t!["code"]!.GetValue<string>());
+        Assert.Contains("Closed", targets);
+        Assert.Contains("WaitingForCustomer", targets);
     }
 
     [Fact]
-    public async Task A_closed_case_stays_closed_and_is_flagged()
+    public async Task A_status_mapped_to_waiting_starts_and_ends_the_customer_wait()
     {
         var f = await SetUpAsync();
         var owner = await _hub.UserId(HubFactory.Engineer);
-        _jira.Add("90", "TAH-90", statusId: "3", statusName: "In Progress", category: "indeterminate", assigneeId: "acc-90", assigneeName: "Sam");
+        _jira.Add("96", "TAH-96", statusId: "3", statusName: "In Progress", category: "indeterminate", assigneeId: "acc-96", assigneeName: "Sam");
         await RunAsync(f.SpaceId);
         await MapStatusAsync(f.ConnectionId, "3", "InProgress");
-        await MapUserAsync(f.ConnectionId, "acc-90", owner);
+        await MapUserAsync(f.ConnectionId, "acc-96", owner);
         await RunAsync(f.SpaceId);
-        var c = await CaseOfAsync(f.ConnectionId, "90");
-        var manager = await _hub.As(HubFactory.Manager);
-        await manager.Ok($"/cases/{c!.Id}/request-validation", new { progressSummary = "Done", validationRequest = "Check" }, await manager.Version($"/cases/{c.Id}"));
-        await manager.Ok($"/cases/{c.Id}/close", new { outcome = "Done", validationEvidence = "Checked" }, await manager.Version($"/cases/{c.Id}"));
-        _jira.Change("90", i => i with { StatusId = "1", StatusName = "To Do" });
-        await MapStatusAsync(f.ConnectionId, "1", "InProgress");
+        _jira.Change("96", i => i with { StatusId = "1", StatusName = "To Do" });
+        await MapStatusAsync(f.ConnectionId, "1", "WaitingForCustomer");
+        await RunAsync(f.SpaceId);
+        var waiting = await CaseOfAsync(f.ConnectionId, "96");
+        Assert.Equal(CaseStatus.InProgress, waiting!.Status);
+        Assert.Equal(WaitingReason.Customer, waiting.WaitingReason);
+        Assert.Equal("WaitingForCustomer", waiting.StatusCode);
+        _jira.Change("96", i => i with { StatusId = "3", StatusName = "In Progress" });
+        await RunAsync(f.SpaceId);
+        var back = await CaseOfAsync(f.ConnectionId, "96");
+        Assert.Null(back!.WaitingReason);
+        Assert.Equal("InProgress", back.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_closed_case_reopens_when_jira_does()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("90", "TAH-90", statusId: "3", statusName: "In Progress", category: "indeterminate");
+        await RunAsync(f.SpaceId);
+        await MapStatusAsync(f.ConnectionId, "3", "InProgress");
+        await MapStatusAsync(f.ConnectionId, "9", "Closed");
+        await RunAsync(f.SpaceId);
+        _jira.Change("90", i => i with { StatusId = "9", StatusName = "Done", StatusCategory = "done" });
         await RunAsync(f.SpaceId);
         Assert.Equal(CaseStatus.Closed, (await CaseOfAsync(f.ConnectionId, "90"))!.Status);
-        Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.WorkflowTransitionBlocked, f.ConnectionId));
+        _jira.Change("90", i => i with { StatusId = "3", StatusName = "In Progress", StatusCategory = "indeterminate" });
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "90");
+        Assert.Equal(CaseStatus.InProgress, c!.Status);
+        Assert.Equal("InProgress", c.StatusCode);
+        Assert.Equal(1, c.ReopenCount);
+        Assert.Null(c.ClosedAt);
+    }
+
+    [Fact]
+    public async Task People_can_only_view_the_status_of_a_synchronized_case()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("91", "TAH-91");
+        await RunAsync(f.SpaceId);
+        var id = (await CaseOfAsync(f.ConnectionId, "91"))!.Id;
+        var manager = await _hub.As(HubFactory.Manager);
+        var detail = await manager.Get($"/cases/{id}");
+        Assert.True(detail.Body!["statusFromJira"]!.GetValue<bool>());
+        foreach (var flag in new[] { "canTriage", "canStart", "canClose", "canRequestValidation", "canReturnToWork", "canChangeStatus", "canSetWaiting", "canReopen", "canCancel" })
+            Assert.False(detail.Body!["permissions"]![flag]!.GetValue<bool>(), flag);
+        foreach (var action in new[] { "triage", "start", "request-validation", "resume", "close", "cancel", "reopen", "status", "waiting", "waiting/clear" })
+            Assert.Contains("follows Jira", (await manager.Post($"/cases/{id}/{action}", new { }, detail.ETag)).Error("status"));
+    }
+
+    [Fact]
+    public async Task With_a_contract_the_sla_and_due_date_count_from_the_jira_creation_time()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("92", "TAH-92"); // created 30 days earlier in Jira
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "92");
+        var jiraCreated = await Db(db => db.JiraCaseMappings.IgnoreQueryFilters().Where(m => m.CaseId == c!.Id).Select(m => m.JiraCreatedAt).FirstAsync());
+        Assert.Equal(jiraCreated, c!.SlaClockStartAt);
+        Assert.Null(c.DueAt); // no contract yet
+
+        var manager = await _hub.As(HubFactory.Manager);
+        var project = await manager.Create("/projects", new { clientId = f.ClientId, code = $"P{Guid.NewGuid():N}"[..8], name = "Fictional SLA project", status = "Active", ownerUserId = manager.UserId });
+        var contract = await manager.Create("/contracts", new { projectId = project, title = "Fictional SLA agreement", contractReference = $"FIC-{Guid.NewGuid():N}"[..12], type = "SlaSupport", status = "Active", ownerUserId = manager.UserId,
+            startDate = "2026-01-01", endDate = "2027-12-31", renewalTerms = "RenewalByAgreement", noticeDays = 30, supportModel = "Remote", supportTimeZone = "Asia/Dubai", support24x7 = true, slaPauseWhileWaitingOnCustomer = true,
+            coverage = "PSOP", obligations = "Monthly report", slaTargets = new[] { new { priority = c.Priority.ToString(), responseMinutes = 60, resolutionMinutes = 240, basis = "CalendarHours" } } });
+        await manager.Ok($"/cases/{c.Id}/contract", new { contractId = contract }, await manager.Version($"/cases/{c.Id}"));
+        var linked = await CaseOfAsync(f.ConnectionId, "92");
+        Assert.Equal(jiraCreated!.Value.AddMinutes(60), linked!.ResponseDueAt);
+        Assert.Equal(jiraCreated.Value.AddMinutes(240), linked.ResolutionDueAt);
+        Assert.Equal(linked.ResolutionDueAt, linked.DueAt);
+        Assert.False((await manager.Get($"/cases/{c.Id}")).Body!["permissions"]!["canChangeDue"]!.GetValue<bool>());
+        Assert.NotNull((await manager.Post($"/cases/{c.Id}/due", new { reason = "x", clear = true }, await manager.Version($"/cases/{c.Id}"))).Error("dueLocal"));
     }
 
     [Fact]
@@ -539,31 +622,170 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         Assert.Equal(Priority.Normal, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
     }
 
-    [Fact]
-    public async Task Imported_comments_are_never_a_first_response_or_progress()
+    private async Task MapContactAsync(long connection, string account, long contact)
     {
-        var f = await SetUpAsync();
-        _jira.Add("120", "TAH-120");
-        _jira.Comments["120"] = [new("c120", "acc", "Sam", "We answered the customer", DateTimeOffset.UtcNow.AddHours(-1), DateTimeOffset.UtcNow.AddHours(-1), null, null)];
-        await RunAsync(f.SpaceId);
-        var c = await CaseOfAsync(f.ConnectionId, "120");
-        Assert.Null(c!.FirstResponseAt);
-        Assert.Null(c.ProgressSummary);
-        Assert.Null(c.ResolvedAt);
-        Assert.DoesNotContain(CaseEventType.Progress, await Db(db => db.CaseEvents.Where(e => e.CaseId == c.Id).Select(e => e.Type).ToListAsync()));
+        var admin = await _hub.As(HubFactory.Manager);
+        var row = (await admin.Get($"/admin/jira-connections/{connection}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == account);
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.Put($"/admin/jira-user-mappings/{row!["id"]!.GetValue<long>()}", new { clientContactId = contact })).Status);
     }
 
     [Fact]
-    public async Task A_contract_linked_later_is_measured_from_the_hub_case_not_from_jira_history()
+    public async Task An_issue_assigned_to_a_client_contact_waits_on_the_customer_until_jira_reassigns_it()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        var contact = await manager.Create($"/clients/{f.ClientId}/contacts", new { name = "Fictional Representative", email = "rep@example.com" });
+        Assert.Contains((await manager.Get($"/admin/jira-connections/{f.ConnectionId}/client-contacts")).Body!.AsArray(), k => k!["id"]!.GetValue<long>() == contact);
+
+        _jira.Add("140", "TAH-140", statusId: "3", statusName: "In Progress", category: "indeterminate", assigneeId: "acc-owner", assigneeName: "Sam");
+        await RunAsync(f.SpaceId);
+        await MapStatusAsync(f.ConnectionId, "3", "InProgress");
+        await MapUserAsync(f.ConnectionId, "acc-owner", owner);
+        await RunAsync(f.SpaceId);
+        _jira.Change("140", i => i with { AssigneeId = "acc-client", AssigneeName = "Rep" });
+        await RunAsync(f.SpaceId);
+        await MapContactAsync(f.ConnectionId, "acc-client", contact);
+        await RunAsync(f.SpaceId);
+
+        var waiting = await CaseOfAsync(f.ConnectionId, "140");
+        Assert.Equal("Fictional Representative", waiting!.ClientRepresentative);
+        Assert.Equal(owner, waiting.OwnerUserId); // TIO stays accountable
+        Assert.Equal(ResponsibleParty.CustomerIT, waiting.ResponsibleParty);
+        Assert.Equal(WaitingReason.Customer, waiting.WaitingReason);
+        Assert.Equal(CaseStatus.InProgress, waiting.Status);
+        Assert.Equal("WaitingForCustomer", waiting.StatusCode);
+
+        _jira.Change("140", i => i with { AssigneeId = "acc-owner", AssigneeName = "Sam" });
+        await RunAsync(f.SpaceId);
+        var back = await CaseOfAsync(f.ConnectionId, "140");
+        Assert.Null(back!.ClientRepresentative);
+        Assert.Equal(ResponsibleParty.TIO, back.ResponsibleParty);
+        Assert.Null(back.WaitingReason);
+        Assert.Equal("InProgress", back.StatusCode);
+    }
+
+    [Fact]
+    public async Task A_contact_of_another_client_leaves_the_case_unchanged_and_is_flagged()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var contact = await manager.Create($"/clients/{await _hub.ClientId("DEMO-HCP")}/contacts", new { name = "Other Client Person", email = "other@example.com" });
+        _jira.Add("141", "TAH-141", assigneeId: "acc-other", assigneeName: "Other");
+        await RunAsync(f.SpaceId);
+        await MapContactAsync(f.ConnectionId, "acc-other", contact);
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "141");
+        Assert.Null(c!.ClientRepresentative);
+        Assert.Null(c.WaitingReason);
+        Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.MissingUserMapping, f.ConnectionId));
+    }
+
+    private async Task MapInternalAsync(long connection, string account)
+    {
+        var admin = await _hub.As(HubFactory.Manager);
+        var row = (await admin.Get($"/admin/jira-connections/{connection}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == account);
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.Put($"/admin/jira-user-mappings/{row!["id"]!.GetValue<long>()}", new { isInternalMember = true })).Status);
+    }
+
+    [Fact]
+    public async Task A_vitronic_team_member_without_an_account_shows_on_the_case_and_clears_an_owner_from_jira()
+    {
+        var f = await SetUpAsync();
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        _jira.Add("150", "TAH-150", assigneeId: "acc-owner", assigneeName: "Sam");
+        await RunAsync(f.SpaceId);
+        await MapUserAsync(f.ConnectionId, "acc-owner", owner);
+        await RunAsync(f.SpaceId);
+        Assert.Equal(owner, (await CaseOfAsync(f.ConnectionId, "150"))!.OwnerUserId);
+
+        _jira.Change("150", i => i with { AssigneeId = "acc-member", AssigneeName = "Noor" });
+        await RunAsync(f.SpaceId);
+        Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.MissingUserMapping, f.ConnectionId));
+        await MapInternalAsync(f.ConnectionId, "acc-member");
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "150");
+        Assert.Equal("Noor", c!.InternalAssignee);
+        Assert.Null(c.OwnerUserId);
+        Assert.Null(c.WaitingReason);
+        Assert.Equal(0, await OpenIssuesAsync(JiraIssueType.MissingUserMapping, f.ConnectionId));
+
+        _jira.Change("150", i => i with { AssigneeId = "acc-owner", AssigneeName = "Sam" });
+        await RunAsync(f.SpaceId);
+        var back = await CaseOfAsync(f.ConnectionId, "150");
+        Assert.Null(back!.InternalAssignee);
+        Assert.Equal(owner, back.OwnerUserId);
+    }
+
+    [Fact]
+    public async Task An_owner_a_person_chose_stays_when_jira_assigns_a_vitronic_team_member()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        _jira.Add("151", "TAH-151");
+        await RunAsync(f.SpaceId);
+        var id = (await CaseOfAsync(f.ConnectionId, "151"))!.Id;
+        await manager.Ok($"/cases/{id}/assign", new { ownerUserId = owner, reason = "Taking it" }, await manager.Version($"/cases/{id}"));
+        _jira.Change("151", i => i with { AssigneeId = "acc-member2", AssigneeName = "Noor" });
+        await RunAsync(f.SpaceId);
+        await MapInternalAsync(f.ConnectionId, "acc-member2");
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "151");
+        Assert.Equal("Noor", c!.InternalAssignee);
+        Assert.Equal(owner, c.OwnerUserId);
+    }
+
+    [Fact]
+    public async Task A_jira_user_maps_to_a_hub_user_or_a_contact_not_both()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        _jira.Add("142", "TAH-142", assigneeId: "acc-both", assigneeName: "Both");
+        await RunAsync(f.SpaceId);
+        var row = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == "acc-both");
+        Assert.NotNull((await manager.Put($"/admin/jira-user-mappings/{row!["id"]!.GetValue<long>()}", new { tioUserId = manager.UserId, isInternalMember = true })).Error("clientContactId"));
+    }
+
+    [Fact]
+    public async Task The_first_jira_comment_is_the_first_response_and_never_progress()
+    {
+        var f = await SetUpAsync();
+        var first = DateTimeOffset.UtcNow.AddHours(-3);
+        var later = DateTimeOffset.UtcNow.AddHours(-1);
+        _jira.Add("120", "TAH-120");
+        _jira.Comments["120"] = [new("c121", "acc", "Sam", "Later", later, later, null, null), new("c120", "acc", "Sam", "We answered the customer", first, first, null, null)];
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "120");
+        Assert.Equal(first, c!.FirstResponseAt);
+        Assert.Null(c.ProgressSummary);
+        Assert.Null(c.ResolvedAt);
+        var events = await Db(db => db.CaseEvents.Where(e => e.CaseId == c.Id).Select(e => e.Type).ToListAsync());
+        Assert.DoesNotContain(CaseEventType.Progress, events);
+        Assert.Single(events, CaseEventType.FirstResponse);
+
+        var manager = await _hub.As(HubFactory.Manager);
+        Assert.NotNull((await manager.Post($"/cases/{c.Id}/first-response", new { channel = "Phone" }, await manager.Version($"/cases/{c.Id}"))).Error("respondedAt"));
+    }
+
+    [Fact]
+    public async Task With_no_jira_comment_the_first_response_stays_open()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("121", "TAH-121");
+        await RunAsync(f.SpaceId);
+        Assert.Null((await CaseOfAsync(f.ConnectionId, "121"))!.FirstResponseAt);
+    }
+
+    [Fact]
+    public async Task An_import_alone_never_creates_a_breach_or_penalty()
     {
         var f = await SetUpAsync();
         _jira.Add("125", "TAH-125"); // created 30 days earlier in Jira
         await RunAsync(f.SpaceId);
         var c = await CaseOfAsync(f.ConnectionId, "125");
-        Assert.True(c!.CreatedAt > DateTimeOffset.UtcNow.AddHours(-1));
-        Assert.Equal(SlaState.NotApplicable, c.ResolutionSlaStatus);
+        Assert.Equal(SlaState.NotApplicable, c!.ResolutionSlaStatus);
         Assert.Null(c.PenaltyTermsSnapshotJson);
-        Assert.NotEqual(0, await Db(db => db.JiraCaseMappings.IgnoreQueryFilters().Where(m => m.CaseId == c.Id).Select(m => m.JiraCreatedAt!.Value < DateTimeOffset.UtcNow.AddDays(-1) ? 1 : 0).FirstAsync()));
     }
 
     [Fact]

@@ -8359,3 +8359,176 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103134931_ConfigurableCaseStatuses'
+)
+BEGIN
+    ALTER TABLE [jira].[JiraWorkflowStatusMapping] ADD [TargetStatusCode] nvarchar(400) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103134931_ConfigurableCaseStatuses'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [StatusCode] nvarchar(100) NOT NULL DEFAULT N'';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103134931_ConfigurableCaseStatuses'
+)
+BEGIN
+    IF EXISTS (SELECT 1 FROM [admin].[LookupValue] WHERE [ListName] = N'CaseStatusLabel')
+    BEGIN
+        DECLARE @now datetimeoffset = SYSDATETIMEOFFSET();
+        UPDATE [admin].[LookupValue] SET [Category] = N'Initial', [SortOrder] = 10 WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'New';
+        UPDATE [admin].[LookupValue] SET [Code] = N'Opened', [Category] = N'Opened', [SortOrder] = 20, [Label] = CASE WHEN [Label] = N'Triaged' THEN N'Opened' ELSE [Label] END WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'Triaged';
+        UPDATE [admin].[LookupValue] SET [Category] = N'Active', [SortOrder] = 30, [Label] = CASE WHEN [Label] = N'InProgress' THEN N'In-progress' ELSE [Label] END WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'InProgress';
+        UPDATE [admin].[LookupValue] SET [Category] = N'Closed', [SortOrder] = 50 WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'Closed';
+        IF EXISTS (SELECT 1 FROM [work].[Case] WHERE [Status] = N'PendingValidation')
+            UPDATE [admin].[LookupValue] SET [Category] = N'Resolved', [SortOrder] = 35, [Label] = CASE WHEN [Label] = N'PendingValidation' THEN N'Pending validation' ELSE [Label] END WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'PendingValidation';
+        ELSE
+            DELETE FROM [admin].[LookupValue] WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'PendingValidation';
+        DELETE FROM [admin].[LookupValue] WHERE [ListName] = N'CaseStatusLabel' AND [Code] = N'Cancelled';
+        INSERT INTO [admin].[LookupValue] ([ListName], [Code], [Label], [Category], [SortOrder], [IsRetired], [CreatedAt], [UpdatedAt]) VALUES
+            (N'CaseStatusLabel', N'WaitingForCustomer', N'Waiting for customer', N'WaitingForCustomer', 40, 0, @now, @now),
+            (N'CaseStatusLabel', N'Reopened', N'Re-opened', N'Reopened', 60, 0, @now, @now);
+    END;
+    -- In EXEC, like the next statement: the deployment script has no batch break here, and this column is added in the same batch.
+    EXEC(N'UPDATE [work].[Case] SET [StatusCode] = CASE
+        WHEN [Status] = N''New'' THEN N''New''
+        WHEN [Status] = N''Triaged'' AND [ReopenCount] > 0 THEN N''Reopened''
+        WHEN [Status] = N''Triaged'' THEN N''Opened''
+        WHEN [Status] = N''InProgress'' THEN N''InProgress''
+        WHEN [Status] = N''PendingValidation'' THEN N''PendingValidation''
+        ELSE N''Closed'' END;
+    UPDATE [work].[Case] SET [StatusCode] = N''WaitingForCustomer'' WHERE [WaitingReason] = N''Customer'' AND [Status] NOT IN (N''Closed'', N''Cancelled'');');
+    -- In EXEC: the deployment script is re-run on upgraded databases, where this column no longer exists.
+    EXEC(N'UPDATE [jira].[JiraWorkflowStatusMapping] SET [TargetStatusCode] = CASE [TargetStatus]
+        WHEN N''New'' THEN N''New''
+        WHEN N''Triaged'' THEN N''Opened''
+        WHEN N''InProgress'' THEN N''InProgress''
+        WHEN N''PendingValidation'' THEN (SELECT [Code] FROM [admin].[LookupValue] WHERE [ListName] = N''CaseStatusLabel'' AND [Code] = N''PendingValidation'') END;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103134931_ConfigurableCaseStatuses'
+)
+BEGIN
+    DECLARE @var22 nvarchar(max);
+    SELECT @var22 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraWorkflowStatusMapping]') AND [c].[name] = N'TargetStatus');
+    IF @var22 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraWorkflowStatusMapping] DROP CONSTRAINT ' + @var22 + ';');
+    ALTER TABLE [jira].[JiraWorkflowStatusMapping] DROP COLUMN [TargetStatus];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103134931_ConfigurableCaseStatuses'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261103134931_ConfigurableCaseStatuses', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103140328_JiraSlaClockStart'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaClockStartAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103140328_JiraSlaClockStart'
+)
+BEGIN
+    EXEC(N'UPDATE c SET c.[FirstResponseAt] = x.[FirstComment]
+    FROM [work].[Case] c JOIN (SELECT [CaseId], MIN([JiraCreatedAt]) AS [FirstComment] FROM [jira].[JiraComment] WHERE [DeletedInJiraAt] IS NULL GROUP BY [CaseId]) x ON x.[CaseId] = c.[Id]
+    WHERE c.[FirstResponseAt] IS NULL;
+    UPDATE c SET c.[SlaClockStartAt] = m.[JiraCreatedAt], c.[SlaCalculatedAt] = NULL
+    FROM [work].[Case] c JOIN [jira].[JiraCaseMapping] m ON m.[CaseId] = c.[Id]
+    WHERE m.[JiraCreatedAt] IS NOT NULL;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103140328_JiraSlaClockStart'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261103140328_JiraSlaClockStart', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103142214_JiraClientRepresentative'
+)
+BEGIN
+    ALTER TABLE [jira].[JiraUserMapping] ADD [ClientContactId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103142214_JiraClientRepresentative'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [ClientRepresentative] nvarchar(200) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103142214_JiraClientRepresentative'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261103142214_JiraClientRepresentative', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103142553_JiraInternalMember'
+)
+BEGIN
+    ALTER TABLE [jira].[JiraUserMapping] ADD [IsInternalMember] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103142553_JiraInternalMember'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [InternalAssignee] nvarchar(200) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261103142553_JiraInternalMember'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261103142553_JiraInternalMember', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

@@ -221,6 +221,9 @@ test.describe('Configuration navigation', () => {
     await dialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(dialog).toBeHidden();
     await page.goto('/admin/config/case-statuses');
+    await expect(page.getByRole('button', { name: '+ Add', exact: true })).toBeVisible();
+    await expect(page.getByText('Fixed workflow value')).toHaveCount(0);
+    await page.goto('/admin/config/reported-conditions');
     await expect(page.getByRole('button', { name: '+ Add', exact: true })).toHaveCount(0);
     await page.goto('/admin/settings');
     await expect(page.getByRole('heading', { level: 1, name: 'Settings' })).toBeVisible();

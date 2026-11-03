@@ -4682,11 +4682,17 @@ namespace TioHub.Api.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
+                    b.Property<long?>("ClientContactId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
                     b.Property<long?>("CreatedById")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("IsInternalMember")
+                        .HasColumnType("bit");
 
                     b.Property<string>("JiraAccountId")
                         .IsRequired()
@@ -4774,9 +4780,9 @@ namespace TioHub.Api.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<string>("TargetStatus")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                    b.Property<string>("TargetStatusCode")
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -6142,6 +6148,10 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long?>("ClientId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("ClientRepresentative")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<DateTimeOffset?>("ClosedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -6187,6 +6197,10 @@ namespace TioHub.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("InternalAssignee")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTimeOffset?>("LastReviewedAt")
                         .HasColumnType("datetimeoffset");
@@ -6288,6 +6302,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("SlaCalculatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<DateTimeOffset?>("SlaClockStartAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<string>("SlaContractRef")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -6333,6 +6350,11 @@ namespace TioHub.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("StatusCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Title")
                         .IsRequired()

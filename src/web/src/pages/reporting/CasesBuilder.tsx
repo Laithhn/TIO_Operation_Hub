@@ -44,7 +44,7 @@ type Preview = {
 type Saved = { id: number; name: string; description?: string | null; visibility: string; teamId?: number | null; team?: string | null; owner?: string | null; isOwner: boolean;
   isFavorite: boolean; revision: number; schedules: number; shares: { id: number; name: string }[] };
 
-export const OPEN_STATUSES = ['New', 'Triaged', 'InProgress', 'PendingValidation'];
+export const OPEN_STATUSES = ['@open'];
 const DEFAULT_COLUMNS = ['caseId', 'clientCode', 'title', 'priority', 'status', 'owner', 'slaStatus', 'dueAt'];
 export const emptyDefinition = (): Definition => ({ schemaVersion: 1, filters: { dateField: 'createdAt' }, columns: [...DEFAULT_COLUMNS], sort: [{ field: 'priority', direction: 'asc' }, { field: 'caseId', direction: 'asc' }], groupBy: null });
 

@@ -14,7 +14,6 @@ public sealed record BuilderFileContext(string ReportName, string GeneratedBy, D
 public static class CasesExportFiles
 {
     private static readonly string[] PriorityOrder = ["Critical", "High", "Normal", "Low"];
-    private static readonly string[] StatusOrder = ["New", "Triaged", "InProgress", "PendingValidation", "Closed", "Cancelled"];
 
     public static string SafeFileName(string? requested, string fallback)
     {
@@ -80,7 +79,7 @@ public static class CasesExportFiles
                 lines.AddRange(rows.Select(r => (IReadOnlyList<object?>)new object?[] { name?.Invoke(r.Key) ?? (r.Key.Length == 0 ? "(none)" : r.Key), r.Count, Pct(r.Count, page.Total) }));
                 lines.Add([]);
             }
-            Block("By status", Ordered(page.ByStatus, StatusOrder), k => Convert.ToString(label(CasesFields.ByKey["status"], Enum.TryParse<CaseStatus>(k, out var s) ? s : k)) ?? k);
+            Block("By status", Ordered(page.ByStatus, [.. page.ByStatus.Keys]), k => Convert.ToString(label(CasesFields.ByKey["status"], k)) ?? k);
             Block("By priority", Ordered(page.ByPriority, PriorityOrder));
             Block("By SLA status", Ordered(page.BySla, CasesFields.SlaStatuses));
             if (page.Groups is { } g && v.GroupBy is { } gf) Block($"By {gf.Label.ToLowerInvariant()}", g, k => k.Length == 0 ? "(none)" : k);
@@ -146,13 +145,13 @@ public static class CasesExportFiles
         Header("TIO Operations Hub · Cases report · Management summary");
         var total = page.Total;
         int Sum(Dictionary<string, int> d, params string[] keys) => keys.Sum(k => d.GetValueOrDefault(k));
-        var open = Sum(page.ByStatus, "New", "Triaged", "InProgress", "PendingValidation");
+        var open = page.Open;
         var tiles = new (string Label, string Value, string Note)[]
         {
             ("Total cases", total.ToString("N0", CultureInfo.InvariantCulture), "matching the filters"),
             ("Open", open.ToString("N0", CultureInfo.InvariantCulture), "not closed or cancelled"),
             ("In progress", Sum(page.ByStatus, "InProgress").ToString("N0", CultureInfo.InvariantCulture), "status In progress"),
-            ("Closed", Sum(page.ByStatus, "Closed").ToString("N0", CultureInfo.InvariantCulture), "status Closed"),
+            ("Closed", (total - open).ToString("N0", CultureInfo.InvariantCulture), "closed or cancelled"),
             ("SLA breached", Sum(page.BySla, "Breached").ToString("N0", CultureInfo.InvariantCulture), "contractual response or resolution")
         };
         var tw = (W - 4 * 10) / 5;
@@ -194,7 +193,7 @@ public static class CasesExportFiles
         Panel(1, "SLA status");
         Bars(1, Ordered(page.BySla, CasesFields.SlaStatuses), k => k switch { "AtRisk" => "At risk", "OnTrack" => "On track", "NotMeasurable" => "Not measurable", "NotApplicable" => "No SLA", _ => k }, k => SlaColor.GetValueOrDefault(k, Blue));
         Panel(2, "Cases by status");
-        Bars(2, Ordered(page.ByStatus, StatusOrder), k => Convert.ToString(label(CasesFields.ByKey["status"], Enum.TryParse<CaseStatus>(k, out var s) ? s : k)) ?? k, _ => Blue);
+        Bars(2, Ordered(page.ByStatus, [.. page.ByStatus.Keys]), k => Convert.ToString(label(CasesFields.ByKey["status"], k)) ?? k, _ => Blue);
 
         // Applied filters.
         var fy = py + ph + 22;

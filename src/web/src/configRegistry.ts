@@ -50,8 +50,14 @@ export const CONFIG_LISTS: ConfigList[] = [
       { value: 'ProblemFollowUp', label: 'Problem follow-up', hint: 'Root cause work' }, { value: 'MaintenanceCoordination', label: 'Maintenance coordination', hint: 'Planned work' },
       { value: 'Improvement', label: 'Improvement', hint: 'Make something better' }, { value: 'RiskFollowUp', label: 'Risk follow-up', hint: 'Track a risk' }
     ] },
-  { slug: 'case-statuses', list: 'CaseStatusLabel', group: 'Contracts & cases', title: 'Case statuses', usedBy: 'cases', labelOnly: true,
-    about: 'Change the display labels of the built-in case statuses. The case lifecycle, transitions and stored codes stay fixed.' },
+  { slug: 'case-statuses', list: 'CaseStatusLabel', group: 'Contracts & cases', title: 'Case statuses', usedBy: 'cases',
+    about: 'The statuses shown on cases. Each one behaves in a fixed way, which decides the case actions, SLA clocks and open or closed counts.',
+    categories: [
+      { value: 'Initial', label: 'Initial', hint: 'Where a new case starts' }, { value: 'Opened', label: 'Opened', hint: 'Triaged and ready for work' },
+      { value: 'Active', label: 'Active', hint: 'Work is under way' }, { value: 'WaitingForCustomer', label: 'Waiting for customer', hint: 'Waiting on the customer; pauses the SLA if the contract says so' },
+      { value: 'Resolved', label: 'Resolved', hint: 'Stops the resolution SLA clock, and closing then needs this step first' }, { value: 'Closed', label: 'Closed', hint: 'Finished; needs an outcome and evidence' },
+      { value: 'Reopened', label: 'Reopened', hint: 'Shown after a closed case is reopened' }
+    ] },
   { slug: 'escalation-channels', list: 'EscalationChannel', group: 'Contracts & cases', title: 'Escalation channels', usedBy: 'escalations and their logged communications',
     about: 'How escalations arrive or are raised and how replies go out, for example e-mail, formal letter, verbal or Jira. The hub records the channel and its reference; it never sends anything.' },
   { slug: 'team-member-roles', list: 'TeamMemberRole', group: 'Teams', title: 'Team member roles', usedBy: 'team members',

@@ -619,6 +619,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<Case>(e =>
         {
             e.ToTable("Case", "work");
+            e.Property(x => x.StatusCode).HasMaxLength(100);
+            e.Property(x => x.ClientRepresentative).HasMaxLength(200);
+            e.Property(x => x.InternalAssignee).HasMaxLength(200);
             e.Property(x => x.Ref).HasMaxLength(20).HasDefaultValueSql("CONCAT('CS-', NEXT VALUE FOR [work].[CaseNumbers])").ValueGeneratedOnAdd();
             e.Property(x => x.Ref).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);
             e.HasIndex(x => x.Ref).IsUnique();
@@ -1499,6 +1502,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         foreach (var client in ChangeTracker.Entries<Client>().Where(e => e.State == EntityState.Added).Select(e => e.Entity).ToList())
             if (!ChangeTracker.Entries<Organization>().Any(o => ReferenceEquals(o.Entity.Client, client)))
                 Organizations.Add(new Organization { Client = client });
+        foreach (var added in ChangeTracker.Entries<Modules.Work.Case>().Where(e => e.State == EntityState.Added && e.Entity.StatusCode.Length == 0))
+            added.Entity.StatusCode = Modules.Work.CaseStatuses.BuiltInCode(added.Entity.Status);
         var now = clock.GetUtcNow();
         var userId = user.UserId;
         // A38: new assignments become notifications for the people concerned (written once the records have their ids).
@@ -1561,7 +1566,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
                 });
             }
             foreach (var notice in notices.Select(i => Modules.Notifications.AssignmentNotices.Build(i, now)).OfType<Modules.Notifications.Notification>())
-                Notifications.Add(notice);
+                // Assigned, moved away and assigned back within a minute: the first notice stands, and the save must not fail on it.
+                if (!await Notifications.IgnoreQueryFilters().AnyAsync(x => x.UserId == notice.UserId && x.Key == notice.Key, ct)) Notifications.Add(notice);
             await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
             if (ownTx is not null) await ownTx.CommitAsync(ct);
             AuditReason = null;

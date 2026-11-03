@@ -14,7 +14,8 @@ How Jira data reaches a case, what is preserved, and which decisions the owner s
 | Backup owner, team, coordinator, responsible party | **Never.** The team of a new case comes from the client's settings |
 | Operational due date | **Never.** Jira's due date is shown as external detail |
 | Contract | **Never linked automatically** |
-| First response, progress summary, last review | **Never** set by imported comments or activity |
+| First response | **A78:** the time of the earliest Jira comment on the issue, of any author or visibility. People cannot record it on these cases |
+| Progress summary, last review | **Never** set by imported comments or activity |
 | Waiting | **Never** |
 
 ## Creating a case
@@ -52,30 +53,30 @@ No status is mapped by name or category. An unmapped status raises *Unknown work
 | Pending validation → In progress | Yes (validation rejected); clears the resolution time like *Return to work* |
 | Anything backwards otherwise | **No**, review item |
 | Reopening a closed or cancelled case | **No**, review item; reopening needs a Manager |
-| → Closed | **Not allowed as a mapping target** |
+| → Closed | **Yes, if the owner maps a status to it** (A77). Records the Jira issue and status as outcome and evidence |
 | → Cancelled | **Not allowed as a mapping target** |
 
-### Deviation from the request: Jira cannot close or cancel a case
+### Jira closing a case (owner decision A77; cancelling stays with people)
 
-The request asks that Jira status updates the mapped case status, and also that case rules and SLA logic are preserved. These conflict for the last two statuses:
+The request asks that Jira status updates the mapped case status, and also that case rules and SLA logic are preserved. These conflict for the last two statuses. The risks below were accepted for closing:
 
 - **Closed** requires an outcome and validation evidence, or a Manager's exception. The code states that an engineer's reason alone can never waive evidence, and a Jira status carries neither.
 - **Cancelled** makes both SLA obligations *Not applicable*, so a Jira action could erase a breach and its indicative penalty.
 
-So a done Jira status should map to **Pending validation**, and people close from there. See open decision 1.
+**Owner decision (A77):** a Jira status may close a case, with the issue and status recorded as its outcome and evidence. Cancelling and reopening stay with people. See `CASE-STATUSES-A77.md`.
 
 ## SLA and penalties
 
-No SLA or penalty code changed. These tests hold it in place: `Imported_comments_are_never_a_first_response_or_progress`, `A_contract_linked_later_is_measured_from_the_hub_case_not_from_jira_history`, `An_issue_becomes_a_real_case_with_a_source_reference_and_no_contract`.
+No SLA or penalty code changed. These tests hold it in place: `The_first_jira_comment_is_the_first_response_and_never_progress`, `With_a_contract_the_sla_and_due_date_count_from_the_jira_creation_time`, `An_issue_becomes_a_real_case_with_a_source_reference_and_no_contract`.
 
 ### Onboarding policy for historical imports
 
 1. Imported cases have no contract, so both obligations are *Not applicable*. No breach or penalty can arise from an import.
-2. The clock starts at the case's hub creation time, as for every case. Jira's creation date is kept as external detail and never backdates a case.
-3. A person links a contract when the case should be measured, with the existing action.
-4. The resolution time of an imported case is when it reached Pending validation in the hub, not when Jira resolved it.
+2. **A78:** the clock starts at the Jira creation time. Cases not from Jira still start at their hub creation time.
+3. A person links a contract when the case should be measured, with the existing action. **An old issue can be breached the moment its contract is linked,** because its clock started in Jira.
+4. The resolution time of an imported case is when it reached a Resolved status in the hub or, without one, when it closed. It is not when Jira resolved it.
 
-**Known limit:** if a contract's clock legally starts when the customer raised the Jira ticket, a linked imported case is measured from later than that, which understates elapsed time. See open decision 2.
+**Known limit:** Jira gives no resolution time here, so a case closed from Jira counts as resolved when the synchronization sees it, up to one sync interval late.
 
 ## Owner
 
@@ -115,8 +116,8 @@ The locked TIO Manager holds the new permissions automatically. **Other roles ho
 
 | # | Decision | Current behavior |
 |---|---|---|
-| 1 | Should any Jira status close or cancel a case? | No; done maps to Pending validation |
-| 2 | Do contracts start the SLA clock at Jira ticket creation or at hub creation? | Hub creation |
+| 1 | Should any Jira status close or cancel a case? | **Decided (A77):** it may close, recording Jira as evidence; it cannot cancel. **A78:** every mapped status applies, including reopening |
+| 2 | Do contracts start the SLA clock at Jira ticket creation or at hub creation? | **Decided (A78):** Jira creation |
 | 3 | Which Jira statuses map to which case statuses, per space? | Nothing mapped; needs real workflows |
 | 4 | Azure Key Vault for tokens, as the mockup shows? | Encrypted on the server or an environment variable (see security guide) |
 | 5 | Who may read restricted Jira comments? | Case coordinators |

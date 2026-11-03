@@ -176,6 +176,10 @@ public class JiraUserMapping : Entity
     public string JiraAccountId { get; set; } = "";
     public string? JiraDisplayName { get; set; }
     public long? TioUserId { get; set; }
+    /// <summary>A79: instead of a hub user, the client's contact this Jira user represents. Not a foreign key: a deleted contact reads as unmapped.</summary>
+    public long? ClientContactId { get; set; }
+    /// <summary>A80: a Vitronic team member with no hub account. Cases show the name from Jira.</summary>
+    public bool IsInternalMember { get; set; }
     public User? TioUser { get; set; }
     public DateTimeOffset LastSeenAt { get; set; }
 }
@@ -188,7 +192,7 @@ public class JiraWorkflowStatusMapping : Entity
     public string JiraStatusId { get; set; } = "";
     public string JiraStatusName { get; set; } = "";
     public string? JiraStatusCategory { get; set; }
-    public CaseStatus? TargetStatus { get; set; }
+    public string? TargetStatusCode { get; set; }
 }
 
 public class JiraComment

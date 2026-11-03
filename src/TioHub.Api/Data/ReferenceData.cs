@@ -28,8 +28,7 @@ public static class ReferenceData
             ("High", "Proposed: significant degradation; criteria to be agreed before the pilot."),
             ("Normal", "Proposed: limited impact; criteria to be agreed before the pilot."),
             ("Low", "Proposed: no customer impact; criteria to be agreed before the pilot.")],
-        [LookupLists.ConditionLabel] = [("Unknown", null), ("Healthy", null), ("Degraded", null), ("Unavailable", null)],
-        [LookupLists.CaseStatusLabel] = [("New", null), ("Triaged", null), ("InProgress", null), ("PendingValidation", null), ("Closed", null), ("Cancelled", null)]
+        [LookupLists.ConditionLabel] = [("Unknown", null), ("Healthy", null), ("Degraded", null), ("Unavailable", null)]
     };
 
     private static readonly (string Key, string Value, string Description)[] Settings =
@@ -61,6 +60,10 @@ public static class ReferenceData
             for (var i = 0; i < values.Length; i++)
                 if (!have.Contains((list, values[i].Code)))
                     db.LookupValues.Add(new LookupValue { ListName = list, Code = values[i].Code, Label = values[i].Code, Description = values[i].Description, SortOrder = (i + 1) * 10 });
+        // A77: only an empty list is filled, because administrators may remove these statuses.
+        if (!have.Any(x => x.ListName == LookupLists.CaseStatusLabel))
+            foreach (var (s, i) in Modules.Work.CaseStatuses.Initial.Select((s, i) => (s, i)))
+                db.LookupValues.Add(new LookupValue { ListName = LookupLists.CaseStatusLabel, Code = s.Code, Label = s.Label, Category = s.Behavior.ToString(), SortOrder = (i + 1) * 10 });
         // A53: team roles typed before the list existed become list values, so they can still be chosen.
         var typed = await db.TeamMembers.Where(m => m.TeamRole != null).Select(m => m.TeamRole!).Distinct().ToListAsync(ct);
         foreach (var (role, i) in typed.Where(r => !have.Contains((LookupLists.TeamMemberRole, r)) && !Lookups[LookupLists.TeamMemberRole].Any(v => v.Code == r)).Select((r, i) => (r, i)))

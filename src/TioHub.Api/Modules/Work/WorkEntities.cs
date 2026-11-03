@@ -33,6 +33,8 @@ public class Case : Entity, IClientOwned, IAccountable
     public string? ResponsibleOrganization { get; set; }
     public long? CoordinatorUserId { get; set; }
     public CaseStatus Status { get; set; } = CaseStatus.New;
+    /// <summary>A77: the configured status people see, a code of the case status list. <see cref="Status"/> is the stage the rules read.</summary>
+    public string StatusCode { get; set; } = "";
     public string? ProgressSummary { get; set; }
     public WaitingReason? WaitingReason { get; set; }
     public DateTimeOffset? WaitingSince { get; set; }
@@ -54,6 +56,12 @@ public class Case : Entity, IClientOwned, IAccountable
     public int ReopenCount { get; set; }
     /// <summary>Start of the current cycle after a reopen; creation time otherwise. Age since creation is kept separately (Section 7).</summary>
     public DateTimeOffset CycleStartedAt { get; set; }
+    /// <summary>A78: when the Jira issue was created. The SLA clock of a synchronized case starts here instead of at the hub's creation time.</summary>
+    public DateTimeOffset? SlaClockStartAt { get; set; }
+    /// <summary>A79: the client's contact the Jira issue is assigned to. The case waits on the customer while this is set; the owner stays accountable.</summary>
+    public string? ClientRepresentative { get; set; }
+    /// <summary>A80: the Vitronic team member the Jira issue is assigned to, when that person has no hub account and so cannot be the owner.</summary>
+    public string? InternalAssignee { get; set; }
     public DateTimeOffset? LastReviewedAt { get; set; }
 
     // ---- A61: contractual SLA (see CaseSla) ----
@@ -124,7 +132,9 @@ public enum CaseEventType
     Created, Triaged, Started, ValidationRequested, Closed, Cancelled, Reopened, WaitingStarted, WaitingEnded,
     OwnerChanged, PriorityChanged, DueChanged, ScopeChanged, Progress, Reviewed, JiraAdded, JiraRemoved, EvidenceException,
     // A61
-    FirstResponse, ContractChanged
+    FirstResponse, ContractChanged,
+    // A77
+    StatusChanged
 }
 
 /// <summary>Timeline (WRK-06): retains previous owner, priority, status, due date and material scope changes with reasons.</summary>

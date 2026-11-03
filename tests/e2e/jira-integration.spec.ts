@@ -108,3 +108,65 @@ test('history status and space actions stay on screen at the mockup width', asyn
   const clipped = await page.locator('table').evaluateAll(ts => ts.filter(t => t.parentElement!.scrollWidth > t.parentElement!.clientWidth + 1).length);
   expect(clipped).toBe(0);
 });
+
+const shot = async (page: Page, name: string) => { if (process.env.TIOHUB_JIRA_SHOTS) await page.screenshot({ path: `${process.env.TIOHUB_JIRA_SHOTS}/${name}.png` }); };
+
+test('administrators add and remove a case status, and it is offered for Jira mapping', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 1100 });
+  const name = `Waiting for parts ${Date.now()}`;
+  await page.goto('/admin/config/case-statuses');
+  await expect(page.getByText('Fixed workflow value')).toHaveCount(0);
+  for (const label of ['New', 'Opened', 'In-progress', 'Waiting for customer', 'Closed', 'Re-opened'])
+    await expect(page.getByRole('button', { name: label, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '+ Add', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Name', { exact: true }).fill(name);
+  await dialog.getByLabel('Behaves as', { exact: true }).selectOption('Active');
+  await dialog.getByRole('button', { name: /^(Save|Add)$/ }).click();
+  await expect(page.getByRole('button', { name, exact: true })).toBeVisible();
+  await shot(page, 'case-statuses');
+  await page.goto('/cases');
+  await page.locator('table tbody a').first().click();
+  await page.goto('/admin/config/case-statuses');
+  await page.getByRole('button', { name: `Delete ${name}` }).click();
+  await page.getByRole('dialog').getByRole('button', { name: /Delete/ }).click();
+  await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
+});
+
+test('every status can be chosen for a Jira status, and a Jira user maps to a user, contact or Vitronic member', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 900 });
+  await page.route('**/api/v1/admin/jira-connections', r => r.fulfill({ json: { syncEnabled: true, connections: [{ id: 1, name: 'Demo Jira Cloud' }] } }));
+  await page.route('**/api/v1/admin/jira-connections/1/statuses', r => r.fulfill({ json: { targets: [{ code: 'New', label: 'New' }, { code: 'Closed', label: 'Closed' }, { code: 'WaitingForCustomer', label: 'Waiting for customer' }],
+    rows: [{ id: 1, jiraProjectId: '100', projectKey: 'TAH', jiraStatusId: '9', jiraStatusName: 'Done', jiraStatusCategory: 'done' }] } }));
+  await page.route('**/api/v1/admin/jira-connections/1/users', r => r.fulfill({ json: [{ id: 1, jiraAccountId: 'acc-1', jiraDisplayName: 'Fictional Colleague', isInternalMember: true, lastSeenAt: new Date().toISOString() }] }));
+  await page.route('**/api/v1/admin/jira-connections/1/client-contacts', r => r.fulfill({ json: [{ id: 5, name: 'Fictional Representative', role: 'Manager', clientCode: 'DEMO-NTA' }] }));
+  let saved: unknown;
+  await page.route('**/api/v1/admin/jira-user-mappings/1', r => { saved = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
+  await page.goto('/admin/integrations/jira/conflicts?tab=workflow');
+  await expect(page.getByLabel('Case status for Done').locator('option[value="Closed"]')).toHaveText('Closed');
+  await shot(page, 'workflow-mappings');
+  await page.getByRole('tab', { name: 'User mappings' }).click();
+  await expect(page.getByRole('checkbox', { name: 'Fictional Colleague is a Vitronic team member' })).toBeChecked();
+  await shot(page, 'user-mappings');
+  await page.getByLabel('Client contact for Fictional Colleague').selectOption('5');
+  await expect.poll(() => saved).toEqual({ tioUserId: null, clientContactId: 5, isInternalMember: false });
+});
+
+test('a Jira-synced case shows its status read-only and only actions that do not change it', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 900 });
+  await page.goto('/cases');
+  const href = await page.locator('table tbody a').first().getAttribute('href');
+  await page.route(`**/api/v1${href}`, async r => {
+    const json = await (await r.fetch()).json();
+    const off = ['canTriage', 'canStart', 'canClose', 'canRequestValidation', 'canReturnToWork', 'canChangeStatus', 'canSetWaiting', 'canChangeDue', 'canReopen', 'canCancel'];
+    await r.fulfill({ json: { ...json, statusFromJira: true, clientRepresentative: 'Fictional Representative', internalAssignee: 'Fictional Colleague',
+      permissions: { ...json.permissions, ...Object.fromEntries(off.map(k => [k, false])) } } });
+  });
+  await page.goto(href!);
+  await expect(page.getByText('status follows Jira')).toBeVisible();
+  await expect(page.getByText('Assigned in Jira to Fictional Representative')).toBeVisible();
+  for (const name of ['Start work', 'Set waiting', 'End waiting', 'Close', 'Cancel case', 'Change due date', 'Change status', 'Reopen', 'Request validation'])
+    await expect(page.locator('.page-head').getByRole('button', { name, exact: true })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Edit', exact: true })).toBeVisible();
+  await shot(page, 'synced-case');
+});

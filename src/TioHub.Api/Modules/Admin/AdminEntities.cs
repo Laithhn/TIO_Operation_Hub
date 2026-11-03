@@ -43,7 +43,7 @@ public static class LookupLists
     public const string ConditionLabel = "ConditionLabel";
     public const string CaseStatusLabel = "CaseStatusLabel";
     public const string OrganizationRelationshipType = "OrganizationRelationshipType";
-    public static bool IsFixedWorkflowLabel(string? list) => list is ConditionLabel or CaseStatusLabel;
+    public static bool IsFixedWorkflowLabel(string? list) => list is ConditionLabel;
 
     public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole, ConditionLabel, CaseStatusLabel, OrganizationRelationshipType];
 
@@ -51,7 +51,7 @@ public static class LookupLists
     public static readonly Dictionary<string, Type> Categories = new()
     {
         [EnvironmentType] = typeof(Common.EnvironmentType), [AssetType] = typeof(Common.AssetType),
-        [ContractType] = typeof(Common.ContractType), [CaseType] = typeof(Common.CaseType)
+        [ContractType] = typeof(Common.ContractType), [CaseType] = typeof(Common.CaseType), [CaseStatusLabel] = typeof(Common.CaseStatusBehavior)
     };
 }
 

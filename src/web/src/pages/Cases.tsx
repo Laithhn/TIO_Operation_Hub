@@ -2,11 +2,11 @@ import { canViewTab, hasPermission } from '../permissions';
 import { usePermittedTab } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
 import { canExportReport } from '../exportPermissions';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useMe, usePermission, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, usePermission, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -15,7 +15,7 @@ import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
 import { CaseActivity, JiraBanner, JiraDetailsPanel, jiraOriginLabel, type JiraSource } from './jira/CaseJira';
 
-type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
+type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; internalAssignee?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
   contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string };
 
 /** A61: contractual SLA filters of the case list (also the dashboard drill-downs). */
@@ -33,7 +33,6 @@ export function SlaPair({ response, resolution }: { response: string; resolution
 }
 
 export function CaseList() {
-  const caseStatusLabel = useEnumLabel('CaseStatus');
   const me = useMe().data!;
   const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', jiraSource: '', jiraSpace: '', jiraConnectionId: '', createdFrom: '', createdTo: '', sort: '-created', page: '1', pageSize: '15' });
   const [text, setText] = useState(f.q);
@@ -43,7 +42,7 @@ export function CaseList() {
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const products = useProductOptions();
-  const statuses = useEnum('CaseStatus');
+  const statuses = useLookup('CaseStatusLabel');
   const priorities = useEnum('Priority');
   const canEng = usePermission('Cases', 'Create');
   const exportParams = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
@@ -76,12 +75,12 @@ export function CaseList() {
           { key: 'title', header: 'Title', sort: 'title', render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
           { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span>,
             filter: <select className="input" aria-label="Filter by scope" value={f.scope} onChange={e => set({ scope: e.target.value })}><option value="">All</option><option value="Client">Client-related</option><option value="Internal">Internal</option></select> },
-          { key: 'status', header: 'Status', sort: 'status', render: r => <StatusBadge value={r.status} enumName="CaseStatus" />,
-            filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s} value={s}>{caseStatusLabel(s)}</option>)}</select> },
+          { key: 'status', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.statusCode} enumName="CaseStatus" />{r.status === 'Cancelled' && <span className="chip">Cancelled</span>}</>,
+            filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s.code} value={`code:${s.code}`}>{s.label}</option>)}</select> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} />,
             filter: <select className="input" aria-label="Filter by priority" value={f.priority} onChange={e => set({ priority: e.target.value })}><option value="">All</option>{priorities.map(s => <option key={s}>{s}</option>)}</select> },
           { key: 'jira', header: 'Jira', render: r => <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <div className="hint"><Badge tone="info">Synchronized</Badge> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</div>}</> },
-          { key: 'owner', header: 'Owner', sort: 'owner', render: r => r.ownerName ? <>{r.ownerName}{r.ownerDeactivated && <> <Badge tone="bad">Deactivated</Badge></>}</> : <span className="muted">Unassigned</span> },
+          { key: 'owner', header: 'Owner', sort: 'owner', render: r => r.ownerName ? <>{r.ownerName}{r.ownerDeactivated && <> <Badge tone="bad">Deactivated</Badge></>}</> : r.internalAssignee ? <>{r.internalAssignee} <Badge tone="info">Vitronic</Badge></> : <span className="muted">Unassigned</span> },
           { key: 'team', header: 'Team', render: r => r.teamName },
           { key: 'next', header: 'Next action / review', render: r => <>{r.nextAction}<div className="hint">{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</div></> },
           { key: 'due', header: 'Due', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">No deadline</span> },
@@ -128,7 +127,7 @@ function useClientContracts(clientId: number | null) {
 }
 
 type CaseDto = {
-  id: number; ref: string; title: string; type: string; scope: string; status: string; priority: string; impactSummary: string; progressSummary?: string; nextAction: string; nextReviewAt: string;
+  id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; statusFromJira: boolean; clientRepresentative?: string; internalAssignee?: string; statusOptions: string[]; priority: string; impactSummary: string; progressSummary?: string; nextAction: string; nextReviewAt: string;
   dueAt?: string; dueTimeZone?: string; dueLocal?: string; client?: { id: number; code: string; name: string }; team?: { id: number; code: string; name: string };
   owner?: UserRef; backupOwner?: UserRef; unassigned: boolean; ownerDeactivated: boolean; coordinator?: UserRef; responsibleParty: string; responsibleOrganization?: string;
   waiting?: { reason: string; since: string }; waitingIntervals: { reason: string; note?: string; startedAt: string; endedAt?: string }[]; waitingHours: number; ageDays: number; currentCycleAgeDays?: number; reopenCount: number;
@@ -141,7 +140,7 @@ type CaseDto = {
   events: { id: number; type: string; fromValue?: string; toValue?: string; note?: string; at: string; by?: string }[];
   contract?: { id: number; ref: string; title: string; status: string };
   sla: CaseSlaT;
-  permissions: { canEdit: boolean; canTriage: boolean; canAssign: boolean; canStart: boolean; canClose: boolean; canAuthorizeEvidenceException: boolean; canReopen: boolean; canCancel: boolean };
+  permissions: { canEdit: boolean; canTriage: boolean; canAssign: boolean; canStart: boolean; canClose: boolean; canRequestValidation: boolean; canReturnToWork: boolean; canChangeStatus: boolean; canSetWaiting: boolean; canChangeDue: boolean; canAuthorizeEvidenceException: boolean; canReopen: boolean; canCancel: boolean };
   version: string;
 };
 
@@ -247,35 +246,39 @@ export function CaseDetail() {
   const [dialog, setDialog] = useState<string | null>(null);
   const c = q.data;
   const p = c?.permissions;
+  const caseStatusLabel = useEnumLabel('CaseStatus');
   const open = c && !['Closed', 'Cancelled'].includes(c.status);
   const close = () => setDialog(null);
   const common = { path: '', version: c?.version, onClose: close };
   // A61: a progress update can be the first response to the customer, until one is recorded.
-  const responseField = c?.contract && !c.sla.response.actualAt ? [{ name: 'customerResponse', label: 'This update was sent to the customer (first response)', kind: 'checkbox' as const, hint: 'Records the first response for the contractual SLA at this time.' }] : [];
+  const responseField = c?.contract && !c.sla.response.actualAt && !c.statusFromJira ? [{ name: 'customerResponse', label: 'This update was sent to the customer (first response)', kind: 'checkbox' as const, hint: 'Records the first response for the contractual SLA at this time.' }] : [];
   return (
     <QueryState q={q}>{c && p && (<>
       <PageHead title={`${c.ref} · ${c.title}`} crumbs={[{ to: '/cases', label: 'Cases' }, ...(c.client ? [{ to: `/clients/${c.client.id}`, label: c.client.code }] : [{ label: 'Internal' }]), { label: c.ref }]}
-        sub={<><StatusBadge value={c.status} enumName="CaseStatus" /> <StatusBadge value={c.priority} /> {T.name('CaseType', c.type)} · {c.scope === 'Internal' ? 'Internal work' : 'Client-related'} {c.waiting && <Badge tone="warn">Waiting on {label(c.waiting.reason)}</Badge>} {c.overdue && <Badge tone="bad">Overdue</Badge>} {c.ownerDeactivated && <Badge tone="bad">Owner deactivated</Badge>}</>}
+        sub={<><StatusBadge value={c.statusCode} enumName="CaseStatus" />{c.status === 'Cancelled' && <span className="chip">Cancelled</span>} <StatusBadge value={c.priority} /> {T.name('CaseType', c.type)} · {c.scope === 'Internal' ? 'Internal work' : 'Client-related'} {c.waiting && <Badge tone="warn">Waiting on {label(c.waiting.reason)}</Badge>} {c.overdue && <Badge tone="bad">Overdue</Badge>} {c.ownerDeactivated && <Badge tone="bad">Owner deactivated</Badge>}</>}
         actions={<>
           {p.canEdit && <Link className="btn" to={`/cases/${id}/edit`}>Edit</Link>}
           {p.canTriage && <button className="btn btn-primary" onClick={() => setDialog('triage')}>Triage</button>}
           {p.canAssign && open && <button className="btn" onClick={() => setDialog('assign')}>{c.unassigned ? 'Assign' : 'Reassign'}</button>}
           {p.canStart && <button className="btn btn-primary" onClick={() => setDialog('start')}>Start work</button>}
           {p.canEdit && open && <button className="btn" onClick={() => setDialog('progress')}>Record progress</button>}
-          {p.canEdit && open && <button className="btn" onClick={() => setDialog(c.waiting ? 'unwait' : 'wait')}>{c.waiting ? 'End waiting' : 'Set waiting'}</button>}
-          {p.canEdit && c.status === 'InProgress' && <button className="btn" onClick={() => setDialog('validate')}>Request validation</button>}
-          {p.canEdit && c.status === 'PendingValidation' && <button className="btn" onClick={() => setDialog('resume')}>Return to work</button>}
+          {p.canSetWaiting && <button className="btn" onClick={() => setDialog(c.waiting ? 'unwait' : 'wait')}>{c.waiting ? 'End waiting' : 'Set waiting'}</button>}
+          {p.canChangeStatus && c.statusOptions.length > 0 && <button className="btn" onClick={() => setDialog('status')}>Change status</button>}
+          {p.canRequestValidation && <button className="btn" onClick={() => setDialog('validate')}>Request validation</button>}
+          {p.canReturnToWork && <button className="btn" onClick={() => setDialog('resume')}>Return to work</button>}
           {p.canClose && <button className="btn btn-primary" onClick={() => setDialog('close')}>Close</button>}
-          {p.canEdit && open && <button className="btn" onClick={() => setDialog('due')}>Change due date</button>}
+          {p.canChangeDue && <button className="btn" onClick={() => setDialog('due')}>Change due date</button>}
           {p.canCancel && <button className="btn btn-danger" onClick={() => setDialog('cancel')}>Cancel case</button>}
           {p.canReopen && <button className="btn" onClick={() => setDialog('reopen')}>Reopen</button>}
         <DeleteAction button path={`/cases/${c.id}`} what={`case ${c.ref}`} afterTo={'/cases'} /></>} />
-      {c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
+      {c.statusFromJira && <div className="notice">This case's status follows Jira, so change it there. {c.contract ? 'The due dates come from the Jira creation time and the contract SLA.' : 'Link an SLA contract to calculate the due dates from the Jira creation time.'}</div>}
+      {c.clientRepresentative && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The case waits on the customer until Jira reassigns it.</div>}
+      {!c.statusFromJira && c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
       {c.jiraSource && <JiraBanner s={c.jiraSource} />}
       <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>
         <Panel title="Management summary">
           <DL items={[
-            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
+            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], ...(c.internalAssignee ? [['Assigned in Jira to', <>{c.internalAssignee} <Badge tone="info">Vitronic team member</Badge></>] as [string, ReactNode]] : []), ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
             ['Responsible party', `${label(c.responsibleParty)}${c.responsibleOrganization ? ` · ${c.responsibleOrganization}` : ''}`],
             ['Impact', c.impactSummary], ['Progress', c.progressSummary ?? <span className="muted">No progress recorded</span>],
             ['Next action', c.nextAction], ['Next review', <><When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</>],
@@ -294,7 +297,7 @@ export function CaseDetail() {
         </Panel>
         {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} />}
       </div>
-      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open} canChangeContract={canCoordinate} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
+      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
       {tab === 'escalations' && <Panel title="Escalations about this case" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
       {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
@@ -352,6 +355,8 @@ export function CaseDetail() {
         fields={[{ name: 'reason', label: 'Waiting on', kind: 'select', required: true, options: ['Customer', 'InternalTeam', 'Vendor', 'PlannedChange'].map(x => ({ value: x, label: label(x) })) }, { name: 'note', label: 'Note' }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }]}
         transform={v => ({ reason: v.reason, note: v.note || null, nextReviewAt: fromLocalInput(v.nextReviewAt) })} />}
       {dialog === 'unwait' && <ActionDialog {...common} title="End waiting" path={`/cases/${id}/waiting/clear`} submitLabel="End waiting" fields={[{ name: 'reason', label: 'Note' }]} />}
+      {dialog === 'status' && <ActionDialog {...common} title="Change status" path={`/cases/${id}/status`} submitLabel="Change status" intro="Other changes, such as starting work or closing, have their own action on this page."
+        fields={[{ name: 'code', label: 'Status', kind: 'select', required: true, options: c.statusOptions.map(s => ({ value: s, label: caseStatusLabel(s) })) }]} />}
       {dialog === 'validate' && <ActionDialog {...common} title="Request validation" path={`/cases/${id}/request-validation`} submitLabel="Request validation" intro="Describe the delivered outcome and what should be validated. A validation request can be recorded without a next action."
         fields={[{ name: 'progressSummary', label: 'Delivered outcome / progress', kind: 'textarea', required: true }, { name: 'validationRequest', label: 'Validation request' }, { name: 'nextAction', label: 'Next action (optional)' }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime' }]}
         transform={v => ({ progressSummary: v.progressSummary, validationRequest: v.validationRequest || null, nextAction: v.nextAction || null, nextReviewAt: v.nextReviewAt ? fromLocalInput(v.nextReviewAt) : null })} />}
@@ -361,7 +366,7 @@ export function CaseDetail() {
         fields={[{ name: 'dueLocal', label: 'New due (local time)', kind: 'datetime' }, { name: 'dueTimeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]}
         transform={v => ({ dueLocal: v.dueLocal || null, dueTimeZone: v.dueTimeZone || c.dueTimeZone || me.timeZone, clear: !v.dueLocal, reason: v.reason })} />}
       {dialog === 'cancel' && <ActionDialog {...common} title="Cancel case" danger path={`/cases/${id}/cancel`} submitLabel="Cancel case" intro="Links and history are kept." fields={[{ name: 'reason', label: 'Cancellation reason', kind: 'textarea', required: true }]} />}
-      {dialog === 'reopen' && <ActionDialog {...common} title="Reopen case" path={`/cases/${id}/reopen`} submitLabel="Reopen to Triaged" intro="The earlier closure or cancellation stays in history. Ownership is rechecked."
+      {dialog === 'reopen' && <ActionDialog {...common} title="Reopen case" path={`/cases/${id}/reopen`} submitLabel="Reopen" intro="The earlier closure or cancellation stays in history. Ownership is rechecked."
         fields={[{ name: 'reason', label: 'Reopening reason', kind: 'textarea', required: true }, { name: 'nextAction', label: 'Next action (optional)' }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }]}
         transform={v => ({ reason: v.reason, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt) })} />}
       {dialog === 'jira' && <JiraDialog caseId={c.id} onClose={close} />}

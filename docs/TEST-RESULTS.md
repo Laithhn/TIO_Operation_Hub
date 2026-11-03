@@ -374,3 +374,28 @@ Changes to existing tests:
 The entry chunk grew past the 900 kB budget by 817 bytes. The budget is unchanged: the search palette now loads on first use, and the chunk is 896,571 bytes.
 
 Not run: a real Jira site; scoped tokens through the real gateway; the upgrade script on a restored UAT backup; `Install`/`Upgrade` on IIS.
+
+## Release 2.47.0: case statuses and Jira control (A77 to A80), 3 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval for this run.
+
+| Suite | Result |
+|---|---|
+| Backend, `dotnet test tests/TioHub.Tests` (real SQL Server) | **624 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | 161 of 163 passed on the first run. The 2 failures expected old screen text; the specs were updated |
+| Playwright, the affected specs after those updates, with 3 new tests | 17 passed |
+| Playwright, access-control isolated | 9 passed |
+| Playwright, access-roles isolated | 5 passed |
+| Frontend, `vitest` | 82 passed |
+| `tsc -b --noEmit` | Clean |
+
+The whole main Playwright config was not run again after the spec updates; no application code changed between those runs.
+
+Defects these runs found, both fixed:
+
+- `01-schema.sql` failed on upgrade with `Invalid column name 'StatusCode'`, because the migration used a column added in the same batch.
+- Assigning someone to a case, moving it away and assigning them back within a minute failed on a duplicate notification.
+
+The Jira tests use a **fake Jira**, and browser checks of the mapping and synced-case screens use intercepted, fictional data. They are not evidence that a real site works.
+
+Not run: a real Jira site; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS; `DataProtection:KeysFolder` on IIS or a network share.

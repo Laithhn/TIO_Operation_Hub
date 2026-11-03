@@ -194,7 +194,7 @@ public static class CaseSla
     /// <summary>Recomputes the deadlines, counted times and states. Returns true when anything changed.</summary>
     public static bool Evaluate(Case c, IEnumerable<CaseWaitingInterval> waits, DateTimeOffset now, DateTimeOffset? trackingFrom)
     {
-        var before = (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote);
+        var before = (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote, c.DueAt);
         DateTimeOffset? rDue = null, xDue = null;
         int? rElapsed = null, xElapsed = null, paused = null;
         SlaState rState, xState;
@@ -207,7 +207,7 @@ public static class CaseSla
         {
             var (cal, problem) = Calendar(c);
             var pauses = Pauses(c, waits, now);
-            var start = c.CreatedAt;
+            var start = c.SlaClockStartAt ?? c.CreatedAt;
             (SlaState, DateTimeOffset?, int?) Measure(int? minutes, DateTimeOffset? actual, string what, bool untracked)
             {
                 if (minutes is null) { note ??= $"{c.SlaContractRef} has no {what} target for {c.SlaPriority} priority."; return (SlaState.NotMeasurable, null, null); }
@@ -229,7 +229,9 @@ public static class CaseSla
         c.ResponseSlaStatus = rState; c.ResolutionSlaStatus = xState;
         c.ResponseElapsedMinutes = rElapsed; c.ResolutionElapsedMinutes = xElapsed;
         c.SlaPausedMinutes = paused; c.SlaNote = note;
-        var changed = before != (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote);
+        // A78: a synchronized case under a contract is due when its resolution SLA is.
+        if (c.SlaClockStartAt is not null && xDue is not null) { c.DueAt = xDue; c.DueTimeZone = c.SlaTimeZone ?? "UTC"; }
+        var changed = before != (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote, c.DueAt);
         if (changed || c.SlaCalculatedAt is null) c.SlaCalculatedAt = now;
         return changed;
     }

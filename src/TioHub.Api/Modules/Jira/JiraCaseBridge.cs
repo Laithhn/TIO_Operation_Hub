@@ -21,30 +21,37 @@ public sealed class JiraIssueOutcome
 }
 
 /// <summary>
-/// What a Jira status may do to a case. Only the steps below are automatic, and each is the same transition a person can make. Closing needs
-/// an outcome and validation evidence, cancelling removes the case from the SLA, reopening needs a Manager: those stay with people (A76).
+/// How a Jira status moves a case (A78). Jira is the trusted source, so every mapped status applies, using the same transitions and events as the
+/// case module. Closing records the Jira issue and status as its outcome and evidence.
 /// </summary>
 public static class JiraWorkflow
 {
-    public static readonly CaseStatus[] AllowedTargets = [CaseStatus.New, CaseStatus.Triaged, CaseStatus.InProgress, CaseStatus.PendingValidation];
+    private static readonly CaseStatus[] Forward = [CaseStatus.New, CaseStatus.Triaged, CaseStatus.InProgress, CaseStatus.PendingValidation];
 
-    /// <summary>The legal steps from a status to the target; empty when already there; null when no automatic path exists.</summary>
-    public static IReadOnlyList<CaseStatus>? Path(CaseStatus from, CaseStatus to)
+    /// <summary>The stages a case passes through to reach the target. A finished case is reopened first; going back is one step.</summary>
+    public static IReadOnlyList<CaseStatus> Path(CaseStatus from, CaseStatus to)
     {
         if (from == to) return [];
-        if (from == CaseStatus.PendingValidation && to == CaseStatus.InProgress) return [CaseStatus.InProgress];
-        CaseStatus[] forward = [CaseStatus.New, CaseStatus.Triaged, CaseStatus.InProgress, CaseStatus.PendingValidation];
-        int a = Array.IndexOf(forward, from), b = Array.IndexOf(forward, to);
-        return a < 0 || b < 0 || b < a ? null : forward[(a + 1)..(b + 1)];
+        if (to == CaseStatus.Closed) return [CaseStatus.Closed];
+        if (from is CaseStatus.Closed or CaseStatus.Cancelled) return [CaseStatus.Triaged, .. Path(CaseStatus.Triaged, to)];
+        int a = Array.IndexOf(Forward, from), b = Array.IndexOf(Forward, to);
+        return b < a ? [to] : Forward[(a + 1)..(b + 1)];
     }
 
-    public static CaseEventType EventFor(CaseStatus to) => to switch
+    public static CaseEventType EventFor(CaseStatus from, CaseStatus to)
     {
-        CaseStatus.Triaged => CaseEventType.Triaged,
-        CaseStatus.InProgress => CaseEventType.Started,
-        CaseStatus.PendingValidation => CaseEventType.ValidationRequested,
-        _ => throw new InvalidOperationException($"{to} is not an automatic transition.")
-    };
+        if (from is CaseStatus.Closed or CaseStatus.Cancelled) return CaseEventType.Reopened;
+        if (from == CaseStatus.PendingValidation && to == CaseStatus.InProgress) return CaseEventType.Started; // validation rejected
+        return to switch
+        {
+            CaseStatus.Closed => CaseEventType.Closed,
+            _ when Array.IndexOf(Forward, to) < Array.IndexOf(Forward, from) => CaseEventType.StatusChanged,
+            CaseStatus.Triaged => CaseEventType.Triaged,
+            CaseStatus.InProgress => CaseEventType.Started,
+            CaseStatus.PendingValidation => CaseEventType.ValidationRequested,
+            _ => throw new InvalidOperationException($"{to} is not an automatic transition.")
+        };
+    }
 }
 
 /// <summary>Turns Jira issues into changes of real cases, through the case module's own transitions and events (never by writing status columns).</summary>
@@ -149,9 +156,12 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
                 Snapshot(m, issue, x, now);
                 await EnsureSourceReferenceAsync(x, c, m, now, ct);
                 var caseChanged = await ApplyOwnerAsync(x.Connection, x.Space, c, m, now, ct);
+                if (m.JiraCreatedAt is { } jiraCreated && c.SlaClockStartAt != jiraCreated) { c.SlaClockStartAt = jiraCreated; caseChanged = true; }
                 caseChanged |= await ApplyStatusAsync(x.Connection, x.Space, c, m, now, ct);
                 if (!outcome.Created && (caseChanged || snapshotChanged)) outcome.Updated = true;
                 if (comments is not null) outcome.Comments = await ImportCommentsAsync(x.Connection, issue.Id, c.Id, comments, now, ct);
+                // A78: the earliest Jira comment is the first response. It is recorded once, like any first response.
+                if (comments is { Count: > 0 }) CaseEndpoints.RecordFirstResponse(db, c, comments.Min(k => k.Created), $"First Jira comment on {m.IssueKey}", db.CurrentUser, now);
                 else if (commentError is not null)
                 {
                     Raise(JiraIssueType.FailedCommentImport, x, issue, $"comments:{x.Connection.Id}:{issue.Id}", now, $"Comments of {issue.Key} could not be read: {commentError}", "Retried at the next run.", c.Id, null);
@@ -207,11 +217,11 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
     }
 
     private Task<Case> LoadCaseAsync(long id, CancellationToken ct) =>
-        db.Cases.IgnoreQueryFilters().Include(c => c.Owner).FirstAsync(c => c.Id == id, ct);
+        db.Cases.IgnoreQueryFilters().Include(c => c.Owner).Include(c => c.WaitingIntervals).FirstAsync(c => c.Id == id, ct);
 
     private static string IssueUrl(JiraConnection conn, string key) => $"{conn.SiteUrl}/browse/{Uri.EscapeDataString(key)}";
 
-    /// <summary>Creates the case with the same required values as POST /cases. No contract is linked, so nothing is measured retroactively.</summary>
+    /// <summary>Creates the case with the same required values as POST /cases. No contract is linked; once a person links one, the SLA counts from Jira's creation time (A78).</summary>
     private async Task CreateCaseAsync(JiraRunContext x, JiraIssue issue, DateTimeOffset now, CancellationToken ct)
     {
         var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the case type", null, ct);
@@ -220,7 +230,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         {
             Title = title.Length > 200 ? title[..200] : title, Type = typeCode, TypeCategory = typeCategory, Scope = WorkScope.Client, ClientId = x.Space.ClientId,
             ResponsibleTeamId = x.Settings.DefaultResponsibleTeamId, ImpactSummary = $"Not yet assessed. Imported from Jira {issue.Key}.", Priority = x.Settings.DefaultPriority,
-            NextAction = "Review the case imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, CycleStartedAt = now, LastReviewedAt = now
+            NextAction = "Review the case imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, StatusCode = await CaseStatuses.DefaultCodeAsync(db, CaseStatusBehavior.Initial, CaseStatus.New, ct), CycleStartedAt = now, LastReviewedAt = now
         };
         db.Cases.Add(c);
         await db.SaveChangesAsync(ct);
@@ -276,18 +286,60 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
     {
         if (m.AssigneeAccountId == m.AppliedAssigneeAccountId) return false;
         // Unassigned in Jira keeps the current owner: an open case may have to keep an owner (WRK-04), and no fallback person is invented.
-        if (m.AssigneeAccountId is null) { m.AppliedAssigneeAccountId = null; return false; }
+        if (m.AssigneeAccountId is null) { m.AppliedAssigneeAccountId = null; c.InternalAssignee = null; return await EndClientRepresentationAsync(c, m, now, ct); }
         var map = await UserMappingAsync(conn.Id, m.AssigneeAccountId, m.AssigneeName, now, ct);
         var fingerprint = UserFingerprint(conn.Id, m.AssigneeAccountId);
+        var contact = map.ClientContactId is { } contactId ? await db.Contacts.IgnoreQueryFilters().AsNoTracking().Where(k => k.Id == contactId && k.ArchivedAt == null).Select(k => new { k.Name, k.ClientId, k.Organization }).FirstOrDefaultAsync(ct) : null;
+        if (contact is not null)
+        {
+            await ResolveAutomaticAsync(fingerprint, now, ct);
+            var representative = $"client:{c.Id}";
+            if (contact.ClientId != c.ClientId)
+            {
+                Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, representative, now, $"{m.IssueKey} is assigned to {contact.Name}, a contact of another client, so the case is unchanged.",
+                    "Map this Jira user to a contact of the right client.", c.Id, null, m.AssigneeAccountId);
+                return false;
+            }
+            await ResolveAutomaticAsync(representative, now, ct);
+            m.AppliedAssigneeAccountId = m.AssigneeAccountId;
+            c.InternalAssignee = null;
+            if (c.ClientRepresentative == contact.Name) return false;
+            c.ClientRepresentative = contact.Name;
+            c.ResponsibleParty = ResponsibleParty.CustomerIT;
+            c.ResponsibleOrganization = contact.Organization ?? c.ResponsibleOrganization;
+            if (CaseQuery.IsOpen(c.Status)) await WaitOnCustomerAsync(c, $"Assigned in Jira to {contact.Name}: {m.IssueKey}", now, ct);
+            return true;
+        }
+        var ended = await EndClientRepresentationAsync(c, m, now, ct);
+        if (map.IsInternalMember)
+        {
+            await ResolveAutomaticAsync(fingerprint, now, ct);
+            m.AppliedAssigneeAccountId = m.AssigneeAccountId;
+            var name = m.AssigneeName ?? map.JiraDisplayName ?? m.AssigneeAccountId;
+            var named = c.InternalAssignee != name;
+            c.InternalAssignee = name;
+            // The previous owner only came from Jira, and Jira has moved on. An owner a person chose stays.
+            if (m.OwnerFromJira && c.OwnerUserId is { } previous && CaseQuery.IsOpen(c.Status))
+            {
+                var people = await access.UserRefsAsync([previous], ct);
+                CaseEndpoints.AddEvent(db, c, CaseEventType.OwnerChanged, people.GetValueOrDefault(previous)?.Name, "Unassigned", $"From Jira {m.IssueKey}: assigned to {name}", db.CurrentUser, now);
+                c.OwnerUserId = null;
+                c.Owner = null;
+                m.OwnerFromJira = false;
+                named = true;
+            }
+            return named || ended;
+        }
+        c.InternalAssignee = null;
         if (map.TioUserId is null)
         {
-            Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, fingerprint, now, $"Jira user {m.AssigneeName ?? "(no name)"} is not mapped to a hub user, so the case keeps its current owner.",
-                "Map the Jira user to a hub user; the owner is updated at the next run.", c.Id, null, m.AssigneeAccountId);
-            return false;
+            Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, fingerprint, now, $"Jira user {m.AssigneeName ?? "(no name)"} is not mapped to a hub user or client contact, so the case keeps its current owner.",
+                "Map the Jira user to a hub user or a client contact; the case is updated at the next run.", c.Id, null, m.AssigneeAccountId);
+            return ended;
         }
         await ResolveAutomaticAsync(fingerprint, now, ct);
         var conflict = $"owner:{c.Id}";
-        if (!CaseQuery.IsOpen(c.Status)) { m.AppliedAssigneeAccountId = m.AssigneeAccountId; return false; }
+        if (!CaseQuery.IsOpen(c.Status)) { m.AppliedAssigneeAccountId = m.AssigneeAccountId; return ended; }
         var check = new Check();
         await access.CheckAssignableAsync(check, "owner", map.TioUserId, c.ClientId, c.ResponsibleTeamId, "the owner", ct);
         if (map.TioUserId == c.BackupOwnerUserId) check.Add("owner", "This person is the case's backup owner, and the owner and backup must be different people.");
@@ -295,7 +347,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         {
             Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, conflict, now, $"{m.IssueKey}: the mapped user cannot own this case. {check.First("owner")}",
                 "Change the user mapping or the case's backup owner.", c.Id, null, m.AssigneeAccountId);
-            return false;
+            return ended;
         }
         await ResolveAutomaticAsync(conflict, now, ct);
         var changed = c.OwnerUserId != map.TioUserId;
@@ -308,7 +360,29 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         }
         m.OwnerFromJira = true;
         m.AppliedAssigneeAccountId = m.AssigneeAccountId;
-        return changed;
+        return changed || ended;
+    }
+
+    /// <summary>A79: waiting that follows a Jira assignment. Any other wait ends first, as when a person sets waiting.</summary>
+    private async Task WaitOnCustomerAsync(Case c, string note, DateTimeOffset now, CancellationToken ct)
+    {
+        if (c.WaitingReason == WaitingReason.Customer) return;
+        CaseEndpoints.EndWaiting(db, c, db.CurrentUser, now, note);
+        CaseEndpoints.StartWaiting(db, c, WaitingReason.Customer, note, db.CurrentUser, now);
+        await CaseEndpoints.SyncWaitingStatusAsync(db, c, ct);
+    }
+
+    /// <summary>A79: the issue left the client's contact. The Jira status is applied again, in case it says the case is still waiting.</summary>
+    private async Task<bool> EndClientRepresentationAsync(Case c, JiraCaseMapping m, DateTimeOffset now, CancellationToken ct)
+    {
+        if (c.ClientRepresentative is null) return false;
+        c.ClientRepresentative = null;
+        c.ResponsibleParty = ResponsibleParty.TIO;
+        c.ResponsibleOrganization = null;
+        if (c.WaitingReason == WaitingReason.Customer) CaseEndpoints.EndWaiting(db, c, db.CurrentUser, now, $"Reassigned in Jira: {m.IssueKey}");
+        await CaseEndpoints.SyncWaitingStatusAsync(db, c, ct);
+        m.AppliedStatusId = null;
+        return true;
     }
 
     /// <summary>Jira status to case status, only through a validated mapping and legal steps. Unknown statuses wait for an administrator.</summary>
@@ -324,7 +398,8 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             db.JiraWorkflowStatusMappings.Add(new JiraWorkflowStatusMapping { JiraConnectionId = conn.Id, JiraProjectId = projectId, JiraStatusId = m.StatusId, JiraStatusName = m.StatusName ?? m.StatusId, JiraStatusCategory = m.StatusCategory });
             await db.SaveChangesAsync(ct);
         }
-        if (row?.TargetStatus is null)
+        var behavior = row?.TargetStatusCode is { } mapped ? await CaseStatuses.BehaviorOfAsync(db, mapped, ct) : null;
+        if (behavior is null)
         {
             Raise(JiraIssueType.UnknownWorkflowStatus, conn, space, null, null, unknown, now, $"Jira status \"{m.StatusName}\" in space {space.ProjectKey} has no case status, so cases keep their current status.",
                 "Map the Jira status to a case status; cases are updated at the next run.", null, null, m.StatusId);
@@ -332,24 +407,53 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         }
         await ResolveAutomaticAsync(unknown, now, ct);
         var blocked = $"workflow:{c.Id}";
-        var path = JiraWorkflow.Path(c.Status, row.TargetStatus.Value);
-        if (path is null)
-        {
-            Raise(JiraIssueType.WorkflowTransitionBlocked, conn, space, m.JiraIssueId, m.IssueKey, blocked, now, $"{m.IssueKey} is \"{m.StatusName}\" in Jira (mapped to {row.TargetStatus}), but the case is {c.Status} and no automatic step leads there.",
-                c.Status is CaseStatus.Closed or CaseStatus.Cancelled ? "Reopen the case if the work continues." : "Update the case by hand, or review the status mapping.", c.Id, null, m.StatusId);
-            return false;
-        }
+        var target = row!.TargetStatusCode!;
+        var from = $"From Jira {m.IssueKey}: {m.StatusName}";
+        var waiting = behavior == CaseStatusBehavior.WaitingForCustomer;
+        // Waiting keeps the stage, but a finished case is reopened for it.
+        var stage = CaseStatuses.StageOf(behavior.Value) ?? (CaseQuery.IsOpen(c.Status) ? c.Status : CaseStatus.Triaged);
+        var path = JiraWorkflow.Path(c.Status, stage);
         var changed = false;
-        foreach (var step in path)
+        for (var i = 0; i < path.Count; i++)
         {
-            // WRK-04 applies to the sync too: no case moves into In progress without an active owner.
-            if (step == CaseStatus.InProgress && c.Owner is not { IsActive: true })
+            var step = path[i];
+            var type = JiraWorkflow.EventFor(c.Status, step);
+            if (step == CaseStatus.Closed)
             {
-                Raise(JiraIssueType.WorkflowTransitionBlocked, conn, space, m.JiraIssueId, m.IssueKey, blocked, now, $"{m.IssueKey} is \"{m.StatusName}\" in Jira, but the case has no active owner, so it stays {c.Status}.",
-                    "Map the Jira assignee or assign an owner; the status is updated at the next run.", c.Id, null, m.StatusId);
-                return changed;
+                c.Outcome = from;
+                c.ValidationEvidence = $"Closed in Jira: {m.IssueKey}, status {m.StatusName}";
+                c.ClosedAt = now;
+                CaseEndpoints.EndWaiting(db, c, db.CurrentUser, now, from);
             }
-            CaseEndpoints.Transition(db, c, step, JiraWorkflow.EventFor(step), $"From Jira {m.IssueKey}: {m.StatusName}", db.CurrentUser, now);
+            else if (type == CaseEventType.Reopened)
+            {
+                c.ReopenCount++;
+                c.CycleStartedAt = now;
+                c.LastReviewedAt = now;
+                c.ClosedAt = null;
+                c.CancelledAt = null;
+            }
+            await CaseEndpoints.TransitionAsync(db, c, step, type, from, db.CurrentUser, now, ct, type == CaseEventType.Reopened ? CaseStatusBehavior.Reopened : null, i == path.Count - 1 && !waiting ? target : null);
+            changed = true;
+        }
+        // A79: while the issue is assigned to the client's contact, the case waits whatever the Jira status says.
+        var withClient = c.ClientRepresentative is not null && CaseQuery.IsOpen(c.Status);
+        if ((waiting || withClient) && c.WaitingReason != WaitingReason.Customer)
+        {
+            CaseEndpoints.EndWaiting(db, c, db.CurrentUser, now, from);
+            CaseEndpoints.StartWaiting(db, c, WaitingReason.Customer, from, db.CurrentUser, now);
+            changed = true;
+        }
+        else if (!waiting && !withClient && c.WaitingReason == WaitingReason.Customer)
+        {
+            CaseEndpoints.EndWaiting(db, c, db.CurrentUser, now, from);
+            changed = true;
+        }
+        if (withClient && !waiting) await CaseEndpoints.SyncWaitingStatusAsync(db, c, ct);
+        else if (c.StatusCode != target)
+        {
+            CaseEndpoints.AddEvent(db, c, CaseEventType.StatusChanged, c.StatusCode, target, from, db.CurrentUser, now);
+            c.StatusCode = target;
             changed = true;
         }
         await ResolveAutomaticAsync(blocked, now, ct);
@@ -366,7 +470,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         return row;
     }
 
-    /// <summary>Idempotent by Jira comment id; an edited comment replaces its text. Comments are never progress and never a first response (A61).</summary>
+    /// <summary>Idempotent by Jira comment id; an edited comment replaces its text. Comments are never progress; the caller takes the first response from them (A78).</summary>
     private async Task<int> ImportCommentsAsync(JiraConnection conn, string issueId, long caseId, IReadOnlyList<JiraCommentInfo> comments, DateTimeOffset now, CancellationToken ct)
     {
         var existing = await db.JiraComments.Where(x => x.JiraConnectionId == conn.Id && x.JiraIssueId == issueId).ToDictionaryAsync(x => x.JiraCommentId, ct);

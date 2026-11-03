@@ -513,7 +513,7 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
   const list = fixedList ?? picked;
   const [edit, setEdit] = useState<LookupRow | 'new' | null>(null);
   const lists = [...new Set((q.data ?? []).map(l => l.listName))];
-  const fixedWorkflow = list === 'ConditionLabel' || list === 'CaseStatusLabel';
+  const fixedWorkflow = list === 'ConditionLabel';
   return (
     <AdminOnly>
       <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={canCreate && !fixedWorkflow && <button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />

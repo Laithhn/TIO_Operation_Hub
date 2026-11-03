@@ -220,8 +220,10 @@ public static partial class Deletion
             me.RequireAdministrator();
             var x = await Load(db.LookupValues.Where(l => l.Id == id), "The value", ct);
             if (LookupLists.IsFixedWorkflowLabel(x.ListName))
-                throw new ValidationException("record", "Condition and case-status values are fixed; only their display labels can be changed.");
+                throw new ValidationException("record", "Condition values are fixed; only their display labels can be changed.");
+            await Work.CaseStatuses.CheckNotLastRequiredAsync(db, x, "record", ct);
             var used = (await LookupUsage.CountsAsync(db, x.ListName, ct, scoped: false)).GetValueOrDefault(x.Code);
+            if (x.ListName == LookupLists.CaseStatusLabel) used += await db.JiraWorkflowStatusMappings.CountAsync(s => s.TargetStatusCode == x.Code, ct);
             if (used > 0) throw new ConflictException($"{x.Label} is used by existing records. Change those records first, or retire it so it is no longer offered.",
                 new() { ["record"] = ["This value is in use."] });
             if (LookupLists.Categories.ContainsKey(x.ListName) && !await db.LookupValues.AnyAsync(l => l.ListName == x.ListName && l.Id != id && !l.IsRetired, ct))
@@ -254,6 +256,7 @@ public static class LookupUsage
             LookupLists.AssetType => await Records(db.Assets, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.ContractType => await Records(db.Contracts, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.CaseType => await Records(db.Cases, scoped).GroupBy(x => x.Type).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
+            LookupLists.CaseStatusLabel => await Records(db.Cases, scoped).GroupBy(x => x.StatusCode).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.AssetRole => await Records(db.Assets, scoped).Where(x => x.Role != null).GroupBy(x => x.Role!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.NetworkZone => await Records(db.Assets, scoped).Where(x => x.NetworkZone != null).GroupBy(x => x.NetworkZone!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),
             LookupLists.OsFamily => await Records(db.Assets, scoped).Where(x => x.OsFamily != null).GroupBy(x => x.OsFamily!).Select(x => new { code = x.Key, n = x.Count() }).ToListAsync(ct),

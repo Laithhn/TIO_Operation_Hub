@@ -44,7 +44,7 @@ public class SchemaReadinessTests
             var lookupsBefore = await db.LookupValues.CountAsync();
             var result = await DatabaseReadiness.CheckAsync(db, CancellationToken.None);
             Assert.True(result.Reachable);
-            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions", "20261102120000_PreserveLegacyEffectiveScopes", "20261102120037_UserPermissionOverrides", "20261102140000_ExportAccessFingerprint", "20261103060859_ScopedPermissionExceptions", "20261103083834_JiraIntegration"], result.MissingMigrations);
+            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions", "20261102120000_PreserveLegacyEffectiveScopes", "20261102120037_UserPermissionOverrides", "20261102140000_ExportAccessFingerprint", "20261103060859_ScopedPermissionExceptions", "20261103083834_JiraIntegration", "20261103134931_ConfigurableCaseStatuses", "20261103140328_JiraSlaClockStart", "20261103142214_JiraClientRepresentative", "20261103142553_JiraInternalMember"], result.MissingMigrations);
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
             {
                 b.UseEnvironment("Testing");
@@ -416,7 +416,7 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
     public async Task Fixed_workflow_values_cannot_be_deleted_and_current_schema_reports_ready()
     {
         var m = await Hub.As(HubFactory.Manager);
-        var values = (await m.Get("/admin/lookups")).Body!.AsArray().Where(x => x!["listName"]!.GetValue<string>() is "ConditionLabel" or "CaseStatusLabel");
+        var values = (await m.Get("/admin/lookups")).Body!.AsArray().Where(x => x!["listName"]!.GetValue<string>() is "ConditionLabel");
         foreach (var value in values)
             Assert.Equal(HttpStatusCode.UnprocessableEntity, (await m.Send(HttpMethod.Delete, $"/admin/lookups/{Id(value)}")).Status);
         var response = await m.Http.GetAsync("/api/health/ready");

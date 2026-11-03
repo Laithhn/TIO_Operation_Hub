@@ -43,19 +43,26 @@ async function renameThroughConfiguration(page: Page, slug: string, title: strin
   await page.locator('main').getByRole('link', { name: title, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/config/${slug}$`));
   await expect(page.locator('aside').getByRole('link', { name: title, exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: '+ Add', exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /^Delete / })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /^Move .+ (up|down)$/ })).toHaveCount(0);
-  await expect(page.getByRole('checkbox', { name: /^Show retired/ })).toHaveCount(0);
+  if (slug !== 'case-statuses') {
+    await expect(page.getByRole('button', { name: '+ Add', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^Delete / })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /^Move .+ (up|down)$/ })).toHaveCount(0);
+    await expect(page.getByRole('checkbox', { name: /^Show retired/ })).toHaveCount(0);
+  }
   await page.getByRole('button', { name: row.label, exact: true }).click();
   const dialog = page.getByRole('dialog', { name: `Edit ${row.label}`, exact: true });
-  await expect(dialog.getByLabel('Workflow code', { exact: true })).toHaveValue(row.code);
-  await expect(dialog.getByLabel('Workflow code', { exact: true })).toBeDisabled();
-  await expect(dialog.getByLabel('Description', { exact: true })).toHaveCount(0);
-  await expect(dialog.getByLabel('Active (offered on forms)', { exact: true })).toHaveCount(0);
-  await expect(dialog.getByLabel('Behaves as', { exact: true })).toHaveCount(0);
-  await expect(dialog.locator('input:not([disabled]), textarea, select')).toHaveCount(1);
-  await dialog.getByLabel('Display label', { exact: true }).fill(newLabel);
+  if (slug === 'case-statuses') {
+    await expect(dialog.getByLabel('Behaves as', { exact: true })).toBeDisabled();
+    await dialog.getByLabel('Name', { exact: true }).fill(newLabel);
+  } else {
+    await expect(dialog.getByLabel('Workflow code', { exact: true })).toHaveValue(row.code);
+    await expect(dialog.getByLabel('Workflow code', { exact: true })).toBeDisabled();
+    await expect(dialog.getByLabel('Description', { exact: true })).toHaveCount(0);
+    await expect(dialog.getByLabel('Active (offered on forms)', { exact: true })).toHaveCount(0);
+    await expect(dialog.getByLabel('Behaves as', { exact: true })).toHaveCount(0);
+    await expect(dialog.locator('input:not([disabled]), textarea, select')).toHaveCount(1);
+    await dialog.getByLabel('Display label', { exact: true }).fill(newLabel);
+  }
   await dialog.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(dialog).toBeHidden();
   await expect(page.getByRole('button', { name: newLabel, exact: true })).toBeVisible();
@@ -103,15 +110,15 @@ test('case-status configuration updates case labels without renaming cancelled c
     const record = await api<{ version: string }>(page, path);
     await api(page, `${path}/cancel`, { reason: 'Configuration label regression' }, 'POST', record.version);
   }
-  const original = await lookup(page, 'CaseStatusLabel', 'Cancelled');
-  const newLabel = unique('Case withdrawn');
+  const original = await lookup(page, 'CaseStatusLabel', 'Closed');
+  const newLabel = unique('Case finished');
   try {
     await renameThroughConfiguration(page, 'case-statuses', 'Case statuses', original, newLabel);
     await page.goto(`/cases/${work.id}`);
     await expect(page.locator('.page-head .sub')).toContainText(newLabel);
     await page.goto(`/cases?clientId=${organization.id}&status=Cancelled`);
     await openColumnFilter(page, 'Status');
-    await expect(page.getByLabel('Filter by status', { exact: true }).locator('option[value="Cancelled"]')).toHaveText(newLabel);
+    await expect(page.getByLabel('Filter by status', { exact: true }).locator('option[value="code:Closed"]')).toHaveText(newLabel);
     await expect(page.locator(VT_ROW).filter({ hasText: 'Label case' })).toContainText(newLabel);
     await page.goto(`/commitments/${commitment.id}`);
     await expect(page.locator('.page-head .sub')).toContainText('Cancelled');

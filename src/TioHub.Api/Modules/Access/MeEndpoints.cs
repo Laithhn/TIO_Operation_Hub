@@ -71,9 +71,18 @@ public static class MeEndpoints
         {
             var lookups = await db.LookupValues.AsNoTracking().OrderBy(l => l.SortOrder).ThenBy(l => l.Label)
                 .Select(l => new { l.ListName, l.Code, l.Label, l.Description, l.IsRetired, l.Category }).ToListAsync(ct);
-            var workflowLabels = lookups.Where(l => LookupLists.IsFixedWorkflowLabel(l.ListName))
-                .GroupBy(l => l.ListName == LookupLists.ConditionLabel ? "Condition" : "CaseStatus")
-                .ToDictionary(g => g.Key, g => g.ToDictionary(x => x.Code, x => x.Label));
+            var workflowLabels = new Dictionary<string, Dictionary<string, string>>
+            {
+                ["Condition"] = lookups.Where(l => l.ListName == LookupLists.ConditionLabel).ToDictionary(x => x.Code, x => x.Label),
+                ["CaseStatus"] = lookups.Where(l => l.ListName == LookupLists.CaseStatusLabel).ToDictionary(x => x.Code, x => x.Label)
+            };
+            // A77: screens that show a stage, and timeline history, read these for stages that are not statuses themselves.
+            var statusLabels = workflowLabels["CaseStatus"];
+            var firstOpened = lookups.FirstOrDefault(l => l.ListName == LookupLists.CaseStatusLabel && !l.IsRetired && l.Category == nameof(CaseStatusBehavior.Opened));
+            statusLabels.TryAdd(nameof(CaseStatus.Triaged), firstOpened?.Label ?? "Opened");
+            statusLabels.TryAdd(nameof(CaseStatus.PendingValidation), "Pending validation");
+            statusLabels.TryAdd(nameof(CaseStatus.Cancelled), "Closed (cancelled)");
+            statusLabels.TryAdd(Work.CaseStatuses.AllOpen, "All open statuses");
             var readProducts = me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View);
             var readTeams = me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View);
             var readJira = me.IsAdministrator || me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View);

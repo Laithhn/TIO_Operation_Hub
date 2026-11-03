@@ -218,24 +218,38 @@ public class JiraUnitTests
     [InlineData(CaseStatus.Triaged, CaseStatus.InProgress, new[] { CaseStatus.InProgress })]
     [InlineData(CaseStatus.PendingValidation, CaseStatus.InProgress, new[] { CaseStatus.InProgress })]
     [InlineData(CaseStatus.InProgress, CaseStatus.InProgress, new CaseStatus[0])]
-    public void Automatic_steps_are_the_legal_transitions(CaseStatus from, CaseStatus to, CaseStatus[] expected) => Assert.Equal(expected, JiraWorkflow.Path(from, to));
+    [InlineData(CaseStatus.New, CaseStatus.Closed, new[] { CaseStatus.Closed })]
+    [InlineData(CaseStatus.InProgress, CaseStatus.Closed, new[] { CaseStatus.Closed })]
+    [InlineData(CaseStatus.Closed, CaseStatus.Closed, new CaseStatus[0])]
+    [InlineData(CaseStatus.InProgress, CaseStatus.New, new[] { CaseStatus.New })]
+    [InlineData(CaseStatus.PendingValidation, CaseStatus.Triaged, new[] { CaseStatus.Triaged })]
+    [InlineData(CaseStatus.Closed, CaseStatus.InProgress, new[] { CaseStatus.Triaged, CaseStatus.InProgress })]
+    [InlineData(CaseStatus.Cancelled, CaseStatus.Triaged, new[] { CaseStatus.Triaged })]
+    [InlineData(CaseStatus.Closed, CaseStatus.New, new[] { CaseStatus.Triaged, CaseStatus.New })]
+    public void Every_mapped_status_has_a_path(CaseStatus from, CaseStatus to, CaseStatus[] expected) => Assert.Equal(expected, JiraWorkflow.Path(from, to));
 
     [Theory]
-    [InlineData(CaseStatus.InProgress, CaseStatus.New)]
-    [InlineData(CaseStatus.Triaged, CaseStatus.New)]
-    [InlineData(CaseStatus.PendingValidation, CaseStatus.Triaged)]
-    [InlineData(CaseStatus.Closed, CaseStatus.InProgress)]
-    [InlineData(CaseStatus.Cancelled, CaseStatus.InProgress)]
-    [InlineData(CaseStatus.InProgress, CaseStatus.Closed)]
-    [InlineData(CaseStatus.PendingValidation, CaseStatus.Closed)]
-    [InlineData(CaseStatus.InProgress, CaseStatus.Cancelled)]
-    public void Closing_cancelling_and_going_backwards_are_never_automatic(CaseStatus from, CaseStatus to) => Assert.Null(JiraWorkflow.Path(from, to));
+    [InlineData(CaseStatusBehavior.Initial, CaseStatus.New)]
+    [InlineData(CaseStatusBehavior.Opened, CaseStatus.Triaged)]
+    [InlineData(CaseStatusBehavior.Reopened, CaseStatus.Triaged)]
+    [InlineData(CaseStatusBehavior.Active, CaseStatus.InProgress)]
+    [InlineData(CaseStatusBehavior.Resolved, CaseStatus.PendingValidation)]
+    [InlineData(CaseStatusBehavior.Closed, CaseStatus.Closed)]
+    public void Each_behavior_belongs_to_one_stage(CaseStatusBehavior behavior, CaseStatus stage) => Assert.Equal(stage, CaseStatuses.StageOf(behavior));
 
     [Fact]
-    public void Closed_and_cancelled_cannot_be_mapping_targets()
+    public void Waiting_does_not_change_the_stage_and_nothing_can_be_mapped_to_cancelled()
     {
-        Assert.DoesNotContain(CaseStatus.Closed, JiraWorkflow.AllowedTargets);
-        Assert.DoesNotContain(CaseStatus.Cancelled, JiraWorkflow.AllowedTargets);
+        Assert.Null(CaseStatuses.StageOf(CaseStatusBehavior.WaitingForCustomer));
+        Assert.DoesNotContain(Enum.GetValues<CaseStatusBehavior>(), b => CaseStatuses.StageOf(b) == CaseStatus.Cancelled);
+    }
+
+    [Fact]
+    public void The_initial_list_is_the_owners_and_covers_the_required_behaviors()
+    {
+        Assert.Equal(["New", "Opened", "In-progress", "Waiting for customer", "Closed", "Re-opened"], CaseStatuses.Initial.Select(s => s.Label));
+        Assert.All(CaseStatuses.Required, b => Assert.Contains(CaseStatuses.Initial, s => s.Behavior == b));
+        Assert.DoesNotContain(CaseStatuses.Initial, s => s.Behavior == CaseStatusBehavior.Resolved);
     }
 
     // ---- security ----
@@ -281,9 +295,13 @@ public class JiraUnitTests
     [Fact]
     public void A_case_change_from_jira_uses_the_case_modules_own_events()
     {
-        Assert.Equal(CaseEventType.Triaged, JiraWorkflow.EventFor(CaseStatus.Triaged));
-        Assert.Equal(CaseEventType.Started, JiraWorkflow.EventFor(CaseStatus.InProgress));
-        Assert.Equal(CaseEventType.ValidationRequested, JiraWorkflow.EventFor(CaseStatus.PendingValidation));
+        Assert.Equal(CaseEventType.Triaged, JiraWorkflow.EventFor(CaseStatus.New, CaseStatus.Triaged));
+        Assert.Equal(CaseEventType.Started, JiraWorkflow.EventFor(CaseStatus.Triaged, CaseStatus.InProgress));
+        Assert.Equal(CaseEventType.Started, JiraWorkflow.EventFor(CaseStatus.PendingValidation, CaseStatus.InProgress));
+        Assert.Equal(CaseEventType.ValidationRequested, JiraWorkflow.EventFor(CaseStatus.InProgress, CaseStatus.PendingValidation));
+        Assert.Equal(CaseEventType.Closed, JiraWorkflow.EventFor(CaseStatus.InProgress, CaseStatus.Closed));
+        Assert.Equal(CaseEventType.StatusChanged, JiraWorkflow.EventFor(CaseStatus.InProgress, CaseStatus.New));
+        Assert.Equal(CaseEventType.Reopened, JiraWorkflow.EventFor(CaseStatus.Closed, CaseStatus.Triaged));
     }
 
     private sealed class FakeHandler(Func<HttpRequestMessage, HttpResponseMessage> respond) : HttpMessageHandler

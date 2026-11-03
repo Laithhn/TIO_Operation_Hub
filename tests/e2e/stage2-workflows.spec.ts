@@ -66,7 +66,7 @@ test('next action remains optional through triage, progress, validation, closure
   await reopen.getByLabel('Reopening reason', { exact: true }).fill('Follow-up investigation');
   await reopen.getByLabel('Next review', { exact: true }).fill(future());
   await expect(reopen.getByLabel('Next action (optional)', { exact: true })).toHaveValue('');
-  await confirm(page, 'Reopen case', 'Reopen to Triaged');
+  await confirm(page, 'Reopen case', 'Reopen');
   const saved = await api<{ status: string; nextAction: string; reopenCount: number }>(page, `/cases/${created.id}`);
   expect(saved.status).toBe('Triaged');
   expect(saved.nextAction).toBe('');

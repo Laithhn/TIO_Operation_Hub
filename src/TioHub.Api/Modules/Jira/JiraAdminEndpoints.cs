@@ -17,8 +17,8 @@ public static class JiraAdminEndpoints
         JiraSecretProvider? SecretProvider = null, string? ApiToken = null, string? SecretVariable = null);
     public sealed record CredentialInput(string? AccountEmail, JiraSecretProvider? SecretProvider, string? ApiToken, string? SecretVariable);
     public sealed record EnabledInput(bool Enabled, string? Reason);
-    public sealed record UserMappingInput(long? TioUserId);
-    public sealed record StatusMappingInput(CaseStatus? TargetStatus);
+    public sealed record UserMappingInput(long? TioUserId, long? ClientContactId = null, bool IsInternalMember = false);
+    public sealed record StatusMappingInput(string? TargetStatus);
     public sealed record ResolveInput(string? Action, long? CaseId, string? Note);
     public sealed record ReassignInput(long? ToClientId, string? Reason);
     public sealed record TestStep(string Name, bool Passed, string Detail);
@@ -271,14 +271,26 @@ public static class JiraAdminEndpoints
         {
             RequireAdmin(me);
             return Results.Ok(await db.JiraUserMappings.AsNoTracking().Where(u => u.JiraConnectionId == id).OrderBy(u => u.TioUserId != null).ThenBy(u => u.JiraDisplayName)
-                .Select(u => new { u.Id, u.JiraAccountId, u.JiraDisplayName, u.TioUserId, tioUser = u.TioUser == null ? null : u.TioUser.DisplayName, u.LastSeenAt, version = Convert.ToBase64String(u.RowVersion) }).ToListAsync(ct));
+                .Select(u => new { u.Id, u.JiraAccountId, u.JiraDisplayName, u.TioUserId, tioUser = u.TioUser == null ? null : u.TioUser.DisplayName, u.ClientContactId, u.IsInternalMember, u.LastSeenAt, version = Convert.ToBase64String(u.RowVersion) }).ToListAsync(ct));
+        });
+        // A79: who a Jira user can represent: the contacts of the clients using this connection.
+        g.MapGet("/jira-connections/{id:long}/client-contacts", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            RequireAdmin(me);
+            var clients = await db.ClientJiraSpaces.AsNoTracking().Where(s => s.JiraConnectionId == id).Select(s => s.ClientId).Distinct().ToListAsync(ct);
+            return Results.Ok(await db.Contacts.AsNoTracking().Where(k => clients.Contains(k.ClientId) && k.ArchivedAt == null)
+                .Join(db.Clients.AsNoTracking(), k => k.ClientId, c => c.Id, (k, c) => new { k.Id, k.Name, k.Role, clientCode = c.Code }).OrderBy(k => k.clientCode).ThenBy(k => k.Name).ToListAsync(ct));
         });
         g.MapPut("/jira-user-mappings/{id:long}", async (long id, UserMappingInput i, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             RequireAdmin(me);
             var m = await db.JiraUserMappings.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The Jira user mapping");
             if (i.TioUserId is { } uid && !await db.Users.AnyAsync(u => u.Id == uid && u.IsActive, ct)) throw new ValidationException("tioUserId", "Select an active hub user.");
+            if ((i.TioUserId is not null ? 1 : 0) + (i.ClientContactId is not null ? 1 : 0) + (i.IsInternalMember ? 1 : 0) > 1) throw new ValidationException("clientContactId", "Map this Jira user to one of: a hub user, a client contact or a Vitronic team member.");
+            if (i.ClientContactId is { } contact && !await db.Contacts.AnyAsync(k => k.Id == contact && k.ArchivedAt == null, ct)) throw new ValidationException("clientContactId", "Select a current client contact.");
             m.TioUserId = i.TioUserId;
+            m.ClientContactId = i.ClientContactId;
+            m.IsInternalMember = i.IsInternalMember;
             await db.SaveChangesAsync(ct);
             // Issues of this person are applied again at the next run, without a Jira request.
             await db.JiraCaseMappings.IgnoreQueryFilters().Where(x => x.JiraConnectionId == m.JiraConnectionId && x.AssigneeAccountId == m.JiraAccountId).ExecuteUpdateAsync(u => u.SetProperty(x => x.AppliedAssigneeAccountId, (string?)null), ct);
@@ -290,7 +302,8 @@ public static class JiraAdminEndpoints
             RequireAdmin(me);
             var spaces = await db.JiraDiscoveredSpaces.AsNoTracking().Where(s => s.JiraConnectionId == id).Select(s => new { s.JiraProjectId, s.ProjectKey }).ToDictionaryAsync(s => s.JiraProjectId, s => s.ProjectKey, ct);
             var rows = await db.JiraWorkflowStatusMappings.AsNoTracking().Where(s => s.JiraConnectionId == id).OrderBy(s => s.JiraProjectId).ThenBy(s => s.JiraStatusName).ToListAsync(ct);
-            return Results.Ok(new { targets = JiraWorkflow.AllowedTargets, rows = rows.Select(s => new { s.Id, s.JiraProjectId, projectKey = spaces.GetValueOrDefault(s.JiraProjectId), s.JiraStatusId, s.JiraStatusName, s.JiraStatusCategory, s.TargetStatus }) });
+            var targets = await db.LookupValues.AsNoTracking().Where(l => l.ListName == CaseStatuses.List && !l.IsRetired).OrderBy(l => l.SortOrder).Select(l => new { l.Code, l.Label, behavior = l.Category }).ToListAsync(ct);
+            return Results.Ok(new { targets, rows = rows.Select(s => new { s.Id, s.JiraProjectId, projectKey = spaces.GetValueOrDefault(s.JiraProjectId), s.JiraStatusId, s.JiraStatusName, s.JiraStatusCategory, targetStatus = s.TargetStatusCode }) });
         });
         // Workflow discovery lists a project's statuses, unmapped. Nothing is mapped by name or category.
         g.MapPost("/jira-connections/{id:long}/statuses/discover", async (long id, HubDbContext db, UserContext me, JiraSecretStore secrets, IJiraApiClient jira, CancellationToken ct) =>
@@ -319,9 +332,9 @@ public static class JiraAdminEndpoints
         {
             RequireAdmin(me);
             var m = await db.JiraWorkflowStatusMappings.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The status mapping");
-            if (i.TargetStatus is { } t && !JiraWorkflow.AllowedTargets.Contains(t))
-                throw new ValidationException("targetStatus", "Closed and Cancelled cannot be automatic. Closing needs an outcome and validation evidence, and cancelling takes the case out of the SLA: people do both on the case page. Map a done status to Pending validation.");
-            m.TargetStatus = i.TargetStatus;
+            if (i.TargetStatus is { } t && !await db.LookupValues.AnyAsync(l => l.ListName == CaseStatuses.List && l.Code == t && !l.IsRetired, ct))
+                throw new ValidationException("targetStatus", "Select an active case status.");
+            m.TargetStatusCode = i.TargetStatus;
             await db.SaveChangesAsync(ct);
             await db.JiraCaseMappings.IgnoreQueryFilters().Where(x => x.JiraConnectionId == m.JiraConnectionId && x.StatusId == m.JiraStatusId && (m.JiraProjectId == "" || x.JiraProjectId == m.JiraProjectId)).ExecuteUpdateAsync(u => u.SetProperty(x => x.AppliedStatusId, (string?)null), ct);
             return Results.NoContent();

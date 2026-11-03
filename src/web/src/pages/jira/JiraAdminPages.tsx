@@ -17,7 +17,8 @@ type IssueRow = { id: number; type: string; status: string; connection?: string;
   subject?: string; description: string; suggestedAction: string; lastSeenAt: string; occurrences: number; resolution?: string; resolutionNote?: string; resolvedAt?: string; actions: string[] };
 type IssuePage = { page: number; pageSize: number; totalCount: number; items: IssueRow[] };
 type Connections = { connections: { id: number; name: string }[]; syncEnabled: boolean };
-type UserRow = { id: number; jiraAccountId: string; jiraDisplayName?: string; tioUserId?: number; tioUser?: string; lastSeenAt: string };
+type UserRow = { id: number; jiraAccountId: string; jiraDisplayName?: string; tioUserId?: number; tioUser?: string; clientContactId?: number; isInternalMember: boolean; lastSeenAt: string };
+type ClientContact = { id: number; name: string; role?: string; clientCode: string };
 type StatusRow = { id: number; jiraProjectId: string; projectKey?: string; jiraStatusId: string; jiraStatusName: string; jiraStatusCategory?: string; targetStatus?: string };
 
 const ACTION_TEXT: Record<string, { title: string; intro: string; submit: string }> = {
@@ -111,28 +112,32 @@ export function JiraConflicts() {
 
 function UserMappings({ connectionId }: { connectionId: number }) {
   const q = useQuery({ queryKey: ['jira-users', connectionId], queryFn: () => get<UserRow[]>(`/admin/jira-connections/${connectionId}/users`) });
+  const contacts = useQuery({ queryKey: ['jira-client-contacts', connectionId], queryFn: () => get<ClientContact[]>(`/admin/jira-connections/${connectionId}/client-contacts`) });
   const can = usePermission('AdminIntegrations', 'Maintain');
   const refresh = useRefresh();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);
-  const save = async (r: UserRow, tioUserId: number | null) => {
+  const contactName = (id?: number) => contacts.data?.find(k => k.id === id)?.name;
+  const save = async (r: UserRow, tioUserId: number | null, clientContactId: number | null = null, isInternalMember = false) => {
     setError(null);
-    try { await put(`/admin/jira-user-mappings/${r.id}`, { tioUserId }); toast('Mapping saved. Cases update at the next run.'); refresh(); }
+    try { await put(`/admin/jira-user-mappings/${r.id}`, { tioUserId, clientContactId, isInternalMember }); toast('Mapping saved. Cases update at the next run.'); refresh(); }
     catch (e) { setError(e instanceof ApiError ? e.summary : 'The request failed.'); }
   };
-  return <Panel title="Jira user → TIO owner" pad={false}>
+  return <Panel title="Jira user → TIO owner, client contact or Vitronic team member" pad={false}>
     {error && <div className="notice warn" style={{ margin: 8 }}>{error}</div>}
-    <p className="hint" style={{ margin: '8px 10px' }}>Jira users appear here when they are first assigned an issue. Without a mapping the case keeps its current owner; no fallback person is used.</p>
+    <p className="hint" style={{ margin: '8px 10px' }}>Jira users appear here when they are first assigned an issue. Without a mapping the case keeps its current owner; no fallback person is used. An issue assigned to a client contact keeps its TIO owner and waits on the customer until Jira reassigns it, which pauses the SLA if the contract allows it. Use Vitronic team member for colleagues with no TIO account: cases show their Jira name, and an owner taken from Jira is cleared.</p>
     <DataTable<UserRow> caption="Jira user mappings" rows={q.data} loading={q.isLoading} error={q.error} rowKey={r => r.id} columns={[
       { key: 'n', header: 'Jira user', render: r => r.jiraDisplayName ?? <span className="muted">No name</span> }, { key: 'i', header: 'Account ID', render: r => <span className="mono">{r.jiraAccountId}</span> },
-      { key: 'u', header: 'TIO user', render: r => can ? <UserPicker label="" value={r.tioUserId ?? null} onChange={v => save(r, v)} empty="Not mapped" /> : r.tioUser ?? <span className="muted">Not mapped</span> },
-      { key: 's', header: 'State', render: r => <JiraBadge value={r.tioUserId ? 'Passed' : 'Warning'} /> }, { key: 'l', header: 'Last seen', render: r => <When v={r.lastSeenAt} /> }
+      { key: 'u', header: 'TIO user or project team member', render: r => can ? <UserPicker label="" value={r.tioUserId ?? null} onChange={v => save(r, v)} empty="Not mapped" /> : r.tioUser ?? <span className="muted">Not mapped</span> },
+      { key: 'k', header: 'Client contact', render: r => can ? <select className="input" aria-label={`Client contact for ${r.jiraDisplayName ?? r.jiraAccountId}`} value={r.clientContactId ?? ''} onChange={e => save(r, null, e.target.value ? Number(e.target.value) : null)}><option value="">Not mapped</option>{(contacts.data ?? []).map(k => <option key={k.id} value={k.id}>{k.clientCode} · {k.name}{k.role ? ` (${k.role})` : ''}</option>)}</select> : contactName(r.clientContactId) ?? <span className="muted">Not mapped</span> },
+      { key: 'v', header: 'Vitronic team member', render: r => <input type="checkbox" aria-label={`${r.jiraDisplayName ?? r.jiraAccountId} is a Vitronic team member`} disabled={!can} checked={r.isInternalMember} onChange={e => save(r, null, null, e.target.checked)} /> },
+      { key: 's', header: 'State', render: r => <JiraBadge value={r.tioUserId || r.clientContactId || r.isInternalMember ? 'Passed' : 'Warning'} /> }, { key: 'l', header: 'Last seen', render: r => <When v={r.lastSeenAt} /> }
     ]} />
   </Panel>;
 }
 
 function WorkflowMappings({ connectionId }: { connectionId: number }) {
-  const q = useQuery({ queryKey: ['jira-statuses', connectionId], queryFn: () => get<{ targets: string[]; rows: StatusRow[] }>(`/admin/jira-connections/${connectionId}/statuses`) });
+  const q = useQuery({ queryKey: ['jira-statuses', connectionId], queryFn: () => get<{ targets: { code: string; label: string; behavior?: string }[]; rows: StatusRow[] }>(`/admin/jira-connections/${connectionId}/statuses`) });
   const can = usePermission('AdminIntegrations', 'Maintain');
   const refresh = useRefresh();
   const toast = useToast();
@@ -149,10 +154,10 @@ function WorkflowMappings({ connectionId }: { connectionId: number }) {
   };
   return <Panel title="Jira workflow status → case status" pad={false} actions={can && <button className="btn" onClick={discover}>Discover statuses</button>}>
     {error && <div className="notice warn" style={{ margin: 8 }}>{error}</div>}
-    <p className="hint" style={{ margin: '8px 10px' }}>Nothing is mapped automatically. Closed and Cancelled cannot be targets: closing needs an outcome and validation evidence, and cancelling takes a case out of the SLA, so people do both on the case page.</p>
+    <p className="hint" style={{ margin: '8px 10px' }}>Nothing is mapped automatically. Every active case status can be chosen. A status that closes the case records the Jira issue and status as its outcome and evidence. Cancelling and reopening stay with people.</p>
     <DataTable<StatusRow> caption="Jira workflow mappings" rows={q.data?.rows} loading={q.isLoading} error={q.error} rowKey={r => r.id} columns={[
       { key: 'p', header: 'Space', render: r => r.projectKey ?? (r.jiraProjectId || 'All spaces') }, { key: 's', header: 'Jira status', render: r => r.jiraStatusName }, { key: 'c', header: 'Jira category', render: r => r.jiraStatusCategory },
-      { key: 't', header: 'Case status', render: r => <select className="input" aria-label={`Case status for ${r.jiraStatusName}`} disabled={!can} value={r.targetStatus ?? ''} onChange={e => save(r, e.target.value)}><option value="">Not mapped</option>{q.data!.targets.map(t => <option key={t} value={t}>{label(t)}</option>)}</select> },
+      { key: 't', header: 'Case status', render: r => <select className="input" aria-label={`Case status for ${r.jiraStatusName}`} disabled={!can} value={r.targetStatus ?? ''} onChange={e => save(r, e.target.value)}><option value="">Not mapped</option>{q.data!.targets.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}</select> },
       { key: 'x', header: 'State', render: r => <JiraBadge value={r.targetStatus ? 'Passed' : 'Warning'} /> }
     ]} />
   </Panel>;
