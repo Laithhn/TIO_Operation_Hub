@@ -3,7 +3,7 @@
 Recorded on 16 October 2026 on a Windows 11 developer machine (SQL Server LocalDB 15.0, .NET SDK 10.0.401, Node 22.23.3, Microsoft Edge).
 Re-run with the commands in the README; results below are from actual runs, not expectations.
 
-**Latest (2.48.0, 3 November 2026):** 660 backend, 74 frontend, 158 real-API browser and 7 intercepted browser tests passed. **After the rights screen update of 4 November:** 81 frontend and 13 intercepted browser tests passed; the backend was not changed, and the real-API browser suite has not been rerun. See [RELEASE-VALIDATION-2.48.0.md](RELEASE-VALIDATION-2.48.0.md). The sections below record earlier releases.
+**Latest (2.48.0, 3 November 2026):** 660 backend, 74 frontend, 158 real-API browser and 7 intercepted browser tests passed. **After the rights screen update, 4 November:** 660 backend, 81 frontend, 158 real-API browser and 13 intercepted browser tests passed. See [RELEASE-VALIDATION-2.48.0.md](RELEASE-VALIDATION-2.48.0.md). The sections below record earlier releases.
 
 ## Automated .NET tests — `dotnet test tests/TioHub.Tests`
 

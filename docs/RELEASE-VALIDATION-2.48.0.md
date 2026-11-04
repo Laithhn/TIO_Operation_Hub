@@ -2,7 +2,7 @@
 
 Validated 3 November 2026 on an isolated local instance, `(localdb)\TioHubQALocalDB`, with uniquely named databases, under the owner's approval for this task. No shared, UAT or production database was touched.
 
-**Status: committed and packaged, not deployed.** The package was built without running the SQL-backed tests in that build, and the real-API browser suite was not rerun after the rights screen update. The automated checks below passed. The items under "Not verified" must be done before calling this production-ready. In particular, the upgrade has never run on real data.
+**Status: committed and packaged, not deployed.** The automated checks below passed on 4 November 2026, including the real-API browser suite on the final rights screens. The items under "Not verified" must be done before calling this production-ready. In particular, the upgrade has never run on real data.
 
 ## Results on the final code
 
@@ -25,13 +25,12 @@ The Rights page and the Roles comparison were redesigned after the results above
 | TypeScript check and production build | Passed. Entry chunk 893.45 kB, budget 900 kB |
 | Frontend unit tests | 81 passed |
 | Browser with intercepted HTTP | 13 passed |
-| **Browser against the real API** | **Not rerun on this design.** Five specs use these screens: `access-control-real-api`, `granular-rights`, `gui-fixes`, `journeys` and `role-matrix` |
+| SQL-backed backend, on the QA LocalDB instance | 660 passed, 0 skipped |
+| Browser against the real API, on the QA LocalDB instance | 158 passed |
 
 ## Release package, 4 November 2026
 
-`release/TioHub-2.48.0.zip` was built from commit `d6abfb1` on a clean working tree with `build/Build-Release.ps1 -SkipTests`. SHA-256: `219a8265985d5faeeb12fe3f2602ae37ce1ae1fea8ce7954a8d0aa4f66749150`.
-
-The build ran no SQL-backed tests, and `BUILD-INFO.txt` in the package records this. The package has not been installed anywhere.
+`release/TioHub-2.48.0.zip` is built with `build/Build-Release.ps1` on a clean working tree, with the SQL-backed tests running in the build. `BUILD-INFO.txt` in the package gives the source commit. The package has not been installed anywhere.
 
 ## What the tests prove
 
@@ -71,7 +70,7 @@ Replacing the model meant changing tests. None was loosened to pass, but you sho
 | **Upgrade of a real database** | Tested from a generated 2.47 schema with fixture rows that cover each rule, not your data | Follow [RIGHTS-MODEL-UPGRADE.md](RIGHTS-MODEL-UPGRADE.md) on a restored backup and compare a sample of accounts |
 | **Windows authentication and real directory groups** | Tests use Forms and Development sign-in | Sign in with real accounts on the target server |
 | Live directory lookup | Needs a domain. Off by default | Validate on a domain before enabling |
-| IIS install and upgrade scripts, release package | The package is built, but the scripts have never run. It was built with `-SkipTests` | Rerun the SQL and real-API browser suites, then run the scripts on staging |
+| IIS install and upgrade scripts | The package is built, but the scripts have never run | Run them on staging |
 | Application rollback on a real server | The schema path is tested. The 2.47.0 application was not started against an upgraded database | Rehearse on staging |
 | Assistive technology, formal accessibility audit | Automated checks only: names, keyboard order, target size, phone width | Review if your organization requires it |
 | Multi-instance behaviour | Revocation is tested in one process | Test if you run more than one server |
