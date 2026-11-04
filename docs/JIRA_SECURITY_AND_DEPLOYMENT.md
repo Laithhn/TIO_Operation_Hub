@@ -51,7 +51,7 @@ Atlassian account: use a dedicated service account with **read access only** to 
 
 1. Back up the database and the data-protection keys.
 2. Run `database/04-access-control-upgrade-review.sql` if your procedure includes it, then have the DBA apply `database/01-schema.sql`. The `JiraIntegration` migration only adds the `jira` schema, `work.CaseComment` and one defaulted column; existing references become `Manual`.
-3. Deploy with `Jira__Enabled=false`. Keep `Database__ApplyMigrationsOnStartup=false`.
+3. Deploy. `Jira__Enabled` is on by default (A88), and nothing synchronizes until a client is enabled. Use `Jira__Enabled=false` on a restored copy or test server. Keep `Database__ApplyMigrationsOnStartup=false`.
 4. Allow outbound HTTPS from the server to the Jira site and `api.atlassian.com`. The hub made no outbound calls before this release, so **firewalls may need a change**.
 5. Configure IIS as in the operations guide.
 6. Follow *First use* in the operations guide.

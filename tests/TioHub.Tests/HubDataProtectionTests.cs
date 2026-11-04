@@ -10,6 +10,25 @@ using TioHub.Api.Security;
 
 namespace TioHub.Tests;
 
+/// <summary>Database-free. A88: a deployed hub synchronizes by default, while a development run must never reach a real Jira by accident.</summary>
+public sealed class JiraDefaultSettingTests
+{
+    private static bool? EnabledIn(string file)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "Directory.Build.props"))) dir = dir.Parent;
+        using var doc = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(dir!.FullName, "src", "TioHub.Api", file)));
+        return doc.RootElement.GetProperty("Jira").GetProperty("Enabled").GetBoolean();
+    }
+
+    [Fact]
+    public void Jira_is_on_in_a_deployment_and_off_in_development()
+    {
+        Assert.True(EnabledIn("appsettings.json"));
+        Assert.False(EnabledIn("appsettings.Development.json"));
+    }
+}
+
 /// <summary>Database-free: stored Jira tokens must stay readable when the application moves, as long as the key folder is the same.</summary>
 public sealed class HubDataProtectionTests : IDisposable
 {

@@ -9,7 +9,7 @@ namespace TioHub.Api.Modules.Jira;
 
 public sealed class JiraOptions
 {
-    /// <summary>Feature flag of the scheduled and manual synchronization. Off until an owner enables it.</summary>
+    /// <summary>Feature flag of the scheduled and manual synchronization. A88: on in appsettings.json, off in development and tests. Nothing synchronizes until a client's integration is enabled.</summary>
     public bool Enabled { get; set; }
     /// <summary>How often the worker looks for due spaces. 0 = worker off.</summary>
     public int WorkerSeconds { get; set; } = 60;

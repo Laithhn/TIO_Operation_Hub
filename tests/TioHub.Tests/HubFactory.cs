@@ -44,6 +44,7 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Serilog:MinimumLevel:Default", "Warning");
         // A76: the tests run synchronization themselves, against a fake Jira.
         builder.UseSetting("Jira:WorkerSeconds", "0");
+        builder.UseSetting("Jira:Enabled", "false");
         if (ExtraServices is not null) builder.ConfigureServices(ExtraServices);
     }
 

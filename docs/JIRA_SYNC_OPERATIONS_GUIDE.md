@@ -6,7 +6,7 @@
 
 | Key | Default | Meaning |
 |---|---|---|
-| `Jira__Enabled` | `false` | Feature flag. Off: configuration, connection tests, discovery and dry runs work, but no case changes |
+| `Jira__Enabled` | `true` (A88; `false` in Development and Testing) | Feature flag. Off: configuration, connection tests, discovery and dry runs work, but no case changes. **Set it to `false` on a restored copy or test server,** or it can synchronize against the real site |
 | `Jira__WorkerSeconds` | `60` | How often the worker looks for due spaces; `0` turns it off |
 | `Jira__AllowedHostSuffixes__0` | `.atlassian.net` | Hosts a connection may use |
 | `Jira__MaxIssuesPerRun` | `5000` | Larger spaces continue from the checkpoint in the next run |
@@ -20,7 +20,7 @@ The schedule per client is on the client's Jira tab: default every 15 minutes, f
 
 ## First use, in order
 
-1. Deploy with `Jira__Enabled=false`.
+1. Deploy. Nothing synchronizes until a client is enabled in step 9.
 2. Grant roles the new rights if anyone besides the TIO Manager should use them.
 3. **Administration → Jira Connections → New connection:** `Poliscan Jira Cloud`, `https://poliscan.atlassian.net`.
 4. **Run test.** All four steps must pass.
@@ -28,7 +28,7 @@ The schedule per client is on the client's Jira tab: default every 15 minutes, f
 6. Client → **Jira integration:** choose the connection, team, case type and priority, then add the space (`TAH`).
 7. **Jira conflicts → Workflow mappings:** Discover statuses, then map them.
 8. **Preview import** and review the totals. Enabling is refused until a dry run succeeded.
-9. Enable the client, set `Jira__Enabled=true`, restart.
+9. Enable the client.
 10. After the first run, resolve **Jira conflicts** (user mappings first) and compare a few cases with Jira.
 
 ## Keeping 15 minutes reliable
