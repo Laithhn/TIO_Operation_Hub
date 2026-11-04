@@ -27,6 +27,12 @@ The Rights page and the Roles comparison were redesigned after the results above
 | Browser with intercepted HTTP | 13 passed |
 | **Browser against the real API** | **Not rerun on this design.** Five specs use these screens: `access-control-real-api`, `granular-rights`, `gui-fixes`, `journeys` and `role-matrix` |
 
+## Release package, 4 November 2026
+
+`release/TioHub-2.48.0.zip` was built from commit `d6abfb1` on a clean working tree with `build/Build-Release.ps1 -SkipTests`. SHA-256: `219a8265985d5faeeb12fe3f2602ae37ce1ae1fea8ce7954a8d0aa4f66749150`.
+
+The build ran no SQL-backed tests, and `BUILD-INFO.txt` in the package records this. The package has not been installed anywhere.
+
 ## What the tests prove
 
 | Requirement | Evidence |
