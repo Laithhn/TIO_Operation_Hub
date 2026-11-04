@@ -19,7 +19,7 @@ type IssueRow = { id: number; type: string; status: string; connection?: string;
   subject?: string; description: string; suggestedAction: string; lastSeenAt: string; occurrences: number; resolution?: string; resolutionNote?: string; resolvedAt?: string; actions: string[] };
 type IssuePage = { page: number; pageSize: number; totalCount: number; items: IssueRow[] };
 type Connections = { connections: { id: number; name: string }[]; syncEnabled: boolean };
-type UserRow = { id: number; jiraAccountId: string; jiraDisplayName?: string; tioUserId?: number; tioUser?: string; clientContactId?: number; classification: 'Unmapped' | 'TioUser' | 'VitronicTeamMember' | 'ClientContact'; loginEnabled: boolean; matchingUsers: number[]; matchingContacts: number[]; lastSeenAt: string };
+type UserRow = { id: number; jiraAccountId: string; jiraDisplayName?: string; tioUserId?: number; tioUser?: string; clientContactId?: number; classification: 'Unmapped' | 'TioUser' | 'VitronicTeamMember' | 'ClientContact'; loginEnabled: boolean; matchingUsers: number[]; matchingContacts: number[]; suggestedClientId?: number; lastSeenAt: string };
 type ClientContact = { id: number; name: string; role?: string; clientCode: string };
 type StatusRow = { id: number; jiraProjectId: string; projectKey?: string; jiraStatusId: string; jiraStatusName: string; jiraStatusCategory?: string; targetStatus?: string };
 
@@ -183,8 +183,8 @@ function UserMappings({ connectionId }: { connectionId: number }) {
       fields={[{ name: 'clientContactId', label: 'Client contact', kind: 'select', required: true, options: (contacts.data ?? []).map(k => ({ value: String(k.id), label: `${k.clientCode} · ${k.name}${k.role ? ` (${k.role})` : ''}` })) }]}
       transform={v => ({ tioUserId: null, clientContactId: Number(v.clientContactId) })} />}
     {r && resolving.kind === 'newContact' && <ActionDialog title={`Create a client contact for ${nameOf(r)}`} path={`/admin/jira-user-mappings/${r.id}/contact`} submitLabel="Create and map" onClose={() => setResolving(null)}
-      intro="Their comments do not count as a first response. No sign-in is granted." initial={{ name: r.jiraDisplayName ?? '' }}
-      fields={[{ name: 'clientId', label: 'Client', kind: 'select', required: true, options: clients }, { name: 'name', label: 'Name', required: true }, { name: 'email', label: 'Email', hint: 'Enter an email address or a phone number.' }, { name: 'phone', label: 'Phone' }, { name: 'role', label: 'Role' }, { name: 'organization', label: 'Organization' }]}
+      intro="Their comments do not count as a first response. No sign-in is granted. Only the client is needed; add the rest now or later." initial={{ name: r.jiraDisplayName ?? '', clientId: r.suggestedClientId ? String(r.suggestedClientId) : '' }}
+      fields={[{ name: 'clientId', label: 'Client', kind: 'select', required: true, options: clients }, { name: 'name', label: 'Name', hint: "Empty uses the name from Jira." }, { name: 'email', label: 'Email' }, { name: 'phone', label: 'Phone' }, { name: 'role', label: 'Role' }, { name: 'organization', label: 'Organization' }]}
       transform={v => ({ ...v, clientId: Number(v.clientId) })} />}
     {r && resolving.kind === 'teamMember' && <ActionDialog title={`Create a Vitronic team member for ${nameOf(r)}`} path={`/admin/jira-user-mappings/${r.id}/team-member`} submitLabel="Create and map" onClose={() => setResolving(null)}
       intro="An internal record with no sign-in and no password. They can own cases through Jira and count as the team for SLA rules. Sign-in can be granted later on the Users page." initial={{ displayName: r.jiraDisplayName ?? '' }}

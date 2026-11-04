@@ -727,6 +727,8 @@ table.grid th .grid-sort{white-space:nowrap}
 .mp-list{max-height:240px;overflow:auto;display:grid;gap:2px}
 .mp-opt{padding:2px 2px}
 .mp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:6px}
+.person-cell{display:inline-flex;align-items:center;gap:6px}
+.person-initials{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-size:11px;font-weight:600}
 .chip-pick{border:0;padding:0;margin:0}
 .chip-pick-list{display:flex;flex-wrap:wrap;gap:4px}
 .chip-toggle{border:1px solid var(--line-strong);background:var(--surface);color:var(--fg-2);font-size:var(--fs);padding:2px 9px;cursor:pointer}

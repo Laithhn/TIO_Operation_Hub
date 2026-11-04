@@ -488,10 +488,26 @@ Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored 
 | Backend, long-text, schema and failure-reason tests (real SQL Server) | 5 passed |
 | `01-schema.sql` on the restored copy | No errors; seven columns unlimited; case and comment counts unchanged |
 | 2.50.1 package on the restored copy, about a minute | Ready, no errors in the log; the long notification text is saved shortened |
-| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Backend, full run inside the package build | **675 passed, 0 failed** |
 
 Playwright was not run for this release: the change is in the backend and the database only.
 
 The 2.50.0 and 2.50.1 packages name source commits `1366d88` and `3b4bdda`. Those were rebuilt before being pushed, to leave out another agent's file, and are `798ba26` and `90e797e` on `main`, with otherwise identical content. Local tags `package-2.50.0` and `package-2.50.1` keep the original commits.
 
 Not run: `Install`/`Upgrade` on IIS; a synchronization with the long-text fix against a real Jira site.
+
+## Release 2.51.0: Jira default, case columns, simpler contacts (A88, A89), 4 November 2026
+
+Actual runs on the isolated `(localdb)\\TioHubQALocalDB` instance, with the owner's standing approval.
+
+| Suite | Result |
+|---|---|
+| Playwright, main config (real API, Microsoft Edge) | 161 of 164 passed; the 3 failures expected the old table layout, and the specs were updated |
+| Playwright, `jira-integration` and `ux-remediation` after the updates, with one new test | 32 passed |
+| Backend, full run before the contact change | 676 passed, 0 failed |
+| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Frontend, `vitest` | 81 passed |
+
+The whole main Playwright config was not run again after those updates.
+
+Not run: `Install`/`Upgrade` on IIS.

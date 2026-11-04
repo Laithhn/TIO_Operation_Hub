@@ -47,7 +47,7 @@ public static class CaseEndpoints
             var keys = new Dictionary<string, Expression<Func<Case, object?>>>
             {
                 ["ref"] = c => c.Id, ["title"] = c => c.Title, ["priority"] = c => c.Priority, ["status"] = c => c.StatusCode, ["due"] = c => c.DueAt,
-                ["nextReview"] = c => c.NextReviewAt, ["created"] = c => c.CreatedAt, ["client"] = c => c.Client!.Code, ["owner"] = c => c.Owner!.DisplayName
+                ["nextReview"] = c => c.NextReviewAt, ["created"] = c => c.CreatedAt, ["updated"] = c => c.UpdatedAt, ["client"] = c => c.Client!.Code, ["owner"] = c => c.Owner!.DisplayName
             };
             var paged = await q.SortBy(p.Sort, keys, "-created").Select(Row(now, policy)).ToPagedAsync(PageQuery.From(p.Page, p.PageSize), ct);
             return Results.Ok(paged);
@@ -674,14 +674,17 @@ public static class CaseEndpoints
             c.Contract == null ? null : c.Contract.Ref,
             c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now ? SlaState.Breached : c.ResponseSlaStatus,
             c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now ? SlaState.Breached : c.ResolutionSlaStatus,
-            c.JiraSource == null ? null : c.JiraSource.IssueKey, c.JiraSource == null ? null : c.JiraSource.JiraConnection!.Name, c.JiraSource == null ? null : c.JiraSource.StatusName, c.StatusCode, c.InternalAssignee);
+            c.JiraSource == null ? null : c.JiraSource.IssueKey, c.JiraSource == null ? null : c.JiraSource.JiraConnection!.Name, c.JiraSource == null ? null : c.JiraSource.StatusName, c.StatusCode, c.InternalAssignee,
+            c.UpdatedAt, c.ResolvedAt, c.JiraSource == null ? null : c.JiraSource.AssigneeName, c.JiraSource == null ? null : c.JiraSource.ReporterName,
+            c.JiraSource == null ? null : c.JiraSource.PriorityName, c.JiraSource == null ? null : c.JiraSource.IssueTypeName, c.JiraSource == null ? null : c.JiraSource.Resolution);
     }
 
     public sealed record CaseRow(long Id, string Ref, string Title, string Type, WorkScope Scope, CaseStatus Status, Priority Priority,
         long? ClientId, string? ClientCode, string? TeamName, long? OwnerUserId, string? OwnerName, bool OwnerDeactivated,
         WaitingReason? WaitingReason, DateTimeOffset? WaitingSince, string NextAction, DateTimeOffset NextReviewAt, DateTimeOffset? DueAt, string? DueTimeZone, DateTimeOffset CreatedAt,
         bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys, string? ContractRef = null, SlaState ResponseSla = SlaState.NotApplicable, SlaState ResolutionSla = SlaState.NotApplicable,
-        string? JiraSourceKey = null, string? JiraConnectionName = null, string? JiraStatus = null, string StatusCode = "", string? InternalAssignee = null);
+        string? JiraSourceKey = null, string? JiraConnectionName = null, string? JiraStatus = null, string StatusCode = "", string? InternalAssignee = null,
+        DateTimeOffset? UpdatedAt = null, DateTimeOffset? ResolvedAt = null, string? JiraAssignee = null, string? JiraReporter = null, string? JiraPriority = null, string? JiraIssueType = null, string? JiraResolution = null);
 
     private static object Permissions(Case c, UserContext me, bool belongsToTeam, bool hasResolved, bool statusFromJira)
     {

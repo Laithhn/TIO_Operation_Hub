@@ -656,6 +656,23 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_client_contact_needs_only_the_client_and_that_client_is_suggested()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        _jira.Add("194", "TAH-194", assigneeId: "acc-194", assigneeName: "Fictional Person 194");
+        await RunAsync(f.SpaceId);
+        var row = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == "acc-194")!;
+        Assert.Equal(f.ClientId, row["suggestedClientId"]!.GetValue<long>());
+        var id = row["id"]!.GetValue<long>();
+        Assert.NotNull((await manager.Post($"/admin/jira-user-mappings/{id}/contact", new { })).Error("clientId"));
+        var contact = await manager.Create($"/admin/jira-user-mappings/{id}/contact", new { clientId = f.ClientId });
+        Assert.Equal("Fictional Person 194", await Db(db => db.Contacts.Where(k => k.Id == contact).Select(k => k.Name).FirstAsync()));
+        // The ordinary contact form keeps its rule.
+        Assert.NotNull((await manager.Post($"/clients/{f.ClientId}/contacts", new { name = "Fictional Person 195" })).Error("email"));
+    }
+
+    [Fact]
     public async Task Long_jira_text_imports_in_full()
     {
         var f = await SetUpAsync();

@@ -312,9 +312,17 @@ public static class JiraAdminEndpoints
             var clients = await ConnectionClientsAsync(db, id, ct);
             var users = await db.Users.AsNoTracking().Where(u => names.Contains(u.DisplayName)).Select(u => new { u.Id, u.DisplayName }).ToListAsync(ct);
             var contacts = await db.Contacts.AsNoTracking().Where(k => clients.Contains(k.ClientId) && names.Contains(k.Name)).Select(k => new { k.Id, k.Name }).ToListAsync(ct);
+            // A89: the client whose Jira spaces this person appears in most: as assignee or comment author.
+            var assigned = await db.JiraCaseMappings.IgnoreQueryFilters().AsNoTracking().Where(x => x.JiraConnectionId == id && x.AssigneeAccountId != null)
+                .GroupBy(x => new { Account = x.AssigneeAccountId!, x.ClientId }).Select(g => new { g.Key.Account, g.Key.ClientId, Count = g.Count() }).ToListAsync(ct);
+            var commented = await db.JiraComments.AsNoTracking().Where(k => k.JiraConnectionId == id && k.AuthorAccountId != null)
+                .Join(db.JiraCaseMappings.IgnoreQueryFilters().AsNoTracking(), k => k.CaseId, x => x.CaseId, (k, x) => new { Account = k.AuthorAccountId!, x.ClientId })
+                .GroupBy(x => new { x.Account, x.ClientId }).Select(g => new { g.Key.Account, g.Key.ClientId, Count = g.Count() }).ToListAsync(ct);
+            var usualClient = assigned.Concat(commented).GroupBy(x => x.Account).ToDictionary(g => g.Key, g => g.GroupBy(x => x.ClientId).OrderByDescending(c => c.Sum(x => x.Count)).First().Key);
             return Results.Ok(rows.Select(r => new
             {
                 r.Id, r.JiraAccountId, r.JiraDisplayName, r.TioUserId, r.tioUser, r.ClientContactId, r.LastSeenAt, r.version, r.loginEnabled,
+                suggestedClientId = usualClient.TryGetValue(r.JiraAccountId, out var usual) ? usual : clients.Count == 1 ? clients[0] : (long?)null,
                 classification = r.ClientContactId is not null ? "ClientContact" : r.teamMember ? "VitronicTeamMember" : r.TioUserId is not null ? "TioUser" : "Unmapped",
                 matchingUsers = r.TioUserId is not null || r.ClientContactId is not null ? [] : users.Where(u => string.Equals(u.DisplayName, r.JiraDisplayName, StringComparison.OrdinalIgnoreCase)).Select(u => u.Id).ToArray(),
                 matchingContacts = r.TioUserId is not null || r.ClientContactId is not null ? [] : contacts.Where(k => string.Equals(k.Name, r.JiraDisplayName, StringComparison.OrdinalIgnoreCase)).Select(k => k.Id).ToArray()
@@ -387,7 +395,9 @@ public static class JiraAdminEndpoints
             var clients = await ConnectionClientsAsync(db, m.JiraConnectionId, ct);
             if (i.ClientId is not { } clientId || !clients.Contains(clientId)) throw new ValidationException("clientId", "Select a client that uses this Jira connection.");
             var contact = new Modules.Clients.Contact { ClientId = clientId };
-            await Modules.Clients.ClientEndpoints.ApplyContactAsync(contact, new(i.Name, i.Role, i.Organization, i.Email, i.Phone, false, null, null), db, ct);
+            // A89: Jira gives little about a person, so only the client is needed here. The name falls back to Jira's.
+            var name = Text.Clean(i.Name) ?? m.JiraDisplayName ?? m.JiraAccountId;
+            await Modules.Clients.ClientEndpoints.ApplyContactAsync(contact, new(name, i.Role, i.Organization, i.Email, i.Phone, false, null, null), db, ct, requireChannel: false);
             if (await db.Contacts.AnyAsync(k => k.ClientId == clientId && (k.Name == contact.Name || (contact.Email != null && k.Email == contact.Email)), ct))
                 throw new ValidationException("name", "This client already has this contact. Map the Jira user to that contact instead.");
             if (contact.Email is not null && await db.Users.AnyAsync(u => u.Email == contact.Email, ct))

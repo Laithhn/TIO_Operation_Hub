@@ -9,14 +9,19 @@ import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../for
 import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, useRight, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
-import { ClientDisplay } from '../ui/ClientLogo';
+import { ClientDisplay, initialsOf, toneOf } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
 import { CaseActivity, JiraBanner, JiraDetailsPanel, jiraOriginLabel, type JiraSource } from './jira/CaseJira';
 
 type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; internalAssignee?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
-  contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string };
+  contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string; createdAt: string; updatedAt?: string; resolvedAt?: string; jiraAssignee?: string; jiraReporter?: string; jiraPriority?: string; jiraIssueType?: string; jiraResolution?: string };
+
+/** Initials and name of a person in a case row. */
+function PersonCell({ name, badge }: { name: string; badge?: ReactNode }) {
+  return <span className="person-cell"><span className="person-initials" style={{ background: toneOf(name) }} aria-hidden="true">{initialsOf(name)}</span><span>{name}{badge && <> {badge}</>}</span></span>;
+}
 
 /** A61: contractual SLA filters of the case list (also the dashboard drill-downs). */
 export const SLA_FILTERS = [
@@ -69,23 +74,32 @@ export function CaseList() {
           <button className="linkbtn" onClick={() => set({ contractId: '', createdFrom: '', createdTo: '' })}>Clear</button></div>}
         {f.asOf && <div className="notice" style={{ margin: 0 }}>Evaluated at {fmtDateTime(f.asOf)} (from dashboard). <button className="linkbtn" onClick={() => set({ asOf: '' })}>Use now</button></div>}
       </div>
-      <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Cases"
+      <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Cases" columnsKey="cases"
         columns={[
-          { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search cases" placeholder="Search title or ref" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
-          { key: 'title', header: 'Title', sort: 'title', render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
           { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span>,
             filter: <select className="input" aria-label="Filter by scope" value={f.scope} onChange={e => set({ scope: e.target.value })}><option value="">All</option><option value="Client">Client-related</option><option value="Internal">Internal</option></select> },
-          { key: 'status', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.statusCode} enumName="CaseStatus" />{r.status === 'Cancelled' && <span className="chip">Cancelled</span>}</>,
-            filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s.code} value={`code:${s.code}`}>{s.label}</option>)}</select> },
+          { key: 'work', header: 'Work', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '26rem', filter: <input className="input" aria-label="Search cases" placeholder="Search title or ref" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
+          { key: 'owner', header: 'Assignee', sort: 'owner', render: r => r.ownerName ? <PersonCell name={r.ownerName} badge={r.ownerDeactivated && <Badge tone="bad">Deactivated</Badge>} /> : r.internalAssignee ? <PersonCell name={r.internalAssignee} badge={<Badge tone="info">Vitronic</Badge>} /> : r.jiraAssignee ? <PersonCell name={r.jiraAssignee} badge={<Badge tone="warn">Not mapped</Badge>} /> : <span className="muted">Unassigned</span> },
+          { key: 'reporter', header: 'Reporter', render: r => r.jiraReporter ? <PersonCell name={r.jiraReporter} /> : <span className="muted">None</span> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} />,
             filter: <select className="input" aria-label="Filter by priority" value={f.priority} onChange={e => set({ priority: e.target.value })}><option value="">All</option>{priorities.map(s => <option key={s}>{s}</option>)}</select> },
+          { key: 'status', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.statusCode} enumName="CaseStatus" />{r.status === 'Cancelled' && <span className="chip">Cancelled</span>}</>,
+            filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s.code} value={`code:${s.code}`}>{s.label}</option>)}</select> },
+          { key: 'resolution', header: 'Resolution', render: r => r.jiraResolution ?? (r.resolvedAt ? 'Resolved' : 'Unresolved') },
+          { key: 'created', header: 'Created', sort: 'created', render: r => fmtDateTime(r.createdAt) },
+          { key: 'updated', header: 'Updated', sort: 'updated', render: r => r.updatedAt ? fmtDateTime(r.updatedAt) : <span className="muted">None</span> },
+          { key: 'due', header: 'Due date', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">None</span> },
           { key: 'jira', header: 'Jira', render: r => <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <div className="hint"><Badge tone="info">Synchronized</Badge> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</div>}</> },
-          { key: 'owner', header: 'Owner', sort: 'owner', render: r => r.ownerName ? <>{r.ownerName}{r.ownerDeactivated && <> <Badge tone="bad">Deactivated</Badge></>}</> : r.internalAssignee ? <>{r.internalAssignee} <Badge tone="info">Vitronic</Badge></> : <span className="muted">Unassigned</span> },
-          { key: 'team', header: 'Team', render: r => r.teamName },
-          { key: 'next', header: 'Next action / review', render: r => <>{r.nextAction}<div className="hint">{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</div></> },
-          { key: 'due', header: 'Due', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">No deadline</span> },
           { key: 'sla', header: 'Contractual SLA', render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
-          { key: 'flags', header: 'Flags', render: r => <>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</> },
+          { key: 'ref', header: 'Ref', sort: 'ref', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link> },
+          { key: 'title', header: 'Title', sort: 'title', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
+          { key: 'type', header: 'Type', defaultHidden: true, render: r => label(r.type) },
+          { key: 'team', header: 'Team', defaultHidden: true, render: r => r.teamName },
+          { key: 'next', header: 'Next action / review', defaultHidden: true, render: r => <>{r.nextAction}<div className="hint">{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</div></> },
+          { key: 'flags', header: 'Flags', defaultHidden: true, render: r => <>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</> },
+          { key: 'jiraAssignee', header: 'Jira assignee', defaultHidden: true, render: r => r.jiraAssignee ?? <span className="muted">None</span> },
+          { key: 'jiraPriority', header: 'Jira priority', defaultHidden: true, render: r => r.jiraPriority ?? <span className="muted">None</span> },
+          { key: 'jiraType', header: 'Jira issue type', defaultHidden: true, render: r => r.jiraIssueType ?? <span className="muted">None</span> },
           { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/cases/${r.id}`} what={`case ${r.ref}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}

@@ -632,7 +632,7 @@ public static partial class ClientEndpoints
         }
     }
 
-    internal static async Task ApplyContactAsync(Contact c, ContactInput i, HubDbContext db, CancellationToken ct)
+    internal static async Task ApplyContactAsync(Contact c, ContactInput i, HubDbContext db, CancellationToken ct, bool requireChannel = true)
     {
         var check = new Check();
         var email = Text.Clean(i.Email);
@@ -641,7 +641,7 @@ public static partial class ClientEndpoints
              .Text("role", i.Role, 150, "Role")
              .Text("organization", i.Organization, 150, "Organization")
              .Text("responsibility", i.Responsibility, 1000, "Responsibility")
-             .When(email is null && phone is null, "email", "Enter at least one usable email address or phone number.")
+             .When(requireChannel && email is null && phone is null, "email", "Enter at least one usable email address or phone number.")
              .When(email is not null && !System.Net.Mail.MailAddress.TryCreate(email, out _), "email", "Enter a valid email address.")
              .When(phone is not null && !Regex.IsMatch(phone, @"^\+?[0-9 ()\-]{6,30}$"), "phone", "Enter a valid phone number.");
         if (i.ProjectId is not null && !await db.Projects.AnyAsync(p => p.Id == i.ProjectId && p.ClientId == c.ClientId, ct)) check.Add("projectId", "Select a project of this client.");

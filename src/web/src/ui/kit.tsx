@@ -264,6 +264,8 @@ export type Column<T> = {
   priority?: 'primary' | 'secondary';
   /** Caps the column (for example "18rem"); long text wraps inside it instead of widening the table (GUI-11). */
   maxWidth?: string;
+  /** Offered under Columns, but not shown until a person adds it. */
+  defaultHidden?: boolean;
 };
 
 /** Plain text of a rendered cell (for client-side filter, sort and CSV export). */
@@ -396,9 +398,11 @@ function useOverflow<E extends HTMLElement>() {
  * export). The rows are a native table (GUI-05): screen readers announce rows, column headers and cells, a sortable header is a button
  * with aria-sort, and sorting is announced. On phones the secondary columns move into a details row under each record (GUI-06).
  */
-export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName }: {
+export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
   sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
+  /** Remembers this person's column choice in this browser under this name. */
+  columnsKey?: string;
 }) {
   const nav = useNavigate();
   const me = useMe().data;
@@ -410,7 +414,17 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const [showFilters, setShowFilters] = useState(false);
   const [showColumns, setShowColumns] = useState(false);
   const [columnSearch, setColumnSearch] = useState('');
-  const [hidden, setHidden] = useState<Record<string, boolean>>({});
+  const defaultColumns = () => Object.fromEntries(columns.filter(c => c.defaultHidden).map(c => [c.key, true]));
+  const [hidden, setHiddenState] = useState<Record<string, boolean>>(() => {
+    let saved: Record<string, boolean> = {};
+    try { saved = columnsKey ? JSON.parse(localStorage.getItem(`vt-columns:${columnsKey}`) ?? '{}') : {}; } catch { /* a damaged choice falls back to the defaults */ }
+    return { ...defaultColumns(), ...saved };
+  });
+  const setHidden = (next: Record<string, boolean> | ((h: Record<string, boolean>) => Record<string, boolean>)) => setHiddenState(h => {
+    const value = typeof next === 'function' ? next(h) : next;
+    try { if (columnsKey) localStorage.setItem(`vt-columns:${columnsKey}`, JSON.stringify(value)); } catch { /* private browsing: the choice lasts for this page */ }
+    return value;
+  });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [announce, setAnnounce] = useState('');
   // A server-sorted list reloads (and briefly replaces the table): the sort button gets the focus back afterwards.
@@ -558,7 +572,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
       {showColumns && (
         // GUI-08: the hub's own column chooser on the framework Card; the framework ColumnsSelectionCard's search field cannot be named.
         <ToolbarCard anchor={columnsButton} width={320} label={`${caption ?? 'Table'} columns`} onClose={() => setShowColumns(false)}
-          actions={close => <><Button type="tinted" text="Show all" onClick={() => setHidden({})} /><Button type="filled" text="Close" onClick={() => close(true)} /></>}>
+          actions={close => <><Button type="tinted" text="Show all" onClick={() => setHidden(Object.fromEntries(columns.map(c => [c.key, false])))} />{columns.some(c => c.defaultHidden) && <Button type="tinted" text="Reset" onClick={() => setHidden(defaultColumns())} />}<Button type="filled" text="Close" onClick={() => close(true)} /></>}>
           <div className="vt-columns-card">
             <label className="field"><span className="flabel">Search columns</span>
               <input className="input" type="search" value={columnSearch} onChange={e => setColumnSearch(e.target.value)} /></label>

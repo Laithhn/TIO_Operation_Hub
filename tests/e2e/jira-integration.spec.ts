@@ -44,7 +44,7 @@ test('a local comment appears in the activity timeline and says it stays local',
   const jira: string[] = [];
   page.on('request', r => { if (r.url().includes('atlassian')) jira.push(r.url()); });
   await page.goto('/cases');
-  await page.locator('table tbody a').first().click();
+  await page.locator('table tbody a[href^="/cases/"]').first().click();
   await expect(page.getByText('This comment is saved in TIO Operations Hub only and will not be sent to Jira.')).toBeVisible();
   const text = `Local note ${Date.now()}`;
   await page.getByLabel('Add a comment to this case (TIO only)').fill(text);
@@ -126,7 +126,7 @@ test('administrators add and remove a case status, and it is offered for Jira ma
   await expect(page.getByRole('button', { name, exact: true })).toBeVisible();
   await shot(page, 'case-statuses');
   await page.goto('/cases');
-  await page.locator('table tbody a').first().click();
+  await page.locator('table tbody a[href^="/cases/"]').first().click();
   await page.goto('/admin/config/case-statuses');
   await page.getByRole('button', { name: `Delete ${name}` }).click();
   await page.getByRole('dialog').getByRole('button', { name: /Delete/ }).click();
@@ -155,6 +155,25 @@ test('every status can be chosen for a Jira status, and an unmapped Jira user is
   await page.getByRole('dialog').getByLabel('I confirm this action.').check();
   await page.getByRole('dialog').getByRole('button', { name: 'Map', exact: true }).click();
   await expect.poll(() => saved).toEqual({ tioUserId: null, clientContactId: 5 });
+});
+
+test('a client contact is created from an unmapped Jira user with only the client, already chosen', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 900 });
+  await page.goto('/');
+  const id = await clientId(page);
+  await page.route('**/api/v1/admin/jira-connections', r => r.fulfill({ json: { syncEnabled: true, connections: [{ id: 1, name: 'Demo Jira Cloud' }] } }));
+  await page.route('**/api/v1/admin/jira-connections/1/users', r => r.fulfill({ json: [{ id: 1, jiraAccountId: 'acc-1', jiraDisplayName: 'Fictional Colleague', classification: 'Unmapped', loginEnabled: false, matchingUsers: [], matchingContacts: [], suggestedClientId: id, lastSeenAt: new Date().toISOString() }] }));
+  await page.route('**/api/v1/admin/jira-connections/1/client-contacts', r => r.fulfill({ json: [] }));
+  let sent: Record<string, unknown> | undefined;
+  await page.route('**/api/v1/admin/jira-user-mappings/1/contact', r => { sent = r.request().postDataJSON(); return r.fulfill({ status: 201, json: { id: 5 } }); });
+  await page.goto('/admin/integrations/jira/conflicts?tab=users');
+  await page.getByLabel('Resolve Fictional Colleague').selectOption('newContact');
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByLabel('Client')).toHaveValue(String(id));
+  await dialog.getByLabel('I confirm this action.').check();
+  await dialog.getByRole('button', { name: 'Create and map' }).click();
+  await expect.poll(() => sent?.clientId).toBe(id);
+  expect(sent?.name).toBe('Fictional Colleague');
 });
 
 test('a Jira space is linked to a contract when assigned and later', async ({ page }) => {
@@ -231,7 +250,7 @@ test('a Jira priority with no match is mapped on the client page', async ({ page
 test('Sync with Jira on a case reports what came back', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/cases');
-  const href = await page.locator('table tbody a').first().getAttribute('href');
+  const href = await page.locator('table tbody a[href^="/cases/"]').first().getAttribute('href');
   const caseId = href!.split('/').pop();
   await page.route(`**/api/v1${href}`, async r => {
     const json = await (await r.fetch()).json();
@@ -260,7 +279,7 @@ test('the client map lists countries with a flag image', async ({ page }) => {
 test('a Jira-synced case shows its status read-only and only actions that do not change it', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/cases');
-  const href = await page.locator('table tbody a').first().getAttribute('href');
+  const href = await page.locator('table tbody a[href^="/cases/"]').first().getAttribute('href');
   await page.route(`**/api/v1${href}`, async r => {
     const json = await (await r.fetch()).json();
     const off = ['canTriage', 'canStart', 'canClose', 'canRequestValidation', 'canReturnToWork', 'canChangeStatus', 'canSetWaiting', 'canChangeDue', 'canReopen', 'canCancel'];
@@ -274,4 +293,36 @@ test('a Jira-synced case shows its status read-only and only actions that do not
     await expect(page.locator('.page-head').getByRole('button', { name, exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Edit', exact: true })).toBeVisible();
   await shot(page, 'synced-case');
+});
+
+test.describe('Cases table columns', () => {
+  test('the default columns can be added to and removed from, and the choice is remembered', async ({ page }) => {
+    await page.setViewportSize({ width: 1800, height: 900 });
+    await page.goto('/cases');
+    await page.evaluate(() => localStorage.removeItem('vt-columns:cases'));
+    await page.reload();
+    const table = page.getByRole('table', { name: 'Cases' });
+    const headers = table.getByRole('columnheader');
+    await expect(headers.first()).toBeVisible();
+    const shown = (await headers.allInnerTexts()).map(t => t.trim().split('\n')[0]).filter(t => t && t !== 'Actions');
+    expect(shown).toEqual(['Client / scope', 'Work', 'Assignee', 'Reporter', 'Priority', 'Status', 'Resolution', 'Created', 'Updated', 'Due date', 'Jira', 'Contractual SLA']);
+    await shot(page, 'cases-columns');
+
+    await page.getByRole('button', { name: 'Columns' }).click();
+    const list = page.getByRole('list', { name: 'Columns shown' });
+    await list.getByRole('checkbox', { name: 'Team' }).check();
+    await list.getByRole('checkbox', { name: 'Reporter' }).uncheck();
+    await expect(table.getByRole('columnheader', { name: 'Team' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Reporter' })).toHaveCount(0);
+
+    await page.reload();
+    await expect(table.getByRole('columnheader', { name: 'Team' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Reporter' })).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Columns' }).click();
+    await page.getByRole('button', { name: 'Reset' }).click();
+    await expect(table.getByRole('columnheader', { name: 'Reporter' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Team' })).toHaveCount(0);
+    await page.evaluate(() => localStorage.removeItem('vt-columns:cases'));
+  });
 });

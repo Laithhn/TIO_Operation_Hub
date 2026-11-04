@@ -145,7 +145,7 @@ test.describe('UX-002 Narrow operational tables', () => {
     await expect(table.locator('tbody tr.vt-row').first()).toBeVisible();
     const headers = await table.locator('thead th').evaluateAll(es => es.map(e => (e.textContent ?? '').trim()).filter(t => t && t !== 'Details' && t !== 'Actions'));
     const visibleHeaders = await table.locator('thead th:visible').evaluateAll(es => es.map(e => (e.textContent ?? '').trim()).filter(t => t && t !== 'Details' && t !== 'Actions'));
-    expect(visibleHeaders).toContain('Ref');
+    expect(visibleHeaders).toContain('Work');
     expect(visibleHeaders.length).toBeLessThan(headers.length);
     const row = table.locator('tbody tr.vt-row').first();
     // Without panning: the identifier link lies inside the screen width (the table itself starts below the filters).
@@ -162,7 +162,7 @@ test.describe('UX-002 Narrow operational tables', () => {
     for (const h of headers.filter(h => !visibleHeaders.includes(h))) expect(listed, `details include ${h}`).toContain(h);
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
     // Sorting still works on the narrow layout, and the export still has every column of the filtered rows.
-    const refHeader = table.getByRole('button', { name: /^Ref/ });
+    const refHeader = table.getByRole('button', { name: /^Work/ });
     if (await refHeader.count()) {
       await refHeader.click();
       await expect(table.locator('th[aria-sort]')).toHaveCount(1);
