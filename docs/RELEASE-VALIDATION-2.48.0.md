@@ -30,7 +30,7 @@ The Rights page and the Roles comparison were redesigned after the results above
 
 ## Release package, 4 November 2026
 
-`release/TioHub-2.48.0.zip` is built with `build/Build-Release.ps1` on a clean working tree, with the SQL-backed tests running in the build. `BUILD-INFO.txt` in the package gives the source commit. The package has not been installed anywhere.
+`release/TioHub-2.48.0.zip` was built with `build/Build-Release.ps1` from commit `a5c6596` on a clean checkout. The 660 SQL-backed tests ran in that build and passed. SHA-256: `f63124dcdcf292b1e947055f44462ea833faa66cc8c341c8515809f83b1dbce2`. The package has not been installed anywhere.
 
 ## What the tests prove
 
