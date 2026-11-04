@@ -16,6 +16,7 @@ public static class AdminEndpoints
     public sealed record ScopeInput(ScopeKind Kind, long? ClientId, long? ProjectId, long? TeamId);
     public sealed record UserInput(string? AccountName, string? DisplayName, string? Email, string? WorkingTimeZone, long[]? RoleIds, bool AllClients, bool AllInternal, ScopeInput[]? Scopes);
     public sealed record DeactivateInput(string? Reason);
+    public sealed record LoginAccessInput(bool Enabled, string? Reason, string? AccountName = null);
     public sealed record DeleteUserInput(string? Reason);
     public sealed record MappingInput(string? GroupName, long[]? RoleIds, bool AllClients, bool AllInternal, ScopeInput[]? Scopes);
     /// <summary>A34: <c>Code</c> is optional (made from the label); <c>Category</c> is required for type lists and fixed once created.</summary>
@@ -120,6 +121,34 @@ public static class AdminEndpoints
             var u = await db.Users.Include(x => x.Roles).Include(x => x.Scopes).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
             db.ExpectVersion(ctx, u);
             await ApplyUserAsync(u, input, db, me, resolver, isNew: false, clock.GetUtcNow(), ct);
+            await db.SaveChangesAsync(ct);
+            UserResolver.InvalidateAll(cache);
+            return Results.NoContent();
+        });
+        // A83: sign-in access of a Vitronic team member changes here, by itself. The classification and SLA records stay.
+        g.MapPost("/users/{id:long}/login-access", async (long id, LoginAccessInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
+        {
+            me.RequireAdministrator();
+            if (id == me.UserId) throw new ValidationException("enabled", "You cannot change your own sign-in access.");
+            var u = await db.Users.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The user");
+            db.ExpectVersion(ctx, u);
+            var reason = Rules.RequireReason(input.Reason);
+            if (u.Classification != UserClassification.VitronicTeamMember) throw new ValidationException("enabled", "Sign-in of this account follows its active status. Deactivate the account instead.");
+            if (input.Enabled && !string.IsNullOrWhiteSpace(input.AccountName))
+            {
+                var account = input.AccountName.Trim();
+                if (!Security.AuthEndpoints.AccountPattern().IsMatch(account)) throw new ValidationException("accountName", "Use 2-200 letters, digits, dots, hyphens, underscores, @ or a DOMAIN\\name form, without spaces.");
+                if (await db.Users.AnyAsync(x => x.Id != id && x.AccountName == account, ct)) throw new ConflictException("This account already exists.");
+                u.AccountName = account;
+            }
+            if (!input.Enabled)
+            {
+                await EnsureAdministratorRemainsAsync(db, id, false, null, resolver, clock.GetUtcNow(), ct);
+                await EnsureConflictRecoveryAsync(db, id, false, [], resolver, clock.GetUtcNow(), ct);
+            }
+            resolver.MarkFormsSnapshot(u);
+            u.LoginEnabled = input.Enabled;
+            db.AuditReason = reason;
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
             return Results.NoContent();
@@ -542,7 +571,7 @@ public static class AdminEndpoints
         var groups = resolver.Groups(u.MappedGroups).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return new
         {
-            u.Id, u.AccountName, u.DisplayName, u.Email, u.WorkingTimeZone, u.IsActive, u.DeactivatedAt, u.DeactivationReason, u.LastSignInAt,
+            u.Id, u.AccountName, u.DisplayName, u.Email, u.WorkingTimeZone, u.IsActive, u.Classification, u.LoginEnabled, u.DeactivatedAt, u.DeactivationReason, u.LastSignInAt,
             mappedGroups = string.Join("; ", resolver.Groups(u.MappedGroups)),
             mappedGroupsAvailable = resolver.TryGroups(u.MappedGroups, out _),
             roleIds = u.Roles.Select(r => r.AppRoleId),
@@ -619,7 +648,7 @@ public static class AdminEndpoints
             throw new ValidationException("groupName", "You belong to this group, so this mapping would change your own access. Ask another administrator.");
     }
 
-    private static async Task ApplyUserAsync(User u, UserInput i, HubDbContext db, UserContext me, UserResolver resolver, bool isNew, DateTimeOffset now, CancellationToken ct)
+    internal static async Task ApplyUserAsync(User u, UserInput i, HubDbContext db, UserContext me, UserResolver resolver, bool isNew, DateTimeOffset now, CancellationToken ct)
     {
         if (!isNew) resolver.RequireGroups(u.MappedGroups);
         var check = new Check().Text("displayName", i.DisplayName, 150, "the display name", true).Text("email", i.Email, 254, "Email");

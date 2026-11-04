@@ -33,7 +33,7 @@ public static partial class AuthEndpoints
     public sealed record TemporaryPasswordInput(string? TemporaryPassword);
 
     [GeneratedRegex(@"^[A-Za-z0-9][A-Za-z0-9._@\\-]{1,199}$")]
-    private static partial Regex AccountPattern();
+    internal static partial Regex AccountPattern();
 
     public static void MapAuthEndpoints(this RouteGroupBuilder api)
     {
@@ -55,7 +55,7 @@ public static partial class AuthEndpoints
             var cred = user is null ? null : await db.UserCredentials.FirstOrDefaultAsync(c => c.UserId == user.Id, ct);
             var locked = cred?.LockedUntil > now;
             // The hash is always derived, also for unknown accounts and locked ones, so response time reveals nothing.
-            var ok = PasswordHasher.Verify(password, locked ? null : cred?.PasswordHash) && user!.IsActive;
+            var ok = PasswordHasher.Verify(password, locked ? null : cred?.PasswordHash) && user!.IsActive && user.LoginEnabled;
             if (!ok)
             {
                 if (cred is not null && !locked)
@@ -161,6 +161,7 @@ public static partial class AuthEndpoints
         {
             RequireForms(o.Value);
             me.RequireAdministrator();
+            if (await db.Users.AnyAsync(u => u.Id == id && !u.LoginEnabled, ct)) throw new ValidationException("temporaryPassword", "This person has no sign-in access. Grant it before setting a password.");
             me.RequireRight("AdminUsers:Maintain");
             var user = await EnsurePasswordResetTargetAuthorityAsync(id, db, me, resolver, ct);
             var check = new Check();
@@ -277,7 +278,7 @@ public static partial class AuthEndpoints
         var account = ctx.Principal?.Identity?.Name;
         var stamp = ctx.Principal?.FindFirst(StampClaim)?.Value;
         var db = ctx.HttpContext.RequestServices.GetRequiredService<HubDbContext>();
-        var current = account is null ? null : await db.Users.AsNoTracking().Where(u => u.AccountName == account && u.IsActive)
+        var current = account is null ? null : await db.Users.AsNoTracking().Where(u => u.AccountName == account && u.IsActive && u.LoginEnabled)
             .Join(db.UserCredentials.AsNoTracking(), u => u.Id, c => c.UserId, (u, c) => (Guid?)c.SessionStamp).FirstOrDefaultAsync(ctx.HttpContext.RequestAborted);
         if (current is null || current.ToString() != stamp)
         {

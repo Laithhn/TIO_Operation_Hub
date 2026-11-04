@@ -22,7 +22,8 @@ function AdminOnly({ children }: { children: React.ReactNode }) {
 }
 
 type Scope = UserScope;
-type UserRow = { id: number; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; mappedGroupsAvailable: boolean; roleIds: number[]; roles: { id: number; name: string; isActive: boolean }[]; directoryRoles: { id: number; name: string; isActive: boolean; group: string }[]; allClients: boolean; allInternal: boolean; scopes: Scope[]; version: string };
+type UserRow = { id: number; classification?: string; loginEnabled?: boolean; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; mappedGroupsAvailable: boolean; roleIds: number[]; roles: { id: number; name: string; isActive: boolean }[]; directoryRoles: { id: number; name: string; isActive: boolean; group: string }[]; allClients: boolean; allInternal: boolean; scopes: Scope[]; version: string };
+export type UserDialogTargets = Targets;
 type Targets = { clients: { id: number; code: string; name: string; archived: boolean }[]; projects: { id: number; code: string; name: string; clientId: number }[]; teams: { id: number; code: string; name: string }[] };
 
 const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ catalog: RightDefinition[]; roles: RoleDef[] }>('/admin/roles') });
@@ -43,6 +44,7 @@ export function AdminUsers() {
   const [edit, setEdit] = useState<UserRow | 'new' | null>(null);
   const [deact, setDeact] = useState<UserRow | null>(null);
   const [remove, setRemove] = useState<UserRow | null>(null);
+  const [login, setLogin] = useState<UserRow | null>(null);
   return (
     <AdminOnly>
       <PageHead title="Users" sub="Create and edit accounts, assign roles and data scope. Rights come from roles; set them on the Rights page."
@@ -54,6 +56,7 @@ export function AdminUsers() {
           {u.directoryRoles.map(r => <span key={`${r.group}/${r.id}`} className="chip" title={`Inherited from the directory group ${r.group}`}>{r.name} · from directory</span>)}</> },
         { key: 'm', header: 'Mapped groups', render: (u: UserRow) => u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : <span title="An authenticated sign-in must refresh the directory group snapshot.">Unavailable — refresh required</span> },
         { key: 'st', header: 'Status', render: u => u.isActive ? <Badge tone="good">Active</Badge> : <Badge tone="bad">Deactivated</Badge> },
+        { key: 'cl', header: 'Sign-in', render: u => <>{u.classification === 'VitronicTeamMember' && <span className="chip">Vitronic team member</span>}{u.loginEnabled === false ? <Badge tone="warn">No sign-in</Badge> : <Badge tone="good">Allowed</Badge>}</> },
         ...(forms ? [{ key: 'pw', header: 'Password', render: (u: UserRow) => {
           const st = stateOf(u.id);
           return !st ? <Badge tone="warn">Not set</Badge> : st.state === 'Locked' ? <Badge tone="bad">Locked until {fmtDateTime(st.lockedUntil)}</Badge>
@@ -61,7 +64,8 @@ export function AdminUsers() {
         } }] : []),
         { key: 'l', header: 'Last sign-in', render: u => fmtDateTime(u.lastSignInAt) },
         { key: 'x', header: '', render: u => <span className="nowrap">
-          {canMaintain && forms && u.id !== me.id && u.isActive && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>Password options</button>}
+          {canMaintain && u.classification === 'VitronicTeamMember' && u.id !== me.id && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setLogin(u)}>{u.loginEnabled ? 'Remove sign-in' : 'Grant sign-in'}</button>}
+          {canMaintain && forms && u.id !== me.id && u.isActive && u.loginEnabled !== false && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>Password options</button>}
           <button disabled={!canMaintain} className="linkbtn" onClick={() => setDeact(u)}>{u.isActive ? 'Deactivate' : 'Reactivate'}</button>
           {canDelete && u.id !== me.id && <> · <button className="linkbtn danger-link" onClick={() => setRemove(u)}>Delete</button></>}
         </span> }
@@ -69,6 +73,10 @@ export function AdminUsers() {
       {edit && targets.data && <UserDialog user={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)}
         onCreated={forms ? (u => setPw({ ...u, first: true })) : undefined} />}
       {pw && <PasswordDialog user={pw} onClose={() => setPw(null)} />}
+      {login && <ActionDialog title={`${login.loginEnabled ? 'Remove sign-in of' : 'Grant sign-in to'} ${login.displayName}`} danger={login.loginEnabled} path={`/admin/users/${login.id}/login-access`} version={login.version} submitLabel={login.loginEnabled ? 'Remove sign-in' : 'Grant sign-in'} onClose={() => setLogin(null)}
+        intro={login.loginEnabled ? 'Their sessions end at once. They stay a Vitronic team member, and SLA records do not change.' : 'They stay a Vitronic team member, and SLA records do not change. Rights still come from their roles.'}
+        fields={[...(login.loginEnabled ? [] : [{ name: 'accountName', label: 'Sign-in account', hint: 'The organization account or sign-in name they will use. Leave empty to keep the current one.' }]), { name: 'reason', label: 'Reason', kind: 'textarea' as const, required: true }]}
+        transform={v => ({ enabled: !login.loginEnabled, reason: v.reason, accountName: v.accountName || null })} />}
       {remove && <DeleteUserDialog user={remove} onClose={() => setRemove(null)} />}
       {deact && <ActionDialog title={deact.isActive ? `Deactivate ${deact.displayName}` : `Reactivate ${deact.displayName}`} danger={deact.isActive} path={`/admin/users/${deact.id}/${deact.isActive ? 'deactivate' : 'reactivate'}`} version={deact.version}
         intro={deact.isActive ? 'History and identity are kept. Their active records appear in the reassignment queue; nothing is reassigned automatically. Active sessions lose access immediately.' : undefined}
@@ -130,7 +138,7 @@ function PasswordDialog({ user, onClose }: { user: { id: number; name: string; a
   );
 }
 
-function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | null; targets: Targets; onClose: () => void; onCreated?: (u: { id: number; name: string; account: string }) => void }) {
+export function UserDialog({ user, targets, onClose, onCreated, initialName, createPath = '/admin/users' }: { user: UserRow | null; targets: Targets; onClose: () => void; onCreated?: (u: { id: number; name: string; account: string }) => void; initialName?: string; createPath?: string }) {
   const me = useMe().data!;
   const forms = me.app.authMode.toLowerCase() === 'forms';
   // A44: a new user starts in the configured default time zone, or this computer's when the default is still the shipped UTC.
@@ -138,7 +146,7 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
   const configured = settings.data?.find(s => s.key === 'DefaultTimeZone')?.value;
   const defaultZone = configured && configured !== 'UTC' ? configured : computerZone();
   const f = useForm({
-    accountName: user?.accountName ?? '', displayName: user?.displayName ?? '', email: user?.email ?? '', workingTimeZone: user?.workingTimeZone ?? defaultZone,
+    accountName: user?.accountName ?? '', displayName: user?.displayName ?? initialName ?? '', email: user?.email ?? '', workingTimeZone: user?.workingTimeZone ?? defaultZone,
     roleIds: user?.roleIds?.map(String) ?? []
   });
   const [scope, setScope] = useState<UserScopeSelection>(() => ({ allClients: user?.allClients ?? false, allInternal: user?.allInternal ?? false, scopes: user?.scopes ?? [] }));
@@ -154,7 +162,7 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
   const save = async () => {
     const v = f.values;
     const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleIds: v.roleIds.map(Number), ...scope };
-    const res = await f.submit(() => (user ? put(`/admin/users/${user.id}`, body, user.version).then(() => ({ id: user.id })) : post<{ id: number }>('/admin/users', body)));
+    const res = await f.submit(() => (user ? put(`/admin/users/${user.id}`, body, user.version).then(() => ({ id: user.id })) : post<{ id: number }>(createPath, body)));
     if (res) {
       toast('User saved; changes apply to active sessions at once.'); refresh(); onClose();
       if (!user && onCreated && res.id) onCreated({ id: res.id, name: v.displayName, account: v.accountName });

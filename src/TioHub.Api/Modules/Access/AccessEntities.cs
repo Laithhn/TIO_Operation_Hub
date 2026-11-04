@@ -10,6 +10,9 @@ public class User : Entity
     public string? Email { get; set; }
     public string WorkingTimeZone { get; set; } = "UTC";
     public bool IsActive { get; set; } = true;
+    public UserClassification Classification { get; set; }
+    /// <summary>A83: whether this person may sign in. Independent of the classification; a Vitronic team member starts without.</summary>
+    public bool LoginEnabled { get; set; } = true;
     public DateTimeOffset? DeactivatedAt { get; set; }
     public string? DeactivationReason { get; set; }
     public DateTimeOffset? LastSignInAt { get; set; }

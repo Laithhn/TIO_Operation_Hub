@@ -133,23 +133,61 @@ test('administrators add and remove a case status, and it is offered for Jira ma
   await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
 });
 
-test('every status can be chosen for a Jira status, and a Jira user maps to a user, contact or Vitronic member', async ({ page }) => {
+test('every status can be chosen for a Jira status, and an unmapped Jira user is resolved as a contact', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.route('**/api/v1/admin/jira-connections', r => r.fulfill({ json: { syncEnabled: true, connections: [{ id: 1, name: 'Demo Jira Cloud' }] } }));
   await page.route('**/api/v1/admin/jira-connections/1/statuses', r => r.fulfill({ json: { targets: [{ code: 'New', label: 'New' }, { code: 'Closed', label: 'Closed' }, { code: 'WaitingForCustomer', label: 'Waiting for customer' }],
     rows: [{ id: 1, jiraProjectId: '100', projectKey: 'TAH', jiraStatusId: '9', jiraStatusName: 'Done', jiraStatusCategory: 'done' }] } }));
-  await page.route('**/api/v1/admin/jira-connections/1/users', r => r.fulfill({ json: [{ id: 1, jiraAccountId: 'acc-1', jiraDisplayName: 'Fictional Colleague', isInternalMember: true, lastSeenAt: new Date().toISOString() }] }));
+  await page.route('**/api/v1/admin/jira-connections/1/users', r => r.fulfill({ json: [
+    { id: 1, jiraAccountId: 'acc-1', jiraDisplayName: 'Fictional Colleague', classification: 'Unmapped', loginEnabled: false, matchingUsers: [], matchingContacts: [5], lastSeenAt: new Date().toISOString() },
+    { id: 2, jiraAccountId: 'acc-2', jiraDisplayName: 'Fictional Member', tioUserId: 9, tioUser: 'Fictional Member', classification: 'VitronicTeamMember', loginEnabled: false, matchingUsers: [], matchingContacts: [], lastSeenAt: new Date().toISOString() }] }));
   await page.route('**/api/v1/admin/jira-connections/1/client-contacts', r => r.fulfill({ json: [{ id: 5, name: 'Fictional Representative', role: 'Manager', clientCode: 'DEMO-NTA' }] }));
   let saved: unknown;
   await page.route('**/api/v1/admin/jira-user-mappings/1', r => { saved = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
   await page.goto('/admin/integrations/jira/conflicts?tab=workflow');
   await expect(page.getByLabel('Case status for Done').locator('option[value="Closed"]')).toHaveText('Closed');
   await shot(page, 'workflow-mappings');
-  await page.getByRole('tab', { name: 'User mappings' }).click();
-  await expect(page.getByRole('checkbox', { name: 'Fictional Colleague is a Vitronic team member' })).toBeChecked();
+  await page.getByRole('tab', { name: 'Jira users' }).click();
+  await expect(page.getByRole('table', { name: 'Mapped Jira users', exact: true })).toContainText('Vitronic team member');
+  await expect(page.getByRole('table', { name: 'Unmapped Jira users' })).toContainText('A client contact has this name');
   await shot(page, 'user-mappings');
-  await page.getByLabel('Client contact for Fictional Colleague').selectOption('5');
-  await expect.poll(() => saved).toEqual({ tioUserId: null, clientContactId: 5, isInternalMember: false });
+  await page.getByLabel('Resolve Fictional Colleague').selectOption('contact');
+  await page.getByRole('dialog').getByLabel('I confirm this action.').check();
+  await page.getByRole('dialog').getByRole('button', { name: 'Map', exact: true }).click();
+  await expect.poll(() => saved).toEqual({ tioUserId: null, clientContactId: 5 });
+});
+
+test('a Jira space is linked to a contract when assigned and later', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 1100 });
+  await page.goto('/');
+  const id = await clientId(page);
+  await page.route(`**/api/v1/clients/${id}/jira`, r => r.fulfill({ json: {
+    syncEnabled: true, canManage: true, summary: { enabled: false, assignedSpaces: 1, syncIntervalMinutes: 15, errors: 0, warnings: 0 }, connections: [{ id: 1, name: 'Demo Jira Cloud' }],
+    contracts: [{ id: 7, ref: 'CT-1007', title: 'Fictional support agreement' }],
+    settings: { isEnabled: false, jiraConnectionId: 1, defaultPriority: 'Normal', nextReviewHours: 48, importDoneIssues: false, syncOnStartup: false, fullReconciliation: true, fullReconciliationDays: 7, syncIntervalMinutes: 15, version: 'AAAA' },
+    spaces: [{ id: 1, isEnabled: true, projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', health: 'NotRun', cases: 0 }],
+    checks: [], issues: [], runs: [] } }));
+  await page.route(`**/api/v1/clients/${id}/jira/available-spaces**`, r => r.fulfill({ json: [{ id: 1, jiraProjectId: '600', projectKey: 'CRM', projectName: 'Customer Portal', availability: 'Available' }] }));
+  let linked: unknown;
+  await page.route(`**/api/v1/clients/${id}/jira/spaces/1/contract`, r => { linked = r.request().postDataJSON(); return r.fulfill({ json: { applied: 2 } }); });
+  let assigned: unknown;
+  await page.route(`**/api/v1/clients/${id}/jira/spaces`, r => { assigned = r.request().postDataJSON(); return r.fulfill({ json: { added: 1 } }); });
+  await page.goto(`/clients/${id}?tab=jira`);
+
+  await page.getByRole('button', { name: 'Change the contract of TAH' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('Contract', { exact: true }).selectOption('7');
+  await dialog.getByLabel('Also link open cases from this space that have no contract').check();
+  await dialog.getByLabel('Reason').fill('Covers the whole space');
+  await dialog.getByLabel('I confirm this action.').check();
+  await dialog.getByRole('button', { name: 'Save' }).click();
+  await expect.poll(() => linked).toEqual({ contractId: 7, applyToOpenCases: true, reason: 'Covers the whole space' });
+
+  await page.getByRole('button', { name: '+ Add Jira space' }).click();
+  await page.getByLabel('Select CRM').check();
+  await page.getByLabel('Contract for cases from these spaces').selectOption('7');
+  await page.getByRole('button', { name: 'Assign selected' }).click();
+  await expect.poll(() => assigned).toEqual({ jiraConnectionId: 1, jiraProjectIds: ['600'], contractId: 7 });
 });
 
 test('a Jira-synced case shows its status read-only and only actions that do not change it', async ({ page }) => {

@@ -97,6 +97,8 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
         var u = await resolver.ForUserAsync(userId.Value, ct, directWhenGroupsUnknown: true);
         if (u is null) { check.Add(field, $"Select an existing person as {label}."); return; }
         if (!u.IsActive) { check.Add(field, $"{u.DisplayName} is deactivated and cannot be {label}."); return; }
+        // A83: a Vitronic team member works through Jira and holds no hub access to check.
+        if (await db.Users.AsNoTracking().AnyAsync(x => x.Id == userId && x.Classification == UserClassification.VitronicTeamMember, ct)) return;
         var business = u.HasAccess;
         var inScope = business && (clientId is { } c
             ? u.AllClients || u.ClientIds.Contains(c) || (environmentId is { } e && u.ProjectEnvironmentIds.Contains(e))

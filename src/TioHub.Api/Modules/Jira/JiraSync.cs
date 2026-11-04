@@ -304,7 +304,7 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
                         }
                         if (c.Decision is JiraIssueDecision.Create or JiraIssueDecision.Existing)
                         {
-                            if (issue.AssigneeId is { } a && !await db.JiraUserMappings.AnyAsync(u => u.JiraConnectionId == conn.Id && u.JiraAccountId == a && (u.TioUserId != null || u.ClientContactId != null || u.IsInternalMember), ct)) users.Add($"{conn.Id}:{a}");
+                            if (issue.AssigneeId is { } a && !await db.JiraUserMappings.AnyAsync(u => u.JiraConnectionId == conn.Id && u.JiraAccountId == a && (u.TioUserId != null || u.ClientContactId != null), ct)) users.Add($"{conn.Id}:{a}");
                             if (issue.StatusId is { } st && !await db.JiraWorkflowStatusMappings.AnyAsync(s => s.JiraConnectionId == conn.Id && s.JiraStatusId == st && (s.JiraProjectId == space.JiraProjectId || s.JiraProjectId == "") && s.TargetStatusCode != null, ct)) statuses.Add($"{conn.Id}:{space.JiraProjectId}:{st}");
                         }
                         if (samples.Count < 200) samples.Add(new JiraPreviewRow(issue.Key, JiraCaseBridge.Trim(CredentialGuard.LooksLikeSecret(issue.Summary) ? "(withheld)" : issue.Summary, 200), space.ProjectKey, issue.StatusName, issue.AssigneeName, c.Decision.ToString(), c.CaseId ?? c.Candidates?.FirstOrDefault(), c.Problem));

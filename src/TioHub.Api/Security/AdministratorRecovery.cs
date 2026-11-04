@@ -18,7 +18,7 @@ public static class AdministratorRecovery
         long changedUserId = 0, bool targetActive = true, IReadOnlyCollection<long>? targetRoleIds = null,
         Modules.Access.AppRole? proposedRole = null, IReadOnlyCollection<Mapping>? proposedMappings = null)
     {
-        var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ToListAsync(ct);
+        var users = await db.Users.AsNoTracking().Where(u => u.IsActive && u.LoginEnabled).Include(u => u.Roles).ToListAsync(ct);
         if (resolver.IsForms)
         {
             var forms = users.Where(u => u.Id != changedUserId).Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())).ToList();

@@ -49,6 +49,9 @@ public enum CaseStatus { New, Triaged, InProgress, PendingValidation, Closed, Ca
 /// <summary>A77: what a configured case status does. See Modules/Work/CaseStatuses.cs.</summary>
 public enum CaseStatusBehavior { Initial, Opened, Active, WaitingForCustomer, Resolved, Closed, Reopened }
 
+/// <summary>A83: what kind of person a user is, for SLA and business rules. Sign-in is separate: see User.LoginEnabled.</summary>
+public enum UserClassification { Standard, VitronicTeamMember }
+
 public enum WaitingReason { Customer, InternalTeam, Vendor, PlannedChange }
 
 public enum JiraInstanceKind { CustomerCloud, InternalOnPrem }

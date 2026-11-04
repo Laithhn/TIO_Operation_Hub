@@ -12,9 +12,11 @@ namespace TioHub.Api.Modules.Jira;
 /// <summary>A76: Clients → Jira integration. Reading needs the tab and the client's scope; changing also needs Client structure Coordinate for this client.</summary>
 public static class JiraClientEndpoints
 {
+    private sealed record ContractOption(long Id, string Ref, string Title);
     public sealed record SettingsInput(bool IsEnabled, long? JiraConnectionId, long? DefaultResponsibleTeamId, string? DefaultCaseType, Priority? DefaultPriority, int? NextReviewHours,
         bool ImportDoneIssues, DateOnly? ImportFrom, bool SyncOnStartup, bool FullReconciliation, int? FullReconciliationDays, int? SyncIntervalMinutes);
-    public sealed record AddSpacesInput(long? JiraConnectionId, string[]? JiraProjectIds);
+    public sealed record AddSpacesInput(long? JiraConnectionId, string[]? JiraProjectIds, long? ContractId = null);
+    public sealed record SpaceContractInput(long? ContractId, bool ApplyToOpenCases = false, string? Reason = null);
     public sealed record SpaceEnabledInput(bool Enabled);
     public sealed record ReleaseInput(string? Reason);
 
@@ -22,6 +24,13 @@ public static class JiraClientEndpoints
     {
         if (!me.HasClient(id) || !await db.Clients.AnyAsync(c => c.Id == id, ct)) throw new NotFoundException("The client");
         return id;
+    }
+
+    /// <summary>A84: a space's cases can only follow an active contract of the client that owns the space.</summary>
+    private static async Task CheckSpaceContractAsync(HubDbContext db, long clientId, long? contractId, CancellationToken ct)
+    {
+        if (contractId is { } id && !await db.Contracts.AnyAsync(k => k.Id == id && k.ClientId == clientId && k.Status == ContractStatus.Active, ct))
+            throw new ValidationException("contractId", "Select an active contract of this client.");
     }
 
     private static void RequireChange(HubAccess access, long id) => access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(id, null));
@@ -40,6 +49,10 @@ public static class JiraClientEndpoints
             var cases = await db.JiraCaseMappings.AsNoTracking().Where(m => ids.Contains(m.ClientJiraSpaceId) && m.CaseId != null).GroupBy(m => m.ClientJiraSpaceId).Select(x => new { x.Key, n = x.Count() }).ToDictionaryAsync(x => x.Key, x => x.n, ct);
             var openIssues = await db.JiraIntegrationIssues.AsNoTracking().Where(i => i.ClientId == id && i.Status == JiraIssueStatus.Open).OrderByDescending(i => i.LastSeenAt).Take(100).ToListAsync(ct);
             var runs = await db.JiraSyncRuns.AsNoTracking().Where(r => r.ClientId == id).OrderByDescending(r => r.StartedAt).ThenByDescending(r => r.Id).Take(10).ToListAsync(ct);
+            var contractIds = spaces.Where(x => x.ContractId is not null).Select(x => x.ContractId!.Value).ToList();
+            var spaceContracts = await db.Contracts.IgnoreQueryFilters().AsNoTracking().Where(k => contractIds.Contains(k.Id)).Select(k => new { k.Id, k.Ref, k.Title, k.Status }).ToDictionaryAsync(k => k.Id, ct);
+            var canManage = me.HasRight(RightKeys.Structure, RightKeys.Coordinate);
+            var activeContracts = !canManage ? [] : await db.Contracts.AsNoTracking().Where(k => k.ClientId == id && k.Status == ContractStatus.Active).OrderBy(k => k.Ref).Select(k => new ContractOption(k.Id, k.Ref, k.Title)).ToListAsync(ct);
             var selected = s?.JiraConnectionId;
             var connections = await db.JiraConnections.AsNoTracking().Where(c => c.IsEnabled || c.Id == selected).OrderBy(c => c.Name).Select(c => new { c.Id, c.Name }).ToListAsync(ct);
             var connection = s?.JiraConnectionId is { } cid ? await db.JiraConnections.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cid, ct) : null;
@@ -61,11 +74,12 @@ public static class JiraClientEndpoints
             return Results.Ok(new
             {
                 syncEnabled = options.Value.Enabled && options.Value.WorkerSeconds > 0,
-                canManage = me.HasRight(RightKeys.Structure, RightKeys.Coordinate),
+                canManage,
+                contracts = activeContracts,
                 settings = s is null ? null : new { s.IsEnabled, s.JiraConnectionId, s.DefaultResponsibleTeamId, s.DefaultCaseType, s.DefaultPriority, s.NextReviewHours, s.ImportDoneIssues, s.ImportFrom, s.SyncOnStartup, s.FullReconciliation, s.FullReconciliationDays, s.SyncIntervalMinutes, s.LastPreviewAt, version = Convert.ToBase64String(s.RowVersion) },
                 summary = new { enabled = s?.IsEnabled == true, assignedSpaces = spaces.Count, lastSuccess = states.Values.Max(x => x.LastSuccessAt), syncIntervalMinutes = s?.SyncIntervalMinutes ?? 15, errors, warnings },
                 connections,
-                spaces = spaces.Select(x => { var st = states.GetValueOrDefault(x.Id); return new { x.Id, x.IsEnabled, x.ProjectKey, x.ProjectName, x.JiraProjectId, x.JiraConnectionId, connection = x.JiraConnection?.Name, siteUrl = x.JiraConnection?.SiteUrl, lastSync = st?.LastSuccessAt, lastRunAt = st?.LastRunAt, health = !x.IsEnabled ? "Disabled" : st?.LastStatus?.ToString() ?? "NotRun", lastError = st?.LastError, cases = cases.GetValueOrDefault(x.Id) }; }),
+                spaces = spaces.Select(x => { var st = states.GetValueOrDefault(x.Id); var contract = x.ContractId is { } linked ? spaceContracts.GetValueOrDefault(linked) : null; return new { x.Id, x.IsEnabled, x.ContractId, contractRef = contract?.Ref, contractTitle = contract?.Title, contractStatus = contract?.Status, x.ProjectKey, x.ProjectName, x.JiraProjectId, x.JiraConnectionId, connection = x.JiraConnection?.Name, siteUrl = x.JiraConnection?.SiteUrl, lastSync = st?.LastSuccessAt, lastRunAt = st?.LastRunAt, health = !x.IsEnabled ? "Disabled" : st?.LastStatus?.ToString() ?? "NotRun", lastError = st?.LastError, cases = cases.GetValueOrDefault(x.Id) }; }),
                 checks,
                 issues = openIssues.Take(10).Select(i => new { i.Id, i.Type, i.IssueKey, i.ProjectKey, i.Description, i.SuggestedAction, i.LastSeenAt }),
                 runs
@@ -114,6 +128,7 @@ public static class JiraClientEndpoints
             await RequireClientAsync(db, access.Me, id, ct);
             RequireChange(access, id);
             if (i.JiraConnectionId is not { } connectionId || !await db.JiraConnections.AnyAsync(c => c.Id == connectionId, ct)) throw new ValidationException("jiraConnectionId", "Select a Jira connection.");
+            await CheckSpaceContractAsync(db, id, i.ContractId, ct);
             var projects = (i.JiraProjectIds ?? []).Distinct().ToList();
             if (projects.Count == 0) throw new ValidationException("jiraProjectIds", "Select at least one Jira space.");
             var discovered = await db.JiraDiscoveredSpaces.AsNoTracking().Where(s => s.JiraConnectionId == connectionId && projects.Contains(s.JiraProjectId)).ToListAsync(ct);
@@ -122,7 +137,7 @@ public static class JiraClientEndpoints
             var taken = await db.ClientJiraSpaces.IgnoreQueryFilters().AsNoTracking().Where(s => s.JiraConnectionId == connectionId && projects.Contains(s.JiraProjectId) && s.ReleasedAt == null).Select(s => new { s.ProjectKey, s.ClientId }).ToListAsync(ct);
             foreach (var t in taken) check.Add("jiraProjectIds", t.ClientId == id ? $"{t.ProjectKey} is already assigned to this client." : $"{t.ProjectKey} is already assigned to another client. Reassignment needs an administrator's decision under Jira connections.");
             check.ThrowIfAny();
-            foreach (var d in discovered) db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = id, JiraConnectionId = connectionId, JiraProjectId = d.JiraProjectId, ProjectKey = d.ProjectKey, ProjectName = d.ProjectName });
+            foreach (var d in discovered) db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = id, JiraConnectionId = connectionId, JiraProjectId = d.JiraProjectId, ProjectKey = d.ProjectKey, ProjectName = d.ProjectName, ContractId = i.ContractId });
             try { await db.SaveChangesAsync(ct); }
             catch (DbUpdateException ex) when (SqlErrors.IsUniqueViolation(ex)) { throw new ConflictException("Another administrator assigned one of these spaces at the same time. Reload and try again."); }
             return Results.Ok(new { added = discovered.Count });
@@ -136,6 +151,36 @@ public static class JiraClientEndpoints
             s.IsEnabled = i.Enabled;
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
+        });
+
+        // A84: new cases follow the space's contract. Cases already linked keep theirs, and open cases with none join only when asked, because old ones can breach at once.
+        g.MapPut("/spaces/{spaceId:long}/contract", async (long id, long spaceId, SpaceContractInput i, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            await RequireClientAsync(db, access.Me, id, ct);
+            RequireChange(access, id);
+            var s = await db.ClientJiraSpaces.FirstOrDefaultAsync(x => x.Id == spaceId && x.ClientId == id && x.ReleasedAt == null, ct) ?? throw new NotFoundException("The Jira space");
+            await CheckSpaceContractAsync(db, id, i.ContractId, ct);
+            if (i.ApplyToOpenCases && i.ContractId is null) throw new ValidationException("applyToOpenCases", "Select the contract to link to the open cases.");
+            if (i.ApplyToOpenCases && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) throw new ForbiddenException("Linking a contract to existing cases needs the right to coordinate cases.");
+            var reason = s.ContractId is null && !i.ApplyToOpenCases ? Text.Clean(i.Reason) : Rules.RequireReason(i.Reason, "reason", "why the contract changes");
+            s.ContractId = i.ContractId;
+            var applied = 0;
+            if (i.ApplyToOpenCases)
+            {
+                var now = clock.GetUtcNow();
+                var contractRef = await db.Contracts.AsNoTracking().Where(k => k.Id == i.ContractId).Select(k => k.Ref).FirstAsync(ct);
+                var ids = db.JiraCaseMappings.Where(m => m.ClientJiraSpaceId == spaceId && m.CaseId != null).Select(m => m.CaseId!.Value);
+                var cases = await db.Cases.Where(c => ids.Contains(c.Id) && c.ContractId == null && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled).ToListAsync(ct);
+                foreach (var c in cases)
+                {
+                    c.ContractId = i.ContractId;
+                    CaseEndpoints.AddEvent(db, c, CaseEventType.ContractChanged, "No contract", contractRef, reason, access.Me, now);
+                    applied++;
+                }
+            }
+            db.AuditReason = reason;
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new { applied });
         });
 
         g.MapPost("/spaces/{spaceId:long}/release", async (long id, long spaceId, ReleaseInput i, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>

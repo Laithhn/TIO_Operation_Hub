@@ -174,6 +174,11 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
         var isBootstrap = _opt.BootstrapAdministrators.Any(a => string.Equals(a.Trim(), account, StringComparison.OrdinalIgnoreCase));
 
         var user = await db.Users.Include(u => u.Roles).Include(u => u.Scopes).FirstOrDefaultAsync(u => u.AccountName == account, ct);
+        if (user is { LoginEnabled: false })
+        {
+            log.LogWarning("Sign-in refused: account {UserId} has no sign-in access", user.Id);
+            return null;
+        }
         var now = clock.GetUtcNow();
         if (user is null)
         {

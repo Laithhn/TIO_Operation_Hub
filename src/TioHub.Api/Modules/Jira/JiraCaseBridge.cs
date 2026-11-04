@@ -163,7 +163,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
                 {
                     outcome.Comments = await ImportCommentsAsync(x.Connection, issue.Id, c.Id, comments, now, ct);
                     await db.SaveChangesAsync(ct);
-                    await ApplyFirstResponseAsync(x.Connection.Id, c, m.IssueKey, now, ct);
+                    await RecordNewReplyAsync(x.Connection.Id, c, m.IssueKey, now, ct);
                 }
                 else if (commentError is not null)
                 {
@@ -205,14 +205,14 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             db.ChangeTracker.Clear();
             if (any) changed++;
         }
-        return changed + await ReapplyFirstResponsesAsync(conn, space, ct);
+        return changed;
     }
 
-    /// <summary>A82: follows user mappings, deleted comments and first responses taken from any comment by 2.47.0. Needs no Jira request.</summary>
-    private async Task<int> ReapplyFirstResponsesAsync(JiraConnection conn, ClientJiraSpace space, CancellationToken ct)
+    /// <summary>A83: an administrator's decision to apply today's mappings to the stored comments. Corrects mappings made later, deleted comments and first responses taken from any comment by 2.47.0.</summary>
+    public async Task<int> RecalculateFirstResponsesAsync(long connectionId, string reason, CancellationToken ct)
     {
-        var replies = TeamReplies(conn.Id);
-        var rows = await db.JiraCaseMappings.AsNoTracking().Where(m => m.ClientJiraSpaceId == space.Id && m.CaseId != null)
+        var replies = TeamReplies(connectionId);
+        var rows = await db.JiraCaseMappings.AsNoTracking().IgnoreQueryFilters().Where(m => m.JiraConnectionId == connectionId && m.CaseId != null)
             .Select(m => new { CaseId = m.CaseId!.Value, m.IssueKey,
                 Recorded = db.Cases.IgnoreQueryFilters().Where(c => c.Id == m.CaseId).Select(c => c.FirstResponseAt).FirstOrDefault(),
                 Reply = replies.Where(k => k.CaseId == m.CaseId).Min(k => (DateTimeOffset?)k.JiraCreatedAt) })
@@ -222,7 +222,8 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         {
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             var c = await LoadCaseAsync(row.CaseId, ct);
-            var any = await ApplyFirstResponseAsync(conn.Id, c, row.IssueKey, clock.GetUtcNow(), ct);
+            db.AuditReason = reason;
+            var any = await ApplyFirstResponseAsync(connectionId, c, row.IssueKey, clock.GetUtcNow(), ct);
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             db.ChangeTracker.Clear();
@@ -231,9 +232,17 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         return changed;
     }
 
-    /// <summary>A82: the first response is a reply the customer could see, written by someone mapped as a hub user or a Vitronic team member.</summary>
+    /// <summary>A83: synchronization only records a first response that is still open, from comments arriving now. A mapping changed later does not touch earlier comments (BR-04).</summary>
+    private async Task RecordNewReplyAsync(long connectionId, Case c, string issueKey, DateTimeOffset now, CancellationToken ct)
+    {
+        if (c.FirstResponseAt is not null) return;
+        var reply = await TeamReplies(connectionId).Where(k => k.CaseId == c.Id && k.ImportedAt == now).MinAsync(k => (DateTimeOffset?)k.JiraCreatedAt, ct);
+        if (reply is { } at) CaseEndpoints.RecordFirstResponse(db, c, at, $"{FirstReplyNote}{issueKey}", db.CurrentUser, now);
+    }
+
+    /// <summary>A82: the first response is a reply the customer could see, written by someone mapped to a hub user or a Vitronic team member.</summary>
     private IQueryable<JiraComment> TeamReplies(long connectionId) => db.JiraComments.AsNoTracking().Where(k => k.JiraConnectionId == connectionId && k.DeletedInJiraAt == null && k.VisibilityValue == null
-        && db.JiraUserMappings.Any(u => u.JiraConnectionId == connectionId && u.JiraAccountId == k.AuthorAccountId && (u.TioUserId != null || u.IsInternalMember)));
+        && db.JiraUserMappings.Any(u => u.JiraConnectionId == connectionId && u.JiraAccountId == k.AuthorAccountId && u.TioUserId != null));
 
     /// <summary>Follows the earliest team reply among the stored comments. A first response a person recorded before the case was linked to Jira stays.</summary>
     private async Task<bool> ApplyFirstResponseAsync(long connectionId, Case c, string issueKey, DateTimeOffset now, CancellationToken ct)
@@ -259,7 +268,19 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         var reference = await db.JiraReferences.FirstOrDefaultAsync(j => j.CaseId == c.Id && j.JiraInstanceId == conn.JiraInstanceId && j.IssueKey == issueKey && j.RemovedAt == null, ct);
         if (reference is not null) reference.Origin = JiraReferenceOrigin.AdoptedSource;
         CaseEndpoints.AddEvent(db, c, CaseEventType.JiraAdded, null, $"Synchronized source {issueKey}", "Case adopted as the source of the Jira issue", db.CurrentUser, now);
+        // A84: a contract a person already linked stays.
+        if (c.ContractId is null && await SpaceContractAsync(space, ct) is { } contract)
+        {
+            c.ContractId = contract.Id;
+            CaseEndpoints.AddEvent(db, c, CaseEventType.ContractChanged, "No contract", contract.Ref, $"Contract of Jira space {space.ProjectKey}", db.CurrentUser, now);
+        }
     }
+
+    /// <summary>A84: the space's contract, while it is active and still belongs to the space's client.</summary>
+    private async Task<SpaceContract?> SpaceContractAsync(ClientJiraSpace space, CancellationToken ct) => space.ContractId is not { } id ? null
+        : await db.Contracts.AsNoTracking().Where(k => k.Id == id && k.ClientId == space.ClientId && k.Status == ContractStatus.Active).Select(k => new SpaceContract(k.Id, k.Ref)).FirstOrDefaultAsync(ct);
+
+    private sealed record SpaceContract(long Id, string Ref);
 
     private Task<Case> LoadCaseAsync(long id, CancellationToken ct) =>
         db.Cases.IgnoreQueryFilters().Include(c => c.Owner).Include(c => c.WaitingIntervals).FirstAsync(c => c.Id == id, ct);
@@ -271,8 +292,10 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
     {
         var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the case type", null, ct);
         var title = CredentialGuard.LooksLikeSecret(issue.Summary) ? $"Jira issue {issue.Key}" : issue.Summary.Trim();
+        var contract = await SpaceContractAsync(x.Space, ct);
         var c = new Case
         {
+            ContractId = contract?.Id, SlaClockStartAt = issue.CreatedAt,
             Title = title.Length > 200 ? title[..200] : title, Type = typeCode, TypeCategory = typeCategory, Scope = WorkScope.Client, ClientId = x.Space.ClientId,
             ResponsibleTeamId = x.Settings.DefaultResponsibleTeamId, ImpactSummary = $"Not yet assessed. Imported from Jira {issue.Key}.", Priority = x.Settings.DefaultPriority,
             NextAction = "Review the case imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, StatusCode = await CaseStatuses.DefaultCodeAsync(db, CaseStatusBehavior.Initial, CaseStatus.New, ct), CycleStartedAt = now, LastReviewedAt = now
@@ -280,6 +303,16 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         db.Cases.Add(c);
         await db.SaveChangesAsync(ct);
         CaseEndpoints.AddEvent(db, c, CaseEventType.Created, null, CaseStatus.New.ToString(), $"Imported from Jira {issue.Key}", db.CurrentUser, now);
+        if (contract is not null)
+        {
+            CaseEndpoints.AddEvent(db, c, CaseEventType.ContractChanged, "No contract", contract.Ref, $"Contract of Jira space {x.Space.ProjectKey}", db.CurrentUser, now);
+            await ResolveAutomaticAsync($"contract:{x.Space.Id}", now, ct);
+        }
+        else if (x.Space.ContractId is not null)
+        {
+            Raise(JiraIssueType.MissingCaseInformation, x, issue, $"contract:{x.Space.Id}", now, $"The contract of Jira space {x.Space.ProjectKey} is not active, so {issue.Key} and later issues become cases with no contract.",
+                "Link an active contract to the space, then link it to these cases.", c.Id, null);
+        }
         db.JiraCaseMappings.Add(new JiraCaseMapping { JiraConnectionId = x.Connection.Id, JiraIssueId = issue.Id, IssueKey = issue.Key, JiraProjectId = issue.ProjectId, ClientId = x.Space.ClientId,
             ClientJiraSpaceId = x.Space.Id, CaseId = c.Id, Source = JiraMappingSource.Created, Url = IssueUrl(x.Connection, issue.Key), LastSyncedAt = now });
         await db.SaveChangesAsync(ct);
@@ -356,25 +389,6 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             return true;
         }
         var ended = await EndClientRepresentationAsync(c, m, now, ct);
-        if (map.IsInternalMember)
-        {
-            await ResolveAutomaticAsync(fingerprint, now, ct);
-            m.AppliedAssigneeAccountId = m.AssigneeAccountId;
-            var name = m.AssigneeName ?? map.JiraDisplayName ?? m.AssigneeAccountId;
-            var named = c.InternalAssignee != name;
-            c.InternalAssignee = name;
-            // The previous owner only came from Jira, and Jira has moved on. An owner a person chose stays.
-            if (m.OwnerFromJira && c.OwnerUserId is { } previous && CaseQuery.IsOpen(c.Status))
-            {
-                var people = await access.UserRefsAsync([previous], ct);
-                CaseEndpoints.AddEvent(db, c, CaseEventType.OwnerChanged, people.GetValueOrDefault(previous)?.Name, "Unassigned", $"From Jira {m.IssueKey}: assigned to {name}", db.CurrentUser, now);
-                c.OwnerUserId = null;
-                c.Owner = null;
-                m.OwnerFromJira = false;
-                named = true;
-            }
-            return named || ended;
-        }
         c.InternalAssignee = null;
         if (map.TioUserId is null)
         {
@@ -511,7 +525,12 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         var local = db.ChangeTracker.Entries<JiraUserMapping>().Select(e => e.Entity).FirstOrDefault(u => u.JiraConnectionId == connectionId && u.JiraAccountId == accountId);
         var row = local ?? await db.JiraUserMappings.FirstOrDefaultAsync(u => u.JiraConnectionId == connectionId && u.JiraAccountId == accountId, ct);
         if (row is null) db.JiraUserMappings.Add(row = new JiraUserMapping { JiraConnectionId = connectionId, JiraAccountId = accountId, JiraDisplayName = name, LastSeenAt = now });
-        else { row.LastSeenAt = now; if (name is not null) row.JiraDisplayName = name; }
+        else
+        {
+            // Mapping changes are audited, so the time is kept coarse enough not to bury them.
+            if (now - row.LastSeenAt >= TimeSpan.FromDays(1)) row.LastSeenAt = now;
+            if (name is not null) row.JiraDisplayName = name;
+        }
         return row;
     }
 

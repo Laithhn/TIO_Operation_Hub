@@ -341,6 +341,11 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<bool>("AllInternal")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Classification")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -368,6 +373,9 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<DateTimeOffset?>("LastSignInAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("LoginEnabled")
+                        .HasColumnType("bit");
 
                     b.Property<string>("MappedGroups")
                         .HasMaxLength(400)
@@ -3888,6 +3896,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long>("ClientId")
                         .HasColumnType("bigint");
 
+                    b.Property<long?>("ContractId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -4670,9 +4681,6 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<long?>("CreatedById")
                         .HasColumnType("bigint");
-
-                    b.Property<bool>("IsInternalMember")
-                        .HasColumnType("bit");
 
                     b.Property<string>("JiraAccountId")
                         .IsRequired()

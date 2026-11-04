@@ -9956,3 +9956,87 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104052225_JiraUserClassification'
+)
+BEGIN
+    ALTER TABLE [iam].[User] ADD [Classification] nvarchar(30) NOT NULL DEFAULT N'Standard';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104052225_JiraUserClassification'
+)
+BEGIN
+    ALTER TABLE [iam].[User] ADD [LoginEnabled] bit NOT NULL DEFAULT CAST(1 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104052225_JiraUserClassification'
+)
+BEGIN
+    EXEC(N'INSERT INTO [iam].[User] ([AccountName], [DisplayName], [WorkingTimeZone], [IsActive], [AllClients], [AllInternal], [Classification], [LoginEnabled], [CreatedAt], [UpdatedAt])
+    SELECT CONCAT(N''jira-team-'', m.[Id]), LEFT(COALESCE(m.[JiraDisplayName], m.[JiraAccountId]), 150), N''UTC'', 1, 0, 0, N''VitronicTeamMember'', 0, SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET()
+    FROM [jira].[JiraUserMapping] m WHERE m.[IsInternalMember] = 1;
+    UPDATE m SET m.[TioUserId] = u.[Id]
+    FROM [jira].[JiraUserMapping] m JOIN [iam].[User] u ON u.[AccountName] = CONCAT(N''jira-team-'', m.[Id])
+    WHERE m.[IsInternalMember] = 1;
+    UPDATE c SET c.[InternalAssignee] = NULL
+    FROM [work].[Case] c JOIN [jira].[JiraCaseMapping] j ON j.[CaseId] = c.[Id]
+    JOIN [jira].[JiraUserMapping] m ON m.[JiraConnectionId] = j.[JiraConnectionId] AND m.[JiraAccountId] = j.[AssigneeAccountId]
+    WHERE m.[IsInternalMember] = 1;
+    UPDATE j SET j.[AppliedAssigneeAccountId] = NULL
+    FROM [jira].[JiraCaseMapping] j JOIN [jira].[JiraUserMapping] m ON m.[JiraConnectionId] = j.[JiraConnectionId] AND m.[JiraAccountId] = j.[AssigneeAccountId]
+    WHERE m.[IsInternalMember] = 1;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104052225_JiraUserClassification'
+)
+BEGIN
+    DECLARE @var23 nvarchar(max);
+    SELECT @var23 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraUserMapping]') AND [c].[name] = N'IsInternalMember');
+    IF @var23 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraUserMapping] DROP CONSTRAINT ' + @var23 + ';');
+    ALTER TABLE [jira].[JiraUserMapping] DROP COLUMN [IsInternalMember];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104052225_JiraUserClassification'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261104052225_JiraUserClassification', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104054519_JiraSpaceContract'
+)
+BEGIN
+    ALTER TABLE [jira].[ClientJiraSpace] ADD [ContractId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104054519_JiraSpaceContract'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261104054519_JiraSpaceContract', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

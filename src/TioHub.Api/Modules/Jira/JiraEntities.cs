@@ -104,6 +104,8 @@ public class ClientJiraSpace : Entity
     public string ProjectKey { get; set; } = "";
     public string ProjectName { get; set; } = "";
     public bool IsEnabled { get; set; } = true;
+    /// <summary>A84: the contract of cases created from this space. Not a foreign key: a deleted contract reads as none.</summary>
+    public long? ContractId { get; set; }
     /// <summary>Set when released or reassigned; the row stays as history and its cases stay with the client.</summary>
     public DateTimeOffset? ReleasedAt { get; set; }
     public string? ReleaseReason { get; set; }
@@ -178,8 +180,6 @@ public class JiraUserMapping : Entity
     public long? TioUserId { get; set; }
     /// <summary>A79: instead of a hub user, the client's contact this Jira user represents. Not a foreign key: a deleted contact reads as unmapped.</summary>
     public long? ClientContactId { get; set; }
-    /// <summary>A80: a Vitronic team member with no hub account. Cases show the name from Jira.</summary>
-    public bool IsInternalMember { get; set; }
     public User? TioUser { get; set; }
     public DateTimeOffset LastSeenAt { get; set; }
 }

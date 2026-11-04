@@ -13,9 +13,9 @@ import './jira.css';
 
 type Settings = { isEnabled: boolean; jiraConnectionId?: number; defaultResponsibleTeamId?: number; defaultCaseType?: string; defaultPriority: string; nextReviewHours: number; importDoneIssues: boolean; importFrom?: string; syncOnStartup: boolean; fullReconciliation: boolean; fullReconciliationDays: number; syncIntervalMinutes: number; lastPreviewAt?: string; version: string };
 type ClientJiraDto = {
-  syncEnabled: boolean; canManage: boolean; settings?: Settings; summary: { enabled: boolean; assignedSpaces: number; lastSuccess?: string; syncIntervalMinutes: number; errors: number; warnings: number };
+  contracts?: { id: number; ref: string; title: string }[]; syncEnabled: boolean; canManage: boolean; settings?: Settings; summary: { enabled: boolean; assignedSpaces: number; lastSuccess?: string; syncIntervalMinutes: number; errors: number; warnings: number };
   connections: { id: number; name: string }[];
-  spaces: { id: number; isEnabled: boolean; projectKey: string; projectName: string; jiraProjectId: string; jiraConnectionId: number; connection?: string; siteUrl?: string; lastSync?: string; health: string; lastError?: string; cases: number }[];
+  spaces: { id: number; isEnabled: boolean; contractId?: number; contractRef?: string; contractTitle?: string; contractStatus?: string; projectKey: string; projectName: string; jiraProjectId: string; jiraConnectionId: number; connection?: string; siteUrl?: string; lastSync?: string; health: string; lastError?: string; cases: number }[];
   checks: { label: string; state: string }[]; issues: { id: number; type: string; issueKey?: string; projectKey?: string; description: string; suggestedAction: string; lastSeenAt: string }[]; runs: SyncRun[];
 };
 type Available = { id: number; jiraProjectId: string; projectKey: string; projectName: string; assignedClient?: string; availability: string };
@@ -39,6 +39,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
     try { await post(`/clients/${clientId}/jira/sync${spaceId ? `?spaceId=${spaceId}` : ''}`); toast('Synchronization requested. It starts within a minute.'); }
     catch (e) { setMessage(e instanceof ApiError ? e.summary : 'The request failed.'); }
   };
+  const [contractOf, setContractOf] = useState<ClientJiraDto['spaces'][number] | null>(null);
   const toggleSpace = async (id: number, enabled: boolean) => {
     try { await put(`/clients/${clientId}/jira/spaces/${id}`, { enabled }); refresh(); }
     catch (e) { setMessage(e instanceof ApiError ? e.summary : 'The request failed.'); }
@@ -71,6 +72,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
           { key: 'k', header: 'Space key', render: s => s.siteUrl ? <a className="mono" href={`${s.siteUrl}/browse/${encodeURIComponent(s.projectKey)}`} target="_blank" rel="noopener noreferrer">{s.projectKey}</a> : s.projectKey },
           { key: 'n', header: 'Space name', render: s => s.projectName },
           { key: 'c', header: 'Connection', render: s => s.connection },
+          { key: 'ct', header: 'Contract', render: s => <>{s.contractId ? <span title={s.contractTitle}>{s.contractRef ?? 'Deleted contract'}{s.contractStatus && s.contractStatus !== 'Active' && <Badge tone="warn">{label(s.contractStatus)}</Badge>}</span> : <span className="muted">None</span>}{canManage && <> <button className="linkbtn" aria-label={`Change the contract of ${s.projectKey}`} onClick={() => setContractOf(s)}>Change</button></>}</> },
           { key: 'l', header: 'Last sync', render: s => s.lastSync ? fmtDateTime(s.lastSync) : <span className="muted">Never</span> },
           { key: 'h', header: 'Sync health', render: s => <span title={s.lastError}><JiraBadge value={s.health === 'Success' ? 'Healthy' : s.health} /></span> },
           { key: 'u', header: 'Case count', className: 'num', render: s => hasRight(me, 'Cases', 'View') ? <Link to={`/cases?clientId=${clientId}&jiraSpace=${s.projectKey}&status=all`}>{s.cases}</Link> : s.cases },
@@ -103,6 +105,13 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
       </div>
       {dialog === 'preview' && <PreviewDialog clientId={clientId} onClose={() => { setDialog(null); refresh(); }} />}
       {dialog === 'history' && <HistoryDialog clientId={clientId} onClose={() => setDialog(null)} />}
+      {contractOf && <ActionDialog title={`Contract of ${contractOf.projectKey}`} method="PUT" path={`/clients/${clientId}/jira/spaces/${contractOf.id}/contract`} submitLabel="Save" onClose={() => setContractOf(null)}
+        intro="New cases from this space follow this contract: its SLA targets, support hours, pause rule and penalties, counted from the Jira creation time. Cases that already have a contract keep it."
+        initial={{ contractId: contractOf.contractId ? String(contractOf.contractId) : '' }}
+        fields={[{ name: 'contractId', label: 'Contract', kind: 'select', options: (d.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` })) },
+          { name: 'applyToOpenCases', label: 'Also link open cases from this space that have no contract', kind: 'checkbox', hint: 'Their SLA counts from the Jira creation time, so older cases can breach at once.' },
+          { name: 'reason', label: 'Reason', kind: 'textarea', hint: 'Required when changing a contract or linking open cases.' }]}
+        transform={v => ({ contractId: v.contractId ? Number(v.contractId) : null, applyToOpenCases: v.applyToOpenCases === 'true', reason: v.reason })} />}
       {release && <ActionDialog title="Release Jira space" danger path={`/clients/${clientId}/jira/spaces/${release}/release`} submitLabel="Release" onClose={() => setRelease(null)}
         intro="The space stops synchronizing and can be assigned again. Cases already imported stay with this client." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
     </>}</QueryState>
@@ -169,6 +178,7 @@ function SettingsPanel({ clientId, d, onPreview, onSync }: { clientId: number; d
 function AddSpacePanel({ clientId, d, onClose }: { clientId: number; d: ClientJiraDto; onClose: () => void }) {
   const [connectionId, setConnectionId] = useState(String(d.settings?.jiraConnectionId ?? d.connections[0]?.id ?? ''));
   const [text, setText] = useState('');
+  const [contractId, setContractId] = useState('');
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<ApiError | null>(null);
   const refresh = useRefresh();
@@ -176,7 +186,7 @@ function AddSpacePanel({ clientId, d, onClose }: { clientId: number; d: ClientJi
   const q = useQuery({ queryKey: ['client-jira-available', clientId, connectionId, text], queryFn: () => get<Available[]>(`/clients/${clientId}/jira/available-spaces?connectionId=${connectionId}&q=${encodeURIComponent(text)}`), enabled: !!connectionId });
   const assign = async () => {
     setError(null);
-    try { await post(`/clients/${clientId}/jira/spaces`, { jiraConnectionId: Number(connectionId), jiraProjectIds: selected }); toast(`${selected.length} space(s) assigned.`); refresh(); onClose(); }
+    try { await post(`/clients/${clientId}/jira/spaces`, { jiraConnectionId: Number(connectionId), jiraProjectIds: selected, contractId: contractId ? Number(contractId) : null }); toast(`${selected.length} space(s) assigned.`); refresh(); onClose(); }
     catch (e) { if (e instanceof ApiError) setError(e); }
   };
   const conflict = (q.data ?? []).filter(a => selected.includes(a.jiraProjectId) && a.availability !== 'Available');
@@ -184,10 +194,11 @@ function AddSpacePanel({ clientId, d, onClose }: { clientId: number; d: ClientJi
     <Panel title="Add Jira space" pad={false} actions={<button className="btn" onClick={onClose}>Close</button>}>
       <div style={{ padding: '8px 10px 0' }}>
         <FormError error={error} />
-        {error && !error.isConflict && error.errors && <div className="err">{error.field('jiraProjectIds')}</div>}
+        {error && !error.isConflict && error.errors && <div className="err">{error.field('jiraProjectIds') ?? error.field('contractId')}</div>}
         <div className="toolbar">
           <SelectInput label="Connection" value={connectionId} onChange={setConnectionId} options={d.connections.map(c => ({ value: String(c.id), label: c.name }))} />
           <TextInput label="Search Jira spaces" value={text} onChange={setText} placeholder="Key or name" />
+          <SelectInput label="Contract for cases from these spaces" empty="No contract" value={contractId} onChange={setContractId} options={(d.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` }))} />
         </div>
       </div>
       <DataTable<Available> caption="Spaces available to assign" tools={false} rows={q.data} loading={q.isLoading} error={q.error} rowKey={a => a.id} empty={text ? 'nomatch' : 'none'} columns={[

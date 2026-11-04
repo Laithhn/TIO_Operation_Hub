@@ -168,6 +168,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Email).HasMaxLength(254);
             e.Property(x => x.WorkingTimeZone).HasMaxLength(64);
             e.Property(x => x.DeactivationReason).HasMaxLength(1000);
+            e.Property(x => x.Classification).HasConversion<string>().HasMaxLength(30);
             e.HasMany(x => x.Roles).WithOne().HasForeignKey(x => x.UserId);
             e.HasMany(x => x.Scopes).WithOne().HasForeignKey(x => x.UserId);
         });

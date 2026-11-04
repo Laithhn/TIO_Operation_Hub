@@ -401,3 +401,30 @@ Defects these runs found, both fixed:
 The Jira tests use a **fake Jira**, and browser checks of the mapping and synced-case screens use intercepted, fictional data. They are not evidence that a real site works.
 
 Not run: a real Jira site; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS; `DataProtection:KeysFolder` on IIS or a network share.
+
+## Release 2.49.0: Jira users, classification and space contracts (A82 to A84), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval.
+
+| Suite | Result |
+|---|---|
+| Backend, first full run (real SQL Server) | 662 of 664 passed. One real defect and one out-of-date migration list, both fixed |
+| Backend, Jira and schema tests after the fixes | 62 passed |
+| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Playwright, main config (real API, Microsoft Edge) | 156 of 158 passed. One selector in an updated test; one browser closed mid-test |
+| Playwright, those two spec files after the fixes | `stage3-reporting` passed; all 9 of `jira-integration` passed |
+| Playwright, new contract test | 1 passed |
+| Frontend, `vitest` | 81 passed |
+| `tsc -b --noEmit` | Clean |
+
+The whole main Playwright config was not run again after those test updates. No application code changed between that run and the build except what the runs above cover.
+
+Defect these runs found, fixed:
+
+- Linking a contract to a space's open cases recorded the event but did not save the contract on the cases, because a no-tracking subquery made the whole query untracked.
+
+The Jira tests use a **fake Jira**, and browser checks of the Jira users and space contract screens use intercepted, fictional data. They are not evidence that a real site works.
+
+The conversion of existing Vitronic team members in `JiraUserClassification` found no such rows in these runs, so it has not been exercised with data.
+
+Not run: a real Jira site; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS; Jira Service Management internal notes on a real site.

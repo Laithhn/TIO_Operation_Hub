@@ -632,7 +632,7 @@ public static partial class ClientEndpoints
         }
     }
 
-    private static async Task ApplyContactAsync(Contact c, ContactInput i, HubDbContext db, CancellationToken ct)
+    internal static async Task ApplyContactAsync(Contact c, ContactInput i, HubDbContext db, CancellationToken ct)
     {
         var check = new Check();
         var email = Text.Clean(i.Email);
