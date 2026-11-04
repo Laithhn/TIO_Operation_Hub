@@ -24,14 +24,19 @@ public class Notification
     public long Id { get; set; }
     public long UserId { get; set; }
     public string Kind { get; set; } = "";
-    public string Title { get; set; } = "";
-    public string? Body { get; set; }
+    // Their sources can be longer than these columns, such as a commitment's description. One long text must not fail a whole scan.
+    private string _title = "";
+    private string? _body;
+    public string Title { get => _title; set => _title = Fit(value, 200)!; }
+    public string? Body { get => _body; set => _body = Fit(value, 500); }
     public string? Link { get; set; }
     public string Key { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? ReadAt { get; set; }
     /// <summary>A72: when the business condition behind a recurring alert cleared (paid, done, end date recorded). Independent of <see cref="ReadAt"/>.</summary>
     public DateTimeOffset? ResolvedAt { get; set; }
+
+    private static string? Fit(string? text, int max) => text is { } t && t.Length > max ? t[..(max - 1)] + "…" : text;
 }
 
 public static class NotificationKinds

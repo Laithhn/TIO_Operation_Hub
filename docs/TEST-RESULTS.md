@@ -452,7 +452,7 @@ Actual runs on the isolated `(localdb)\\TioHubQALocalDB` instance, with the owne
 |---|---|
 | Backend, first full run (real SQL Server) | 671 of 672 passed. The failure was a wrong test: its "viewer" account holds the Operation Engineer role, and Jira was off |
 | Backend, the corrected tests | 3 passed |
-| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Backend, full run inside the package build | **673 passed, 0 failed** |
 | Playwright, main config (real API, Microsoft Edge) | 162 of 163 passed |
 | Playwright, `reporting-builder` rerun | 5 passed |
 | Frontend, `vitest` | 81 passed |
@@ -463,3 +463,18 @@ The Playwright failure, in `reporting-builder.spec.ts`, expected a PDF download 
 The Jira tests use a **fake Jira**, and browser checks of the mapping and Sync screens use intercepted, fictional data.
 
 Not run: a real Jira site, including its priority and issue type names; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS.
+
+## Release 2.50.1: notification scan and upgrade trial, 4 November 2026
+
+The 2.50.0 script was applied to restored copies of two real backups on a new database each, with no errors and unchanged case, contract and first response counts. Two existing Vitronic team members converted to users with no sign-in. The package then started against one copy, with Jira off, and answered ready. That trial found the defect below, also present in the deployed 2.49.1.
+
+Defect, fixed: a commitment description longer than 500 characters overflowed `notify.Notification.Body`, so each notification scan failed as a whole.
+
+| Suite | Result |
+|---|---|
+| Backend, notification tests with the new test (real SQL Server) | 4 passed |
+| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+
+Playwright was not run for this release: the change is in the backend only.
+
+Not run: `Install`/`Upgrade` on IIS; signing in and using the screens on a restored copy; Jira synchronization on a restored copy.

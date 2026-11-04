@@ -29,6 +29,22 @@ public class A72_NotificationLifecycle(HubFactory hub) : Scenario(hub)
 
     private static JsonNode? Find(Res r, string link) => r.Body!["items"]!.AsArray().FirstOrDefault(n => n!["link"]?.GetValue<string>() == link && n["kind"]!.GetValue<string>() == "Overdue");
 
+    [Fact]
+    public async Task A_long_description_is_shortened_and_does_not_stop_the_scan()
+    {
+        var longOne = await OverdueCommitment(new string('x', 2000));
+        var other = await OverdueCommitment("A short description");
+        await Scan(DateTimeOffset.UtcNow);
+        using var scope = Hub.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+        var rows = await db.Notifications.AsNoTracking().Where(n => n.Kind == NotificationKinds.Overdue && (n.Link == $"/commitments/{longOne}" || n.Link == $"/commitments/{other}")).ToListAsync();
+        var shortened = rows.First(n => n.Link == $"/commitments/{longOne}");
+        Assert.Equal(500, shortened.Body!.Length);
+        Assert.EndsWith("…", shortened.Body);
+        Assert.Equal("A short description", rows.First(n => n.Link == $"/commitments/{other}").Body);
+        await Scan(DateTimeOffset.UtcNow); // and the next scan, which updates the same alert, still succeeds
+    }
+
     /// <summary>An open commitment owned by the engineer, made overdue in the database (the API refuses past due dates).</summary>
     private async Task<long> OverdueCommitment(string description)
     {
