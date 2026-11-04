@@ -148,7 +148,7 @@ public static class CaseSla
         {
             c.SlaPriority = null; c.SlaResponseMinutes = null; c.SlaResolutionMinutes = null; c.SlaBasis = SlaBasis.Unknown; c.SlaSupport24x7 = false;
             c.SlaSupportDays = SupportDays.None; c.SlaSupportFrom = null; c.SlaSupportTo = null; c.SlaTimeZone = null; c.SlaPauseOnCustomerWaiting = false;
-            c.SlaContractRef = null; c.SlaAppliedAt = null; c.PenaltyTermsSnapshotJson = null;
+            c.SlaContractRef = null; c.SlaAppliedAt = null; c.PenaltyTermsSnapshotJson = null; c.SlaContractStart = null;
             return;
         }
         var t = targets.FirstOrDefault(x => x.Priority == c.Priority);
@@ -163,6 +163,7 @@ public static class CaseSla
         c.SlaTimeZone = k.SupportTimeZone;
         c.SlaPauseOnCustomerWaiting = k.SlaPauseWhileWaitingOnCustomer;
         c.SlaContractRef = k.Ref;
+        c.SlaContractStart = k.StartDate;
         c.SlaAppliedAt = now;
         if (refreshPenaltyTerms)
             c.PenaltyTermsSnapshotJson = JsonSerializer.Serialize(k.PenaltyClauses.OrderBy(x => x.Id)
@@ -203,6 +204,7 @@ public static class CaseSla
         if (c.Scope == WorkScope.Internal || c.ClientId is null) { rState = xState = SlaState.NotApplicable; note = "Internal work has no contractual SLA."; }
         else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this case."; }
         else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The case was cancelled."; }
+        else if (c.SlaContractStart is { } contractStart && DateOnly.FromDateTime((c.SlaClockStartAt ?? c.CreatedAt).UtcDateTime) < contractStart) { rState = xState = SlaState.NotApplicable; note = $"The case was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }
         else
         {
             var (cal, problem) = Calendar(c);

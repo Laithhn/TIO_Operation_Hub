@@ -10210,3 +10210,45 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104134257_JiraResolutionTime'
+)
+BEGIN
+    ALTER TABLE [jira].[JiraCaseMapping] ADD [JiraResolvedAt] datetimeoffset NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104134257_JiraResolutionTime'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaContractStart] date NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104134257_JiraResolutionTime'
+)
+BEGIN
+    EXEC(N'UPDATE c SET c.[ResolvedAt] = x.[At], c.[ClosedAt] = CASE WHEN c.[ClosedAt] IS NULL THEN NULL ELSE x.[At] END, c.[SlaCalculatedAt] = NULL
+    FROM [work].[Case] c
+    CROSS APPLY (SELECT MAX(a.[At]) AS [At] FROM [jira].[JiraCaseMapping] m JOIN [jira].[JiraActivity] a ON a.[JiraConnectionId] = m.[JiraConnectionId] AND a.[JiraIssueId] = m.[JiraIssueId] WHERE m.[CaseId] = c.[Id] AND a.[Type] = N''Status'') x
+    WHERE c.[ResolvedAt] IS NOT NULL AND x.[At] IS NOT NULL AND x.[At] < c.[ResolvedAt];
+    UPDATE c SET c.[SlaContractStart] = k.[StartDate], c.[SlaCalculatedAt] = NULL
+    FROM [work].[Case] c JOIN [contracts].[Contract] k ON k.[Id] = c.[ContractId];');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104134257_JiraResolutionTime'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261104134257_JiraResolutionTime', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

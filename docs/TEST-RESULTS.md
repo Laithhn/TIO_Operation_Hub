@@ -505,9 +505,32 @@ Actual runs on the isolated `(localdb)\\TioHubQALocalDB` instance, with the owne
 | Playwright, main config (real API, Microsoft Edge) | 161 of 164 passed; the 3 failures expected the old table layout, and the specs were updated |
 | Playwright, `jira-integration` and `ux-remediation` after the updates, with one new test | 32 passed |
 | Backend, full run before the contact change | 676 passed, 0 failed |
-| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Backend, full run inside the package build | **677 passed, 0 failed** |
 | Frontend, `vitest` | 81 passed |
 
 The whole main Playwright config was not run again after those updates.
 
 Not run: `Install`/`Upgrade` on IIS.
+
+## Release 2.51.1: SLA results of Jira cases and open items (A90), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+Resolution SLA of the 302 contract-linked cases on the restored copy, after `JiraResolutionTime`:
+
+| State | Before | After |
+|---|---|---|
+| Breached | 302 | 40 |
+| Met | 0 | 6 |
+| Not applicable, opened before the contract | 0 | 256 |
+
+| Suite | Result |
+|---|---|
+| Playwright, main config (real API, Microsoft Edge) | **165 passed, 0 failed** |
+| Backend, full run inside the package build | See the release report |
+
+The earlier unstable PDF download check in `reporting-builder.spec.ts` read the previous export row before the new one appeared; it now waits for the new row.
+
+All 5,144 comments on the restored copy have no visibility value, so that data does not show whether Jira Service Management internal notes are detected on the real site.
+
+Not run: `Install`/`Upgrade` on IIS; a synchronization against the real Jira site with these changes.

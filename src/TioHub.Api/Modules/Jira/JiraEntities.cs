@@ -151,6 +151,8 @@ public class JiraCaseMapping
     public string? StatusId { get; set; }
     public string? StatusName { get; set; }
     public string? StatusCategory { get; set; }
+    /// <summary>A90: when Jira says the issue was resolved. This, not the time of the import, is the case's resolution time.</summary>
+    public DateTimeOffset? JiraResolvedAt { get; set; }
     public string? PriorityName { get; set; }
     public string? IssueTypeName { get; set; }
     public string? AssigneeAccountId { get; set; }

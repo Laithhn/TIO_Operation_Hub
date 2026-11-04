@@ -36,7 +36,7 @@ public sealed record JiraStatusInfo(string Id, string Name, string? Category);
 public sealed record JiraField(string Id, string Name);
 public sealed record JiraIssue(string Id, string Key, string ProjectId, string ProjectKey, string Summary, string? DescriptionText, string? StatusId, string? StatusName, string? StatusCategory,
     string? PriorityName, string? IssueTypeName, string? AssigneeId, string? AssigneeName, string? ReporterName, DateTimeOffset? CreatedAt, DateTimeOffset? UpdatedAt, DateOnly? DueDate, string? Resolution,
-    IReadOnlyList<string> Labels, IReadOnlyList<string> Components, IReadOnlyDictionary<string, string> Details, int CommentTotal);
+    IReadOnlyList<string> Labels, IReadOnlyList<string> Components, IReadOnlyDictionary<string, string> Details, int CommentTotal, DateTimeOffset? ResolvedAt = null);
 public sealed record JiraSearchPage(IReadOnlyList<JiraIssue> Issues, string? NextPageToken);
 public sealed record JiraCommentInfo(string Id, string? AuthorId, string? AuthorName, string BodyText, DateTimeOffset Created, DateTimeOffset? Updated, string? VisibilityType, string? VisibilityValue);
 public sealed record JiraChangeItem(string EventId, string? ActorName, DateTimeOffset At, string Field, string? FromId, string? FromText, string? ToId, string? ToText);
@@ -84,7 +84,7 @@ public sealed class JiraApiClient(HttpClient http, IOptions<JiraOptions> options
 {
     private const int PageSize = 100;
     private static readonly string[] IssueFields =
-        ["summary", "description", "status", "priority", "issuetype", "assignee", "reporter", "created", "updated", "duedate", "resolution", "labels", "components", "project", "comment"];
+        ["summary", "description", "status", "priority", "issuetype", "assignee", "reporter", "created", "updated", "duedate", "resolution", "resolutiondate", "labels", "components", "project", "comment"];
 
     public async Task<string?> GetCloudIdAsync(string siteUrl, CancellationToken ct)
     {
@@ -290,7 +290,7 @@ public static class JiraJson
             f.ValueKind == JsonValueKind.Object ? f.Obj("resolution")?.Str("name") : null,
             f.ValueKind == JsonValueKind.Object && f.Has("labels") ? f.GetProperty("labels").EnumerateArray().Select(l => l.GetString() ?? "").Where(l => l.Length > 0).ToList() : [],
             f.ValueKind == JsonValueKind.Object && f.Has("components") ? f.GetProperty("components").EnumerateArray().Select(c => c.Str("name") ?? "").Where(c => c.Length > 0).ToList() : [],
-            details, f.ValueKind == JsonValueKind.Object ? f.Obj("comment")?.Int("total") ?? 0 : 0);
+            details, f.ValueKind == JsonValueKind.Object ? f.Obj("comment")?.Int("total") ?? 0 : 0, f.ValueKind == JsonValueKind.Object ? Date(f.Str("resolutiondate")) : null);
     }
 
     /// <summary>Text of a custom field: option, user, array, rich text or a plain value.</summary>

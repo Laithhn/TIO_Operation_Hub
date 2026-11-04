@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### SLA results of Jira cases (2.51.1)
+
+`database/01-schema.sql` changes existing resolution and closing times of Jira cases, and SLA results and penalty figures change at the next start. Going back needs the database backup. See `RELEASE-NOTES-2.51.1.md`.
+
 ### Jira on by default (2.51.0)
 
 No database change. `Jira:Enabled` is now true in the shipped settings, so synchronization runs for enabled clients after an upgrade. **Start any restored copy or test server with `Jira__Enabled=false`.** See `RELEASE-NOTES-2.51.0.md`.

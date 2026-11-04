@@ -688,6 +688,39 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         Assert.Equal(body, await Db(db => db.JiraComments.Where(k => k.JiraCommentId == "c193").Select(k => k.BodyText).FirstAsync()));
     }
 
+    [Theory]
+    [InlineData("P1 - Critical", "Critical")]
+    [InlineData("P3 - Normal", "Normal")]
+    [InlineData("high", "High")]
+    [InlineData("Blocker", null)]
+    [InlineData("High or Low", null)]
+    public void A_jira_priority_is_matched_by_a_word_of_its_name(string jira, string? expected) =>
+        Assert.Equal(expected, JiraCaseBridge.PriorityNamedIn(jira));
+
+    [Fact]
+    public async Task A_case_closed_from_jira_is_resolved_when_jira_says_and_old_work_is_not_measured()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var contract = await ActiveContractAsync(f.ClientId);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        var resolved = DateTimeOffset.UtcNow.AddDays(-20);
+        _jira.Add("195", "TAH-195");
+        _jira.Change("195", i => i with { CreatedAt = resolved.AddMinutes(-30) });
+        _jira.Add("196", "TAH-196");
+        _jira.Change("196", i => i with { CreatedAt = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero) });
+        await RunAsync(f.SpaceId);
+        await MapStatusAsync(f.ConnectionId, "9", "Closed");
+        _jira.Change("195", i => i with { ResolvedAt = resolved, StatusId = "9", StatusName = "Done", StatusCategory = "done" });
+        await RunAsync(f.SpaceId);
+        var closed = await CaseOfAsync(f.ConnectionId, "195");
+        Assert.Equal(resolved, closed!.ResolvedAt);
+        Assert.Equal(SlaState.Met, closed.ResolutionSlaStatus);
+        var old = await CaseOfAsync(f.ConnectionId, "196");
+        Assert.Equal(SlaState.NotApplicable, old!.ResolutionSlaStatus);
+        Assert.Contains("before", old.SlaNote);
+    }
+
     [Fact]
     public async Task A_failed_import_says_why()
     {
@@ -805,18 +838,18 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Jira_priority_never_changes_the_case_priority()
+    public async Task After_creation_jira_no_longer_changes_the_case_priority()
     {
         var f = await SetUpAsync();
         _jira.Add("110", "TAH-110", priority: "P1 - Critical");
         await RunAsync(f.SpaceId);
-        Assert.Equal(Priority.Normal, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
+        Assert.Equal(Priority.Critical, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
         var manager = await _hub.As(HubFactory.Manager);
         var id = (await CaseOfAsync(f.ConnectionId, "110"))!.Id;
         Assert.Equal("P1 - Critical", (await manager.Get($"/cases/{id}")).Body!["jiraSource"]!["priority"]!.GetValue<string>());
         _jira.Change("110", i => i with { PriorityName = "P4 - Low" });
         await RunAsync(f.SpaceId);
-        Assert.Equal(Priority.Normal, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
+        Assert.Equal(Priority.Critical, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
     }
 
     private async Task MapContactAsync(long connection, string account, long contact)

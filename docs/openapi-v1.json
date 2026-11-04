@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:5196/"
+      "url": "http://localhost/"
     }
   ],
   "paths": {
@@ -7141,6 +7141,30 @@
         }
       }
     },
+    "/api/v1/cases/{id}/jira-source/sync": {
+      "post": {
+        "tags": [
+          "Cases"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/cases/{id}/comments": {
       "post": {
         "tags": [
@@ -7341,6 +7365,94 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/SpaceEnabledInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/jira/spaces/{spaceId}/contract": {
+      "put": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "spaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpaceContractInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/clients/{id}/jira/value-mappings/{mappingId}": {
+      "put": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "mappingId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValueMappingInput"
               }
             }
           },
@@ -7866,6 +7978,142 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/UserMappingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jira-user-mappings/{id}/team-member": {
+      "post": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamMemberInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jira-user-mappings/{id}/user": {
+      "post": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jira-user-mappings/{id}/contact": {
+      "post": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactMappingInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jira-connections/{id}/recalculate-first-responses": {
+      "post": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecalculateInput"
               }
             }
           },
@@ -11257,6 +11505,40 @@
         }
       }
     },
+    "/api/v1/admin/users/{id}/login-access": {
+      "post": {
+        "tags": [
+          "Administration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginAccessInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/api/v1/admin/users/{id}/deactivate": {
       "post": {
         "tags": [
@@ -11912,6 +12194,15 @@
             "items": {
               "type": "string"
             }
+          },
+          "contractId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
           }
         }
       },
@@ -14082,6 +14373,58 @@
           }
         }
       },
+      "ContactMappingInput": {
+        "required": [
+          "clientId",
+          "name",
+          "role",
+          "organization",
+          "email",
+          "phone"
+        ],
+        "type": "object",
+        "properties": {
+          "clientId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "role": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "organization": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "phone": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "ContractInput": {
         "required": [
           "clientId",
@@ -15747,6 +16090,30 @@
           }
         }
       },
+      "LoginAccessInput": {
+        "required": [
+          "enabled",
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "accountName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "LookupInput": {
         "required": [
           "listName",
@@ -16908,6 +17275,29 @@
               "null",
               "string"
             ]
+          },
+          "contractId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          }
+        }
+      },
+      "RecalculateInput": {
+        "required": [
+          "reason"
+        ],
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -17902,6 +18292,33 @@
           }
         }
       },
+      "SpaceContractInput": {
+        "required": [
+          "contractId"
+        ],
+        "type": "object",
+        "properties": {
+          "contractId": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int64"
+          },
+          "applyToOpenCases": {
+            "type": "boolean",
+            "default": false
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "SpaceEnabledInput": {
         "required": [
           "enabled"
@@ -18248,10 +18665,6 @@
               "string"
             ],
             "format": "int64"
-          },
-          "isInternalMember": {
-            "type": "boolean",
-            "default": false
           }
         }
       },
@@ -18288,6 +18701,20 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "ValueMappingInput": {
+        "required": [
+          "target"
+        ],
+        "type": "object",
+        "properties": {
+          "target": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },

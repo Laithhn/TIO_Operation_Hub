@@ -140,7 +140,9 @@ test.describe('A70 Cases Report Builder', () => {
     await page.getByRole('button', { name: 'Export PDF' }).click();
     const pd = page.getByRole('dialog', { name: 'Export to PDF' });
     await pd.getByLabel(/Management summary/).check();
+    const jobsBefore = await page.locator('.rb-job').count();
     await pd.getByRole('button', { name: 'Export now' }).click();
+    await expect(page.locator('.rb-job')).toHaveCount(jobsBefore + 1, { timeout: 30_000 });
     const pdfJob = page.locator('.rb-job').first();
     await expect(pdfJob).toContainText('Completed', { timeout: 30_000 });
     const [pdf] = await Promise.all([page.waitForEvent('download'), pdfJob.getByRole('button', { name: 'Download' }).click()]);

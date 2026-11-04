@@ -159,6 +159,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
                 var caseChanged = await ApplyOwnerAsync(x.Connection, x.Space, c, m, now, ct);
                 if (m.JiraCreatedAt is { } jiraCreated && c.SlaClockStartAt != jiraCreated) { c.SlaClockStartAt = jiraCreated; caseChanged = true; }
                 caseChanged |= await ApplyStatusAsync(x.Connection, x.Space, c, m, now, ct);
+                caseChanged |= ApplyJiraResolutionTime(c, m, now);
                 if (!outcome.Created && (caseChanged || snapshotChanged)) outcome.Updated = true;
                 if (comments is not null)
                 {
@@ -201,6 +202,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             var c = await LoadCaseAsync(m.CaseId!.Value, ct);
             var any = await ApplyOwnerAsync(conn, space, c, m, now, ct);
             any |= await ApplyStatusAsync(conn, space, c, m, now, ct);
+            any |= ApplyJiraResolutionTime(c, m, now);
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             db.ChangeTracker.Clear();
@@ -286,11 +288,30 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         var row = local ?? await db.JiraValueMappings.FirstOrDefaultAsync(v => v.ClientId == clientId && v.Kind == kind && v.JiraValue == value, ct);
         if (row?.TargetCode is { } mapped) return mapped;
         var named = kind == JiraValueKind.Priority
-            ? Enum.GetNames<Priority>().FirstOrDefault(n => string.Equals(n, value, StringComparison.OrdinalIgnoreCase))
+            ? PriorityNamedIn(value)
             : await db.LookupValues.AsNoTracking().Where(l => l.ListName == LookupLists.CaseType && !l.IsRetired && (l.Code == value || l.Label == value)).Select(l => l.Code).FirstOrDefaultAsync(ct);
         if (named is not null) return named;
         if (row is null) db.JiraValueMappings.Add(new JiraValueMapping { ClientId = clientId, Kind = kind, JiraValue = value });
         return null;
+    }
+
+    /// <summary>A90: a closed case was resolved when Jira says so, not when the hub imported it. With no resolution date in Jira, its last update is the nearest time known.</summary>
+    private static bool ApplyJiraResolutionTime(Case c, JiraCaseMapping m, DateTimeOffset now)
+    {
+        if (c.ResolvedAt is null) return false;
+        var at = m.JiraResolvedAt ?? (c.ResolvedAt == now ? m.JiraUpdatedAt : null);
+        if (at is null || at == c.ResolvedAt) return false;
+        c.ResolvedAt = at;
+        if (c.ClosedAt is not null) c.ClosedAt = at;
+        return true;
+    }
+
+    /// <summary>A case priority a Jira name contains as a word, such as Normal in "P3 - Normal". A name with two or none is left for a person.</summary>
+    internal static string? PriorityNamedIn(string jiraValue)
+    {
+        var words = jiraValue.Split(jiraValue.Where(ch => !char.IsLetter(ch)).Distinct().ToArray(), StringSplitOptions.RemoveEmptyEntries);
+        var found = Enum.GetNames<Priority>().Where(n => words.Contains(n, StringComparer.OrdinalIgnoreCase)).ToList();
+        return found.Count == 1 ? found[0] : null;
     }
 
     /// <summary>A84: the space's contract, while it is active and still belongs to the space's client.</summary>
@@ -362,6 +383,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         m.JiraUpdatedAt = i.UpdatedAt;
         m.JiraDueDate = i.DueDate;
         m.Resolution = i.Resolution;
+        m.JiraResolvedAt = i.ResolvedAt;
         m.Labels = Safe(string.Join(", ", i.Labels), int.MaxValue);
         m.Components = Safe(string.Join(", ", i.Components), int.MaxValue);
         var details = i.Details.Where(d => x.DetailFields.ContainsKey(d.Key) && !CredentialGuard.LooksLikeSecret(d.Value))
@@ -386,7 +408,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
     {
         if (m.AssigneeAccountId == m.AppliedAssigneeAccountId) return false;
         // Unassigned in Jira keeps the current owner: an open case may have to keep an owner (WRK-04), and no fallback person is invented.
-        if (m.AssigneeAccountId is null) { m.AppliedAssigneeAccountId = null; c.InternalAssignee = null; return await EndClientRepresentationAsync(c, m, now, ct); }
+        if (m.AssigneeAccountId is null) { m.AppliedAssigneeAccountId = null; c.InternalAssignee = null; return false; } // waiting on a client contact continues: only the team ends it (BR-02)
         var map = await UserMappingAsync(conn.Id, m.AssigneeAccountId, m.AssigneeName, now, ct);
         var fingerprint = UserFingerprint(conn.Id, m.AssigneeAccountId);
         var contact = map.ClientContactId is { } contactId ? await db.Contacts.IgnoreQueryFilters().AsNoTracking().Where(k => k.Id == contactId && k.ArchivedAt == null).Select(k => new { k.Name, k.ClientId, k.Organization }).FirstOrDefaultAsync(ct) : null;
@@ -410,14 +432,14 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             if (CaseQuery.IsOpen(c.Status)) await WaitOnCustomerAsync(c, $"Assigned in Jira to {contact.Name}: {m.IssueKey}", now, ct);
             return true;
         }
-        var ended = await EndClientRepresentationAsync(c, m, now, ct);
         c.InternalAssignee = null;
         if (map.TioUserId is null)
         {
             Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, fingerprint, now, $"Jira user {m.AssigneeName ?? "(no name)"} is not mapped to a hub user or client contact, so the case keeps its current owner.",
                 "Map the Jira user to a hub user or a client contact; the case is updated at the next run.", c.Id, null, m.AssigneeAccountId);
-            return ended;
+            return false;
         }
+        var ended = await EndClientRepresentationAsync(c, m, now, ct);
         await ResolveAutomaticAsync(fingerprint, now, ct);
         var conflict = $"owner:{c.Id}";
         if (!CaseQuery.IsOpen(c.Status)) { m.AppliedAssigneeAccountId = m.AssigneeAccountId; return ended; }

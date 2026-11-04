@@ -374,7 +374,7 @@ public static partial class ClientEndpoints
             var client = await db.Clients.FirstAsync(x => x.Id == c.ClientId, ct);
             access.RequireMaintain(RightKeys.Other, c.ClientId, null, client.OwnerUserId, client.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
-            await ApplyContactAsync(c, input, db, ct);
+            await ApplyContactAsync(c, input, db, ct, requireChannel: c.Email is not null || c.Phone is not null); // A89: a contact made from Jira may have neither
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });

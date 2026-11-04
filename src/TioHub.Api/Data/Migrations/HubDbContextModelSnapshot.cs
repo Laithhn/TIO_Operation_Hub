@@ -4100,6 +4100,9 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(40)
                         .HasColumnType("nvarchar(40)");
 
+                    b.Property<DateTimeOffset?>("JiraResolvedAt")
+                        .HasColumnType("datetimeoffset");
+
                     b.Property<DateTimeOffset?>("JiraUpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -6351,6 +6354,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<string>("SlaContractRef")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateOnly?>("SlaContractStart")
+                        .HasColumnType("date");
 
                     b.Property<string>("SlaNote")
                         .HasMaxLength(300)
