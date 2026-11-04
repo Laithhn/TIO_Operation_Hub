@@ -196,8 +196,9 @@ test('a commitment can be completed before its deadline through the form', async
   await page.goto(`/commitments/${id}`);
   await page.getByRole('button', { name: 'Complete', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Complete commitment', exact: true });
-  await expect(dialog).toContainText('before the commitment was created');
+  await expect(dialog).toContainText('if it was fulfilled before then, you can say why');
   await expect(dialog).not.toContainText('before the deadline.');
+  await dialog.getByLabel('Reason, if fulfilled before this record was created (optional)').fill('Entered after delivery');
   await dialog.getByLabel('I confirm this action.').check();
   await dialog.getByRole('button', { name: 'Complete', exact: true }).click();
   await expect(dialog).toBeHidden();

@@ -4,7 +4,7 @@ using TioHub.Api.Data;
 
 namespace TioHub.Tests;
 
-/// <summary>A91: a commitment can be completed early. The time must fall between its creation and now; timeliness is derived, never validated.</summary>
+/// <summary>A91: a commitment can be completed early, and a record entered afterwards can state an earlier time. Only a future time is refused; timeliness is derived, never validated.</summary>
 [Collection("hub")]
 public class CommitmentCompletionTests(HubFactory hub) : Scenario(hub)
 {
@@ -21,7 +21,7 @@ public class CommitmentCompletionTests(HubFactory hub) : Scenario(hub)
         return (m, id, created);
     }
 
-    private static async Task<Res> CompleteAsync(Api m, long id, DateTimeOffset at) => await m.Post($"/commitments/{id}/complete", new { completedAt = at, evidence = "mail" }, await m.Version($"/commitments/{id}"));
+    private static async Task<Res> CompleteAsync(Api m, long id, DateTimeOffset at, string? reason = null) => await m.Post($"/commitments/{id}/complete", new { completedAt = at, evidence = "mail", reason }, await m.Version($"/commitments/{id}"));
 
     private static string Text(Res r, string field) => r.Body![field]!.GetValue<string>();
 
@@ -70,20 +70,35 @@ public class CommitmentCompletionTests(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
-    public async Task A_completion_before_the_commitment_was_created_is_refused_early_or_late()
+    public async Task A_record_entered_afterwards_can_state_an_earlier_time_with_a_reason_kept_in_its_history()
     {
         var (m, id, created) = await CommitmentAsync(DateTimeOffset.UtcNow.AddDays(8));
-        Assert.Contains("created", (await CompleteAsync(m, id, created.AddDays(-1))).Error("completedAt"));
-        var (m2, id2, created2) = await CommitmentAsync(DateTimeOffset.UtcNow.AddDays(-20));
-        Assert.Contains("created", (await CompleteAsync(m2, id2, created2.AddDays(-1))).Error("completedAt"));
+        var at = created.AddDays(-1);
+        Assert.Null((await CompleteAsync(m, id, at, "Entered after delivery")).Error("completedAt"));
+        var c = await m.Get($"/commitments/{id}");
+        Assert.Equal("Completed on time", Text(c, "timeliness"));
+        Assert.Equal(at, c.Body!["completedAt"]!.GetValue<DateTimeOffset>());
+        var completed = c.Body!["events"]!.AsArray().First(e => e!["type"]!.GetValue<string>() == "Completed")!;
+        Assert.Equal("Entered after delivery", completed["reason"]!.GetValue<string>());
     }
 
     [Fact]
-    public async Task A_completion_in_the_same_minute_as_creation_is_accepted()
+    public async Task The_reason_for_an_earlier_time_is_optional_and_lateness_is_still_derived()
     {
-        // The form sends minutes, so a commitment created at 14:05:30 and completed at once arrives as 14:05:00.
-        var (m, id, created) = await CommitmentAsync(DateTimeOffset.UtcNow.AddDays(8));
-        Assert.Null((await CompleteAsync(m, id, created.AddSeconds(-30))).Error("completedAt"));
+        var due = DateTimeOffset.UtcNow.AddDays(-20);
+        var (m, id, created) = await CommitmentAsync(due, createdDaysAgo: 5);
+        Assert.Null((await CompleteAsync(m, id, created.AddDays(-1))).Error("completedAt")); // before creation, after the deadline
+        var c = await m.Get($"/commitments/{id}");
+        Assert.Equal("Completed late", Text(c, "timeliness"));
+        Assert.Null(c.Body!["events"]!.AsArray().First(e => e!["type"]!.GetValue<string>() == "Completed")!["reason"]);
+    }
+
+    [Fact]
+    public async Task A_reason_that_holds_a_secret_or_is_too_long_is_refused()
+    {
+        var (m, id, _) = await CommitmentAsync(DateTimeOffset.UtcNow.AddDays(8));
+        Assert.NotNull((await CompleteAsync(m, id, DateTimeOffset.UtcNow, new string('x', 1001))).Error("reason"));
+        Assert.Equal("Open", Text(await m.Get($"/commitments/{id}"), "status"));
     }
 
     [Fact]

@@ -57,7 +57,7 @@ public static class CommitmentEndpoints
     public sealed record CommitmentUpdateInput(string? Description, CommitmentType? Type, long? OwnerUserId, ResponsibleParty? ResponsibleParty, string? ResponsibleOrganization,
         long? CoordinatorUserId, DateTimeOffset? NextReviewAt, long? CaseId, long? ProjectId);
     public sealed record ReviseInput(string? DueLocal, string? TimeZone, string? Reason);
-    public sealed record CompleteInput(DateTimeOffset? CompletedAt, string? Evidence);
+    public sealed record CompleteInput(DateTimeOffset? CompletedAt, string? Evidence, string? Reason = null);
     public sealed record ReasonInput(string? Reason);
 
     public static void MapCommitmentEndpoints(this RouteGroupBuilder api)
@@ -197,8 +197,8 @@ public static class CommitmentEndpoints
             return Results.NoContent();
         });
 
-        // A91: a commitment can be fulfilled early, on time or late. The time only has to fall between the commitment's creation and now;
-        // the one-minute margins match the minute precision of the form. Timeliness is derived from the deadline, never validated against it.
+        // A91: a commitment can be fulfilled early, on time or late, and a record entered afterwards can state an earlier time, with an optional reason.
+        // The time only cannot be in the future (a minute's margin for the form's precision). Timeliness is derived from the deadline, never validated against it.
         g.MapPost("/{id:long}/complete", async (long id, CompleteInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
@@ -208,8 +208,8 @@ public static class CommitmentEndpoints
             var now = clock.GetUtcNow();
             var check = new Check().When(input.CompletedAt is null, "completedAt", "Enter when the commitment was fulfilled.")
                 .When(input.CompletedAt > now.AddMinutes(1), "completedAt", "The completion time cannot be in the future.")
-                .When(input.CompletedAt < c.CreatedAt.AddMinutes(-1), "completedAt", "The completion time cannot be before the commitment was created.")
-                .Text("evidence", input.Evidence, 1000, "the completion evidence or reference");
+                .Text("evidence", input.Evidence, 1000, "the completion evidence or reference")
+                .Text("reason", input.Reason, 1000, "the reason");
             check.ThrowIfAny();
             c.Status = CommitmentStatus.Completed;
             c.CompletedAt = input.CompletedAt;
@@ -217,7 +217,7 @@ public static class CommitmentEndpoints
             c.DueAtCompletion = c.CurrentDueAt;
             c.CompletedLate = input.CompletedAt > c.CurrentDueAt;
             c.LastReviewedAt = now;
-            c.Events.Add(new CommitmentEvent { Type = CommitmentEventType.Completed, CompletedAt = input.CompletedAt, Evidence = c.CompletionEvidence, ById = access.Me.UserId, At = now, PreviousDueAt = c.CurrentDueAt });
+            c.Events.Add(new CommitmentEvent { Type = CommitmentEventType.Completed, CompletedAt = input.CompletedAt, Evidence = c.CompletionEvidence, Reason = Text.Clean(input.Reason), ById = access.Me.UserId, At = now, PreviousDueAt = c.CurrentDueAt });
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
