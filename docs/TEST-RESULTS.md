@@ -574,7 +574,7 @@ Restored copy `TioHub_UAT_From2510_A91`, from `TioHub_before_2.51.0_20261104-173
 | Cases opened in November | 295 by hub creation | 2 by opening; the rest in January to October |
 | Cases closed in November | 228 | 1; the rest in the months Jira closed them |
 | Cases closed before their hub creation | 0 | 228, which would have given negative ages on the hub basis |
-| Resolution SLA of the 262 contract-linked cases | Breached 262 (2 still counted pending) | Met 37, breached 225 (2 pending among them) |
+| Resolution SLA of the 262 contract-linked cases | Breached 260, pending 2 | Met 37, breached 223, pending 2 |
 | Overdue open cases | 50 | 50 |
 | Unmeasured cases holding a due date | 0 | 0, so clearing old due dates was not exercised on this data |
 
