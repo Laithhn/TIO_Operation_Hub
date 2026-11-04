@@ -23,3 +23,6 @@ App_Data/
 .marketing-build/
 .pdf-build/
 TestResults/
+
+# One-time maintenance scripts: local only, never committed or packaged
+database/maintenance/
