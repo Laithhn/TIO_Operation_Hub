@@ -93,8 +93,9 @@ public static class CaseQuery
                 || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt >= now && c.ResolutionDueAt <= now.AddHours(24))),
             _ => q
         };
-        if (f.CreatedFrom is not null) q = q.Where(c => c.CreatedAt >= f.CreatedFrom);
-        if (f.CreatedTo is not null) q = q.Where(c => c.CreatedAt < f.CreatedTo);
+        // A91: the period a case was opened in, so an imported case counts when its Jira issue was created.
+        if (f.CreatedFrom is not null) q = q.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) >= f.CreatedFrom);
+        if (f.CreatedTo is not null) q = q.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) < f.CreatedTo);
         if (f.DeactivatedOwner == true) q = q.Where(c => c.Owner != null && !c.Owner.IsActive);
         if (f.CoverageGap == true)
         {

@@ -55,7 +55,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         IQueryable<Commitment> Coms(CommitmentFilter f) => CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, days, db);
         IQueryable<Commitment> UpcomingComs(CommitmentFilter f) => CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, commitmentWindowDays, db);
 
-        var open = await Cases(baseCase).Select(c => new { c.CreatedAt, waiting = c.WaitingIntervals.Select(w => new { w.StartedAt, w.EndedAt }).ToList() }).ToListAsync(ct);
+        var open = await Cases(baseCase).Select(c => new { OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, waiting = c.WaitingIntervals.Select(w => new { w.StartedAt, w.EndedAt }).ToList() }).ToListAsync(ct);
         var waitingHours = open.SelectMany(c => c.waiting).Sum(w => ((w.EndedAt ?? now) - w.StartedAt).TotalHours);
         var link = Link(p, now);
         object M(string key, string label, int value, string definition, string drill) => new { key, label, value, definition, drilldown = drill };
@@ -77,10 +77,10 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
             },
             caseAge = new
             {
-                averageDays = open.Count == 0 ? (double?)null : Math.Round(open.Average(c => (now - c.CreatedAt).TotalDays), 1),
-                oldestDays = open.Count == 0 ? (double?)null : Math.Round(open.Max(c => (now - c.CreatedAt).TotalDays), 1),
+                averageDays = open.Count == 0 ? (double?)null : Math.Round(open.Average(c => (now - c.OpenedAt).TotalDays), 1),
+                oldestDays = open.Count == 0 ? (double?)null : Math.Round(open.Max(c => (now - c.OpenedAt).TotalDays), 1),
                 totalWaitingHours = Math.Round(waitingHours, 1),
-                definition = "Age is calendar time since creation for open cases. Waiting time sums recorded waiting intervals and does not pause any deadline."
+                definition = "Age is calendar time since the case was opened: the Jira creation time of a synchronized case, otherwise the hub creation time. Waiting time sums recorded waiting intervals and does not pause any deadline."
             },
             commitments = new object[]
             {

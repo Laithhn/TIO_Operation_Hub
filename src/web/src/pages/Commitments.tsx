@@ -101,7 +101,7 @@ export function CommitmentForm() {
 type Dto = {
   id: number; ref: string; scope: string; description: string; type: string; typeLabel: string; status: string; timeZone: string; client?: { id: number; code: string; name: string }; team?: { id: number; name: string };
   owner?: UserRef; coordinator?: UserRef; originalDueAt: string; originalDueLocal: string; currentDueAt: string; currentDueLocal: string; revisionCount: number; nextReviewAt?: string;
-  completedAt?: string; completionEvidence?: string; dueAtCompletion?: string; cancelReason?: string; timeliness: string; originalDeadlineResult?: string; overdue: boolean;
+  createdAt: string; completedAt?: string; completionEvidence?: string; dueAtCompletion?: string; cancelReason?: string; timeliness: string; originalDeadlineResult?: string; overdue: boolean;
   case?: { id: number; ref: string; title: string }; project?: { id: number; code: string; name: string }; lastReviewedAt?: string;
   events: { id: number; type: string; previousDueAt?: string; newDueAt?: string; completedAt?: string; reason?: string; evidence?: string; at: string; by?: string }[];
   permissions: { canEdit: boolean; canRevise: boolean; canComplete: boolean; canCancel: boolean; canReopen: boolean }; version: string;
@@ -136,7 +136,7 @@ export function CommitmentDetail() {
             ['Original deadline', `${c.originalDueLocal} (${c.timeZone})`], ['Current deadline', <>{c.currentDueLocal} ({c.timeZone}){c.overdue && <> <Badge tone="bad">Overdue</Badge></>}</>],
             ['Revisions', c.revisionCount], ['Status', <StatusBadge value={c.status} />], ['Timeliness (derived)', c.timeliness],
             ['Completed', c.completedAt ? <When v={c.completedAt} /> : null], ['Evidence', c.completionEvidence], ['Deadline in force at completion', c.dueAtCompletion ? <When v={c.dueAtCompletion} /> : null],
-            ['Against original deadline', c.originalDeadlineResult ?? null], ['Cancellation reason', c.cancelReason]
+            ['Against original deadline', c.originalDeadlineResult ? label(c.originalDeadlineResult) : null], ['Cancellation reason', c.cancelReason]
           ]} />
         </Panel>
       </div>
@@ -152,7 +152,7 @@ export function CommitmentDetail() {
       {dialog === 'revise' && <ActionDialog title="Revise deadline" path={`/commitments/${id}/revise`} version={c.version} onClose={close} submitLabel="Revise" intro="The original and every earlier deadline are kept."
         initial={{ dueLocal: toLocalInput(c.currentDueAt).length ? c.currentDueLocal.slice(0, 16).replace(' ', 'T') : '', timeZone: c.timeZone }}
         fields={[{ name: 'dueLocal', label: 'New deadline (local time)', kind: 'datetime', required: true }, { name: 'timeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
-      {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro="Completion after the deadline stays Completed, with a derived late result. The time cannot be in the future or before the deadline."
+      {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro={`Completed before or by the deadline counts as on time; after it stays Completed with a derived late result. The time cannot be in the future or before the commitment was created (${fmtDateTime(c.createdAt)}).`}
         initial={{ completedAt: toLocalInput(new Date().toISOString()) }}
         fields={[{ name: 'completedAt', label: 'Fulfilled at', kind: 'datetime', required: true }, { name: 'evidence', label: 'Evidence or reference (optional)', kind: 'textarea' }]}
         transform={v => ({ completedAt: fromLocalInput(v.completedAt), evidence: v.evidence })} />}

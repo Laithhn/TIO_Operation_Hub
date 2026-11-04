@@ -26,7 +26,7 @@ export function NotificationBell() {
   return (
     <div className="bell" ref={root}>
       <button ref={btn} className="hdr-btn bell-btn" onClick={() => setOpen(o => !o)} onPointerEnter={preload} onFocus={preload} aria-haspopup="dialog" aria-expanded={open} aria-label={n ? `Notifications, ${n} unread` : 'Notifications'} title="Notifications">
-        <Icon name="bell" size={18} />{n > 0 && <span className="bell-count" aria-hidden="true">{n > 99 ? '99+' : n}</span>}
+        <Icon name="bell" size={24} />{n > 0 && <span className="bell-count" aria-hidden="true">{n > 99 ? '99+' : n}</span>}
       </button>
       {open && (
         <LoadBoundary className="bell-pop">

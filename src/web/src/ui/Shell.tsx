@@ -197,6 +197,15 @@ export function Shell({ children }: { children: ReactNode }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [mini, setMini] = useState(() => { try { return localStorage.getItem('tiohub.side-mini') === '1'; } catch { return false; } });
   const [palette, setPalette] = useState(false);
+  const searchButton = useRef<HTMLButtonElement>(null);
+  const paletteOpener = useRef<HTMLElement | null>(null);
+  const paletteLeft = useRef(false);
+  const openPalette = useCallback(() => {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && active.closest('.palette')) return; // already open: keep the element it returns to
+    paletteOpener.current = active instanceof HTMLElement && active !== document.body ? active : null;
+    setPalette(true);
+  }, []);
   // MainToolbar portals into #viMainToolbar, so pages render once the frame is in the DOM.
   const [framed, setFramed] = useState(false);
   useLayoutEffect(() => setFramed(true), []);
@@ -259,11 +268,17 @@ export function Shell({ children }: { children: ReactNode }) {
     const k = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLElement && (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName) || e.target.isContentEditable);
       // Ctrl+K (some browsers reserve it) or "/" outside text fields opens search.
-      if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey)) { e.preventDefault(); setPalette(true); }
+      if (((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') || (e.key === '/' && !typing && !e.ctrlKey && !e.metaKey)) { e.preventDefault(); openPalette(); }
     };
     document.addEventListener('keydown', k);
     return () => document.removeEventListener('keydown', k);
-  }, []);
+  }, [openPalette]);
+  // Dismissing search returns focus to where it was (the search button if that has gone); leaving for a result moves it to the new page.
+  const wasPalette = useRef(false);
+  useEffect(() => {
+    if (wasPalette.current && !palette) (paletteLeft.current ? document.getElementById('main') : paletteOpener.current?.isConnected ? paletteOpener.current : searchButton.current)?.focus();
+    wasPalette.current = palette;
+  }, [palette]);
 
   const toggleMini = () => { const n = !mini; setMini(n); try { localStorage.setItem('tiohub.side-mini', n ? '1' : '0'); } catch { /* storage blocked */ } };
   const switchDev = (acct: string) => { document.cookie = `tiohub-dev-user=${encodeURIComponent(acct)}; path=/; SameSite=Strict`; window.location.href = '/'; };
@@ -330,7 +345,7 @@ export function Shell({ children }: { children: ReactNode }) {
             { label: 'Note', to: '/notes' },
             { label: 'Product', to: '/products/new', hidden: !hasRight(me, 'Products', 'Create') }
           ]} /></div>}
-          <button className={f.secondaryNode.menuNode} onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
+          <button className={f.secondaryNode.menuNode} ref={searchButton} onClick={openPalette} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
             <Icon name="search" size={24} />
           </button>
           {hasRight(me, 'Notifications', 'View') && <NotificationBell />}
@@ -393,7 +408,7 @@ export function Shell({ children }: { children: ReactNode }) {
           <span className="online"><Icon name="online" size={16} />Server Online</span>
         </span>
       </footer>
-      {palette && <Suspense fallback={null}><SearchPalette onClose={() => setPalette(false)} /></Suspense>}
+      {palette && <Suspense fallback={null}><SearchPalette onClose={() => { paletteLeft.current = false; setPalette(false); }} onNavigate={() => { paletteLeft.current = true; setPalette(false); }} /></Suspense>}
     </div>
   );
 }

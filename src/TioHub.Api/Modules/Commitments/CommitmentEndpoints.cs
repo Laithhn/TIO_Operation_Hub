@@ -197,7 +197,8 @@ public static class CommitmentEndpoints
             return Results.NoContent();
         });
 
-        // Completion time is allowed before creation for backfilled records, but cannot precede the deadline or be in the future.
+        // A91: a commitment can be fulfilled early, on time or late. The time only has to fall between the commitment's creation and now;
+        // the one-minute margins match the minute precision of the form. Timeliness is derived from the deadline, never validated against it.
         g.MapPost("/{id:long}/complete", async (long id, CompleteInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Commitments.Include(x => x.Events).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The commitment");
@@ -207,7 +208,7 @@ public static class CommitmentEndpoints
             var now = clock.GetUtcNow();
             var check = new Check().When(input.CompletedAt is null, "completedAt", "Enter when the commitment was fulfilled.")
                 .When(input.CompletedAt > now.AddMinutes(1), "completedAt", "The completion time cannot be in the future.")
-                .When(input.CompletedAt < c.CurrentDueAt, "completedAt", "The completion time cannot be before the commitment deadline.")
+                .When(input.CompletedAt < c.CreatedAt.AddMinutes(-1), "completedAt", "The completion time cannot be before the commitment was created.")
                 .Text("evidence", input.Evidence, 1000, "the completion evidence or reference");
             check.ThrowIfAny();
             c.Status = CommitmentStatus.Completed;

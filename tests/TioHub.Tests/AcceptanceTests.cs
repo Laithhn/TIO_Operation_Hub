@@ -546,11 +546,11 @@ public class AC08_Commitments(HubFactory hub) : Scenario(hub)
         string V() => m.Version($"/commitments/{id}").GetAwaiter().GetResult();
         Assert.NotNull((await m.Post($"/commitments/{id}/revise", new { dueLocal = Future(8) }, V())).Error("reason"));
         await m.Ok($"/commitments/{id}/revise", new { dueLocal = Future(-2), reason = "Customer agreed earlier date" }, V());
-        // Completion in the future refused; late completion stays Completed with a derived late result.
+        // Completion in the future or before the commitment existed is refused; late completion stays Completed with a derived late result.
         Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddHours(2), evidence = "mail" }, V())).Error("completedAt"));
-        // A backfilled completion may predate creation, provided it is not before the deadline; evidence is optional.
         Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddDays(-3) }, V())).Error("completedAt"));
-        var backfilled = DateTimeOffset.UtcNow.AddDays(-1);
+        // Evidence is optional.
+        var backfilled = DateTimeOffset.UtcNow;
         await m.Ok($"/commitments/{id}/complete", new { completedAt = backfilled }, V());
         c = (await m.Get($"/commitments/{id}")).Body!;
         Assert.Equal("Completed", c["status"]!.GetValue<string>());

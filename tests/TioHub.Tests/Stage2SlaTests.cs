@@ -158,7 +158,7 @@ public class Stage2SlaRecoveryTests(HubFactory hub) : Scenario(hub)
         await db.Cases.Where(c => c.Id == validId || c.Id == historicalId).ExecuteUpdateAsync(s => s.SetProperty(c => c.CreatedAt, opened)
             .SetProperty(c => c.ResponseDueAt, (DateTimeOffset?)null).SetProperty(c => c.ResolutionDueAt, (DateTimeOffset?)null)
             .SetProperty(c => c.ResponseSlaStatus, SlaState.NotMeasurable).SetProperty(c => c.ResolutionSlaStatus, SlaState.NotMeasurable)
-            .SetProperty(c => c.Status, CaseStatus.Closed).SetProperty(c => c.SlaCalculatedAt, opened.AddDays(1)));
+            .SetProperty(c => c.Status, CaseStatus.Closed).SetProperty(c => c.StatusCode, "Closed").SetProperty(c => c.SlaCalculatedAt, opened.AddDays(1)));
         await db.Cases.Where(c => c.Id == validId).ExecuteUpdateAsync(s => s.SetProperty(c => c.FirstResponseAt, opened.AddMinutes(61)).SetProperty(c => c.ResolvedAt, opened.AddHours(3)));
         await db.Cases.Where(c => c.Id == historicalId).ExecuteUpdateAsync(s => s.SetProperty(c => c.CreatedAt, opened.AddYears(-10)));
         await db.Set<ContractPenaltyClause>().Where(c => c.ContractId == contract).ExecuteUpdateAsync(s => s.SetProperty(c => c.FixedAmount, 500m));

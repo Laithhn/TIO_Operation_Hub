@@ -89,7 +89,7 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
             noDeadline = open.Count(c => c.DueAt == null)
         };
         var all = Cases(baseCase with { Status = "all" });
-        var opened = await all.Where(c => c.CreatedAt >= pf && c.CreatedAt < pt).Select(c => c.CreatedAt).ToListAsync(ct);
+        var opened = await all.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) >= pf && (c.SlaClockStartAt ?? c.CreatedAt) < pt).Select(c => c.SlaClockStartAt ?? c.CreatedAt).ToListAsync(ct);
         var closed = await all.Where(c => c.ClosedAt != null && c.ClosedAt >= pf && c.ClosedAt < pt).Select(c => new { At = c.ClosedAt!.Value, c.DueAt }).ToListAsync(ct);
         var withDue = closed.Where(c => c.DueAt != null).ToList();
         var caseTrend = buckets.Select(b => new Point(b.Key, b.Label, opened.Count(x => x >= b.From && x < b.To), closed.Count(x => x.At >= b.From && x.At < b.To))).ToList();
@@ -99,12 +99,12 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
         var slaRows = await Cases(slaFilter with { CreatedFrom = pf, CreatedTo = pt }).Where(c => c.Status != CaseStatus.Cancelled)
             .Select(c => new
             {
-                c.CreatedAt, c.Priority, c.ContractId, contractRef = c.Contract == null ? null : c.Contract.Ref, contractTitle = c.Contract == null ? null : c.Contract.Title,
+                OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, c.Priority, c.ContractId, contractRef = c.Contract == null ? null : c.Contract.Ref, contractTitle = c.Contract == null ? null : c.Contract.Title,
                 client = c.Client == null ? null : c.Client.Code, c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt
             }).ToListAsync(ct);
         var measured = slaRows.Where(r => r.ContractId != null).Select(r => new
         {
-            r.CreatedAt, r.Priority, r.ContractId, r.contractRef, r.contractTitle, r.client,
+            r.OpenedAt, r.Priority, r.ContractId, r.contractRef, r.contractTitle, r.client,
             Response = CaseSla.Now(r.ResponseSlaStatus, r.ResponseDueAt, now), Resolution = CaseSla.Now(r.ResolutionSlaStatus, r.ResolutionDueAt, now)
         }).ToList();
         static object Tally(IEnumerable<SlaState> states)
@@ -148,7 +148,7 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
             }).ToList(),
             trend = buckets.Select(b =>
             {
-                var inB = measured.Where(r => r.CreatedAt >= b.From && r.CreatedAt < b.To).ToList();
+                var inB = measured.Where(r => r.OpenedAt >= b.From && r.OpenedAt < b.To).ToList();
                 return new SlaPoint(b.Key, b.Label, inB.Count(r => r.Response == SlaState.Met), inB.Count(r => Done(r.Response)),
                     inB.Count(r => r.Resolution == SlaState.Met), inB.Count(r => Done(r.Resolution)));
             }).ToList()

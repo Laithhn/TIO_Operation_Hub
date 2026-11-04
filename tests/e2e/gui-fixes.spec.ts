@@ -233,13 +233,13 @@ test.describe('GUI-09 Filter badge', () => {
     // A value: counted and applied.
     await value().fill('1');
     await expect(badge).toHaveText('Filter (1)');
-    await expect(count).toHaveText(new RegExp(`^\\d+ of ${total} rows?$`));
+    await expect(count).toHaveText(new RegExp(`^\\d+ of ${total} rows?( on this page)?$`));
     const shown = Number((await count.innerText()).match(/^\d+/)![0]);
     await expect(page.locator(VT_ROW)).toHaveCount(Math.min(shown, 25));
     // Explicit "Empty": counted without a value, and applied.
     await operator.selectOption('empty');
     await expect(badge).toHaveText('Filter (1)');
-    await expect(count).toHaveText(new RegExp(`^\\d+ of ${total} rows?$`));
+    await expect(count).toHaveText(new RegExp(`^\\d+ of ${total} rows?( on this page)?$`));
     // Clear resets both.
     await page.getByRole('button', { name: 'Clear', exact: true }).click();
     await expect(badge).toHaveText('Filter');

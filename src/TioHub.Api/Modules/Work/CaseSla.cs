@@ -132,7 +132,7 @@ public static class SlaClock
 
 /// <summary>
 /// A61: contractual SLA measurement of a case.
-/// Start = case creation. Response = first qualifying response to the customer (recorded explicitly, never derived from internal notes
+/// Start = when the case was opened (A78, A91: the Jira creation time of a synchronized case). Response = first qualifying response to the customer (recorded explicitly, never derived from internal notes
 /// or system events). Resolution = the first move into Pending validation or Closed; a rejected validation (resume) clears it, a later
 /// reopen does not (first-resolution policy). Targets, basis and calendar are copied from the contract when the contract is set or the
 /// priority changes, so later contract edits never rewrite earlier results. Met = at or before the deadline.
@@ -204,12 +204,12 @@ public static class CaseSla
         if (c.Scope == WorkScope.Internal || c.ClientId is null) { rState = xState = SlaState.NotApplicable; note = "Internal work has no contractual SLA."; }
         else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this case."; }
         else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The case was cancelled."; }
-        else if (c.SlaContractStart is { } contractStart && DateOnly.FromDateTime((c.SlaClockStartAt ?? c.CreatedAt).UtcDateTime) < contractStart) { rState = xState = SlaState.NotApplicable; note = $"The case was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }
+        else if (BeforeContract(c) && c.SlaContractStart is { } contractStart) { rState = xState = SlaState.NotApplicable; note = $"The case was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }
         else
         {
             var (cal, problem) = Calendar(c);
             var pauses = Pauses(c, waits, now);
-            var start = c.SlaClockStartAt ?? c.CreatedAt;
+            var start = c.OpenedAt;
             (SlaState, DateTimeOffset?, int?) Measure(int? minutes, DateTimeOffset? actual, string what, bool untracked)
             {
                 if (minutes is null) { note ??= $"{c.SlaContractRef} has no {what} target for {c.SlaPriority} priority."; return (SlaState.NotMeasurable, null, null); }
@@ -233,10 +233,20 @@ public static class CaseSla
         c.SlaPausedMinutes = paused; c.SlaNote = note;
         // A78: a synchronized case under a contract is due when its resolution SLA is.
         if (c.SlaClockStartAt is not null && xDue is not null) { c.DueAt = xDue; c.DueTimeZone = c.SlaTimeZone ?? "UTC"; }
+        // A91: when it stops being measured, a due date taken from the earlier resolution deadline goes with it; it would still count as overdue.
+        // Work opened before its contract has no deadline at all: 2.51.1 cleared the deadline and left its due date, so the deadline cannot be compared there.
+        else if (c.SlaClockStartAt is not null && (rState == SlaState.NotApplicable && c.Scope == WorkScope.Client && c.ClientId is not null && c.ContractId is not null && c.Status != CaseStatus.Cancelled && BeforeContract(c)
+            || (before.ResolutionDueAt is not null && c.DueAt == before.ResolutionDueAt))) { c.DueAt = null; c.DueTimeZone = null; }
         var changed = before != (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote, c.DueAt);
         if (changed || c.SlaCalculatedAt is null) c.SlaCalculatedAt = now;
         return changed;
     }
+
+    /// <summary>A91: the calendar day the case was opened, in the contract's support time zone, to compare with the contract's start date.</summary>
+    private static DateOnly OpenedDay(Case c) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(c.OpenedAt, Zone(c.SlaTimeZone) ?? TimeZoneInfo.Utc).DateTime);
+
+    /// <summary>A90: the case was opened before the contract's start date, so it is not measured against that contract.</summary>
+    private static bool BeforeContract(Case c) => c.SlaContractStart is { } start && OpenedDay(c) < start;
 
     /// <summary>The state a stored result has now: a pending obligation whose deadline passed counts as breached even before the next sweep.</summary>
     public static SlaState Now(SlaState stored, DateTimeOffset? due, DateTimeOffset now) => stored == SlaState.Pending && due < now ? SlaState.Breached : stored;
@@ -399,7 +409,9 @@ public sealed class SlaSweep(IServiceScopeFactory scopes, IConfiguration config,
         }
         var cases = await db.Cases.IgnoreQueryFilters()
             .Where(c => (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now) || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now)
-                || ((c.ResponseSlaStatus == SlaState.Pending || c.ResolutionSlaStatus == SlaState.Pending) && c.SlaPauseOnCustomerWaiting && c.WaitingReason == WaitingReason.Customer))
+                || ((c.ResponseSlaStatus == SlaState.Pending || c.ResolutionSlaStatus == SlaState.Pending) && c.SlaPauseOnCustomerWaiting && c.WaitingReason == WaitingReason.Customer)
+                // A91: synchronized work not measured, still holding a due date from an earlier deadline (left by 2.51.1).
+                || (c.SlaClockStartAt != null && c.DueAt != null && c.ContractId != null && c.SlaContractStart != null && c.Scope == WorkScope.Client && c.Status != CaseStatus.Cancelled && c.ResolutionSlaStatus == SlaState.NotApplicable))
             .Take(500).ToListAsync(ct);
         cases = cases.Concat(repairs).DistinctBy(c => c.Id).ToList();
         if (cases.Count == 0) return cleared;

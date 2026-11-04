@@ -54,10 +54,12 @@ public class Case : Entity, IClientOwned, IAccountable
     public DateTimeOffset? ClosedAt { get; set; }
     public DateTimeOffset? CancelledAt { get; set; }
     public int ReopenCount { get; set; }
-    /// <summary>Start of the current cycle after a reopen; creation time otherwise. Age since creation is kept separately (Section 7).</summary>
+    /// <summary>Start of the current cycle after a reopen; creation time otherwise. Age since opening is kept separately (Section 7, A91).</summary>
     public DateTimeOffset CycleStartedAt { get; set; }
     /// <summary>A78: when the Jira issue was created. The SLA clock of a synchronized case starts here instead of at the hub's creation time.</summary>
     public DateTimeOffset? SlaClockStartAt { get; set; }
+    /// <summary>A91: when the case was opened: the Jira creation time of a synchronized case, otherwise the hub creation time (<c>CreatedAt</c>, the import time of an imported case). Case age and opened reporting use it. Not stored: database queries write <c>c.SlaClockStartAt ?? c.CreatedAt</c>.</summary>
+    public DateTimeOffset OpenedAt => SlaClockStartAt ?? CreatedAt;
     /// <summary>A79: the client's contact the Jira issue is assigned to. The case waits on the customer while this is set; the owner stays accountable.</summary>
     public string? ClientRepresentative { get; set; }
     /// <summary>A80: the Vitronic team member the Jira issue is assigned to, when that person has no hub account and so cannot be the owner.</summary>

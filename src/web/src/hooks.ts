@@ -59,6 +59,7 @@ export function useTypes() {
   const ref = useReference().data;
   const all = (list: string) => ref?.lookups[list] ?? [];
   return {
+    all,
     name: (list: string, code?: string | null) => (code ? all(list).find(l => l.code === code)?.label ?? label(code) : ''),
     category: (list: string, code?: string | null) => (code ? all(list).find(l => l.code === code)?.category ?? code : undefined),
     options: (list: string, keep?: string | null) => all(list).filter(l => !l.isRetired || l.code === keep).map(l => ({ value: l.code, label: l.label })),

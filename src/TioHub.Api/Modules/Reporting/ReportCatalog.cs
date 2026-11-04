@@ -158,7 +158,7 @@ public static class ReportCatalog
                 new("status", "Status", FilterKind.Select, Options: ["open", "all", "done", .. Names<CaseStatus>()], Hint: "Empty = open cases."),
                 new("priority", "Priority", FilterKind.Select, Options: Names<Priority>()),
                 new("scope", "Work scope", FilterKind.Select, Options: Names<WorkScope>()),
-                .. Range("createdFrom", "createdTo", "Created"),
+                .. Range("createdFrom", "createdTo", "Opened", hint: "The Jira creation time of a synchronized case, otherwise the hub creation time."),
                 new("due", "Deadline", FilterKind.Select, true, ["overdue", "24h", "upcoming", "none"]),
                 new("waiting", "Waiting only", FilterKind.Bool, true), new("q", "Title or reference contains", FilterKind.Text, true)],
             ListKeys = ["regionId", "environmentId", "unassigned", "reviewOverdue", "stale", "jiraKey", "coverageGap", "deactivatedOwner", "country", "contractId", "sla", "asOf", "jiraSource", "jiraSpace", "jiraConnectionId"],
@@ -167,12 +167,12 @@ public static class ReportCatalog
                 new("Reference", "Hub case reference", r => r.Ref),
                 new("Title", "Case title", r => r.Title), new("Type", "Case type", r => r.Type), new("Scope", "Client-related or Internal", r => r.Scope),
                 new("Client", "Client alias; empty for internal work", r => r.ClientCode), new("Team", "Responsible team", r => r.TeamName),
-                new("Status", "Hub status (independent of Jira)", r => r.Status), new("Priority", "Priority", r => r.Priority),
+                new("Status", "Configured case status, as in the case list; a synchronized case follows Jira", r => r.StatusCode), new("Priority", "Priority", r => r.Priority),
                 new("Owner", "Accountable owner or Unassigned", r => r.OwnerName ?? "Unassigned"), new("Owner deactivated", "Owner account deactivated", r => r.OwnerDeactivated),
                 new("Waiting", "Recorded waiting reason; the operational due date is not paused", r => r.WaitingReason), new("Next action", "Next action", r => r.NextAction),
                 new("Next review", "Next review time", r => r.NextReviewAt), new("Due", "Due time; empty = no deadline (not overdue)", r => r.DueAt),
                 new("Overdue", "Open with due time strictly before the evaluation time", r => r.Overdue), new("Stale", "Meaningful review older than policy or next review passed", r => r.Stale),
-                new("Jira keys", "Manual Jira references (instance + key)", r => string.Join(" ", r.JiraKeys)), new("Created", "Creation time", r => r.CreatedAt),
+                new("Jira keys", "Manual Jira references (instance + key)", r => string.Join(" ", r.JiraKeys)), new("Opened", "Jira creation time of a synchronized case, otherwise hub creation time", r => r.OpenedAt), new("Added to hub", "When the hub record was created; the import time of an imported case", r => r.CreatedAt),
                 new("Contract", "Contract whose SLA applies (A61)", r => r.ContractRef), new("Response SLA", "Contractual first-response outcome", r => r.ResponseSla),
                 new("Resolution SLA", "Contractual resolution outcome", r => r.ResolutionSla)]
         });
@@ -373,10 +373,10 @@ public static class ReportCatalog
                 var rows = await (await Cases(x, f, ct)).Where(c => c.Status != CaseStatus.Cancelled).OrderBy(c => c.Id).Select(c => new
                 {
                     c.Ref, c.Title, client = c.Client == null ? null : c.Client.Code, contract = c.Contract == null ? null : c.Contract.Ref, c.Priority, team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name,
-                    owner = c.Owner == null ? null : c.Owner.DisplayName, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.CreatedAt,
+                    owner = c.Owner == null ? null : c.Owner.DisplayName, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, OpenedAt = c.SlaClockStartAt ?? c.CreatedAt,
                     c.ResponseDueAt, c.FirstResponseAt, c.ResponseSlaStatus, c.ResolutionDueAt, c.ResolvedAt, c.ResolutionSlaStatus
                 }).ToListAsync(ct);
-                return rows.Select(r => new SlaRow(r.Ref, r.Title, r.client, r.contract, r.Priority.ToString(), r.team, r.owner ?? "Unassigned", r.CreatedAt,
+                return rows.Select(r => new SlaRow(r.Ref, r.Title, r.client, r.contract, r.Priority.ToString(), r.team, r.owner ?? "Unassigned", r.OpenedAt,
                     r.ResponseDueAt, r.FirstResponseAt, CaseSla.Now(r.ResponseSlaStatus, r.ResponseDueAt, x.Now), r.ResolutionDueAt, r.ResolvedAt, CaseSla.Now(r.ResolutionSlaStatus, r.ResolutionDueAt, x.Now),
                     (r.ResponseSlaStatus == SlaState.Pending && r.ResponseDueAt >= x.Now && r.ResponseDueAt <= x.Now.AddHours(24)) || (r.ResolutionSlaStatus == SlaState.Pending && r.ResolutionDueAt >= x.Now && r.ResolutionDueAt <= x.Now.AddHours(24)),
                     r.ClientId, r.ResponsibleTeamId, r.OwnerUserId)).ToList();
@@ -455,15 +455,15 @@ public static class ReportCatalog
             Load = async (x, ct) =>
             {
                 var f = new CaseFilter(ClientId: x.L("clientId"), ProductId: x.L("productId"), TeamId: x.L("teamId"), OwnerId: x.L("ownerId"), Priority: x.E<Priority>("priority"));
-                var rows = await (await Cases(x, f, ct)).OrderBy(c => c.CreatedAt).Select(c => new
+                var rows = await (await Cases(x, f, ct)).OrderBy(c => c.SlaClockStartAt ?? c.CreatedAt).Select(c => new
                 {
-                    c.Ref, c.Title, client = c.Client == null ? "Internal" : c.Client.Code, c.Priority, c.Status, owner = c.Owner == null ? null : c.Owner.DisplayName,
-                    team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, c.ClientId, c.OwnerUserId, c.CreatedAt, c.DueAt
+                    c.Ref, c.Title, client = c.Client == null ? "Internal" : c.Client.Code, c.Priority, c.StatusCode, owner = c.Owner == null ? null : c.Owner.DisplayName,
+                    team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, c.ClientId, c.OwnerUserId, OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, c.DueAt
                 }).ToListAsync(ct);
                 return rows.Select(r =>
                 {
-                    var age = (int)Math.Floor((x.Now - r.CreatedAt).TotalDays);
-                    return new AgingRow(r.Ref, r.Title, r.client, r.Priority.ToString(), r.Status.ToString(), r.owner ?? "Unassigned", r.team, r.CreatedAt, age, Bucket(age), r.DueAt, r.DueAt < x.Now, r.ClientId, r.OwnerUserId);
+                    var age = (int)Math.Floor((x.Now - r.OpenedAt).TotalDays);
+                    return new AgingRow(r.Ref, r.Title, r.client, r.Priority.ToString(), r.StatusCode, r.owner ?? "Unassigned", r.team, r.OpenedAt, age, Bucket(age), r.DueAt, r.DueAt < x.Now, r.ClientId, r.OwnerUserId);
                 }).ToList();
             },
             Summarize = (x, rows) =>
@@ -473,7 +473,7 @@ public static class ReportCatalog
                     new("Open cases", rows.Count.ToString(CultureInfo.InvariantCulture), "Cases not closed or cancelled."),
                     new("Overdue", rows.Count(r => r.Overdue).ToString(CultureInfo.InvariantCulture), "Due date passed.", rows.Any(r => r.Overdue) ? "bad" : null),
                     new("Unassigned", rows.Count(r => r.OwnerId == null).ToString(CultureInfo.InvariantCulture), "No accountable owner.", rows.Any(r => r.OwnerId == null) ? "warn" : null),
-                    new("Average age", rows.Count == 0 ? "Not available" : $"{Math.Round(rows.Average(r => r.AgeDays), 1).ToString(CultureInfo.InvariantCulture)} days", "Since creation."),
+                    new("Average age", rows.Count == 0 ? "Not available" : $"{Math.Round(rows.Average(r => r.AgeDays), 1).ToString(CultureInfo.InvariantCulture)} days", "Since the case was opened."),
                     new("Older than 90 days", rows.Count(r => r.AgeDays > 90).ToString(CultureInfo.InvariantCulture), "Long-running backlog.", rows.Any(r => r.AgeDays > 90) ? "warn" : null)
                 };
                 string[] buckets = ["0–7 days", "8–30 days", "31–90 days", "Over 90 days"];
@@ -485,8 +485,8 @@ public static class ReportCatalog
             },
             Cols = [
                 new("Reference", "Case reference", r => r.Ref), new("Title", "Case title", r => r.Title), new("Client", "Client alias or Internal", r => r.Client), new("Priority", "Priority", r => r.Priority),
-                new("Status", "Hub status", r => r.Status), new("Owner", "Owner or Unassigned", r => r.Owner), new("Team", "Responsible team", r => r.Team), new("Created", "Creation time", r => r.Created),
-                new("Age (days)", "Whole days since creation", r => r.AgeDays), new("Age bucket", "0–7, 8–30, 31–90 or over 90 days", r => r.Bucket), new("Due", "Due time; empty = no deadline", r => r.Due),
+                new("Status", "Configured case status, as in the case list", r => r.Status), new("Owner", "Owner or Unassigned", r => r.Owner), new("Team", "Responsible team", r => r.Team), new("Opened", "Jira creation time of a synchronized case, otherwise hub creation time", r => r.Created),
+                new("Age (days)", "Whole days since the case was opened", r => r.AgeDays), new("Age bucket", "0–7, 8–30, 31–90 or over 90 days", r => r.Bucket), new("Due", "Due time; empty = no deadline", r => r.Due),
                 new("Overdue", "Due time passed", r => r.Overdue)]
         });
 

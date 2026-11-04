@@ -722,6 +722,57 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_due_date_left_on_work_opened_before_the_contract_is_cleared_by_the_sweep()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var contract = await ActiveContractAsync(f.ClientId);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        _jira.Add("198", "TAH-198");
+        _jira.Change("198", i => i with { CreatedAt = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero) });
+        await RunAsync(f.SpaceId);
+        var id = (await CaseOfAsync(f.ConnectionId, "198"))!.Id;
+        // What 2.51.1 leaves behind: not measured, with the due date of its earlier deadline.
+        var stale = new DateTimeOffset(2020, 1, 2, 0, 0, 0, TimeSpan.Zero);
+        await Db(db => db.Cases.IgnoreQueryFilters().Where(c => c.Id == id).ExecuteUpdateAsync(s => s.SetProperty(c => c.DueAt, stale)));
+        Assert.True((await manager.Get($"/cases/{id}")).Body!["overdue"]!.GetValue<bool>());
+
+        await Db(db => SlaSweep.SweepAsync(db, DateTimeOffset.UtcNow, CancellationToken.None));
+        var after = (await manager.Get($"/cases/{id}")).Body!;
+        Assert.Null(after["dueAt"]);
+        Assert.False(after["overdue"]!.GetValue<bool>());
+        Assert.Equal("NotApplicable", after["sla"]!["resolution"]!["status"]!.GetValue<string>());
+    }
+
+    [Fact]
+    public async Task An_imported_case_shows_the_jira_creation_as_its_opening_and_clock_start()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var contract = await ActiveContractAsync(f.ClientId);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        var created = DateTimeOffset.UtcNow.AddDays(-200);
+        _jira.Add("197", "TAH-197");
+        _jira.Change("197", i => i with { CreatedAt = created });
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "197");
+        var body = (await manager.Get($"/cases/{c!.Id}")).Body!;
+
+        Assert.Equal(created, body["openedAt"]!.GetValue<DateTimeOffset>());
+        Assert.True(body["openedFromJira"]!.GetValue<bool>());
+        Assert.True(body["createdAt"]!.GetValue<DateTimeOffset>() > DateTimeOffset.UtcNow.AddHours(-1)); // the import
+        Assert.InRange(body["ageDays"]!.GetValue<double>(), 199.5, 200.5);
+
+        var sla = body["sla"]!;
+        Assert.Equal(created, sla["startAt"]!.GetValue<DateTimeOffset>());
+        Assert.True(sla["startsAtJiraCreation"]!.GetValue<bool>());
+        // What is shown as the clock start is what the deadline was counted from, and the source issue says the same.
+        Assert.Equal(created, c.SlaClockStartAt);
+        Assert.True(sla["resolution"]!["dueAt"]!.GetValue<DateTimeOffset>() < DateTimeOffset.UtcNow.AddDays(-100));
+        Assert.Equal(created, body["jiraSource"]!["jiraCreatedAt"]!.GetValue<DateTimeOffset>());
+    }
+
+    [Fact]
     public async Task A_failed_import_says_why()
     {
         Assert.Equal("Select an active team.", JiraSyncService.FailureReason(new ValidationException("team", "Select an active team.")));

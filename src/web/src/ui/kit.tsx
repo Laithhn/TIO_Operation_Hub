@@ -525,8 +525,9 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
           <Toolbar alignItems="center" paddingTop="xs" paddingBottom="xs" paddingLeft="normal" paddingRight="normal">
             <ToolbarContrItem columnGap="small" alignItems="center">
               <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
-                aria-label="Filter rows" />
-              <span className="muted table-count" aria-live="polite">{loading ? 'Loading…' : <>{needle || activeFilters ? `${sorted.length} of ${total}` : `${total}`} row{(needle || activeFilters ? sorted.length : total) === 1 ? '' : 's'}</>}</span>
+                aria-label={server ? 'Filter rows on this page only' : 'Filter rows'} aria-describedby={server ? `${tableId}-scope` : undefined} />
+              {server && <span id={`${tableId}-scope`} className="sr-only">Only the rows loaded on this page are filtered; other pages are not searched.</span>}
+              <span className="muted table-count" aria-live="polite">{loading ? 'Loading…' : <>{needle || activeFilters ? `${sorted.length} of ${total}` : `${total}`} row{total === 1 ? '' : 's'}{server && (needle || activeFilters) ? ' on this page' : ''}</>}</span>
             </ToolbarContrItem>
             <ToolbarContrItem justifySelf="end" columnGap="small" alignItems="center">
               <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
@@ -541,6 +542,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
         <ToolbarCard anchor={filterButton} width={500} label={`${caption ?? 'Table'} filters`} onClose={() => setShowFilters(false)}
           actions={close => <><Button type="tinted" text="Clear" onClick={clearFilters} /><Button type="filled" text="Close" onClick={() => close(true)} /></>}>
           <div className="vt-filter-card">
+            {server && <p className="hint">Text conditions filter the rows on this page only. A list or search of its own, such as Status or a search field, covers the whole list.</p>}
             {columns.filter(c => !!c.filter || headerText(c).length > 0).map(c => {
               const headerName = headerText(c) || 'column';
               const suggestionId = `${tableId}-filter-${c.key}`;
@@ -648,7 +650,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
       )}
       <div className="sr" role="status" aria-live="polite">{announce}</div>
       {!loading && !error && rows?.length === 0 && <div className="vt-table-state"><StateMessage kind={empty} /></div>}
-      {hasRows && shown.length === 0 && <div className="vt-table-state"><StateMessage kind="nomatch" /></div>}
+      {hasRows && shown.length === 0 && <div className="vt-table-state"><StateMessage kind="nomatch" />{server && <p className="hint">Only this page was filtered. Other pages may have matching rows.</p>}</div>}
       {showTools && !server && sorted.length > Math.min(size, 25) && (
         <nav className="pager table-pager" aria-label={`${caption ?? 'Table'} pages`}>
           <span>{(cur - 1) * size + 1} – {Math.min(cur * size, sorted.length)} of {sorted.length}</span>

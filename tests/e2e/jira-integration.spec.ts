@@ -305,7 +305,7 @@ test.describe('Cases table columns', () => {
     const headers = table.getByRole('columnheader');
     await expect(headers.first()).toBeVisible();
     const shown = (await headers.allInnerTexts()).map(t => t.trim().split('\n')[0]).filter(t => t && t !== 'Actions');
-    expect(shown).toEqual(['Client / scope', 'Work', 'Assignee', 'Reporter', 'Priority', 'Status', 'Resolution', 'Created', 'Updated', 'Due date', 'Jira', 'Contractual SLA']);
+    expect(shown).toEqual(['Client / scope', 'Work', 'Assignee', 'Reporter', 'Priority', 'Status', 'Resolution', 'Opened', 'Updated', 'Due date', 'Jira', 'Contractual SLA']);
     await shot(page, 'cases-columns');
 
     await page.getByRole('button', { name: 'Columns' }).click();

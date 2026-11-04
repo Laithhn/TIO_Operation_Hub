@@ -304,8 +304,7 @@ function Band({ id, icon, title, hint, children }: { id: string; icon: string; t
 }
 
 function CaseCharts({ d, age, cc }: { d: InsightsT; age: Dash['caseAge']; cc: CC }) {
-  const caseStatusLabel = useEnumLabel('CaseStatus');
-  const byStatus = d.cases.byStatus.map(c => ({ ...c, label: caseStatusLabel(c.key) }));
+  const byStatus = d.cases.byStatus;
   const r = cc.cases.risk;
   const risk: BarT[] = [
     { key: 'breached', label: 'Past due', value: r.breached, link: '/cases?due=overdue' },
@@ -326,14 +325,14 @@ function CaseCharts({ d, age, cc }: { d: InsightsT; age: Dash['caseAge']; cc: CC
         <VizPanel title="Open cases by priority" sub="Darker = more urgent. Click a slice for the list." table={tableOf(d.cases.byPriority)}>
           <Donut data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key] ?? RAMP[1]} centerLabel="open cases" />
         </VizPanel>
-        <VizPanel title="Open cases by status" sub="Waiting is tracked separately; it is not a status." table={tableOf(byStatus)}>
+        <VizPanel title="Open cases by status" sub="The status shown on each case, as in the case list and the report builder. Waiting for customer is a status; other waiting reasons keep the case's status." table={tableOf(byStatus)}>
           <HBars data={byStatus} unit="case(s)" empty="No open cases." />
         </VizPanel>
         <VizPanel title="Age of open cases" table={tableOf(d.cases.age, 'Open cases')}
-          sub={<>Average {age.averageDays ?? '—'}{age.averageDays !== null && ' days'}, oldest {age.oldestDays ?? '—'}{age.oldestDays !== null && ' days'}.</>}>
+          sub={<>Since opening: the Jira creation time of a synchronized case, otherwise the hub creation time. Average {age.averageDays ?? '—'}{age.averageDays !== null && ' days'}, oldest {age.oldestDays ?? '—'}{age.oldestDays !== null && ' days'}.</>}>
           <Columns data={d.cases.age} unit="case(s)" height={140} />
         </VizPanel>
-        <VizPanel title={`Cases opened and closed — ${PERIOD_LABEL[cc.period.name]}`} sub={`Per ${cc.period.unit}, in your time zone.`}
+        <VizPanel title={`Cases opened and closed — ${PERIOD_LABEL[cc.period.name]}`} sub={`Per ${cc.period.unit}, in your time zone. Opened is the Jira creation time of a synchronized case, otherwise the hub creation time, so an import does not count as newly opened work.`}
           table={{ columns: ['Period', 'Opened', 'Closed'], rows: trend.map(t => [t.label, t.a, t.b]) }}>
           <TrendLines data={trend} aLabel="Opened" bLabel="Closed" />
         </VizPanel>

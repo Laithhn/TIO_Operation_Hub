@@ -60,6 +60,7 @@ public sealed class CaseReportRow
     public WaitingReason? WaitingReason { get; set; }
     public string NextAction { get; set; } = "";
     public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset HubCreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
     public DateTimeOffset? DueAt { get; set; }
     public DateTimeOffset NextReviewAt { get; set; }
@@ -114,7 +115,7 @@ public static class CasesFields
 {
     public const int MaxColumns = 40, MaxSort = 3, MaxRules = 30, MaxDepth = 3, MaxListValues = 100;
     public static readonly string[] SlaStatuses = ["Breached", "AtRisk", "OnTrack", "Met", "NotMeasurable", "NotApplicable"];
-    public static readonly string[] DateFields = ["createdAt", "updatedAt", "dueAt", "resolvedAt", "closedAt"];
+    public static readonly string[] DateFields = ["createdAt", "hubCreatedAt", "updatedAt", "dueAt", "resolvedAt", "closedAt"];
     public static readonly string[] DatePresets = ["today", "yesterday", "last7", "last30", "last90", "thisMonth", "lastMonth", "thisQuarter", "thisYear"];
     public static readonly string[] DueOptions = ["overdue", "dueSoon", "hasDue", "noDue"];
     public static readonly string[] DefaultColumns = ["caseId", "clientCode", "title", "priority", "status", "owner", "slaStatus", "dueAt"];
@@ -148,7 +149,7 @@ public static class CasesFields
         new() { Key = "title", Label = "Title", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Title), Description = "Case title.", Build = E((c, _) => c.Title) },
         new() { Key = "type", Label = "Type", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Type), Description = "Configured case type.", Build = E((c, _) => c.Type), Groupable = true },
         new() { Key = "scope", Label = "Work scope", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Scope), Description = "Client-related or Internal.", Options = Enum.GetNames<WorkScope>(), Build = E((c, _) => c.Scope), Groupable = true },
-        new() { Key = "status", Label = "Status", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Status), Description = "Hub status (independent of Jira).", Build = E((c, _) => c.StatusCode), Groupable = true },
+        new() { Key = "status", Label = "Status", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Status), Description = "Configured case status, as in the case list and the dashboard; a synchronized case follows Jira. Waiting for customer is a status; other waiting reasons are under Waiting reason.", Build = E((c, _) => c.StatusCode), Groupable = true },
         new() { Key = "priority", Label = "Priority", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Priority), Description = "Priority (Critical, High, Normal, Low).", Options = Enum.GetNames<Priority>(), Build = E((c, _) => c.Priority), Groupable = true },
         new() { Key = "clientCode", Label = "Client", Type = CaseFieldType.Text, Category = "Client", Prop = nameof(CaseReportRow.ClientCode), Description = "Client alias; empty for internal work.", Build = E((c, _) => c.Client!.Code), Groupable = true },
         new() { Key = "clientName", Label = "Client name", Type = CaseFieldType.Text, Category = "Client", Prop = nameof(CaseReportRow.ClientName), Description = "Client name; empty for internal work.", Build = E((c, _) => c.Client!.Name) },
@@ -157,14 +158,15 @@ public static class CasesFields
         new() { Key = "waiting", Label = "Waiting", Type = CaseFieldType.Bool, Category = "Progress", Prop = nameof(CaseReportRow.Waiting), Description = "A waiting reason is recorded (the due date is not paused).", Build = E((c, _) => c.WaitingReason != null) },
         new() { Key = "waitingReason", Label = "Waiting reason", Type = CaseFieldType.Enum, Category = "Progress", Prop = nameof(CaseReportRow.WaitingReason), Description = "Recorded waiting reason.", Options = Enum.GetNames<WaitingReason>(), Build = E((c, _) => c.WaitingReason) },
         new() { Key = "nextAction", Label = "Next action", Type = CaseFieldType.Text, Category = "Progress", Prop = nameof(CaseReportRow.NextAction), Description = "Next action.", Build = E((c, _) => c.NextAction), Sortable = false },
-        new() { Key = "createdAt", Label = "Created", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.CreatedAt), Description = "Creation time.", Build = E((c, _) => c.CreatedAt) },
+        new() { Key = "createdAt", Label = "Opened", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.CreatedAt), Description = "When the case was opened: the Jira creation time of a synchronized case, otherwise the hub creation time.", Build = E((c, _) => c.SlaClockStartAt ?? c.CreatedAt) },
+        new() { Key = "hubCreatedAt", Label = "Added to hub", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.HubCreatedAt), Description = "When the hub record was created; the import time of an imported case.", Build = E((c, _) => c.CreatedAt) },
         new() { Key = "updatedAt", Label = "Updated", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.UpdatedAt), Description = "Last change to the case record.", Build = E((c, _) => c.UpdatedAt) },
         new() { Key = "dueAt", Label = "Due date", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.DueAt), Description = "Operational due time; empty = no deadline (never overdue).", Build = E<DateTimeOffset?>((c, _) => c.DueAt) },
         new() { Key = "nextReviewAt", Label = "Next review", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.NextReviewAt), Description = "Next review time.", Build = E((c, _) => c.NextReviewAt) },
         new() { Key = "resolvedAt", Label = "Resolved", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.ResolvedAt), Description = "Resolution time (SLA clock stop).", Build = E<DateTimeOffset?>((c, _) => c.ResolvedAt) },
         new() { Key = "closedAt", Label = "Closed", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.ClosedAt), Description = "Closing time.", Build = E<DateTimeOffset?>((c, _) => c.ClosedAt) },
-        new() { Key = "ageDays", Label = "Age (days)", Type = CaseFieldType.Number, Category = "Dates", Prop = nameof(CaseReportRow.AgeDays), Description = "Calendar days from creation to closing/cancellation, or to the evaluation time while open.",
-            Build = E((c, k) => EF.Functions.DateDiffDay(c.CreatedAt, c.ClosedAt ?? c.CancelledAt ?? k.Now)) },
+        new() { Key = "ageDays", Label = "Age (days)", Type = CaseFieldType.Number, Category = "Dates", Prop = nameof(CaseReportRow.AgeDays), Description = "Calendar days from opening to closing or cancelling, or to the evaluation time while open. A reopened case runs on.",
+            Build = E((c, k) => EF.Functions.DateDiffDay(c.SlaClockStartAt ?? c.CreatedAt, c.ClosedAt ?? c.CancelledAt ?? k.Now)) },
         new() { Key = "overdue", Label = "Overdue", Type = CaseFieldType.Bool, Category = "Dates", Prop = nameof(CaseReportRow.Overdue), Description = "Open with a due time strictly before the evaluation time.",
             Build = E((c, k) => c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled && c.DueAt != null && c.DueAt < k.Now) },
         new() { Key = "slaStatus", Label = "SLA status", Type = CaseFieldType.Enum, Category = "SLA", Prop = nameof(CaseReportRow.SlaStatus), Options = SlaStatuses, Groupable = true,
@@ -277,7 +279,7 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
         var f0 = d.Filters ?? new CasesFiltersInput();
         DateTimeOffset? from = null, to = null;
         var dateField = f0.DateField ?? "createdAt";
-        if (!CasesFields.DateFields.Contains(dateField)) check.Add("filters.dateField", "Select created, updated, due, resolved or closed.");
+        if (!CasesFields.DateFields.Contains(dateField)) check.Add("filters.dateField", "Select opened, added to hub, updated, due, resolved or closed.");
         var hasRange = f0.DateRange is { } r0 && (r0.From ?? r0.ToExclusive ?? r0.FromDay ?? r0.ToDay) is not null;
         if (!string.IsNullOrWhiteSpace(f0.DatePreset))
         {

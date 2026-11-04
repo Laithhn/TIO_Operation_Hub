@@ -534,3 +534,21 @@ The earlier unstable PDF download check in `reporting-builder.spec.ts` read the 
 All 5,144 comments on the restored copy have no visibility value, so that data does not show whether Jira Service Management internal notes are detected on the real site.
 
 Not run: `Install`/`Upgrade` on IIS; a synchronization against the real Jira site with these changes.
+
+## Release 2.51.2: corrections from testing 2.51.0 (A91), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance with the owner's standing approval, from a copy of the working tree, because another session's browser run was using this checkout's build output. Every database was a throwaway one.
+
+| Suite | Result |
+|---|---|
+| Backend, full run | **706 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | 171 of 173 passed. One failure was Edge not starting and one a test pinned to the old row-count wording. After updating that test, both spec files were run again: `stage3-reporting` passed in full and `gui-fixes` 22 of 22 |
+| Playwright, `usability-corrections` (new) | 8 passed, inside the main run |
+| Playwright, access-control isolated config | 13 passed |
+| Frontend, `tsc` and `vitest` | No type errors; 85 passed |
+| `has-pending-model-changes` | None |
+| OpenAPI document | Compared with a fresh one from the API: no difference, so not regenerated |
+
+The whole main Playwright config was not run again after that test update; the application code did not change in between, except the SLA sweep, which the backend run covers. The outline bell icon came last: `notifications-redesign` passed with its final size and `usability-corrections` and `frame-smoke` with the icon before its size change; `tsc` and `vitest` were not run again after the size change.
+
+Not run: the deployed site or its data, so CS-1016 itself was not rechecked; a restored copy with 2.51.2; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.

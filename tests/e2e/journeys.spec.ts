@@ -1545,12 +1545,10 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(page).toHaveURL(/\/contracts\/\d+$/);
     await page.getByRole('link', { name: 'Cases measured against this contract' }).click();
     await expect(page).toHaveURL(/contractId=\d+/);
-    await openColumnFilter(page, 'Ref');
-    await page.getByLabel('Search cases').fill(title);
+    await page.getByLabel('Search all cases', { exact: true }).fill(title);
     const row = page.locator(VT_ROW).filter({ hasText: title });
     await expect(row).toBeVisible();
     await expect(row.getByTitle('Response')).toBeVisible();
-    await page.keyboard.press('Escape');
     await page.getByLabel('Contractual SLA', { exact: true }).selectOption('noContract');
     await expect(row).toHaveCount(0);
 
@@ -1592,12 +1590,12 @@ test.describe('Reporting Center (A62)', () => {
     await page.getByRole('button', { name: 'Configure Cases report' }).click();
     await page.getByLabel('Client', { exact: true }).selectOption({ label: 'DEMO-NTA · Northwind Transit Authority (fictional)' });
     await page.getByLabel('Status', { exact: true }).selectOption('all');
-    await page.getByLabel('Created from', { exact: true }).fill('2026-10-02');
-    await page.getByLabel('Created to', { exact: true }).fill('2026-10-01');
+    await page.getByLabel('Opened from', { exact: true }).fill('2026-10-02');
+    await page.getByLabel('Opened to', { exact: true }).fill('2026-10-01');
     await expect(page.getByText('The end date is before the start date.')).toBeVisible();
     await expect(page.getByRole('button', { name: /Apply filters and preview/ })).toBeDisabled();
-    await page.getByLabel('Created from', { exact: true }).fill('');
-    await page.getByLabel('Created to', { exact: true }).fill('');
+    await page.getByLabel('Opened from', { exact: true }).fill('');
+    await page.getByLabel('Opened to', { exact: true }).fill('');
     await expect(page.getByLabel('Filters in force')).toContainText('Client: DEMO-NTA');
     await page.getByRole('button', { name: /Apply filters and preview/ }).click();
     const preview = page.locator('section.panel', { has: page.getByRole('heading', { name: '2 · Preview' }) });

@@ -65,11 +65,11 @@ const OP_LABEL: Record<string, string> = {
 export const TEMPLATES: { key: string; name: string; description: string; definition: () => Definition }[] = [
   { key: 'open-critical-high', name: 'Open critical and high cases', description: 'Open cases of priority Critical or High, most urgent first, with owner, SLA status and due date.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', statuses: [...OPEN_STATUSES], priorities: ['Critical', 'High'] }, sort: [{ field: 'priority', direction: 'asc' }, { field: 'dueAt', direction: 'asc' }] }) },
-  { key: 'sla-breached-30', name: 'SLA breaches, last 30 days', description: 'Cases created in the last 30 days whose contractual response or resolution SLA is breached, by client.',
+  { key: 'sla-breached-30', name: 'SLA breaches, last 30 days', description: 'Cases opened in the last 30 days whose contractual response or resolution SLA is breached, by client.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', datePreset: 'last30', slaStatuses: ['Breached'] }, columns: ['caseId', 'clientCode', 'title', 'priority', 'status', 'responseSla', 'resolutionSla', 'contract'], groupBy: 'clientCode', sort: [{ field: 'clientCode', direction: 'asc' }] }) },
   { key: 'overdue-by-owner', name: 'Overdue cases by owner', description: 'Open cases whose due time has passed, grouped by owner, oldest due first.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', due: 'overdue' }, columns: ['caseId', 'owner', 'clientCode', 'title', 'priority', 'dueAt', 'ageDays'], groupBy: 'owner', sort: [{ field: 'dueAt', direction: 'asc' }] }) },
-  { key: 'created-this-month', name: 'Cases created this month by client', description: 'Everything opened this calendar month (report time zone), grouped by client.',
+  { key: 'created-this-month', name: 'Cases opened this month by client', description: 'Everything opened this calendar month (report time zone), grouped by client.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', datePreset: 'thisMonth' }, columns: ['caseId', 'clientCode', 'title', 'type', 'priority', 'status', 'createdAt'], groupBy: 'clientCode', sort: [{ field: 'createdAt', direction: 'desc' }] }) },
   { key: 'waiting-customer', name: 'Waiting for the customer', description: 'Open cases waiting for the customer for more than 7 days (advanced condition on the waiting reason and age).',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', statuses: [...OPEN_STATUSES], conditions: { op: 'and', rules: [{ field: 'waitingReason', operator: 'in', value: ['Customer'] }, { field: 'ageDays', operator: 'gt', value: 7 }] } },

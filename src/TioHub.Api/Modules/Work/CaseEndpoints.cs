@@ -47,7 +47,7 @@ public static class CaseEndpoints
             var keys = new Dictionary<string, Expression<Func<Case, object?>>>
             {
                 ["ref"] = c => c.Id, ["title"] = c => c.Title, ["priority"] = c => c.Priority, ["status"] = c => c.StatusCode, ["due"] = c => c.DueAt,
-                ["nextReview"] = c => c.NextReviewAt, ["created"] = c => c.CreatedAt, ["updated"] = c => c.UpdatedAt, ["client"] = c => c.Client!.Code, ["owner"] = c => c.Owner!.DisplayName
+                ["nextReview"] = c => c.NextReviewAt, ["created"] = c => c.SlaClockStartAt ?? c.CreatedAt, ["updated"] = c => c.UpdatedAt, ["client"] = c => c.Client!.Code, ["owner"] = c => c.Owner!.DisplayName
             };
             var paged = await q.SortBy(p.Sort, keys, "-created").Select(Row(now, policy)).ToPagedAsync(PageQuery.From(p.Page, p.PageSize), ct);
             return Results.Ok(paged);
@@ -94,8 +94,10 @@ public static class CaseEndpoints
                 waiting = c.WaitingReason == null ? null : new { reason = c.WaitingReason, since = c.WaitingSince },
                 waitingIntervals = c.WaitingIntervals.Where(_ => canHistory).OrderByDescending(w => w.StartedAt).Select(w => new { w.Reason, w.Note, w.StartedAt, w.EndedAt }),
                 waitingHours = Math.Round(waitingSeconds / 3600, 1),
-                ageDays = Math.Round((now - c.CreatedAt).TotalDays, 1),
-                currentCycleAgeDays = c.ReopenCount > 0 ? Math.Round((now - c.CycleStartedAt).TotalDays, 1) : (double?)null,
+                // A91: age runs from opening to closing or cancelling, or to now while open; a reopened case runs on and also shows its current cycle.
+                c.OpenedAt, openedFromJira = c.SlaClockStartAt != null,
+                ageDays = AgeDays(c.OpenedAt, c, now),
+                currentCycleAgeDays = c.ReopenCount > 0 ? AgeDays(c.CycleStartedAt, c, now) : (double?)null,
                 c.ReopenCount, unknownEnvironmentReason = canAffected ? c.UnknownEnvironmentReason : null, c.ValidationRequest, c.Outcome, c.ValidationEvidence,
                 evidenceException = c.EvidenceExceptionReason == null ? null : new
                 {
@@ -120,7 +122,7 @@ public static class CaseEndpoints
                         support24x7 = c.SlaSupport24x7, supportDays = c.SlaSupportDays.ToString(), supportFrom = c.SlaSupportFrom?.ToString("HH:mm"), supportTo = c.SlaSupportTo?.ToString("HH:mm"),
                         timeZone = c.SlaTimeZone, pausesWhileWaitingOnCustomer = c.SlaPauseOnCustomerWaiting, at = c.SlaAppliedAt
                     },
-                    startAt = c.CreatedAt,
+                    startAt = c.OpenedAt, startsAtJiraCreation = c.SlaClockStartAt != null,
                     response = new { status = CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now), dueAt = c.ResponseDueAt, actualAt = c.FirstResponseAt, elapsedMinutes = c.ResponseElapsedMinutes,
                         breachMinutes = c.ResponseDueAt is { } rd && (c.FirstResponseAt ?? now) > rd && c.ResponseSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.FirstResponseAt ?? now) - rd).TotalMinutes : null },
                     resolution = new { status = CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now), dueAt = c.ResolutionDueAt, actualAt = c.ResolvedAt, elapsedMinutes = c.ResolutionElapsedMinutes,
@@ -658,6 +660,8 @@ public static class CaseEndpoints
         public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, Priority, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla, JiraSource, JiraConnectionId, JiraSpace);
     }
 
+    private static double AgeDays(DateTimeOffset from, Case c, DateTimeOffset now) => Math.Round(Math.Max(0, ((c.ClosedAt ?? c.CancelledAt ?? now) - from).TotalDays), 1);
+
     public static Expression<Func<Case, CaseRow>> Row(DateTimeOffset now, Quality.ReviewPolicy? policy)
     {
         var limit = policy?.MaxAgeDays is { } d ? now.AddDays(-d) : DateTimeOffset.MinValue;
@@ -676,7 +680,7 @@ public static class CaseEndpoints
             c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now ? SlaState.Breached : c.ResolutionSlaStatus,
             c.JiraSource == null ? null : c.JiraSource.IssueKey, c.JiraSource == null ? null : c.JiraSource.JiraConnection!.Name, c.JiraSource == null ? null : c.JiraSource.StatusName, c.StatusCode, c.InternalAssignee,
             c.UpdatedAt, c.ResolvedAt, c.JiraSource == null ? null : c.JiraSource.AssigneeName, c.JiraSource == null ? null : c.JiraSource.ReporterName,
-            c.JiraSource == null ? null : c.JiraSource.PriorityName, c.JiraSource == null ? null : c.JiraSource.IssueTypeName, c.JiraSource == null ? null : c.JiraSource.Resolution);
+            c.JiraSource == null ? null : c.JiraSource.PriorityName, c.JiraSource == null ? null : c.JiraSource.IssueTypeName, c.JiraSource == null ? null : c.JiraSource.Resolution, c.SlaClockStartAt ?? c.CreatedAt);
     }
 
     public sealed record CaseRow(long Id, string Ref, string Title, string Type, WorkScope Scope, CaseStatus Status, Priority Priority,
@@ -684,7 +688,7 @@ public static class CaseEndpoints
         WaitingReason? WaitingReason, DateTimeOffset? WaitingSince, string NextAction, DateTimeOffset NextReviewAt, DateTimeOffset? DueAt, string? DueTimeZone, DateTimeOffset CreatedAt,
         bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys, string? ContractRef = null, SlaState ResponseSla = SlaState.NotApplicable, SlaState ResolutionSla = SlaState.NotApplicable,
         string? JiraSourceKey = null, string? JiraConnectionName = null, string? JiraStatus = null, string StatusCode = "", string? InternalAssignee = null,
-        DateTimeOffset? UpdatedAt = null, DateTimeOffset? ResolvedAt = null, string? JiraAssignee = null, string? JiraReporter = null, string? JiraPriority = null, string? JiraIssueType = null, string? JiraResolution = null);
+        DateTimeOffset? UpdatedAt = null, DateTimeOffset? ResolvedAt = null, string? JiraAssignee = null, string? JiraReporter = null, string? JiraPriority = null, string? JiraIssueType = null, string? JiraResolution = null, DateTimeOffset? OpenedAt = null);
 
     private static object Permissions(Case c, UserContext me, bool belongsToTeam, bool hasResolved, bool statusFromJira)
     {

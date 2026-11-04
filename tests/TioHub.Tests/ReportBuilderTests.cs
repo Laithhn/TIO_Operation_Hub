@@ -145,7 +145,7 @@ public class ReportBuilderTests(HubFactory hub) : Scenario(hub)
         Assert.DoesNotContain("<f>", data);
         Assert.Contains("HYPERLINK", data);
         Assert.Contains("t=\"inlineStr\"><is><t xml:space=\"preserve\">Case ID</t>", data);
-        Assert.True(data.IndexOf(">Title<", StringComparison.Ordinal) < data.IndexOf(">Created<", StringComparison.Ordinal));
+        Assert.True(data.IndexOf(">Title<", StringComparison.Ordinal) < data.IndexOf(">Opened<", StringComparison.Ordinal));
         Assert.Contains("s=\"2\"", data);     // created: a real Excel date
         Assert.Contains("<autoFilter", data);
         Assert.Contains("state=\"frozen\"", data);
