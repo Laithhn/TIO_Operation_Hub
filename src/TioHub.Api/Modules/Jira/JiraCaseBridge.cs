@@ -159,9 +159,12 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
                 if (m.JiraCreatedAt is { } jiraCreated && c.SlaClockStartAt != jiraCreated) { c.SlaClockStartAt = jiraCreated; caseChanged = true; }
                 caseChanged |= await ApplyStatusAsync(x.Connection, x.Space, c, m, now, ct);
                 if (!outcome.Created && (caseChanged || snapshotChanged)) outcome.Updated = true;
-                if (comments is not null) outcome.Comments = await ImportCommentsAsync(x.Connection, issue.Id, c.Id, comments, now, ct);
-                // A78: the earliest Jira comment is the first response. It is recorded once, like any first response.
-                if (comments is { Count: > 0 }) CaseEndpoints.RecordFirstResponse(db, c, comments.Min(k => k.Created), $"First Jira comment on {m.IssueKey}", db.CurrentUser, now);
+                if (comments is not null)
+                {
+                    outcome.Comments = await ImportCommentsAsync(x.Connection, issue.Id, c.Id, comments, now, ct);
+                    await db.SaveChangesAsync(ct);
+                    await ApplyFirstResponseAsync(x.Connection.Id, c, m.IssueKey, now, ct);
+                }
                 else if (commentError is not null)
                 {
                     Raise(JiraIssueType.FailedCommentImport, x, issue, $"comments:{x.Connection.Id}:{issue.Id}", now, $"Comments of {issue.Key} could not be read: {commentError}", "Retried at the next run.", c.Id, null);
@@ -202,8 +205,50 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             db.ChangeTracker.Clear();
             if (any) changed++;
         }
+        return changed + await ReapplyFirstResponsesAsync(conn, space, ct);
+    }
+
+    /// <summary>A82: follows user mappings, deleted comments and first responses taken from any comment by 2.47.0. Needs no Jira request.</summary>
+    private async Task<int> ReapplyFirstResponsesAsync(JiraConnection conn, ClientJiraSpace space, CancellationToken ct)
+    {
+        var replies = TeamReplies(conn.Id);
+        var rows = await db.JiraCaseMappings.AsNoTracking().Where(m => m.ClientJiraSpaceId == space.Id && m.CaseId != null)
+            .Select(m => new { CaseId = m.CaseId!.Value, m.IssueKey,
+                Recorded = db.Cases.IgnoreQueryFilters().Where(c => c.Id == m.CaseId).Select(c => c.FirstResponseAt).FirstOrDefault(),
+                Reply = replies.Where(k => k.CaseId == m.CaseId).Min(k => (DateTimeOffset?)k.JiraCreatedAt) })
+            .Where(x => x.Recorded != x.Reply).ToListAsync(ct);
+        var changed = 0;
+        foreach (var row in rows)
+        {
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            var c = await LoadCaseAsync(row.CaseId, ct);
+            var any = await ApplyFirstResponseAsync(conn.Id, c, row.IssueKey, clock.GetUtcNow(), ct);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            db.ChangeTracker.Clear();
+            if (any) changed++;
+        }
         return changed;
     }
+
+    /// <summary>A82: the first response is a reply the customer could see, written by someone mapped as a hub user or a Vitronic team member.</summary>
+    private IQueryable<JiraComment> TeamReplies(long connectionId) => db.JiraComments.AsNoTracking().Where(k => k.JiraConnectionId == connectionId && k.DeletedInJiraAt == null && k.VisibilityValue == null
+        && db.JiraUserMappings.Any(u => u.JiraConnectionId == connectionId && u.JiraAccountId == k.AuthorAccountId && (u.TioUserId != null || u.IsInternalMember)));
+
+    /// <summary>Follows the earliest team reply among the stored comments. A first response a person recorded before the case was linked to Jira stays.</summary>
+    private async Task<bool> ApplyFirstResponseAsync(long connectionId, Case c, string issueKey, DateTimeOffset now, CancellationToken ct)
+    {
+        var reply = await TeamReplies(connectionId).Where(k => k.CaseId == c.Id).MinAsync(k => (DateTimeOffset?)k.JiraCreatedAt, ct);
+        if (reply == c.FirstResponseAt) return false;
+        var lastNote = await db.CaseEvents.AsNoTracking().Where(e => e.CaseId == c.Id && e.Type == CaseEventType.FirstResponse).OrderByDescending(e => e.Id).Select(e => e.Note).FirstOrDefaultAsync(ct);
+        if (lastNote is not null && !lastNote.StartsWith(FirstReplyNote, StringComparison.Ordinal) && !lastNote.StartsWith("First Jira comment on ", StringComparison.Ordinal)) return false;
+        var note = reply is null ? $"{FirstReplyNote}{issueKey} no longer counts: no public reply from the team" : $"{FirstReplyNote}{issueKey}";
+        CaseEndpoints.AddEvent(db, c, CaseEventType.FirstResponse, c.FirstResponseAt?.ToString("O"), reply?.ToString("O"), note, db.CurrentUser, now);
+        c.FirstResponseAt = reply;
+        return true;
+    }
+
+    private const string FirstReplyNote = "First Jira reply on ";
 
     /// <summary>Links an existing case as the source of an issue after an authorized decision. The manual reference stays.</summary>
     public async Task AdoptAsync(JiraConnection conn, ClientJiraSpace space, Case c, string issueId, string issueKey, DateTimeOffset now, CancellationToken ct)
@@ -470,11 +515,12 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         return row;
     }
 
-    /// <summary>Idempotent by Jira comment id; an edited comment replaces its text. Comments are never progress; the caller takes the first response from them (A78).</summary>
+    /// <summary>Idempotent by Jira comment id; an edited comment replaces its text. Comments are never progress; the caller takes the first response from them (A82). Their authors join the user mappings, so they can be mapped.</summary>
     private async Task<int> ImportCommentsAsync(JiraConnection conn, string issueId, long caseId, IReadOnlyList<JiraCommentInfo> comments, DateTimeOffset now, CancellationToken ct)
     {
         var existing = await db.JiraComments.Where(x => x.JiraConnectionId == conn.Id && x.JiraIssueId == issueId).ToDictionaryAsync(x => x.JiraCommentId, ct);
         var imported = 0;
+        foreach (var author in comments.Where(c => c.AuthorId is not null).GroupBy(c => c.AuthorId!)) await UserMappingAsync(conn.Id, author.Key, author.First().AuthorName, now, ct);
         foreach (var c in comments)
         {
             var withheld = CredentialGuard.LooksLikeSecret(c.BodyText);

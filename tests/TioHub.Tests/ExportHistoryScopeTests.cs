@@ -10,8 +10,8 @@ public sealed class ExportHistoryScopeTests
     private static UserContext User(long id, long clientId)
     {
         var user = new UserContext();
-        user.Set(new ResolvedUser(id, "test", "Test", "UTC", true, ["Custom"], Right.None,
-            PermissionHierarchy.WithAncestors(["Cases:View"]), Grant.Export,
+        user.Set(new ResolvedUser(id, "test", "Test", "UTC", true, ["Custom"],
+            Fixture.Rights(["Cases:View"], Flag.Export),
             false, [clientId], [], [], [], false, []));
         return user;
     }

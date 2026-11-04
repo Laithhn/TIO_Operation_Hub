@@ -188,7 +188,7 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
             Add(e.OwnerUserId, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, $"Escalation {e.Ref} is {(overdue ? "overdue" : "due soon")}", e.Title,
                 $"/escalations/{e.Id}", $"escalation-{(overdue ? "overdue" : "due")}:{e.Id}:{e.ResolutionDueAt:yyyyMMddHHmm}");
         }
-        var managers = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Roles.Any(r => r.AppRole!.Key == BuiltInRoles.ManagerKey || (r.AppRole.Rights & Right.Manage) == Right.Manage))
+        var managers = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Roles.Any(r => r.AppRole!.Key == BuiltInRoles.ManagerKey || r.AppRole.Rights.Any(x => x.RightKey == "ClientStructure:Coordinate")))
             .Select(u => u.Id).ToListAsync(ct);
         var contracts = await ContractQuery.Apply(db.Contracts.IgnoreQueryFilters().AsNoTracking().Where(c => c.ArchivedAt == null), new ContractFilter(Renewal: "attention"), now, db)
             .Select(c => new { c.Id, c.Ref, c.Title, c.OwnerUserId, c.Status, c.EndDate, c.NoticeDays }).ToListAsync(ct);
@@ -261,16 +261,16 @@ public static class NotificationEndpoints
     /// <summary>Stored notices must not reveal record content after module or data-scope access is revoked.</summary>
     public static IQueryable<Notification> VisibleNotifications(HubDbContext db, UserContext me)
     {
-        var structure = me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View);
-        var cases = me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View);
-        var commitments = me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.View);
-        var contracts = me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.View);
-        var environments = me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View);
-        var servers = me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View);
-        var teams = me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View);
-        var other = me.HasPermission(ResourcePermissions.Other, ResourcePermissions.View);
-        var projects = me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View);
-        var reports = CapabilityPermissions.ReadableReports(me);
+        var structure = me.HasRight(RightKeys.Structure, RightKeys.View);
+        var cases = me.HasRight(RightKeys.Cases, RightKeys.View);
+        var commitments = me.HasRight(RightKeys.Commitments, RightKeys.View);
+        var contracts = me.HasRight(RightKeys.Contracts, RightKeys.View);
+        var environments = me.HasRight(RightKeys.Environments, RightKeys.View);
+        var servers = me.HasRight(RightKeys.Servers, RightKeys.View);
+        var teams = me.HasRight(RightKeys.Teams, RightKeys.View);
+        var other = me.HasRight(RightKeys.Other, RightKeys.View);
+        var projects = me.HasRight(RightKeys.Projects, RightKeys.View);
+        var reports = RightChecks.ReadableReports(me);
         var allClients = me.AllClients;
         var clientIds = me.ClientIds;
         var allTeams = me.AllInternal;

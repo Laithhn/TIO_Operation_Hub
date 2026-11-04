@@ -16,7 +16,7 @@ public sealed class ScopedExceptionTests
 {
     private const string Maintain = "Contracts:Maintain";
     private static readonly DateTimeOffset Now = new(2026, 11, 3, 12, 0, 0, TimeSpan.Zero);
-    private static readonly string[] Prerequisites = [.. PermissionHierarchy.WithAncestors(CapabilityPermissions.Dependencies(Maintain))];
+    private static readonly string[] Prerequisites = [.. Fixture.Rights(RightsCatalog.Dependencies(Maintain))];
     private static string[] RoleWithMaintain => [.. Prerequisites, Maintain];
 
     private static ResourceContext Contract(long client, long project) => ResourceContext.ForRecord(client, null, [project]);
@@ -129,8 +129,8 @@ public sealed class ScopedExceptionTests
     private static UserContext Holding(bool active, string[] permissions, ScopedException[] scoped, string[]? assigned = null)
     {
         var user = new UserContext();
-        user.Set(new ResolvedUser(7, "t", "T", "UTC", active, ["R"], Right.None, permissions, Grant.None, true, [], [], [], [], true, [],
-            AssignedPermissions: assigned ?? permissions, ScopedExceptions: scoped));
+        user.Set(new ResolvedUser(7, "t", "T", "UTC", active, ["R"], permissions, true, [], [], [], [], true, [],
+            AssignedRights: assigned ?? permissions, ScopedExceptions: scoped));
         return user;
     }
 
@@ -138,10 +138,10 @@ public sealed class ScopedExceptionTests
     public void A_scoped_allow_is_never_a_global_decision()
     {
         var user = Holding(true, Prerequisites, [Allow(client: 1)]);
-        Assert.False(user.HasPermission(Maintain));
-        Assert.True(user.HasPermissionIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, Contract(1, 10)));
-        Assert.False(user.HasPermissionIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, Contract(2, 20)));
-        Assert.Throws<ForbiddenException>(() => user.RequirePermissionIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, Contract(2, 20)));
+        Assert.False(user.HasRight(Maintain));
+        Assert.True(user.HasRightIn(RightKeys.Contracts, RightKeys.Maintain, Contract(1, 10)));
+        Assert.False(user.HasRightIn(RightKeys.Contracts, RightKeys.Maintain, Contract(2, 20)));
+        Assert.Throws<ForbiddenException>(() => user.RequireRightIn(RightKeys.Contracts, RightKeys.Maintain, Contract(2, 20)));
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public sealed class ScopedExceptionTests
     {
         var user = Holding(false, RoleWithMaintain, [Allow(client: 1)]);
         Assert.Empty(user.ScopedExceptions);
-        Assert.False(user.HasPermissionIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, Contract(1, 10)));
+        Assert.False(user.HasRightIn(RightKeys.Contracts, RightKeys.Maintain, Contract(1, 10)));
     }
 
     [Fact]
@@ -157,24 +157,24 @@ public sealed class ScopedExceptionTests
     {
         var rows = new[]
         {
-            new UserPermissionOverride { PermissionKey = Maintain, Effect = "Allow", ClientId = 1 },
-            new UserPermissionOverride { PermissionKey = Prerequisites[0], Effect = "Deny", ClientId = 2 }
+            new UserRightException { RightKey = Maintain, Effect = "Allow", ClientId = 1 },
+            new UserRightException { RightKey = Prerequisites[0], Effect = "Deny", ClientId = 2 }
         };
-        Assert.DoesNotContain(Maintain, PermissionOverrides.Resolve(Prerequisites, rows, Now));
-        Assert.Contains(Prerequisites[0], PermissionOverrides.Resolve(Prerequisites, rows, Now));
-        Assert.Equal(2, PermissionOverrides.Scoped(rows, Right.None).Length);
-        Assert.False(Assert.Single(PermissionOverrides.Scoped(rows, Right.Administer)).Allow);
+        Assert.DoesNotContain(Maintain, RightExceptions.Resolve(Prerequisites, rows, Now));
+        Assert.Contains(Prerequisites[0], RightExceptions.Resolve(Prerequisites, rows, Now));
+        Assert.Equal(2, RightExceptions.Scoped(rows, false).Length);
+        Assert.False(Assert.Single(RightExceptions.Scoped(rows, true)).Allow);
         // Inactive permission definitions contribute no scoped allow, but a scoped deny always stays.
-        Assert.Single(PermissionOverrides.Scoped(rows, Right.None, new HashSet<string>()));
+        Assert.Single(RightExceptions.Scoped(rows, false, new HashSet<string>()));
     }
 
     [Fact]
     public void Delegation_counts_a_scoped_allow_as_reachable_and_ignores_a_scoped_deny()
     {
         var active = RoleWithMaintain.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        Assert.Contains(Maintain, PermissionOverrides.PotentiallyEffective(Prerequisites, [new() { PermissionKey = Maintain, Effect = "Allow", ProjectId = 3 }], Now, active));
-        Assert.Contains(Maintain, PermissionOverrides.PotentiallyEffective(RoleWithMaintain, [new() { PermissionKey = Maintain, Effect = "Deny", ClientId = 3 }], Now, active));
-        Assert.Contains(Maintain, PermissionOverrides.NewlyEffective([], Prerequisites, [new() { PermissionKey = Maintain, Effect = "Allow", TeamId = 3 }], Now, active));
+        Assert.Contains(Maintain, RightExceptions.PotentiallyEffective(Prerequisites, [new() { RightKey = Maintain, Effect = "Allow", ProjectId = 3 }], Now, active));
+        Assert.Contains(Maintain, RightExceptions.PotentiallyEffective(RoleWithMaintain, [new() { RightKey = Maintain, Effect = "Deny", ClientId = 3 }], Now, active));
+        Assert.Contains(Maintain, RightExceptions.NewlyEffective([], Prerequisites, [new() { RightKey = Maintain, Effect = "Allow", TeamId = 3 }], Now, active));
     }
 
     [Fact]
@@ -194,8 +194,8 @@ public sealed class ScopedExceptionTests
     [Fact]
     public void Simulation_uses_the_same_contextual_decision()
     {
-        var user = new ResolvedUser(7, "t", "T", "UTC", true, ["R"], Right.None, RoleWithMaintain, Grant.None, true, [], [], [], [], true, [],
-            AssignedPermissions: RoleWithMaintain, ScopedExceptions: [Deny(client: 1)]);
+        var user = new ResolvedUser(7, "t", "T", "UTC", true, ["R"], RoleWithMaintain, true, [], [], [], [], true, [],
+            AssignedRights: RoleWithMaintain, ScopedExceptions: [Deny(client: 1)]);
         Assert.Equal("denied", AccessSimulation.Evaluate(user, Maintain, "client", 1, null, true, ResourceContext.ForRecord(1, null, [])).Status);
         Assert.Equal("conditional", AccessSimulation.Evaluate(user, Maintain, "client", 2, null, true, ResourceContext.ForRecord(2, null, [])).Status);
     }
@@ -207,18 +207,18 @@ public sealed class ScopedExceptionTests
     {
         using var db = new DesignTimeFactory().CreateDbContext([]);
         var (owned, unlinked) = Cascade.Describe(db, path);
-        Assert.Contains(nameof(UserPermissionOverride), owned);
-        Assert.DoesNotContain(unlinked, u => u.StartsWith(nameof(UserPermissionOverride), StringComparison.Ordinal));
+        Assert.Contains(nameof(UserRightException), owned);
+        Assert.DoesNotContain(unlinked, u => u.StartsWith(nameof(UserRightException), StringComparison.Ordinal));
     }
 
     [Fact]
     public void Exception_model_has_a_single_scope_check_and_per_scope_uniqueness()
     {
         using var db = new DesignTimeFactory().CreateDbContext([]);
-        var entity = db.GetService<Microsoft.EntityFrameworkCore.Metadata.IDesignTimeModel>().Model.FindEntityType(typeof(UserPermissionOverride))!;
-        Assert.Contains(entity.GetCheckConstraints(), c => c.Name == "CK_UserPermissionOverride_SingleScope");
+        var entity = db.GetService<Microsoft.EntityFrameworkCore.Metadata.IDesignTimeModel>().Model.FindEntityType(typeof(UserRightException))!;
+        Assert.Contains(entity.GetCheckConstraints(), c => c.Name == "CK_UserRightException_SingleScope");
         var unique = entity.GetIndexes().Where(i => i.IsUnique).Select(i => i.GetDatabaseName()).ToArray();
-        Assert.Equal(["UX_UserPermissionOverride_Client", "UX_UserPermissionOverride_Global", "UX_UserPermissionOverride_Project", "UX_UserPermissionOverride_Team"], unique.Order());
+        Assert.Equal(["UX_UserRightException_Client", "UX_UserRightException_Global", "UX_UserRightException_Project", "UX_UserRightException_Team"], unique.Order());
     }
 
     [Fact]
@@ -249,7 +249,7 @@ public sealed class ScopedPermissionCoverageTests
     [InlineData("Environments")]
     public void Eligible_permissions_have_no_global_check_or_uncontextual_maintain(string resource)
     {
-        Assert.Contains($"{resource}:Maintain", ScopedPermissions.Eligible);
+        Assert.Contains($"{resource}:Maintain", ScopedRights.Eligible);
         var global = new Regex($@"(HasPermission|RequirePermission)\(\s*ResourcePermissions\.{resource}\s*,\s*ResourcePermissions\.Maintain|(HasPermission|RequirePermission)\(\s*""{resource}:Maintain""|RequireMaintain\(\s*ResourcePermissions\.{resource}\b");
         var offenders = Source().Where(s => global.IsMatch(s.Text)).Select(s => $"{s.File}:{s.Line}").ToArray();
         Assert.True(offenders.Length == 0, "Global check on a scope-eligible permission: " + string.Join(", ", offenders));
@@ -262,7 +262,7 @@ public sealed class ScopedPermissionCoverageTests
     public void Every_known_edit_path_stays_contextual(string resource, string file, int minimum)
     {
         var count = Source().Count(s => s.File.EndsWith(file, StringComparison.Ordinal)
-            && s.Text.Contains($"access.RequireIn(ResourcePermissions.{resource}, ResourcePermissions.Maintain", StringComparison.Ordinal));
+            && s.Text.Contains($"access.RequireIn(RightKeys.{resource}, RightKeys.Maintain", StringComparison.Ordinal));
         Assert.True(count >= minimum, $"{file}: {count} contextual checks, expected at least {minimum}");
     }
 
@@ -276,14 +276,14 @@ public sealed class ScopedPermissionCoverageTests
 
     [Fact]
     public void Only_edit_capabilities_are_eligible_so_no_read_path_can_ignore_a_scoped_deny() =>
-        Assert.All(ScopedPermissions.Eligible, key => Assert.EndsWith(":Maintain", key));
+        Assert.All(ScopedRights.Eligible, key => Assert.EndsWith(":Maintain", key));
 
     [Fact]
     public void Unsupported_scopes_are_refused_by_key_not_by_convention()
     {
-        Assert.True(ScopedPermissions.IsEligible("contracts:maintain"));
-        Assert.False(ScopedPermissions.IsEligible("Contracts:View"));
-        Assert.False(ScopedPermissions.IsEligible("Cases:Maintain"));
-        Assert.False(ScopedPermissions.IsEligible(null));
+        Assert.True(ScopedRights.IsEligible("contracts:maintain"));
+        Assert.False(ScopedRights.IsEligible("Contracts:View"));
+        Assert.False(ScopedRights.IsEligible("Cases:Maintain"));
+        Assert.False(ScopedRights.IsEligible(null));
     }
 }

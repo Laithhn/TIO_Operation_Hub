@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { exportCsv, get, qs } from '../api';
 import { fmtDate, fmtDateTime, label } from '../format';
 import { useMe, useUrlState } from '../hooks';

@@ -138,15 +138,15 @@ public static class ClientLogos
         // Every visible client that has a logo, in one request: screens look logos up by client id instead of asking per client.
         g.MapGet("/logos", async (HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var rows = await db.Clients.AsNoTracking().Where(c => c.LogoVersion != null).OrderBy(c => c.Id).Select(c => new { c.Id, c.Code, c.LogoVersion }).ToListAsync(ct);
             return Results.Ok(rows.Select(r => new { r.Id, r.Code, logoUrl = Url(r.Id, r.LogoVersion) }));
         });
 
         g.MapGet("/{id:long}/logo", async (long id, string? v, HttpContext ctx, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            if (!CapabilityPermissions.CanOpenClientPage(access.Me) || !access.Me.SeesClient(id)) throw new NotFoundException("The logo");
+            access.RequireAccess();
+            if (!RightChecks.CanOpenClientPage(access.Me) || !access.Me.SeesClient(id)) throw new NotFoundException("The logo");
             var c = await db.Clients.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.LogoPath, x.LogoContentType, x.LogoVersion }).FirstOrDefaultAsync(ct);
             if (c?.LogoPath is null || !store.Exists(c.LogoPath)) throw new NotFoundException("The logo");
             var h = ctx.Response.Headers;
@@ -161,7 +161,7 @@ public static class ClientLogos
         g.MapPut("/{id:long}/logo", async (long id, HttpRequest req, HubDbContext db, HubAccess access, AttachmentStore store, IOptions<ClientLogoOptions> options, CancellationToken ct) =>
         {
             var c = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireMaintain(ResourcePermissions.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
             if (!req.HasFormContentType) throw new ValidationException("file", "Send the logo as a multipart form.");
             var form = await req.ReadFormAsync(ct);
             var f = form.Files.GetFile("file") ?? throw new ValidationException("file", "Choose a logo file.");
@@ -193,7 +193,7 @@ public static class ClientLogos
         g.MapDelete("/{id:long}/logo", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             var c = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireMaintain(ResourcePermissions.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
             if (c.LogoPath is null) return Results.NoContent();
             var old = c.LogoPath;
             c.LogoPath = c.LogoContentType = c.LogoVersion = null;

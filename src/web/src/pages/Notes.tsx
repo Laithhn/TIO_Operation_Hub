@@ -1,4 +1,4 @@
-import { usePermission } from '../hooks';
+import { useRight } from '../hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
@@ -34,9 +34,9 @@ const cssColor = (c: string) => COLOR[c] ?? COLOR.blue;
 const errText = (e: unknown) => (e instanceof ApiError ? e.summary : (e as Error).message);
 
 export function NotesWorkspace() {
-  const canCreate = usePermission('PersonalNotes', 'Create');
-  const canMaintain = usePermission('PersonalNotes', 'Maintain');
-  const canDelete = usePermission('PersonalNotes', 'Delete');
+  const canCreate = useRight('PersonalNotes', 'Create');
+  const canMaintain = useRight('PersonalNotes', 'Maintain');
+  const canDelete = useRight('PersonalNotes', 'Delete');
   const [sp, setSp] = useSearchParams();
   const qc = useQueryClient();
   const toast = useToast();
@@ -202,9 +202,9 @@ function PageList({ rows, loading, view, selected, onOpen, onRefresh, sections, 
   rows?: PageRow[]; loading: boolean; view: View | null; selected: number | null; onOpen: (id: number | null) => void; onRefresh: () => Promise<unknown>;
   sections: { id: number; label: string }[]; onSubPage: (afterId: number) => void;
 }) {
-  const canCreate = usePermission('PersonalNotes', 'Create');
-  const canMaintain = usePermission('PersonalNotes', 'Maintain');
-  const canDelete = usePermission('PersonalNotes', 'Delete');
+  const canCreate = useRight('PersonalNotes', 'Create');
+  const canMaintain = useRight('PersonalNotes', 'Maintain');
+  const canDelete = useRight('PersonalNotes', 'Delete');
   const toast = useToast();
   const [dragId, setDragId] = useState<number | null>(null);
   const [moving, setMoving] = useState<PageRow | null>(null);
@@ -321,7 +321,7 @@ function Editor({ page, onSaved, onChanged }: { page: PageT; onSaved: () => void
   const pending = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const toast = useToast();
-  const canMaintain = usePermission('PersonalNotes', 'Maintain');
+  const canMaintain = useRight('PersonalNotes', 'Maintain');
   const readOnly = !!page.deletedAt || !canMaintain;
 
   useEffect(() => {
@@ -494,7 +494,7 @@ function LinkDialog({ page, current, onClose, onSaved }: {
 
 /** "My notes" on a client or project page: the signed-in user's own pages linked to it, and a quick new page. */
 export function MyNotesPanel({ clientId, projectId }: { clientId?: number; projectId?: number }) {
-  const canCreate = usePermission('PersonalNotes', 'Create');
+  const canCreate = useRight('PersonalNotes', 'Create');
   const nav = useNavigate();
   const toast = useToast();
   const params = projectId ? { projectId } : { clientId };

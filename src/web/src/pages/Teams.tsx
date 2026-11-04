@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { get, post, put, qs, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label } from '../format';
-import { usePermission, useForm, useLookup, useReference, useRefresh } from '../hooks';
+import { useRight, useForm, useLookup, useReference, useRefresh } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
@@ -13,7 +13,7 @@ type TeamRow = { id: number; code: string; name: string; description?: string; i
 
 export function TeamList() {
   const q = useQuery({ queryKey: ['teams'], queryFn: () => get<TeamRow[]>('/teams') });
-  const canManage = usePermission('Teams', 'Create');
+  const canManage = useRight('Teams', 'Create');
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -103,7 +103,7 @@ export function TeamDetail() {
   const { id } = useParams();
   const t = useQuery({ queryKey: ['team', id], queryFn: () => get<TeamDto>(`/teams/${id}`) });
   const a = useQuery({ queryKey: ['assignments', id], queryFn: () => get<Assign>(`/teams/${id}/assignments`) });
-  const canManage = usePermission('Teams', 'Coordinate');
+  const canManage = useRight('Teams', 'Coordinate');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [removing, setRemoving] = useState<Member | null>(null);
@@ -149,8 +149,8 @@ type HandoverRow = { id: number; ref: string; status: string; effectiveAt: strin
 export function HandoverList() {
   const [status, setStatus] = useState('');
   const q = useQuery({ queryKey: ['handovers', status], queryFn: () => get<HandoverRow[]>(`/handovers${qs({ status })}`) });
-  const canCreate = usePermission('Handovers', 'Create');
-  const canLead = usePermission('Teams', 'Coordinate') && canCreate;
+  const canCreate = useRight('Handovers', 'Create');
+  const canLead = useRight('Teams', 'Coordinate') && canCreate;
   const [open, setOpen] = useState(false);
   return (
     <>

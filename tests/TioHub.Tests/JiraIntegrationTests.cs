@@ -748,13 +748,15 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task The_first_jira_comment_is_the_first_response_and_never_progress()
+    public async Task The_first_team_reply_is_the_first_response_and_never_progress()
     {
         var f = await SetUpAsync();
         var first = DateTimeOffset.UtcNow.AddHours(-3);
         var later = DateTimeOffset.UtcNow.AddHours(-1);
         _jira.Add("120", "TAH-120");
         _jira.Comments["120"] = [new("c121", "acc", "Sam", "Later", later, later, null, null), new("c120", "acc", "Sam", "We answered the customer", first, first, null, null)];
+        await RunAsync(f.SpaceId);
+        await MapInternalAsync(f.ConnectionId, "acc");
         await RunAsync(f.SpaceId);
         var c = await CaseOfAsync(f.ConnectionId, "120");
         Assert.Equal(first, c!.FirstResponseAt);
@@ -766,6 +768,60 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
 
         var manager = await _hub.As(HubFactory.Manager);
         Assert.NotNull((await manager.Post($"/cases/{c.Id}/first-response", new { channel = "Phone" }, await manager.Version($"/cases/{c.Id}"))).Error("respondedAt"));
+    }
+
+    [Fact]
+    public async Task Customer_comments_internal_notes_and_unmapped_authors_are_not_a_first_response()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var contact = await manager.Create($"/clients/{f.ClientId}/contacts", new { name = "Fictional Representative", email = "rep@example.com" });
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        var at = DateTimeOffset.UtcNow.AddHours(-5);
+        _jira.Add("122", "TAH-122");
+        _jira.Comments["122"] =
+        [
+            new("c1", "acc-customer", "Customer", "Any news?", at, at, null, null),
+            new("c2", "acc-team", "Sam", "Checking the logs", at.AddHours(1), at.AddHours(1), "role", "Developers"),
+            new("c3", "acc-team", "Sam", "Checking with the vendor", at.AddHours(1), at.AddHours(1), "jsm", "Internal"),
+            new("c4", "acc-robot", "Automation", "We received your request", at.AddHours(2), at.AddHours(2), null, null),
+        ];
+        await RunAsync(f.SpaceId);
+        await MapContactAsync(f.ConnectionId, "acc-customer", contact);
+        await MapUserAsync(f.ConnectionId, "acc-team", owner);
+        await RunAsync(f.SpaceId);
+        Assert.Null((await CaseOfAsync(f.ConnectionId, "122"))!.FirstResponseAt);
+
+        var reply = at.AddHours(3);
+        _jira.Comments["122"].Add(new("c5", "acc-team", "Sam", "Here is what we found", reply, reply, null, null));
+        _jira.Change("122", i => i);
+        await RunAsync(f.SpaceId);
+        Assert.Equal(reply, (await CaseOfAsync(f.ConnectionId, "122"))!.FirstResponseAt);
+    }
+
+    [Fact]
+    public async Task A_first_response_taken_from_any_comment_is_corrected_without_touching_one_a_person_recorded()
+    {
+        var f = await SetUpAsync();
+        var at = DateTimeOffset.UtcNow.AddHours(-5);
+        _jira.Add("123", "TAH-123");
+        _jira.Add("124", "TAH-124");
+        _jira.Comments["123"] = [new("c1", "acc-customer", "Customer", "Any news?", at, at, null, null)];
+        _jira.Comments["124"] = [new("c2", "acc-customer", "Customer", "Any news?", at, at, null, null)];
+        await RunAsync(f.SpaceId);
+        var wrong = await CaseOfAsync(f.ConnectionId, "123");
+        var recorded = await CaseOfAsync(f.ConnectionId, "124");
+        var byPerson = at.AddHours(1);
+        await Db(async db =>
+        {
+            await db.Cases.IgnoreQueryFilters().Where(c => c.Id == wrong!.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.FirstResponseAt, at));
+            await db.Cases.IgnoreQueryFilters().Where(c => c.Id == recorded!.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.FirstResponseAt, byPerson));
+            db.CaseEvents.Add(new CaseEvent { CaseId = recorded!.Id, Type = CaseEventType.FirstResponse, ToValue = byPerson.ToString("O"), Note = "Phone", At = byPerson });
+            return await db.SaveChangesAsync();
+        });
+        await RunAsync(f.SpaceId);
+        Assert.Null((await CaseOfAsync(f.ConnectionId, "123"))!.FirstResponseAt);
+        Assert.Equal(byPerson, (await CaseOfAsync(f.ConnectionId, "124"))!.FirstResponseAt);
     }
 
     [Fact]

@@ -83,9 +83,9 @@ public static partial class FirewallEndpoints
         g.MapGet("", async (long? clientId, long? environmentId, long? assetId, FirewallProtocol? protocol, string? q, string? sort, int? page, int? pageSize,
             HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            access.Me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.View);
-            access.Me.RequireGrant(Grant.TechnicalDetail);
+            access.RequireAccess();
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
+            access.Me.RequireRight(RightKeys.TechnicalDetail);
             var query = Filter(VisibleRules(db).AsNoTracking(), clientId, environmentId, assetId, protocol, q);
             var keys = new Dictionary<string, Expression<Func<FirewallRule, object?>>>
             {
@@ -103,7 +103,7 @@ public static partial class FirewallEndpoints
 
         g.MapPost("", async (RuleInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.View);
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
             var r = new FirewallRule();
             await ApplyAsync(r, input, db, access, ct);
             db.FirewallRules.Add(r);
@@ -113,7 +113,7 @@ public static partial class FirewallEndpoints
 
         g.MapPut("/{id:long}", async (long id, RuleInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.View);
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
             var r = await VisibleRules(db).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
             db.ExpectVersion(ctx, r);
             await ApplyAsync(r, input, db, access, ct);
@@ -123,10 +123,10 @@ public static partial class FirewallEndpoints
 
         g.MapDelete("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.View);
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
             var r = await VisibleRules(db).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
-            access.Me.RequireGrant(Grant.TechnicalDetail);
-            access.RequireMaintain(ResourcePermissions.Other, r.ClientId, null);
+            access.Me.RequireRight(RightKeys.TechnicalDetail);
+            access.RequireMaintain(RightKeys.Other, r.ClientId, null);
             // Deleted straight from the table: no version check (nothing else changes on a rule while it is removed).
             db.FirewallRules.Remove(r);
             await db.SaveChangesAsync(ct);
@@ -136,7 +136,7 @@ public static partial class FirewallEndpoints
 
     private static async Task ApplyAsync(FirewallRule r, RuleInput i, HubDbContext db, HubAccess access, CancellationToken ct)
     {
-        access.Me.RequireGrant(Grant.TechnicalDetail);
+        access.Me.RequireRight(RightKeys.TechnicalDetail);
         var check = new Check()
             .When(i.SourceAssetId is null, "sourceAssetId", "Select the source server.")
             .When(i.DestinationAssetId is null, "destinationAssetId", "Select the destination server.")
@@ -154,7 +154,7 @@ public static partial class FirewallEndpoints
         if (i.DestinationAssetId is not null && dst is null) check.Add("destinationAssetId", "Select a server you can access.");
         if (src is not null && dst is not null && src.ClientId != dst.ClientId) check.Add("destinationAssetId", "Both servers must belong to the same client.");
         check.ThrowIfAny();
-        access.RequireMaintain(ResourcePermissions.Other, src!.ClientId, null);
+        access.RequireMaintain(RightKeys.Other, src!.ClientId, null);
         r.ClientId = src.ClientId;
         r.EnvironmentId = src.EnvironmentId;
         r.SourceAssetId = src.Id;

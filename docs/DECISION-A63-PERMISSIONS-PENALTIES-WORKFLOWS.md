@@ -1,5 +1,7 @@
 # Decision A63 — resource permissions, SLA penalties and workflow labels
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 **Owner request:** 23 October 2026  
 **Status:** Implemented in the application; database changes await DBA deployment
 **Scope:** Follow-up to requests 5–12. This records the behavior to build; it does not itself change authorization, database schema, or production data.

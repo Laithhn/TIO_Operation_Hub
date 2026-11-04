@@ -1,4 +1,4 @@
-import { canAccessPath, hasPermission, hasAnyPermission } from '../permissions';
+import { canAccessPath, hasRight, hasAnyAction, canExport, canAudit, seesTechnical, isAdministrator, hasAccess } from '../rights';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { signOut } from '../api';
@@ -15,13 +15,13 @@ type Item = { to: string; label: string; icon?: string; end?: boolean; show?: (m
 /** bare: the page uses the whole width (no section menu), for full-screen workspaces such as Notes. */
 type Section = { key: string; label: string; to: string; match: RegExp; show?: (m: Me) => boolean; side: Item[]; bare?: boolean };
 
-const biz = (m: Me) => !!m.businessRole;
-const action = (resource: string, operation: string) => (m: Me) => hasPermission(m, resource, operation);
-const tech = (m: Me) => biz(m) && m.grants.technicalDetail;
+const biz = (m: Me) => hasAccess(m);
+const action = (resource: string, operation: string) => (m: Me) => hasRight(m, resource, operation);
+const tech = (m: Me) => biz(m) && seesTechnical(m);
 // GUI-13: the search palette loads when it is first opened, which keeps the entry chunk within its budget.
 const SearchPalette = lazy(() => import('./SearchPalette').then(m => ({ default: m.SearchPalette })));
-const admin = (m: Me) => m.isAdministrator;
-const integrations = (m: Me) => m.isAdministrator && hasPermission(m, 'AdminIntegrations', 'View');
+const admin = (m: Me) => isAdministrator(m);
+const integrations = (m: Me) => isAdministrator(m) && hasRight(m, 'AdminIntegrations', 'View');
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
@@ -32,7 +32,7 @@ const SECTIONS: Section[] = [
     { to: '/notifications', label: 'Notifications', icon: 'bell' },
     { to: '/data-quality', label: 'Data quality', icon: 'quality' },
     // Engineers read the change history here; the TIO Manager has it under Administration.
-    { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => !m.isAdministrator && m.grants.audit }
+    { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => !isAdministrator(m) && canAudit(m) }
   ] },
   // Environments and everything installed in them belong to a client, so they live only under Clients.
   { key: 'clients', label: 'Clients', to: '/clients', match: /^\/(clients|regions|projects|contracts|environments|installations|versions|assets|components|firewall-rules|infrastructure|admin\/archived)/, show: biz, side: [
@@ -49,7 +49,7 @@ const SECTIONS: Section[] = [
       { to: '/firewall-rules', label: 'Firewall rules', show: tech }
     ] },
     { to: '/clients/new', label: 'New client', icon: 'plus', show: action('ClientStructure', 'Create') },
-    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
+    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyAction(m, 'ArchiveRestore') }
   ] },
   { key: 'products', label: 'Products', to: '/products', match: /^\/(products|microservices)/, show: biz, side: [
     { to: '/products', label: 'All products', icon: 'app', end: true },
@@ -71,7 +71,7 @@ const SECTIONS: Section[] = [
   { key: 'escalations', label: 'Escalations', to: '/escalations', match: /^\/escalations/, show: biz, side: [
     { to: '/escalations', label: 'All escalations', icon: 'escalation', end: true },
     { to: '/escalations/new', label: 'New escalation', icon: 'plus', show: action('OtherOperations', 'Create') },
-    { to: '/admin/config/escalation-channels', label: 'Escalation channels', icon: 'list', show: m => m.isAdministrator }
+    { to: '/admin/config/escalation-channels', label: 'Escalation channels', icon: 'list', show: m => isAdministrator(m) }
   ] },
   { key: 'teams', label: 'Teams', to: '/teams', match: /^\/(teams|handovers|reassignment)/, show: biz, side: [
     { to: '/teams', label: 'Teams & coverage', icon: 'team' },
@@ -79,7 +79,7 @@ const SECTIONS: Section[] = [
     { to: '/reassignment', label: 'Reassignment queue', icon: 'users' }
   ] },
   // A70: the Reporting Center is a first-level section (no longer under Dashboard); its own menu holds the center's areas.
-  { key: 'reporting', label: 'Reporting Center', to: '/reporting-center', match: /^\/(reporting-center|reports)(\/|$)/, show: m => biz(m) && m.grants.export, side: [
+  { key: 'reporting', label: 'Reporting Center', to: '/reporting-center', match: /^\/(reporting-center|reports)(\/|$)/, show: m => biz(m) && canExport(m), side: [
     { to: '/reporting-center', label: 'Overview', icon: 'dashboard', end: true },
     { to: '/reporting-center/library', label: 'Report library', icon: 'report' },
     { to: '/reporting-center/builder/cases', label: 'Cases report builder', icon: 'filter' },
@@ -89,10 +89,10 @@ const SECTIONS: Section[] = [
     { to: '/reporting-center/templates', label: 'Templates', icon: 'copy' }
   ] },
   { key: 'admin', label: 'Administration', to: '/admin', match: /^\/admin/, show: admin, side: [
-    { to: '/admin/access', label: 'Access control', icon: 'lock', show: admin },
-    { to: '/admin/users', label: 'Users & access', icon: 'users', show: admin },
+    { to: '/admin/users', label: 'Users', icon: 'users', show: admin },
     { to: '/admin/roles', label: 'Roles', icon: 'users', show: admin },
     { to: '/admin/rights', label: 'Rights', icon: 'lock', show: admin },
+    { to: '/admin/access', label: 'Access review', icon: 'lock', show: admin },
     { to: '/admin/groups', label: 'Group mappings', icon: 'key', show: m => admin(m) && m.app.authMode.toLowerCase() !== 'forms' },
     // A34: each configurable list has its own page. The Configuration tree (categories, search, System pages) comes from the
     // configuration registry and is drawn by ConfigNav; review policies, Jira instances and settings sit in its System category.
@@ -101,8 +101,8 @@ const SECTIONS: Section[] = [
     { to: '/admin/integrations/jira/review', label: 'Jira import review', icon: 'list', show: integrations },
     { to: '/admin/integrations/jira/conflicts', label: 'Jira conflicts', icon: 'warning', show: integrations },
     { to: '/admin/integrations/jira/monitoring', label: 'Jira sync monitor', icon: 'history', show: integrations },
-    { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => m.grants.audit || m.isAdministrator },
-    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyPermission(m, 'ArchiveRestore') }
+    { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => canAudit(m) || isAdministrator(m) },
+    { to: '/admin/archived', label: 'Archived records', icon: 'archive', show: m => hasAnyAction(m, 'ArchiveRestore') }
   ] }
 ];
 
@@ -322,18 +322,18 @@ export function Shell({ children }: { children: ReactNode }) {
             </div>
           )}
           {me && <div className={f.secondaryHeader.secondaryHeaderContr}><Menu label="+ New" title="Create a record" items={[
-            { label: 'Client', to: '/clients/new', hidden: !hasPermission(me, 'ClientStructure', 'Create') },
-            { label: 'Environment', to: '/environments/new', hidden: !hasPermission(me, 'Environments', 'Create') },
-            { label: 'Case', to: '/cases/new', hidden: !hasPermission(me, 'Cases', 'Create') },
-            { label: 'Commitment', to: '/commitments/new', hidden: !hasPermission(me, 'Commitments', 'Create') },
-            { label: 'Escalation', to: '/escalations/new', hidden: !hasPermission(me, 'OtherOperations', 'Create') },
+            { label: 'Client', to: '/clients/new', hidden: !hasRight(me, 'ClientStructure', 'Create') },
+            { label: 'Environment', to: '/environments/new', hidden: !hasRight(me, 'Environments', 'Create') },
+            { label: 'Case', to: '/cases/new', hidden: !hasRight(me, 'Cases', 'Create') },
+            { label: 'Commitment', to: '/commitments/new', hidden: !hasRight(me, 'Commitments', 'Create') },
+            { label: 'Escalation', to: '/escalations/new', hidden: !hasRight(me, 'OtherOperations', 'Create') },
             { label: 'Note', to: '/notes' },
-            { label: 'Product', to: '/products/new', hidden: !hasPermission(me, 'Products', 'Create') }
+            { label: 'Product', to: '/products/new', hidden: !hasRight(me, 'Products', 'Create') }
           ]} /></div>}
           <button className={f.secondaryNode.menuNode} onClick={() => setPalette(true)} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
             <Icon name="search" size={24} />
           </button>
-          {hasPermission(me, 'Notifications', 'View') && <NotificationBell />}
+          {hasRight(me, 'Notifications', 'View') && <NotificationBell />}
           {forms
             ? <Link className={f.secondaryNode.menuNode} to="/account/password" title={`${me!.displayName} · ${me!.roleLabels.join(', ')} · Change password`} aria-label={`Signed in as ${me!.displayName}. Change password`}><Icon name="user" size={24} /></Link>
             : <span className={f.secondaryNode.menuNode} title={me ? `${me.displayName} · ${me.roleLabels.join(', ')}` : ''}><Icon name="user" size={24} title={me ? `Signed in as ${me.displayName}` : undefined} /></span>}

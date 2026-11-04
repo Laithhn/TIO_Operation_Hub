@@ -49,7 +49,7 @@ public static class QualityEndpoints
         var dg = api.MapGroup("/data-quality").WithTags("Data quality");
         dg.MapGet("", async (string? rule, long? clientId, long? coordinatorId, string? status, string? recordType, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var q = Filter(db.DataQualityItems.AsNoTracking(), rule, clientId, coordinatorId, status, recordType);
             return Results.Ok(await q.OrderBy(i => i.Rule).ThenBy(i => i.RecordLabel).Select(i => new
             {
@@ -60,18 +60,18 @@ public static class QualityEndpoints
         });
         dg.MapGet("/summary", async (long? clientId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var rows = await Filter(db.DataQualityItems.AsNoTracking(), null, clientId, null, "Open", null).GroupBy(i => i.Rule).Select(g => new { rule = g.Key, count = g.Count() }).ToListAsync(ct);
             return Results.Ok(rows.Select(r => new { r.rule, label = DataQualityEngine.Rule.Labels.GetValueOrDefault(r.rule, r.rule), r.count }));
         });
         dg.MapPut("/{id:long}", async (long id, ItemInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var i = await db.DataQualityItems.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The data-quality item");
-            access.RequireMaintain(ResourcePermissions.Other, i.ClientId, i.TeamId, i.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Other, i.ClientId, i.TeamId, i.CoordinatorUserId);
             db.ExpectVersion(ctx, i);
             var check = new Check().Text("nextAction", input.NextAction, 1000, "the next action", true);
             if (input.CoordinatorUserId is null) check.Add("coordinatorUserId", "Select the accountable internal coordinator.");
-            if (input.CoordinatorUserId != i.CoordinatorUserId && !access.Me.HasPermission(ResourcePermissions.Other, ResourcePermissions.Coordinate)) check.Add("coordinatorUserId", "Other operations coordination permission is required to change the coordinator.");
+            if (input.CoordinatorUserId != i.CoordinatorUserId && !access.Me.HasRight(RightKeys.Other, RightKeys.Coordinate)) check.Add("coordinatorUserId", "Other operations coordination permission is required to change the coordinator.");
             await access.CheckAssignableAsync(check, "coordinatorUserId", input.CoordinatorUserId, i.ClientId, i.TeamId, "the coordinator", ct);
             check.ThrowIfAny();
             i.CoordinatorUserId = input.CoordinatorUserId;
@@ -93,7 +93,7 @@ public static class QualityEndpoints
     /// <summary>A manual scan runs in system context and mutates quality items across all scopes.</summary>
     public static void RequireGlobalScanAccess(UserContext me)
     {
-        me.RequirePermission(ResourcePermissions.Other, ResourcePermissions.Maintain);
+        me.RequireRight(RightKeys.Other, RightKeys.Maintain);
         if (!me.IsSystem && (!me.AllClients || !me.AllInternal))
             throw new ForbiddenException("Running a global data-quality scan requires all client and internal scopes.");
     }

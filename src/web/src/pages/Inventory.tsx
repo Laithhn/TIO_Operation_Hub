@@ -1,10 +1,11 @@
+import { seesTechnical, isAdministrator } from '../rights';
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDate, label, qty } from '../format';
-import { usePermission, useEnum, useForm, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useRight, useEnum, useForm, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, ArchiveDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, DataTable, Dialog, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, FreshnessBadge, type FreshnessT, Menu, FormSection, QuantityInput, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -200,9 +201,9 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
           hint={logical ? 'A logical endpoint (for example a listener) has no own CPU or RAM and is never counted as a VM.' : undefined} />
         <SelectInput label="Role" value={f.values.role} onChange={v => f.set('role', v)} options={roles.map(r => ({ value: r.code, label: r.label }))} empty="Not recorded" error={f.fieldError('role')} />
         <SelectInput label="Lifecycle" value={f.values.lifecycle} onChange={v => f.set('lifecycle', v)} options={enumOptions(lifecycles)} empty={null} hint="Documented does not imply Active." />
-        {me.grants.technicalDetail
+        {seesTechnical(me)
           ? <SelectInput label="Network zone" value={f.values.networkZone} onChange={v => f.set('networkZone', v)} options={zones.map(r => ({ value: r.code, label: r.label }))} empty="Unknown" error={f.fieldError('networkZone')}
-              hint={me.isAdministrator ? <>Zones are managed under <Link to="/admin/network-zones" target="_blank">Administration → Network zones</Link>.</> : 'Zones are managed by the TIO Manager under Administration → Network zones.'} />
+              hint={isAdministrator(me) ? <>Zones are managed under <Link to="/admin/network-zones" target="_blank">Administration → Network zones</Link>.</> : 'Zones are managed by the TIO Manager under Administration → Network zones.'} />
           : <TextInput label="Network zone" value="Restricted (Technical detail)" onChange={() => {}} disabled />}
         <SelectInput label="Project phase" value={f.values.projectPhase} onChange={v => f.set('projectPhase', v)} options={phases.map(r => ({ value: r.code, label: r.label }))} empty="Unknown" />
       </FormSection>
@@ -319,10 +320,10 @@ export function InstallationDetail() {
   const { id } = useParams();
   const q = useQuery({ queryKey: ['installation', id], queryFn: () => get<InstDto>(`/installations/${id}`) });
   const ref = useReference().data;
-  const canEng = usePermission('Installations', 'Maintain');
-  const canCreateComponent = usePermission('Servers', 'Create');
-  const canClone = usePermission('Installations', 'Create');
-  const canArchive = usePermission('Installations', 'ArchiveRestore');
+  const canEng = useRight('Installations', 'Maintain');
+  const canCreateComponent = useRight('Servers', 'Create');
+  const canClone = useRight('Installations', 'Create');
+  const canArchive = useRight('Installations', 'ArchiveRestore');
   const [dialog, setDialog] = useState<string | null>(null);
   const i = q.data;
   const versions = ref?.products.find(p => p.id === i?.product.id)?.versions ?? [];
@@ -402,7 +403,7 @@ export function ComponentDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['component', id], queryFn: () => get<CompDto>(`/components/${id}`) });
-  const canEng = usePermission('Servers', 'Maintain');
+  const canEng = useRight('Servers', 'Maintain');
   const [edit, setEdit] = useState(false);
   const c = q.data;
   return (
@@ -422,9 +423,9 @@ export function AssetDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['asset', id], queryFn: () => get<AssetDto>(`/assets/${id}`) });
-  const canEng = usePermission('Servers', 'Maintain');
-  const canClone = usePermission('Servers', 'Create');
-  const canArchive = usePermission('Servers', 'ArchiveRestore');
+  const canEng = useRight('Servers', 'Maintain');
+  const canClone = useRight('Servers', 'Create');
+  const canArchive = useRight('Servers', 'ArchiveRestore');
   const [dialog, setDialog] = useState<string | null>(null);
   const a = q.data;
   return (
@@ -610,10 +611,10 @@ type CloneTargetRow = { id: number; find: string; replace: string };
 export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, sourceName, wholeEnvironment = false, assetIds = [], installationIds = [], onClose }:
   { sourceEnvironmentId: number; clientId: number; sourceRegionCode?: string; sourceName?: string; wholeEnvironment?: boolean; assetIds?: number[]; installationIds?: number[]; onClose: () => void }) {
   const lifecycles = useEnum('AssetLifecycle');
-  const canCreateEnvironment = usePermission('Environments', 'Create');
-  const canCreateServer = usePermission('Servers', 'Create');
-  const canMaintainServer = usePermission('Servers', 'Maintain');
-  const canCreateInstallation = usePermission('Installations', 'Create');
+  const canCreateEnvironment = useRight('Environments', 'Create');
+  const canCreateServer = useRight('Servers', 'Create');
+  const canMaintainServer = useRight('Servers', 'Maintain');
+  const canCreateInstallation = useRight('Installations', 'Create');
   const [mode, setMode] = useState<'new' | 'existing'>(wholeEnvironment && canCreateEnvironment ? 'new' : 'existing');
   const regions = useQuery({ queryKey: ['regions', clientId], queryFn: () => get<{ id: number; code: string; name: string }[]>(`/clients/${clientId}/regions`), enabled: wholeEnvironment });
   const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`) });

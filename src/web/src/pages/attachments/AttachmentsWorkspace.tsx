@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { ApiError, del, get, qs } from '../../api';
 import { fmtDate, fmtDateTime } from '../../format';
 import { useMe, useRefresh } from '../../hooks';
-import { hasPermission, resourceForRecord } from '../../permissions';
+import { hasRight, resourceForRecord } from '../../rights';
 import { Icon } from '../../ui/Icon';
 import { Dialog, ErrorBox, Panel, Person, Restricted, StateMessage, useToast } from '../../ui/kit';
 import { AttachmentPreview, downloadUrl } from './AttachmentPreview';
@@ -181,7 +181,7 @@ type WorkspaceProps = {
 export function AttachmentsWorkspace(props: WorkspaceProps) {
   const me = useMe();
   const resource = resourceForRecord(props.recordType);
-  const allowed = hasPermission(me.data, resource, 'View') && hasPermission(me.data, resource, 'DetailsView') && hasPermission(me.data, resource, 'AttachmentsView');
+  const allowed = hasRight(me.data, resource, 'View') && hasRight(me.data, resource, 'DetailsView') && hasRight(me.data, resource, 'AttachmentsView');
   if (me.isLoading) return <StateMessage kind="loading" />;
   if (!allowed) return <Panel title={props.title ?? 'Attachments'}><Restricted need="Viewing these files needs the record details and View attachments permissions." /></Panel>;
   return <AuthorizedAttachmentsWorkspace {...props} />;
@@ -192,9 +192,9 @@ function AuthorizedAttachmentsWorkspace({ recordType, recordId, scopeAllowed = t
   const root = useRef<HTMLDivElement>(null);
   const titleId = 'att-title-' + useId().replace(/[^a-zA-Z0-9]/g, '');
   const resource = resourceForRecord(recordType);
-  const canEdit = hasPermission(me, resource, 'AttachmentsUpload') && scopeAllowed;
-  const canDeleteOwn = hasPermission(me, resource, 'AttachmentsDeleteOwn') && scopeAllowed;
-  const canDeleteAny = hasPermission(me, resource, 'AttachmentsDelete') && scopeAllowed;
+  const canEdit = hasRight(me, resource, 'AttachmentsUpload') && scopeAllowed;
+  const canDeleteOwn = hasRight(me, resource, 'AttachmentsDeleteOwn') && scopeAllowed;
+  const canDeleteAny = hasRight(me, resource, 'AttachmentsDelete') && scopeAllowed;
   const q = useQuery({ queryKey: ['attachments', recordType, recordId], queryFn: () => get<Attachment[]>(`/attachments${qs({ recordType, recordId })}`) });
   const limits = useQuery({ queryKey: ['attachment-limits'], queryFn: () => get<Limits>('/attachments/limits'), staleTime: 10 * 60_000, enabled: canEdit });
   const [view, setView] = useState<View>(DEFAULT_VIEW);

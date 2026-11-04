@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -73,7 +74,7 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         http.DefaultRequestHeaders.Add("X-Test-User", account);
         if (groups is not null) http.DefaultRequestHeaders.Add("X-Test-Groups", groups);
         var me = await http.GetAsync("/api/v1/me");
-        var api = new Api(http, me.StatusCode);
+        var api = new Api(http, me.StatusCode) { RoleIdOf = RoleId };
         if (me.IsSuccessStatusCode)
         {
             var cookie = me.Headers.GetValues("Set-Cookie").First(c => c.StartsWith("XSRF-TOKEN="));
@@ -89,6 +90,14 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         var m = await As(Manager);
         var r = await m.Get($"/clients?q={code}");
         return r.Body!["items"]!.AsArray().First(x => x!["code"]!.GetValue<string>() == code)!["id"]!.GetValue<long>();
+    }
+
+    /// <summary>A role id by built-in key or by name.</summary>
+    public async Task<long> RoleId(string role)
+    {
+        var manager = await As(Manager);
+        var roles = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray();
+        return roles.First(r => r!["key"]?.GetValue<string>() == role || r!["name"]!.GetValue<string>() == role)!["id"]!.GetValue<long>();
     }
 
     public async Task<long> UserId(string account)
@@ -109,9 +118,30 @@ public sealed class Api(HttpClient http, HttpStatusCode signIn)
     public HttpClient Http => http;
     public long UserId => Me["id"]!.GetValue<long>();
 
+    /// <summary>Tests name roles for readability; the API takes role ids. Set by the factory, and translated here only.</summary>
+    public Func<string, Task<long>>? RoleIdOf { get; set; }
+
+    private async Task<object?> WithRoleIds(object? body)
+    {
+        if (body is null || RoleIdOf is null || JsonSerializer.SerializeToNode(body, Options) is not JsonObject json) return body;
+        if (json["roleId"] is JsonValue id) { json["roleIds"] = new JsonArray(id.GetValue<long>()); json.Remove("roleId"); return json; }
+        var names = json["roles"]?.AsArray().Select(x => x!.GetValue<string>()).ToArray();
+        if (json["role"] is JsonValue single && single.TryGetValue<string>(out var name)) names = [name];
+        if (names is null && !json.ContainsKey("role")) return body;
+        var ids = new JsonArray();
+        foreach (var role in names ?? []) ids.Add(await RoleIdOf(role));
+        json["roleIds"] = ids;
+        json.Remove("roles");
+        json.Remove("role");
+        return json;
+    }
+
+    private static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web);
+
     public async Task<Res> Send(HttpMethod method, string path, object? body = null, string? ifMatch = null)
     {
         var req = new HttpRequestMessage(method, "/api/v1" + path);
+        if (path.StartsWith("/admin/users", StringComparison.Ordinal) || path.StartsWith("/admin/group-mappings", StringComparison.Ordinal)) body = await WithRoleIds(body);
         if (body is not null) req.Content = JsonContent.Create(body);
         if (ifMatch is not null) req.Headers.IfMatch.Add(new EntityTagHeaderValue($"\"{ifMatch}\""));
         var res = await http.SendAsync(req);

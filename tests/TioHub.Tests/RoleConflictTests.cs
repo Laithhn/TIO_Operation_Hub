@@ -29,13 +29,13 @@ public sealed class RoleConflictTests
     public void Recovery_requires_active_role_maintenance_and_its_prerequisites_after_direct_denies()
     {
         var now = DateTimeOffset.Parse("2026-11-02T00:00:00Z");
-        var active = ResourcePermissions.All.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        Assert.True(RoleConflicts.HasRecoveryPermissions([], active, now));
-        Assert.False(RoleConflicts.HasRecoveryPermissions([new UserPermissionOverride { PermissionKey = "AdminRoles:Maintain", Effect = "Deny" }], active, now));
-        Assert.False(RoleConflicts.HasRecoveryPermissions([new UserPermissionOverride { PermissionKey = "AdminRoles:View", Effect = "Deny" }], active, now));
-        Assert.True(RoleConflicts.HasRecoveryPermissions([new UserPermissionOverride { PermissionKey = "AdminRoles:Maintain", Effect = "Deny", ExpiresAt = now }], active, now));
+        var active = RightsCatalog.AllKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        Assert.True(RoleConflicts.HasRecoveryRights([], active, now));
+        Assert.False(RoleConflicts.HasRecoveryRights([new UserRightException { RightKey = "AdminRoles:Maintain", Effect = "Deny" }], active, now));
+        Assert.False(RoleConflicts.HasRecoveryRights([new UserRightException { RightKey = "AdminRoles:View", Effect = "Deny" }], active, now));
+        Assert.True(RoleConflicts.HasRecoveryRights([new UserRightException { RightKey = "AdminRoles:Maintain", Effect = "Deny", ExpiresAt = now }], active, now));
         active.Remove("AdminRoles:Maintain");
-        Assert.False(RoleConflicts.HasRecoveryPermissions([], active, now));
+        Assert.False(RoleConflicts.HasRecoveryRights([], active, now));
     }
 
     [Fact]
@@ -52,13 +52,13 @@ public sealed class RoleConflictTests
     public void Forms_user_administrator_must_retain_effective_user_maintenance()
     {
         var now = DateTimeOffset.Parse("2026-11-02T00:00:00Z");
-        var active = ResourcePermissions.All.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var active = RightsCatalog.AllKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
         var manager = new AppRole { Key = BuiltInRoles.ManagerKey, IsActive = true };
-        Assert.True(RoleConflicts.HasUserAdministrationPermissions([manager], [], active, now));
-        Assert.False(RoleConflicts.HasUserAdministrationPermissions([manager],
-            [new UserPermissionOverride { PermissionKey = "AdminUsers:View", Effect = "Deny" }], active, now));
-        Assert.False(RoleConflicts.HasUserAdministrationPermissions([], [], active, now));
+        Assert.True(RoleConflicts.HasUserAdministrationRights([manager], [], active, now));
+        Assert.False(RoleConflicts.HasUserAdministrationRights([manager],
+            [new UserRightException { RightKey = "AdminUsers:View", Effect = "Deny" }], active, now));
+        Assert.False(RoleConflicts.HasUserAdministrationRights([], [], active, now));
         manager.IsActive = false;
-        Assert.False(RoleConflicts.HasUserAdministrationPermissions([manager], [], active, now));
+        Assert.False(RoleConflicts.HasUserAdministrationRights([manager], [], active, now));
     }
 }

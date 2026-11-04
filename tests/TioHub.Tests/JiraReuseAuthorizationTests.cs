@@ -31,8 +31,8 @@ public sealed class JiraReuseAuthorizationTests
     public void Jira_matches_are_selected_from_scope_filtered_cases()
     {
         var me = new UserContext();
-        me.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"], Right.None,
-            PermissionHierarchy.WithAncestors(["Cases:View"]), Grant.None, false, [10], [20], [30], [40], false, [50]));
+        me.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"],
+            Fixture.Rights(["Cases:View"]), false, [10], [20], [30], [40], false, [50]));
         var options = new DbContextOptionsBuilder<HubDbContext>()
             .UseSqlServer("Server=(local);Database=unused;Integrated Security=true;TrustServerCertificate=true").Options;
         using var db = new HubDbContext(options, me, TimeProvider.System);

@@ -1,5 +1,7 @@
 # Authorization administration and rollout — 2.43.0
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 Client structure and projects are separate permission resources. `ClientStructure` controls clients, sub-clients, regions and organization relationships; `Projects` controls project pages, records, attachments and history. The upgrade migration copies each existing role's project-related `ClientStructure` grants into `Projects` once, then the two resources can be changed independently.
 
 ## Configure and verify a role

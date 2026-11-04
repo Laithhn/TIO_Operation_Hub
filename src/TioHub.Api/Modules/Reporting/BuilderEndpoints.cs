@@ -15,7 +15,7 @@ namespace TioHub.Api.Modules.Reporting;
 /// <summary>
 /// A70: the Reporting Center redesign API under <c>/api/v1/reporting</c> — Cases Report Builder metadata and authorized filter values,
 /// server-side preview, saved report definitions, asynchronous export jobs (202 + polling, idempotent, cancellable), schedules of saved
-/// reports and the usage overview. Every endpoint needs a business role and the Export permission (as the A62 Reporting Center).
+/// reports and the usage overview. Every endpoint needs a business role and the Export files right (as the A62 Reporting Center).
 /// </summary>
 public static class BuilderEndpoints
 {
@@ -118,10 +118,10 @@ public static class BuilderEndpoints
         g.MapGet("/report-types/cases/filters", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var clients = await db.Clients.AsNoTracking().Where(_ => me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View)).OrderBy(c => c.Code).Select(c => new { id = c.Id, label = c.Code, sub = c.Name }).ToListAsync(ct);
-            var teams = await TeamEndpoints.VisibleTeams(db.Teams.AsNoTracking(), me).Where(_ => me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View)).OrderBy(t => t.Name).Select(t => new { id = t.Id, label = t.Name }).ToListAsync(ct);
-            var products = await db.Products.AsNoTracking().Where(_ => me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View)).OrderBy(p => p.Code).Select(p => new { id = p.Id, label = p.Code, sub = p.Name }).ToListAsync(ct);
-            var environments = await db.Environments.AsNoTracking().Where(_ => me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View)).OrderBy(e => e.Client!.Code).ThenBy(e => e.Name).Take(1000)
+            var clients = await db.Clients.AsNoTracking().Where(_ => me.HasRight(RightKeys.Structure, RightKeys.View)).OrderBy(c => c.Code).Select(c => new { id = c.Id, label = c.Code, sub = c.Name }).ToListAsync(ct);
+            var teams = await TeamEndpoints.VisibleTeams(db.Teams.AsNoTracking(), me).Where(_ => me.HasRight(RightKeys.Teams, RightKeys.View)).OrderBy(t => t.Name).Select(t => new { id = t.Id, label = t.Name }).ToListAsync(ct);
+            var products = await db.Products.AsNoTracking().Where(_ => me.HasRight(RightKeys.Products, RightKeys.View)).OrderBy(p => p.Code).Select(p => new { id = p.Id, label = p.Code, sub = p.Name }).ToListAsync(ct);
+            var environments = await db.Environments.AsNoTracking().Where(_ => me.HasRight(RightKeys.Environments, RightKeys.View)).OrderBy(e => e.Client!.Code).ThenBy(e => e.Name).Take(1000)
                 .Select(e => new { id = e.Id, label = e.Name, sub = e.Client!.Code, clientId = e.ClientId }).ToListAsync(ct);
             var owners = await db.Users.AsNoTracking().Where(u => u.IsActive || db.Cases.Any(c => c.OwnerUserId == u.Id)).OrderBy(u => u.DisplayName)
                 .Select(u => new { id = u.Id, label = u.DisplayName, active = u.IsActive }).ToListAsync(ct);
@@ -346,8 +346,8 @@ public static class BuilderEndpoints
         {
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-            if (j is null || (j.UserId != me.UserId && !me.Has(Grant.Audit))) throw new NotFoundException("The export");
-            CapabilityPermissions.RequireReport(me, j.Report);
+            if (j is null || (j.UserId != me.UserId && !me.HasRight(RightKeys.Audit))) throw new NotFoundException("The export");
+            RightChecks.RequireReport(me, j.Report);
             var user = await db.Users.AsNoTracking().Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefaultAsync(ct);
             return Results.Ok(JobDto(j, user, me));
         });
@@ -428,7 +428,7 @@ public static class BuilderEndpoints
             DateTimeOffset Day(DateTime d) => new DateTimeOffset(d, zone.GetUtcOffset(d)).ToUniversalTime();
             var start = Day(today.AddDays(-(span - 1)));
             var prevStart = Day(today.AddDays(-(2 * span - 1)));
-            var readable = CapabilityPermissions.ReadableReports(me);
+            var readable = RightChecks.ReadableReports(me);
             var mine = db.ExportJobs.AsNoTracking().Where(j => j.UserId == me.UserId && readable.Contains(j.Report));
             var window = await mine.Where(j => j.RequestedAt >= prevStart).Select(j => new { j.RequestedAt, j.Status, j.Report }).ToListAsync(ct);
             var current = window.Where(j => j.RequestedAt >= start).ToList();
@@ -528,7 +528,7 @@ public static class BuilderEndpoints
             // Recipients are checked now and again at every run: each receives only what their own access allows.
             var r = await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true);
             if (r is null || !r.IsActive) check.Add("recipientIds", $"Recipient #{id} is not an active hub user.");
-            else if ((r.Grants & Grant.Export) != Grant.Export || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
+            else if (!r.Holds(RightKeys.PlatformExport) || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export files right.");
         }
         check.ThrowIfAny();
         s.Name = input.Name!.Trim();

@@ -1,4 +1,4 @@
-import { legacyTestGrants } from '../testPermissionFixtures';
+import { testGrants } from '../testRightFixtures';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createElement, type ReactElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -9,7 +9,7 @@ import { ClientDisplay, ClientLogo, initialsOf, LOGO_PX, logoProblem, toneOf } f
 // A71: the client logo component, rendered to markup in Node (no browser needed).
 function render(el: ReactElement, logos?: { id: number; code: string; logoUrl: string }[], permissions = ['ClientStructure:View', 'ClientStructure:DetailsView']): string {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  qc.setQueryData(['me'], { permissions: legacyTestGrants(permissions) });
+  qc.setQueryData(['me'], { rights: testGrants(permissions) });
   if (logos) qc.setQueryData(['client-logos'], logos);
   return renderToStaticMarkup(createElement(QueryClientProvider, { client: qc }, createElement(MemoryRouter, null, el)));
 }

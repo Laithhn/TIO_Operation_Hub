@@ -91,7 +91,7 @@ public sealed class TableReport<T> : ReportDefinition
     public override async Task<ReportResult> RunAsync(ReportContext ctx, int skip, int? take, CancellationToken ct)
     {
         ExportService.RequireExport(ctx.Access.Me);
-        CapabilityPermissions.RequireReport(ctx.Access.Me, Key);
+        RightChecks.RequireReport(ctx.Access.Me, Key);
         List<T> page;
         int total;
         List<ReportMetric>? summary = null;
@@ -302,7 +302,7 @@ public static class ReportCatalog
         list.Add(new TableReport<AssetRow>
         {
             Key = "assets", Name = "Assets inventory report", Category = Technical, Icon = "server",
-            Description = "Servers and other assets with type, role, lifecycle and recorded CPU, RAM and operating system. Network zones need the Technical detail permission.",
+            Description = "Servers and other assets with type, role, lifecycle and recorded CPU, RAM and operating system. Network zones need the Technical detail right.",
             Filters = [Client, Product, new("type", "Asset type", FilterKind.Text, Hint: "As configured, e.g. VM."),
                 new("lifecycle", "Lifecycle", FilterKind.Select, Options: Names<AssetLifecycle>()), new("role", "Role", FilterKind.Text, true), new("q", "Name contains", FilterKind.Text, true)],
             ListKeys = ["regionId", "environmentId", "phase", "zone"],

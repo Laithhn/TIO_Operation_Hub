@@ -232,8 +232,8 @@ public static partial class AttachmentEndpoints
 
         g.MapGet("", async (string recordType, long recordId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            access.Me.RequirePermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.AttachmentsView);
+            access.RequireAccess();
+            access.Me.RequireRight(RightKeys.ForRecord(recordType), RightKeys.AttachmentsView);
             _ = await ResolveAsync(db, access.Me, recordType, recordId, ct) ?? throw new NotFoundException("The record");
             var rows = await db.Attachments.AsNoTracking().Include(a => a.UploadedBy).Where(a => a.RecordType == recordType && a.RecordId == recordId)
                 .OrderByDescending(a => a.CreatedAt).ToListAsync(ct);
@@ -246,8 +246,8 @@ public static partial class AttachmentEndpoints
             if (!req.HasFormContentType) throw new ValidationException("files", "Send the files as a multipart form.");
             var form = await req.ReadFormAsync(ct);
             var type = form["recordType"].ToString();
-            var resource = ResourcePermissions.ForRecord(type);
-            access.Me.RequirePermission(resource, ResourcePermissions.AttachmentsUpload);
+            var resource = RightKeys.ForRecord(type);
+            access.Me.RequireRight(resource, RightKeys.AttachmentsUpload);
             if (!long.TryParse(form["recordId"], out var recordId)) throw new ValidationException("recordId", "Say which record the files belong to.");
             var target = await ResolveAsync(db, access.Me, type, recordId, ct) ?? throw new NotFoundException("The record");
             if (!access.Me.SeesScope(target.ClientId, target.TeamId)) throw new NotFoundException("The record");
@@ -296,9 +296,9 @@ public static partial class AttachmentEndpoints
 
         g.MapGet("/{id:long}/download", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            access.Me.RequirePermission(ResourcePermissions.ForRecord(a.RecordType), ResourcePermissions.AttachmentsView);
+            access.Me.RequireRight(RightKeys.ForRecord(a.RecordType), RightKeys.AttachmentsView);
             _ = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
             if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
             // Always a download, never rendered by the browser as a page.
@@ -309,9 +309,9 @@ public static partial class AttachmentEndpoints
         // rendered inline. The response may be framed by the hub's own pages only, and the shown document may load nothing else.
         g.MapGet("/{id:long}/preview", async (long id, HttpContext http, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            access.Me.RequirePermission(ResourcePermissions.ForRecord(a.RecordType), ResourcePermissions.AttachmentsView);
+            access.Me.RequireRight(RightKeys.ForRecord(a.RecordType), RightKeys.AttachmentsView);
             _ = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
             if (!PreviewTypes.TryGetValue(Path.GetExtension(a.FileName).ToLowerInvariant(), out var type))
                 throw new ValidationException("file", "This file type has no preview. Download the file to open it.");
@@ -326,8 +326,8 @@ public static partial class AttachmentEndpoints
         g.MapPut("/{id:long}", async (long id, DescriptionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            var resource = ResourcePermissions.ForRecord(a.RecordType);
-            access.Me.RequirePermission(resource, ResourcePermissions.AttachmentsUpload);
+            var resource = RightKeys.ForRecord(a.RecordType);
+            access.Me.RequireRight(resource, RightKeys.AttachmentsUpload);
             var target = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct);
             if (!CanModifyTarget(access.Me, a, target)) throw new NotFoundException("The file");
             new Check().Text("description", input.Description, 500, "Description").ThrowIfAny();
@@ -339,9 +339,9 @@ public static partial class AttachmentEndpoints
         g.MapDelete("/{id:long}", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            var resource = ResourcePermissions.ForRecord(a.RecordType);
-            if (!access.Me.HasPermission(resource, ResourcePermissions.AttachmentsDelete)
-                && !(a.UploadedById == access.Me.UserId && access.Me.HasPermission(resource, ResourcePermissions.AttachmentsDeleteOwn)))
+            var resource = RightKeys.ForRecord(a.RecordType);
+            if (!access.Me.HasRight(resource, RightKeys.AttachmentsDelete)
+                && !(a.UploadedById == access.Me.UserId && access.Me.HasRight(resource, RightKeys.AttachmentsDeleteOwn)))
                 throw new ForbiddenException("Removing this file needs Delete own attachments for its uploader, or Delete any attachment for this module.");
             var target = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct);
             if (!CanModifyTarget(access.Me, a, target)) throw new NotFoundException("The file");

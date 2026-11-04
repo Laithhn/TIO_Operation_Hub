@@ -25,7 +25,7 @@ public static class EnvironmentEndpoints
             long? ownerId, long? productId, string? q, string? freshness, string? sort, int? page, int? pageSize,
             HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var query = db.Environments.AsNoTracking().AsQueryable();
             query = query.Where(e => db.Clients.Any(c => c.Id == e.ClientId));
             if (clientId is not null) query = query.Where(e => e.ClientId == clientId);
@@ -50,9 +50,9 @@ public static class EnvironmentEndpoints
                 owner = e.Owner == null ? null : new UserRef(e.Owner.Id, e.Owner.DisplayName, e.Owner.IsActive),
                 backupOwner = e.BackupOwner == null ? null : new UserRef(e.BackupOwner.Id, e.BackupOwner.DisplayName, e.BackupOwner.IsActive),
                 e.BackupGapReason, e.CreatedAt, e.InventoryReviewedAt, e.NextReviewAt,
-                installationCount = db.Installations.Count(i => access.Me.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View) && i.EnvironmentId == e.Id),
-                assetCount = db.Assets.Count(a => access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View) && a.EnvironmentId == e.Id),
-                openCases = db.CaseEnvironments.Count(ce => access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View) && ce.EnvironmentId == e.Id && db.Cases.Any(c => c.Id == ce.CaseId && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled))
+                installationCount = db.Installations.Count(i => access.Me.HasRight(RightKeys.Installations, RightKeys.View) && i.EnvironmentId == e.Id),
+                assetCount = db.Assets.Count(a => access.Me.HasRight(RightKeys.Servers, RightKeys.View) && a.EnvironmentId == e.Id),
+                openCases = db.CaseEnvironments.Count(ce => access.Me.HasRight(RightKeys.Cases, RightKeys.View) && ce.EnvironmentId == e.Id && db.Cases.Any(c => c.Id == ce.CaseId && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled))
             }).ToListAsync(ct);
             var policies = await fresh.PoliciesAsync(ct);
             var now = DateTimeOffset.UtcNow;
@@ -71,7 +71,7 @@ public static class EnvironmentEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var e = await db.Environments.AsNoTracking().Include(x => x.Client).Include(x => x.Region).Include(x => x.Project)
                 .Include(x => x.Owner).Include(x => x.BackupOwner).Include(x => x.Coordinator).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
             var now = DateTimeOffset.UtcNow;
@@ -81,7 +81,7 @@ public static class EnvironmentEndpoints
                 e.Id, e.Name, e.Type, e.TypeDescription, e.Hosting, e.Location, e.Criticality, e.Description,
                 client = new { e.Client!.Id, e.Client.Code, e.Client.Name, country = e.Client.CountryUnknown ? "Unknown" : e.Client.Country },
                 region = e.Region == null ? null : new { e.Region.Id, e.Region.Code, e.Region.Name },
-                project = access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View) && e.Project != null ? new { e.Project.Id, e.Project.Code, e.Project.Name } : null,
+                project = access.Me.HasRight(RightKeys.Projects, RightKeys.View) && e.Project != null ? new { e.Project.Id, e.Project.Code, e.Project.Name } : null,
                 owner = Ref(e.Owner), backupOwner = Ref(e.BackupOwner), coordinator = Ref(e.Coordinator), e.BackupGapReason,
                 e.ResponsibleParty, e.ResponsibleOrganization, e.ResponsibleTeamId,
                 coverageGap = e.BackupOwnerUserId == null || e.BackupOwner?.IsActive == false || e.Owner?.IsActive == false,
@@ -95,7 +95,7 @@ public static class EnvironmentEndpoints
                 },
                 e.LastReviewedAt, e.InventoryReviewedAt, e.DependenciesReviewedAt, e.NextReviewAt,
                 e.ArchivedAt, e.ArchiveReason, e.CreatedAt, e.UpdatedAt,
-                canEdit = access.Me.HasClient(e.ClientId) && access.Me.HasPermissionIn(ResourcePermissions.Environments, ResourcePermissions.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId]))
+                canEdit = access.Me.HasClient(e.ClientId) && access.Me.HasRightIn(RightKeys.Environments, RightKeys.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId]))
             });
         });
 
@@ -103,7 +103,7 @@ public static class EnvironmentEndpoints
         {
             if (input.ClientId is null) throw new ValidationException("clientId", "Select the client.");
             var client = await db.Clients.FirstOrDefaultAsync(c => c.Id == input.ClientId, ct) ?? throw new NotFoundException("The client");
-            access.RequireEngineerFor(client.Id, resource: ResourcePermissions.Environments);
+            access.RequireEngineerFor(client.Id, resource: RightKeys.Environments);
             var e = new ClientEnvironment { ClientId = client.Id };
             await ApplyAsync(e, input, db, access, lookups, isNew: true, ct);
             db.Environments.Add(e);
@@ -115,7 +115,7 @@ public static class EnvironmentEndpoints
         {
             var e = await db.Environments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
             // A move between projects needs authority over both the old and the proposed project.
-            access.RequireIn(ResourcePermissions.Environments, ResourcePermissions.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId, input.ProjectId]));
+            access.RequireIn(RightKeys.Environments, RightKeys.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId, input.ProjectId]));
             db.ExpectVersion(ctx, e);
             await ApplyAsync(e, input, db, access, lookups, isNew: false, ct);
             await db.SaveChangesAsync(ct);
@@ -125,7 +125,7 @@ public static class EnvironmentEndpoints
         g.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var e = await db.Environments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireArchiveFor(e.ClientId, resource: ResourcePermissions.Environments);
+            access.RequireArchiveFor(e.ClientId, resource: RightKeys.Environments);
             db.ExpectVersion(ctx, e);
             var reason = Rules.RequireReason(input.Reason);
             var openCases = await db.CaseEnvironments.CountAsync(ce => ce.EnvironmentId == id && db.Cases.IgnoreQueryFilters().Any(c => c.Id == ce.CaseId && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled), ct);
@@ -133,7 +133,7 @@ public static class EnvironmentEndpoints
             {
                 if (string.IsNullOrWhiteSpace(input.ExceptionReason))
                     throw new ValidationException("Open cases affect this environment.", new Dictionary<string, string[]> { ["exceptionReason"] = [$"{openCases} open case(s) affect this environment. A TIO Manager must record an exception reason to archive anyway."] });
-                access.Me.RequirePermission(ResourcePermissions.Environments, ResourcePermissions.Coordinate);
+                access.Me.RequireRight(RightKeys.Environments, RightKeys.Coordinate);
                 reason += " — Manager exception: " + Rules.RequireReason(input.ExceptionReason, "exceptionReason", "the exception reason");
             }
             Rules.Archive(e, access.Me, DateTimeOffset.UtcNow, reason);
@@ -145,7 +145,7 @@ public static class EnvironmentEndpoints
         // ---- condition reports (ENV-04/05) ----
         g.MapGet("/{id:long}/conditions", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (!await db.Environments.AnyAsync(e => e.Id == id, ct)) throw new NotFoundException("The environment");
             return Results.Ok(await db.ConditionReports.AsNoTracking().Where(r => r.EnvironmentId == id).OrderByDescending(r => r.ObservedAt).ThenByDescending(r => r.Id)
                 .Select(r => new { r.Id, r.Condition, r.Reason, r.Evidence, r.ObservedAt, r.RecordedAt, recordedBy = r.RecordedBy == null ? null : r.RecordedBy.DisplayName }).ToListAsync(ct));
@@ -154,7 +154,7 @@ public static class EnvironmentEndpoints
         g.MapPost("/{id:long}/conditions", async (long id, ConditionInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var e = await db.Environments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireIn(ResourcePermissions.Environments, ResourcePermissions.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId]));
+            access.RequireIn(RightKeys.Environments, RightKeys.Maintain, ResourceContext.ForRecord(e.ClientId, null, [e.ProjectId]));
             var now = clock.GetUtcNow();
             var check = new Check();
             check.When(input.Condition is null, "condition", "Select the reported condition.")
@@ -203,10 +203,10 @@ public static class EnvironmentEndpoints
     {
         var check = new Check();
         if (!isNew && i.ClientId is not null && i.ClientId != e.ClientId) check.Add("clientId", "An environment cannot move to another client.");
-        var canViewProjects = access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.View);
+        var canViewProjects = access.Me.HasRight(RightKeys.Projects, RightKeys.View);
         if (!canViewProjects) i = i with { ProjectId = isNew ? null : e.ProjectId };
-        else if (i.ProjectId != e.ProjectId && !access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.Coordinate))
-            check.Add("projectId", "Changing the linked project needs Projects:Coordinate permission.");
+        else if (i.ProjectId != e.ProjectId && !access.Me.HasRight(RightKeys.Projects, RightKeys.Coordinate))
+            check.Add("projectId", "Changing the linked project needs the Projects:Coordinate right.");
         check.Text("name", i.Name, 100, "the environment name", required: true)
              .Text("typeDescription", i.TypeDescription, 150, "Type description")
              .Text("location", i.Location, 150, "Location")
@@ -233,8 +233,8 @@ public static class EnvironmentEndpoints
         // engineer are optional (a missing backup still shows as a coverage gap for critical environments under the coverage policy).
         if (i.BackupOwnerUserId is not null && i.BackupOwnerUserId == i.OwnerUserId) check.Add("backupOwnerUserId", "The backup operation engineer must be a different person from the technical owner.");
         if (i.BackupOwnerUserId is not null && i.BackupOwnerUserId == i.CoordinatorUserId) check.Add("backupOwnerUserId", "The backup operation engineer must be a different person from the operation engineer.");
-        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : e.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Environments);
-        access.CheckOwnerChange(check, "backupOwnerUserId", isNew ? i.BackupOwnerUserId : e.BackupOwnerUserId, i.BackupOwnerUserId, resource: ResourcePermissions.Environments);
+        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : e.OwnerUserId, i.OwnerUserId, resource: RightKeys.Environments);
+        access.CheckOwnerChange(check, "backupOwnerUserId", isNew ? i.BackupOwnerUserId : e.BackupOwnerUserId, i.BackupOwnerUserId, resource: RightKeys.Environments);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, e.ClientId, null, "the technical owner", ct);
         await access.CheckAssignableAsync(check, "backupOwnerUserId", i.BackupOwnerUserId, e.ClientId, null, "the backup operation engineer", ct);
         await access.CheckAssignableAsync(check, "coordinatorUserId", i.CoordinatorUserId, e.ClientId, null, "the operation engineer", ct);

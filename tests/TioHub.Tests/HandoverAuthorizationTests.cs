@@ -9,8 +9,8 @@ public sealed class HandoverAuthorizationTests
     private static UserContext User(string[] permissions, long[]? clients = null, bool active = true)
     {
         var me = new UserContext();
-        me.Set(new ResolvedUser(7, "test", "Test", "UTC", active, ["Custom"], Right.None,
-            PermissionHierarchy.WithAncestors(permissions), Grant.None, false, clients ?? [10], [], [10], [], false, []));
+        me.Set(new ResolvedUser(7, "test", "Test", "UTC", active, ["Custom"],
+            Fixture.Rights(permissions), false, clients ?? [10], [], [10], [], false, []));
         return me;
     }
 
@@ -41,8 +41,8 @@ public sealed class HandoverAuthorizationTests
     public void Region_transfer_also_requires_its_section_permissions()
     {
         var withoutSection = User(["ClientStructure:View", "ClientStructure:Coordinate"]);
-        var sectionView = PermissionHierarchy.Tab("ClientStructure", "structure", "View");
-        var sectionMaintain = PermissionHierarchy.Tab("ClientStructure", "structure", "Maintain");
+        var sectionView = RightKeys.Tab("ClientStructure", "structure", "View");
+        var sectionMaintain = RightKeys.Tab("ClientStructure", "structure", "Maintain");
         var withSection = User(["ClientStructure:View", "ClientStructure:Coordinate", "ClientStructure:Maintain", "Environments:View", sectionView, sectionMaintain]);
         Assert.False(TeamEndpoints.CanReadOwnedRecord(withoutSection, RecordTypes.Region));
         Assert.False(TeamEndpoints.CanTransferOwnedRecord(withoutSection, RecordTypes.Region, 10, null));

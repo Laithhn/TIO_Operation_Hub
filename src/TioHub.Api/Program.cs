@@ -99,7 +99,7 @@ builder.Services.AddOpenApi("v1", o => o.AddDocumentTransformer((doc, _, _) =>
 {
     doc.Info.Title = "TIO Operations Hub API";
     doc.Info.Version = "v1";
-    doc.Info.Description = "Versioned REST API of the TIO Operations Hub. Every operation enforces sign-in, role, scope and grants on the server. The Jira integration reads from Jira Cloud and never writes to it.";
+    doc.Info.Description = "Versioned REST API of the TIO Operations Hub. Every operation enforces sign-in, rights and data scope on the server. The Jira integration reads from Jira Cloud and never writes to it.";
     return Task.CompletedTask;
 }));
 
@@ -114,7 +114,7 @@ using (var scope = app.Services.CreateScope())
         await db.Database.MigrateAsync();
     // Stop before seeding, backfills, or hosted services touch a schema from an older release.
     (await DatabaseReadiness.CheckAsync(db, CancellationToken.None)).RequireReady();
-    await PermissionRegistry.SynchronizeAsync(db, CancellationToken.None);
+    await RightsCatalog.SynchronizeAsync(db, CancellationToken.None);
     if (config.GetValue("Database:SeedReferenceData", true))
         await ReferenceData.SeedAsync(db);
     if (config.GetValue("Database:SeedDevelopmentData", false))
@@ -188,7 +188,7 @@ app.MapGet("/api/health/ready", async (HubDbContext db, CancellationToken ct) =>
     .AllowAnonymous().ExcludeFromDescription();
 app.MapOpenApi("/openapi/{documentName}.json");
 
-app.MapGroup("/api/v1").AddEndpointFilter<CapabilityPermissionFilter>().AddEndpointFilter<AuthorizationAdministrationFilter>().MapHubModules();
+app.MapGroup("/api/v1").AddEndpointFilter<EndpointRightsFilter>().AddEndpointFilter<AuthorizationAdministrationFilter>().MapHubModules();
 
 app.Map("/api/{**rest}", (HttpContext ctx) => ProblemWriter.WriteAsync(ctx, 404, "Not found", "There is no API endpoint at this address.")).ExcludeFromDescription();
 // The SPA shell holds no data (every /api call is authorized), so it loads without a session and shows the sign-in page.

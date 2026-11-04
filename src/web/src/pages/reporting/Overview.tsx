@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { get } from '../../api';
 import { useMe } from '../../hooks';
-import { canExportReport } from '../../exportPermissions';
+import { canExportReport } from '../../exportRights';
 import { fmtDateTime } from '../../format';
 import { CAT, Donut, Kpi, SERIES, STATUS, VizPanel } from '../../ui/charts';
 import { Icon } from '../../ui/Icon';

@@ -1,12 +1,12 @@
-import { hasPermission } from '../permissions';
+import { hasRight } from '../rights';
 import { usePermittedTab } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, label, qty, toLocalInput } from '../format';
-import { useEnum, useEnumLabel, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useEnum, useEnumLabel, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, ConditionBadge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput,
@@ -32,7 +32,7 @@ export function EnvironmentList() {
   const crit = useEnum('Criticality');
   const conds = useEnum('Condition');
   const me = useMe().data!;
-  const canLead = usePermission('Environments', 'Create');
+  const canLead = useRight('Environments', 'Create');
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize'].includes(k) && v);
   const exportFilters = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   return (
@@ -82,8 +82,8 @@ export function EnvironmentForm() {
   const toast = useToast();
   const refresh = useRefresh();
   const existing = useQuery({ queryKey: ['environment', id], queryFn: () => get<EnvDto>(`/environments/${id}`), enabled: !isNew });
-  const canViewProjects = usePermission('Projects', 'View');
-  const canCoordinateProjects = usePermission('Projects', 'Coordinate');
+  const canViewProjects = useRight('Projects', 'View');
+  const canCoordinateProjects = useRight('Projects', 'Coordinate');
   const f = useForm({ clientId: sp.get('clientId') ?? '', regionId: sp.get('regionId') ?? '', projectId: '', name: '', type: '', typeDescription: '', hosting: 'Unknown', location: '', criticality: 'Unknown',
     ownerUserId: null as number | null, backupOwnerUserId: null as number | null, backupGapReason: '', responsibleParty: 'TIO', responsibleOrganization: '', coordinatorUserId: null as number | null, description: '', regionChangeReason: '' });
   const [version, setVersion] = useState<string>();
@@ -125,7 +125,7 @@ export function EnvironmentForm() {
             hint={hasRegions ? 'This client has regions, so every environment belongs to one of them.' : 'Environments of a client without regions sit directly under the client.'} />
           {regionChanged && <TextInput label="Reason for region change" required wide value={f.values.regionChangeReason} onChange={v => f.set('regionChangeReason', v)} error={f.fieldError('regionChangeReason')} hint="Region reassignment is audited." />}
           {canViewProjects && <SelectInput label="Project" value={f.values.projectId} onChange={v => f.set('projectId', v)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} disabled={!canCoordinateProjects}
-            hint={canCoordinateProjects ? 'Optional: link this environment to the client project it supports.' : 'You can view the project link; changing it needs Projects:Coordinate permission.'} />}
+            hint={canCoordinateProjects ? 'Optional: link this environment to the client project it supports.' : 'You can view the project link; changing it needs the Projects:Coordinate right.'} />}
           <TextInput label="Environment name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} hint="Unique within the client + region scope." maxLength={100} />
           <SelectInput label="Type" required value={f.values.type} onChange={v => f.set('type', v)} options={T.options('EnvironmentType', f.values.type)} error={f.fieldError('type')} />
           {f.values.type === 'Other' && <TextInput label="Type description" required value={f.values.typeDescription} onChange={v => f.set('typeDescription', v)} error={f.fieldError('typeDescription')} />}
@@ -163,10 +163,10 @@ export function EnvironmentDetail() {
   const ov = useQuery({ queryKey: ['environment-overview', id], queryFn: () => get<EnvOverview>(`/environments/${id}/overview`), enabled: allowedTabs.some(t => ['apps', 'assets', 'work', 'network', 'quality'].includes(t)) });
   const conds = useQuery({ queryKey: ['conditions', id], queryFn: () => get<{ id: number; condition: string; reason?: string; evidence?: string; observedAt: string; recordedAt: string; recordedBy?: string }[]>(`/environments/${id}/conditions`), enabled: allowedTabs.includes('conditions') });
   const [dialog, setDialog] = useState<string | null>(null);
-  const canArchive = usePermission('Environments', 'ArchiveRestore');
-  const canCreateServer = usePermission('Servers', 'Create');
-  const canCreateInstallation = usePermission('Installations', 'Create');
-  const canCreateEnvironment = usePermission('Environments', 'Create');
+  const canArchive = useRight('Environments', 'ArchiveRestore');
+  const canCreateServer = useRight('Servers', 'Create');
+  const canCreateInstallation = useRight('Installations', 'Create');
+  const canCreateEnvironment = useRight('Environments', 'Create');
   const me = useMe().data;
   const e = env.data;
   const o = ov.data;
@@ -176,7 +176,7 @@ export function EnvironmentDetail() {
         sub={<>{T.name('EnvironmentType', e.type)}{e.typeDescription && ` (${e.typeDescription})`} · {e.region ? `Region ${e.region.code}` : 'Direct under client'} · <StatusBadge value={e.criticality} /></>}
         actions={<>
           {e.canEdit && <Link className="btn" to={`/environments/${id}/edit`}>Edit</Link>}
-          {e.canEdit && hasPermission(me, 'tab.Environments.conditions', 'Create') && <button className="btn" onClick={() => setDialog('condition')}>Report condition</button>}
+          {e.canEdit && hasRight(me, 'tab.Environments.conditions', 'Create') && <button className="btn" onClick={() => setDialog('condition')}>Report condition</button>}
           {(canCreateServer || canCreateInstallation) && <Menu label="+ Add" primary items={[
             { label: 'Server', onClick: () => setDialog('asset'), hidden: !canCreateServer },
             { label: 'Installation (product)', onClick: () => setDialog('install'), hidden: !canCreateInstallation }

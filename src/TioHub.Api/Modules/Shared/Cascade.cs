@@ -106,7 +106,7 @@ public static class Cascade
     }
 
     // Access metadata rows name a scope but are not records in it; they go with the record without widening the footprint.
-    private static readonly HashSet<Type> NoFootprint = [typeof(Modules.Access.UserScope), typeof(Modules.Access.GroupMappingScope), typeof(Modules.Access.UserPermissionOverride)];
+    private static readonly HashSet<Type> NoFootprint = [typeof(Modules.Access.UserScope), typeof(Modules.Access.GroupMappingScope), typeof(Modules.Access.UserRightException)];
     private static readonly string[] TeamColumns = ["TeamId", "ResponsibleTeamId", "OwningTeamId"];
 
     private static async Task<Footprint> FootprintAsync(HubDbContext db, Plan plan, CancellationToken ct)
@@ -184,8 +184,8 @@ public static class Cascade
                     var contextOwned = (t.ClrType == typeof(OrganizationRelationship) && fk.PrincipalEntityType.ClrType == typeof(Project)
                         && prop.Name == nameof(OrganizationRelationship.ProjectId))
                         // Clearing a scope column would turn a scoped exception into a global one, so it is removed with its scope.
-                        || (t.ClrType == typeof(Modules.Access.UserPermissionOverride)
-                            && prop.Name is nameof(Modules.Access.UserPermissionOverride.ClientId) or nameof(Modules.Access.UserPermissionOverride.ProjectId) or nameof(Modules.Access.UserPermissionOverride.TeamId));
+                        || (t.ClrType == typeof(Modules.Access.UserRightException)
+                            && prop.Name is nameof(Modules.Access.UserRightException.ClientId) or nameof(Modules.Access.UserRightException.ProjectId) or nameof(Modules.Access.UserRightException.TeamId));
                     if (!fk.IsRequired && !scope && !contextOwned) continue;
                     var parentKey = fk.PrincipalKey.Properties[0];
                     var edge = new Edge(t, Col(t, prop), fk.PrincipalEntityType, Col(fk.PrincipalEntityType, parentKey));
@@ -250,7 +250,7 @@ public static class Cascade
         {
             "ClientEnvironment" => "Environments", "Asset" => "Servers", "ComponentHost" => "Server–component links", "Client" => "Sub-clients", "ClientTeamMember" => "Project team members",
             "ResponsibilityBoundary" => "Responsibility boundaries", "FirewallRule" => "Firewall rules", "SlaTarget" => "SLA targets", "ContractEnvironment" => "Contract coverage",
-            "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "UserPermissionOverride" => "Individual permission exceptions", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
+            "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "UserRightException" => "Individual permission exceptions", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
             "CaseWaitingInterval" => "Case waiting periods", "InstallationVersionChange" => "Version changes", "ConditionReport" => "Condition reports", "DataQualityItem" => "Data-quality items",
             "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Case–server links",
             "CaseEnvironment" => "Case–environment links", "CaseComponent" => "Case–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
@@ -321,8 +321,8 @@ public static class Cascade
     public static async Task<Preview> PreviewAsync(HubDbContext db, UserContext me, string path, long id, CancellationToken ct)
     {
         var kind = KindOf(path);
-        PermissionHierarchy.RequireRecordSection(me, kind.RecordType, "Delete");
-        me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
+        RightChecks.RequireRecordSection(me, kind.RecordType, "Delete");
+        me.RequireRight(RightKeys.ForRecord(kind.RecordType), RightKeys.Delete);
         var (label, _) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
@@ -338,8 +338,8 @@ public static class Cascade
     public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct)
     {
         var kind = KindOf(path);
-        PermissionHierarchy.RequireRecordSection(me, kind.RecordType, "Delete");
-        me.RequirePermission(ResourcePermissions.ForRecord(kind.RecordType), ResourcePermissions.Delete);
+        RightChecks.RequireRecordSection(me, kind.RecordType, "Delete");
+        me.RequireRight(RightKeys.ForRecord(kind.RecordType), RightKeys.Delete);
         var (label, clientId) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         // Range locks keep new descendants and optional references from appearing between authorization and mutation.
@@ -404,13 +404,13 @@ public static class Cascade
         // History and link cleanup inherit the owning record's permission; independent business records keep their own rights.
         foreach (var group in deleted.Where(g => IndependentRecords.Contains(g.Type)))
         {
-            PermissionHierarchy.RequireRecordSection(me, group.Type, "Delete");
-            me.RequirePermission(ResourcePermissions.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), ResourcePermissions.Delete);
+            RightChecks.RequireRecordSection(me, group.Type, "Delete");
+            me.RequireRight(RightKeys.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), RightKeys.Delete);
         }
         foreach (var group in unlinked.Where(g => IndependentRecords.Contains(g.Type)))
         {
-            PermissionHierarchy.RequireRecordSection(me, group.Type, "Maintain");
-            me.RequirePermission(ResourcePermissions.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), ResourcePermissions.Maintain);
+            RightChecks.RequireRecordSection(me, group.Type, "Maintain");
+            me.RequireRight(RightKeys.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), RightKeys.Maintain);
         }
     }
 

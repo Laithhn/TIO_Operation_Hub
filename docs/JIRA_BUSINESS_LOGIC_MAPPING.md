@@ -14,7 +14,7 @@ How Jira data reaches a case, what is preserved, and which decisions the owner s
 | Backup owner, team, coordinator, responsible party | **Never.** The team of a new case comes from the client's settings |
 | Operational due date | **Never.** Jira's due date is shown as external detail |
 | Contract | **Never linked automatically** |
-| First response | **A78:** the time of the earliest Jira comment on the issue, of any author or visibility. People cannot record it on these cases |
+| First response | **A82:** the time of the earliest public Jira comment by someone mapped as a hub user or a Vitronic team member. Internal notes, customer comments and unmapped authors do not count, so map your team before relying on response SLAs. People cannot record it on these cases |
 | Progress summary, last review | **Never** set by imported comments or activity |
 | Waiting | **Never** |
 

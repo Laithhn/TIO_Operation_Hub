@@ -1,5 +1,7 @@
 # Access control implementation and deployment review
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 The access-control overview links to user and role administration, the permission editor and access audit. It also provides a user permission snapshot, direct exception editing, saved-role comparison and a non-executing capability/scope check. Where user administration is visible, the role workspace lists directly assigned users, including inactive accounts; directory group assignments are not included in that list. The check reports **conditional** when its checks pass: a particular business operation can still require other permissions, workflow conditions, ownership or record checks. It does not impersonate the selected user or execute the operation.
 
 ## Resolution and boundaries

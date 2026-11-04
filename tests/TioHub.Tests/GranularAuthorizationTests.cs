@@ -20,7 +20,7 @@ namespace TioHub.Tests;
 public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
 {
     private async Task<long> Role(Api manager, params string[] permissions) =>
-        await manager.Create("/admin/roles", new { name = U("Granular"), rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(permissions, Right.None) });
+        await manager.Create("/admin/roles", new { name = U("Granular"), rights = Fixture.Rights(permissions, Flag.None) });
 
     private async Task<(Api Api, long Id)> User(Api manager, params long[] roleIds)
     {
@@ -34,7 +34,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var row = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(r => Id(r) == roleId)!;
         var result = await manager.Put($"/admin/roles/{roleId}", new
         {
-            name = row["name"]!.GetValue<string>(), rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(permissions, Right.None)
+            name = row["name"]!.GetValue<string>(), rights = Fixture.Rights(permissions, Flag.None)
         }, row["version"]!.GetValue<string>());
         Assert.Equal(HttpStatusCode.NoContent, result.Status);
     }
@@ -56,7 +56,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var manager = await Hub.As(HubFactory.Manager);
         var (limited, _) = await User(manager, await Role(manager));
         Assert.Equal(HttpStatusCode.OK, limited.SignInStatus);
-        Assert.Empty(limited.Me["permissions"]!.AsArray());
+        Assert.Empty(limited.Me["rights"]!.AsArray());
         foreach (var path in new[] { "/clients", "/cases", "/products", "/commitments", "/teams" })
             Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get(path)).Status);
     }
@@ -74,9 +74,9 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get($"/cases/{work}")).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get("/products")).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Put($"/cases/{work}", new { title = "Must remain unreadable" })).Status);
-        Assert.DoesNotContain(limited.Me["permissions"]!.AsArray(), p => p!.GetValue<string>() == "Cases:Maintain");
+        Assert.DoesNotContain(limited.Me["rights"]!.AsArray(), p => p!.GetValue<string>() == "Cases:Maintain");
         var inspector = (await manager.Get($"/admin/users/{userId}/access")).Body!;
-        Assert.DoesNotContain(inspector["effectivePermissions"]!.AsArray(), p => p!["key"]!.GetValue<string>() == "Cases:Maintain");
+        Assert.DoesNotContain(inspector["effectiveRights"]!.AsArray(), p => p!["key"]!.GetValue<string>() == "Cases:Maintain");
     }
 
     [Fact]
@@ -93,8 +93,8 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get("/cases")).Status);
         Assert.Equal(HttpStatusCode.OK, (await limited.Get("/clients")).Status);
         var inspector = (await manager.Get($"/admin/users/{userId}/access")).Body!;
-        Assert.Contains(inspector["restrictedPermissions"]!.AsArray(), p => p!["key"]!.GetValue<string>() == "Cases:View");
-        Assert.DoesNotContain(inspector["effectivePermissions"]!.AsArray(), p => p!["key"]!.GetValue<string>() == "Cases:View");
+        Assert.Contains(inspector["restrictedRights"]!.AsArray(), p => p!["key"]!.GetValue<string>() == "Cases:View");
+        Assert.DoesNotContain(inspector["effectiveRights"]!.AsArray(), p => p!["key"]!.GetValue<string>() == "Cases:View");
     }
 
     [Fact]
@@ -109,10 +109,10 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         await using (var scope = Hub.Services.CreateAsyncScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
-            await PermissionRegistry.SynchronizeAsync(db);
-            await PermissionRegistry.SynchronizeAsync(db);
-            Assert.False(await db.RolePermissions.AnyAsync(p => p.AppRoleId == roleId && p.Resource == "Cases" && p.Action == "View"));
-            Assert.Equal(ResourcePermissions.Registry.Length, await db.PermissionDefinitions.CountAsync(p => p.IsActive));
+            await RightsCatalog.SynchronizeAsync(db);
+            await RightsCatalog.SynchronizeAsync(db);
+            Assert.False(await db.RoleRights.AnyAsync(p => p.AppRoleId == roleId && p.RightKey == "Cases:View"));
+            Assert.Equal(RightsCatalog.All.Length, await db.RightDefinitions.CountAsync(p => p.IsActive));
         }
 
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get("/cases")).Status);
@@ -139,9 +139,9 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
             return await resolver.ResolveAsync(principal, CancellationToken.None);
         }
 
-        Assert.Contains("Cases:View", (await ResolveFromOtherInstance())!.Permissions);
+        Assert.Contains("Cases:View", (await ResolveFromOtherInstance())!.Rights);
         await SavePermissions(manager, roleId);
-        Assert.DoesNotContain("Cases:View", (await ResolveFromOtherInstance())!.Permissions);
+        Assert.DoesNotContain("Cases:View", (await ResolveFromOtherInstance())!.Rights);
     }
 
     [Fact]
@@ -150,14 +150,13 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var manager = await Hub.As(HubFactory.Manager);
         var delegatedRole = await manager.Create("/admin/roles", new
         {
-            name = U("DelegatedAdmin"), rights = new[] { "Administer" },
-            permissions = PermissionHierarchy.UpgradeLegacy(new[] { "ClientStructure:View", "ClientStructure:Coordinate" }, Right.Administer)
+            name = U("DelegatedAdmin"), rights = Fixture.Rights(new[] { "ClientStructure:View", "ClientStructure:Coordinate" }, Flag.Administer)
         });
         var (delegated, _) = await User(manager, delegatedRole);
         Assert.Equal(HttpStatusCode.OK, (await delegated.Get("/admin/roles")).Status);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await delegated.Post("/admin/roles", new
         {
-            name = U("EscalatedRole"), rights = new[] { "Export" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Cases:View", "Cases:Delete" }, Right.None)
+            name = U("EscalatedRole"), rights = Fixture.Rights(new[] { "Cases:View", "Cases:Delete" }, Flag.None)
         })).Status);
 
         var managerRole = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(r => r!["isLocked"]!.GetValue<bool>())!;
@@ -174,17 +173,15 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var manager = await Hub.As(HubFactory.Manager);
         var retained = await manager.Create("/admin/roles", new
         {
-            name = U("RetainedDelete"), rights = Array.Empty<string>(),
-            permissions = new[] { "area.Cases:Access", "Cases:View", "Cases:Delete" }
+            name = U("RetainedDelete"), rights = new[] { "Cases:Delete" }
         });
         var parent = await manager.Create("/admin/roles", new
         {
-            name = U("CaseParent"), rights = Array.Empty<string>(), permissions = new[] { "module.cases:Access" }
+            name = U("CaseParent"), rights = new[] { "Cases:View" }
         });
         var delegatedRole = await manager.Create("/admin/roles", new
         {
-            name = U("DelegatedParent"), rights = new[] { "Administer" },
-            permissions = PermissionHierarchy.UpgradeLegacy(new[] { "module.cases:Access" }, Right.Administer)
+            name = U("DelegatedParent"), rights = Fixture.Rights(new[] { "Cases:View" }, Flag.Administer)
         });
         var (delegated, _) = await User(manager, delegatedRole);
         var (target, targetId) = await User(manager, retained);
@@ -204,12 +201,10 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var manager = await Hub.As(HubFactory.Manager);
         var engineer = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray()
             .Single(role => role!["key"]?.GetValue<string>() == BuiltInRoles.EngineerKey)!;
-        var engineerKeys = engineer["permissions"]!.AsArray().Select(key => key!.GetValue<string>()).ToArray();
-        var rights = engineer["rights"]!.AsArray().Select(right => right!.GetValue<string>()).Append("Administer").Distinct().ToArray();
+        var engineerKeys = engineer["rights"]!.AsArray().Select(key => key!.GetValue<string>()).ToArray();
         var delegatedRole = await manager.Create("/admin/roles", new
         {
-            name = U("DelegatedMapping"), rights,
-            permissions = PermissionHierarchy.UpgradeLegacy(engineerKeys, Right.Administer)
+            name = U("DelegatedMapping"), rights = Fixture.Rights(engineerKeys, Flag.Administer)
         });
         var (delegated, _) = await User(manager, delegatedRole);
         var result = await delegated.Post("/admin/group-mappings", new { groupName = $@"DEV\{U("unmapped")}", role = "Engineer" });
@@ -223,7 +218,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var work = await NewCase(await NewClient());
         var role = await manager.Create("/admin/roles", new
         {
-            name = U("DetailReader"), rights = new[] { "Audit" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Cases:View", "Cases:DetailsView" }, Right.None)
+            name = U("DetailReader"), rights = Fixture.Rights(new[] { "Cases:View", "Cases:DetailsView" }, Flag.None)
         });
         var (limited, _) = await User(manager, role);
         Assert.NotEmpty((await manager.Get($"/cases/{work}")).Body!["events"]!.AsArray());
@@ -261,14 +256,14 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         var name = U("CaseExporter");
         var role = await manager.Create("/admin/roles", new
         {
-            name, rights = new[] { "Export" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Reporting:View", "Cases:View" }, Right.Export)
+            name, rights = Fixture.Rights(new[] { "Reporting:View", "Cases:View" }, Flag.Export)
         });
         var (limited, _) = await User(manager, role);
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get("/export/cases")).Status);
         var row = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(r => Id(r) == role)!;
         Assert.Equal(HttpStatusCode.NoContent, (await manager.Put($"/admin/roles/{role}", new
         {
-            name, rights = new[] { "Export" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Reporting:View", "Cases:View", "Cases:Export" }, Right.Export)
+            name, rights = Fixture.Rights(new[] { "Reporting:View", "Cases:View", "Cases:Export" }, Flag.Export)
         }, row["version"]!.GetValue<string>())).Status);
         Assert.Equal(HttpStatusCode.OK, (await limited.Get("/export/cases")).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get("/export/clients")).Status);
@@ -284,7 +279,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.OK, (await manager.Post($"/admin/users/{id}/deactivate", new { reason = "Authorization regression test" }, current.ETag)).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get("/cases")).Status);
         var inspector = (await manager.Get($"/admin/users/{id}/access")).Body!;
-        Assert.Empty(inspector["effectivePermissions"]!.AsArray());
+        Assert.Empty(inspector["effectiveRights"]!.AsArray());
         Assert.Empty(inspector["effectiveRights"]!.AsArray());
     }
 }
@@ -317,27 +312,30 @@ public sealed class GranularAuthorizationUpgradeTests
                 SELECT Id,N'OtherOperations',N'Delete' FROM [iam].[AppRole] WHERE [Name]=N'Upgrade file administrator';
                 """);
             await db.Database.MigrateAsync();
-            var roles = await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => r.Name.StartsWith("Upgrade ")).ToListAsync();
+            var roles = await db.AppRoles.AsNoTracking().Include(r => r.Rights).Where(r => r.Name.StartsWith("Upgrade ")).ToListAsync();
             Assert.Equal(4, roles.Count);
-            var readKeys = ResourcePermissions.Catalog.Where(p => p.Action is "View" or "DetailsView" or "HistoryView" or "AttachmentsView").Select(p => p.Key).ToHashSet();
+            // The resources that existed at that release: rights added later (tabs, features) were never part of this role's old visibility.
+            var readKeys = RightsCatalog.All.Where(p => p.Action is "View" or "DetailsView" or "HistoryView" or "AttachmentsView"
+                && !p.Key.StartsWith("tab.", StringComparison.Ordinal) && (RightsCatalog.BusinessResources.Contains(p.Feature) && p.Feature != RightKeys.Projects || p.Feature is RightKeys.Dashboard or RightKeys.Reporting or RightKeys.PersonalNotes or RightKeys.Notifications))
+                .Select(p => p.Key).ToHashSet();
             foreach (var role in roles)
-                Assert.True(readKeys.IsSubsetOf(role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action))), role.Name + " lost existing visibility.");
+                Assert.True(readKeys.IsSubsetOf(role.Rights.Select(p => p.RightKey)), role.Name + " lost existing visibility.");
 
             // These are the file-capable resources that existed before Projects became independent.
-            var resources = ResourcePermissions.Catalog.Where(p => p.Action == ResourcePermissions.AttachmentsUpload && p.Resource != ResourcePermissions.Projects).Select(p => p.Resource).ToArray();
+            var resources = RightsCatalog.All.Where(p => p.Action == RightKeys.AttachmentsUpload && p.Feature != RightKeys.Projects).Select(p => p.Feature).ToArray();
             var reader = roles.Single(r => r.Name == "Upgrade reader");
-            Assert.DoesNotContain(reader.Permissions, p => p.Action is "AttachmentsUpload" or "AttachmentsDeleteOwn" or "AttachmentsDelete" or "Export");
+            Assert.DoesNotContain(reader.Rights, p => p.RightKey.Split(':')[1] is "AttachmentsUpload" or "AttachmentsDeleteOwn" or "AttachmentsDelete" or "Export");
             var uploader = roles.Single(r => r.Name == "Upgrade upload owner");
             var administrator = roles.Single(r => r.Name == "Upgrade file administrator");
             var exporter = roles.Single(r => r.Name == "Upgrade exporter");
             foreach (var resource in resources)
             {
-                Assert.Contains(uploader.Permissions, p => p.Resource == resource && p.Action == "AttachmentsUpload");
-                Assert.Contains(uploader.Permissions, p => p.Resource == resource && p.Action == "AttachmentsDeleteOwn");
-                Assert.DoesNotContain(uploader.Permissions, p => p.Resource == resource && p.Action == "AttachmentsDelete");
-                Assert.Contains(administrator.Permissions, p => p.Resource == resource && p.Action == "AttachmentsDelete");
-                Assert.DoesNotContain(administrator.Permissions, p => p.Resource == resource && p.Action is "AttachmentsUpload" or "AttachmentsDeleteOwn");
-                Assert.Contains(exporter.Permissions, p => p.Resource == resource && p.Action == "Export");
+                Assert.Contains(uploader.Rights, p => p.RightKey == $"{resource}:AttachmentsUpload");
+                Assert.Contains(uploader.Rights, p => p.RightKey == $"{resource}:AttachmentsDeleteOwn");
+                Assert.DoesNotContain(uploader.Rights, p => p.RightKey == $"{resource}:AttachmentsDelete");
+                Assert.Contains(administrator.Rights, p => p.RightKey == $"{resource}:AttachmentsDelete");
+                Assert.DoesNotContain(administrator.Rights, p => p.RightKey == $"{resource}:AttachmentsUpload" || p.RightKey == $"{resource}:AttachmentsDeleteOwn");
+                Assert.Contains(exporter.Rights, p => p.RightKey == $"{resource}:Export");
             }
             var upgradeAudits = await db.AuditEntries.Where(a => a.Action == "PermissionUpgrade" && a.EntityType == "AppRole").ToListAsync();
             foreach (var role in roles) Assert.Contains(upgradeAudits, audit => audit.EntityId == role.Id);

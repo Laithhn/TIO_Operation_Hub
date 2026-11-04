@@ -9,9 +9,9 @@ public sealed class ClientDuplicateAuthorizationTests
     private static UserContext User(bool allClients, bool create)
     {
         var me = new UserContext();
-        var action = create ? ResourcePermissions.Create : ResourcePermissions.View;
-        var permissions = PermissionHierarchy.WithAncestors([ResourcePermissions.KeyOf(ResourcePermissions.Structure, ResourcePermissions.View), ResourcePermissions.KeyOf(ResourcePermissions.Structure, action)]);
-        me.Set(new ResolvedUser(1, "test", "Test", "UTC", true, ["Operator"], Right.None, permissions, Grant.None,
+        var action = create ? RightKeys.Create : RightKeys.View;
+        var permissions = Fixture.Rights([RightKeys.KeyOf(RightKeys.Structure, RightKeys.View), RightKeys.KeyOf(RightKeys.Structure, action)]);
+        me.Set(new ResolvedUser(1, "test", "Test", "UTC", true, ["Operator"], permissions,
             allClients, [10], [20], [10], [30], false, []));
         return me;
     }

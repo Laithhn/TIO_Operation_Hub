@@ -38,7 +38,7 @@ public static class ReportingEndpoints
         g.MapGet("/catalog", (UserContext me) =>
         {
             ExportService.RequireExport(me);
-            var readable = CapabilityPermissions.ReadableReports(me);
+            var readable = RightChecks.ReadableReports(me);
             return Results.Ok(ReportCatalog.All.Where(r => readable.Contains(r.Key)).Select(r => new
             {
                 r.Key, r.Name, r.Category, r.Description, r.Icon, r.Operational,
@@ -57,7 +57,7 @@ public static class ReportingEndpoints
             var zone = Zones.Find(me.TimeZone) ?? TimeZoneInfo.Utc;
             var local = TimeZoneInfo.ConvertTime(now, zone).Date;
             var today = new DateTimeOffset(local, zone.GetUtcOffset(local));
-            var readable = CapabilityPermissions.ReadableReports(me);
+            var readable = RightChecks.ReadableReports(me);
             var mine = db.ExportJobs.AsNoTracking().Where(j => j.UserId == me.UserId && readable.Contains(j.Report));
             return Results.Ok(new
             {
@@ -91,14 +91,14 @@ public static class ReportingEndpoints
             return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job, me));
         });
 
-        // History: your own exports; with the Audit permission, everyone's (details only — a file is only ever downloaded by its owner).
+        // History: your own exports; with the Change history right, everyone's (details only — a file is only ever downloaded by its owner).
         g.MapGet("/exports", async (string? report, string? status, string? from, string? to, long? userId, string? scope, string? sort, int? page, int? pageSize,
             HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var all = scope == "all";
-            if (all && !me.Has(Grant.Audit)) throw new ForbiddenException("Viewing everyone's exports needs the Audit permission.");
-            var readable = CapabilityPermissions.ReadableReports(me);
+            if (all && !me.HasRight(RightKeys.Audit)) throw new ForbiddenException("Viewing everyone's exports needs the Change history right.");
+            var readable = RightChecks.ReadableReports(me);
             var q = db.ExportJobs.AsNoTracking().Where(j => readable.Contains(j.Report));
             if (!all) q = q.Where(j => j.UserId == me.UserId);
             else if (userId is not null) q = q.Where(j => j.UserId == userId);
@@ -128,9 +128,9 @@ public static class ReportingEndpoints
         {
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-            // Someone else's export is "not found" unless the caller holds the Audit permission (no existence leak).
-            if (j is null || (j.UserId != me.UserId && !me.Has(Grant.Audit))) throw new NotFoundException("The export");
-            CapabilityPermissions.RequireReport(me, j.Report);
+            // Someone else's export is "not found" unless the caller holds the Change history right (no existence leak).
+            if (j is null || (j.UserId != me.UserId && !me.HasRight(RightKeys.Audit))) throw new NotFoundException("The export");
+            RightChecks.RequireReport(me, j.Report);
             var user = await db.Users.AsNoTracking().Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefaultAsync(ct);
             var details = BuilderEndpoints.CanSeeJobDetails(j, me);
             var columns = !details || j.ColumnsJson is null ? null : JsonSerializer.Deserialize<List<string>>(j.ColumnsJson);
@@ -158,7 +158,7 @@ public static class ReportingEndpoints
         g.MapGet("/presets", async (string? report, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var readable = CapabilityPermissions.ReadableReports(me);
+            var readable = RightChecks.ReadableReports(me);
             var list = await db.ReportPresets.AsNoTracking().Where(p => p.UserId == me.UserId && readable.Contains(p.Report) && (report == null || p.Report == report)).OrderBy(p => p.Name).ToListAsync(ct);
             return Results.Ok(list.Select(p => new { p.Id, p.Report, p.Name, filters = JsonSerializer.Deserialize<Dictionary<string, string>>(p.FiltersJson), p.CreatedAt }));
         });
@@ -189,7 +189,7 @@ public static class ReportingEndpoints
         g.MapGet("/schedules", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var readable = CapabilityPermissions.ReadableReports(me);
+            var readable = RightChecks.ReadableReports(me);
             var list = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Include(s => s.SavedReport).Where(s => s.OwnerUserId == me.UserId && readable.Contains(s.Report)).OrderBy(s => s.Name).ToListAsync(ct);
             return Results.Ok(list.Select(ScheduleDto));
         });
@@ -197,7 +197,7 @@ public static class ReportingEndpoints
         {
             ExportService.RequireExport(me);
             var s = await db.ReportSchedules.AsNoTracking().Include(x => x.Recipients).ThenInclude(r => r.User).Include(x => x.SavedReport).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
-            CapabilityPermissions.RequireReport(me, s.Report);
+            RightChecks.RequireReport(me, s.Report);
             return Results.Ok(new { schedule = ScheduleDto(s), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(s.FiltersJson),
                 options = s.OptionsJson is null ? null : JsonSerializer.Deserialize<BuilderExportOptions>(s.OptionsJson, new JsonSerializerOptions(JsonSerializerDefaults.Web)) });
         });
@@ -234,7 +234,7 @@ public static class ReportingEndpoints
         g.MapGet("/schedules/{id:long}/runs", async (long id, int? page, int? pageSize, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var readable = CapabilityPermissions.ReadableReports(me);
+            var readable = RightChecks.ReadableReports(me);
             if (!await db.ReportSchedules.AnyAsync(x => x.Id == id && x.OwnerUserId == me.UserId && readable.Contains(x.Report), ct)) throw new NotFoundException("The schedule");
             var paged = await db.ExportJobs.AsNoTracking().Where(j => j.ScheduleId == id).OrderByDescending(j => j.RequestedAt).ThenByDescending(j => j.Id)
                 .Select(j => new { j, user = db.Users.Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefault() }).ToPagedAsync(PageQuery.From(page, pageSize), ct);
@@ -254,7 +254,7 @@ public static class ReportingEndpoints
     {
         ExportService.RequireExport(me);
         var j = await db.ExportJobs.FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
-        CapabilityPermissions.RequireReportExport(me, j.Report);
+        RightChecks.RequireReportExport(me, j.Report);
         if (!ExportAccessFingerprint.IsCurrent(j.AccessFingerprint, me))
             throw new ForbiddenException("Your access may have changed since this file was generated. Generate the report again.");
         if (j.Status == ExportStatus.Expired || (j.ExpiresAt is { } e && e < clock.GetUtcNow()))
@@ -319,7 +319,7 @@ public static class ReportingEndpoints
             // Recipients are hub users who may export themselves; each receives only what their own access allows.
             var r = await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true);
             if (r is null || !r.IsActive) check.Add("recipientIds", $"Recipient #{id} is not an active hub user.");
-            else if ((r.Grants & Grant.Export) != Grant.Export || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
+            else if (!r.Holds(RightKeys.PlatformExport) || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export files right.");
         }
         check.ThrowIfAny();
         var f = await svc.ValidateAsync(def!, input.Filters, strict: true, ct, zone);
@@ -344,7 +344,7 @@ public static class ReportingEndpoints
 /// <summary>
 /// A62: runs due schedules and removes expired export files. Each recipient's file is generated in its own scope with that
 /// recipient's directly assigned roles and scopes (directory-group access is not used outside a sign-in), so a scheduled file
-/// never contains more than the recipient could see; a recipient who lost the Export permission gets a failed run instead.
+/// never contains more than the recipient could see; a recipient who lost the Export files right gets a failed run instead.
 /// </summary>
 public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Extensions.Options.IOptions<ReportingOptions> options, ILogger<ReportScheduler> log) : BackgroundService
 {
@@ -435,7 +435,7 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         else
         {
             resolved = await ScheduledExportAccess.ResolveAsync(db, user.Id, sp.GetRequiredService<TimeProvider>(), ct);
-            if (resolved is null || !resolved.HasAccess || (resolved.Grants & Grant.Export) != Grant.Export) refusal = "The recipient's current export authority could not be established.";
+            if (resolved is null || !resolved.HasAccess || !resolved.Holds(RightKeys.PlatformExport)) refusal = "The recipient's current export authority could not be established.";
         }
         if (refusal is not null)
         {

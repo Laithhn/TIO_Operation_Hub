@@ -69,10 +69,6 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
 
-                    b.Property<int>("Rights")
-                        .HasMaxLength(40)
-                        .HasColumnType("int");
-
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .IsRequired()
@@ -144,17 +140,10 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long?>("CreatedById")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Grants")
-                        .HasColumnType("int");
-
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("Role")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -178,6 +167,21 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("UpdatedById");
 
                     b.ToTable("GroupMapping", "iam");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMappingRole", b =>
+                {
+                    b.Property<long>("GroupMappingId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AppRoleId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("GroupMappingId", "AppRoleId");
+
+                    b.HasIndex("AppRoleId");
+
+                    b.ToTable("GroupMappingRole", "iam");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMappingScope", b =>
@@ -218,18 +222,13 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("GroupMappingScope", "iam");
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Access.PermissionDefinition", b =>
+            modelBuilder.Entity("TioHub.Api.Modules.Access.RightDefinition", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -242,18 +241,15 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                    b.Property<string>("Feature")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
 
-                    b.Property<bool>("IsSystemManaged")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
                     b.Property<string>("Key")
@@ -261,21 +257,17 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("Module")
-                        .IsRequired()
-                        .HasMaxLength(60)
-                        .HasColumnType("nvarchar(60)");
-
-                    b.Property<string>("NodeType")
+                    b.Property<string>("Kind")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("ParentKey")
-                        .HasMaxLength(120)
-                        .HasColumnType("nvarchar(120)");
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
-                    b.Property<string>("ResourceType")
+                    b.Property<string>("Module")
                         .IsRequired()
                         .HasMaxLength(60)
                         .HasColumnType("nvarchar(60)");
@@ -291,9 +283,6 @@ namespace TioHub.Api.Data.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
-                    b.Property<bool>("SupportsScope")
-                        .HasColumnType("bit");
-
                     b.Property<DateTimeOffset>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -307,36 +296,30 @@ namespace TioHub.Api.Data.Migrations
                     b.HasIndex("Key")
                         .IsUnique();
 
-                    b.HasIndex("ParentKey");
-
                     b.HasIndex("UpdatedById");
 
-                    b.HasIndex("ParentKey", "DisplayOrder");
+                    b.HasIndex("Module", "Feature");
 
-                    b.HasIndex("Module", "ResourceType", "Action");
-
-                    b.ToTable("PermissionDefinition", "iam", t =>
+                    b.ToTable("RightDefinition", "iam", t =>
                         {
-                            t.HasCheckConstraint("CK_PermissionDefinition_NodeType", "[NodeType] IN ('Module','Submodule','Tab','Action')");
+                            t.HasCheckConstraint("CK_RightDefinition_Kind", "[Kind] IN ('Access','Action')");
                         });
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Access.RolePermission", b =>
+            modelBuilder.Entity("TioHub.Api.Modules.Access.RoleRight", b =>
                 {
                     b.Property<long>("AppRoleId")
                         .HasColumnType("bigint");
 
-                    b.Property<string>("Resource")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                    b.Property<string>("RightKey")
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
-                    b.Property<string>("Action")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                    b.HasKey("AppRoleId", "RightKey");
 
-                    b.HasKey("AppRoleId", "Resource", "Action");
+                    b.HasIndex("RightKey");
 
-                    b.ToTable("AppRolePermission", "iam");
+                    b.ToTable("RoleRight", "iam");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.User", b =>
@@ -380,9 +363,6 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(254)
                         .HasColumnType("nvarchar(254)");
 
-                    b.Property<int>("Grants")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -422,7 +402,7 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("User", "iam");
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Access.UserPermissionOverride", b =>
+            modelBuilder.Entity("TioHub.Api.Modules.Access.UserRightException", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -441,13 +421,13 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateTimeOffset?>("ExpiresAt")
                         .HasColumnType("datetimeoffset");
 
-                    b.Property<string>("PermissionKey")
+                    b.Property<long?>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RightKey")
                         .IsRequired()
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
-
-                    b.Property<long?>("ProjectId")
-                        .HasColumnType("bigint");
 
                     b.Property<long?>("TeamId")
                         .HasColumnType("bigint");
@@ -461,37 +441,37 @@ namespace TioHub.Api.Data.Migrations
 
                     b.HasIndex("ExpiresAt");
 
-                    b.HasIndex("PermissionKey");
-
                     b.HasIndex("ProjectId");
+
+                    b.HasIndex("RightKey");
 
                     b.HasIndex("TeamId");
 
-                    b.HasIndex("UserId", "PermissionKey")
+                    b.HasIndex("UserId", "RightKey")
                         .IsUnique()
-                        .HasDatabaseName("UX_UserPermissionOverride_Global")
+                        .HasDatabaseName("UX_UserRightException_Global")
                         .HasFilter("[ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL");
 
-                    b.HasIndex("UserId", "PermissionKey", "ClientId")
+                    b.HasIndex("UserId", "RightKey", "ClientId")
                         .IsUnique()
-                        .HasDatabaseName("UX_UserPermissionOverride_Client")
+                        .HasDatabaseName("UX_UserRightException_Client")
                         .HasFilter("[ClientId] IS NOT NULL");
 
-                    b.HasIndex("UserId", "PermissionKey", "ProjectId")
+                    b.HasIndex("UserId", "RightKey", "ProjectId")
                         .IsUnique()
-                        .HasDatabaseName("UX_UserPermissionOverride_Project")
+                        .HasDatabaseName("UX_UserRightException_Project")
                         .HasFilter("[ProjectId] IS NOT NULL");
 
-                    b.HasIndex("UserId", "PermissionKey", "TeamId")
+                    b.HasIndex("UserId", "RightKey", "TeamId")
                         .IsUnique()
-                        .HasDatabaseName("UX_UserPermissionOverride_Team")
+                        .HasDatabaseName("UX_UserRightException_Team")
                         .HasFilter("[TeamId] IS NOT NULL");
 
-                    b.ToTable("UserPermissionOverride", "iam", t =>
+                    b.ToTable("UserRightException", "iam", t =>
                         {
-                            t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')");
+                            t.HasCheckConstraint("CK_UserRightException_Effect", "[Effect] IN ('Allow','Deny')");
 
-                            t.HasCheckConstraint("CK_UserPermissionOverride_SingleScope", "(CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1");
+                            t.HasCheckConstraint("CK_UserRightException_SingleScope", "(CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1");
                         });
                 });
 
@@ -6763,6 +6743,23 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMappingRole", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.AppRole", "AppRole")
+                        .WithMany()
+                        .HasForeignKey("AppRoleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.GroupMapping", null)
+                        .WithMany("Roles")
+                        .HasForeignKey("GroupMappingId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("AppRole");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMappingScope", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Clients.Client", null)
@@ -6787,17 +6784,11 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Access.PermissionDefinition", b =>
+            modelBuilder.Entity("TioHub.Api.Modules.Access.RightDefinition", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Access.User", null)
                         .WithMany()
                         .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("TioHub.Api.Modules.Access.PermissionDefinition", null)
-                        .WithMany()
-                        .HasForeignKey("ParentKey")
-                        .HasPrincipalKey("Key")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("TioHub.Api.Modules.Access.User", null)
@@ -6806,11 +6797,18 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Access.RolePermission", b =>
+            modelBuilder.Entity("TioHub.Api.Modules.Access.RoleRight", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Access.AppRole", "AppRole")
-                        .WithMany("Permissions")
+                        .WithMany("Rights")
                         .HasForeignKey("AppRoleId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.RightDefinition", null)
+                        .WithMany()
+                        .HasForeignKey("RightKey")
+                        .HasPrincipalKey("Key")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -6830,24 +6828,24 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Access.UserPermissionOverride", b =>
+            modelBuilder.Entity("TioHub.Api.Modules.Access.UserRightException", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Clients.Client", null)
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("TioHub.Api.Modules.Access.PermissionDefinition", null)
-                        .WithMany()
-                        .HasForeignKey("PermissionKey")
-                        .HasPrincipalKey("Key")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
                     b.HasOne("TioHub.Api.Modules.Clients.Project", null)
                         .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.RightDefinition", null)
+                        .WithMany()
+                        .HasForeignKey("RightKey")
+                        .HasPrincipalKey("Key")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.HasOne("TioHub.Api.Modules.Teams.Team", null)
                         .WithMany()
@@ -8861,11 +8859,13 @@ namespace TioHub.Api.Data.Migrations
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.AppRole", b =>
                 {
-                    b.Navigation("Permissions");
+                    b.Navigation("Rights");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Access.GroupMapping", b =>
                 {
+                    b.Navigation("Roles");
+
                     b.Navigation("Scopes");
                 });
 

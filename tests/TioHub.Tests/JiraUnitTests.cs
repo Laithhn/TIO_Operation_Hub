@@ -283,14 +283,14 @@ public class JiraUnitTests
     }
 
     [Theory]
-    [InlineData("admin/jira-connections", "GET", "AdminIntegrations:View")]
-    [InlineData("admin/jira-connections", "POST", "AdminIntegrations:Create")]
-    [InlineData("admin/jira-connections/1/credentials", "POST", "AdminIntegrations:Maintain")]
-    [InlineData("admin/JIRA-issues/1/resolve", "POST", "AdminIntegrations:Maintain")]
-    [InlineData("clients/5/jira", "GET", "tab.ClientStructure.jira:View")]
-    [InlineData("clients/5/jira/spaces", "POST", "tab.ClientStructure.jira:View")]
+    [InlineData("/admin/jira-connections", "GET", "AdminIntegrations:View")]
+    [InlineData("/admin/jira-connections", "POST", "AdminIntegrations:Create")]
+    [InlineData("/admin/jira-connections/{id:long}/credentials", "POST", "AdminIntegrations:Maintain")]
+    [InlineData("/admin/JIRA-issues/{id:long}/resolve", "POST", "AdminIntegrations:Maintain")]
+    [InlineData("/clients/{id:long}/jira", "GET", "tab.ClientStructure.jira:View")]
+    [InlineData("/clients/{id:long}/jira/spaces", "POST", "tab.ClientStructure.jira:View")]
     public void Every_jira_route_has_a_permission(string path, string method, string key) =>
-        Assert.Contains(key, HierarchyEndpointPermissions.Required(path, method), StringComparer.OrdinalIgnoreCase);
+        Assert.Contains(key, EndpointRights.For(method, path)!.Rights, StringComparer.OrdinalIgnoreCase);
 
     [Fact]
     public void A_case_change_from_jira_uses_the_case_modules_own_events()

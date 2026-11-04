@@ -29,7 +29,7 @@ public static partial class Deletion
         ["Volume"] = "volumes", ["FirewallRule"] = "firewall rules", ["Region"] = "regions", ["Project"] = "projects", ["Contract"] = "contracts", ["ContractEnvironment"] = "contract coverage",
         ["Contact"] = "contacts", ["ResponsibilityBoundary"] = "responsibility boundaries", ["Case"] = "cases", ["CaseEnvironment"] = "cases", ["CaseAsset"] = "cases",
         ["CaseComponent"] = "cases", ["Commitment"] = "commitments", ["Client"] = "clients (sub-clients)", ["ClientTeamMember"] = "project teams", ["Team"] = "teams",
-        ["TeamMember"] = "team members", ["UserScope"] = "user access scopes", ["UserPermissionOverride"] = "individual permission exceptions", ["GroupMappingScope"] = "group mappings", ["Product"] = "products", ["Handover"] = "handovers",
+        ["TeamMember"] = "team members", ["UserScope"] = "user access scopes", ["UserRightException"] = "individual permission exceptions", ["GroupMappingScope"] = "group mappings", ["Product"] = "products", ["Handover"] = "handovers",
         ["SharedStorage"] = "shared storage", ["ProjectProduct"] = "projects", ["JiraReference"] = "Jira links", ["User"] = "users",
         ["Organization"] = "organizations", ["OrganizationRelationship"] = "organization relationships"
     };
@@ -41,9 +41,9 @@ public static partial class Deletion
     /// deletes <paramref name="entity"/> and commits — or rolls everything back and explains what still uses the record.</summary>
     public static async Task<IResult> RunAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, object entity, string recordType, long id, string label, Func<Task>? removeOwned, CancellationToken ct)
     {
-        PermissionHierarchy.RequireRecordSection(me, recordType, "Delete");
+        RightChecks.RequireRecordSection(me, recordType, "Delete");
         if (recordType == "LookupValue") me.RequireAdministrator();
-        else me.RequirePermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.Delete);
+        else me.RequireRight(RightKeys.ForRecord(recordType), RightKeys.Delete);
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
         if (entity is Client client)
             await OrganizationEndpoints.PreserveClientIdentityAsync(client.Id, db, ct);
@@ -53,7 +53,7 @@ public static partial class Deletion
             await db.OrganizationRelationships.IgnoreQueryFilters().Where(x => x.ProjectId == project.Id).ExecuteDeleteAsync(ct);
         }
         if (entity is Modules.Catalogue.Installation && await db.Components.IgnoreQueryFilters().AnyAsync(x => x.InstallationId == id, ct))
-            me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Servers, RightKeys.Delete);
         var attached = await db.Attachments.IgnoreQueryFilters().Where(a => a.RecordType == recordType && a.RecordId == id).Select(a => a.StoredPath).ToListAsync(ct);
         if (entity is Client { LogoPath: { } logo }) attached.Add(logo);   // A71: the client's logo file goes with it
         await db.Attachments.IgnoreQueryFilters().Where(a => a.RecordType == recordType && a.RecordId == id).ExecuteDeleteAsync(ct);

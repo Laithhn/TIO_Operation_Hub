@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import type { UserScope } from './userAccessSettings';
+
+export type UserScope = { kind: string; clientId?: number; projectId?: number; teamId?: number };
 
 export type ScopeTargets = {
   clients: { id: number; code: string; name: string; archived: boolean }[];

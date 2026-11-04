@@ -11,9 +11,9 @@ public sealed class PermissionOverrideRequestTests
     [Fact]
     public void Supported_override_fields_deserialize_normally()
     {
-        const string json = """{"overrides":[{"key":"Cases:View","effect":"Allow","expiresAt":"2030-01-01T00:00:00Z"}]}""";
-        var request = JsonSerializer.Deserialize<UserPermissionOverrideEndpoints.ReplaceInput>(json, WebOptions);
-        var entry = Assert.Single(request!.Overrides!);
+        const string json = """{"exceptions":[{"key":"Cases:View","effect":"Allow","expiresAt":"2030-01-01T00:00:00Z"}]}""";
+        var request = JsonSerializer.Deserialize<UserRightExceptionEndpoints.ReplaceInput>(json, WebOptions);
+        var entry = Assert.Single(request!.Exceptions!);
         Assert.Equal("Cases:View", entry.Key);
         Assert.Equal("Allow", entry.Effect);
         Assert.Equal(DateTimeOffset.Parse("2030-01-01T00:00:00Z"), entry.ExpiresAt);
@@ -22,8 +22,8 @@ public sealed class PermissionOverrideRequestTests
     [Fact]
     public void Scope_columns_deserialize_so_the_server_can_validate_them()
     {
-        const string json = """{"overrides":[{"key":"Contracts:Maintain","effect":"Deny","expiresAt":null,"projectId":9}]}""";
-        var entry = Assert.Single(JsonSerializer.Deserialize<UserPermissionOverrideEndpoints.ReplaceInput>(json, WebOptions)!.Overrides!);
+        const string json = """{"exceptions":[{"key":"Contracts:Maintain","effect":"Deny","expiresAt":null,"projectId":9}]}""";
+        var entry = Assert.Single(JsonSerializer.Deserialize<UserRightExceptionEndpoints.ReplaceInput>(json, WebOptions)!.Exceptions!);
         Assert.Equal(9, entry.ProjectId);
         Assert.Null(entry.ClientId);
     }
@@ -36,8 +36,8 @@ public sealed class PermissionOverrideRequestTests
     [InlineData("effects", "\"Deny\"")]
     public void Unknown_override_fields_are_rejected(string field, string value)
     {
-        var json = "{\"overrides\":[{\"key\":\"Cases:View\",\"effect\":\"Allow\",\"" + field + "\":" + value + "}]}";
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<UserPermissionOverrideEndpoints.ReplaceInput>(json, WebOptions));
+        var json = "{\"exceptions\":[{\"key\":\"Cases:View\",\"effect\":\"Allow\",\"" + field + "\":" + value + "}]}";
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<UserRightExceptionEndpoints.ReplaceInput>(json, WebOptions));
     }
 
     [Theory]
@@ -45,7 +45,7 @@ public sealed class PermissionOverrideRequestTests
     [InlineData("override")]
     public void Unknown_request_fields_are_rejected(string field)
     {
-        var json = "{\"overrides\":[],\"" + field + "\":null}";
-        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<UserPermissionOverrideEndpoints.ReplaceInput>(json, WebOptions));
+        var json = "{\"exceptions\":[],\"" + field + "\":null}";
+        Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<UserRightExceptionEndpoints.ReplaceInput>(json, WebOptions));
     }
 }

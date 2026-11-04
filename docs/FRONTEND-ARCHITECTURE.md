@@ -28,7 +28,7 @@ src/web
    │  ├─ charts.tsx              charts and KPI tiles (Kpi → ValueField), framework palette
    │  └─ Icon.tsx                semantic icon names → VtWebGuiIcons; the official VITRONIC logo
    ├─ pages/*                    feature pages (unchanged behaviour; they consume the kit)
-   └─ api.ts, hooks.ts, permissions.ts, format.ts   data layer (unchanged)
+   └─ api.ts, hooks.ts, rights.ts, format.ts   data layer (unchanged)
 ```
 
 Global styles load in `main.tsx` in this order:

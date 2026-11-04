@@ -23,8 +23,7 @@ public sealed class QualityScopeSqlIntegrationTests
             var role = await admin.Create("/admin/roles", new
             {
                 name = Unique("quality-role"),
-                permissions = PermissionHierarchy.WithAncestors([.. CapabilityPermissions.BusinessViewKeys, .. CapabilityPermissions.Dependencies("DataQuality:View"), "DataQuality:View"]),
-                rights = Array.Empty<string>()
+                rights = Fixture.Rights([.. RightChecks.BusinessViewKeys, .. RightsCatalog.Dependencies("DataQuality:View"), "DataQuality:View"])
             });
             async Task<Api> Reader(long team)
             {

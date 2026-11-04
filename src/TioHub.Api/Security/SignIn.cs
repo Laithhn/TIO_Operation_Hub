@@ -169,7 +169,7 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
         var key = CacheKey(account, generation) + $"|db:{databaseGeneration}|" + GroupCacheKey(groups);
         if (cache.TryGetValue(key, out ResolvedUser? cached) && cached is not null) return cached;
 
-        var mappings = await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).ToListAsync(ct);
+        var mappings = await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).Include(m => m.Roles).ToListAsync(ct);
         var matched = mappings.Where(m => !m.GroupName.Contains('\0') && groups.Contains(m.GroupName.Trim())).ToList();
         var isBootstrap = _opt.BootstrapAdministrators.Any(a => string.Equals(a.Trim(), account, StringComparison.OrdinalIgnoreCase));
 
@@ -189,7 +189,7 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
             {
                 user.AllClients = true;
                 user.AllInternal = true;
-                user.Roles.Add(new UserRole { AppRoleId = (await BuiltInRoles.EnsureAsync(db, ct))[Role.Manager] });
+                user.Roles.Add(new UserRole { AppRoleId = (await BuiltInRoles.EnsureAsync(db, ct))[BuiltInRoles.ManagerKey] });
             }
             db.Users.Add(user);
             try
@@ -224,7 +224,7 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
         var resolved = await AccessCalculator.ComputeAsync(db, user, matched, ct, now);
         if (user.IsActive && !resolved.HasAccess) return null;
         var cacheUntil = now.AddSeconds(Math.Max(5, _opt.CacheSeconds));
-        if (resolved.NextPermissionExpiry is { } expiry && expiry < cacheUntil) cacheUntil = expiry;
+        if (resolved.NextRightExpiry is { } expiry && expiry < cacheUntil) cacheUntil = expiry;
         cache.Set(key, resolved, new MemoryCacheEntryOptions { AbsoluteExpiration = cacheUntil });
         return resolved;
     }
@@ -268,9 +268,9 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
         }
         if (storedGroups is null)
             return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive,
-                [], Right.None, [], Grant.None, false, [], [], [], [], false, [], AccessRestriction: "directory_groups_unavailable");
+                [], [], false, [], [], [], [], false, [], AccessRestriction: "directory_groups_unavailable");
         var names = storedGroups.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var mappings = names.Count == 0 ? [] : await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).Where(m => names.Contains(m.GroupName)).ToListAsync(ct);
+        var mappings = names.Count == 0 ? [] : await db.GroupMappings.AsNoTracking().Include(m => m.Scopes).Include(m => m.Roles).Where(m => names.Contains(m.GroupName)).ToListAsync(ct);
         return await AccessCalculator.ComputeAsync(db, user, mappings, ct, clock.GetUtcNow());
     }
 
@@ -351,35 +351,30 @@ public static class AccessCalculator
     {
         if (!user.IsActive)
             return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, false,
-                [], Right.None, [], Grant.None, false, [], [], [], [], false, []);
-        // A31: the user's roles plus the built-in roles of matched group mappings; rights are the union of the roles' rights.
-        var mappedKeys = matched.Where(m => m.Role is not null).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).Distinct().ToList();
+                [], [], false, [], [], [], [], false, []);
+        // The user's roles plus the roles of matched group mappings; rights are the union of those roles' rights.
+        var mappedIds = matched.SelectMany(m => m.Roles.Select(r => r.AppRoleId)).Distinct().ToList();
         var roleIds = user.Roles.Select(r => r.AppRoleId).ToList();
-        var held = roleIds.Count == 0 && mappedKeys.Count == 0 ? []
-            : await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => r.IsActive && (roleIds.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key)))).ToListAsync(ct);
+        var held = roleIds.Count == 0 && mappedIds.Count == 0 ? []
+            : await db.AppRoles.AsNoTracking().Include(r => r.Rights).Where(r => r.IsActive && (roleIds.Contains(r.Id) || mappedIds.Contains(r.Id))).ToListAsync(ct);
         if (RoleConflicts.Conflicts(held.Select(r => r.Id), await RoleConflicts.LoadAsync(db, ct)))
             return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive,
-                [], Right.None, [], Grant.None, false, [], [], [], [], false, [], AccessRestriction: "incompatible_roles");
-        var activePermissionKeys = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
-        var activePermissions = activePermissionKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
+                [], [], false, [], [], [], [], false, [], AccessRestriction: "incompatible_roles");
+        var active = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var roles = held.Select(r => r.Name).Order().ToArray();
-        var rights = held.Aggregate(Right.None, (a, r) => a | (r.IsLocked ? BuiltInRoles.All : r.Rights));
-        var permissionSet = held.SelectMany(r => r.IsLocked ? ResourcePermissions.All : r.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)))
-            .Where(activePermissions.Contains)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        // A checked action with an absent prerequisite is assigned but ineffective. Return the same decision to UI,
+        var roleRights = held.SelectMany(BuiltInRoles.KeysOf).Where(active.Contains).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var administrator = RightExceptions.MakesAdministrator(roleRights);
+        // A right with an absent prerequisite is assigned but ineffective. Return the same decision to UI,
         // background jobs and access inspection that UserContext enforces on the server.
         var now = asOf ?? DateTimeOffset.UtcNow;
-        var overrides = await db.UserPermissionOverrides.AsNoTracking().Where(o => o.UserId == user.Id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct);
-        var permissions = PermissionOverrides.ResolveForRights(permissionSet, overrides, rights, now, activePermissions);
-        var assigned = PermissionOverrides.Assigned(permissionSet, rights.HasFlag(Right.Administer)
-            ? overrides.Where(o => !string.Equals(o.Effect, "Allow", StringComparison.Ordinal)) : overrides, now).Where(activePermissions.Contains).ToArray();
-        var nextExpiry = overrides.Where(o => o.ExpiresAt != null).Select(o => o.ExpiresAt).Min();
+        var exceptions = await db.UserRightExceptions.AsNoTracking().Where(o => o.UserId == user.Id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct);
+        var rights = RightExceptions.ResolveForRoles(roleRights, exceptions, now, active);
+        var assigned = RightExceptions.Assigned(roleRights, administrator ? exceptions.Where(o => !RightExceptions.IsAllow(o)) : exceptions, now).Where(active.Contains).ToArray();
+        var nextExpiry = exceptions.Where(o => o.ExpiresAt != null).Select(o => o.ExpiresAt).Min();
         var scopes = user.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId))
             .Concat(matched.SelectMany(m => m.Scopes.Select(s => (s.Kind, s.ClientId, s.ProjectId, s.TeamId)))).ToList();
         var allClients = user.AllClients || matched.Any(m => m.AllClients);
         var allInternal = user.AllInternal || matched.Any(m => m.AllInternal);
-        var grants = (rights.HasFlag(Right.Export) ? Grant.Export : 0) | (rights.HasFlag(Right.TechnicalDetail) ? Grant.TechnicalDetail : 0) | (rights.HasFlag(Right.Audit) ? Grant.Audit : 0);
         var clientIds = scopes.Where(s => s.Kind == ScopeKind.Client && s.ClientId is not null).Select(s => s.ClientId!.Value).Distinct().ToArray();
         var projectIds = scopes.Where(s => s.Kind == ScopeKind.Project && s.ProjectId is not null).Select(s => s.ProjectId!.Value).Distinct().ToArray();
         var teamIds = scopes.Where(s => s.Kind == ScopeKind.InternalTeam && s.TeamId is not null).Select(s => s.TeamId!.Value).Distinct().ToArray();
@@ -389,8 +384,8 @@ public static class AccessCalculator
             projectClientIds = await db.Projects.IgnoreQueryFilters().Where(p => projectIds.Contains(p.Id)).Select(p => p.ClientId).Distinct().ToArrayAsync(ct);
             projectEnvIds = await db.Environments.IgnoreQueryFilters().Where(e => e.ProjectId != null && projectIds.Contains(e.ProjectId.Value)).Select(e => e.Id).ToArrayAsync(ct);
         }
-        return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights, permissions, grants,
+        return new ResolvedUser(user.Id, user.AccountName, user.DisplayName, user.WorkingTimeZone, user.IsActive, roles, rights,
             allClients, clientIds, projectIds, projectClientIds, projectEnvIds, allInternal, teamIds, nextExpiry,
-            AssignedPermissions: assigned, ScopedExceptions: PermissionOverrides.Scoped(overrides, rights, activePermissions));
+            AssignedRights: assigned, ScopedExceptions: RightExceptions.Scoped(exceptions, administrator, active));
     }
 }

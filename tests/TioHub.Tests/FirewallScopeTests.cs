@@ -12,8 +12,8 @@ public sealed class FirewallScopeTests
     public void Firewall_query_requires_both_endpoints_and_compiles_with_sql_server()
     {
         var user = new UserContext();
-        user.Set(new ResolvedUser(7, "test", "Test", "UTC", true, ["Operator"], Right.None,
-            PermissionHierarchy.WithAncestors(["OtherOperations:View"]), Grant.TechnicalDetail,
+        user.Set(new ResolvedUser(7, "test", "Test", "UTC", true, ["Operator"],
+            Fixture.Rights(["OtherOperations:View"], Flag.TechnicalDetail),
             false, [], [20], [10], [40], false, []));
         var options = new DbContextOptionsBuilder<HubDbContext>()
             .UseSqlServer("Server=(local);Database=unused;Integrated Security=true;TrustServerCertificate=true").Options;

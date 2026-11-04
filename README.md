@@ -22,15 +22,15 @@ The hub never calls vaults, client systems or messaging. It reads from Jira Clou
 | [docs/API.md](docs/API.md) / [docs/openapi-v1.json](docs/openapi-v1.json) | API conventions and full OpenAPI document |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Deployment (IIS + SQL Server), configuration, backup, restore, rollback |
 | [docs/AUTHORIZATION-DISCOVERY.md](docs/AUTHORIZATION-DISCOVERY.md) | Existing authorization architecture, coverage gaps, and rollout risks |
-| [docs/AUTHORIZATION-COVERAGE-MATRIX.md](docs/AUTHORIZATION-COVERAGE-MATRIX.md) | Module-level permission and enforcement inventory |
-| [docs/AUTHORIZATION-ADMIN-GUIDE.md](docs/AUTHORIZATION-ADMIN-GUIDE.md) | Permission registry, role administration, migration, and rollback guide |
-| [docs/AUTHORIZATION-HIERARCHY-2.44.md](docs/AUTHORIZATION-HIERARCHY-2.44.md) | Four-level rights, migration mappings, implementation and validation |
+| [docs/RIGHTS-ADMIN-GUIDE.md](docs/RIGHTS-ADMIN-GUIDE.md) | Users, roles and rights for administrators |
+| [docs/RIGHTS-DEVELOPER-GUIDE.md](docs/RIGHTS-DEVELOPER-GUIDE.md) | Adding endpoints and rights |
+| [docs/RIGHTS-MODEL-DESIGN.md](docs/RIGHTS-MODEL-DESIGN.md) | The rights model, old-to-new mapping, open owner decisions |
+| [docs/RIGHTS-MODEL-UPGRADE.md](docs/RIGHTS-MODEL-UPGRADE.md) | Upgrade checks, procedure and rollback |
+| [docs/RIGHTS-COVERAGE-MATRIX.md](docs/RIGHTS-COVERAGE-MATRIX.md) / [docs/RIGHTS-UI-COVERAGE.md](docs/RIGHTS-UI-COVERAGE.md) | Every right and API operation; every screen and control |
 | [docs/RELEASE-NOTES-2.44.1.md](docs/RELEASE-NOTES-2.44.1.md) | Roles comparison matrix and 2.44.1 deployment notes |
 | [docs/RELEASE-NOTES-2.45.0.md](docs/RELEASE-NOTES-2.45.0.md) | Scoped exceptions, scope-aware cascade, security corrections, upgrade |
 | [docs/RELEASE-VALIDATION-2.45.0.md](docs/RELEASE-VALIDATION-2.45.0.md) | What was verified for 2.45.0 and what still must be |
 | [docs/AUTHORIZATION-AUDIT-2.45.md](docs/AUTHORIZATION-AUDIT-2.45.md) | Endpoint audit findings and open items |
-| [docs/AUTHORIZATION-2.43.md](docs/AUTHORIZATION-2.43.md) | Current Rights editor, dependencies, verification, migration and revocation guarantees |
-| [docs/AUTHORIZATION-CAPABILITY-MATRIX.md](docs/AUTHORIZATION-CAPABILITY-MATRIX.md) | Current 134-key permission inventory and enforcement paths |
 | [docs/JIRA_INTEGRATION_ARCHITECTURE.md](docs/JIRA_INTEGRATION_ARCHITECTURE.md) | Jira integration: architecture, data model, API use |
 | [docs/JIRA_BUSINESS_LOGIC_MAPPING.md](docs/JIRA_BUSINESS_LOGIC_MAPPING.md) | What Jira may change on a case, SLA onboarding, open owner decisions |
 | [docs/JIRA_UI_IMPLEMENTATION.md](docs/JIRA_UI_IMPLEMENTATION.md) | The eight screens and deviations from the approved mockups |
@@ -68,7 +68,7 @@ Development sign-in uses fictional accounts; switch user with the selector in th
 | `DEV\engineer`, `DEV\engineer2`, `DEV\viewer` | Operation Engineers |
 | `DEV\admin` | TIO Manager |
 
-Two roles only (DECISIONS A22): both see every client, technical detail and change history, and can export.
+These accounts hold the two built-in roles. Roles are configurable: see [docs/RIGHTS-ADMIN-GUIDE.md](docs/RIGHTS-ADMIN-GUIDE.md).
 
 Development sign-in is refused at start-up in any environment other than Development and Testing.
 

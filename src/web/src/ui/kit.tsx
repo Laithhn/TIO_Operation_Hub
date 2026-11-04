@@ -5,7 +5,7 @@ import { ApiError, del, get, type UserRef } from '../api';
 import { useMe, useReference } from '../hooks';
 import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
-import { hasPermission, resourceForRecord, canDeletePath } from '../permissions';
+import { hasRight, resourceForRecord, canDeletePath, canExport } from '../rights';
 import { createPortal } from 'react-dom';
 import { Button, Card, Icon as VtIcon, Spinner, TabBar, TabBarTitleItem, Toolbar, ToolbarContrItem } from '../vt';
 import { activeCriteriaCount, DEFAULT_OPERATOR, isCriterionIncomplete, rowMatches, TEXT_FILTER_OPERATORS, type TextFilterOperator } from './tableFilter';
@@ -518,7 +518,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
               <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
                 onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />
               <Button ref={columnsButton as never} type="bare" icon="COLUMNSELECT" text="Columns" onClick={() => { setShowFilters(false); setColumnSearch(''); setShowColumns(v => !v); }} />
-              {me?.grants.export && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={exportRows} />}
+              {canExport(me) && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={exportRows} />}
             </ToolbarContrItem>
           </Toolbar>
         </div>
@@ -689,8 +689,8 @@ export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; w
   const d = deps.data;
   const hasDeps = !!d && (d.total > 0 || d.unlink.length > 0);
   const canCascade = canDeletePath(me, path) && !!d &&
-    d.delete.filter(g => g.main).every(g => hasPermission(me, resourceForRecord(g.type), 'Delete')) &&
-    d.unlink.filter(g => g.main).every(g => hasPermission(me, resourceForRecord(g.type), 'Maintain'));
+    d.delete.filter(g => g.main).every(g => hasRight(me, resourceForRecord(g.type), 'Delete')) &&
+    d.unlink.filter(g => g.main).every(g => hasRight(me, resourceForRecord(g.type), 'Maintain'));
   const finish = async (msg: string) => { toast(msg); onClose(); onDone?.(); await qc.invalidateQueries(); };
   const go = async () => {
     setBusy(true); setError(null);

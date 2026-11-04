@@ -102,7 +102,7 @@ public static partial class AuthEndpoints
                  .Text("displayName", input.DisplayName, 150, "the display name", true);
             PasswordPolicy.Check(check, "password", input.Password, account);
             check.ThrowIfAny();
-            var managerRole = (await BuiltInRoles.EnsureAsync(db, ct))[Role.Manager];
+            var managerRole = (await BuiltInRoles.EnsureAsync(db, ct))[BuiltInRoles.ManagerKey];
             var user = await db.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.AccountName == account, ct);
             if (user is not null && !user.Roles.Any(r => r.AppRoleId == managerRole))
                 throw new ConflictException("This account exists without the administrator role. Choose another account name.");
@@ -161,7 +161,7 @@ public static partial class AuthEndpoints
         {
             RequireForms(o.Value);
             me.RequireAdministrator();
-            me.RequirePermission("AdminUsers:Maintain");
+            me.RequireRight("AdminUsers:Maintain");
             var user = await EnsurePasswordResetTargetAuthorityAsync(id, db, me, resolver, ct);
             var check = new Check();
             PasswordPolicy.Check(check, "temporaryPassword", input.TemporaryPassword, user.AccountName);
@@ -178,7 +178,7 @@ public static partial class AuthEndpoints
         {
             RequireForms(o.Value);
             me.RequireAdministrator();
-            me.RequirePermission("AdminUsers:Maintain");
+            me.RequireRight("AdminUsers:Maintain");
             try
             {
                 await EnsurePasswordResetTargetAuthorityAsync(id, db, me, resolver, ct);
@@ -203,8 +203,8 @@ public static partial class AuthEndpoints
         // A reset hands control of the account to the issuer, including when an assigned role is inactive.
         var target = await resolver.ForUserAsync(id, ct);
         var assignedAdministrator = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == id && r.AppRole != null &&
-            (r.AppRole.Key == BuiltInRoles.ManagerKey || (r.AppRole.Rights & Right.Administer) == Right.Administer), ct);
-        var activeKeys = await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
+            (r.AppRole.Key == BuiltInRoles.ManagerKey || r.AppRole.Rights.Any(x => x.RightKey == RightKeys.Administration)), ct);
+        var activeKeys = await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
         EnsurePasswordResetAuthority(me, target, assignedAdministrator, activeKeys);
         return user;
     }
@@ -214,13 +214,11 @@ public static partial class AuthEndpoints
     {
         if (target is null || target.AccessRestriction is not null)
             throw new ForbiddenException("The target's access could not be evaluated safely.");
-        if (assignedAdministrator || target.Rights.HasFlag(Right.Administer))
+        if (assignedAdministrator || target.Holds(RightKeys.Administration))
             throw new ForbiddenException("Administrator passwords cannot be reset through this endpoint.");
         if (actor.IsSystem) return;
-        var crossCutting = ResourcePermissions.CrossCutting(BuiltInRoles.All);
-        if (!actor.IsAdministrator || !actor.HasPermission("AdminUsers:Maintain") || !actor.AllClients || !actor.AllInternal ||
-            (actor.Rights & crossCutting) != crossCutting || activeKeys.Any(key => !actor.HasPermission(key)))
-            throw new ForbiddenException("Resetting a password requires all active permissions, cross-cutting rights, and all client and internal scopes.");
+        if (!actor.IsAdministrator || !actor.HasRight("AdminUsers:Maintain") || !actor.AllClients || !actor.AllInternal || activeKeys.Any(key => !actor.HasRight(key)))
+            throw new ForbiddenException("Resetting a password requires all active rights and all client and internal scopes.");
     }
 
     private static void MapSignInStatus(RouteGroupBuilder api) =>

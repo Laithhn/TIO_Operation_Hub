@@ -1,5 +1,7 @@
 # Authorization administration guide
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 For the latest access-control implementation, deployment cautions and outstanding work, use [ACCESS-CONTROL-IMPLEMENTATION.md](ACCESS-CONTROL-IMPLEMENTATION.md). For the 2.43 editor and capability inventory, use [AUTHORIZATION-2.43.md](AUTHORIZATION-2.43.md) and [AUTHORIZATION-CAPABILITY-MATRIX.md](AUTHORIZATION-CAPABILITY-MATRIX.md). The sections below record the initial 2.42 foundation and its limits at that release; they are historical where they differ from the latest implementation review.
 
 ## Current controls

@@ -57,7 +57,7 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
     /// </summary>
     public async Task<ValidFilters> ValidateAsync(ReportDefinition def, IDictionary<string, string?>? raw, bool strict, CancellationToken ct, TimeZoneInfo? zone = null)
     {
-        CapabilityPermissions.RequireReport(access.Me, def.Key);
+        RightChecks.RequireReport(access.Me, def.Key);
         var check = new Check();
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var labels = new List<string>();
@@ -108,7 +108,7 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
             values[f.Key] = value;
         }
         if (def.Key == "assets" && values.ContainsKey("zone") && !access.Me.SeesTechnical)
-            check.Add("filters.zone", "Filtering by network zone needs the Technical detail permission.");
+            check.Add("filters.zone", "Filtering by network zone needs the Technical detail right.");
         // Resolve calendar days and timestamps using the same bounds and zone as report execution.
         var context = Context(new ValidFilters(values, ""), zone ?? ZoneOf(null), clock.GetUtcNow());
         foreach (var date in def.Filters.Where(f => f.Kind == FilterKind.Date && values.ContainsKey(f.Key)))
@@ -185,16 +185,16 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
 
     public static void RequireExport(UserContext me)
     {
-        if (!me.HasBusinessRole) throw new ForbiddenException("Reports need a business role.");
-        me.RequirePermission(ResourcePermissions.Reporting, ResourcePermissions.View);
-        me.RequireGrant(Grant.Export);
+        if (!me.HasAccess) throw new ForbiddenException("Reports need a business role.");
+        me.RequireRight(RightKeys.Reporting, RightKeys.View);
+        me.RequireRight(RightKeys.PlatformExport);
     }
 
     /// <summary>One page of the report as it would be exported, with the summary for operational reports.</summary>
     public async Task<object> PreviewAsync(ReportDefinition def, ValidFilters f, TimeZoneInfo zone, int page, int pageSize, CancellationToken ct)
     {
         RequireExport(access.Me);
-        CapabilityPermissions.RequireReport(access.Me, def.Key);
+        RightChecks.RequireReport(access.Me, def.Key);
         var now = clock.GetUtcNow();
         var result = await def.RunAsync(Context(f, zone, now), (page - 1) * pageSize, pageSize, ct);
         return new
@@ -217,8 +217,8 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
     {
         var me = access.Me;
         RequireExport(me);
-        me.RequirePermission("ReportLibrary:Export");
-        CapabilityPermissions.RequireReportExport(me, def.Key);
+        me.RequireRight("ReportLibrary:Export");
+        RightChecks.RequireReportExport(me, def.Key);
         var now = clock.GetUtcNow();
         var filtersJson = JsonSerializer.Serialize(f.Values);
         var columnsJson = columns is { Count: > 0 } ? JsonSerializer.Serialize(columns) : null;

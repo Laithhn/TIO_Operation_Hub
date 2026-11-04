@@ -14,8 +14,8 @@ public static class ExportAccessFingerprint
             user.UserId, user.IsActive, user.AllClients, user.AllInternal,
             Clients = user.ClientIds.Order().ToArray(), Projects = user.ProjectIds.Order().ToArray(),
             ProjectClients = user.ProjectClientIds.Order().ToArray(), Environments = user.ProjectEnvironmentIds.Order().ToArray(),
-            Teams = user.TeamIds.Order().ToArray(), user.Grants,
-            Permissions = user.PermissionKeys.Select(p => p.ToUpperInvariant()).Order(StringComparer.Ordinal).ToArray()
+            Teams = user.TeamIds.Order().ToArray(),
+            Rights = user.EffectiveRights.Select(p => p.ToUpperInvariant()).Order(StringComparer.Ordinal).ToArray()
         });
         // Scoped exceptions are hashed only when present, so a person without any keeps files generated before this release.
         if (user.ScopedExceptions.Length > 0)

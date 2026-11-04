@@ -1,12 +1,12 @@
-import { canViewTab, hasPermission } from '../permissions';
+import { canViewTab, hasRight } from '../rights';
 import { usePermittedTab } from '../hooks';
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, usePermission, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, useRight, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -44,7 +44,7 @@ export function CaseList() {
   const products = useProductOptions();
   const statuses = useLookup('CaseStatusLabel');
   const priorities = useEnum('Priority');
-  const canEng = usePermission('Cases', 'Create');
+  const canEng = useRight('Cases', 'Create');
   const exportParams = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
   return (
@@ -157,7 +157,7 @@ export function CaseForm() {
   const parties = useEnum('ResponsibleParty');
   const clients = useClientOptions();
   const teams = useTeamOptions();
-  const canLead = usePermission('Cases', 'Coordinate');
+  const canLead = useRight('Cases', 'Coordinate');
   const f = useForm({
     title: '', type: '', scope: 'Client', clientId: '', responsibleTeamId: '', impactSummary: '', priority: 'Normal', ownerUserId: null as number | null, backupOwnerUserId: null as number | null,
     responsibleParty: 'TIO', responsibleOrganization: '', coordinatorUserId: null as number | null, nextAction: '', nextReviewAt: inDays(2), dueLocal: '', dueTimeZone: me.timeZone,
@@ -238,9 +238,9 @@ export function CaseDetail() {
   const q = useQuery({ queryKey: ['case', id], queryFn: () => get<CaseDto>(`/cases/${id}`) });
   const impact = useQuery({ queryKey: ['impact', id], queryFn: () => get<{ label: string; installations: { id: number; instanceName: string; product: string; environment: string; client: string }[]; clients: { id: number; code: string }[]; components: { id: number; name: string; role: string }[]; firewallRules: { id: number; purpose: string; source: string; destination: string; ports?: string; protocol: string }[] }>(`/cases/${id}/impact`), enabled: allowedTabs.includes('impact') });
   const me = useMe().data!;
-  const canCoordinate = usePermission('Cases', 'Coordinate');
-  const canCreateEscalation = usePermission('OtherOperations', 'Create');
-  const canCreateCommitment = usePermission('Commitments', 'Create');
+  const canCoordinate = useRight('Cases', 'Coordinate');
+  const canCreateEscalation = useRight('OtherOperations', 'Create');
+  const canCreateCommitment = useRight('Commitments', 'Create');
   const teams = useTeamOptions();
 
   const [dialog, setDialog] = useState<string | null>(null);
@@ -309,13 +309,13 @@ export function CaseDetail() {
           ['Components', c.components.length ? c.components.map(x => <div key={x.id}>{x.name} ({x.installation})</div>) : <span className="muted">None</span>],
         ]} />
       </Panel>}
-      {tab === 'jira' && <Panel title="Jira references" actions={p.canEdit && hasPermission(me, 'tab.Cases.jira', 'Create') && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
+      {tab === 'jira' && <Panel title="Jira references" actions={p.canEdit && hasRight(me, 'tab.Cases.jira', 'Create') && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
         <p className="hint" style={{ marginBottom: 8 }}>Customer Cloud Jira and Internal On-prem Jira are separate systems. Internal On-prem references are manual links only. A synchronized source issue appears here automatically and manual references stay.</p>
         {c.jiraReferences.length === 0 ? <StateMessage kind="none" /> : <DataTable caption="Jira references" rows={c.jiraReferences} rowKey={j => j.id} columns={[
           { key: 'instance', header: 'Instance', render: j => j.instance }, { key: 'origin', header: 'Type', render: j => jiraOriginLabel(j.origin) }, { key: 'key', header: 'Key', render: j => <span className="mono">{j.issueKey}</span> },
           { key: 'link', header: 'Link', render: j => <a href={j.url} target="_blank" rel="noopener noreferrer">{j.url}</a> },
           { key: 'reason', header: 'Link reason', render: j => j.reuseReason },
-          { key: 'actions', header: '', render: j => p.canEdit && j.origin === 'Manual' && hasPermission(me, 'tab.Cases.jira', 'Delete') && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
+          { key: 'actions', header: '', render: j => p.canEdit && j.origin === 'Manual' && hasRight(me, 'tab.Cases.jira', 'Delete') && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
         ]} />}
         {c.removedJiraReferences.length > 0 && <p className="hint" style={{ marginTop: 8 }}>Removed (kept in history): {c.removedJiraReferences.map(j => `${j.instance} ${j.issueKey}`).join(', ')}</p>}
       </Panel>}

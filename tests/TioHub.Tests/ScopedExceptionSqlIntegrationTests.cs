@@ -18,7 +18,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
 {
     private const string ContractsMaintain = "Contracts:Maintain";
     private static string Unique(string prefix) => $"{prefix}-{Guid.NewGuid():N}"[..(prefix.Length + 9)];
-    private static string Exceptions(long id) => $"/admin/users/{id}/permission-overrides";
+    private static string Exceptions(long id) => $"/admin/users/{id}/right-exceptions";
 
     private static async Task WithApprovedHub(Func<HubFactory, Task> test)
     {
@@ -29,13 +29,13 @@ public sealed class ScopedExceptionSqlIntegrationTests
         finally { await hub.DisposeAsync(); }
     }
 
-    private static string[] Prerequisites(string key) => PermissionHierarchy.WithAncestors([.. CapabilityPermissions.Dependencies(key), ResourcePermissions.KeyOf("Contracts", "DetailsView")]);
+    private static string[] Prerequisites(string key) => Fixture.Rights([.. RightsCatalog.Dependencies(key), RightKeys.KeyOf("Contracts", "DetailsView")]);
 
     /// <summary>A person with every client visible, the prerequisites of the permission, and the permission itself only when asked.</summary>
     private static async Task<(Api Actor, long Id)> Person(HubFactory hub, Api admin, string key, bool roleHolds, object[]? scopes = null, bool allClients = true)
     {
         var keys = Prerequisites(key).Concat(roleHolds ? [key] : Array.Empty<string>()).Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
-        var role = await admin.Create("/admin/roles", new { name = Unique("scoped"), permissions = keys, rights = Array.Empty<string>() });
+        var role = await admin.Create("/admin/roles", new { name = Unique("scoped"), rights = keys });
         var account = $@"DEV\{Unique("scoped")}";
         var id = await admin.Create("/admin/users", new { accountName = account, displayName = "Scoped exception", workingTimeZone = "UTC", roleIds = new[] { role }, allClients, allInternal = true, scopes = scopes ?? [] });
         return (await hub.As(account), id);
@@ -44,7 +44,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
     private static async Task<Res> SetExceptions(Api admin, long id, params object[] overrides)
     {
         var current = await admin.Get(Exceptions(id));
-        return await admin.Put(Exceptions(id), new { overrides }, current.ETag);
+        return await admin.Put(Exceptions(id), new { exceptions = overrides }, current.ETag);
     }
 
     /// <summary>Two contracts in different clients, read through the API so the test follows the seed.</summary>
@@ -79,7 +79,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         Assert.True((await actor.Get($"/contracts/{first.Id}")).Body!["permissions"]!["canEdit"]!.GetValue<bool>());
         Assert.False((await actor.Get($"/contracts/{second.Id}")).Body!["permissions"]!["canEdit"]!.GetValue<bool>());
         // Never a global decision: the session snapshot does not list it as effective.
-        Assert.DoesNotContain((await actor.Get("/me")).Body!["permissions"]!.AsArray(), k => k!.GetValue<string>() == ContractsMaintain);
+        Assert.DoesNotContain((await actor.Get("/me")).Body!["rights"]!.AsArray(), k => k!.GetValue<string>() == ContractsMaintain);
 
         Assert.Equal(HttpStatusCode.NoContent, (await SetExceptions(admin, id)).Status);
         Assert.Equal(HttpStatusCode.Forbidden, await TryEditContract(actor, first.Id));
@@ -126,9 +126,9 @@ public sealed class ScopedExceptionSqlIntegrationTests
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await SetExceptions(admin, id, new { key = ContractsMaintain, effect = "Allow", clientId = first.Client }, new { key = ContractsMaintain, effect = "Deny", clientId = first.Client })).Status);
         var stale = (await admin.Get(Exceptions(id))).ETag;
         Assert.Equal(HttpStatusCode.NoContent, (await SetExceptions(admin, id, new { key = ContractsMaintain, effect = "Allow", clientId = first.Client }, new { key = ContractsMaintain, effect = "Deny", projectId = first.Project }, new { key = ContractsMaintain, effect = "Deny" })).Status);
-        Assert.Equal(HttpStatusCode.PreconditionFailed, (await admin.Put(Exceptions(id), new { overrides = Array.Empty<object>() }, stale)).Status);
+        Assert.Equal(HttpStatusCode.PreconditionFailed, (await admin.Put(Exceptions(id), new { exceptions = Array.Empty<object>() }, stale)).Status);
         // Audit names the scope.
-        var audit = (await admin.Get($"/admin/audit?category=Access&entityType=UserPermissionOverride&pageSize=20")).Text;
+        var audit = (await admin.Get($"/admin/audit?category=Access&entityType=UserRightException&pageSize=20")).Text;
         Assert.Contains(first.Client.ToString(), audit);
     });
 
@@ -143,7 +143,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         async Task Insert(string scope)
         {
             await using var cmd = sql.CreateCommand();
-            cmd.CommandText = $"INSERT iam.UserPermissionOverride (UserId, PermissionKey, Effect, ClientId, ProjectId, TeamId) VALUES ({id}, N'{ContractsMaintain}', N'Deny', {scope})";
+            cmd.CommandText = $"INSERT iam.UserRightException (UserId, RightKey, Effect, ClientId, ProjectId, TeamId) VALUES ({id}, N'{ContractsMaintain}', N'Deny', {scope})";
             await cmd.ExecuteNonQueryAsync();
         }
         await Insert("NULL, NULL, NULL");
@@ -160,8 +160,8 @@ public sealed class ScopedExceptionSqlIntegrationTests
         var admin = await hub.As(HubFactory.Manager);
         var (first, second) = await TwoContracts(admin);
         // The preview route reads across modules, so the delegated actor holds every business View as well.
-        var keys = PermissionHierarchy.WithAncestors([.. CapabilityPermissions.BusinessViewKeys, .. CapabilityPermissions.Dependencies("Contracts:Delete"), "Contracts:Delete"]);
-        var role = await admin.Create("/admin/roles", new { name = Unique("cascade"), permissions = keys, rights = Array.Empty<string>() });
+        var keys = Fixture.Rights([.. RightChecks.BusinessViewKeys, .. RightsCatalog.Dependencies("Contracts:Delete"), "Contracts:Delete"]);
+        var role = await admin.Create("/admin/roles", new { name = Unique("cascade"), rights = keys });
         var account = $@"DEV\{Unique("cascade")}";
         await admin.Create("/admin/users", new
         {
@@ -210,8 +210,8 @@ public sealed class ScopedExceptionSqlIntegrationTests
     {
         var admin = await hub.As(HubFactory.Manager);
         var (first, _) = await TwoContracts(admin);
-        var keys = PermissionHierarchy.WithAncestors([.. Prerequisites("Contracts:Delete"), "Contracts:Delete", .. CapabilityPermissions.BusinessViewKeys]);
-        var role = await admin.Create("/admin/roles", new { name = Unique("project-delete"), permissions = keys, rights = Array.Empty<string>() });
+        var keys = Fixture.Rights([.. Prerequisites("Contracts:Delete"), "Contracts:Delete", .. RightChecks.BusinessViewKeys]);
+        var role = await admin.Create("/admin/roles", new { name = Unique("project-delete"), rights = keys });
         var account = $@"DEV\{Unique("project-delete")}";
         await admin.Create("/admin/users", new
         {
@@ -234,7 +234,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         Assert.Equal(HttpStatusCode.NoContent, (await SetExceptions(admin, id, new { key = ContractsMaintain, effect = "Deny", clientId })).Status);
         Assert.Contains("exception", (await admin.Get($"/dependents/clients/{clientId}")).Text, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(HttpStatusCode.OK, (await admin.Send(HttpMethod.Delete, $"/dependents/clients/{clientId}")).Status);
-        Assert.Empty((await admin.Get(Exceptions(id))).Body!["overrides"]!.AsArray());
+        Assert.Empty((await admin.Get(Exceptions(id))).Body!["exceptions"]!.AsArray());
     });
 
     [ApprovedOverrideSqlFact]
@@ -248,7 +248,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         // Remove every administrator's standing, leaving only a holder of a custom role named like one but without the permission.
         var managerRole = await db.AppRoles.AsNoTracking().SingleAsync(r => r.Key == "Manager");
         await db.UserRoles.Where(r => r.AppRoleId == managerRole.Id).ExecuteDeleteAsync();
-        await db.GroupMappings.Where(m => m.Role == TioHub.Api.Common.Role.Manager).ExecuteDeleteAsync();
+        await db.GroupMappings.Where(m => m.Roles.Any(r => r.AppRole!.Key == BuiltInRoles.ManagerKey)).ExecuteDeleteAsync();
         db.ChangeTracker.Clear();
         Assert.False(await AdministratorRecovery.RemainsAsync(db, resolver, now, default));
         // The target's proposed roles count once they carry effective administration.
@@ -259,7 +259,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         {
             await sql.OpenAsync();
             await using var cmd = sql.CreateCommand();
-            cmd.CommandText = $"INSERT iam.UserPermissionOverride (UserId, PermissionKey, Effect) VALUES ({candidate.Id}, N'AdminUsers:Maintain', N'Deny')";
+            cmd.CommandText = $"INSERT iam.UserRightException (UserId, RightKey, Effect) VALUES ({candidate.Id}, N'AdminUsers:Maintain', N'Deny')";
             await cmd.ExecuteNonQueryAsync();
         }
         Assert.False(await AdministratorRecovery.RemainsAsync(db, resolver, now, default, candidate.Id, true, [managerRole.Id]));
@@ -286,9 +286,9 @@ public sealed class ScopedExceptionSqlIntegrationTests
         Assert.True((await resolver.ForUserAsync(never, default))!.HasAccess);
         // Changes that delegate access stay refused until the person signs in; the never-seen account can be changed.
         var refused = await admin.Get(Exceptions(stale));
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Put(Exceptions(stale), new { overrides = Array.Empty<object>() }, refused.ETag)).Status);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Put(Exceptions(stale), new { exceptions = Array.Empty<object>() }, refused.ETag)).Status);
         var allowed = await admin.Get(Exceptions(never));
-        Assert.Equal(HttpStatusCode.NoContent, (await admin.Put(Exceptions(never), new { overrides = Array.Empty<object>() }, allowed.ETag)).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.Put(Exceptions(never), new { exceptions = Array.Empty<object>() }, allowed.ETag)).Status);
         Assert.Equal("unavailable", (await admin.Get($"/admin/users/{stale}/access")).Body!["directoryEvidence"]!["source"]!.GetValue<string>());
     });
 
@@ -317,21 +317,23 @@ public sealed class ScopedExceptionSqlIntegrationTests
         var admin = await hub.As(HubFactory.Manager);
         var (first, _) = await TwoContracts(admin);
         var (_, id) = await Person(hub, admin, ContractsMaintain, roleHolds: false);
-        Assert.Equal(HttpStatusCode.NoContent, (await SetExceptions(admin, id, new { key = "Cases:View", effect = "Deny" }, new { key = ContractsMaintain, effect = "Allow", clientId = first.Client })).Status);
         await using var scope = hub.Services.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
         var migrator = db.GetService<IMigrator>();
+        // Exceptions lived in the old table at this point in the history, so the guard of that older migration reads it.
+        await migrator.MigrateAsync("20261103142553_JiraInternalMember");
+        await db.Database.ExecuteSqlRawAsync($"INSERT iam.UserPermissionOverride (UserId, PermissionKey, Effect) VALUES ({id}, N'Cases:View', N'Deny')");
+        await db.Database.ExecuteSqlRawAsync($"INSERT iam.UserPermissionOverride (UserId, PermissionKey, Effect, ClientId) VALUES ({id}, N'{ContractsMaintain}', N'Allow', {first.Client})");
         const string previous = "20261102140000_ExportAccessFingerprint";
 
         var refused = await Assert.ThrowsAsync<SqlException>(() => migrator.MigrateAsync(previous));
         Assert.Contains("Scoped permission exceptions exist", refused.Message);
-        Assert.Equal(2, await db.UserPermissionOverrides.CountAsync(o => o.UserId == id));
 
-        await db.UserPermissionOverrides.Where(o => o.ClientId != null).ExecuteDeleteAsync();
+        await db.Database.ExecuteSqlRawAsync($"DELETE iam.UserPermissionOverride WHERE UserId = {id} AND ClientId IS NOT NULL");
         await migrator.MigrateAsync(previous);
         await migrator.MigrateAsync();
-        var row = await db.UserPermissionOverrides.AsNoTracking().SingleAsync(o => o.UserId == id);
-        Assert.Equal(("Cases:View", "Deny", true), (row.PermissionKey, row.Effect, row.IsGlobal));
+        var row = await db.UserRightExceptions.AsNoTracking().SingleAsync(o => o.UserId == id);
+        Assert.Equal(("Cases:View", "Deny", true), (row.RightKey, row.Effect, row.IsGlobal));
     });
 }
 
@@ -386,7 +388,7 @@ public sealed class DeploymentScriptSqlTests
         var applied = await CountAsync(db, "SELECT COUNT(*) FROM admin.__EFMigrationsHistory");
         await RunAsync(db, script);
         Assert.Equal(applied, await CountAsync(db, "SELECT COUNT(*) FROM admin.__EFMigrationsHistory"));
-        Assert.Equal(1, await CountAsync(db, "SELECT COUNT(*) FROM sys.check_constraints WHERE name = 'CK_UserPermissionOverride_SingleScope'"));
+        Assert.Equal(1, await CountAsync(db, "SELECT COUNT(*) FROM sys.check_constraints WHERE name = 'CK_UserRightException_SingleScope'"));
     });
 
     [ApprovedOverrideSqlFact]
@@ -406,6 +408,6 @@ public sealed class DeploymentScriptSqlTests
             INSERT iam.UserPermissionOverride (UserId, PermissionKey, Effect, ExpiresAt) VALUES (900, N'Cases:View', N'Deny', NULL);
             """);
         await RunAsync(db, await File.ReadAllTextAsync(ScriptPath));
-        Assert.Equal(1, await CountAsync(db, "SELECT COUNT(*) FROM iam.UserPermissionOverride WHERE UserId = 900 AND PermissionKey = N'Cases:View' AND Effect = N'Deny' AND ClientId IS NULL AND ProjectId IS NULL AND TeamId IS NULL AND Id > 0"));
+        Assert.Equal(1, await CountAsync(db, "SELECT COUNT(*) FROM iam.UserRightException WHERE UserId = 900 AND RightKey = N'Cases:View' AND Effect = N'Deny' AND ClientId IS NULL AND ProjectId IS NULL AND TeamId IS NULL AND Id > 0"));
     });
 }

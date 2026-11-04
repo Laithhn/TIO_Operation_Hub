@@ -12,8 +12,8 @@ public sealed class NotificationScopeTests
     public void Notification_query_requires_visible_source_records_and_current_report_access()
     {
         var me = new UserContext();
-        me.Set(new ResolvedUser(42, "account", "User", "UTC", true, ["role"], Right.None,
-            ResourcePermissions.All, Grant.Export,
+        me.Set(new ResolvedUser(42, "account", "User", "UTC", true, ["role"],
+            RightsCatalog.AllKeys,
             false, [10], [], [], [], false, [20]));
         var options = new DbContextOptionsBuilder<HubDbContext>().UseSqlServer("Server=(local);Database=unused;Integrated Security=true;TrustServerCertificate=true").Options;
         using var db = new HubDbContext(options, me, TimeProvider.System);

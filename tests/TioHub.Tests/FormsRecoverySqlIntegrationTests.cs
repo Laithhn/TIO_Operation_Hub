@@ -42,12 +42,12 @@ public sealed class FormsRecoverySqlIntegrationTests
             await db.SaveChangesAsync();
             Assert.False(await SetupCode.RequiredAsync(db, CancellationToken.None));
 
-            var deny = new UserPermissionOverride { UserId = manager.Id, PermissionKey = "AdminUsers:View", Effect = "Deny" };
-            db.UserPermissionOverrides.Add(deny);
+            var deny = new UserRightException { UserId = manager.Id, RightKey = "AdminUsers:View", Effect = "Deny" };
+            db.UserRightExceptions.Add(deny);
             await db.SaveChangesAsync();
             Assert.True(await SetupCode.RequiredAsync(db, CancellationToken.None));
 
-            db.UserPermissionOverrides.Remove(deny);
+            db.UserRightExceptions.Remove(deny);
             manager.IsActive = false;
             await db.SaveChangesAsync();
             Assert.True(await SetupCode.RequiredAsync(db, CancellationToken.None));
@@ -66,7 +66,7 @@ public sealed class FormsRecoverySqlIntegrationTests
             var code = await File.ReadAllTextAsync(hub.SetupFile);
             using var scope = hub.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
-            var managerRoleId = (await BuiltInRoles.EnsureAsync(db, CancellationToken.None))[TioHub.Api.Common.Role.Manager];
+            var managerRoleId = (await BuiltInRoles.EnsureAsync(db, CancellationToken.None))[BuiltInRoles.ManagerKey];
             var user = new User { AccountName = "old.manager", DisplayName = "Old manager", WorkingTimeZone = "UTC", IsActive = false };
             user.Roles.Add(new UserRole { AppRoleId = managerRoleId });
             db.Users.Add(user);
@@ -78,13 +78,13 @@ public sealed class FormsRecoverySqlIntegrationTests
             Assert.False(await db.UserCredentials.AnyAsync(c => c.UserId == user.Id));
 
             user.IsActive = true;
-            db.UserPermissionOverrides.Add(new UserPermissionOverride { UserId = user.Id, PermissionKey = "AdminUsers:View", Effect = "Deny" });
+            db.UserRightExceptions.Add(new UserRightException { UserId = user.Id, RightKey = "AdminUsers:View", Effect = "Deny" });
             await db.SaveChangesAsync();
             Assert.Equal(HttpStatusCode.Conflict, (await session.Post("/auth/setup", Request(user.AccountName))).Status);
             Assert.True(File.Exists(hub.SetupFile));
             Assert.False(await db.UserCredentials.AnyAsync(c => c.UserId == user.Id));
 
-            db.UserPermissionOverrides.RemoveRange(await db.UserPermissionOverrides.Where(o => o.UserId == user.Id).ToListAsync());
+            db.UserRightExceptions.RemoveRange(await db.UserRightExceptions.Where(o => o.UserId == user.Id).ToListAsync());
             var roleA = new AppRole { Name = "Conflicting A", IsActive = true };
             var roleB = new AppRole { Name = "Conflicting B", IsActive = true };
             db.AppRoles.AddRange(roleA, roleB);
@@ -96,7 +96,7 @@ public sealed class FormsRecoverySqlIntegrationTests
             Assert.True(File.Exists(hub.SetupFile));
             Assert.False(await db.UserCredentials.AnyAsync(c => c.UserId == user.Id));
 
-            var permission = await db.PermissionDefinitions.SingleAsync(p => p.Key == "AdminUsers:View");
+            var permission = await db.RightDefinitions.SingleAsync(p => p.Key == "AdminUsers:View");
             permission.IsActive = false;
             await db.SaveChangesAsync();
             var versionBeforeFailure = await db.AuthorizationVersions.AsNoTracking().Select(v => v.Version).SingleAsync();

@@ -144,8 +144,8 @@ public static partial class NoteEndpoints
         // A link copies the record's name into the note, so scope alone is not
         // sufficient. Match the permissions of the corresponding list endpoint.
         if (projectId is not null)
-            me.RequirePermission(ResourcePermissions.Projects, ResourcePermissions.View);
-        else if (clientId is not null && !CapabilityPermissions.CanOpenClientPage(me))
+            me.RequireRight(RightKeys.Projects, RightKeys.View);
+        else if (clientId is not null && !RightChecks.CanOpenClientPage(me))
             throw new ForbiddenException("Linking a client needs View access to at least one client tab.");
     }
 

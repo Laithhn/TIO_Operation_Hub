@@ -40,7 +40,7 @@ public static class CaseEndpoints
 
         g.MapGet("", async ([AsParameters] CaseListQuery p, HubDbContext db, HubAccess access, HubSettings settings, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var now = p.AsOf ?? DateTimeOffset.UtcNow;
             var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
             var q = CaseQuery.Apply(db.Cases.AsNoTracking(), p.ToFilter(), now, await settings.UpcomingDaysAsync(ct), policy, db, await settings.CoveragePrioritiesAsync(ct));
@@ -55,7 +55,7 @@ public static class CaseEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var c = await db.Cases.AsNoTracking().Include(x => x.Client).Include(x => x.ResponsibleTeam).Include(x => x.Owner).Include(x => x.BackupOwner)
                 .Include(x => x.Environments).Include(x => x.Assets).Include(x => x.Components)
                 .Include(x => x.JiraReferences).ThenInclude(j => j.JiraInstance).Include(x => x.WaitingIntervals)
@@ -63,18 +63,18 @@ public static class CaseEndpoints
             var now = DateTimeOffset.UtcNow;
             var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
             var envIds = c.Environments.Select(e => e.EnvironmentId).ToList();
-            var canAffected = HierarchyEndpointPermissions.CanViewTab(access.Me, "Cases", "affected");
-            var canJira = HierarchyEndpointPermissions.CanViewTab(access.Me, "Cases", "jira");
-            var canEnvironments = canAffected && access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View);
-            var canServers = canAffected && access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View);
-            var canCommitments = HierarchyEndpointPermissions.CanViewTab(access.Me, "Cases", "commitments") && access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.View);
-            var canHistory = access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.HistoryView) && access.Me.Has(Grant.Audit);
+            var canAffected = access.Me.HasRight(RightKeys.Tab("Cases", "affected"));
+            var canJira = access.Me.HasRight(RightKeys.Tab("Cases", "jira"));
+            var canEnvironments = canAffected && access.Me.HasRight(RightKeys.Environments, RightKeys.View);
+            var canServers = canAffected && access.Me.HasRight(RightKeys.Servers, RightKeys.View);
+            var canCommitments = access.Me.HasRight(RightKeys.Tab("Cases", "commitments")) && access.Me.HasRight(RightKeys.Commitments, RightKeys.View);
+            var canHistory = access.Me.HasRight(RightKeys.Cases, RightKeys.HistoryView) && access.Me.HasRight(RightKeys.Audit);
             var envs = await db.Environments.AsNoTracking().Where(e => canEnvironments && envIds.Contains(e.Id)).Select(e => new { e.Id, e.Name, e.Type, regionCode = e.Region == null ? null : e.Region.Code }).ToListAsync(ct);
             var assetIds = c.Assets.Select(a => a.AssetId).ToList();
             var assets = await db.Assets.AsNoTracking().Where(a => canServers && assetIds.Contains(a.Id)).Select(a => new { a.Id, a.Name, a.Type }).ToListAsync(ct);
             var compIds = c.Components.Select(x => x.ComponentId).ToList();
             var comps = await db.Components.AsNoTracking().Where(x => canServers && compIds.Contains(x.Id)).Select(x => new { x.Id, x.Name, x.Role, installation = x.Installation!.InstanceName }).ToListAsync(ct);
-            var events = await db.CaseEvents.AsNoTracking().Where(e => canHistory && access.Me.HasPermission("tab.Cases.timeline:View") && e.CaseId == id).OrderByDescending(e => e.At).ThenByDescending(e => e.Id)
+            var events = await db.CaseEvents.AsNoTracking().Where(e => canHistory && access.Me.HasRight("tab.Cases.timeline:View") && e.CaseId == id).OrderByDescending(e => e.At).ThenByDescending(e => e.Id)
                 .Select(e => new { e.Id, e.Type, e.FromValue, e.ToValue, e.Note, e.At, by = e.By == null ? null : e.By.DisplayName }).ToListAsync(ct);
             var commitments = await db.Commitments.AsNoTracking().Where(m => canCommitments && m.CaseId == id)
                 .Select(m => new { m.Id, m.Ref, m.Description, m.Status, m.CurrentDueAt, m.TimeZone }).ToListAsync(ct);
@@ -135,7 +135,7 @@ public static class CaseEndpoints
         // A63: calculate an indicative preview from the case's snapshotted clause terms; no accounting action is taken.
         g.MapGet("/{id:long}/penalty-preview", async (long id, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var c = await db.Cases.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
             // A penalty preview applies monthly caps across all cases on the contract.
             // A project-only view would omit other cases and produce an incorrect amount.
@@ -170,7 +170,7 @@ public static class CaseEndpoints
 
         g.MapPost("", async (CaseInput input, HubDbContext db, HubAccess access, TimeProvider clock, HubSettings settings, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Cases, ResourcePermissions.Create);
+            access.Me.RequireRight(RightKeys.Cases, RightKeys.Create);
             var now = clock.GetUtcNow();
             var check = new Check();
             var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the case type", null, ct);
@@ -189,7 +189,7 @@ public static class CaseEndpoints
             if (input.ClientId is not null && !access.Me.HasClient(input.ClientId.Value)) check.Add("clientId", "Select a client you can access.");
             if (input.ResponsibleTeamId is not null && !await db.Teams.AnyAsync(t => t.Id == input.ResponsibleTeamId && t.IsActive, ct)) check.Add("responsibleTeamId", "Select an active team.");
             if (input.Scope == WorkScope.Internal && input.ResponsibleTeamId is not null && !access.Me.SeesInternal(input.ResponsibleTeamId)) check.Add("responsibleTeamId", "You have no internal scope for this team.");
-            if (input.OwnerUserId is not null && !access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate) && input.OwnerUserId != access.Me.UserId) check.Add("ownerUserId", "Case coordination permission is required to assign someone else. Leave it Unassigned or take it yourself.");
+            if (input.OwnerUserId is not null && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && input.OwnerUserId != access.Me.UserId) check.Add("ownerUserId", "Case coordination permission is required to assign someone else. Leave it Unassigned or take it yourself.");
             if (input.BackupOwnerUserId is not null && input.BackupOwnerUserId == input.OwnerUserId) check.Add("backupOwnerUserId", "The backup must be a different person.");
             await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, input.ClientId, input.ResponsibleTeamId, "the owner", ct);
             await access.CheckAssignableAsync(check, "backupOwnerUserId", input.BackupOwnerUserId, input.ClientId, input.ResponsibleTeamId, "the backup owner", ct);
@@ -213,7 +213,7 @@ public static class CaseEndpoints
             db.Cases.Add(c);
             await db.SaveChangesAsync(ct);
             AddEvent(db, c, CaseEventType.Created, null, CaseStatus.New.ToString(), null, access.Me, now);
-            if (input.JiraReferences?.Length > 0) access.Me.RequirePermission(PermissionHierarchy.Tab("Cases", "jira", "Create"));
+            if (input.JiraReferences?.Length > 0) access.Me.RequireRight(RightKeys.Tab("Cases", "jira", "Create"));
             foreach (var j in input.JiraReferences ?? []) await AddJiraAsync(db, access, c, j, now, ct);
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
@@ -223,7 +223,7 @@ public static class CaseEndpoints
         g.MapPut("/{id:long}", async (long id, CaseUpdateInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             var now = clock.GetUtcNow();
             var check = new Check();
@@ -234,8 +234,8 @@ public static class CaseEndpoints
                  .When(CaseQuery.IsOpen(c.Status) && input.NextReviewAt is null, "nextReviewAt", "Every open case needs a next review time.")
                  .Text("changeNote", input.ChangeNote, 1000, "Note").Text("responsibleOrganization", input.ResponsibleOrganization, 150, "Responsible organization");
             var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the case type", c.Type, ct);
-            if (input.Priority != c.Priority && !access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate)) check.Add("priority", "Case coordination permission is required to change the priority.");
-            if (input.ResponsibleTeamId != c.ResponsibleTeamId && !access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate)) check.Add("responsibleTeamId", "Case coordination permission is required to change the team.");
+            if (input.Priority != c.Priority && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("priority", "Case coordination permission is required to change the priority.");
+            if (input.ResponsibleTeamId != c.ResponsibleTeamId && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("responsibleTeamId", "Case coordination permission is required to change the team.");
             if (input.ResponsibleTeamId is not null && !await db.Teams.AnyAsync(t => t.Id == input.ResponsibleTeamId, ct)) check.Add("responsibleTeamId", "Select a team.");
             await access.CheckAssignableAsync(check, "coordinatorUserId", input.CoordinatorUserId, c.ClientId, input.ResponsibleTeamId, "the coordinator", ct);
             check.ThrowIfAny();
@@ -255,7 +255,7 @@ public static class CaseEndpoints
             if (input.NextReviewAt is not null) c.NextReviewAt = input.NextReviewAt.Value;
             if (input.Affected is not null)
             {
-                access.Me.RequirePermission(PermissionHierarchy.Tab("Cases", "affected", "View"));
+                access.Me.RequireRight(RightKeys.Tab("Cases", "affected", "View"));
                 await ApplyAffectedAsync(c, input.Affected, db, ct);
                 var afterScope = AffectedSummary(c);
                 if (afterScope != beforeScope) AddEvent(db, c, CaseEventType.ScopeChanged, beforeScope, afterScope, input.ChangeNote, access.Me, now);
@@ -268,7 +268,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/triage", async (long id, TriageInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireLeadFor(c.ClientId, c.ResponsibleTeamId, ResourcePermissions.Cases);
+            access.RequireLeadFor(c.ClientId, c.ResponsibleTeamId, RightKeys.Cases);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             RequireStatus(c, CaseStatus.New);
@@ -306,11 +306,11 @@ public static class CaseEndpoints
             var now = clock.GetUtcNow();
             var check = new Check();
             // ACC-03: only a Lead or Manager reassigns; an Engineer may take unassigned work of their own team.
-            var selfTake = input.OwnerUserId == access.Me.UserId && c.OwnerUserId is null && access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Maintain)
+            var selfTake = input.OwnerUserId == access.Me.UserId && c.OwnerUserId is null && access.Me.HasRight(RightKeys.Cases, RightKeys.Maintain)
                 && await db.TeamMembers.AnyAsync(m => m.TeamId == c.ResponsibleTeamId && m.UserId == access.Me.UserId && m.IsActive, ct);
-            if (!access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate) && !selfTake) throw new ForbiddenException("Only the TIO Manager can assign this case. You can take unassigned work of your own team.");
+            if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && !selfTake) throw new ForbiddenException("Only the TIO Manager can assign this case. You can take unassigned work of your own team.");
             if (input.BackupOwnerUserId is not null && input.BackupOwnerUserId == input.OwnerUserId) check.Add("backupOwnerUserId", "The backup must be a different person.");
-            if (!access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate) && input.BackupOwnerUserId != c.BackupOwnerUserId) check.Add("backupOwnerUserId", "Only the TIO Manager can change the backup owner.");
+            if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && input.BackupOwnerUserId != c.BackupOwnerUserId) check.Add("backupOwnerUserId", "Only the TIO Manager can change the backup owner.");
             if (c.Status == CaseStatus.InProgress && input.OwnerUserId is null) check.Add("ownerUserId", "A case in progress must keep an active owner.");
             check.Text("reason", input.Reason, 1000, "Reason");
             await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, c.ClientId, c.ResponsibleTeamId, "the owner", ct);
@@ -332,7 +332,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/start", async (long id, ProgressInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Cases.Include(x => x.Owner).Include(x => x.Environments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             RequireStatus(c, CaseStatus.Triaged);
@@ -350,7 +350,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/progress", async (long id, ProgressInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("progressSummary", "The case is closed or cancelled.");
             var now = clock.GetUtcNow();
@@ -368,7 +368,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/request-validation", async (long id, ValidationRequestInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             RequireStatus(c, CaseStatus.InProgress);
@@ -392,7 +392,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/resume", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             RequireStatus(c, CaseStatus.PendingValidation);
@@ -409,7 +409,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/first-response", async (long id, FirstResponseInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             if (await db.JiraCaseMappings.AnyAsync(m => m.CaseId == c.Id, ct)) throw new ValidationException("respondedAt", "This case's first response is its first Jira comment.");
             if (c.Status == CaseStatus.Cancelled) throw new ValidationException("respondedAt", "The case was cancelled.");
@@ -429,7 +429,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/contract", async (long id, ContractLinkInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             var check = new Check();
             if (input.ContractId is not null) await CheckContractAsync(check, db, input.ContractId.Value, c.ClientId, ct);
@@ -451,7 +451,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/close", async (long id, CloseInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             // A77: with no Resolved status there is no validation step, so a case in progress closes directly. The evidence rule is the same.
@@ -464,7 +464,7 @@ public static class CaseEndpoints
             if (usesException)
             {
                 // An engineer-entered reason alone can never waive evidence (Section 5.3).
-                if (!access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate)) check.Add("evidenceExceptionReason", "Case coordination permission is required to authorize closing without validation evidence.");
+                if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("evidenceExceptionReason", "Case coordination permission is required to authorize closing without validation evidence.");
                 if (input.FollowUpOwnerId is null) check.Add("followUpOwnerId", "Select the follow-up owner for the missing evidence.");
                 if (input.FollowUpDate is null) check.Add("followUpDate", "Enter the follow-up date.");
                 await access.CheckAssignableAsync(check, "followUpOwnerId", input.FollowUpOwnerId, c.ClientId, c.ResponsibleTeamId, "the follow-up owner", ct);
@@ -491,7 +491,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/cancel", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The case is already closed or cancelled.");
@@ -509,7 +509,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/reopen", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Cases.Include(x => x.Owner).Include(x => x.BackupOwner).Include(x => x.Environments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
-            access.RequireLeadFor(c.ClientId, c.ResponsibleTeamId, ResourcePermissions.Cases);
+            access.RequireLeadFor(c.ClientId, c.ResponsibleTeamId, RightKeys.Cases);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             if (CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "Only closed or cancelled cases can be reopened.");
@@ -541,7 +541,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/status", async (long id, StatusInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             var options = await StatusOptionsAsync(db, c, ct);
@@ -556,7 +556,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/waiting", async (long id, WaitingInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The case is closed or cancelled.");
@@ -577,7 +577,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/waiting/clear", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             if (c.WaitingReason is null) throw new ValidationException("reason", "The case is not waiting.");
@@ -592,7 +592,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/due", async (long id, DueInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId);
             db.ExpectVersion(ctx, c);
             if (SlaSetsDue(c)) throw new ValidationException("dueLocal", "This case's due date comes from its Jira creation time and its contract's SLA.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reason for the due-date change");
@@ -612,7 +612,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/jira", async (long id, JiraInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             var j = await AddJiraAsync(db, access, c, input, clock.GetUtcNow(), ct);
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/v1/cases/{id}/jira/{j.Id}", new { j.Id });
@@ -620,7 +620,7 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/jira/{refId:long}/remove", async (long id, long refId, RemoveJiraInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             var j = await db.JiraReferences.FirstOrDefaultAsync(x => x.Id == refId && x.CaseId == id && x.RemovedAt == null, ct) ?? throw new NotFoundException("The Jira reference");
             if (j.Origin != JiraReferenceOrigin.Manual && await db.JiraCaseMappings.AnyAsync(m => m.CaseId == id && m.IssueKey == j.IssueKey, ct))
                 throw new ValidationException("reason", "This is the synchronized source issue of the case, so it stays while the case is synchronized.");
@@ -635,15 +635,15 @@ public static class CaseEndpoints
         });
         api.MapGet("/jira/reuse", async (long instanceId, string key, long? exceptCaseId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            access.Me.RequirePermission(PermissionHierarchy.Tab("Cases", "jira", "View"));
+            access.RequireAccess();
+            access.Me.RequireRight(RightKeys.Tab("Cases", "jira", "View"));
             return Results.Ok(await ReuseAsync(db, access, instanceId, JiraKeys.Normalize(key), exceptCaseId, ct));
         }).WithTags("Cases");
 
         // INF-07: potentially affected installations and clients by traversing recorded relationships only.
         g.MapGet("/{id:long}/impact", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var c = await db.Cases.AsNoTracking().Include(x => x.Environments).Include(x => x.Assets).Include(x => x.Components)
                 .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
             return Results.Ok(await DocumentedImpact.ForCaseAsync(db, c, ct));
@@ -686,8 +686,8 @@ public static class CaseEndpoints
     private static object Permissions(Case c, UserContext me, bool belongsToTeam, bool hasResolved, bool statusFromJira)
     {
         var inScope = me.SeesScope(c.ClientId, c.ResponsibleTeamId);
-        var maintain = inScope && me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Maintain);
-        var coordinate = inScope && me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate);
+        var maintain = inScope && me.HasRight(RightKeys.Cases, RightKeys.Maintain);
+        var coordinate = inScope && me.HasRight(RightKeys.Cases, RightKeys.Coordinate);
         return new
         {
             canEdit = maintain,

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { usePermission, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
+import { useRight, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DeleteAction, DL, FormError, FormSection, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -71,7 +71,7 @@ export function EscalationTable({ clientId, caseId, compact }: { clientId?: numb
 }
 
 export function EscalationList() {
-  const canEng = usePermission('OtherOperations', 'Create');
+  const canEng = useRight('OtherOperations', 'Create');
   return (
     <>
       <PageHead title="Escalations" sub="Client matters raised above normal handling, by e-mail, formal letter, verbally, through Jira or any other configured channel. Each has an accountable owner, a level and response and resolution targets."
@@ -101,7 +101,7 @@ export function EscalationForm() {
   const refresh = useRefresh();
   const clients = useClientOptions();
   const ch = useChannels();
-  const canLead = usePermission('OtherOperations', 'Coordinate');
+  const canLead = useRight('OtherOperations', 'Coordinate');
   const existing = useQuery({ queryKey: ['escalation', id], queryFn: () => get<Dto>(`/escalations/${id}`), enabled: !isNew });
   const f = useForm({
     clientId: sp.get('clientId') ?? '', title: '', description: '', direction: 'Received', channel: '', channelReference: '', priority: 'High', level: '1',

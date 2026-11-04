@@ -9,9 +9,9 @@ public sealed class QualityScanAuthorizationTests
     private static UserContext User(bool allClients, bool allInternal, bool maintain = true)
     {
         var me = new UserContext();
-        var action = maintain ? ResourcePermissions.Maintain : ResourcePermissions.View;
-        var permissions = PermissionHierarchy.WithAncestors([ResourcePermissions.KeyOf(ResourcePermissions.Other, ResourcePermissions.View), ResourcePermissions.KeyOf(ResourcePermissions.Other, action)]);
-        me.Set(new ResolvedUser(1, "test", "Test", "UTC", true, ["Operator"], Right.None, permissions, Grant.None,
+        var action = maintain ? RightKeys.Maintain : RightKeys.View;
+        var permissions = Fixture.Rights([RightKeys.KeyOf(RightKeys.Other, RightKeys.View), RightKeys.KeyOf(RightKeys.Other, action)]);
+        me.Set(new ResolvedUser(1, "test", "Test", "UTC", true, ["Operator"], permissions,
             allClients, [10], [20], [10], [30], allInternal, [40]));
         return me;
     }

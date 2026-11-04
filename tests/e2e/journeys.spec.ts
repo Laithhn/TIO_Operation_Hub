@@ -547,29 +547,26 @@ test.describe('Access (roles and rights)', () => {
     await dlg.getByLabel('Role name').fill(name);
     await dlg.getByRole('button', { name: 'Save role' }).click();
     // A new role is taken to the Rights page; changes are reviewed before saving.
-    await expect(page).toHaveURL(/\/admin\/rights$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Rights and permissions' })).toBeVisible();
-    await page.getByRole('combobox', { name: 'Role to configure' }).selectOption({ label: name });
-    await page.getByLabel('Search permissions').fill('Cases:View');
-    await page.getByRole('checkbox', { name: `Module Cases for ${name}`, exact: true }).check();
-    await page.getByRole('checkbox', { name: `Submodule Cases for ${name}`, exact: true }).check();
-    await page.getByRole('checkbox', { name: `View pages and records for ${name}`, exact: true }).check();
-    await page.getByLabel('Search permissions').fill('Cases:Maintain');
-    const edit = page.getByRole('checkbox', { name: `Edit existing records for ${name}`, exact: true });
+    await expect(page).toHaveURL(/\/admin\/rights\?role=\d+$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Rights' })).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Role', exact: true }).locator('option:checked')).toHaveText(name);
+    await page.getByLabel('Search rights').fill('Cases:View');
+    await page.getByRole('checkbox', { name: `Cases: View pages and records for ${name}`, exact: true }).check();
+    await page.getByLabel('Search rights').fill('Cases:Maintain');
+    const edit = page.getByRole('checkbox', { name: `Cases: Edit existing records for ${name}`, exact: true });
     await edit.check();
     await page.getByRole('button', { name: 'Review and save' }).click();
-    const review = page.getByRole('dialog', { name: 'Review permission changes' });
+    const review = page.getByRole('dialog', { name: 'Review rights changes' });
     await expect(review).toContainText('Cases:Maintain');
-    await review.getByRole('button', { name: 'Save permissions' }).click();
+    await review.getByRole('button', { name: 'Save rights' }).click();
     await expect(review).toBeHidden();
     await page.reload();
-    await page.getByRole('combobox', { name: 'Role to configure' }).selectOption({ label: name });
-    await page.getByLabel('Search permissions').fill('Cases:Maintain');
-    await expect(page.getByRole('checkbox', { name: `Edit existing records for ${name}`, exact: true })).toBeChecked();
+    await page.getByLabel('Search rights').fill('Cases:Maintain');
+    await expect(page.getByRole('checkbox', { name: `Cases: Edit existing records for ${name}`, exact: true })).toBeChecked();
     // The TIO Manager role cannot lose a right.
-    await page.getByRole('combobox', { name: 'Role to configure' }).selectOption({ label: 'TIO Manager · protected' });
-    await page.getByLabel('Search permissions').fill('module.admin:Access');
-    await expect(page.getByRole('checkbox', { name: 'Module Administration for TIO Manager', exact: true })).toBeDisabled();
+    await page.getByRole('combobox', { name: 'Role', exact: true }).selectOption({ label: 'TIO Manager · protected' });
+    await page.getByLabel('Search rights').fill('Platform:Administration');
+    await expect(page.getByRole('checkbox', { name: 'Platform-wide controls: Administration for TIO Manager', exact: true })).toBeDisabled();
     await page.screenshot({ path: 'test-results/visual-rights-1600.png', fullPage: true });
     // The Roles page lists it with its rights; an unused role is deleted there.
     await page.goto('/admin/roles');

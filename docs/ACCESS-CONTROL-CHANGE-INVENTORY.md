@@ -1,5 +1,7 @@
 # Access-control work: change inventory
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 This lists files touched for the access-control continuation. Many files were already modified or untracked before the work began; this list does not attribute the entire current Git diff to this task.
 
 ## Backend and data

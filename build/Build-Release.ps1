@@ -35,8 +35,8 @@ $node = "$root\.tools\node"
 if (Test-Path "$node\node.exe") { $env:PATH = "$node;$env:PATH" }
 if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw 'Node.js 22 is required (install it, or place it in .tools\node).' }
 
-Write-Host "== Permission manifest (source generation only)" -ForegroundColor Cyan
-dotnet run --project "$root\build\PermissionManifest" -c Release; if ($LASTEXITCODE) { throw 'permission manifest generation failed' }
+Write-Host "== Rights manifest (source generation only)" -ForegroundColor Cyan
+dotnet run --project "$root\build\RightsManifest" -c Release; if ($LASTEXITCODE) { throw 'rights manifest generation failed' }
 
 Write-Host "== Front end" -ForegroundColor Cyan
 Push-Location "$root\src\web"

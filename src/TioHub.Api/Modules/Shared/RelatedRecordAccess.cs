@@ -8,7 +8,7 @@ public static class RelatedRecordAccess
 {
     public static bool CanApply(UserContext me, string resource, IReadOnlyCollection<long> requestedIds)
     {
-        if (me.HasPermission(resource, ResourcePermissions.View)) return true;
+        if (me.HasRight(resource, RightKeys.View)) return true;
         // Existing forms send an empty array when the related picker is unavailable.
         // Preserve hidden relationships instead of treating that as a request to clear them.
         if (requestedIds.Count == 0) return false;

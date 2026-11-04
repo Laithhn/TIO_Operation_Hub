@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useEnum, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState } from '../hooks';
+import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -22,7 +22,7 @@ export function CommitmentList() {
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const types = useEnum('CommitmentType');
-  const canEng = usePermission('Commitments', 'Create');
+  const canEng = useRight('Commitments', 'Create');
   const exportParams = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
   return (
@@ -62,7 +62,7 @@ export function CommitmentForm() {
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const types = useEnum('CommitmentType');
-  const canLead = usePermission('Commitments', 'Coordinate');
+  const canLead = useRight('Commitments', 'Coordinate');
   const f = useForm({ scope: sp.get('clientId') ? 'Client' : sp.get('teamId') ? 'Internal' : 'Client', clientId: sp.get('clientId') ?? '', responsibleTeamId: sp.get('teamId') ?? '', description: '', type: '', ownerUserId: me.id as number | null,
     dueLocal: inDays(7, 17), timeZone: me.timeZone, nextReviewAt: inDays(3), caseId: sp.get('caseId') ?? '', projectId: '' });
   useLeaveGuard(f.dirty && !f.busy);

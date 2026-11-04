@@ -21,8 +21,8 @@ public sealed class DataScopeTests
     private static UserContext Limited(bool active = true)
     {
         var context = new UserContext();
-        context.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", active, ["Operator"], Right.None,
-            PermissionHierarchy.WithAncestors(["Cases:View"]), Grant.None, false, [10], [20], [30], [40], false, [50]));
+        context.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", active, ["Operator"],
+            Fixture.Rights(["Cases:View"]), false, [10], [20], [30], [40], false, [50]));
         return context;
     }
 

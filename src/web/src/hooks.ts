@@ -1,20 +1,14 @@
-import { canViewTab, hasPermission } from './permissions';
+import { canViewTab, hasRight } from './rights';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useBlocker, useSearchParams } from 'react-router';
 import { ApiError, get } from './api';
 import { label } from './format';
 
-// A31: configurable roles with rights. 'Engineer' / 'Manager' remain shorthand for the Edit and Manage rights.
-export type Role = 'Engineer' | 'Manager';
-export type RightKey = 'Edit' | 'Manage' | 'Archive' | 'Delete' | 'Export' | 'TechnicalDetail' | 'Audit' | 'Administer';
-const SHORTHAND: Record<Role, RightKey> = { Engineer: 'Edit', Manager: 'Manage' };
-
 export type Me = {
-  id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: RightKey[]; permissions: string[]; businessRole: Role | null; isAdministrator: boolean;
-  /** Permissions allowed only for some clients, projects or teams. They open the page; the record's own permission flags decide its actions. */
-  scopedAllowPermissions?: string[];
-  grants: { export: boolean; technicalDetail: boolean; audit: boolean };
+  id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: string[];
+  /** Rights allowed only for some clients, projects or teams. They open the page; the record's own flags decide its actions. */
+  scopedAllowRights?: string[];
   scope: { allClients: boolean; clientCount: number; projectCount: number; allInternal: boolean; internalTeamCount: number; hasBusinessAccess: boolean };
   app: { version: string; environmentName: string; supportContact: string; devSignIn: boolean; authMode: string; mustChangePassword: boolean; map: { tileUrl: string; attribution: string } | null };
 };
@@ -38,16 +32,9 @@ export function useReference(enabled = true) {
   return useQuery({ queryKey: ['reference'], queryFn: () => get<Reference>('/reference'), staleTime: 60_000, enabled });
 }
 
-/** UI hint only; the server checks every request again. */
-export function useCan(right: Role | RightKey): boolean {
-  const me = useMe().data;
-  const key = (SHORTHAND as Record<string, RightKey>)[right] ?? right;
-  return !!me?.rights?.includes(key as RightKey);
-}
-
-/** UI hint only; the API enforces the same resource/action key. */
-export function usePermission(resource: string, action: string): boolean {
-  return hasPermission(useMe().data, resource, action);
+/** UI hint only; the API enforces the same right on every request. */
+export function useRight(resource: string, action: string): boolean {
+  return hasRight(useMe().data, resource, action);
 }
 
 export function useEnum(name: string): string[] {
@@ -169,7 +156,7 @@ export function useLeaveGuard(dirty: boolean) {
   }, [blocker]);
 }
 
-/** Selected denied tabs never render; changing grants immediately reselects an allowed section. */
+/** Selected denied tabs never render; changing rights immediately reselects an allowed section. */
 export function usePermittedTab(resource: string, keys: string[], initial = keys[0]) {
   const me = useMe().data;
   const [params] = useSearchParams();

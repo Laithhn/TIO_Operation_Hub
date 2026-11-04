@@ -96,7 +96,7 @@ public static class ModuleRegistration
         api.MapBuilderEndpoints();
         api.MapAdminEndpoints();
         api.MapAccessSimulationEndpoints();
-        api.MapUserPermissionOverrideEndpoints();
+        api.MapUserRightExceptionEndpoints();
         return api;
     }
 }

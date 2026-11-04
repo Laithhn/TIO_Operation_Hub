@@ -25,7 +25,7 @@ public sealed class AccessControlSqlIntegrationTests
 
     private static Task<long> Role(Api admin, string permission) => admin.Create("/admin/roles", new
     {
-        name = Unique("sql-role"), permissions = PermissionHierarchy.WithAncestors([.. CapabilityPermissions.Dependencies(permission), permission]), rights = Array.Empty<string>()
+        name = Unique("sql-role"), rights = Fixture.Rights([.. RightsCatalog.Dependencies(permission), permission])
     });
 
     private static object UserInput(string account, long[] roles, object[] scopes) => new

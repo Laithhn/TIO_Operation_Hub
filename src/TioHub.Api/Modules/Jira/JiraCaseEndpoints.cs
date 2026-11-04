@@ -52,12 +52,12 @@ public static class JiraCaseEndpoints
 
         g.MapGet("/activity", async (long id, string? filter, bool? system, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var me = access.Me;
-            me.RequirePermission(PermissionHierarchy.Tab("Cases", "timeline", "View"));
+            me.RequireRight(RightKeys.Tab("Cases", "timeline", "View"));
             var c = await db.Cases.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Id, x.ClientId, x.ResponsibleTeamId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The case");
-            var canHistory = me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.HistoryView) && me.Has(Grant.Audit);
-            var seesRestricted = me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate);
+            var canHistory = me.HasRight(RightKeys.Cases, RightKeys.HistoryView) && me.HasRight(RightKeys.Audit);
+            var seesRestricted = me.HasRight(RightKeys.Cases, RightKeys.Coordinate);
             var rows = new List<ActivityRow>();
             if (canHistory)
             {
@@ -98,7 +98,7 @@ public static class JiraCaseEndpoints
         g.MapPost("/comments", async (long id, CommentInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Cases.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Id, x.ClientId, x.ResponsibleTeamId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The case");
-            access.RequireMaintain(ResourcePermissions.Cases, c.ClientId, c.ResponsibleTeamId);
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId);
             new Check().Text("body", input.Body, 8000, "the comment", true).ThrowIfAny();
             var row = new CaseComment { CaseId = id, AuthorId = access.Me.UserId ?? throw new ForbiddenException("Only a signed-in person can comment."), Body = input.Body!.Trim(), At = clock.GetUtcNow() };
             db.CaseComments.Add(row);

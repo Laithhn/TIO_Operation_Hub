@@ -12,7 +12,7 @@ namespace TioHub.Api.Security;
 /// </summary>
 public static class AdministratorRecovery
 {
-    public sealed record Mapping(string GroupName, Role? Role);
+    public sealed record Mapping(string GroupName, long[] RoleIds);
 
     public static async Task<bool> RemainsAsync(HubDbContext db, UserResolver resolver, DateTimeOffset now, CancellationToken ct,
         long changedUserId = 0, bool targetActive = true, IReadOnlyCollection<long>? targetRoleIds = null,
@@ -27,15 +27,8 @@ public static class AdministratorRecovery
             return await RoleConflicts.HasFormsUserAdministratorAsync(db, forms, now, ct, proposedRole);
         }
 
-        var mappings = proposedMappings ?? (await db.GroupMappings.AsNoTracking().Select(m => new { m.GroupName, m.Role }).ToListAsync(ct))
-            .Select(m => new Mapping(m.GroupName, m.Role)).ToArray();
-        var builtIn = await db.AppRoles.AsNoTracking().Where(r => r.Key != null).Select(r => new { r.Id, r.Key }).ToListAsync(ct);
-        long? RoleOf(Role? role) => role switch
-        {
-            Role.Manager => builtIn.FirstOrDefault(r => r.Key == BuiltInRoles.ManagerKey)?.Id,
-            Role.Engineer => builtIn.FirstOrDefault(r => r.Key == BuiltInRoles.EngineerKey)?.Id,
-            _ => null
-        };
+        var mappings = proposedMappings ?? (await db.GroupMappings.AsNoTracking().Include(m => m.Roles).ToListAsync(ct))
+            .Select(m => new Mapping(m.GroupName, m.Roles.Select(r => r.AppRoleId).ToArray())).ToArray();
         var conflictPolicyActive = (await RoleConflicts.LoadAsync(db, ct)).Length > 0;
         var candidates = new List<(long UserId, long[] RoleIds)>();
         void Add(long id, IEnumerable<long> direct, string? stored)
@@ -43,7 +36,7 @@ public static class AdministratorRecovery
             var known = resolver.TryGroups(stored, out var groups);
             if (!known && conflictPolicyActive) return;
             var names = groups.ToHashSet(StringComparer.OrdinalIgnoreCase);
-            var mapped = mappings.Where(m => names.Contains(m.GroupName.Trim())).Select(m => RoleOf(m.Role)).OfType<long>();
+            var mapped = mappings.Where(m => names.Contains(m.GroupName.Trim())).SelectMany(m => m.RoleIds);
             candidates.Add((id, direct.Concat(mapped).Distinct().ToArray()));
         }
         foreach (var user in users.Where(u => u.Id != changedUserId))

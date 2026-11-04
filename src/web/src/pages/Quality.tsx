@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { useState } from 'react';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, label } from '../format';
-import { usePermission, useMe, useRefresh, useUrlState } from '../hooks';
+import { useRight, useMe, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog } from '../ui/pickers';
 import { DataTable, PageHead, Pager, Panel, Person, SelectInput, StatusBadge, useToast } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -17,8 +17,8 @@ export function DataQuality() {
   const sum = useQuery({ queryKey: ['dq-sum', f.clientId], queryFn: () => get<{ rule: string; label: string; count: number }[]>(`/data-quality/summary${qs({ clientId: f.clientId })}`) });
   const clients = useClientOptions();
   const me = useMe().data!;
-  const canMaintain = usePermission('DataQuality', 'Maintain');
-  const canEng = usePermission('OtherOperations', 'Maintain') && canMaintain;
+  const canMaintain = useRight('DataQuality', 'Maintain');
+  const canEng = useRight('OtherOperations', 'Maintain') && canMaintain;
   const refresh = useRefresh();
   const toast = useToast();
   const [edit, setEdit] = useState<Item | null>(null);

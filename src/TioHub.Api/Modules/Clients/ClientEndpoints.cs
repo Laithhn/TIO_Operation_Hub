@@ -38,11 +38,11 @@ public static partial class ClientEndpoints
         g.MapGet("", async (string? q, string? country, ClientStatus? status, long? ownerId, string? structure, long? parentId, string? level, string? sort, int? page, int? pageSize,
             HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            if (!CapabilityPermissions.CanOpenClientPage(access.Me))
+            access.RequireAccess();
+            if (!RightChecks.CanOpenClientPage(access.Me))
                 throw new ForbiddenException("Viewing clients needs View access to at least one client tab.");
-            var canViewStructure = access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View) && HierarchyEndpointPermissions.CanViewTab(access.Me, ResourcePermissions.Structure, "structure");
-            var canViewEnvironments = access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View);
+            var canViewStructure = access.Me.HasRight(RightKeys.Structure, RightKeys.View) && access.Me.HasRight(RightKeys.Tab(RightKeys.Structure, "structure"));
+            var canViewEnvironments = access.Me.HasRight(RightKeys.Environments, RightKeys.View);
             var allClientScope = access.Me.IsSystem || access.Me.AllClients;
             var scopedClients = access.Me.ClientIds;
             if (!canViewStructure && (parentId is not null || level is not null || ownerId is not null))
@@ -81,10 +81,10 @@ public static partial class ClientEndpoints
                 parentName = canViewStructure && (allClientScope || scopedClients.Contains(c.Id)) && c.ParentClient != null ? c.ParentClient.Name : null,
                 subClientCount = canViewStructure && (allClientScope || scopedClients.Contains(c.Id)) ? db.Clients.Count(s => s.ParentClientId == c.Id && (allClientScope || scopedClients.Contains(s.Id))) : 0,
                 regionCount = canViewStructure && canViewEnvironments && (allClientScope || scopedClients.Contains(c.Id)) ? db.Regions.Count(r => r.ClientId == c.Id) : 0,
-                environmentCount = db.Environments.Count(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && e.ClientId == c.Id),
-                directEnvironmentCount = db.Environments.Count(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && e.ClientId == c.Id && e.RegionId == null),
-                openCases = db.Cases.Count(x => access.Me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View) && x.ClientId == c.Id && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled),
-                overdueCommitments = db.Commitments.Count(x => access.Me.HasPermission(ResourcePermissions.Commitments, ResourcePermissions.View) && x.ClientId == c.Id && x.Status == CommitmentStatus.Open && x.CurrentDueAt < now),
+                environmentCount = db.Environments.Count(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && e.ClientId == c.Id),
+                directEnvironmentCount = db.Environments.Count(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && e.ClientId == c.Id && e.RegionId == null),
+                openCases = db.Cases.Count(x => access.Me.HasRight(RightKeys.Cases, RightKeys.View) && x.ClientId == c.Id && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled),
+                overdueCommitments = db.Commitments.Count(x => access.Me.HasRight(RightKeys.Commitments, RightKeys.View) && x.ClientId == c.Id && x.Status == CommitmentStatus.Open && x.CurrentDueAt < now),
                 lastReviewedAt = canViewStructure && (allClientScope || scopedClients.Contains(c.Id)) ? c.LastReviewedAt : null
             }).ToPagedAsync(PageQuery.From(page, pageSize), ct);
             return Results.Ok(paged);
@@ -106,9 +106,9 @@ public static partial class ClientEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (!access.Me.SeesClient(id)) throw new NotFoundException("The client");
-            if (!CapabilityPermissions.CanOpenClientPage(access.Me))
+            if (!RightChecks.CanOpenClientPage(access.Me))
                 throw new ForbiddenException("Opening a client needs View access to at least one client tab.");
             var c = await db.Clients.AsNoTracking().Include(x => x.Owner).Include(x => x.CountryFollowUpOwner).Include(x => x.ParentClient)
                 .Include(x => x.Team).ThenInclude(t => t.User).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
@@ -116,7 +116,7 @@ public static partial class ClientEndpoints
             var users = await access.UserRefsAsync([c.CoordinatorUserId], ct);
             // A29: a main client lists its sub-clients with what each of them runs.
             var fullScope = access.Me.HasClient(id);
-            var canViewStructure = fullScope && access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.View) && HierarchyEndpointPermissions.CanViewTab(access.Me, ResourcePermissions.Structure, "structure");
+            var canViewStructure = fullScope && access.Me.HasRight(RightKeys.Structure, RightKeys.View) && access.Me.HasRight(RightKeys.Tab(RightKeys.Structure, "structure"));
             var allClientScope = access.Me.IsSystem || access.Me.AllClients;
             var scopedClients = access.Me.ClientIds;
             object subs = canViewStructure ? await db.Clients.AsNoTracking().Where(s => s.ParentClientId == id && (allClientScope || scopedClients.Contains(s.Id))).OrderBy(s => s.Code).Select(s => new
@@ -125,18 +125,18 @@ public static partial class ClientEndpoints
                 logoUrl = s.LogoVersion == null ? null : "/api/v1/clients/" + s.Id.ToString() + "/logo?v=" + s.LogoVersion,
                 owner = s.Owner == null ? null : new UserRef(s.Owner.Id, s.Owner.DisplayName, s.Owner.IsActive),
                 regionCount = db.Regions.Count(r => r.ClientId == s.Id),
-                environmentCount = db.Environments.Count(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && e.ClientId == s.Id),
-                serverCount = db.Assets.Count(a => access.Me.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View) && a.ClientId == s.Id && a.TypeCategory != AssetType.LogicalEndpoint),
-                products = db.Installations.Where(i => access.Me.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View) && access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) && i.ClientId == s.Id).Select(i => i.Product!.Code).Distinct().ToList(),
-                teamSize = access.Me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View) ? (int?)db.ClientTeamMembers.Count(t => t.ClientId == s.Id) : null
+                environmentCount = db.Environments.Count(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && e.ClientId == s.Id),
+                serverCount = db.Assets.Count(a => access.Me.HasRight(RightKeys.Servers, RightKeys.View) && a.ClientId == s.Id && a.TypeCategory != AssetType.LogicalEndpoint),
+                products = db.Installations.Where(i => access.Me.HasRight(RightKeys.Installations, RightKeys.View) && access.Me.HasRight(RightKeys.Products, RightKeys.View) && i.ClientId == s.Id).Select(i => i.Product!.Code).Distinct().ToList(),
+                teamSize = access.Me.HasRight(RightKeys.Teams, RightKeys.View) ? (int?)db.ClientTeamMembers.Count(t => t.ClientId == s.Id) : null
             }).ToListAsync(ct) : Array.Empty<object>();
             return ctx.WithETag(c, ClientDto(c, f, users, fullScope, subs,
-                access.Me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View), canViewStructure));
+                access.Me.HasRight(RightKeys.Teams, RightKeys.View), canViewStructure));
         });
 
         g.MapPost("", async (ClientInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Create);
+            access.Me.RequireRight(RightKeys.Structure, RightKeys.Create);
             if (!access.Me.AllClients) throw new ForbiddenException("Creating a client needs access to all clients, so the new client stays visible to you. Ask the TIO Manager.");
             var c = new Client();
             await ApplyClientAsync(c, input, db, access, isNew: true, ct);
@@ -151,7 +151,7 @@ public static partial class ClientEndpoints
         g.MapPut("/{id:long}", async (long id, ClientInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Clients.Include(x => x.Team).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireMaintain(ResourcePermissions.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await ApplyClientAsync(c, input, db, access, isNew: false, ct);
             await db.SaveChangesAsync(ct);
@@ -162,7 +162,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireArchiveFor(c.Id, resource: ResourcePermissions.Structure);
+            access.RequireArchiveFor(c.Id, resource: RightKeys.Structure);
             db.ExpectVersion(ctx, c);
             var reason = Rules.RequireReason(input.Reason, "reason", "the archive reason");
             if (await db.Clients.AnyAsync(s => s.ParentClientId == id, ct))
@@ -172,7 +172,7 @@ public static partial class ClientEndpoints
             {
                 if (string.IsNullOrWhiteSpace(input.ExceptionReason))
                     throw new ValidationException("Active records remain.", new Dictionary<string, string[]> { ["exceptionReason"] = [$"{active.Describe()} remain. A TIO Manager must record an exception reason to archive anyway."] });
-                access.Me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate);
+                access.Me.RequireRight(RightKeys.Structure, RightKeys.Coordinate);
                 reason = $"{reason} — Manager exception: {Rules.RequireReason(input.ExceptionReason, "exceptionReason", "the exception reason")}";
             }
             Rules.Archive(c, access.Me, DateTimeOffset.UtcNow, reason);
@@ -192,10 +192,10 @@ public static partial class ClientEndpoints
         // ---- regions (REG-01, REG-06) ----
         g.MapGet("/{id:long}/regions", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (!access.Me.SeesClient(id)) throw new NotFoundException("The client");
             var rows = await db.Regions.AsNoTracking().Where(r => r.ClientId == id).OrderBy(r => r.Code)
-                .Select(r => new { r.Id, r.Code, r.Name, r.Description, owner = r.Owner == null ? null : new UserRef(r.Owner.Id, r.Owner.DisplayName, r.Owner.IsActive), environmentCount = db.Environments.Count(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && e.RegionId == r.Id) })
+                .Select(r => new { r.Id, r.Code, r.Name, r.Description, owner = r.Owner == null ? null : new UserRef(r.Owner.Id, r.Owner.DisplayName, r.Owner.IsActive), environmentCount = db.Environments.Count(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && e.RegionId == r.Id) })
                 .ToListAsync(ct);
             return Results.Ok(rows);
         });
@@ -203,7 +203,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/regions", async (long id, RegionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireCreateFor(ResourcePermissions.Structure, client.Id);
+            access.RequireCreateFor(RightKeys.Structure, client.Id);
             var r = new Region { ClientId = id };
             await ApplyRegionAsync(r, input, db, access, ct);
             db.Regions.Add(r);
@@ -214,7 +214,7 @@ public static partial class ClientEndpoints
         var rg = api.MapGroup("/regions").WithTags("Regions");
         rg.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var r = await db.Regions.AsNoTracking().Include(x => x.Owner).Include(x => x.Client).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The region");
             var envs = await db.Environments.AsNoTracking().Where(e => e.RegionId == id).OrderBy(e => e.Name)
                 .Select(e => new { e.Id, e.Name, e.Type, e.Criticality, e.Condition }).ToListAsync(ct);
@@ -228,7 +228,7 @@ public static partial class ClientEndpoints
         rg.MapPut("/{id:long}", async (long id, RegionInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var r = await db.Regions.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The region");
-            access.RequireMaintain(ResourcePermissions.Structure, r.ClientId, null);
+            access.RequireMaintain(RightKeys.Structure, r.ClientId, null);
             db.ExpectVersion(ctx, r);
             await ApplyRegionAsync(r, input, db, access, ct);
             await db.SaveChangesAsync(ct);
@@ -238,7 +238,7 @@ public static partial class ClientEndpoints
         rg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var r = await db.Regions.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The region");
-            access.RequireArchiveFor(r.ClientId, resource: ResourcePermissions.Structure);
+            access.RequireArchiveFor(r.ClientId, resource: RightKeys.Structure);
             db.ExpectVersion(ctx, r);
             var reason = Rules.RequireReason(input.Reason);
             var active = await db.Environments.IgnoreQueryFilters().CountAsync(e => e.RegionId == id && e.ArchivedAt == null, ct);
@@ -254,7 +254,7 @@ public static partial class ClientEndpoints
         var pg = api.MapGroup("/projects").WithTags("Projects");
         pg.MapGet("", async (long? clientId, string? q, ProjectStatus? status, long? ownerId, string? sort, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var query = db.Projects.AsNoTracking().AsQueryable();
             if (clientId is not null) query = query.Where(p => p.ClientId == clientId);
             if (!string.IsNullOrWhiteSpace(q)) query = query.Where(p => p.Name.Contains(q) || p.Code.Contains(q));
@@ -267,19 +267,19 @@ public static partial class ClientEndpoints
             {
                 p.Id, p.Code, p.Name, p.Status, p.ClientId, clientName = p.Client!.Name, clientCode = p.Client.Code, p.ScopeSummary, p.ServiceStart, p.ServiceEnd,
                 owner = p.Owner == null ? null : new UserRef(p.Owner.Id, p.Owner.DisplayName, p.Owner.IsActive),
-                products = db.ProjectProducts.Where(pp => access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) && pp.ProjectId == p.Id).Join(db.Products, pp => pp.ProductId, pr => pr.Id, (pp, pr) => new { pr.Id, pr.Code }).ToList(),
-                contracts = db.Contracts.Count(c => access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.View) && c.ProjectId == p.Id),
-                activeContracts = db.Contracts.Count(c => access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.View) && c.ProjectId == p.Id && c.Status == ContractStatus.Active),
-                renewalAttention = db.Contracts.Count(c => access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.View) && c.ProjectId == p.Id && c.Status == ContractStatus.Active && (c.EndDate == null || c.EndDate.Value.AddDays(-(c.NoticeDays ?? 0)) <= horizon))
+                products = db.ProjectProducts.Where(pp => access.Me.HasRight(RightKeys.Products, RightKeys.View) && pp.ProjectId == p.Id).Join(db.Products, pp => pp.ProductId, pr => pr.Id, (pp, pr) => new { pr.Id, pr.Code }).ToList(),
+                contracts = db.Contracts.Count(c => access.Me.HasRight(RightKeys.Contracts, RightKeys.View) && c.ProjectId == p.Id),
+                activeContracts = db.Contracts.Count(c => access.Me.HasRight(RightKeys.Contracts, RightKeys.View) && c.ProjectId == p.Id && c.Status == ContractStatus.Active),
+                renewalAttention = db.Contracts.Count(c => access.Me.HasRight(RightKeys.Contracts, RightKeys.View) && c.ProjectId == p.Id && c.Status == ContractStatus.Active && (c.EndDate == null || c.EndDate.Value.AddDays(-(c.NoticeDays ?? 0)) <= horizon))
             }).ToPagedAsync(PageQuery.From(page, pageSize), ct));
         });
         pg.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var p = await db.Projects.AsNoTracking().Include(x => x.Owner).Include(x => x.Client).Include(x => x.Products).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The project");
             var now = DateTimeOffset.UtcNow;
-            var productIds = access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) ? p.Products.Select(x => x.ProductId).ToList() : [];
-            var contracts = await db.Contracts.AsNoTracking().Where(c => access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.View) && c.ProjectId == id).OrderByDescending(c => c.Status == ContractStatus.Active).ThenByDescending(c => c.StartDate)
+            var productIds = access.Me.HasRight(RightKeys.Products, RightKeys.View) ? p.Products.Select(x => x.ProductId).ToList() : [];
+            var contracts = await db.Contracts.AsNoTracking().Where(c => access.Me.HasRight(RightKeys.Contracts, RightKeys.View) && c.ProjectId == id).OrderByDescending(c => c.Status == ContractStatus.Active).ThenByDescending(c => c.StartDate)
                 .Select(c => new
                 {
                     c.Id, c.Ref, c.Title, c.ContractReference, c.Type, c.Status, c.StartDate, c.EndDate, c.NoticeDays, c.SupportModel, c.OnSiteEngineersRequired,
@@ -291,8 +291,8 @@ public static partial class ClientEndpoints
                 p.Id, p.Code, p.Name, p.Status, p.ClientId, clientName = p.Client!.Name, clientCode = p.Client.Code, p.ScopeSummary, p.ServiceStart, p.ServiceEnd,
                 owner = p.Owner == null ? null : new UserRef(p.Owner.Id, p.Owner.DisplayName, p.Owner.IsActive),
                 productIds,
-                products = await db.Products.AsNoTracking().Where(x => access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) && productIds.Contains(x.Id)).OrderBy(x => x.Code).Select(x => new { x.Id, x.Code, x.Name }).ToListAsync(ct),
-                environments = await db.Environments.AsNoTracking().Where(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && e.ProjectId == id)
+                products = await db.Products.AsNoTracking().Where(x => access.Me.HasRight(RightKeys.Products, RightKeys.View) && productIds.Contains(x.Id)).OrderBy(x => x.Code).Select(x => new { x.Id, x.Code, x.Name }).ToListAsync(ct),
+                environments = await db.Environments.AsNoTracking().Where(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && e.ProjectId == id)
                     .Select(e => new { e.Id, e.Name, e.Type, region = e.Region == null ? null : e.Region.Code }).ToListAsync(ct),
                 contracts = contracts.Select(c =>
                 {
@@ -307,9 +307,9 @@ public static partial class ClientEndpoints
                 p.LastReviewedAt, p.CreatedAt, p.UpdatedAt,
                 permissions = new
                 {
-                    canEdit = access.Me.HasClient(p.ClientId) && access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.Maintain),
-                    canAddContract = access.Me.HasClient(p.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.Create),
-                    canArchive = access.Me.HasPermission(ResourcePermissions.Projects, ResourcePermissions.ArchiveRestore) && access.Me.HasClient(p.ClientId)
+                    canEdit = access.Me.HasClient(p.ClientId) && access.Me.HasRight(RightKeys.Projects, RightKeys.Maintain),
+                    canAddContract = access.Me.HasClient(p.ClientId) && access.Me.HasRight(RightKeys.Contracts, RightKeys.Create),
+                    canArchive = access.Me.HasRight(RightKeys.Projects, RightKeys.ArchiveRestore) && access.Me.HasClient(p.ClientId)
                 }
             });
         });
@@ -317,7 +317,7 @@ public static partial class ClientEndpoints
         {
             if (input.ClientId is null) throw new ValidationException("clientId", "Select the client.");
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == input.ClientId, ct) ?? throw new NotFoundException("The client");
-            access.RequireCreateFor(ResourcePermissions.Projects, client.Id);
+            access.RequireCreateFor(RightKeys.Projects, client.Id);
             var p = new Project { ClientId = client.Id };
             await ApplyProjectAsync(p, input, db, access, ct);
             db.Projects.Add(p);
@@ -327,7 +327,7 @@ public static partial class ClientEndpoints
         pg.MapPut("/{id:long}", async (long id, ProjectInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var p = await db.Projects.Include(x => x.Products).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The project");
-            access.RequireMaintain(ResourcePermissions.Projects, p.ClientId, null, p.OwnerUserId);
+            access.RequireMaintain(RightKeys.Projects, p.ClientId, null, p.OwnerUserId);
             db.ExpectVersion(ctx, p);
             await ApplyProjectAsync(p, input, db, access, ct);
             await db.SaveChangesAsync(ct);
@@ -336,7 +336,7 @@ public static partial class ClientEndpoints
         pg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var p = await db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The project");
-            access.RequireArchiveFor(p.ClientId, resource: ResourcePermissions.Projects);
+            access.RequireArchiveFor(p.ClientId, resource: RightKeys.Projects);
             db.ExpectVersion(ctx, p);
             if (await db.Contracts.AnyAsync(c => c.ProjectId == id && c.Status == ContractStatus.Active, ct))
                 throw new ValidationException("reason", "This project has an Active contract. Record the contract as Ended or Terminated before archiving the project.");
@@ -351,7 +351,7 @@ public static partial class ClientEndpoints
         // ---- contacts ----
         g.MapGet("/{id:long}/contacts", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (!access.Me.SeesClient(id)) throw new NotFoundException("The client");
             return Results.Ok(await db.Contacts.AsNoTracking().Where(c => c.ClientId == id).OrderBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name, c.Role, c.Organization, c.Email, c.Phone, c.AuthorizedSupport, c.ProjectId, c.Responsibility, c.LastReviewedAt, version = Convert.ToBase64String(c.RowVersion) })
@@ -360,7 +360,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/contacts", async (long id, ContactInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireEngineerFor(client.Id, resource: ResourcePermissions.Other);
+            access.RequireEngineerFor(client.Id, resource: RightKeys.Other);
             var c = new Contact { ClientId = id };
             await ApplyContactAsync(c, input, db, ct);
             db.Contacts.Add(c);
@@ -372,7 +372,7 @@ public static partial class ClientEndpoints
         {
             var c = await db.Contacts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contact");
             var client = await db.Clients.FirstAsync(x => x.Id == c.ClientId, ct);
-            access.RequireMaintain(ResourcePermissions.Other, c.ClientId, null, client.OwnerUserId, client.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Other, c.ClientId, null, client.OwnerUserId, client.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await ApplyContactAsync(c, input, db, ct);
             await db.SaveChangesAsync(ct);
@@ -382,7 +382,7 @@ public static partial class ClientEndpoints
         {
             var c = await db.Contacts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contact");
             var client = await db.Clients.FirstAsync(x => x.Id == c.ClientId, ct);
-            access.RequireArchiveFor(c.ClientId, resource: ResourcePermissions.Other);
+            access.RequireArchiveFor(c.ClientId, resource: RightKeys.Other);
             db.ExpectVersion(ctx, c);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(c, access.Me, DateTimeOffset.UtcNow, reason);
@@ -394,7 +394,7 @@ public static partial class ClientEndpoints
         // ---- responsibility boundaries ----
         g.MapGet("/{id:long}/boundaries", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (!access.Me.SeesClient(id)) throw new NotFoundException("The client");
             return Results.Ok(await db.Boundaries.AsNoTracking().Where(b => b.ClientId == id).OrderBy(b => b.Area)
                 .Select(b => new
@@ -410,7 +410,7 @@ public static partial class ClientEndpoints
         g.MapPost("/{id:long}/boundaries", async (long id, BoundaryInput input, HubDbContext db, HubAccess access, LookupService lookups, CancellationToken ct) =>
         {
             var client = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            access.RequireEngineerFor(client.Id, resource: ResourcePermissions.Other);
+            access.RequireEngineerFor(client.Id, resource: RightKeys.Other);
             var b = new ResponsibilityBoundary { ClientId = id };
             await ApplyBoundaryAsync(b, input, db, access, lookups, ct);
             db.Boundaries.Add(b);
@@ -431,7 +431,7 @@ public static partial class ClientEndpoints
         bg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var b = await db.Boundaries.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The responsibility boundary");
-            access.RequireArchiveFor(b.ClientId, resource: ResourcePermissions.Other);
+            access.RequireArchiveFor(b.ClientId, resource: RightKeys.Other);
             db.ExpectVersion(ctx, b);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(b, access.Me, DateTimeOffset.UtcNow, reason);
@@ -443,7 +443,7 @@ public static partial class ClientEndpoints
 
     public static void RequireDuplicateLookupAccess(UserContext me)
     {
-        me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Create);
+        me.RequireRight(RightKeys.Structure, RightKeys.Create);
         if (!me.IsSystem && !me.AllClients)
             throw new ForbiddenException("Checking clients for onboarding requires all client scope.");
     }
@@ -513,7 +513,7 @@ public static partial class ClientEndpoints
         var status = i.Status ?? (isNew ? ClientStatus.Opportunity : c.Status);
         if (status == ClientStatus.Archived) check.Add("status", "Use Archive to archive a client.");
         if (i.OwnerUserId is null) check.Add("ownerUserId", "Select the project manager (the team member managing this client).");
-        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Structure);
+        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: RightKeys.Structure);
         // A new client has no scope grants yet; the project manager must at least have active access. Later changes also check scope.
         if (isNew)
         {
@@ -587,7 +587,7 @@ public static partial class ClientEndpoints
              .Text("name", i.Name, 150, "the region name", required: true)
              .Text("description", i.Description, 2000, "Description")
              .When(i.OwnerUserId is null, "ownerUserId", "Select the accountable region owner.");
-        access.CheckOwnerChange(check, "ownerUserId", r.Id == 0 ? i.OwnerUserId : r.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Structure);
+        access.CheckOwnerChange(check, "ownerUserId", r.Id == 0 ? i.OwnerUserId : r.OwnerUserId, i.OwnerUserId, resource: RightKeys.Structure);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, r.ClientId, null, "the owner", ct);
         check.ThrowIfAny();
         if (code != r.Code && await db.Regions.IgnoreQueryFilters().AnyAsync(x => x.ClientId == r.ClientId && x.Code == code && x.Id != r.Id, ct))
@@ -610,10 +610,10 @@ public static partial class ClientEndpoints
              .When(i.Status == ProjectStatus.Archived, "status", "Use Archive to archive a project.")
              .When(i.ServiceStart is not null && i.ServiceEnd is not null && i.ServiceEnd < i.ServiceStart, "serviceEnd", "The service end is before the start.");
         if (i.ClientId is not null && p.Id != 0 && i.ClientId != p.ClientId) check.Add("clientId", "A project cannot move to another client.");
-        access.CheckOwnerChange(check, "ownerUserId", p.Id == 0 ? i.OwnerUserId : p.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Projects);
+        access.CheckOwnerChange(check, "ownerUserId", p.Id == 0 ? i.OwnerUserId : p.OwnerUserId, i.OwnerUserId, resource: RightKeys.Projects);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, p.ClientId, null, "the owner", ct);
         var productIds = (i.ProductIds ?? []).Distinct().ToList();
-        var applyProducts = RelatedRecordAccess.CanApply(access.Me, ResourcePermissions.Products, productIds);
+        var applyProducts = RelatedRecordAccess.CanApply(access.Me, RightKeys.Products, productIds);
         if (applyProducts && productIds.Count > 0 && await db.Products.CountAsync(x => productIds.Contains(x.Id), ct) != productIds.Count) check.Add("productIds", "Select products from the catalogue.");
         check.ThrowIfAny();
         if (code != p.Code && await db.Projects.IgnoreQueryFilters().AnyAsync(x => x.Code == code && x.Id != p.Id, ct))

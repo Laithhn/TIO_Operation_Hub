@@ -28,17 +28,16 @@ public static class ScheduledExportAccess
         RoleConflicts.Pair[] pairs;
         try { pairs = await RoleConflicts.LoadAsync(db, ct); }
         catch (ForbiddenException) { return null; }
-        var mappedTypes = await db.GroupMappings.AsNoTracking().Where(m => m.Role != null).Select(m => m.Role).Distinct().ToArrayAsync(ct);
-        var mappedKeys = mappedTypes.Select(role => role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).Distinct().ToArray();
+        var mappedIds = await db.GroupMappingRoles.AsNoTracking().Select(m => m.AppRoleId).Distinct().ToArrayAsync(ct);
         var directIds = user.Roles.Select(r => r.AppRoleId).ToArray();
-        var roles = await db.AppRoles.AsNoTracking().Where(r => r.IsActive && (directIds.Contains(r.Id) || (r.Key != null && mappedKeys.Contains(r.Key)))).ToListAsync(ct);
+        var roles = await db.AppRoles.AsNoTracking().Include(r => r.Rights).Where(r => r.IsActive && (directIds.Contains(r.Id) || mappedIds.Contains(r.Id))).ToListAsync(ct);
         var direct = roles.Where(r => directIds.Contains(r.Id)).ToArray();
-        var mapped = roles.Where(r => r.Key != null && mappedKeys.Contains(r.Key)).ToArray();
+        var mapped = roles.Where(r => mappedIds.Contains(r.Id)).ToArray();
         var now = clock.GetUtcNow();
-        var hasAllow = await db.UserPermissionOverrides.AsNoTracking().AnyAsync(o => o.UserId == userId && o.Effect == "Allow" && (o.ExpiresAt == null || o.ExpiresAt > now), ct);
+        var hasAllow = await db.UserRightExceptions.AsNoTracking().AnyAsync(o => o.UserId == userId && o.Effect == "Allow" && (o.ExpiresAt == null || o.ExpiresAt > now), ct);
         if (CouldRestrict(direct.Select(r => r.Id), mapped.Select(r => r.Id), pairs,
-            direct.Any(r => r.IsLocked || r.Rights.HasFlag(Right.Administer)),
-            mapped.Any(r => r.IsLocked || r.Rights.HasFlag(Right.Administer)), hasAllow)) return null;
+            RightExceptions.MakesAdministrator(direct.SelectMany(BuiltInRoles.KeysOf)),
+            RightExceptions.MakesAdministrator(mapped.SelectMany(BuiltInRoles.KeysOf)), hasAllow)) return null;
         var result = await AccessCalculator.ComputeAsync(db, user, [], ct, now);
         var after = await db.AuthorizationVersions.AsNoTracking().Where(v => v.Id == 1).Select(v => v.Version).SingleAsync(ct);
         return version == after ? result : null;

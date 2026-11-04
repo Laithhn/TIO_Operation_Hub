@@ -32,9 +32,9 @@ public static class RoleConflicts
     }
 
     /// <summary>Recovery must be able to read and change this policy after all direct denies and prerequisites are applied.</summary>
-    public static bool HasRecoveryPermissions(IEnumerable<UserPermissionOverride> overrides, ISet<string> active, DateTimeOffset now)
+    public static bool HasRecoveryRights(IEnumerable<UserRightException> exceptions, ISet<string> active, DateTimeOffset now)
     {
-        var effective = PermissionOverrides.ResolveForRights(ResourcePermissions.All, overrides, BuiltInRoles.All, now, active)
+        var effective = RightExceptions.ResolveForRoles(RightsCatalog.AllKeys, exceptions, now, active)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
         return effective.Contains("AdminRoles:View") && effective.Contains("AdminRoles:Maintain");
     }
@@ -52,10 +52,10 @@ public static class RoleConflicts
             ids = credentials.Where(c => IsUsableFormsCredential(c.PasswordHash)).Select(c => c.UserId).ToArray();
             if (ids.Length == 0) return false;
         }
-        var active = (await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct))
+        var active = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var entries = await db.UserPermissionOverrides.AsNoTracking().Where(o => ids.Contains(o.UserId)).ToListAsync(ct);
-        return ids.Any(id => HasRecoveryPermissions(entries.Where(o => o.UserId == id), active, now));
+        var entries = await db.UserRightExceptions.AsNoTracking().Where(o => ids.Contains(o.UserId)).ToListAsync(ct);
+        return ids.Any(id => HasRecoveryRights(entries.Where(o => o.UserId == id), active, now));
     }
 
     // An account with no issued password is not a recovery path in Forms mode. A structurally
@@ -88,28 +88,25 @@ public static class RoleConflicts
             usableIds = credentials.Where(c => IsUsableFormsCredential(c.PasswordHash)).Select(c => c.UserId).ToHashSet();
         }
         var roleIds = candidateList.SelectMany(c => c.RoleIds).Distinct().ToArray();
-        var roles = await db.AppRoles.AsNoTracking().Include(r => r.Permissions).Where(r => r.IsActive && roleIds.Contains(r.Id)).ToListAsync(ct);
+        var roles = await db.AppRoles.AsNoTracking().Include(r => r.Rights).Where(r => r.IsActive && roleIds.Contains(r.Id)).ToListAsync(ct);
         if (proposedRole is not null)
         {
             roles.RemoveAll(r => r.Id == proposedRole.Id);
             if (proposedRole.IsActive && roleIds.Contains(proposedRole.Id)) roles.Add(proposedRole);
         }
-        var entries = await db.UserPermissionOverrides.AsNoTracking().Where(o => ids.Contains(o.UserId)).ToListAsync(ct);
-        var active = (await db.PermissionDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var entries = await db.UserRightExceptions.AsNoTracking().Where(o => ids.Contains(o.UserId)).ToListAsync(ct);
+        var active = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var pairs = await LoadAsync(db, ct);
         return candidateList.Any(c => (!requireFormsCredential || usableIds.Contains(c.UserId))
             && !Conflicts(roles.Where(r => c.RoleIds.Contains(r.Id)).Select(r => r.Id), pairs)
-            && HasUserAdministrationPermissions(roles.Where(r => c.RoleIds.Contains(r.Id)), entries.Where(o => o.UserId == c.UserId), active, now));
+            && HasUserAdministrationRights(roles.Where(r => c.RoleIds.Contains(r.Id)), entries.Where(o => o.UserId == c.UserId), active, now));
     }
 
-    public static bool HasUserAdministrationPermissions(IEnumerable<AppRole> roles, IEnumerable<UserPermissionOverride> overrides,
+    public static bool HasUserAdministrationRights(IEnumerable<AppRole> roles, IEnumerable<UserRightException> exceptions,
         ISet<string> active, DateTimeOffset now)
     {
-        var held = roles.Where(r => r.IsActive).ToArray();
-        var rights = held.Aggregate(Right.None, (current, role) => current | (role.IsLocked ? BuiltInRoles.All : role.Rights));
-        if (!rights.HasFlag(Right.Administer)) return false;
-        var keys = held.SelectMany(role => role.IsLocked ? ResourcePermissions.All : role.Permissions.Select(p => ResourcePermissions.KeyOf(p.Resource, p.Action)));
-        var effective = PermissionOverrides.ResolveForRights(keys, overrides, rights, now, active).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var keys = roles.Where(r => r.IsActive).SelectMany(BuiltInRoles.KeysOf);
+        var effective = RightExceptions.ResolveForRoles(keys, exceptions, now, active).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return effective.Contains("AdminUsers:View") && effective.Contains("AdminUsers:Maintain");
     }
 

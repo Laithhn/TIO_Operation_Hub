@@ -36,9 +36,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public bool AllInternal => user.AllInternal;
     public List<long> TeamIds => user.TeamIds;
     public long Me => user.UserId ?? -1;
-    public bool CoordinatesTeams => user.HasPermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+    public bool CoordinatesTeams => user.HasRight(RightKeys.Teams, RightKeys.Coordinate);
     public bool AnyInternal => user.AllInternal || user.TeamIds.Count > 0;
-    public bool Biz => user.HasBusinessRole;
+    public bool Biz => user.HasAccess;
 
     public UserContext CurrentUser => user;
 
@@ -49,12 +49,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<UserCredential> UserCredentials => Set<UserCredential>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AppRole> AppRoles => Set<AppRole>();
-    public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
-    public DbSet<UserPermissionOverride> UserPermissionOverrides => Set<UserPermissionOverride>();
-    public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
+    public DbSet<RoleRight> RoleRights => Set<RoleRight>();
+    public DbSet<UserRightException> UserRightExceptions => Set<UserRightException>();
+    public DbSet<RightDefinition> RightDefinitions => Set<RightDefinition>();
     public DbSet<AuthorizationVersion> AuthorizationVersions => Set<AuthorizationVersion>();
     public DbSet<UserScope> UserScopes => Set<UserScope>();
     public DbSet<GroupMapping> GroupMappings => Set<GroupMapping>();
+    public DbSet<GroupMappingRole> GroupMappingRoles => Set<GroupMappingRole>();
     public DbSet<GroupMappingScope> GroupMappingScopes => Set<GroupMappingScope>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Organization> Organizations => Set<Organization>();
@@ -142,7 +143,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     protected override void ConfigureConventions(ModelConfigurationBuilder b)
     {
-        foreach (var enumType in typeof(Role).Assembly.GetTypes().Where(t => t.IsEnum && t.Namespace?.StartsWith("TioHub.Api") == true && t != typeof(Grant)))
+        foreach (var enumType in typeof(HubDbContext).Assembly.GetTypes().Where(t => t.IsEnum && t.Namespace?.StartsWith("TioHub.Api") == true))
             b.Properties(enumType).HaveConversion<string>().HaveMaxLength(40);
         b.Properties<string>().HaveMaxLength(400);
         b.Properties<decimal>().HavePrecision(12, 2);
@@ -167,7 +168,6 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Email).HasMaxLength(254);
             e.Property(x => x.WorkingTimeZone).HasMaxLength(64);
             e.Property(x => x.DeactivationReason).HasMaxLength(1000);
-            e.Property(x => x.Grants).HasConversion<int>();
             e.HasMany(x => x.Roles).WithOne().HasForeignKey(x => x.UserId);
             e.HasMany(x => x.Scopes).WithOne().HasForeignKey(x => x.UserId);
         });
@@ -186,8 +186,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.IsActive).HasDefaultValue(true);
             e.Property(x => x.Key).HasMaxLength(20);
             e.HasIndex(x => x.Key).IsUnique().HasFilter("[Key] IS NOT NULL");
-            e.Property(x => x.Rights).HasConversion<int>();
-            e.HasMany(x => x.Permissions).WithOne(x => x.AppRole).HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Cascade);
+            e.HasMany(x => x.Rights).WithOne(x => x.AppRole).HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Cascade);
             e.Ignore(x => x.IsLocked);
         });
         m.Entity<AuthorizationVersion>(e =>
@@ -197,54 +196,49 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Id).ValueGeneratedNever();
             e.HasData(new AuthorizationVersion { Id = 1, Version = 0 });
         });
-        m.Entity<RolePermission>(e =>
+        m.Entity<RoleRight>(e =>
         {
-            e.ToTable("AppRolePermission", "iam");
-            e.HasKey(x => new { x.AppRoleId, x.Resource, x.Action });
-            e.Property(x => x.Resource).HasMaxLength(40);
-            e.Property(x => x.Action).HasMaxLength(40);
+            e.ToTable("RoleRight", "iam");
+            e.HasKey(x => new { x.AppRoleId, x.RightKey });
+            e.Property(x => x.RightKey).HasMaxLength(120);
+            e.HasOne<RightDefinition>().WithMany().HasForeignKey(x => x.RightKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
         });
-        m.Entity<UserPermissionOverride>(e =>
+        m.Entity<UserRightException>(e =>
         {
-            e.ToTable("UserPermissionOverride", "iam", t =>
+            e.ToTable("UserRightException", "iam", t =>
             {
-                t.HasCheckConstraint("CK_UserPermissionOverride_Effect", "[Effect] IN ('Allow','Deny')");
-                t.HasCheckConstraint("CK_UserPermissionOverride_SingleScope",
+                t.HasCheckConstraint("CK_UserRightException_Effect", "[Effect] IN ('Allow','Deny')");
+                t.HasCheckConstraint("CK_UserRightException_SingleScope",
                     "(CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1");
             });
             e.HasKey(x => x.Id);
-            e.Property(x => x.PermissionKey).HasMaxLength(120);
+            e.Property(x => x.RightKey).HasMaxLength(120);
             e.Property(x => x.Effect).HasMaxLength(5);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
-            e.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.PermissionKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<RightDefinition>().WithMany().HasForeignKey(x => x.RightKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.ExpiresAt);
-            // One exception per user, permission and scope; different scopes can carry different effects.
-            e.HasIndex(x => new { x.UserId, x.PermissionKey }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Global").HasFilter("[ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL");
-            e.HasIndex(x => new { x.UserId, x.PermissionKey, x.ClientId }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Client").HasFilter("[ClientId] IS NOT NULL");
-            e.HasIndex(x => new { x.UserId, x.PermissionKey, x.ProjectId }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Project").HasFilter("[ProjectId] IS NOT NULL");
-            e.HasIndex(x => new { x.UserId, x.PermissionKey, x.TeamId }).IsUnique().HasDatabaseName("UX_UserPermissionOverride_Team").HasFilter("[TeamId] IS NOT NULL");
+            // One exception per user, right and scope; different scopes can carry different effects.
+            e.HasIndex(x => new { x.UserId, x.RightKey }).IsUnique().HasDatabaseName("UX_UserRightException_Global").HasFilter("[ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL");
+            e.HasIndex(x => new { x.UserId, x.RightKey, x.ClientId }).IsUnique().HasDatabaseName("UX_UserRightException_Client").HasFilter("[ClientId] IS NOT NULL");
+            e.HasIndex(x => new { x.UserId, x.RightKey, x.ProjectId }).IsUnique().HasDatabaseName("UX_UserRightException_Project").HasFilter("[ProjectId] IS NOT NULL");
+            e.HasIndex(x => new { x.UserId, x.RightKey, x.TeamId }).IsUnique().HasDatabaseName("UX_UserRightException_Team").HasFilter("[TeamId] IS NOT NULL");
         });
-        m.Entity<PermissionDefinition>(e =>
+        m.Entity<RightDefinition>(e =>
         {
-            e.ToTable("PermissionDefinition", "iam", t => t.HasCheckConstraint("CK_PermissionDefinition_NodeType", "[NodeType] IN ('Module','Submodule','Tab','Action')"));
-            e.Property(x => x.NodeType).HasMaxLength(20);
+            e.ToTable("RightDefinition", "iam", t => t.HasCheckConstraint("CK_RightDefinition_Kind", "[Kind] IN ('Access','Action')"));
             e.HasAlternateKey(x => x.Key);
-            e.HasOne<PermissionDefinition>().WithMany().HasForeignKey(x => x.ParentKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.NoAction);
-            e.HasIndex(x => new { x.ParentKey, x.DisplayOrder });
             e.Property(x => x.Key).HasMaxLength(120);
-            e.Property(x => x.DisplayName).HasMaxLength(100);
+            e.Property(x => x.Label).HasMaxLength(100);
             e.Property(x => x.Description).HasMaxLength(500);
             e.Property(x => x.Module).HasMaxLength(60);
-            e.Property(x => x.ResourceType).HasMaxLength(60);
-            e.Property(x => x.ParentKey).HasMaxLength(120);
-            e.Property(x => x.Action).HasMaxLength(40);
+            e.Property(x => x.Feature).HasMaxLength(60);
+            e.Property(x => x.Kind).HasMaxLength(20);
             e.Property(x => x.RiskLevel).HasMaxLength(20);
             e.HasIndex(x => x.Key).IsUnique();
-            e.HasIndex(x => new { x.Module, x.ResourceType, x.Action });
-            e.HasIndex(x => x.ParentKey);
+            e.HasIndex(x => new { x.Module, x.Feature });
         });
         // Forms sign-in only: one credential per user, never audited automatically and never projected by any endpoint.
         m.Entity<UserCredential>(e =>
@@ -268,8 +262,14 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.ToTable("GroupMapping", "iam");
             e.Property(x => x.GroupName).HasMaxLength(256);
             e.HasIndex(x => x.GroupName).IsUnique();
-            e.Property(x => x.Grants).HasConversion<int>();
+            e.HasMany(x => x.Roles).WithOne().HasForeignKey(x => x.GroupMappingId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.Scopes).WithOne().HasForeignKey(x => x.GroupMappingId);
+        });
+        m.Entity<GroupMappingRole>(e =>
+        {
+            e.ToTable("GroupMappingRole", "iam");
+            e.HasKey(x => new { x.GroupMappingId, x.AppRoleId });
+            e.HasOne(x => x.AppRole).WithMany().HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Restrict);
         });
         m.Entity<GroupMappingScope>(e =>
         {
@@ -1442,7 +1442,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static readonly HashSet<Type> NotAudited =
         [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Jira.JiraCredential), typeof(Modules.Jira.JiraCaseMapping), typeof(Modules.Jira.JiraComment), typeof(Modules.Jira.JiraActivity), typeof(Modules.Jira.JiraSpaceSyncState), typeof(Modules.Jira.JiraSyncRun), typeof(Modules.Jira.JiraDiscoveredSpace), typeof(Modules.Jira.CaseComment), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
-    private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(RolePermission), typeof(UserPermissionOverride), typeof(PermissionDefinition), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
+    private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(RoleRight), typeof(UserRightException), typeof(RightDefinition), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingRole), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
     // Scope snapshots also contain the client and environment IDs derived from assigned projects.
     // Changes to either relationship must invalidate cached snapshots across application instances.
     private static readonly HashSet<Type> ScopeDependencies = [typeof(Project), typeof(ClientEnvironment)];
@@ -1637,11 +1637,11 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static string ActionFor(PendingAudit p)
     {
-        if (p.State == EntityState.Added) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope or UserPermissionOverride ? "AccessGranted" : "Create";
-        if (p.State == EntityState.Deleted) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope or UserPermissionOverride ? "AccessRevoked" : "Remove";
+        if (p.State == EntityState.Added) return p.Entry.Entity is UserRole or UserScope or GroupMappingRole or GroupMappingScope or UserRightException ? "AccessGranted" : "Create";
+        if (p.State == EntityState.Deleted) return p.Entry.Entity is UserRole or UserScope or GroupMappingRole or GroupMappingScope or UserRightException ? "AccessRevoked" : "Remove";
         var c = p.Changes!;
         if (c.TryGetValue(nameof(IArchivable.ArchivedAt), out var a)) return a[1] is null ? "Restore" : "Archive";
-        if (p.Entry.Entity is User && (c.ContainsKey(nameof(User.IsActive)) || c.ContainsKey(nameof(User.Grants)) || c.ContainsKey(nameof(User.AllClients)) || c.ContainsKey(nameof(User.AllInternal)))) return "AccessChange";
+        if (p.Entry.Entity is User && (c.ContainsKey(nameof(User.IsActive)) || c.ContainsKey(nameof(User.AllClients)) || c.ContainsKey(nameof(User.AllInternal)))) return "AccessChange";
         if (c.ContainsKey("OwnerUserId")) return "OwnerChange";
         if (c.ContainsKey("Status")) return "StatusChange";
         return "Update";
@@ -1649,7 +1649,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static long? KeyOf(EntityEntry e)
     {
-        if (e.Entity is UserPermissionOverride exception) return exception.UserId;
+        if (e.Entity is UserRightException exception) return exception.UserId;
         var key = e.Metadata.FindPrimaryKey();
         if (key is null) return null;
         // Link rows: use the first key part (the parent) so their history appears with the parent.

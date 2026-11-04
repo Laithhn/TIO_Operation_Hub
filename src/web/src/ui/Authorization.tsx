@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { useMe } from '../hooks';
-import { allowsPermissionCheck } from './authorizationDecision';
+import { allowsRightCheck } from './authorizationDecision';
 
-type PermissionCheck = {
-  /** Stable A63 resource/action key, for example `Cases:Create`. */
-  permission?: string;
+type RightCheck = {
+  /** Stable right key, for example `Cases:Create`. */
+  right?: string;
   /** Require every key when supplied. */
   allOf?: readonly string[];
   /** Require at least one key when supplied. */
@@ -17,28 +17,28 @@ type PermissionCheck = {
 };
 
 /**
- * Presentation guard for permission-aware controls. This is never an API security boundary:
+ * Presentation guard for right-aware controls. This is never an API security boundary:
  * every protected request must still be authorized by the server.
  */
-export function Can({ permission, allOf, anyOf, loading = null, denied = null, children }: PermissionCheck) {
+export function Can({ right, allOf, anyOf, loading = null, denied = null, children }: RightCheck) {
   const me = useMe();
   if (me.isLoading) return <>{loading}</>;
-  const allowed = !me.error && allowsPermissionCheck(me.data, { permission, allOf, anyOf });
+  const allowed = !me.error && allowsRightCheck(me.data, { right, allOf, anyOf });
   return <>{allowed ? children : denied}</>;
 }
 
 /** Use for imperative presentation decisions; never to authorize an API operation. */
-export function usePermission(permission: string): boolean {
+export function useRightKey(right: string): boolean {
   const me = useMe();
-  return !me.isLoading && !me.error && allowsPermissionCheck(me.data, { permission });
+  return !me.isLoading && !me.error && allowsRightCheck(me.data, { right });
 }
 
-export function useAllPermissions(permissions: readonly string[]): boolean {
+export function useAllRights(rights: readonly string[]): boolean {
   const me = useMe();
-  return !me.isLoading && !me.error && allowsPermissionCheck(me.data, { allOf: permissions });
+  return !me.isLoading && !me.error && allowsRightCheck(me.data, { allOf: rights });
 }
 
-export function useAnyPermission(permissions: readonly string[]): boolean {
+export function useAnyRight(rights: readonly string[]): boolean {
   const me = useMe();
-  return !me.isLoading && !me.error && allowsPermissionCheck(me.data, { anyOf: permissions });
+  return !me.isLoading && !me.error && allowsRightCheck(me.data, { anyOf: rights });
 }

@@ -25,7 +25,7 @@ public static class OrganizationEndpoints
         var org = api.MapGroup("/organizations").WithTags("Organizations");
         org.MapGet("", async (string? q, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var query = db.Organizations.AsNoTracking().Include(x => x.Client).AsQueryable();
             if (!string.IsNullOrWhiteSpace(q))
                 query = query.Where(x => (x.ClientId != null ? x.Client!.Name : x.Name!).Contains(q) ||
@@ -39,13 +39,13 @@ public static class OrganizationEndpoints
         });
         org.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var row = await FindAsync(id, db, ct);
             return ctx.WithETag(row, Dto(row, access.Me));
         });
         org.MapPost("", async (OrganizationInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            RequireCatalogWrite(access.Me, ResourcePermissions.Create);
+            RequireCatalogWrite(access.Me, RightKeys.Create);
             var row = await NewOrganizationAsync(input, db, ct);
             db.Organizations.Add(row);
             await db.SaveChangesAsync(ct);
@@ -53,7 +53,7 @@ public static class OrganizationEndpoints
         });
         org.MapPut("/{id:long}", async (long id, OrganizationInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            RequireCatalogWrite(access.Me, ResourcePermissions.Maintain);
+            RequireCatalogWrite(access.Me, RightKeys.Maintain);
             var row = await FindAsync(id, db, ct);
             if (row.ClientId != null)
                 throw new ValidationException("name", "Edit this organization's name and alias on its existing client page.");
@@ -121,7 +121,7 @@ public static class OrganizationEndpoints
 
     private static async Task CheckContextAsync(long clientId, long? projectId, bool write, HubDbContext db, HubAccess access, CancellationToken ct)
     {
-        access.RequireBusiness();
+        access.RequireAccess();
         if (!await db.Clients.AnyAsync(x => x.Id == clientId, ct)) throw new NotFoundException("The client");
         if (projectId is { } p)
         {
@@ -133,7 +133,7 @@ public static class OrganizationEndpoints
 
     private static void RequireCatalogWrite(UserContext me, string action)
     {
-        me.RequirePermission(ResourcePermissions.Structure, action);
+        me.RequireRight(RightKeys.Structure, action);
         if (!me.AllClients && !me.IsSystem) throw new ForbiddenException("Managing the shared organization catalog needs access to all clients.");
     }
 
@@ -159,7 +159,7 @@ public static class OrganizationEndpoints
             canViewDetails ? row.Description : null, canViewDetails ? row.OrganizationType : null,
             canViewDetails ? row.Email : null, canViewDetails ? row.Phone : null,
             canViewDetails ? row.Address : null, canViewDetails ? row.Status : null,
-            Convert.ToBase64String(row.RowVersion), row.ClientId == null && (me.AllClients || me.IsSystem) && me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Maintain),
+            Convert.ToBase64String(row.RowVersion), row.ClientId == null && (me.AllClients || me.IsSystem) && me.HasRight(RightKeys.Structure, RightKeys.Maintain),
             row.Client?.ArchivedAt != null);
     }
     private static RelationshipDto Dto(OrganizationRelationship row) => new(row.Id, row.ParentOrganizationId, row.ChildOrganizationId,
@@ -272,8 +272,8 @@ public static class OrganizationEndpoints
     public static async Task AddInitialAsync(Client client, List<InitialRelationshipInput>? input, HubDbContext db, HubAccess access, CancellationToken ct)
     {
         if (input is not { Count: > 0 }) return;
-        access.Me.RequirePermission(PermissionHierarchy.Tab("ClientStructure", "organizations", "Create"));
-        access.Me.RequirePermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate);
+        access.Me.RequireRight(RightKeys.Tab("ClientStructure", "organizations", "Create"));
+        access.Me.RequireRight(RightKeys.Structure, RightKeys.Coordinate);
         if (input.Count > 200) throw new ValidationException("organizationRelationships", "Add at most 200 relationships at initial creation; add more on the client page.");
         await LockContextAsync(client.Id, null, db, ct);
         var rootId = await db.Organizations.Where(x => x.ClientId == client.Id).Select(x => x.Id).SingleAsync(ct);
@@ -284,7 +284,7 @@ public static class OrganizationEndpoints
             var child = item.ChildOrganizationId;
             if (item.NewOrganization != null)
             {
-                RequireCatalogWrite(access.Me, ResourcePermissions.Create);
+                RequireCatalogWrite(access.Me, RightKeys.Create);
                 var organization = await NewOrganizationAsync(item.NewOrganization, db, ct);
                 db.Organizations.Add(organization);
                 await db.SaveChangesAsync(ct);
@@ -345,8 +345,8 @@ public static class OrganizationEndpoints
         return Results.Ok(new
         {
             rootOrganizationId = root.Id, organizations = nodes.Select(x => Dto(x, access.Me)), relationships = rows.Select(Dto), truncated,
-            canEdit = access.Me.HasClient(clientId) && access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate),
-            canCreateOrganization = access.Me.AllClients && access.Me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Create)
+            canEdit = access.Me.HasClient(clientId) && access.Me.HasRight(RightKeys.Structure, RightKeys.Coordinate),
+            canCreateOrganization = access.Me.AllClients && access.Me.HasRight(RightKeys.Structure, RightKeys.Create)
         });
     }
 

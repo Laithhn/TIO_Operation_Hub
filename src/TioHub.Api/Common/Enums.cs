@@ -2,16 +2,6 @@ namespace TioHub.Api.Common;
 
 // Business vocabularies fixed by the BRD (Sections 5–6). Configurable lists (component roles, zones, phases…) are lookup values instead.
 
-/// <summary>Owner decision (19 Oct 2026): two roles only. The TIO Manager also administers users and settings.</summary>
-public enum Role { Engineer, Manager }
-
-/// <summary>Separate grants that no role implies (Section 3): export, technical detail, audit history.</summary>
-[Flags]
-public enum Grant { None = 0, Export = 1, TechnicalDetail = 2, Audit = 4 }
-
-/// <summary>Legacy rights held by configurable roles. Module reads/actions are explicit resource permissions.</summary>
-[Flags]
-public enum Right { None = 0, Edit = 1, Manage = 2, Archive = 4, Delete = 8, Export = 16, TechnicalDetail = 32, Audit = 64, Administer = 128 }
 
 public enum ScopeKind { Client, Project, InternalTeam }
 

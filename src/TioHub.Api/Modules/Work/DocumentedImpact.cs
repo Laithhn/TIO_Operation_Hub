@@ -26,17 +26,17 @@ public static class DocumentedImpact
         // A case viewer also needs technical and source-module access to inspect
         // firewall details and both endpoint servers must be in scope.
         var canSeeRules = db.CurrentUser.SeesTechnical
-            && db.CurrentUser.HasPermission(ResourcePermissions.Other, ResourcePermissions.View)
-            && db.CurrentUser.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View);
+            && db.CurrentUser.HasRight(RightKeys.Other, RightKeys.View)
+            && db.CurrentUser.HasRight(RightKeys.Servers, RightKeys.View);
         var rules = await FirewallEndpoints.VisibleRules(db).AsNoTracking().Where(r => canSeeRules && (assetIds.Contains(r.SourceAssetId) || assetIds.Contains(r.DestinationAssetId)))
             .Select(r => new { r.Id, r.Purpose, r.Ports, r.Protocol, source = r.SourceAsset!.Name, destination = r.DestinationAsset!.Name, r.SourceAssetId, r.DestinationAssetId })
             .ToListAsync(ct);
         var connected = rules.SelectMany(r => new[] { r.SourceAssetId, r.DestinationAssetId }).Where(id => !assetIds.Contains(id)).ToHashSet();
         componentIds.UnionWith(await db.ComponentHosts.AsNoTracking().Where(h => connected.Contains(h.AssetId)).Select(h => h.ComponentId).ToListAsync(ct));
 
-        var canSeeServers = db.CurrentUser.HasPermission(ResourcePermissions.Servers, ResourcePermissions.View);
-        var canSeeInstallations = db.CurrentUser.HasPermission(ResourcePermissions.Installations, ResourcePermissions.View);
-        var canSeeEnvironments = db.CurrentUser.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View);
+        var canSeeServers = db.CurrentUser.HasRight(RightKeys.Servers, RightKeys.View);
+        var canSeeInstallations = db.CurrentUser.HasRight(RightKeys.Installations, RightKeys.View);
+        var canSeeEnvironments = db.CurrentUser.HasRight(RightKeys.Environments, RightKeys.View);
         var components = await db.Components.AsNoTracking().Where(x => canSeeServers && componentIds.Contains(x.Id))
             .Select(x => new { x.Id, x.Name, x.Role, x.InstallationId }).ToListAsync(ct);
         var installationIds = components.Select(x => x.InstallationId).ToHashSet();

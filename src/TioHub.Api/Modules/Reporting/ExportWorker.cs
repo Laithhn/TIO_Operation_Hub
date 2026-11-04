@@ -125,10 +125,10 @@ public sealed class ExportWorker(IServiceScopeFactory scopes, IOptions<Reporting
             var resolved = job.Source == "Schedule"
                 ? await ScheduledExportAccess.ResolveAsync(db, user.Id, clock, stop)
                 : await sp.GetRequiredService<UserResolver>().ForUserAsync(user.Id, stop);
-            if (resolved is null || !resolved.HasAccess || (resolved.Grants & Grant.Export) != Grant.Export) throw new Refused("The requester no longer has the Export permission.");
+            if (resolved is null || !resolved.HasAccess || !resolved.Holds(RightKeys.PlatformExport)) throw new Refused("The requester no longer has the Export files right.");
             sp.GetRequiredService<UserContext>().Set(resolved);
-            sp.GetRequiredService<UserContext>().RequirePermission("ReportBuilder:Export");
-            CapabilityPermissions.RequireReportExport(sp.GetRequiredService<UserContext>(), "cases-builder");
+            sp.GetRequiredService<UserContext>().RequireRight("ReportBuilder:Export");
+            RightChecks.RequireReportExport(sp.GetRequiredService<UserContext>(), "cases-builder");
             // A queued user request also retains filter labels from the access that created it.
             // Never associate those labels with a newer, narrower scope after a queued delay.
             var requester = sp.GetRequiredService<UserContext>();

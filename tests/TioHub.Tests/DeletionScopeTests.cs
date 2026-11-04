@@ -11,7 +11,7 @@ public sealed class DeletionScopeTests
     private static UserContext User(bool active, bool allClients, long[] clientIds, long[] projectClients, bool allInternal = false)
     {
         var user = new UserContext();
-        user.Set(new ResolvedUser(7, "test", "Test", "UTC", active, ["Custom"], Right.None, [], Grant.None,
+        user.Set(new ResolvedUser(7, "test", "Test", "UTC", active, ["Custom"], [],
             allClients, clientIds, [20], projectClients, [30], allInternal, []));
         return user;
     }

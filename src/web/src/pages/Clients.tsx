@@ -4,8 +4,8 @@ import { flushSync } from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, del, exportCsv, get, post, put, qs, upload, type Paged, type UserRef } from '../api';
 import { fmtDate, label } from '../format';
-import { usePermission, useDebounced, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
-import { canViewTab, hasPermission } from '../permissions';
+import { useRight, useDebounced, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { canViewTab, hasRight, canAudit } from '../rights';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, ErrorBox, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, Restricted,
@@ -32,14 +32,14 @@ export function ClientList() {
   useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
   const statuses = useEnum('ClientStatus');
   const me = useMe().data;
-  const canViewStructure = hasPermission(me, 'ClientStructure', 'View');
-  const canViewEnvironments = hasPermission(me, 'Environments', 'View');
+  const canViewStructure = hasRight(me, 'ClientStructure', 'View');
+  const canViewEnvironments = hasRight(me, 'Environments', 'View');
   const canFilterRegionalStructure = canViewStructure && canViewEnvironments;
   const listFilters = canViewStructure
     ? { ...f, structure: canFilterRegionalStructure ? f.structure : '' }
     : { q: f.q, country: f.country, status: f.status, sort: f.sort === 'tree' ? 'name' : f.sort, page: f.page, pageSize: f.pageSize };
   const q = useQuery({ queryKey: ['clients', listFilters], queryFn: () => get<Paged<ClientRow>>(`/clients${qs(listFilters)}`) });
-  const canCreate = usePermission('ClientStructure', 'Create');
+  const canCreate = useRight('ClientStructure', 'Create');
   const filtered = !!(f.q || f.country || f.status || canViewStructure && f.level || canFilterRegionalStructure && f.structure);
   return (
     <>
@@ -61,8 +61,8 @@ export function ClientList() {
           ...(canFilterRegionalStructure ? [{ key: 'structure', header: 'Structure', render: (r: ClientRow) => <span className="nowrap" title={r.regionCount === 0 ? 'Environments directly under the client, no regions' : undefined}>{r.regionCount === 0 ? 'Direct' : `${r.regionCount} region${r.regionCount > 1 ? 's' : ''}${r.directEnvironmentCount ? ' + direct' : ''}`}</span>,
             filter: <select className="input" aria-label="Filter by structure" value={f.structure} onChange={e => set({ structure: e.target.value })}><option value="">All</option><option value="regional">With regions</option><option value="direct">Without regions</option></select> }] : []),
           ...(canViewEnvironments ? [{ key: 'env', header: 'Environments', className: 'num', render: (r: ClientRow) => r.environmentCount }] : []),
-          ...(hasPermission(me, 'Cases', 'View') ? [{ key: 'cases', header: 'Open cases', className: 'num', render: (r: ClientRow) => r.openCases }] : []),
-          ...(hasPermission(me, 'Commitments', 'View') ? [{ key: 'od', header: 'Overdue commitments', className: 'num', render: (r: ClientRow) => r.overdueCommitments ? <Badge tone="bad">{r.overdueCommitments}</Badge> : 0 }] : []),
+          ...(hasRight(me, 'Cases', 'View') ? [{ key: 'cases', header: 'Open cases', className: 'num', render: (r: ClientRow) => r.openCases }] : []),
+          ...(hasRight(me, 'Commitments', 'View') ? [{ key: 'od', header: 'Overdue commitments', className: 'num', render: (r: ClientRow) => r.overdueCommitments ? <Badge tone="bad">{r.overdueCommitments}</Badge> : 0 }] : []),
           ...(canViewStructure ? [{ key: 'owner', header: 'Project manager', render: (r: ClientRow) => <Person u={r.owner} /> }] : []),
           { key: 'del', header: '', className: 'row-actions', render: (r: ClientRow) => <DeleteAction path={`/clients/${r.id}`} what={`client ${r.code}`} /> }
         ]} />
@@ -189,7 +189,7 @@ export function ClientForm() {
   // Owner decision (UAT 19 Oct 2026): alias, name, country from the world list, Opportunity/Active, project manager. Always the TIO team.
   const statuses = useEnum('ClientStatus').filter(s => s !== 'Archived');
   const countries = useReference().data?.countries ?? [];
-  const canViewTeam = usePermission('Teams', 'View');
+  const canViewTeam = useRight('Teams', 'View');
   const existing = useQuery({ queryKey: ['client', id], queryFn: () => get<ClientDto>(`/clients/${id}`), enabled: !isNew });
   const [sp] = useSearchParams();
   const mains = useQuery({ queryKey: ['main-clients'], queryFn: () => get<Paged<ClientRow>>('/clients?level=main&sort=code&pageSize=200') });
@@ -329,9 +329,9 @@ export function InfraSummary({ i }: { i: Infra }) {
 function EnvTable({ envs }: { envs: EnvCard[] }) {
   const T = useTypes();
   const me = useMe().data;
-  const showApps = hasPermission(me, 'Installations', 'View') && hasPermission(me, 'Products', 'View');
-  const showAssets = hasPermission(me, 'Servers', 'View');
-  const showCases = hasPermission(me, 'Cases', 'View');
+  const showApps = hasRight(me, 'Installations', 'View') && hasRight(me, 'Products', 'View');
+  const showAssets = hasRight(me, 'Servers', 'View');
+  const showCases = hasRight(me, 'Cases', 'View');
   if (envs.length === 0) return <StateMessage kind="none">No environments recorded here.</StateMessage>;
   return (
     <DataTable caption="Environments" rows={envs} rowKey={e => e.id} columns={[
@@ -355,23 +355,23 @@ export function ClientDetail() {
   const [tab, setTab] = useState(() => detailSearch.get('tab') ?? 'structure');
   const [regionFilter, setRegionFilter] = useState('');
   const me = useMe().data!;
-  const visibleTabs = clientTabSpecs.filter(spec => canViewTab(me, 'ClientStructure', spec.key) && (spec.key !== 'history' || me.grants.audit) && spec.permissions.every(key => {
+  const visibleTabs = clientTabSpecs.filter(spec => canViewTab(me, 'ClientStructure', spec.key) && (spec.key !== 'history' || canAudit(me)) && spec.permissions.every(key => {
     const [resource, action] = key.split(':');
-    return hasPermission(me, resource, action);
+    return hasRight(me, resource, action);
   }));
   const activeTab = visibleTabs.some(spec => spec.key === tab) ? tab : (visibleTabs[0]?.key ?? '');
-  const canViewStructure = hasPermission(me, 'ClientStructure', 'View');
+  const canViewStructure = hasRight(me, 'ClientStructure', 'View');
   const client = useQuery({ queryKey: ['client', id], queryFn: () => get<ClientDto>(`/clients/${id}`) });
   const overviewTabs = ['structure', 'organizations', 'contracts', 'cases', 'commitments', 'escalations', 'infra', 'projects', 'contacts'];
   const ov = useQuery({ queryKey: ['client-overview', id, activeTab, regionFilter], queryFn: () => get<Overview>(`/clients/${id}/overview${qs({ tab: activeTab, regionId: activeTab === 'structure' ? regionFilter : '' })}`), enabled: overviewTabs.includes(activeTab) });
-  const canStructureCreate = usePermission('ClientStructure', 'Create');
-  const canProjectCreate = usePermission('Projects', 'Create');
-  const canStructureMaintain = usePermission('ClientStructure', 'Maintain');
-  const canArchive = usePermission('ClientStructure', 'ArchiveRestore');
-  const canEnvironmentCreate = usePermission('Environments', 'Create');
-  const canContractCreate = usePermission('Contracts', 'Create');
-  const canOtherCreate = usePermission('OtherOperations', 'Create');
-  const canOtherMaintain = usePermission('OtherOperations', 'Maintain');
+  const canStructureCreate = useRight('ClientStructure', 'Create');
+  const canProjectCreate = useRight('Projects', 'Create');
+  const canStructureMaintain = useRight('ClientStructure', 'Maintain');
+  const canArchive = useRight('ClientStructure', 'ArchiveRestore');
+  const canEnvironmentCreate = useRight('Environments', 'Create');
+  const canContractCreate = useRight('Contracts', 'Create');
+  const canOtherCreate = useRight('OtherOperations', 'Create');
+  const canOtherMaintain = useRight('OtherOperations', 'Maintain');
   const [dialog, setDialog] = useState<string | null>(null);
   const [editBoundary, setEditBoundary] = useState<BoundaryRow | null>(null);
   const c = client.data;
@@ -386,7 +386,7 @@ export function ClientDetail() {
             {canStructureMaintain && full && <Link className="btn" to={`/clients/${id}/edit`}>Edit</Link>}
             {full && <Menu label="+ Add" primary items={[
               { label: 'Environment', to: `/environments/new?clientId=${id}`, hidden: !canEnvironmentCreate },
-              { label: 'Region', onClick: () => setDialog('region'), hidden: !canStructureCreate || !hasPermission(me, 'tab.ClientStructure.structure', 'Create') },
+              { label: 'Region', onClick: () => setDialog('region'), hidden: !canStructureCreate || !hasRight(me, 'tab.ClientStructure.structure', 'Create') },
               { label: 'Project', onClick: () => setDialog('project'), hidden: !canProjectCreate },
               { label: 'Sub-client', to: `/clients/new?parentId=${id}`, hidden: !canStructureCreate || !!c.parent },
               { label: 'Contract', to: `/contracts/new?clientId=${id}`, hidden: !canContractCreate }
@@ -402,18 +402,18 @@ export function ClientDetail() {
           <Panel title="Management">
             <DL items={[
               ['Project manager', <Person u={c.owner} gap="Not assigned" />],
-              ...(hasPermission(me, 'Teams', 'View') ? [['Project team', !c.team?.length ? <span className="muted">Not recorded</span> : <ul className="plain">{c.team.map(t => <li key={t.userId}>{t.name}{!t.isActive && ' (inactive)'} <span className="muted">· {t.role}</span></li>)}</ul>] as [React.ReactNode, React.ReactNode]] : []),
+              ...(hasRight(me, 'Teams', 'View') ? [['Project team', !c.team?.length ? <span className="muted">Not recorded</span> : <ul className="plain">{c.team.map(t => <li key={t.userId}>{t.name}{!t.isActive && ' (inactive)'} <span className="muted">· {t.role}</span></li>)}</ul>] as [React.ReactNode, React.ReactNode]] : []),
               ['Last reviewed', <When v={c.lastReviewedAt} />], ['Freshness', <FreshnessBadge f={c.freshness} />], ['Operational state', <StatusBadge value={c.status} />]
             ]} />
           </Panel>
           {o && activeTab === 'structure' && <Panel title="At a glance">
             <DL items={[
-              ...(hasPermission(me, 'Environments', 'View') ? [['Environments', `${o.counts.environments} (${o.counts.environmentsWithInstallations} with applications)`] as [string, React.ReactNode]] : []),
-              ...(hasPermission(me, 'Installations', 'View') && hasPermission(me, 'Products', 'View') ? [['Application installations', o.counts.installations] as [string, React.ReactNode]] : [])
+              ...(hasRight(me, 'Environments', 'View') ? [['Environments', `${o.counts.environments} (${o.counts.environmentsWithInstallations} with applications)`] as [string, React.ReactNode]] : []),
+              ...(hasRight(me, 'Installations', 'View') && hasRight(me, 'Products', 'View') ? [['Application installations', o.counts.installations] as [string, React.ReactNode]] : [])
             ]} />
           </Panel>}
         </div>}
-        {c.subClients.length > 0 && ['ClientStructure:View', 'Environments:View', 'Servers:View', 'Installations:View', 'Teams:View'].every(key => { const [r, a] = key.split(':'); return hasPermission(me, r, a); }) && (
+        {c.subClients.length > 0 && ['ClientStructure:View', 'Environments:View', 'Servers:View', 'Installations:View', 'Teams:View'].every(key => { const [r, a] = key.split(':'); return hasRight(me, r, a); }) && (
           <Panel title={`Sub-clients (${c.subClients.length})`} pad={false}>
             <DataTable rowKey={x => x.id} rows={c.subClients} caption="Sub-clients" columns={[
               { key: 'c', header: 'Sub-client', render: x => <ClientDisplay id={x.id} code={x.code} name={x.name} logoUrl={x.logoUrl ?? null} sub={x.name} /> },
@@ -469,18 +469,18 @@ export function ClientDetail() {
           </Panel>
         )}
         {o && activeTab === 'contacts' && (o.personalDataRestricted ? <Restricted need="Contacts and responsibility boundaries need client scope." help="scope" /> : (<>
-          <Panel title="Contacts" actions={canOtherCreate && hasPermission(me, 'tab.ClientStructure.contacts', 'Create') && <button className="btn" onClick={() => setDialog('contact')}>+ Contact</button>} pad={false}>
+          <Panel title="Contacts" actions={canOtherCreate && hasRight(me, 'tab.ClientStructure.contacts', 'Create') && <button className="btn" onClick={() => setDialog('contact')}>+ Contact</button>} pad={false}>
             <DataTable rowKey={x => x.id} rows={o.contacts} columns={[
               { key: 'n', header: 'Name', render: x => x.name }, { key: 'r', header: 'Role', render: x => x.role }, { key: 'o', header: 'Organization', render: x => x.organization },
               { key: 'e', header: 'Email', render: x => x.email }, { key: 'p', header: 'Phone', render: x => x.phone }, { key: 'a', header: 'Authorized support', render: x => x.authorizedSupport ? 'Yes' : 'No' }, { key: 'del', header: '', className: 'row-actions', render: x => <DeleteAction path={`/contacts/${x.id}`} what={`contact ${x.name}`} /> }
             ]} />
           </Panel>
-          <Panel title="Responsibility boundaries" actions={canOtherCreate && hasPermission(me, 'tab.ClientStructure.contacts', 'Create') && <button className="btn" onClick={() => setDialog('boundary')}>+ Boundary</button>} pad={false}>
+          <Panel title="Responsibility boundaries" actions={canOtherCreate && hasRight(me, 'tab.ClientStructure.contacts', 'Create') && <button className="btn" onClick={() => setDialog('boundary')}>+ Boundary</button>} pad={false}>
             <DataTable rowKey={x => x.id} rows={o.boundaries} caption="Responsibility boundaries" columns={[
               { key: 'a', header: 'Area', render: x => x.area }, { key: 'p', header: 'Responsible party', render: x => <>{label(x.party)}{x.organization && <div className="hint">{x.organization}</div>}</> },
               { key: 'r', header: 'Responsible person', render: x => <BoundaryPerson b={x} /> },
               { key: 'e', header: 'Scope', render: x => x.environmentId ? 'One environment' : 'Whole client' }, { key: 'c', header: 'Internal coordinator', render: x => x.coordinator ?? <span className="muted">—</span> },
-              { key: 'x', header: '', className: 'row-actions nowrap', render: x => <>{canOtherMaintain && hasPermission(me, 'tab.ClientStructure.contacts', 'Maintain') && <button className="linkbtn" onClick={() => setEditBoundary(x)}>Edit</button>} <DeleteAction path={`/boundaries/${x.id}`} what={`responsibility boundary ${x.area}`} /></> }
+              { key: 'x', header: '', className: 'row-actions nowrap', render: x => <>{canOtherMaintain && hasRight(me, 'tab.ClientStructure.contacts', 'Maintain') && <button className="linkbtn" onClick={() => setEditBoundary(x)}>Edit</button>} <DeleteAction path={`/boundaries/${x.id}`} what={`responsibility boundary ${x.area}`} /></> }
             ]} />
           </Panel>
         </>))}
@@ -526,9 +526,9 @@ export function RegionDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['region', id], queryFn: () => get<{ id: number; code: string; name: string; description?: string; clientId: number; clientName: string; clientCode: string; owner?: UserRef; environments: { id: number; name: string; type: string; criticality: string; condition: string }[]; version: string }>(`/regions/${id}`) });
-  const canLead = usePermission('tab.ClientStructure.structure', 'Maintain');
-  const canEng = usePermission('Environments', 'Create');
-  const canArchive = usePermission('tab.ClientStructure.structure', 'ArchiveRestore');
+  const canLead = useRight('tab.ClientStructure.structure', 'Maintain');
+  const canEng = useRight('Environments', 'Create');
+  const canArchive = useRight('tab.ClientStructure.structure', 'ArchiveRestore');
   const [dialog, setDialog] = useState<string | null>(null);
   const r = q.data;
   const newEnv = r ? `/environments/new?clientId=${r.clientId}&regionId=${r.id}` : '';
@@ -572,8 +572,8 @@ export function ProjectList() {
   const q = useQuery({ queryKey: ['projects', f], queryFn: () => get<Paged<ProjectRow>>(`/projects${qs(f)}`) });
   const statuses = useEnum('ProjectStatus');
   const clients = useClientOptions();
-  const canLead = usePermission('Projects', 'Create');
-  const canViewProducts = usePermission('Products', 'View');
+  const canLead = useRight('Projects', 'Create');
+  const canViewProducts = useRight('Products', 'View');
   const [adding, setAdding] = useState(false);
   return (
     <>
@@ -606,7 +606,7 @@ export function ProjectList() {
 
 export function ProjectDialog({ clientId: fixedClient, projectId, onClose }: { clientId?: number; projectId?: number; onClose: () => void }) {
   const statuses = useEnum('ProjectStatus').filter(s => s !== 'Archived');
-  const canViewProducts = usePermission('Products', 'View');
+  const canViewProducts = useRight('Products', 'View');
   const products = useProductOptions();
   const clients = useClientOptions();
   const [pickedClient, setPickedClient] = useState('');

@@ -10,8 +10,8 @@ public sealed class OrganizationScopeTests
     private static UserContext Limited()
     {
         var user = new UserContext();
-        user.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"], Right.None,
-            PermissionHierarchy.WithAncestors(["ClientStructure:View"]), Grant.None, false, [10], [20], [30], [40], false, [50]));
+        user.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"],
+            Fixture.Rights(["ClientStructure:View"]), false, [10], [20], [30], [40], false, [50]));
         return user;
     }
 

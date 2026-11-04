@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Users, roles and rights (2.48.0)
+
+**Read [RIGHTS-MODEL-UPGRADE.md](RIGHTS-MODEL-UPGRADE.md) first.** On a restored copy of the target database, run `database/05-rights-model-upgrade-review.sql` and review the output, especially section 2, which lists administrators the owner must decide about. Then apply `database/01-schema.sql` as usual. Migration `RightsModel` adds four tables and fills them. It deletes no data: the old tables and columns stay, unread. Exports generated before the upgrade must be regenerated. Keep production startup migrations disabled.
+
 ### Case statuses and Jira control (2.47.0)
 
 `database/01-schema.sql` changes existing data in this release, and going back needs the database backup. Read `RELEASE-NOTES-2.47.0.md` before upgrading and try it on a restored UAT backup first.

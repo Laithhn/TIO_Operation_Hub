@@ -250,8 +250,8 @@ public static class JiraAdminEndpoints
             var current = await db.ClientJiraSpaces.IgnoreQueryFilters().FirstOrDefaultAsync(s => s.JiraConnectionId == id && s.JiraProjectId == projectId && s.ReleasedAt == null, ct) ?? throw new NotFoundException("The assigned space");
             if (i.ToClientId is not { } target || !await db.Clients.AnyAsync(c => c.Id == target, ct)) throw new ValidationException("toClientId", "Select the new client.");
             if (target == current.ClientId) throw new ValidationException("toClientId", "The space already belongs to this client.");
-            access.RequireIn(ResourcePermissions.Structure, ResourcePermissions.Coordinate, ResourceContext.ForRecord(current.ClientId, null));
-            access.RequireIn(ResourcePermissions.Structure, ResourcePermissions.Coordinate, ResourceContext.ForRecord(target, null));
+            access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(current.ClientId, null));
+            access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(target, null));
             var now = clock.GetUtcNow();
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             current.ReleasedAt = now; current.ReleaseReason = reason; current.IsEnabled = false;
@@ -413,7 +413,7 @@ public static class JiraAdminEndpoints
             var action = input.Action ?? "";
             if (!ActionsFor(issue.Type, issue.Status).Contains(action)) throw new ValidationException("action", "This action does not apply to this issue.");
             var note = Rules.RequireReason(input.Note, "note", "the reason for this decision");
-            if (issue.ClientId is { } clientId) access.RequireIn(ResourcePermissions.Cases, ResourcePermissions.Coordinate, ResourceContext.ForRecord(clientId, null));
+            if (issue.ClientId is { } clientId) access.RequireIn(RightKeys.Cases, RightKeys.Coordinate, ResourceContext.ForRecord(clientId, null));
             var now = clock.GetUtcNow();
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             var space = issue.JiraProjectId is null ? null : await db.ClientJiraSpaces.FirstOrDefaultAsync(s => s.JiraConnectionId == issue.JiraConnectionId && s.JiraProjectId == issue.JiraProjectId && s.ReleasedAt == null, ct);

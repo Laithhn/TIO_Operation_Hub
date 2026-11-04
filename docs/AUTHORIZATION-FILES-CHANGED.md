@@ -1,5 +1,7 @@
 # Authorization implementation and package source inventory
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 Working tree files changed for the authorization implementation and release packaging. Pre-existing unrelated changes in HubFactory.cs, OperationalTests.cs, SignInConcurrencyTests.cs and CODEX_HANDOVER.md are excluded. SignIn.cs includes pre-existing sign-in bookkeeping changes as well as this task's active-role, dependency and shared cache-version integration.
 
 - database/01-schema.sql

@@ -28,7 +28,7 @@ public sealed class AuthorizationBoundarySqlIntegrationTests
 
     private static async Task<long> CreateRole(Api admin, params string[] keys) => await admin.Create("/admin/roles", new
     {
-        name = Unique("boundary-role"), permissions = PermissionHierarchy.WithAncestors(keys), rights = Array.Empty<string>()
+        name = Unique("boundary-role"), rights = Fixture.Rights(keys)
     });
 
     private static ClaimsPrincipal Principal(string account, params string[] groups) => new(new ClaimsIdentity(
@@ -106,7 +106,7 @@ public sealed class AuthorizationBoundarySqlIntegrationTests
         var admin = await hub.As(HubFactory.Manager);
         var clientId = await admin.Create("/clients", new { code = Unique("C"), name = Unique("Client"), country = "Oman", ownerUserId = admin.UserId, status = "Active" });
         var projectId = await admin.Create("/projects", new { clientId, code = Unique("P"), name = Unique("Project"), ownerUserId = admin.UserId, status = "Active" });
-        var role = await CreateRole(admin, ["ClientStructure:Delete", "Projects:DetailsView", .. CapabilityPermissions.BusinessViewKeys]);
+        var role = await CreateRole(admin, ["ClientStructure:Delete", "Projects:DetailsView", .. RightChecks.BusinessViewKeys]);
         var account = $@"DEV\{Unique("project")}";
         await admin.Create("/admin/users", new
         {

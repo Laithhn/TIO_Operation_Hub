@@ -1,43 +1,38 @@
-import { hasPermission, resourceForRecord } from '../permissions';
+import { hasRight, resourceForRecord, canAudit, isAdministrator } from '../rights';
 import { useQuery } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { del, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, label } from '../format';
-import { useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState } from '../hooks';
+import { useForm, useMe, useRight, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, computerZone, TimeZoneSelect, timeZoneOptions } from '../ui/pickers';
 import { configCrumbs } from '../configRegistry';
 import { Badge, Checkbox, DataTable, Dialog, ErrorBox, FormError, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Changes, RecordLink } from './common';
-import { dependencyWarnings, filterPermissionRows, permissionTree, selectionState, isGranted, missingDependencies, permissionChanges, permissionRows, sensitive, setPermissions,
-  type AccessSelection, type PermissionDefinition, type PermissionFilters, type PermissionRow, type PermissionTreeNode } from './adminRightsModel';
+import type { RightDefinition, RoleDef } from './adminRightsModel';
 import { RoleAccessMatrix } from './RoleAccessMatrix';
-import { userAccessSettings, type UserScope } from './userAccessSettings';
-import { UserScopeEditor, type UserScopeSelection } from './UserScopeEditor';
+import { initialRightsPrefs, RoleRightsEditor } from './RightsEditor';
+import { UserScopeEditor, type UserScope, type UserScopeSelection } from './UserScopeEditor';
 import './admin-rights.css';
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.isAdministrator) return <Restricted need="This page needs the Administration right." />;
+  if (!isAdministrator(me)) return <Restricted need="This page needs the Administration right." />;
   return <>{children}</>;
 }
 
 type Scope = UserScope;
-type UserRow = { id: number; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; mappedGroupsAvailable: boolean; roles: string[]; roleIds?: number[]; roleId?: number; roleName?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
+type UserRow = { id: number; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; mappedGroupsAvailable: boolean; roleIds: number[]; roles: { id: number; name: string; isActive: boolean }[]; directoryRoles: { id: number; name: string; isActive: boolean; group: string }[]; allClients: boolean; allInternal: boolean; scopes: Scope[]; version: string };
 type Targets = { clients: { id: number; code: string; name: string; archived: boolean }[]; projects: { id: number; code: string; name: string; clientId: number }[]; teams: { id: number; code: string; name: string }[] };
 
-// A31: configurable roles and rights (Administration → Roles, Rights).
-type RightDef = { key: string; label: string; description: string };
-type PermissionDef = PermissionDefinition;
-type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; isActive: boolean; rights: string[]; permissions: string[]; userCount: number; version: string };
-const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ rights: RightDef[]; permissions: PermissionDef[]; roles: RoleDef[] }>('/admin/roles') });
+const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ catalog: RightDefinition[]; roles: RoleDef[] }>('/admin/roles') });
 
 type SignInState = { userId: number; state: 'Active' | 'TemporaryPassword' | 'Locked'; lockedUntil?: string; changedAt: string };
 
 export function AdminUsers() {
-  const canCreate = usePermission('AdminUsers', 'Create');
-  const canMaintain = usePermission('AdminUsers', 'Maintain');
-  const canDelete = usePermission('AdminUsers', 'Delete');
+  const canCreate = useRight('AdminUsers', 'Create');
+  const canMaintain = useRight('AdminUsers', 'Maintain');
+  const canDelete = useRight('AdminUsers', 'Delete');
   const me = useMe().data!;
   const forms = me.app.authMode.toLowerCase() === 'forms';
   const q = useQuery({ queryKey: ['admin-users'], queryFn: () => get<UserRow[]>('/admin/users') });
@@ -50,11 +45,13 @@ export function AdminUsers() {
   const [remove, setRemove] = useState<UserRow | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Users and access" sub="Assign active roles and inspect effective access. Configure their grants on Rights and permissions."
+      <PageHead title="Users" sub="Create and edit accounts, assign roles and data scope. Rights come from roles; set them on the Rights page."
         actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New User</button>} />
       <DataTable<UserRow> rowKey={u => u.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'n', header: 'Name', render: u => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button> }, { key: 'a', header: 'Account', render: u => <span className="mono">{u.accountName}</span> },
-        { key: 'r', header: 'Role', render: u => u.roleName ? <span className="chip">{u.roleName}</span> : <Badge tone="warn">No role — check direct permissions</Badge> },
+        { key: 'r', header: 'Roles', render: u => u.roles.length + u.directoryRoles.length === 0 ? <Badge tone="warn">No role</Badge> : <>
+          {u.roles.map(r => <span key={r.id} className="chip">{r.name}{!r.isActive && ' (inactive)'}</span>)}
+          {u.directoryRoles.map(r => <span key={`${r.group}/${r.id}`} className="chip" title={`Inherited from the directory group ${r.group}`}>{r.name} · from directory</span>)}</> },
         { key: 'm', header: 'Mapped groups', render: (u: UserRow) => u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : <span title="An authenticated sign-in must refresh the directory group snapshot.">Unavailable — refresh required</span> },
         { key: 'st', header: 'Status', render: u => u.isActive ? <Badge tone="good">Active</Badge> : <Badge tone="bad">Deactivated</Badge> },
         ...(forms ? [{ key: 'pw', header: 'Password', render: (u: UserRow) => {
@@ -142,13 +139,13 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
   const defaultZone = configured && configured !== 'UTC' ? configured : computerZone();
   const f = useForm({
     accountName: user?.accountName ?? '', displayName: user?.displayName ?? '', email: user?.email ?? '', workingTimeZone: user?.workingTimeZone ?? defaultZone,
-    roleIds: user?.roleIds?.map(String) ?? (user?.roleId ? [String(user.roleId)] : [])
+    roleIds: user?.roleIds?.map(String) ?? []
   });
   const [scope, setScope] = useState<UserScopeSelection>(() => ({ allClients: user?.allClients ?? false, allInternal: user?.allInternal ?? false, scopes: user?.scopes ?? [] }));
   const roles = useRoles();
   const access = useQuery({ queryKey: ['admin-user-access', user?.id], queryFn: () => get<{
-    effectivePermissions: { key: string; displayName: string; module: string; riskLevel: string; sources: string[] }[];
-    restrictedPermissions: { key: string; displayName: string; module: string }[];
+    effectiveRights: { key: string; label: string; module: string; riskLevel: string; sources: string[] }[];
+    restrictedRights: { key: string; label: string; module: string; restrictionReason?: string }[];
     scopes: { allClients: boolean; clientIds: number[]; projectIds: number[]; allInternal: boolean; teamIds: number[] } | null;
   }>(`/admin/users/${user!.id}/access`), enabled: !!user });
   const toast = useToast();
@@ -156,8 +153,7 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
   const self = user?.id === me.id;
   const save = async () => {
     const v = f.values;
-    const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleIds: v.roleIds.map(Number), roles: [],
-      ...userAccessSettings(user), ...scope };
+    const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleIds: v.roleIds.map(Number), ...scope };
     const res = await f.submit(() => (user ? put(`/admin/users/${user.id}`, body, user.version).then(() => ({ id: user.id })) : post<{ id: number }>('/admin/users', body)));
     if (res) {
       toast('User saved; changes apply to active sessions at once.'); refresh(); onClose();
@@ -166,7 +162,7 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
   };
   return (
     <Dialog title={user ? `User ${user.displayName}` : 'New user'} onClose={onClose}>
-      {self && <div className="notice warn">You cannot change your own role.</div>}
+      {self && <div className="notice warn">You cannot change your own roles or data scope.</div>}
       <FormError error={f.error} />
       <div className="form-grid">
         <TextInput label={forms ? 'Account name (used to sign in)' : 'Organization account (DOMAIN\name)'} required value={f.values.accountName} onChange={v => f.set('accountName', v)} disabled={!!user} error={f.fieldError('accountName')} />
@@ -175,13 +171,14 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
         <TimeZoneSelect label="Working time zone" required value={f.values.workingTimeZone} onChange={v => f.set('workingTimeZone', v)} error={f.fieldError('workingTimeZone')} />
         <fieldset className="field wide" disabled={self}>
           <legend>Roles</legend>
-          <div className="hint">Permissions from active roles combine. Data scope and operation permissions are checked separately.</div>
+          <div className="hint">Rights from active roles combine. Data scope is set separately below and decides which records those rights reach.</div>
           {(roles.data?.roles ?? []).map(r => <label key={r.id} className="check-row">
             <input type="checkbox" checked={f.values.roleIds.includes(String(r.id))}
               onChange={e => f.set('roleIds', e.target.checked ? [...f.values.roleIds, String(r.id)] : f.values.roleIds.filter(id => id !== String(r.id)))} />
             <span>{r.name}{r.description ? <small className="hint"> — {r.description}</small> : null}</span>
           </label>)}
           {f.fieldError('roleIds') && <div className="field-error">{f.fieldError('roleIds')}</div>}
+          {(user?.directoryRoles.length ?? 0) > 0 && <div className="hint">From directory groups, not editable here: {user!.directoryRoles.map(r => `${r.name} (${r.group})`).join(', ')}.</div>}
         </fieldset>
       </div>
       <UserScopeEditor value={scope} targets={targets} onChange={setScope} disabled={self} />
@@ -189,13 +186,13 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
       {user && <section className="form-section">
         <h3>Effective access</h3>
         {access.isLoading ? <StateMessage kind="loading" /> : access.error ? <ErrorBox error={access.error} /> : <>
-          <p className="hint">This shows saved access; unsaved role changes are not included. Individual operations may have additional restrictions.</p>
-          <p>{access.data?.effectivePermissions.length ?? 0} effective permissions from roles and user exceptions.</p>
+          <p className="hint">This shows saved access; unsaved role changes are not included. An operation can still depend on data scope, ownership and workflow. For more detail, see Access review.</p>
+          <p>{access.data?.effectiveRights.length ?? 0} effective rights from roles and individual exceptions.</p>
           {access.data?.scopes && <p>Effective scope: {access.data.scopes.allClients ? 'all clients' : `${access.data.scopes.clientIds.length} clients and ${access.data.scopes.projectIds.length} projects`}; {access.data.scopes.allInternal ? 'all internal teams' : `${access.data.scopes.teamIds.length} internal teams`}.</p>}
-          <details><summary>Show effective permissions</summary><ul>{access.data?.effectivePermissions.map(p => <li key={p.key}>
-            <strong>{p.displayName}</strong> <code>{p.key}</code> <span className="hint">from {p.sources.join(', ') || 'no active role source'}</span>
+          <details><summary>Show effective rights</summary><ul>{access.data?.effectiveRights.map(p => <li key={p.key}>
+            <strong>{p.label}</strong> <code>{p.key}</code> <span className="hint">from {p.sources.join(', ') || 'no active role source'}</span>
           </li>)}</ul></details>
-          <details><summary>Show restricted permissions</summary><ul>{access.data?.restrictedPermissions.map(p => <li key={p.key}>{p.displayName} <code>{p.key}</code></li>)}</ul></details>
+          <details><summary>Show rights not held</summary><ul>{access.data?.restrictedRights.map(p => <li key={p.key}>{p.label} <code>{p.key}</code>{p.restrictionReason && <span className="hint"> {p.restrictionReason}</span>}</li>)}</ul></details>
         </>}
       </section>}
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy || self} onClick={save}>Save user</button></div>
@@ -203,61 +200,92 @@ function UserDialog({ user, targets, onClose, onCreated }: { user: UserRow | nul
   );
 }
 
-type Mapping = { id: number; groupName: string; role?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
+type Mapping = { id: number; groupName: string; roleIds: number[]; roles: string[]; allClients: boolean; allInternal: boolean; scopes: Scope[]; version: string };
 
 export function AdminGroups() {
-  const canCreate = usePermission('AdminGroups', 'Create');
+  const canCreate = useRight('AdminGroups', 'Create');
+  const canMaintain = useRight('AdminGroups', 'Maintain');
   const q = useQuery({ queryKey: ['mappings'], queryFn: () => get<Mapping[]>('/admin/group-mappings') });
-  const [open, setOpen] = useState(false);
+  const targets = useQuery({ queryKey: ['scope-targets'], queryFn: () => get<Targets>('/admin/scope-targets') });
+  const [edit, setEdit] = useState<Mapping | 'new' | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Organization group mappings" sub="Members of a mapped group are admitted at sign-in with these roles, scopes and grants." actions={canCreate && <button className="btn btn-primary" onClick={() => setOpen(true)}>+ New Mapping</button>} />
+      <PageHead title="Directory group mappings" sub="Members of a mapped group are admitted at sign-in and inherit these roles and this data scope." actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New mapping</button>} />
       <DataTable<Mapping> rowKey={m => m.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'g', header: 'Group', render: m => <span className="mono">{m.groupName}</span> }, { key: 'r', header: 'Role', render: m => m.role ? label(m.role) : '—' },
-        { key: 's', header: 'Scope', render: m => [m.allClients && 'All clients', m.allInternal && 'All internal', m.scopes.length && `${m.scopes.length} scope(s)`].filter(Boolean).join(', ') || 'None' },
-        { key: 'gr', header: 'Grants', render: m => m.grants.join(', ') }
+        { key: 'g', header: 'Group', render: m => canMaintain ? <button className="linkbtn mono" onClick={() => setEdit(m)}>{m.groupName}</button> : <span className="mono">{m.groupName}</span> },
+        { key: 'r', header: 'Roles', render: m => m.roles.length ? m.roles.map(r => <span key={r} className="chip">{r}</span>) : <span className="muted">None</span> },
+        { key: 's', header: 'Scope', render: m => [m.allClients && 'All clients', m.allInternal && 'All internal', m.scopes.length && `${m.scopes.length} scope(s)`].filter(Boolean).join(', ') || 'None' }
       ]} />
-      {open && <ActionDialog title="New group mapping" path="/admin/group-mappings" onClose={() => setOpen(false)} submitLabel="Create"
-        fields={[{ name: 'groupName', label: 'Group (DOMAIN\\Group)', required: true }, { name: 'role', label: 'Role', kind: 'select', options: [{ value: 'Engineer', label: 'Operation Engineer (built-in)' }, { value: 'Manager', label: 'TIO Manager (built-in)' }] },
-          { name: 'allClients', label: 'All clients (yes/no)', kind: 'select', options: [{ value: 'yes', label: 'Yes' }] }, { name: 'export', label: 'Export grant', kind: 'select', options: [{ value: 'yes', label: 'Yes' }] }]}
-        transform={v => ({ groupName: v.groupName, role: v.role || null, allClients: v.allClients === 'yes', allInternal: false, export: v.export === 'yes', technicalDetail: false, audit: false, scopes: [] })} />}
+      {edit && targets.data && <MappingDialog mapping={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)} />}
     </AdminOnly>
   );
 }
 
+function MappingDialog({ mapping, targets, onClose }: { mapping: Mapping | null; targets: Targets; onClose: () => void }) {
+  const f = useForm({ groupName: mapping?.groupName ?? '', roleIds: mapping?.roleIds.map(String) ?? [] });
+  const [scope, setScope] = useState<UserScopeSelection>(() => ({ allClients: mapping?.allClients ?? false, allInternal: mapping?.allInternal ?? false, scopes: mapping?.scopes ?? [] }));
+  const roles = useRoles();
+  const toast = useToast();
+  const refresh = useRefresh();
+  const save = async () => {
+    const body = { groupName: f.values.groupName, roleIds: f.values.roleIds.map(Number), ...scope };
+    const ok = await f.submit(async () => { if (mapping) await put(`/admin/group-mappings/${mapping.id}`, body, mapping.version); else await post('/admin/group-mappings', body); return true; });
+    if (ok) { toast('Mapping saved; it applies to members at their next request.'); refresh(); onClose(); }
+  };
+  return <Dialog title={mapping ? `Mapping ${mapping.groupName}` : 'New group mapping'} onClose={onClose}>
+    <FormError error={f.error} fields={['groupName', 'roleIds', 'scopes', 'allClients', 'allInternal']} />
+    <div className="form-grid">
+      <TextInput label="Group (DOMAIN\Group)" required value={f.values.groupName} onChange={v => f.set('groupName', v)} error={f.fieldError('groupName')} />
+      <fieldset className="field wide">
+        <legend>Roles</legend>
+        <div className="hint">Members inherit these roles in addition to any they hold directly.</div>
+        {(roles.data?.roles ?? []).filter(r => r.isActive || f.values.roleIds.includes(String(r.id))).map(r => <label key={r.id} className="check-row">
+          <input type="checkbox" checked={f.values.roleIds.includes(String(r.id))}
+            onChange={e => f.set('roleIds', e.target.checked ? [...f.values.roleIds, String(r.id)] : f.values.roleIds.filter(id => id !== String(r.id)))} />
+          <span>{r.name}{!r.isActive && <> <Badge tone="warn">Inactive</Badge></>}</span>
+        </label>)}
+        {f.fieldError('roleIds') && <div className="field-error">{f.fieldError('roleIds')}</div>}
+      </fieldset>
+    </div>
+    <UserScopeEditor value={scope} targets={targets} onChange={setScope} />
+    {f.fieldError('scopes') && <div className="field-error">{f.fieldError('scopes')}</div>}
+    <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Save mapping</button></div>
+  </Dialog>;
+}
+
 type LookupRow = { id: number; listName: string; code: string; label: string; description?: string; sortOrder: number; isRetired: boolean; version: string };
 
-/** A31: Administration → Roles &amp; rights. Rows are rights, columns are roles. */
-/** A40 (owner request, 20 Oct 2026): roles and rights on separate pages. Roles: who exists and who holds them. */
+/** Roles: what each role is called, whether it is active, who holds it and how roles compare. What a role may do is set on the Rights page. */
 export function AdminRoles() {
-  const canCreate = usePermission('AdminRoles', 'Create');
-  const canMaintain = usePermission('AdminRoles', 'Maintain');
-  const canDelete = usePermission('AdminRoles', 'Delete');
+  const canCreate = useRight('AdminRoles', 'Create');
+  const canMaintain = useRight('AdminRoles', 'Maintain');
+  const canDelete = useRight('AdminRoles', 'Delete');
+  const canSeeUsers = useRight('AdminUsers', 'View');
   const q = useRoles();
   const [edit, setEdit] = useState<RoleDef | 'new' | null>(null);
   const [clone, setClone] = useState<RoleDef | null>(null);
   const [remove, setRemove] = useState<RoleDef | null>(null);
+  const [holdersOf, setHoldersOf] = useState<RoleDef | null>(null);
   const toast = useToast();
   const refresh = useRefresh();
   const d = q.data;
   return (
     <AdminOnly>
-      <PageHead title="Roles" sub="Users may hold multiple roles. Their grants combine; what each role may do is set on the Rights page."
+      <PageHead title="Roles" sub="A person can hold several roles and their rights combine. Set what each role may do on the Rights page."
         actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button disabled={!canCreate} className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
-      {d && <RoleAccessMatrix roles={d.roles} rights={d.rights} definitions={d.permissions} editable={canMaintain} />}
       <DataTable<RoleDef> caption="Roles" rowKey={r => r.id} rows={d?.roles} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>} {!r.isActive && <Badge tone="warn">Inactive</Badge>}</> },
+        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>} {r.isLocked && <Badge>Protected</Badge>} {!r.isActive && <Badge tone="warn">Inactive</Badge>}</> },
         { key: 'd', header: 'Description', maxWidth: '18rem', render: r => r.description ?? <span className="muted">—</span> },
-        { key: 'u', header: 'Users', className: 'num', render: r => r.userCount },
+        { key: 'u', header: 'Active users', className: 'num', render: r => canSeeUsers ? <button className="linkbtn rights-holders" onClick={() => setHoldersOf(r)} aria-label={`${r.userCount} active users hold ${r.name}: show who`}>{r.userCount}</button> : r.userCount },
         // GUI-11: a count with the full list on request, so a long list of rights never widens the table past its actions.
-        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length + r.permissions.length === 0 ? <span className="muted">No permissions</span>
-          : <RightsSummary role={r.name} items={[...r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k), ...r.permissions.map(k => {
-            const p = d?.permissions.find(x => x.key === k); return p ? `${p.resourceLabel}: ${p.actionLabel}` : k;
-          })]} /> },
-        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button>{canDelete && !r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)} aria-label={`Delete role ${r.name}`}>Delete</button></>}</> }
+        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">No rights</span>
+          : <RightsSummary role={r.name} items={r.rights.map(k => { const p = d?.catalog.find(x => x.key === k); return p ? `${p.featureLabel}: ${p.label}` : k; })} /> },
+        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button> {canMaintain && <Link className="linkbtn" to={`/admin/rights?role=${r.id}`} aria-label={`Rights of ${r.name}`}>Rights</Link>} {canDelete && !r.key && <button className="linkbtn danger-link" onClick={() => setRemove(r)} aria-label={`Delete role ${r.name}`}>Delete</button>}</> }
       ]} />
+      {d && <RoleAccessMatrix roles={d.roles} catalog={d.catalog} editable={canMaintain} />}
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
       {clone && <RoleCloneDialog role={clone} onClose={() => setClone(null)} />}
+      {holdersOf && <RoleHoldersDialog role={holdersOf} onClose={() => setHoldersOf(null)} />}
       {remove && <Dialog title={`Delete role ${remove.name}`} onClose={() => setRemove(null)}>
         <p>{remove.userCount > 0 ? `${remove.userCount} user(s) hold this role. Give them another role first.` : 'Nobody holds this role. Delete it?'}</p>
         <div className="form-actions"><button className="btn" onClick={() => setRemove(null)}>Cancel</button>
@@ -269,19 +297,27 @@ export function AdminRoles() {
   );
 }
 
+function RoleHoldersDialog({ role, onClose }: { role: RoleDef; onClose: () => void }) {
+  const q = useQuery({ queryKey: ['role-holders', role.id], queryFn: () => get<{ id: number; displayName: string; accountName: string; isActive: boolean }[]>(`/admin/roles/${role.id}/holders`) });
+  return <Dialog title={`Who holds ${role.name}`} onClose={onClose}>
+    <p className="hint">People assigned this role directly. Members of mapped directory groups can inherit it too; see Directory group mappings.</p>
+    {q.isLoading ? <StateMessage kind="loading" /> : q.error ? <ErrorBox error={q.error} /> : !q.data?.length ? <StateMessage kind="none">Nobody holds this role directly.</StateMessage>
+      : <ul className="plain">{q.data.map(u => <li key={u.id}>{u.displayName} <span className="mono">{u.accountName}</span>{!u.isActive && <> <Badge tone="warn">Deactivated</Badge></>}</li>)}</ul>}
+    <div className="form-actions"><button className="btn" onClick={onClose}>Close</button></div>
+  </Dialog>;
+}
+
 function RoleCloneDialog({ role, onClose }: { role: RoleDef; onClose: () => void }) {
   const f = useForm({ name: `${role.name} copy`, description: role.description ?? '' });
   const toast = useToast();
   const refresh = useRefresh();
   const nav = useNavigate();
   const save = async () => {
-    const result = await f.submit(v => post<{ id: number }>(`/admin/roles/${role.id}/clone`, {
-      name: v.name, description: v.description, rights: [], permissions: []
-    }));
-    if (result) { toast('Role cloned. Review its rights before assigning it to users.'); refresh(); onClose(); nav('/admin/rights'); }
+    const result = await f.submit(v => post<{ id: number }>(`/admin/roles/${role.id}/clone`, { name: v.name, description: v.description }));
+    if (result) { toast('Role cloned. Review its rights before assigning it to users.'); refresh(); onClose(); nav(`/admin/rights?role=${result.id}`); }
   };
   return <Dialog title={`Clone ${role.name}`} onClose={onClose}>
-    <FormError error={f.error} fields={['name', 'description', 'permissions', 'rights']} />
+    <FormError error={f.error} fields={['name', 'description', 'rights']} />
     <div className="form-grid">
       <TextInput label="New role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} />
       <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} />
@@ -300,176 +336,29 @@ function RightsSummary({ role, items }: { role: string; items: string[] }) {
   );
 }
 
-/** Registry editor. Groups organize independent leaves; edits are staged until reviewed and saved. */
+/** Rights: the catalog, and which rights a role holds. Code owns the catalog; this page only assigns. Edits are staged until reviewed and saved. */
 export function AdminRights() {
   const q = useRoles();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selected, setSelected] = useState(searchParams.get('role') ?? '');
   const [dirty, setDirty] = useState(false);
+  // Held here so that moving between roles keeps the search and the comparison in use.
+  const [prefs, setPrefs] = useState(() => initialRightsPrefs(searchParams.get('right') ?? ''));
   const d = q.data;
   const role = d?.roles.find(r => String(r.id) === selected) ?? d?.roles.find(r => !r.isLocked) ?? d?.roles[0];
   const selectRole = (id: string) => {
-    if (dirty && !window.confirm('Discard the unsaved permission changes before selecting another role?')) return;
+    if (dirty && !window.confirm('Discard the unsaved changes before selecting another role?')) return;
     setDirty(false); setSelected(id);
+    setSearchParams(p => { p.set('role', id); return p; }, { replace: true });
   };
   return <AdminOnly>
-    <PageHead title="Rights and permissions" sub="Configure independent page, resource and action permissions. Review changes before saving."
-      actions={<Link className="btn" to="/admin/roles">Manage roles</Link>} />
+    <PageHead title="Rights" sub="Choose a role and assign rights from the catalog. Nothing changes until you review and save."
+      actions={<><Link className="btn" to="/admin/audit?category=Access">Access history</Link><Link className="btn" to="/admin/roles">Manage roles</Link></>} />
     {q.error && <ErrorBox error={q.error} />}
-    {!d ? !q.error && <StateMessage kind="loading" /> : !role ? <StateMessage kind="none">Create a role before assigning permissions.</StateMessage>
-      : <RolePermissionsEditor key={role.id} role={role} roles={d.roles} definitions={d.permissions} rights={d.rights}
-        initialSearch={searchParams.get('permission') ?? ''}
+    {!d ? !q.error && <StateMessage kind="loading" /> : !role ? <StateMessage kind="none">Create a role before assigning rights.</StateMessage>
+      : <RoleRightsEditor key={role.id} role={role} roles={d.roles} catalog={d.catalog} prefs={prefs} onPrefs={setPrefs}
         onRoleChange={selectRole} onDirty={setDirty} reload={async () => (await q.refetch()).data?.roles.find(r => r.id === role.id)} />}
   </AdminOnly>;
-}
-
-function RolePermissionsEditor({ role, roles, definitions, rights, initialSearch, onRoleChange, onDirty, reload }: {
-  role: RoleDef; roles: RoleDef[]; definitions: PermissionDef[]; rights: RightDef[];
-  initialSearch: string; onRoleChange: (id: string) => void; onDirty: (dirty: boolean) => void; reload: () => Promise<RoleDef | undefined>;
-}) {
-  const toast = useToast();
-  const refresh = useRefresh();
-  const [base, setBase] = useState(role);
-  const [compareId, setCompareId] = useState('');
-  const [collapsed, setCollapsed] = useState<string[]>(definitions.filter(d => d.nodeType === 'Submodule' || d.nodeType === 'Tab').map(d => `permissions/${d.key}`));
-  const emptyFilters = { search: '', module: '', resource: '', action: '', risk: '', assignment: '' };
-  const [filters, setFilters] = useState<PermissionFilters>({ ...emptyFilters, search: initialSearch });
-  useEffect(() => { if (filters.search || filters.module || filters.resource || filters.action) setCollapsed([]); }, [filters.search, filters.module, filters.resource, filters.action]);
-  const [groupChange, setGroupChange] = useState<{ label: string; rows: PermissionRow[]; grant: boolean } | null>(null);
-  const [review, setReview] = useState(false);
-  const f = useForm<AccessSelection>({ rights: [...role.rights].sort(), permissions: [...role.permissions].sort() });
-  useLeaveGuard(f.dirty);
-  useEffect(() => { onDirty(f.dirty); }, [f.dirty, onDirty]);
-  const stale = base.version !== role.version;
-  const rows = useMemo(() => permissionRows(rights, definitions), [rights, definitions]);
-  const compare = roles.find(r => String(r.id) === compareId);
-  const visible = filterPermissionRows(rows, filters, f.values, base, compare);
-  const tree = permissionTree(rows, visible);
-  const fullGroups = new Map<string, PermissionRow[]>();
-  const indexGroups = (nodes: PermissionTreeNode[]) => nodes.forEach(node => { fullGroups.set(node.row.id, node.shown); indexGroups(node.children); });
-  indexGroups(permissionTree(rows, rows));
-  const changes = permissionChanges(base, f.values, rows);
-  const warnings = dependencyWarnings(rows, f.values);
-  const canMaintain = usePermission('AdminRoles', 'Maintain');
-  const disabled = base.isLocked || f.busy || !canMaintain;
-  const options = (values: string[]) => [...new Set(values)].sort((a, b) => a.localeCompare(b));
-  const updateFilter = (key: keyof PermissionFilters, value: string) => setFilters(p => ({ ...p, [key]: value }));
-  const collapse = (key: string) => setCollapsed(p => p.includes(key) ? p.filter(k => k !== key) : [...p, key]);
-  const reset = (latest: RoleDef) => {
-    setBase(latest); f.reset({ rights: [...latest.rights].sort(), permissions: [...latest.permissions].sort() }); setReview(false);
-  };
-  const reloadLatest = async () => {
-    if (f.dirty && !window.confirm('Discard the staged changes and reload the latest saved permissions?')) return;
-    const latest = await reload(); if (latest) reset(latest);
-  };
-  const save = async () => {
-    const ok = await f.submit(async values => {
-      await put(`/admin/roles/${base.id}`, { name: base.name, description: base.description ?? null, isActive: base.isActive, ...values }, base.version);
-      return true;
-    });
-    if (ok) {
-      setReview(false); onDirty(false); toast(`Permissions saved for ${base.name}.`);
-      const latest = await reload(); if (latest) reset(latest);
-      await refresh();
-    } else setReview(false);
-  };
-  const groupButtons = (name: string, groupRows: PermissionRow[]) => <div className="rights-group-actions">
-    <span>{groupRows.filter(r => isGranted(f.values, r)).length} / {groupRows.length} assigned</span>
-    <button className="linkbtn" disabled={disabled || !groupRows.some(r => r.active && !isGranted(f.values, r))}
-      aria-label={`Grant shown permissions in ${name}`} onClick={() => setGroupChange({ label: name, rows: groupRows.filter(r => r.active), grant: true })}>Grant shown</button>
-    <button className="linkbtn danger-link" disabled={disabled || !groupRows.some(r => isGranted(f.values, r))}
-      aria-label={`Revoke shown permissions in ${name}`} onClick={() => setGroupChange({ label: name, rows: groupRows, grant: false })}>Revoke shown</button>
-  </div>;
-  const decision = (selection: AccessSelection, active: boolean, row: PermissionRow) => !active ? 'Inactive role' : !row.active ? 'Deprecated'
-    : !isGranted(selection, row) ? 'Not granted' : missingDependencies(row, rows, selection).length ? 'Blocked by required access' : 'Granted';
-  const renderNode = (node: PermissionTreeNode): React.ReactNode => {
-    const row = node.row;
-    const changed = isGranted(base, row) !== isGranted(f.values, row);
-    const branch = row.nodeType !== 'Action';
-    const open = !collapsed.includes(row.id);
-    const state = selectionState(fullGroups.get(row.id) ?? node.shown, f.values);
-    return <section key={row.id} className={`rights-node rights-level-${row.nodeType.toLowerCase()}`}>
-      <div className={`rights-leaf${compare ? ' compare' : ''}${changed ? ' changed' : ''}`}>
-        <div>
-          <div className="rights-node-title">
-            {branch && <button type="button" className="linkbtn" aria-label={`${open ? 'Collapse' : 'Expand'} ${row.label}`} aria-expanded={open} onClick={() => collapse(row.id)}>{open ? '▾' : '▸'}</button>}
-            <label><input type="checkbox" checked={isGranted(f.values, row)} disabled={disabled || !row.active && !isGranted(f.values, row)}
-              aria-label={`${branch ? `${row.nodeType} ` : ''}${row.label} for ${base.name}`} onChange={e => f.setValues(p => setPermissions(p, [row], e.target.checked))} />
-              <span className="rights-permission-title">{row.label}<Badge>{row.kind === 'rights' ? 'Control' : row.nodeType}</Badge>{sensitive(row) && <Badge tone="warn">{row.risk}</Badge>}{!row.active && <Badge>Deprecated</Badge>}{changed && <Badge tone="info">Staged</Badge>}</span></label>
-          </div>
-          <code className="rights-permission-key">{row.key}</code><p className="hint">{row.description}{row.supportsScope ? ' User record scope applies.' : ''}</p>
-          {branch && <div className="rights-node-bulk"><input type="checkbox" readOnly disabled checked={state === 'all'} ref={el => { if (el) el.indeterminate = state === 'partial'; }} aria-label={`${row.label} descendant selection: ${state}`} />
-            <span>{state === 'partial' ? 'Partially assigned' : state === 'all' ? 'All assigned' : 'None assigned'}</span>{groupButtons(row.label, node.shown)}</div>}
-          {row.requires.length > 0 && <details><summary className="hint">Required access</summary><code>{row.requires.join(', ')}</code></details>}
-        </div>
-        <div className="rights-decision"><strong>{decision(f.values, base.isActive, row)}</strong><small>{base.name}</small></div>
-        {compare && <div className="rights-decision"><strong>{decision(compare, compare.isActive, row)}</strong><small>{compare.name}</small></div>}
-      </div>
-      {branch && open && <div className="rights-children">{node.children.map(renderNode)}</div>}
-    </section>;
-  };
-  return <div className="rights-workspace">
-    <Panel title="Configure role access" actions={<Link className="btn" to="/admin/audit?category=Access">Authorization history</Link>}>
-      <div className="rights-controls">
-        <label>Role to configure<select value={role.id} disabled={f.busy} onChange={e => onRoleChange(e.target.value)}>{roles.map(r => <option value={r.id} key={r.id}>{r.name}{r.isLocked ? ' · protected' : ''}{!r.isActive ? ' · inactive' : ''}</option>)}</select></label>
-        <label>Compare with role<select value={compareId} onChange={e => { setCompareId(e.target.value); if (!e.target.value && filters.assignment === 'different') updateFilter('assignment', ''); }}>
-          <option value="">No comparison</option>{roles.filter(r => r.id !== role.id).map(r => <option value={r.id} key={r.id}>{r.name}{!r.isActive ? ' · inactive' : ''}</option>)}
-        </select></label>
-      </div>
-      <div className="rights-summary"><Badge tone={base.isActive ? 'good' : 'warn'}>{base.isActive ? 'Active role' : 'Inactive role'}</Badge>
-        <span>{base.userCount} active assigned user{base.userCount === 1 ? '' : 's'}</span><span>{rows.filter(r => r.active && isGranted(f.values, r)).length} active permissions assigned</span>
-        {base.isLocked && <Badge tone="info">Protected system role</Badge>}
-      </div>
-      {base.description && <p className="hint">{base.description}</p>}
-      <p className="hint">These are direct role assignments. Unassigned permissions are denied. Users combine permissions from active roles; record scope and security boundaries also apply. Enabling parent access grants only that parent. Revoking it blocks all descendants while retaining their assignments for future re-enablement. Use Grant shown or Revoke shown for explicit bulk changes.</p>
-      {!base.isActive && <div className="notice warn">This role is inactive. Its retained assignments contribute no effective access until activation.</div>}
-      {base.isLocked && <div className="notice">The protected system role keeps all permissions. Clone it under Manage roles to configure a custom role.</div>}
-      <div className="rights-controls rights-filters">
-        <label>Search permissions<input type="search" placeholder="Name, key or description" value={filters.search} onChange={e => updateFilter('search', e.target.value)} /></label>
-        <label>Module<select value={filters.module} onChange={e => updateFilter('module', e.target.value)}><option value="">All modules</option>{options(rows.map(r => r.module)).map(x => <option key={x}>{x}</option>)}</select></label>
-        <label>Resource<select value={filters.resource} onChange={e => updateFilter('resource', e.target.value)}><option value="">All resources</option>{options(rows.map(r => r.resource)).map(x => <option key={x} value={x}>{rows.find(r => r.resource === x)?.resourceLabel ?? x}</option>)}</select></label>
-        <label>Action<select value={filters.action} onChange={e => updateFilter('action', e.target.value)}><option value="">All actions</option>{options(rows.map(r => r.action)).map(x => <option key={x}>{x}</option>)}</select></label>
-        <label>Sensitivity<select value={filters.risk} onChange={e => updateFilter('risk', e.target.value)}><option value="">All sensitivity levels</option>{options(rows.map(r => r.risk)).map(x => <option key={x}>{x}</option>)}</select></label>
-        <label>Assignment<select value={filters.assignment} onChange={e => updateFilter('assignment', e.target.value)}><option value="">All permissions</option><option value="granted">Assigned</option><option value="denied">Not assigned</option><option value="changed">Staged changes</option>{compare && <option value="different">Different from comparison</option>}</select></label>
-      </div>
-    </Panel>
-    <FormError error={f.error} fields={[]} />
-    {(stale || f.error?.isConflict) && <div className="notice warn" role="alert">This role has changed since editing started. Your draft is retained. <button className="linkbtn" onClick={reloadLatest}>Reload latest</button></div>}
-    {warnings.length > 0 && <div className="notice warn"><details><summary>{warnings.length} permission assignment{warnings.length === 1 ? '' : 's'} with missing dependencies</summary>
-      <p>Actions do not automatically grant their required permissions. Review the independent dependencies.</p><ul>{warnings.map(r => <li key={r.id}>{r.label}: requires <code>{missingDependencies(r, rows, f.values).join(', ')}</code></li>)}</ul>
-    </details></div>}
-    <div className="rights-toolbar"><span role="status">Showing {visible.length} of {rows.length} permissions</span><div>
-      <button className="btn" onClick={() => setCollapsed([])}>Expand all</button>
-      <button className="btn" onClick={() => setCollapsed(rows.filter(r => r.nodeType !== 'Action').map(r => r.id))}>Collapse all</button>
-      <button className="btn" onClick={() => setFilters(emptyFilters)}>Clear filters</button>
-    </div></div>
-    {compare && <div className="rights-compare-legend"><strong>Left: {base.name} (includes staged changes)</strong><strong>Right: {compare.name} (saved permissions, read only)</strong></div>}
-    {visible.length === 0 ? <StateMessage kind="nomatch" /> : <div className="rights-tree" aria-label="Permission registry">
-      {tree.map(node => renderNode(node))}
-    </div>}
-    <div className="rights-savebar rights-toolbar"><p aria-live="polite"><strong>{changes.grants.length + changes.revocations.length} staged changes</strong> · {changes.grants.length} grant{changes.grants.length === 1 ? '' : 's'}, {changes.revocations.length} revocation{changes.revocations.length === 1 ? '' : 's'}</p><div>
-      <button className="btn" disabled={!f.dirty || f.busy} onClick={() => { if (window.confirm('Discard the staged permission changes?')) reset(base); }}>Discard changes</button>
-      <button className="btn btn-primary" disabled={!f.dirty || disabled || stale} onClick={() => setReview(true)}>Review and save</button>
-    </div></div>
-    {groupChange && <Dialog title={groupChange.grant ? 'Grant permission group' : 'Revoke permission group'} onClose={() => setGroupChange(null)}>
-      <p>{groupChange.grant ? 'Stage explicit grants' : 'Stage revocations'} for {groupChange.rows.length} shown permissions in <strong>{groupChange.label}</strong>?</p>
-      <p>Only the permissions listed below are included. The changes take effect after Review and save.</p>
-      {groupChange.grant && groupChange.rows.some(sensitive) && <div className="notice warn">This selection includes sensitive permissions. Review each grant.</div>}
-      <ul className="rights-preview">{groupChange.rows.map(r => <li key={r.id}>{r.label} <code>{r.key}</code></li>)}</ul>
-      <div className="form-actions"><button className="btn" onClick={() => setGroupChange(null)}>Cancel</button><button className="btn btn-primary" onClick={() => {
-        f.setValues(p => setPermissions(p, groupChange.rows, groupChange.grant)); setGroupChange(null);
-      }}>Stage group change</button></div>
-    </Dialog>}
-    {review && <Dialog title="Review permission changes" onClose={() => { if (!f.busy) setReview(false); }}>
-      <p>Save {changes.grants.length} grants and {changes.revocations.length} revocations for <strong>{base.name}</strong>?</p>
-      <p>{base.userCount} active directly assigned users may be affected. Other active roles can still grant a revoked permission. Directory group members may also be affected.</p>
-      {changes.grants.some(sensitive) && <div className="notice warn">Sensitive permissions will be granted. Saving confirms that you reviewed these grants.</div>}
-      <ul className="rights-preview">{changes.grants.map(r => <li key={r.id}><Badge tone="good">Grant</Badge> {r.label} <code>{r.key}</code></li>)}
-        {changes.revocations.map(r => <li key={r.id}><Badge tone="warn">Revoke</Badge> {r.label} <code>{r.key}</code></li>)}</ul>
-      <p className="hint">The server validates grant authority and saves this role's changes together. Effective access is resolved again by the server on subsequent requests.</p>
-      <div className="form-actions"><button className="btn" disabled={f.busy} onClick={() => setReview(false)}>Back to editor</button><button className="btn btn-primary" disabled={f.busy || stale} onClick={save}>{f.busy ? 'Saving…' : 'Save permissions'}</button></div>
-    </Dialog>}
-  </div>;
 }
 
 function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => void }) {
@@ -478,13 +367,12 @@ function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => vo
   const refresh = useRefresh();
   const nav = useNavigate();
   const save = async () => {
-    // New roles start with no grants; administrators explicitly configure access on Rights and permissions.
-    const ok = await f.submit(async v => {
-      const body = { ...v, rights: role?.rights ?? [], permissions: role?.permissions ?? [] };
-      if (role) await put(`/admin/roles/${role.id}`, body, role.version); else await post('/admin/roles', body);
-      return true;
+    // A new role starts with no rights; they are assigned on the Rights page, where they are reviewed.
+    const result = await f.submit(async v => {
+      if (role) { await put(`/admin/roles/${role.id}`, v, role.version); return { id: role.id }; }
+      return post<{ id: number }>('/admin/roles', { ...v, rights: [] });
     });
-    if (ok) { toast(role ? 'Role saved.' : 'Role added. Set its rights on the Rights page.'); refresh(); onClose(); if (!role) nav('/admin/rights'); }
+    if (result) { toast(role ? 'Role saved.' : 'Role added. Set its rights on the Rights page.'); refresh(); onClose(); if (!role) nav(`/admin/rights?role=${result.id}`); }
   };
   return (
     <Dialog title={role ? `Role ${role.name}` : 'New role'} onClose={onClose}>
@@ -493,7 +381,7 @@ function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => vo
         <TextInput label="Role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} maxLength={60} />
         <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} maxLength={300} />
         {role && <Checkbox label="Role is active" checked={f.values.isActive} onChange={v => f.set('isActive', v)} disabled={role.isLocked}
-          hint={role.isLocked ? 'The protected TIO Manager role cannot be deactivated.' : 'Inactive roles stop contributing permissions on the next access resolution.'} />}
+          hint={role.isLocked ? 'The protected TIO Manager role cannot be deactivated.' : 'An inactive role gives nobody any rights.'} />}
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Save role</button></div>
     </Dialog>
@@ -506,8 +394,8 @@ export function AdminNetworkZones() {
 }
 
 export function AdminReference({ fixedList, title = 'Reference lists', sub }: { fixedList?: string; title?: string; sub?: string } = {}) {
-  const canCreate = usePermission('AdminConfig', 'Create');
-  const canMaintain = usePermission('AdminConfig', 'Maintain');
+  const canCreate = useRight('AdminConfig', 'Create');
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['admin-lookups'], queryFn: () => get<LookupRow[]>('/admin/lookups') });
   const [picked, setList] = useState('');
   const list = fixedList ?? picked;
@@ -542,8 +430,8 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
 type Policy = { id: number; recordType: string; scope: string; maxAgeDays?: number; usesNextReviewDate: boolean; effectiveFrom: string; notes?: string; isActive: boolean; version: string };
 
 export function AdminPolicies() {
-  const canCreate = usePermission('AdminConfig', 'Create');
-  const canMaintain = usePermission('AdminConfig', 'Maintain');
+  const canCreate = useRight('AdminConfig', 'Create');
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['policies'], queryFn: () => get<Policy[]>('/review-policies') });
   const [edit, setEdit] = useState<Policy | 'new' | null>(null);
   return (
@@ -566,7 +454,7 @@ export function AdminPolicies() {
 }
 
 export function AdminJira() {
-  const canMaintain = usePermission('AdminConfig', 'Maintain');
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['admin-jira'], queryFn: () => get<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string }[]>('/admin/jira-instances') });
   const [edit, setEdit] = useState<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string } | null>(null);
   return (
@@ -584,7 +472,7 @@ export function AdminJira() {
 }
 
 export function AdminSettings() {
-  const canMaintain = usePermission('AdminSettings', 'Maintain');
+  const canMaintain = useRight('AdminSettings', 'Maintain');
   const q = useQuery({ queryKey: ['admin-settings'], queryFn: () => get<{ id: number; key: string; value: string; description?: string; version: string }[]>('/admin/settings') });
   const [edit, setEdit] = useState<{ id: number; key: string; value: string; version: string } | null>(null);
   return (
@@ -606,7 +494,7 @@ type Audit = { id: number; at: string; userName?: string; action: string; catego
 export function AdminAudit() {
   const me = useMe().data!;
   const [f, set] = useUrlState({ entityType: '', action: '', category: '', page: '1', pageSize: '25' });
-  const allowed = me.grants.audit || me.isAdministrator;
+  const allowed = canAudit(me) || isAdministrator(me);
   const q = useQuery({ queryKey: ['audit', f], queryFn: () => get<Paged<Audit>>(`/admin/audit${qs(f)}`), enabled: allowed, retry: false });
   const ex = useQuery({ queryKey: ['exports-log'], queryFn: () => get<Paged<{ id: number; at: string; report: string; filters: string; rowCount: number; user?: string }>>('/admin/exports?pageSize=10'), enabled: allowed, retry: false });
   return (
@@ -643,7 +531,7 @@ export function AdminArchived() {
       <div className="toolbar"><SelectInput label="Record type" value={type} onChange={setType} options={['Client', 'Region', 'Project', 'Contract', 'Contact', 'Environment', 'Installation', 'Asset', 'Component'].map(t => ({ value: t, label: t }))} empty="All" /></div>
       <DataTable<Archived> rowKey={a => `${a.recordType}-${a.id}`} rows={q.data} loading={q.isLoading} error={q.error} empty={type ? 'nomatch' : 'none'} columns={[
         { key: 't', header: 'Type', render: a => a.recordType }, { key: 'l', header: 'Record', render: a => a.label }, { key: 'w', header: 'Archived', render: a => fmtDateTime(a.archivedAt) },
-        { key: 'r', header: 'Reason', render: a => a.archiveReason }, { key: 'x', header: '', render: a => hasPermission(me, resourceForRecord(a.recordType), 'ArchiveRestore') && <button className="linkbtn" onClick={() => setRestore(a)}>Restore</button> }
+        { key: 'r', header: 'Reason', render: a => a.archiveReason }, { key: 'x', header: '', render: a => hasRight(me, resourceForRecord(a.recordType), 'ArchiveRestore') && <button className="linkbtn" onClick={() => setRestore(a)}>Restore</button> }
       ]} />
       {restore && <ActionDialog title={`Restore ${restore.recordType}`} path={`/admin/archived/${restore.recordType}/${restore.id}/restore`} onClose={() => setRestore(null)} submitLabel="Restore"
         intro="Restore re-checks scope, parent records and name conflicts." fields={[{ name: 'reason', label: 'Restore reason', kind: 'textarea', required: true }]} />}
@@ -678,7 +566,7 @@ function ZoneSettingDialog({ setting, onClose }: { setting: { id: number; key: s
 type Storage = { location: string; path?: string; defaultLocation: string; overridden: boolean; maxFileMB: number; maxFilesPerUpload: number; extensions: string[]; files: number; bytes: number;
   defaults: { maxFileMB: number; maxFilesPerUpload: number; extensions: string[] }; blocked: string[]; limits: { maxFileMB: number; maxFilesPerUpload: number } };
 function AttachmentStorage() {
-  const canMaintain = usePermission('AdminSettings', 'Maintain');
+  const canMaintain = useRight('AdminSettings', 'Maintain');
   const q = useQuery({ queryKey: ['attachment-storage'], queryFn: () => get<Storage>('/admin/attachment-storage') });
   const [edit, setEdit] = useState(false);
   const d = q.data;

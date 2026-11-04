@@ -14,14 +14,15 @@ public class PermissionRegistryTests
     [Fact]
     public void Registry_keys_are_unique_stable_action_keys_with_hierarchy_metadata()
     {
-        var entries = ResourcePermissions.Registry;
+        var entries = RightsCatalog.All;
         Assert.NotEmpty(entries);
         Assert.Equal(entries.Length, entries.Select(x => x.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count());
         Assert.All(entries, entry =>
         {
-            Assert.Equal(ResourcePermissions.KeyOf(entry.ResourceType, entry.Action), entry.Key);
+            Assert.False(string.IsNullOrWhiteSpace(entry.Label));
             Assert.False(string.IsNullOrWhiteSpace(entry.Module));
-            Assert.True(entry.NodeType == "Module" ? entry.ParentKey is null : !string.IsNullOrWhiteSpace(entry.ParentKey));
+            Assert.Contains(entry.Kind, new[] { "Access", "Action" });
+            Assert.All(entry.Requires, required => Assert.NotNull(RightsCatalog.Find(required)));
             Assert.Contains(entry.RiskLevel, new[] { "Normal", "High" });
         });
     }
@@ -29,8 +30,8 @@ public class PermissionRegistryTests
     [Fact]
     public void Deprecated_registry_keys_are_not_implicitly_replaced_by_display_names()
     {
-        Assert.Contains(ResourcePermissions.Registry, x => x.Key == "Cases:Delete");
-        Assert.DoesNotContain(ResourcePermissions.Registry, x => x.Key == "Cases:Permanently delete cases");
+        Assert.Contains(RightsCatalog.All, x => x.Key == "Cases:Delete");
+        Assert.DoesNotContain(RightsCatalog.All, x => x.Key == "Cases:Permanently delete cases");
     }
 }
 

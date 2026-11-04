@@ -1,11 +1,11 @@
-import { hasPermission } from '../../permissions';
+import { hasRight } from '../../rights';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { api, ApiError, get, post } from '../../api';
 import { fmtDateTime, label } from '../../format';
 import { useDebounced, useEnumLabel, useLeaveGuard, useMe } from '../../hooks';
-import { canDownloadReport, canExportReport } from '../../exportPermissions';
+import { canDownloadReport, canExportReport } from '../../exportRights';
 import { Icon } from '../../ui/Icon';
 import { TimeZoneSelect } from '../../ui/pickers';
 import { Badge, DataTable, Dialog, SelectInput, StateMessage, TextInput, useToast, type Column } from '../../ui/kit';
@@ -357,7 +357,7 @@ export function BuilderScheduleDialog({ savedId, savedName, edit, onClose, onDon
   const people = [{ value: String(me.id), label: `${me.displayName} (me)` }, ...(users.data ?? []).filter(u => u.id !== me.id).map(u => ({ value: String(u.id), label: u.name }))];
   return (
     <Dialog title={edit ? 'Edit scheduled report' : `Schedule “${savedName}”`} onClose={onClose} wide>
-      <div className="notice">Each run queues one file per recipient, generated with that recipient's own access at run time, and tells them in the hub's notifications (the hub sends no e-mail). A recipient who no longer has the Export permission gets a failed run, not a file.</div>
+      <div className="notice">Each run queues one file per recipient, generated with that recipient's own access at run time, and tells them in the hub's notifications (the hub sends no e-mail). A recipient who no longer has the Export files right gets a failed run, not a file.</div>
       {error && <div className="notice error" role="alert">{error.summary}</div>}
       <div className="form-grid">
         <TextInput label="Name" required value={v.name} onChange={x => setV({ ...v, name: x })} error={error?.field('name')} maxLength={120} />
@@ -698,7 +698,7 @@ export function CasesBuilder() {
       <div className="rb-footer" role="toolbar" aria-label="Report actions">
         <span className="hint rb-footer-state">{exportReason ?? `${p?.total.toLocaleString()} case(s) ready to export · max ${m.limits.maxRows.toLocaleString()} rows · files kept ${m.limits.retentionDays} days`}</span>
         <button className="btn" onClick={() => dirty ? setConfirmReset(true) : resetAll()} disabled={!dirty}>{saved ? 'Revert changes' : 'Reset'}</button>
-        <button className="btn" onClick={() => setDialog('save')} disabled={!hasPermission(permissionUser, 'SavedReports', saved ? 'Maintain' : 'Create') || invalid || (saved !== null && (!saved.isOwner || !dirty))} title={saved && !saved.isOwner ? 'Only the owner can change this report.' : undefined}>Save configuration</button>
+        <button className="btn" onClick={() => setDialog('save')} disabled={!hasRight(permissionUser, 'SavedReports', saved ? 'Maintain' : 'Create') || invalid || (saved !== null && (!saved.isOwner || !dirty))} title={saved && !saved.isOwner ? 'Only the owner can change this report.' : undefined}>Save configuration</button>
         <button className="btn" onClick={() => setDialog('saveAs')} disabled={invalid}>Save as…</button>
         {exportAllowed && <button className="btn btn-primary" onClick={() => setDialog('xlsx')} disabled={exportBlocked} title={exportReason}><Icon name="excel" size={14} /> Export Excel</button>}
         {exportAllowed && <button className="btn btn-primary" onClick={() => setDialog('pdf')} disabled={exportBlocked} title={exportReason}><Icon name="download" size={14} /> Export PDF</button>}

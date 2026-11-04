@@ -38,7 +38,7 @@ public static class CatalogueEndpoints
         var pg = api.MapGroup("/products").WithTags("Products");
         pg.MapGet("", async (string? q, bool? includeRetired, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var query = db.Products.AsNoTracking().AsQueryable();
             if (includeRetired != true) query = query.Where(p => p.IsActive);
             if (!string.IsNullOrWhiteSpace(q)) query = query.Where(p => p.Code.Contains(q) || p.Name.Contains(q) || (p.Aliases != null && p.Aliases.Contains(q)) || (p.Category != null && p.Category.Contains(q)));
@@ -60,7 +60,7 @@ public static class CatalogueEndpoints
         });
         pg.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var p = await db.Products.AsNoTracking().Include(x => x.OwningTeam).Include(x => x.Modules).Include(x => x.Versions)
                 .Include(x => x.Features).ThenInclude(f => f.Module).Include(x => x.Microservices).ThenInclude(m => m.Module)
                 .Include(x => x.Microservices).ThenInclude(m => m.Versions).Include(x => x.Developers)
@@ -114,14 +114,14 @@ public static class CatalogueEndpoints
                 projects, contracts,
                 usageNote = "Only clients, projects and contracts you can access are listed.",
                 p.CreatedAt, p.UpdatedAt,
-                permissions = new { canEdit = access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.Maintain), canDelete = access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.Delete) }
+                permissions = new { canEdit = access.Me.HasRight(RightKeys.Products, RightKeys.Maintain), canDelete = access.Me.HasRight(RightKeys.Products, RightKeys.Delete) }
             });
         });
         // Owner request (20 Oct 2026): the TIO Manager can delete a product that is not in use. A product that is installed somewhere or
         // supported by a project is refused (retire it instead), so no client record loses its product.
         pg.MapDelete("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, UserContext me, Attachments.AttachmentStore files, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Products, RightKeys.Delete);
             var p = await db.Products.Include(x => x.Modules).Include(x => x.Versions).Include(x => x.Features).Include(x => x.Developers)
                 .Include(x => x.Microservices).ThenInclude(m => m.Versions).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The product");
             if (ctx.Request.Headers.IfMatch.Count > 0) db.ExpectVersion(ctx, p); // table deletes send no version
@@ -148,7 +148,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPost("", async (ProductInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Create);
+            me.RequireRight(RightKeys.Products, RightKeys.Create);
             var p = new Product();
             await ApplyProductAsync(p, input, db, ct);
             db.Products.Add(p);
@@ -157,7 +157,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPut("/{id:long}", async (long id, ProductInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             var p = await db.Products.Include(x => x.Developers).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The product");
             db.ExpectVersion(ctx, p);
             if (!string.Equals((input.Code ?? "").Trim(), p.Code, StringComparison.OrdinalIgnoreCase))
@@ -168,7 +168,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPost("/{id:long}/modules", async (long id, ModuleInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             if (!await db.Products.AnyAsync(p => p.Id == id, ct)) throw new NotFoundException("The product");
             new Check().Text("code", input.Code, 50, "the module code", true).Text("name", input.Name, 150, "the module name", true)
                 .Text("description", input.Description, 2000, "Description").ThrowIfAny();
@@ -182,7 +182,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPut("/modules/{moduleId:long}", async (long moduleId, ModuleInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             var m = await db.ProductModules.FirstOrDefaultAsync(x => x.Id == moduleId, ct) ?? throw new NotFoundException("The module");
             db.ExpectVersion(ctx, m);
             if (!string.Equals((input.Code ?? "").Trim(), m.Code, StringComparison.OrdinalIgnoreCase))
@@ -198,7 +198,7 @@ public static class CatalogueEndpoints
         // otherwise the answer says where they are used (retire them instead). Deleting needs the Delete records right.
         pg.MapDelete("/modules/{moduleId:long}", async (long moduleId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Products, RightKeys.Delete);
             var m = await db.ProductModules.FirstOrDefaultAsync(x => x.Id == moduleId, ct) ?? throw new NotFoundException("The module");
             var installed = await db.Installations.IgnoreQueryFilters().AnyAsync(i => i.ModuleId == moduleId, ct);
             if (installed) InUse("module", $"Module {m.Code} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
@@ -211,7 +211,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPost("/{id:long}/features", async (long id, FeatureInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             if (!await db.Products.AnyAsync(p => p.Id == id, ct)) throw new NotFoundException("The product");
             var f = new ProductFeature { ProductId = id };
             await ApplyFeatureAsync(f, input, db, ct);
@@ -221,7 +221,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPut("/features/{featureId:long}", async (long featureId, FeatureInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             var f = await db.ProductFeatures.FirstOrDefaultAsync(x => x.Id == featureId, ct) ?? throw new NotFoundException("The feature");
             db.ExpectVersion(ctx, f);
             await ApplyFeatureAsync(f, input, db, ct);
@@ -230,7 +230,7 @@ public static class CatalogueEndpoints
         });
         pg.MapDelete("/features/{featureId:long}", async (long featureId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Products, RightKeys.Delete);
             var f = await db.ProductFeatures.FirstOrDefaultAsync(x => x.Id == featureId, ct) ?? throw new NotFoundException("The feature");
             db.AuditReason = $"Feature {f.Name} deleted";
             db.ProductFeatures.Remove(f);
@@ -239,7 +239,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPost("/{id:long}/microservices", async (long id, MicroserviceInput input, HubDbContext db, UserContext me, LookupService lookups, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             if (!await db.Products.AnyAsync(p => p.Id == id, ct)) throw new NotFoundException("The product");
             var m = new ProductMicroservice { ProductId = id };
             await ApplyMicroserviceAsync(m, input, db, lookups, ct);
@@ -249,7 +249,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPut("/microservices/{microserviceId:long}", async (long microserviceId, MicroserviceInput input, HttpContext ctx, HubDbContext db, UserContext me, LookupService lookups, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             var m = await db.ProductMicroservices.FirstOrDefaultAsync(x => x.Id == microserviceId, ct) ?? throw new NotFoundException("The microservice");
             db.ExpectVersion(ctx, m);
             await ApplyMicroserviceAsync(m, input, db, lookups, ct);
@@ -258,7 +258,7 @@ public static class CatalogueEndpoints
         });
         pg.MapDelete("/microservices/{microserviceId:long}", async (long microserviceId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Products, RightKeys.Delete);
             var m = await db.ProductMicroservices.Include(x => x.Versions).FirstOrDefaultAsync(x => x.Id == microserviceId, ct) ?? throw new NotFoundException("The microservice");
             var deployed = await db.Components.IgnoreQueryFilters().AnyAsync(c => c.MicroserviceId == microserviceId, ct);
             if (deployed) InUse("microservice", $"{m.Name} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
@@ -270,7 +270,7 @@ public static class CatalogueEndpoints
         });
         pg.MapGet("/microservices/{microserviceId:long}", async (long microserviceId, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var m = await db.ProductMicroservices.AsNoTracking().Include(x => x.Module).Include(x => x.Versions).FirstOrDefaultAsync(x => x.Id == microserviceId, ct)
                 ?? throw new NotFoundException("The microservice");
             var product = await db.Products.AsNoTracking().Where(x => x.Id == m.ProductId).Select(x => new { x.Id, x.Code, x.Name }).FirstAsync(ct);
@@ -286,12 +286,12 @@ public static class CatalogueEndpoints
             {
                 m.Id, m.Name, m.Description, m.ModuleId, module = m.Module == null ? null : new { m.Module.Id, m.Module.Code, m.Module.Name }, m.Role, m.IsActive, product,
                 versions = m.Versions.OrderByDescending(v => v.SortKey).Select(v => new { v.Id, v.Version, v.ReleasedOn, v.ReleaseNotes, v.IsActive, rowVersion = Convert.ToBase64String(v.RowVersion) }),
-                deployments, permissions = new { canEdit = access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.Maintain) }
+                deployments, permissions = new { canEdit = access.Me.HasRight(RightKeys.Products, RightKeys.Maintain) }
             });
         });
         pg.MapPost("/microservices/{microserviceId:long}/versions", async (long microserviceId, MicroserviceVersionInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             if (!await db.ProductMicroservices.AnyAsync(x => x.Id == microserviceId, ct)) throw new NotFoundException("The microservice");
             new Check().Text("version", input.Version, 50, "the version number", true).Text("releaseNotes", input.ReleaseNotes, 8000, "Release notes").ThrowIfAny();
             var v = input.Version!.Trim();
@@ -304,7 +304,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPut("/microservice-versions/{versionId:long}", async (long versionId, MicroserviceVersionInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             var mv = await db.MicroserviceVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
             db.ExpectVersion(ctx, mv);
             var renamed = (input.Version ?? "").Trim();
@@ -328,7 +328,7 @@ public static class CatalogueEndpoints
         });
         pg.MapDelete("/microservice-versions/{versionId:long}", async (long versionId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Products, RightKeys.Delete);
             var mv = await db.MicroserviceVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
             var deployed = await db.ComponentHosts.IgnoreQueryFilters().AnyAsync(h => h.MicroserviceVersionId == versionId, ct);
             if (deployed) InUse("version", $"Version {mv.Version} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
@@ -339,7 +339,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPost("/{id:long}/versions", async (long id, VersionInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             if (!await db.Products.AnyAsync(p => p.Id == id, ct)) throw new NotFoundException("The product");
             new Check().Text("version", input.Version, 50, "the version", true).ThrowIfAny();
             var v = input.Version!.Trim();
@@ -352,7 +352,7 @@ public static class CatalogueEndpoints
         });
         pg.MapPut("/versions/{versionId:long}", async (long versionId, VersionInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Products, RightKeys.Maintain);
             var pv = await db.ProductVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
             db.ExpectVersion(ctx, pv);
             var renamed = (input.Version ?? "").Trim();
@@ -375,7 +375,7 @@ public static class CatalogueEndpoints
         });
         pg.MapDelete("/versions/{versionId:long}", async (long versionId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Products, ResourcePermissions.Delete);
+            me.RequireRight(RightKeys.Products, RightKeys.Delete);
             var pv = await db.ProductVersions.FirstOrDefaultAsync(x => x.Id == versionId, ct) ?? throw new NotFoundException("The version");
             if (await VersionInUseAsync(db, versionId, ct))
                 InUse("version", $"Version {pv.Version} is referenced by existing records. Remove its dependencies, or untick Active to retire it.");
@@ -392,7 +392,7 @@ public static class CatalogueEndpoints
         ig.MapGet("", async (long? clientId, long? regionId, long? environmentId, long? productId, long? versionId, bool? unknownVersion, string? q, int? page, int? pageSize,
             HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var query = Filter(db.Installations.AsNoTracking(), clientId, regionId, environmentId, productId, versionId, unknownVersion, q);
             return Results.Ok(await query.OrderBy(i => i.Environment!.Client!.Name).ThenBy(i => i.Environment!.Name).ThenBy(i => i.Product!.Code).ThenBy(i => i.InstanceName)
                 .Select(i => new
@@ -407,7 +407,7 @@ public static class CatalogueEndpoints
 
         ig.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var i = await db.Installations.AsNoTracking().Include(x => x.Environment).ThenInclude(e => e!.Client).Include(x => x.Environment).ThenInclude(e => e!.Region)
                 .Include(x => x.Product).Include(x => x.Module).Include(x => x.ProductVersion).Include(x => x.Owner)
                 .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The installation");
@@ -436,7 +436,7 @@ public static class CatalogueEndpoints
         // Which product microservice runs on which server of the installation's environment.
         ig.MapGet("/{id:long}/deployment", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var i = await db.Installations.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The installation");
             var microservices = await db.ProductMicroservices.AsNoTracking().Where(m => m.ProductId == i.ProductId)
                 .OrderBy(m => m.Module == null ? "" : m.Module.Code).ThenBy(m => m.Name)
@@ -475,7 +475,7 @@ public static class CatalogueEndpoints
         ig.MapPut("/{id:long}/deployment/{assetId:long}", async (long id, long assetId, DeploymentInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var inst = await db.Installations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The installation");
-            access.RequireMaintain(ResourcePermissions.Installations, inst.ClientId, null);
+            access.RequireMaintain(RightKeys.Installations, inst.ClientId, null);
             var server = await db.Assets.FirstOrDefaultAsync(a => a.Id == assetId && a.EnvironmentId == inst.EnvironmentId, ct)
                 ?? throw new ValidationException("assetId", "Select a server of this installation's environment.");
             await Deployment.ApplyAsync(db, inst, server, (input.MicroserviceIds ?? []).Distinct().ToList(), ct);
@@ -486,7 +486,7 @@ public static class CatalogueEndpoints
         ig.MapPost("", async (InstallationInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var env = await db.Environments.FirstOrDefaultAsync(e => e.Id == input.EnvironmentId, ct) ?? throw new ValidationException("environmentId", "Select an environment you can access.");
-            access.RequireEngineerFor(env.ClientId, resource: ResourcePermissions.Installations);
+            access.RequireEngineerFor(env.ClientId, resource: RightKeys.Installations);
             var i = new Installation { EnvironmentId = env.Id, ClientId = env.ClientId };
             await ApplyAsync(i, input, db, access, isNew: true, ct);
             // Owner decision (20 Oct 2026): version evidence is optional everywhere; the history entry is recorded either way.
@@ -512,7 +512,7 @@ public static class CatalogueEndpoints
         {
             var i = await db.Installations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The installation");
             var env = await db.Environments.FirstAsync(e => e.Id == i.EnvironmentId, ct);
-            access.RequireMaintain(ResourcePermissions.Installations, i.ClientId, null, i.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
+            access.RequireMaintain(RightKeys.Installations, i.ClientId, null, i.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
             db.ExpectVersion(ctx, i);
             if (input.ProductVersionId != i.ProductVersionId)
                 throw new ValidationException("productVersionId", "Change the version with Confirm version, which records the evidence and history.");
@@ -526,7 +526,7 @@ public static class CatalogueEndpoints
         {
             var i = await db.Installations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The installation");
             var env = await db.Environments.FirstAsync(e => e.Id == i.EnvironmentId, ct);
-            access.RequireMaintain(ResourcePermissions.Installations, i.ClientId, null, i.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
+            access.RequireMaintain(RightKeys.Installations, i.ClientId, null, i.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
             db.ExpectVersion(ctx, i);
             var check = new Check();
             check.Text("reason", input.Reason, 1000, "the reason", true).Text("evidence", input.Evidence, 1000, "Evidence");
@@ -551,7 +551,7 @@ public static class CatalogueEndpoints
         ig.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var i = await db.Installations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The installation");
-            access.RequireArchiveFor(i.ClientId, resource: ResourcePermissions.Installations);
+            access.RequireArchiveFor(i.ClientId, resource: RightKeys.Installations);
             db.ExpectVersion(ctx, i);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(i, access.Me, DateTimeOffset.UtcNow, reason);
@@ -564,7 +564,7 @@ public static class CatalogueEndpoints
         api.MapGet("/version-matrix", async (long? clientId, long? regionId, long? productId, string? environmentType, string? country,
             HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var q = Filter(db.Installations.AsNoTracking(), clientId, regionId, null, productId, null, null, null);
             if (environmentType is not null) q = q.Where(i => i.Environment!.Type == environmentType);
             if (!string.IsNullOrWhiteSpace(country)) q = country == "Unknown" ? q.Where(i => i.Environment!.Client!.CountryUnknown) : q.Where(i => i.Environment!.Client!.Country == country);
@@ -718,7 +718,7 @@ public static class CatalogueEndpoints
         if (input.ModuleId is not null && !await db.ProductModules.AnyAsync(m => m.Id == input.ModuleId && m.ProductId == productId, ct)) check.Add("moduleId", "Select a module of this product.");
         if (isNew && input.ProductVersionId is not null && !await db.ProductVersions.AnyAsync(v => v.Id == input.ProductVersionId && v.ProductId == productId, ct)) check.Add("productVersionId", "Select a version of this product, or leave it Unknown.");
         await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, i.ClientId, null, "the owner", ct);
-        if (!isNew) access.CheckOwnerChange(check, "ownerUserId", i.OwnerUserId, input.OwnerUserId, resource: ResourcePermissions.Installations);
+        if (!isNew) access.CheckOwnerChange(check, "ownerUserId", i.OwnerUserId, input.OwnerUserId, resource: RightKeys.Installations);
         check.ThrowIfAny();
         var norm = Text.Norm(input.InstanceName);
         var envId = isNew ? input.EnvironmentId!.Value : i.EnvironmentId;

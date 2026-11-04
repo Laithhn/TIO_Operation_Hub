@@ -1,4 +1,4 @@
-import { usePermission } from '../../hooks';
+import { useRight } from '../../hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -16,9 +16,9 @@ type Row = { id: number; name: string; description?: string | null; visibility: 
   updatedAt: string; lastRunAt?: string | null; schedules: number; shares: number };
 
 export function MyReports() {
-  const canCreate = usePermission('SavedReports', 'Create');
-  const canMaintain = usePermission('SavedReports', 'Maintain');
-  const canDelete = usePermission('SavedReports', 'Delete');
+  const canCreate = useRight('SavedReports', 'Create');
+  const canMaintain = useRight('SavedReports', 'Maintain');
+  const canDelete = useRight('SavedReports', 'Delete');
   const toast = useToast();
   const nav = useNavigate();
   const qc = useQueryClient();

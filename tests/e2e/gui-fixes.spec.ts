@@ -27,13 +27,13 @@ async function apiStatus(page: Page, path: string) {
   return page.evaluate(async p => (await fetch(`/api/v1${p}`, { headers: { Accept: 'application/json' } })).status, path);
 }
 
-/** A fresh account holding a new role with exactly these rights and permissions, signed in through the development cookie. */
-async function signInWithRole(page: Page, rights: string[], permissions: string[]) {
+/** A fresh account holding a new role with exactly these rights, signed in through the development cookie. */
+async function signInWithRole(page: Page, rights: string[]) {
   // GET /me issues the anti-forgery cookie before direct API writes.
   await api(page, '/me');
-  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('GUI role'), rights, permissions });
+  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('GUI role'), rights });
   const accountName = `DEV\\${unique('gui')}`;
-  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleId: created.id });
+  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleIds: [created.id] });
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(accountName), url: test.info().project.use.baseURL as string }]);
 }
 
@@ -83,10 +83,10 @@ test.describe('GUI-01 Reporting Center route', () => {
 
   test('unauthorized: the hub shows its own access-denied page with a way back, and the server refuses the reports', async ({ page }) => {
     await page.goto('/');
-    await signInWithRole(page, [], []);
+    await signInWithRole(page, []);
     await page.goto('/reporting-center');
-    const me = await api<{ grants: { export: boolean } }>(page, '/me');
-    expect(me.grants.export).toBe(false);
+    const me = await api<{ rights: string[] }>(page, '/me');
+    expect(me.rights).not.toContain('Platform:Export');
     await expect(page.getByRole('heading', { level: 1, name: 'Access denied' })).toBeVisible();
     await expect(page.getByText('Your roles do not grant the permissions required for this page. Ask an administrator to review your access.')).toBeVisible();
     await expect(page.getByText(/Report Manager/)).toHaveCount(0);
@@ -373,9 +373,9 @@ test.describe('GUI-07 Table toolbar on phones', () => {
     expect(text.trim().split(/\r\n/).length - 1).toBe(shown);
   });
 
-  test('Export CSV is offered only with the Export permission', async ({ page }) => {
+  test('Export CSV is offered only with the Export files right', async ({ page }) => {
     await page.goto('/products');
-    await signInWithRole(page, [], ['module.products:Access', 'area.Products:Access', 'Products:View']);
+    await signInWithRole(page, ['Products:View']);
     await page.goto('/products');
     await expect(vtTable(page).getByRole('button', { name: /^Filter/ })).toBeVisible();
     await expect(vtTable(page).getByRole('button', { name: 'Export CSV' })).toHaveCount(0);
@@ -478,12 +478,12 @@ test.describe('GUI-10 Global navigation', () => {
 test.describe('GUI-11 Roles with long lists of rights', () => {
   test('identity and actions stay visible at 1024 and 1440 px; the full list opens by keyboard', async ({ page }) => {
     await page.goto('/admin/roles');
-    const defs = await api<{ permissions: { key: string }[]; rights: { key: string }[] }>(page, '/admin/roles');
+    const defs = await api<{ catalog: { key: string }[] }>(page, '/admin/roles');
     const many = unique('Many rights');
     const few = unique('Few rights');
-    await api(page, '/admin/roles', { name: many, rights: defs.rights.map(r => r.key), permissions: defs.permissions.map(p => p.key) });
-    await api(page, '/admin/roles', { name: few, rights: [], permissions: defs.permissions.slice(0, 1).map(p => p.key) });
-    const total = defs.rights.length + defs.permissions.length;
+    await api(page, '/admin/roles', { name: many, rights: defs.catalog.map(r => r.key) });
+    await api(page, '/admin/roles', { name: few, rights: defs.catalog.slice(0, 1).map(r => r.key) });
+    const total = defs.catalog.length;
     expect(total).toBeGreaterThan(20);
 
     for (const width of [1024, 1440]) {
@@ -536,6 +536,9 @@ test.describe('GUI-12 Target sizes', () => {
     await page.goto('/admin/roles');
     await atLeast(page.getByRole('button', { name: /^Edit role / }).first(), 'row action');
     await page.goto('/admin/rights');
+    await atLeast(page.locator('.rights-grid-cell label').first(), 'rights grid box', 32);
+    await page.getByRole('button', { name: 'List', exact: true }).click();
+    await page.getByRole('button', { name: 'Expand Cases', exact: true }).click();
     await atLeast(page.locator('.rights-node .rights-leaf label').first(), 'rights checkbox target', 32);
     // Phones: the details toggle and the drawer controls are 40 px or more.
     await page.setViewportSize({ width: 390, height: 800 });

@@ -146,7 +146,7 @@ public sealed class JiraApiClient(HttpClient http, IOptions<JiraOptions> options
         var all = new List<JiraCommentInfo>();
         for (var start = 0; ; start += PageSize)
         {
-            using var doc = await SendAsync(auth, HttpMethod.Get, $"{auth.ApiBase}/rest/api/3/issue/{Uri.EscapeDataString(issueId)}/comment?startAt={start}&maxResults={PageSize}&orderBy=created", null, ct);
+            using var doc = await SendAsync(auth, HttpMethod.Get, $"{auth.ApiBase}/rest/api/3/issue/{Uri.EscapeDataString(issueId)}/comment?startAt={start}&maxResults={PageSize}&orderBy=created&expand=properties", null, ct);
             var page = JiraJson.Comments(doc!.RootElement);
             all.AddRange(page);
             if (page.Count == 0 || all.Count >= (doc.RootElement.Int("total") ?? 0)) return all;
@@ -305,8 +305,12 @@ public static class JiraJson
     public static IReadOnlyList<JiraCommentInfo> Comments(JsonElement root) => root.Has("comments")
         ? root.GetProperty("comments").EnumerateArray().Select(c => new JiraCommentInfo(c.Str("id") ?? "", c.Obj("author")?.Str("accountId"), c.Obj("author")?.Str("displayName"),
             c.Has("body") ? AdfText.ToPlain(c.GetProperty("body")) : "", Date(c.Str("created")) ?? DateTimeOffset.MinValue, Date(c.Str("updated")),
-            c.Obj("visibility")?.Str("type"), c.Obj("visibility")?.Str("value"))).Where(c => c.Id.Length > 0).ToList()
+            c.Obj("visibility")?.Str("type") ?? (IsInternalNote(c) ? "jsm" : null), c.Obj("visibility")?.Str("value") ?? (IsInternalNote(c) ? "Internal" : null))).Where(c => c.Id.Length > 0).ToList()
         : [];
+
+    /// <summary>A Jira Service Management internal note has no visibility; a comment property marks it instead.</summary>
+    private static bool IsInternalNote(JsonElement comment) => comment.Obj("properties") is { ValueKind: JsonValueKind.Array } properties
+        && properties.EnumerateArray().Any(p => p.Str("key") == "sd.public.comment" && p.Obj("value")?.Bool("internal") == true);
 
     public static IReadOnlyList<JiraChangeItem> Changelog(JsonElement root)
     {

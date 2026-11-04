@@ -19,13 +19,13 @@ async function api<T>(page: Page, path: string, body?: unknown, method = body ==
   }, { path, body, method });
 }
 
-/** A fresh account holding a new role with exactly these rights and permissions, signed in through the development cookie. */
-async function signInWithRole(page: Page, rights: string[], permissions: string[]) {
+/** A fresh account holding a new role with exactly these rights, signed in through the development cookie. */
+async function signInWithRole(page: Page, rights: string[]) {
   // GET /me issues the anti-forgery cookie; the initial SPA request may still be loading.
   await api(page, '/me');
-  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('UX role'), rights, permissions });
+  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('UX role'), rights });
   const accountName = `DEV\\${unique('ux')}`;
-  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleId: created.id });
+  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', roleIds: [created.id] });
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(accountName), url: test.info().project.use.baseURL as string }]);
 }
 
@@ -39,8 +39,8 @@ const scriptsOf = (page: Page) => {
 const PROFILES: { name: string; signIn: (page: Page) => Promise<void> }[] = [
   { name: 'TIO Manager', signIn: async () => undefined },
   { name: 'Operation Engineer', signIn: async page => page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent('DEV\\engineer'), url: test.info().project.use.baseURL as string }]) },
-  { name: 'restricted custom role', signIn: page => signInWithRole(page, [], ['module.cases:Access', 'area.Cases:Access', 'Cases:View', 'Cases:Create']) },
-  { name: 'Administration right with user-management access', signIn: page => signInWithRole(page, ['Administer'], ['module.admin:Access', 'area.AdminUsers:Access', 'AdminUsers:View']) }
+  { name: 'restricted custom role', signIn: page => signInWithRole(page, ['Cases:View', 'Cases:Create']) },
+  { name: 'Administration right with user-management access', signIn: page => signInWithRole(page, ['Platform:Administration', 'AdminUsers:View']) }
 ];
 
 /** Whether an element's text is fully shown: not cut by its own box and inside the viewport. */
@@ -67,8 +67,8 @@ test.describe('UX-001 Narrow-screen navigation', () => {
       await page.keyboard.press('Escape');
       await expect(menu).toBeFocused();
       // Permission-based visibility is unchanged: the Administration section only with the Administration right.
-      const me = await api<{ isAdministrator: boolean }>(page, '/me');
-      expect(links.some(l => l.label === 'Administration')).toBe(me.isAdministrator);
+      const me = await api<{ rights: string[] }>(page, '/me');
+      expect(links.some(l => l.label === 'Administration')).toBe(me.rights.includes('Platform:Administration'));
       for (const width of [360, 390, 768]) {
         await page.setViewportSize({ width, height: width === 768 ? 1024 : 800 });
         for (const l of links) {
@@ -361,7 +361,7 @@ test.describe('UX-003 Loading cost', () => {
 test.describe('UX-005 Contextual guidance', () => {
   test('an access denial says what is needed and where it is granted, without showing the record', async ({ page }) => {
     await page.goto('/');
-    await signInWithRole(page, [], ['module.escalations:Access', 'area.OtherOperations:Access', 'OtherOperations:View']);
+    await signInWithRole(page, ['OtherOperations:View']);
     await page.goto('/firewall-rules');
     const denial = page.locator('.state-msg.restricted');
     await expect(denial).toContainText('Firewall rules need the Technical detail right.');

@@ -1,5 +1,7 @@
 # Hierarchical Rights Management — 2.44.0
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 Prepared 2 November 2026. This extends the current authorization implementation and preserves its authentication, role, scope, workflow and ownership checks.
 
 ## Discovery and design

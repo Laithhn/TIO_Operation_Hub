@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
-import { useCan, useEnumLabel, useMe, useUrlState } from '../hooks';
+import { useEnumLabel, useMe, useRight, useUrlState } from '../hooks';
 import {
   CAT, Columns, Donut, HBars, Kpi, PartBar, RAMP, SERIES, SlaMatrix, STATUS, TrendLines, VizPanel, fmtMinutes,
   type CountryDatum, type SlaRow
@@ -704,7 +704,7 @@ function DashNav() {
 /** A60 (owner request, 22 Oct 2026): the Executive overview as an Operations Command Center. */
 export function Dashboard() {
   const me = useMe().data!;
-  const canManage = useCan('Manage');
+  const canManage = useRight('ClientStructure', 'Coordinate');
   // Role default: people without the Manage right start on their own work; the TIO Manager starts on everything they can see.
   const defaults = { clientId: '', teamId: '', productId: '', country: '', period: '30d', from: '', to: '', view: canManage ? 'all' : 'mine', slaContractId: '', slaPriority: '' };
   const [f, set] = useUrlState(defaults);

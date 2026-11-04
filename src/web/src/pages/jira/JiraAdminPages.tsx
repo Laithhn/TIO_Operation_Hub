@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router';
 import { ApiError, get, post, put, type Paged } from '../../api';
 import { fmtDateTime, label } from '../../format';
-import { usePermission, useRefresh } from '../../hooks';
+import { useRight, useRefresh } from '../../hooks';
 import { ActionDialog, UserPicker } from '../../ui/pickers';
 import { DataTable, PageHead, Pager, Panel, QueryState, SelectInput, StateMessage, Tabs, useToast, When } from '../../ui/kit';
 import { useClientOptions } from '../common';
@@ -36,7 +36,7 @@ function IssuesTable({ types, status }: { types?: string; status: string }) {
   const [page, setPage] = useState(1);
   const [size, setSize] = useState(15);
   const [resolve, setResolve] = useState<{ row: IssueRow; action: string } | null>(null);
-  const can = usePermission('AdminIntegrations', 'Maintain');
+  const can = useRight('AdminIntegrations', 'Maintain');
   const q = useQuery({ queryKey: ['jira-issues', types, status, page, size], queryFn: () => get<IssuePage>(`/admin/jira-issues?status=${status}${types ? `&type=${types}` : ''}&page=${page}&pageSize=${size}`) });
   const text = resolve ? ACTION_TEXT[resolve.action] : null;
   return <>
@@ -113,7 +113,7 @@ export function JiraConflicts() {
 function UserMappings({ connectionId }: { connectionId: number }) {
   const q = useQuery({ queryKey: ['jira-users', connectionId], queryFn: () => get<UserRow[]>(`/admin/jira-connections/${connectionId}/users`) });
   const contacts = useQuery({ queryKey: ['jira-client-contacts', connectionId], queryFn: () => get<ClientContact[]>(`/admin/jira-connections/${connectionId}/client-contacts`) });
-  const can = usePermission('AdminIntegrations', 'Maintain');
+  const can = useRight('AdminIntegrations', 'Maintain');
   const refresh = useRefresh();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -138,7 +138,7 @@ function UserMappings({ connectionId }: { connectionId: number }) {
 
 function WorkflowMappings({ connectionId }: { connectionId: number }) {
   const q = useQuery({ queryKey: ['jira-statuses', connectionId], queryFn: () => get<{ targets: { code: string; label: string; behavior?: string }[]; rows: StatusRow[] }>(`/admin/jira-connections/${connectionId}/statuses`) });
-  const can = usePermission('AdminIntegrations', 'Maintain');
+  const can = useRight('AdminIntegrations', 'Maintain');
   const refresh = useRefresh();
   const toast = useToast();
   const [error, setError] = useState<string | null>(null);

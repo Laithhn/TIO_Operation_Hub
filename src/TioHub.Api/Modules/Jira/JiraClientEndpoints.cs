@@ -24,7 +24,7 @@ public static class JiraClientEndpoints
         return id;
     }
 
-    private static void RequireChange(HubAccess access, long id) => access.RequireIn(ResourcePermissions.Structure, ResourcePermissions.Coordinate, ResourceContext.ForRecord(id, null));
+    private static void RequireChange(HubAccess access, long id) => access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(id, null));
 
     public static void MapJiraClientEndpoints(RouteGroupBuilder api)
     {
@@ -61,7 +61,7 @@ public static class JiraClientEndpoints
             return Results.Ok(new
             {
                 syncEnabled = options.Value.Enabled && options.Value.WorkerSeconds > 0,
-                canManage = me.HasPermission(ResourcePermissions.Structure, ResourcePermissions.Coordinate),
+                canManage = me.HasRight(RightKeys.Structure, RightKeys.Coordinate),
                 settings = s is null ? null : new { s.IsEnabled, s.JiraConnectionId, s.DefaultResponsibleTeamId, s.DefaultCaseType, s.DefaultPriority, s.NextReviewHours, s.ImportDoneIssues, s.ImportFrom, s.SyncOnStartup, s.FullReconciliation, s.FullReconciliationDays, s.SyncIntervalMinutes, s.LastPreviewAt, version = Convert.ToBase64String(s.RowVersion) },
                 summary = new { enabled = s?.IsEnabled == true, assignedSpaces = spaces.Count, lastSuccess = states.Values.Max(x => x.LastSuccessAt), syncIntervalMinutes = s?.SyncIntervalMinutes ?? 15, errors, warnings },
                 connections,
@@ -194,7 +194,7 @@ public static class JiraClientEndpoints
         g.MapGet("/runs.csv", async (long id, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
             await RequireClientAsync(db, me, id, ct);
-            me.RequireGrant(Grant.Export);
+            me.RequireRight(RightKeys.PlatformExport);
             var rows = await db.JiraSyncRuns.AsNoTracking().Where(r => r.ClientId == id).OrderByDescending(r => r.StartedAt).Take(5000).ToListAsync(ct);
             var now = clock.GetUtcNow();
             var bytes = Csv.Build("Jira synchronization history", me.AccountName, $"Client {id}", TimeZoneInfo.Utc, now, new List<CsvColumn<JiraSyncRun>>

@@ -1,4 +1,4 @@
-import { usePermission } from '../hooks';
+import { useRight } from '../hooks';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { Link, useNavigate } from 'react-router';
@@ -23,8 +23,8 @@ function When({ iso }: { iso: string }) {
 }
 
 function useNoticeActions() {
-  const canMaintain = usePermission('Notifications', 'Maintain');
-  const canDelete = usePermission('Notifications', 'Delete');
+  const canMaintain = useRight('Notifications', 'Maintain');
+  const canDelete = useRight('Notifications', 'Delete');
   const qc = useQueryClient();
   const toast = useToast();
   const refresh = () => qc.invalidateQueries({ queryKey: ['notifications'] });
@@ -45,7 +45,7 @@ function useNoticeActions() {
 /** One notice: icon, title, description, source and time, status chip (text, not colour alone), unread dot and its action. */
 function NoticeCard({ n, onOpen, extra, nested }: { n: Notice; onOpen: (n: Notice) => void; extra?: React.ReactNode; nested?: boolean }) {
   const sev = n.resolvedAt ? 'resolved' : severityOf(n);
-  const canMaintain = usePermission('Notifications', 'Maintain');
+  const canMaintain = useRight('Notifications', 'Maintain');
   const e = entityOf(n);
   const unread = !n.readAt && !n.resolvedAt;
   return (
@@ -72,7 +72,7 @@ function GroupCard({ g, onOpen, onReadAll, extra }: { g: Extract<Entry, { type: 
   const [open, setOpen] = useState(false);
   const first = g.notices[0];
   const e = entityOf(first);
-  const canMaintain = usePermission('Notifications', 'Maintain');
+  const canMaintain = useRight('Notifications', 'Maintain');
   const unread = g.notices.filter(n => !n.readAt).length;
   const sev = severityOf(first);
   const id = `ntf-g-${first.id}`;

@@ -1,3 +1,4 @@
+import { isAdministrator } from './rights';
 import type { Me } from './hooks';
 
 // Administration → Configuration (A34): the one registry of configuration pages. The sidebar tree, its search,
@@ -90,7 +91,7 @@ export const CONFIG_CATEGORIES: ConfigCategory[] = [
   { id: 'system', name: 'System', icon: 'admin', order: 6, description: 'Review policies, Jira instances and application settings.' }
 ];
 
-const admin = (m: Me) => m.isAdministrator;
+const admin = (m: Me) => isAdministrator(m);
 
 // Short descriptions for the sidebar search and the category pages; the page itself keeps its full text (ConfigList.about).
 const LIST_PLACES: Record<string, { category: ConfigCategoryId; order: number; description: string }> = {

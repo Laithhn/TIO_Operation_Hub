@@ -34,41 +34,46 @@ test('an administrator creates, assigns, verifies, narrows and revokes access fo
   page.on('dialog', dialog => dialog.accept());
 
   await test.step('administrator signs in and creates a role', async () => {
-    await signInAs(page, 'DEV\\manager');
-    await page.goto('/admin/access');
-    await page.getByRole('button', { name: 'New role', exact: true }).click();
-    const form = page.getByRole('region', { name: 'New role', exact: true });
-    await form.getByLabel('Role name').fill(roleName);
-    await form.getByRole('button', { name: 'Create role', exact: true }).click();
-    await expect(page.locator('#access-roles').getByRole('button', { name: new RegExp(roleName) })).toBeVisible();
+    await signInAs(page, 'DEV\manager');
+    await page.goto('/admin/roles');
+    await page.getByRole('button', { name: '+ New role', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'New role', exact: true });
+    await dialog.getByLabel('Role name').fill(roleName);
+    await dialog.getByRole('button', { name: 'Save role', exact: true }).click();
+    await expect(page).toHaveURL(/\/admin\/rights\?role=\d+/);
   });
 
-  await test.step('administrator configures the role in the permission matrix', async () => {
-    const section = page.locator('#access-roles');
-    await section.getByRole('button', { name: new RegExp(roleName) }).click();
-    const moduleSelect = field(section, 'Module');
-    const commitmentsModule = (await moduleSelect.locator('option').allTextContents()).find(text => /commitment/i.test(text))!;
-    await moduleSelect.selectOption(commitmentsModule);
-    const matrix = page.getByRole('region', { name: 'Role permission matrix' });
-    for (const button of await matrix.getByRole('button', { name: 'Grant shown', exact: true }).all())
-      if (await button.isEnabled()) await button.click();
-    await section.getByRole('button', { name: 'Review changes', exact: true }).click();
-    await page.getByRole('region', { name: 'Review role changes' }).getByRole('button', { name: 'Confirm and save role', exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Review role changes' })).toBeHidden();
+  await test.step('administrator assigns rights to the role', async () => {
+    await expect(page.getByRole('combobox', { name: 'Role', exact: true }).locator('option:checked')).toHaveText(roleName);
+    await page.getByLabel('Search rights', { exact: true }).fill('Commitments:');
+    await page.getByRole('button', { name: 'Grant shown rights in Commitments', exact: true }).click();
+    await page.getByRole('dialog', { name: 'Grant a group of rights', exact: true }).getByRole('button', { name: 'Stage group change', exact: true }).click();
+    await page.getByLabel('Search rights', { exact: true }).fill('');
+    // The export and history rights of the group have prerequisites that the role should not have here, so they come out again.
+    await page.getByLabel('Search rights', { exact: true }).fill('Commitments:Export');
+    await page.getByRole('checkbox', { name: /Export module data/ }).uncheck();
+    await page.getByLabel('Search rights', { exact: true }).fill('Commitments:HistoryView');
+    await page.getByRole('checkbox', { name: /View record history/ }).uncheck();
+    await page.getByRole('button', { name: 'Review and save', exact: true }).click();
+    const review = page.getByRole('dialog', { name: 'Review rights changes', exact: true });
+    await review.getByRole('button', { name: 'Save rights', exact: true }).click();
+    await expect(review).toBeHidden();
   });
 
-  await test.step('administrator assigns the role and sees the effective permission', async () => {
+  await test.step('administrator assigns the role on the user and sees the effective right', async () => {
     const created = await api(page, 'POST', '/admin/users', { accountName: account, displayName: `E2E person ${unique}`, workingTimeZone: 'UTC', roleIds: [], allClients: true, allInternal: true, scopes: [] });
     expect(created.status).toBe(201);
-    await page.reload();
+    await page.goto('/admin/users');
+    await page.getByRole('button', { name: `E2E person ${unique}`, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: `User E2E person ${unique}`, exact: true });
+    await dialog.getByRole('group', { name: 'Roles' }).getByRole('checkbox', { name: new RegExp(roleName) }).check();
+    await dialog.getByRole('button', { name: 'Save user', exact: true }).click();
+    await expect(dialog).toBeHidden();
+    await page.goto('/admin/access');
     const person = page.locator('#access-person');
     await field(person, 'User').selectOption(String(created.json.id));
-    const assignments = page.getByRole('region', { name: 'Role and scope assignments' }).or(page.locator('section[aria-label="Role and scope assignments"]'));
-    await assignments.getByRole('checkbox', { name: new RegExp(roleName) }).check();
-    await assignments.getByRole('button', { name: 'Review assignments', exact: true }).click();
-    await page.getByRole('region', { name: 'Review user assignments' }).getByRole('button', { name: 'Confirm and save assignments', exact: true }).click();
     await expect(person.getByText(roleName).first()).toBeVisible();
-    await expect(page.getByRole('region', { name: 'User permission snapshot' })).toContainText('Commitments:Maintain');
+    await expect(page.getByRole('region', { name: 'Effective rights of this person' })).toContainText('Commitments:Maintain');
   });
 
   let commitments: { id: number; clientId: number | null }[] = [];
@@ -82,7 +87,7 @@ test('an administrator creates, assigns, verifies, narrows and revokes access fo
     expect((await api(page, 'GET', '/commitments?pageSize=1')).status).toBe(200);
     expect((await api(page, 'GET', '/contracts')).status).toBe(403);
     expect((await api(page, 'GET', '/admin/users')).status).toBe(403);
-    expect((await api(page, 'POST', '/admin/roles', { name: 'escalate', permissions: [], rights: [] })).status).toBe(403);
+    expect((await api(page, 'POST', '/admin/roles', { name: 'escalate', rights: [] })).status).toBe(403);
     await page.goto('/contracts');
     await expect(page.getByRole('heading', { name: 'Access denied' })).toBeVisible();
     await page.goto('/admin/access');
@@ -97,19 +102,19 @@ test('an administrator creates, assigns, verifies, narrows and revokes access fo
     const users = await api(page, 'GET', '/admin/users');
     const id = users.json.find((u: any) => u.accountName === account).id;
     await field(page.locator('#access-person'), 'User').selectOption(String(id));
-    const editor = page.locator('.access-overrides', { hasText: 'Direct permission exceptions' });
+    const editor = page.locator('.access-overrides', { hasText: 'Individual exceptions' });
     await editor.getByRole('button', { name: 'Add exception', exact: true }).click();
     const row = editor.locator('.override-row').last();
-    await field(row, 'Permission').selectOption('Commitments:Maintain');
+    await field(row, 'Right').selectOption('Commitments:Maintain');
     await field(row, 'Effect').selectOption('Deny');
     await field(row, 'Applies to').selectOption('client');
     await expect(editor.getByRole('alert')).toContainText('select the client');
     await field(row, 'Client').selectOption(String(target.clientId));
     await editor.getByRole('button', { name: 'Review changes', exact: true }).click();
-    const review = page.getByRole('region', { name: 'Review permission exceptions' });
+    const review = page.getByRole('region', { name: 'Review exceptions' });
     await expect(review).toContainText('Deny · Client:');
     await review.getByRole('button', { name: 'Confirm and save', exact: true }).click();
-    await expect(editor.getByText('Permission exceptions saved.')).toBeVisible();
+    await expect(editor.getByText('Exceptions saved.')).toBeVisible();
 
     await signInAs(page, account);
     await page.goto('/commitments');
@@ -122,15 +127,12 @@ test('an administrator creates, assigns, verifies, narrows and revokes access fo
 
   await test.step('removing the role revokes access on the next request, without signing out', async () => {
     await signInAs(page, 'DEV\\manager');
-    await page.goto('/admin/access');
-    const users = await api(page, 'GET', '/admin/users');
-    const id = users.json.find((u: any) => u.accountName === account).id;
-    await field(page.locator('#access-person'), 'User').selectOption(String(id));
-    const assignments = page.locator('section[aria-label="Role and scope assignments"]');
-    await assignments.getByRole('checkbox', { name: new RegExp(roleName) }).uncheck();
-    await assignments.getByRole('button', { name: 'Review assignments', exact: true }).click();
-    await page.getByRole('region', { name: 'Review user assignments' }).getByRole('button', { name: 'Confirm and save assignments', exact: true }).click();
-    await expect(page.locator('.access-person-summary')).not.toContainText(roleName);
+    await page.goto('/admin/users');
+    await page.getByRole('button', { name: `E2E person ${unique}`, exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: `User E2E person ${unique}`, exact: true });
+    await dialog.getByRole('group', { name: 'Roles' }).getByRole('checkbox', { name: new RegExp(roleName) }).uncheck();
+    await dialog.getByRole('button', { name: 'Save user', exact: true }).click();
+    await expect(dialog).toBeHidden();
 
     await signInAs(page, account);
     const after = await page.request.get('/api/v1/commitments?pageSize=1');
@@ -145,16 +147,16 @@ test('an administrator creates, assigns, verifies, narrows and revokes access fo
     const audit = await api(page, 'GET', '/admin/audit?category=Access&pageSize=100');
     expect(audit.status).toBe(200);
     const text = JSON.stringify(audit.json);
-    expect(text).toContain('UserPermissionOverride');
+    expect(text).toContain('UserRightException');
     expect(text).toContain('DEV\\\\manager');
   });
 });
 
-test('the access control dashboard stays usable on a phone and by keyboard', async ({ page }) => {
+test('the access review page stays usable on a phone and by keyboard', async ({ page }) => {
   await signInAs(page, 'DEV\\manager');
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/admin/access');
-  await expect(page.getByRole('navigation', { name: 'Access control sections' })).toBeVisible();
+  await expect(page.getByRole('navigation', { name: 'Access review sections' })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 

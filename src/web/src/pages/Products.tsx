@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { del, get, post, put } from '../api';
 import { fmtDate, label } from '../format';
-import { usePermission, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';
+import { useRight, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
@@ -34,7 +34,7 @@ type Detail = {
 export function ProductList() {
   const [f, set] = useUrlState({ q: '', retired: '' });
   const q = useQuery({ queryKey: ['products', f], queryFn: () => get<Row[]>(`/products?includeRetired=${f.retired === '1'}${f.q ? `&q=${encodeURIComponent(f.q)}` : ''}`) });
-  const canEdit = usePermission('Products', 'Create');
+  const canEdit = useRight('Products', 'Create');
   return (
     <>
       <PageHead title="Products" sub="The software products (applications) TIO delivers and supports: what each one is, its modules and features, its versions and where it is installed."
@@ -409,7 +409,7 @@ export function MicroserviceDetail() {
   const [dialog, setDialog] = useState<null | { kind: 'edit' } | { kind: 'version'; item?: MicroserviceDetailT['versions'][number] }>(null);
   const m = q.data;
   const can = !!m?.permissions.canEdit;
-  const canDelete = usePermission('Products', 'Delete');
+  const canDelete = useRight('Products', 'Delete');
   const [removing, setRemoving] = useState<{ path: string; what: string; after?: string } | null>(null);
   const nav = useNavigate();
   return (

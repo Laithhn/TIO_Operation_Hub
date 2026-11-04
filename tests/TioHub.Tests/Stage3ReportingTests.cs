@@ -117,7 +117,7 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var roleName = U("ExportOnly");
-        var role = await m.Create("/admin/roles", new { name = roleName, rights = new[] { "Export" }, permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Reporting:View", "Servers:View", "Servers:Export", "ClientStructure:View", "Environments:View" }, Right.Export) });
+        var role = await m.Create("/admin/roles", new { name = roleName, rights = Fixture.Rights(new[] { "Reporting:View", "Servers:View", "Servers:Export", "ClientStructure:View", "Environments:View" }, Flag.Export) });
         var account = $@"DEV\{U("reporter")}";
         var recipientId = await m.Create("/admin/users", new { accountName = account, displayName = "Export without technical details", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId = role });
         var recipient = await Hub.As(account);
@@ -143,7 +143,7 @@ public class Stage3ReportingTests(HubFactory hub) : Scenario(hub)
 
         // A fresh recipient access calculation must also honor a later Export revocation without blocking other recipients.
         var roleRow = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(r => r!["id"]!.GetValue<long>() == role)!;
-        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{role}", new { name = roleName, rights = Array.Empty<string>(), permissions = Array.Empty<string>() }, roleRow["version"]!.GetValue<string>())).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{role}", new { name = roleName, rights = Array.Empty<string>() }, roleRow["version"]!.GetValue<string>())).Status);
         await Due(id);
         await Run();
         await Db(async db =>

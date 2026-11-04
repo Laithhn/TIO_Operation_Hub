@@ -12,16 +12,16 @@ public class A63PermissionTests
     public void Maintain_does_not_grant_creation_coordination_archive_or_delete()
     {
         var user = new UserContext();
-        user.Set(new ResolvedUser(7, "engineer", "Engineer", "UTC", true, ["Custom"], Right.None,
-            PermissionHierarchy.WithAncestors([ResourcePermissions.KeyOf(ResourcePermissions.Cases, ResourcePermissions.View), ResourcePermissions.KeyOf(ResourcePermissions.Cases, ResourcePermissions.Maintain)]), Grant.None,
+        user.Set(new ResolvedUser(7, "engineer", "Engineer", "UTC", true, ["Custom"],
+            Fixture.Rights([RightKeys.KeyOf(RightKeys.Cases, RightKeys.View), RightKeys.KeyOf(RightKeys.Cases, RightKeys.Maintain)]),
             true, [], [], [], [], true, []));
 
-        Assert.True(user.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Maintain));
-        Assert.False(user.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Create));
-        Assert.False(user.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Coordinate));
-        Assert.False(user.HasPermission(ResourcePermissions.Cases, ResourcePermissions.ArchiveRestore));
-        Assert.False(user.HasPermission(ResourcePermissions.Cases, ResourcePermissions.Delete));
-        Assert.True(user.HasBusinessRole);
+        Assert.True(user.HasRight(RightKeys.Cases, RightKeys.Maintain));
+        Assert.False(user.HasRight(RightKeys.Cases, RightKeys.Create));
+        Assert.False(user.HasRight(RightKeys.Cases, RightKeys.Coordinate));
+        Assert.False(user.HasRight(RightKeys.Cases, RightKeys.ArchiveRestore));
+        Assert.False(user.HasRight(RightKeys.Cases, RightKeys.Delete));
+        Assert.True(user.HasAccess);
     }
 }
 
@@ -80,13 +80,13 @@ public class A63PermissionApiTests(HubFactory hub) : Scenario(hub)
         var manager = await Hub.As(HubFactory.Manager);
         var roleId = await manager.Create("/admin/roles", new
         {
-            name = U("CasesMaintain"), rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(new[] { "Cases:View", "Cases:Maintain" }, Right.None)
+            name = U("CasesMaintain"), rights = Fixture.Rights(new[] { "Cases:View", "Cases:Maintain" }, Flag.None)
         });
         var account = $@"DEV\{U("a63")}";
         await manager.Create("/admin/users", new { accountName = account, displayName = "A63 permission test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
 
         var limited = await Hub.As(account);
-        var permissionKeys = limited.Me["permissions"]!.AsArray().Select(x => x!.GetValue<string>()).ToArray();
+        var permissionKeys = limited.Me["rights"]!.AsArray().Select(x => x!.GetValue<string>()).ToArray();
         Assert.Contains("Cases:Maintain", permissionKeys);
         Assert.DoesNotContain("Cases:Create", permissionKeys);
         Assert.Equal(HttpStatusCode.OK, (await limited.Get("/cases")).Status);

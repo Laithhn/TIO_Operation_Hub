@@ -63,28 +63,28 @@ public static class AuthorizationDecisions
         foreach (var row in current.Where(s => s.Allow && s.Covers(context))) keys.Add(row.Key);
         var denied = current.Where(s => !s.Allow && s.Intersects(context)).ToArray();
         foreach (var row in denied) keys.Remove(row.Key);
-        var effective = PermissionHierarchy.Resolve(keys).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var effective = RightsCatalog.Resolve(keys).ToHashSet(StringComparer.OrdinalIgnoreCase);
         if (effective.Contains(key)) return new(true, "Effective for this record.");
-        if (denied.Any(d => string.Equals(d.Key, key, StringComparison.OrdinalIgnoreCase))) return new(false, "An individual exception denies this permission for this record.");
-        if (denied.Length > 0 && CapabilityPermissions.Dependencies(key).Any(required => denied.Any(d => string.Equals(d.Key, required, StringComparison.OrdinalIgnoreCase))))
+        if (denied.Any(d => string.Equals(d.Key, key, StringComparison.OrdinalIgnoreCase))) return new(false, "An individual exception denies this right for this record.");
+        if (denied.Length > 0 && RightsCatalog.Dependencies(key).Any(required => denied.Any(d => string.Equals(d.Key, required, StringComparison.OrdinalIgnoreCase))))
             return new(false, "An individual exception denies a prerequisite of this permission for this record.");
-        return new(false, "The permission or one of its prerequisites is not effective for this record.");
+        return new(false, "The right or one of its prerequisites is not effective for this record.");
     }
 }
 
 /// <summary>
-/// Permissions that may carry a client, project or team scope. A key belongs here only after every path that uses it evaluates
-/// <see cref="ResourceContext"/>; <c>ScopedPermissionCoverageTests</c> fails if a global check on one of these keys reappears.
+/// Rights that may carry a client, project or team scope. A key belongs here only after every path that uses it evaluates
+/// <see cref="ResourceContext"/>; <c>ScopedRightCoverageTests</c> fails if a global check on one of these keys reappears.
 /// These are record-edit capabilities: no list, aggregate, report, export, notification or attachment path reads them, so a scoped deny
-/// cannot be silently ignored by a read path. View-type permissions stay global until database filters exist for them.
+/// cannot be silently ignored by a read path. View-type rights stay global until database filters exist for them.
 /// </summary>
-public static class ScopedPermissions
+public static class ScopedRights
 {
     public static readonly string[] Eligible =
     [
-        ResourcePermissions.KeyOf(ResourcePermissions.Contracts, ResourcePermissions.Maintain),
-        ResourcePermissions.KeyOf(ResourcePermissions.Commitments, ResourcePermissions.Maintain),
-        ResourcePermissions.KeyOf(ResourcePermissions.Environments, ResourcePermissions.Maintain)
+        RightKeys.KeyOf(RightKeys.Contracts, RightKeys.Maintain),
+        RightKeys.KeyOf(RightKeys.Commitments, RightKeys.Maintain),
+        RightKeys.KeyOf(RightKeys.Environments, RightKeys.Maintain)
     ];
 
     public static bool IsEligible(string? key) => Eligible.Contains(key, StringComparer.OrdinalIgnoreCase);

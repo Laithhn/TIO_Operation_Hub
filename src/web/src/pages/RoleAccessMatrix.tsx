@@ -1,104 +1,72 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Badge } from '../ui/kit';
-import { isGranted, missingDependencies, permissionRows, permissionTree,
-  type PermissionDefinition, type PermissionRow, type PermissionTreeNode, type RightDefinition } from './adminRightsModel';
+import { groupRights, isGranted, missingPrerequisites, sortedRights, type RightDefinition } from './adminRightsModel';
 import './role-access-matrix.css';
 
-type MatrixRole = {
-  id: number; name: string; description?: string; isActive: boolean; isLocked: boolean;
-  userCount: number; rights: string[]; permissions: string[];
-};
+type MatrixRole = { id: number; name: string; description?: string; isActive: boolean; isLocked: boolean; userCount: number; rights: string[] };
 
-type MatrixRow = { row: PermissionRow; depth: number; branch: boolean; expanded: boolean };
-
-function assignment(role: MatrixRole, row: PermissionRow, rows: PermissionRow[]) {
-  if (!isGranted(role, row)) return { label: 'Not assigned', mark: '—', tone: 'none' };
+function assignment(role: MatrixRole, row: RightDefinition) {
+  if (!isGranted(role.rights, row)) return { label: 'Not assigned', mark: '—', tone: 'none' };
   if (!role.isActive) return { label: 'Assigned, role inactive', mark: '•', tone: 'inactive' };
-  if (missingDependencies(row, rows, role).length) return { label: 'Assigned, blocked by required access', mark: '!', tone: 'blocked' };
-  return { label: 'Effective', mark: '✓', tone: 'effective' };
+  if (missingPrerequisites(row, role.rights).length) return { label: 'Assigned, a prerequisite is missing from this role', mark: '!', tone: 'blocked' };
+  return { label: 'Effective for this role alone', mark: '✓', tone: 'effective' };
 }
 
-/** Read-only comparison of saved role assignments. All edits use the existing reviewed Rights editor. */
-export function RoleAccessMatrix({ roles, rights, definitions, editable }: {
-  roles: MatrixRole[]; rights: RightDefinition[]; definitions: PermissionDefinition[]; editable: boolean;
-}) {
-  const rows = useMemo(() => permissionRows(rights, definitions), [rights, definitions]);
+/** Read-only comparison of saved role grants. A person's final access also depends on their other roles, exceptions and data scope. Edits go through the reviewed Rights page. */
+export function RoleAccessMatrix({ roles, catalog, editable }: { roles: MatrixRole[]; catalog: RightDefinition[]; editable: boolean }) {
+  const rows = useMemo(() => sortedRights(catalog), [catalog]);
   const [search, setSearch] = useState('');
   const [module, setModule] = useState('');
-  const [collapsed, setCollapsed] = useState<string[]>(() => rows.filter(r => r.nodeType === 'Submodule' || r.nodeType === 'Tab').map(r => r.id));
-  const [selectedId, setSelectedId] = useState('');
-  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
-  const selected = rows.find(r => r.id === selectedId) ?? rows.find(r => r.nodeType === 'Module') ?? rows[0];
-  const selectedRole = roles.find(r => r.id === selectedRoleId) ?? roles[0];
+  const [open, setOpen] = useState<string[]>([]);
+  const [onlyDifferent, setOnlyDifferent] = useState(false);
   const needle = search.trim().toLocaleLowerCase();
-  useEffect(() => { if (needle) setCollapsed([]); }, [needle]);
   const filtered = rows.filter(r => (!module || r.module === module)
-    && (!needle || [r.label, r.key, r.description, r.module, r.resourceLabel].some(x => x.toLocaleLowerCase().includes(needle))));
-  const tree = permissionTree(rows, filtered);
-  const flatten = (nodes: PermissionTreeNode[], depth = 0): MatrixRow[] => nodes.flatMap(node => {
-    const branch = node.children.length > 0;
-    const expanded = !collapsed.includes(node.row.id);
-    return [{ row: node.row, depth, branch, expanded }, ...(branch && expanded ? flatten(node.children, depth + 1) : [])];
-  });
-  const shown = flatten(tree);
-  const byKey = new Map(rows.map(r => [r.key, r]));
-  const parents: PermissionRow[] = [];
-  let parentKey = selected?.parentKey;
-  while (parentKey && byKey.has(parentKey)) {
-    const parent = byKey.get(parentKey)!;
-    parents.unshift(parent);
-    parentKey = parent.parentKey;
-  }
-  const toggle = (id: string) => setCollapsed(current => current.includes(id) ? current.filter(x => x !== id) : [...current, id]);
-  const editPath = (role: MatrixRole, row: PermissionRow) => `/admin/rights?role=${role.id}&permission=${encodeURIComponent(row.key)}`;
-
+    && (!onlyDifferent || new Set(roles.filter(role => !role.isLocked).map(role => isGranted(role.rights, r))).size > 1)
+    && (!needle || [r.label, r.key, r.description, r.module, r.featureLabel].some(x => x.toLocaleLowerCase().includes(needle))));
+  const groups = groupRights(filtered);
+  const toggle = (key: string) => setOpen(p => p.includes(key) ? p.filter(k => k !== key) : [...p, key]);
   return <section className="role-matrix" aria-labelledby="role-matrix-title">
-    <div className="role-matrix-heading">
-      <div><h2 id="role-matrix-title">Role access matrix</h2><p className="hint">Compare saved permissions across roles. Select a cell to inspect its access; configure a role in Rights.</p></div>
-      <span className="role-matrix-total">{roles.length} roles · {rows.length} rights</span>
-    </div>
+    <h2 id="role-matrix-title">Compare roles</h2>
+    <p className="hint">Shows what each role is assigned on its own. A person's final access also depends on their other roles, individual exceptions and data scope.</p>
     <div className="role-matrix-filters">
-      <label>Find a right<input type="search" placeholder="Name, key or description" value={search} onChange={e => setSearch(e.target.value)} /></label>
+      <label>Find a right<input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, module or key" /></label>
       <label>Module<select value={module} onChange={e => setModule(e.target.value)}><option value="">All modules</option>
-        {[...new Set(rows.map(r => r.module))].sort().map(x => <option key={x} value={x}>{x}</option>)}
-      </select></label>
-      <button className="btn" onClick={() => setCollapsed([])}>Expand all</button>
-      <button className="btn" onClick={() => setCollapsed(rows.filter(r => r.nodeType !== 'Action').map(r => r.id))}>Collapse all</button>
+        {[...new Set(rows.map(r => r.module))].map(m => <option key={m}>{m}</option>)}</select></label>
+      <label className="role-matrix-check"><input type="checkbox" checked={onlyDifferent} onChange={e => setOnlyDifferent(e.target.checked)} />Only where roles differ</label>
+      <span role="status">{filtered.length} of {rows.length} rights</span>
+      <span className="role-matrix-actions">
+        <button type="button" className="btn" onClick={() => setOpen(groups.flatMap(g => g.features.map(f => `${g.key}/${f.key}`)))}>Expand all</button>
+        <button type="button" className="btn" onClick={() => setOpen([])}>Collapse all</button>
+      </span>
     </div>
-    <div className="role-matrix-layout">
-      <div className="role-matrix-scroll" role="region" aria-label="Role and permission comparison" tabIndex={0}>
-        <table>
-          <caption className="sr-only">Saved permission assignments by role</caption>
-          <thead><tr><th scope="col">Right name</th><th scope="col">Description</th>{roles.map(role =>
-            <th scope="col" key={role.id}><span>{role.name}</span><small>{role.userCount} user{role.userCount === 1 ? '' : 's'}</small></th>)}</tr></thead>
-          <tbody>{shown.map(({ row, depth, branch, expanded }) => <tr key={row.id} className={`role-matrix-${row.nodeType.toLowerCase()}${selected?.id === row.id ? ' selected' : ''}`}>
-            <th scope="row"><div className="role-matrix-name" style={{ paddingLeft: `${10 + depth * 19}px` }}>
-              {branch && <button className="role-matrix-expand" type="button" aria-label={`${expanded ? 'Collapse' : 'Expand'} ${row.label}`} aria-expanded={expanded} onClick={() => toggle(row.id)}>{expanded ? '▾' : '▸'}</button>}
-              <button className="role-matrix-row-button" type="button" onClick={() => setSelectedId(row.id)}>{row.label}</button>
-              <small>{row.kind === 'rights' ? 'Control' : row.nodeType}</small>
-            </div></th>
-            <td className="role-matrix-description" title={row.description}>{row.description}</td>
-            {roles.map(role => { const state = assignment(role, row, rows); return <td key={role.id}>
-              <button type="button" className={`role-matrix-cell ${state.tone}`} aria-label={`${role.name}: ${state.label} for ${row.label}`}
-                aria-pressed={selected?.id === row.id && selectedRole?.id === role.id} title={`${role.name}: ${state.label}`}
-                onClick={() => { setSelectedId(row.id); setSelectedRoleId(role.id); }}><span aria-hidden="true">{state.mark}</span></button>
-            </td>; })}</tr>)}</tbody>
-        </table>
-        {shown.length === 0 && <p className="role-matrix-empty">No rights match this search.</p>}
-      </div>
-      {selected && <aside className="role-matrix-inspector" aria-label="Selected right details">
-        <div className="role-matrix-inspector-head"><Badge>{selected.kind === 'rights' ? 'Control' : selected.nodeType}</Badge><h3>{selected.label}</h3><code>{selected.key}</code></div>
-        {parents.length > 0 && <p className="role-matrix-path">{parents.map(p => p.label).join(' › ')}</p>}
-        <p>{selected.description}</p>
-        {selected.requires.length > 0 && <div className="role-matrix-requires"><strong>Required access</strong><ul>{selected.requires.map(key => <li key={key}><code>{key}</code></li>)}</ul></div>}
-        <h4>Roles</h4>
-        <ul className="role-matrix-role-list">{roles.map(role => { const state = assignment(role, selected, rows); return <li key={role.id} className={role.id === selectedRole?.id ? 'selected' : ''}>
-          <span><strong>{role.name}</strong><small>{state.label}{role.isLocked ? ' · protected' : ''}</small></span>
-          {!role.isLocked && <Link to={editPath(role, selected)} aria-label={`${editable ? 'Configure' : 'Inspect'} ${selected.label} for ${role.name}`}>{editable ? 'Configure' : 'Inspect'}</Link>}
-        </li>; })}</ul>
-        <p className="hint">Assignments shown here are saved values. A granted child can still be blocked by a missing parent, and an inactive role contributes no access. Record scope and other policy checks also apply.</p>
-      </aside>}
+    <div className="role-matrix-scroll" role="region" aria-label="Role and right comparison" tabIndex={0}>
+      <table className="role-matrix-table" aria-label="Saved rights by role">
+        <thead><tr><th scope="col">Right</th>{roles.map(r => <th scope="col" key={r.id}>
+          {editable ? <Link to={`/admin/rights?role=${r.id}`} aria-label={`Edit the rights of ${r.name}`}>{r.name}</Link> : r.name}
+          {!r.isActive && <Badge tone="warn">Inactive</Badge>}{r.isLocked && <Badge>Protected</Badge>}
+        </th>)}</tr></thead>
+        {groups.map(group => group.features.map(feature => {
+          const key = `${group.key}/${feature.key}`;
+          const expanded = needle.length > 0 || open.includes(key);
+          return <tbody key={key}>
+            <tr className="role-matrix-branch"><th scope="rowgroup">
+              <button type="button" className="linkbtn" aria-expanded={expanded} aria-label={`${expanded ? 'Collapse' : 'Expand'} ${group.label}: ${feature.label}`} onClick={() => toggle(key)}>
+                {expanded ? '▾' : '▸'} {group.label}: {feature.label}</button>
+            </th>
+              {roles.map(role => { const held = feature.rows.filter(r => isGranted(role.rights, r)).length;
+                return <td key={role.id} className={held === 0 ? 'role-matrix-none' : ''}><span aria-label={`${role.name}: ${held} of ${feature.rows.length} assigned`}>{held} / {feature.rows.length}</span></td>; })}
+            </tr>
+            {expanded && feature.rows.map(row => <tr key={row.key}>
+              <th scope="row"><span>{row.label}</span> <Badge>{row.kind}</Badge><code>{row.key}</code></th>
+              {roles.map(role => { const a = assignment(role, row);
+                return <td key={role.id} className={`role-matrix-${a.tone}`} title={a.label}><span aria-label={`${role.name}: ${a.label}`}>{a.mark}</span></td>; })}
+            </tr>)}
+          </tbody>;
+        }))}
+      </table>
     </div>
+    {filtered.length === 0 && <p className="access-empty">No rights match these filters.</p>}
+    <p className="hint">✓ effective for this role alone · ! assigned, but a prerequisite is missing · • assigned, role inactive · — not assigned</p>
   </section>;
 }

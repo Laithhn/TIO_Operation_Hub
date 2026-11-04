@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import type { Me } from './hooks';
 import { CONFIG_LISTS, CONFIG_PAGES, configAt, configCrumbs, configTree, searchConfig } from './configRegistry';
 
-const admin = { isAdministrator: true } as Me;
-const engineer = { isAdministrator: false } as Me;
+const admin = { rights: ['Platform:Administration', 'AdminConfig:View'] } as unknown as Me;
+const engineer = { rights: [] } as unknown as Me;
 // Server LookupLists.All (src/TioHub.Api/Modules/Admin/AdminEntities.cs): every list must have a page.
 const SERVER_LISTS = ['ComponentRole', 'AssetRole', 'NetworkZone', 'ProjectPhase', 'BoundaryArea', 'OsFamily', 'PriorityGuidance', 'EnvironmentType', 'AssetType',
   'ContractType', 'CaseType', 'TeamRole', 'EscalationChannel', 'TeamMemberRole', 'ConditionLabel', 'CaseStatusLabel', 'OrganizationRelationshipType'];

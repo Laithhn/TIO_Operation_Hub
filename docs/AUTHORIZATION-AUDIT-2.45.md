@@ -1,5 +1,7 @@
 # Authorization audit, 2.45.0
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 Audit of the API surface against the master access-control requirements, 3 November 2026. A static inventory of all 323 mapped endpoints was reviewed by hand where it flagged a handler. The findings are from reading code. Which of them are proven by tests is recorded in [RELEASE-VALIDATION-2.45.0.md](RELEASE-VALIDATION-2.45.0.md).
 
 ## How the layers fit

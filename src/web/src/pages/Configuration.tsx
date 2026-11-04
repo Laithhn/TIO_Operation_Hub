@@ -1,8 +1,9 @@
+import { isAdministrator } from '../rights';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router';
 import { get, post, put } from '../api';
-import { useForm, useMe, usePermission, useRefresh } from '../hooks';
+import { useForm, useMe, useRight, useRefresh } from '../hooks';
 import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 import { CONFIG_CATEGORIES, CONFIG_HOME, CONFIG_LISTS, categoryRoute, configCrumbs, configTree, type ConfigKind, type ConfigList } from '../configRegistry';
@@ -12,7 +13,7 @@ import { CONFIG_CATEGORIES, CONFIG_HOME, CONFIG_LISTS, categoryRoute, configCrum
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.isAdministrator) return <Restricted need="This page needs the Administration right." />;
+  if (!isAdministrator(me)) return <Restricted need="This page needs the Administration right." />;
   return <>{children}</>;
 }
 
@@ -75,8 +76,8 @@ export function ConfigCategoryPage() {
 
 /** One configuration list: add, rename, describe, order, retire; shows how many records use each value. */
 export function ConfigListPage() {
-  const canCreate = usePermission('AdminConfig', 'Create');
-  const canMaintain = usePermission('AdminConfig', 'Maintain');
+  const canCreate = useRight('AdminConfig', 'Create');
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const { slug } = useParams();
   const cfg = CONFIG_LISTS.find(c => c.slug === slug);
   const q = useValues();

@@ -24,21 +24,21 @@ public static class TeamEndpoints
     public static bool CanReadOwnedRecord(UserContext me, string recordType)
     {
         string resource;
-        try { resource = ResourcePermissions.ForRecord(recordType); }
+        try { resource = RightKeys.ForRecord(recordType); }
         catch (NotFoundException) { return false; }
-        return me.HasPermission(resource, ResourcePermissions.View)
-            && (recordType != RecordTypes.Region || me.HasPermission(PermissionHierarchy.Tab("ClientStructure", "structure", "View")));
+        return me.HasRight(resource, RightKeys.View)
+            && (recordType != RecordTypes.Region || me.HasRight(RightKeys.Tab("ClientStructure", "structure", "View")));
     }
 
     public static bool CanTransferOwnedRecord(UserContext me, string recordType, long? clientId, long? teamId) =>
         CanReadOwnedRecord(me, recordType)
         && me.SeesScope(clientId, teamId)
-        && me.HasPermission(ResourcePermissions.ForRecord(recordType), ResourcePermissions.Coordinate)
-        && (recordType != RecordTypes.Region || me.HasPermission(PermissionHierarchy.Tab("ClientStructure", "structure", "Maintain")));
+        && me.HasRight(RightKeys.ForRecord(recordType), RightKeys.Coordinate)
+        && (recordType != RecordTypes.Region || me.HasRight(RightKeys.Tab("ClientStructure", "structure", "Maintain")));
 
     /// <summary>Team assignment counts combine case and commitment information.</summary>
     public static void RequireAssignmentSources(UserContext me) =>
-        CapabilityPermissions.RequireViews(me, ResourcePermissions.Cases, ResourcePermissions.Commitments);
+        RightChecks.RequireViews(me, RightKeys.Cases, RightKeys.Commitments);
 
     public sealed record HandoverTextView(string? Summary, string? OutstandingActions, string? DocumentationNotes,
         string? AcknowledgmentNote, string? CancelReason, string? ExceptionReason);
@@ -66,7 +66,7 @@ public static class TeamEndpoints
 
         g.MapGet("", async (HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             return Results.Ok(await VisibleTeams(db.Teams.AsNoTracking(), access.Me).OrderBy(t => t.Name).Select(t => new
             {
                 t.Id, t.Code, t.Name, t.Description, t.IsActive,
@@ -78,7 +78,7 @@ public static class TeamEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var t = await VisibleTeams(db.Teams.AsNoTracking(), access.Me).Include(x => x.Lead).Include(x => x.Manager).Include(x => x.Members).ThenInclude(m => m.User).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
             return ctx.WithETag(t, new
             {
@@ -95,7 +95,7 @@ public static class TeamEndpoints
 
         g.MapPost("", async (TeamInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Create);
+            me.RequireRight(RightKeys.Teams, RightKeys.Create);
             if (!me.IsSystem && !me.AllInternal) throw new ForbiddenException("Creating a team requires access to all internal teams.");
             var t = new Team();
             await ApplyTeamAsync(t, input, db, ct);
@@ -106,9 +106,9 @@ public static class TeamEndpoints
         g.MapPut("/{id:long}", async (long id, TeamInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Maintain);
+            me.RequireRight(RightKeys.Teams, RightKeys.Maintain);
             if (input.LeadUserId != t.LeadUserId || input.ManagerUserId != t.ManagerUserId)
-                me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+                me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             db.ExpectVersion(ctx, t);
             await ApplyTeamAsync(t, input, db, ct);
             await db.SaveChangesAsync(ct);
@@ -117,7 +117,7 @@ public static class TeamEndpoints
         g.MapPost("/{id:long}/members", async (long id, MemberInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var check = new Check();
             if (input.UserId is null || !await db.Users.AnyAsync(u => u.Id == input.UserId && u.IsActive, ct)) check.Add("userId", "Select an active person.");
             var m = new TeamMember { TeamId = id };
@@ -131,7 +131,7 @@ public static class TeamEndpoints
         g.MapPut("/{id:long}/members/{memberId:long}", async (long id, long memberId, MemberInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var m = await db.TeamMembers.FirstOrDefaultAsync(x => x.Id == memberId && x.TeamId == id, ct) ?? throw new NotFoundException("The membership");
             db.ExpectVersion(ctx, m);
             await ApplyMemberAsync(m, input, new Check(), db, ct);
@@ -142,7 +142,7 @@ public static class TeamEndpoints
         g.MapDelete("/{id:long}/members/{memberId:long}", async (long id, long memberId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var m = await db.TeamMembers.FirstOrDefaultAsync(x => x.Id == memberId && x.TeamId == id, ct) ?? throw new NotFoundException("The membership");
             db.TeamMembers.Remove(m);
             await db.SaveChangesAsync(ct);
@@ -152,7 +152,7 @@ public static class TeamEndpoints
         // TEAM-03: assignments, waiting/blockers, due dates and coverage per team and engineer.
         g.MapGet("/{id:long}/assignments", async (long id, HubDbContext db, HubAccess access, HubSettings settings, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             RequireAssignmentSources(access.Me);
             var team = await VisibleTeams(db.Teams.AsNoTracking(), access.Me).Include(t => t.Members).ThenInclude(m => m.User).FirstOrDefaultAsync(t => t.Id == id, ct) ?? throw new NotFoundException("The team");
             var now = DateTimeOffset.UtcNow;
@@ -185,7 +185,7 @@ public static class TeamEndpoints
         // ACC-04 / TEAM-03: active records of deactivated owners. Nothing is reassigned automatically.
         api.MapGet("/reassignment-queue", async (HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             return Results.Ok(await ReassignmentQueueAsync(db, ct));
         }).WithTags("Teams");
 
@@ -193,7 +193,7 @@ public static class TeamEndpoints
         var h = api.MapGroup("/handovers").WithTags("Handovers");
         h.MapGet("", async (string? status, bool? mine, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var q = db.Handovers.AsNoTracking().AsQueryable();
             if (status == "pending") q = q.Where(x => x.Status == HandoverStatus.PendingAcknowledgment);
             if (mine == true) q = q.Where(x => x.ReceivingOwnerId == access.Me.UserId || x.OutgoingOwnerId == access.Me.UserId);
@@ -209,7 +209,7 @@ public static class TeamEndpoints
         });
         h.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var x = await db.Handovers.AsNoTracking().Include(z => z.Items).Include(z => z.OutgoingOwner).Include(z => z.ReceivingOwner).FirstOrDefaultAsync(z => z.Id == id, ct) ?? throw new NotFoundException("The handover");
             var users = await access.UserRefsAsync([x.ExceptionApprovedById, x.ExceptionFollowUpOwnerId], ct);
             var text = VisibleHandoverText(access.Me, x);
@@ -233,20 +233,20 @@ public static class TeamEndpoints
                 }),
                 permissions = new
                 {
-                    canAcknowledge = access.Me.HasPermission("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && x.ReceivingOwnerId == access.Me.UserId,
-                    canAuthorizeException = access.Me.HasPermission("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && access.Me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate),
-                    canCancel = access.Me.HasPermission("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && access.Me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate)
+                    canAcknowledge = access.Me.HasRight("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && x.ReceivingOwnerId == access.Me.UserId,
+                    canAuthorizeException = access.Me.HasRight("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && access.Me.HasRight(RightKeys.Teams, RightKeys.Coordinate),
+                    canCancel = access.Me.HasRight("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && access.Me.HasRight(RightKeys.Teams, RightKeys.Coordinate)
                 }
             });
         });
         h.MapGet("/candidates", async (long ownerId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             return Results.Ok(await OwnedRecordsAsync(db, ownerId, ct));
         });
         h.MapPost("", async (HandoverInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var check = new Check();
             check.When(input.OutgoingOwnerId is null, "outgoingOwnerId", "Select the outgoing owner.")
                  .When(input.ReceivingOwnerId is null, "receivingOwnerId", "Select the receiving owner.")
@@ -298,7 +298,7 @@ public static class TeamEndpoints
         });
         h.MapPost("/{id:long}/exception", async (long id, ExceptionInput input, HttpContext ctx, HubDbContext db, HubAccess access, UserResolver resolver, TimeProvider clock, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
             var ho = await db.Handovers.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The handover");
             db.ExpectVersion(ctx, ho);
@@ -320,7 +320,7 @@ public static class TeamEndpoints
         });
         h.MapPost("/{id:long}/cancel", async (long id, CancelInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.RequirePermission(ResourcePermissions.Teams, ResourcePermissions.Coordinate);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var ho = await db.Handovers.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The handover");
             db.ExpectVersion(ctx, ho);
             if (ho.Status != HandoverStatus.PendingAcknowledgment) throw new ValidationException("status", "This handover is no longer pending.");

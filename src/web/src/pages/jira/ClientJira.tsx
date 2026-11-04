@@ -6,7 +6,7 @@ import { fmtDateTime, label } from '../../format';
 import { useEnum, useForm, useMe, useRefresh, useTypes } from '../../hooks';
 import { ActionDialog } from '../../ui/pickers';
 import { Badge, Checkbox, DataTable, Dialog, enumOptions, FormError, Panel, Pager, QueryState, SelectInput, StateMessage, TextInput, useToast, When } from '../../ui/kit';
-import { hasPermission } from '../../permissions';
+import { hasRight, canExport } from '../../rights';
 import { useTeamOptions } from '../common';
 import { JiraBadge, JiraCard, PreviewResult, SyncOffNotice, type JiraPreview, type SyncRun } from './shared';
 import './jira.css';
@@ -73,7 +73,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
           { key: 'c', header: 'Connection', render: s => s.connection },
           { key: 'l', header: 'Last sync', render: s => s.lastSync ? fmtDateTime(s.lastSync) : <span className="muted">Never</span> },
           { key: 'h', header: 'Sync health', render: s => <span title={s.lastError}><JiraBadge value={s.health === 'Success' ? 'Healthy' : s.health} /></span> },
-          { key: 'u', header: 'Case count', className: 'num', render: s => hasPermission(me, 'Cases', 'View') ? <Link to={`/cases?clientId=${clientId}&jiraSpace=${s.projectKey}&status=all`}>{s.cases}</Link> : s.cases },
+          { key: 'u', header: 'Case count', className: 'num', render: s => hasRight(me, 'Cases', 'View') ? <Link to={`/cases?clientId=${clientId}&jiraSpace=${s.projectKey}&status=all`}>{s.cases}</Link> : s.cases },
           { key: 'x', header: 'Actions', render: s => canManage && <><button className="linkbtn" onClick={() => syncNow(s.id)}>Sync</button> <button className="linkbtn" onClick={() => setRelease(s.id)}>Release</button></> }
         ]} />
         <div className="notice" style={{ margin: 8 }}>Each Jira space can belong to one active client only.</div>
@@ -81,7 +81,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
       {adding && <AddSpacePanel clientId={clientId} d={d} onClose={() => setAdding(false)} />}
       <Panel title="Synchronization history" pad={false} actions={<>
         <button className="btn" onClick={() => setDialog('history')}>Open full history</button>
-        {me.grants.export && <a className="btn" href={`/api/v1/clients/${clientId}/jira/runs.csv`}>Download CSV</a>}</>}>
+        {canExport(me) && <a className="btn" href={`/api/v1/clients/${clientId}/jira/runs.csv`}>Download CSV</a>}</>}>
         <RunsTable runs={d.runs} />
       </Panel>
       <div className="jira-client-grid">

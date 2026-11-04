@@ -24,8 +24,11 @@ public sealed class AuthorizationAdministrationFilter : IEndpointFilter
         var me = http.RequestServices.GetRequiredService<UserContext>();
         me.Set(fresh);
         me.RequireAdministrator();
-        foreach (var key in HierarchyEndpointPermissions.Required(http.Request.Path.Value![8..], http.Request.Method))
-            me.RequirePermission(key);
+        var route = (http.GetEndpoint() as Microsoft.AspNetCore.Routing.RouteEndpoint)?.RoutePattern.RawText;
+        var policy = route is null ? null : EndpointRights.For(http.Request.Method, route);
+        if (policy is null) throw new ForbiddenException("This endpoint has no registered authorization policy.");
+        // Re-check against the fresh snapshot: the rights may have changed while this request waited for the lock.
+        foreach (var key in policy.Rights) me.RequireRight(key);
         var result = await next(context);
         await tx.CommitAsync(http.RequestAborted);
         return result;

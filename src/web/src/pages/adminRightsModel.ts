@@ -1,124 +1,127 @@
-/** Registry hierarchy and prerequisites mirror the server manifest; editing never implicitly changes other grants. */
-export type PermissionDefinition = {
-  key: string; resource: string; resourceLabel: string; action: string; actionLabel: string; description: string;
-  displayName?: string; module?: string; parentKey?: string | null; riskLevel?: string; isActive?: boolean; supportsScope?: boolean; requires?: string[]; nodeType?: PermissionNodeType; displayOrder?: number;
+/** The rights catalog as the editor uses it. Editing never changes another right: a prerequisite is reported, and added only when the administrator asks. */
+export type RightDefinition = {
+  key: string; label: string; description: string; module: string; feature: string; featureLabel: string; action: string;
+  kind: 'Access' | 'Action'; riskLevel: string; supportsScope: boolean; requires: string[]; displayOrder: number; isActive: boolean;
 };
-export type PermissionNodeType = 'Module' | 'Submodule' | 'Tab' | 'Action';
-export type RightDefinition = { key: string; label: string; description: string };
-export type AccessSelection = { rights: string[]; permissions: string[] };
-export type PermissionRow = {
-  id: string; key: string; kind: 'rights' | 'permissions'; label: string; description: string; module: string;
-  resource: string; resourceLabel: string; action: string; actionLabel: string; risk: string; active: boolean; supportsScope: boolean; requires: string[]; parentKey: string | null; nodeType: PermissionNodeType; displayOrder: number;
-};
-export type PermissionFilters = { search: string; module: string; resource: string; action: string; risk: string; assignment: string };
-export type PermissionGroup = { key: string; label: string; rows: PermissionRow[]; resources: { key: string; label: string; rows: PermissionRow[] }[] };
+export type RightFilters = { search: string; module: string; feature: string; kind: string; risk: string; assignment: string };
+export type RightGroup = { key: string; label: string; rows: RightDefinition[]; features: { key: string; label: string; rows: RightDefinition[] }[] };
 
-export function permissionRows(rights: RightDefinition[], permissions: PermissionDefinition[]): PermissionRow[] {
-  return [
-    ...rights.map(r => ({ id: `rights/${r.key}`, key: r.key, kind: 'rights' as const, label: r.label,
-      description: r.description, module: 'Cross-cutting controls', resource: 'CrossCutting', resourceLabel: 'Administration and data controls',
-      action: r.key, actionLabel: r.label, risk: ['Administer', 'TechnicalDetail', 'Audit'].includes(r.key) ? 'High' : 'Elevated', active: true, supportsScope: false, requires: [], parentKey: null, nodeType: 'Action' as const, displayOrder: -1 })),
-    ...permissions.map(p => ({ id: `permissions/${p.key}`, key: p.key, kind: 'permissions' as const,
-      label: p.displayName || `${p.resourceLabel}: ${p.actionLabel}`, description: p.description,
-      module: p.module || p.resourceLabel, resource: p.resource, resourceLabel: p.resourceLabel,
-      action: p.action, actionLabel: p.actionLabel, risk: p.riskLevel || 'Standard', active: p.isActive !== false, supportsScope: p.supportsScope === true, requires: p.requires ?? [], parentKey: p.parentKey ?? null, nodeType: p.nodeType ?? 'Action', displayOrder: p.displayOrder ?? 0 }))
-  ].sort((a, b) => a.module.localeCompare(b.module) || a.resourceLabel.localeCompare(b.resourceLabel) || a.actionLabel.localeCompare(b.actionLabel));
+/** Catalog order: modules and features stay where the server put them. */
+export function sortedRights(catalog: RightDefinition[]): RightDefinition[] {
+  return [...catalog].sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
-export function isGranted(selection: AccessSelection, row: PermissionRow): boolean {
-  return selection[row.kind].includes(row.key);
-}
+export const isGranted = (selection: string[], row: RightDefinition) => selection.includes(row.key);
 
-/** Editing one leaf never changes its parent, siblings or dependencies. Unknown retained keys survive editing. */
-export function setPermissions(selection: AccessSelection, rows: PermissionRow[], grant: boolean): AccessSelection {
-  const next = { rights: new Set(selection.rights), permissions: new Set(selection.permissions) };
+/** A retired key the role still stores stays in the selection until removed: it grants nothing, and removing it is a reviewed change. */
+export function setRights(selection: string[], rows: RightDefinition[], grant: boolean): string[] {
+  const next = new Set(selection);
   for (const row of rows) {
-    if (grant && row.active) next[row.kind].add(row.key);
-    else if (!grant) next[row.kind].delete(row.key);
+    if (grant && row.isActive) next.add(row.key);
+    else if (!grant) next.delete(row.key);
   }
-  return { rights: [...next.rights].sort(), permissions: [...next.permissions].sort() };
+  return [...next].sort();
 }
 
-export function permissionChanges(base: AccessSelection, draft: AccessSelection, rows: PermissionRow[]) {
+export function rightChanges(base: string[], draft: string[], rows: RightDefinition[]) {
   return {
     grants: rows.filter(r => !isGranted(base, r) && isGranted(draft, r)),
     revocations: rows.filter(r => isGranted(base, r) && !isGranted(draft, r))
   };
 }
 
-export function sensitive(row: PermissionRow): boolean {
-  return /^(high|critical|sensitive|elevated)$/i.test(row.risk);
-}
+export const sensitive = (row: RightDefinition) => /^(high|critical)$/i.test(row.riskLevel);
 
-export function filterPermissionRows(rows: PermissionRow[], filters: PermissionFilters, draft: AccessSelection, base: AccessSelection,
-  compare?: AccessSelection): PermissionRow[] {
+export function filterRights(rows: RightDefinition[], filters: RightFilters, draft: string[], base: string[], compare?: string[]): RightDefinition[] {
   const search = filters.search.trim().toLocaleLowerCase();
-  return rows.filter(r => (!search || [r.key, r.label, r.description, r.resourceLabel, r.module].some(s => s.toLocaleLowerCase().includes(search)))
-    && (!filters.module || r.module === filters.module) && (!filters.resource || r.resource === filters.resource) && (!filters.action || r.action === filters.action) && (!filters.risk || r.risk === filters.risk)
+  return rows.filter(r => (!search || [r.key, r.label, r.description, r.featureLabel, r.module].some(s => s.toLocaleLowerCase().includes(search)))
+    && (!filters.module || r.module === filters.module) && (!filters.feature || r.feature === filters.feature)
+    && (!filters.kind || r.kind === filters.kind) && (!filters.risk || r.riskLevel === filters.risk)
     && (filters.assignment !== 'granted' || isGranted(draft, r)) && (filters.assignment !== 'denied' || !isGranted(draft, r))
     && (filters.assignment !== 'changed' || isGranted(base, r) !== isGranted(draft, r))
+    && (filters.assignment !== 'blocked' || r.isActive && isGranted(draft, r) && missingPrerequisites(r, draft).length > 0)
     && (filters.assignment !== 'different' || !!compare && isGranted(draft, r) !== isGranted(compare, r)));
 }
 
-export function groupPermissionRows(rows: PermissionRow[]): PermissionGroup[] {
-  const groups = new Map<string, PermissionGroup>();
+export function groupRights(rows: RightDefinition[]): RightGroup[] {
+  const groups = new Map<string, RightGroup>();
   for (const row of rows) {
     let group = groups.get(row.module);
-    if (!group) { group = { key: row.module, label: row.module, rows: [], resources: [] }; groups.set(row.module, group); }
+    if (!group) { group = { key: row.module, label: row.module, rows: [], features: [] }; groups.set(row.module, group); }
     group.rows.push(row);
-    let resource = group.resources.find(r => r.key === row.resource);
-    if (!resource) { resource = { key: row.resource, label: row.resourceLabel, rows: [] }; group.resources.push(resource); }
-    resource.rows.push(row);
+    let feature = group.features.find(f => f.key === row.feature);
+    if (!feature) { feature = { key: row.feature, label: row.featureLabel, rows: [] }; group.features.push(feature); }
+    feature.rows.push(row);
   }
   return [...groups.values()];
 }
 
-export function missingDependencies(row: PermissionRow, rows: PermissionRow[], draft: AccessSelection): string[] {
-  const required = row.requires.length ? row.requires : row.kind === 'permissions' && row.nodeType === 'Action' && row.action !== 'View'
-    && rows.some(view => view.active && view.kind === 'permissions' && view.resource === row.resource && view.action === 'View') ? [`${row.resource}:View`] : [];
-  return required.filter(key => !draft.permissions.includes(key) && !draft.rights.includes(key));
+export const missingPrerequisites = (row: RightDefinition, selection: string[]) => row.requires.filter(key => !selection.includes(key));
+
+/** Advisory only. The role can be saved like this, and the right stays ineffective unless another role of the person supplies what is missing. */
+export function prerequisiteWarnings(rows: RightDefinition[], selection: string[]): RightDefinition[] {
+  return rows.filter(row => row.isActive && isGranted(selection, row) && missingPrerequisites(row, selection).length > 0);
 }
 
-/** Advisory only: missing dependencies are never silently granted to satisfy an action. */
-export function dependencyWarnings(rows: PermissionRow[], draft: AccessSelection): PermissionRow[] {
-  return rows.filter(row => row.active && isGranted(draft, row) && missingDependencies(row, rows, draft).length > 0);
-}
-
-export type PermissionTreeNode = { row: PermissionRow; children: PermissionTreeNode[]; shown: PermissionRow[] };
-/** Keep ancestor context when a search matches only a leaf. Bulk operations affect only matching rows. */
-export function permissionTree(rows: PermissionRow[], visible: PermissionRow[]): PermissionTreeNode[] {
-  const byKey = new Map(rows.filter(r => r.kind === 'permissions').map(r => [r.key, r]));
-  const included = new Set(visible.map(r => r.id));
-  for (const row of visible) {
-    const visited = new Set<string>();
-    let key = row.parentKey;
-    while (key && !visited.has(key)) {
-      visited.add(key);
-      const parent = byKey.get(key);
-      if (!parent) break;
-      included.add(parent.id); key = parent.parentKey;
+/** Every right needed to make the given selection effective, including prerequisites of prerequisites. */
+export function withPrerequisites(selection: string[], rows: RightDefinition[]): string[] {
+  const byKey = new Map(rows.map(r => [r.key, r]));
+  const result = new Set(selection);
+  const pending = [...selection];
+  while (pending.length) {
+    for (const required of byKey.get(pending.pop()!)?.requires ?? []) {
+      if (byKey.get(required)?.isActive && !result.has(required)) { result.add(required); pending.push(required); }
     }
   }
-  const nodes = new Map(rows.filter(r => included.has(r.id)).map(row => [row.id, { row, children: [], shown: [] } as PermissionTreeNode]));
-  const roots: PermissionTreeNode[] = [];
-  for (const node of nodes.values()) {
-    const parent = node.row.parentKey ? nodes.get(`permissions/${node.row.parentKey}`) : undefined;
-    if (parent) parent.children.push(node); else roots.push(node);
-  }
-  const visibleIds = new Set(visible.map(r => r.id));
-  const collect = (node: PermissionTreeNode, path: Set<string>): PermissionRow[] => {
-    if (path.has(node.row.id)) return [];
-    node.children.sort((a, b) => a.row.displayOrder - b.row.displayOrder || a.row.label.localeCompare(b.row.label));
-    node.shown = [...(visibleIds.has(node.row.id) ? [node.row] : []), ...node.children.flatMap(child => collect(child, new Set([...path, node.row.id])))];
-    return node.shown;
-  };
-  roots.sort((a, b) => a.row.displayOrder - b.row.displayOrder || a.row.label.localeCompare(b.row.label));
-  roots.forEach(node => collect(node, new Set()));
-  return roots;
+  return [...result].sort();
 }
 
-export function selectionState(rows: PermissionRow[], selection: AccessSelection): 'all' | 'none' | 'partial' {
-  const active = rows.filter(r => r.active);
-  const count = active.filter(r => isGranted(selection, r)).length;
-  return count === 0 ? 'none' : count === active.length ? 'all' : 'partial';
+export type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; isActive: boolean; rights: string[]; userCount: number; version: string };
+
+/** Active rights only: a retired right can stay stored, but it never counts as held. */
+export const assignedCount = (rows: RightDefinition[], selection: string[]) => rows.filter(r => r.isActive && isGranted(selection, r)).length;
+
+const ACTION_COLUMNS: [string, string][] = [
+  ['Access', 'Open'], ['View', 'View'], ['Create', 'Create'], ['Maintain', 'Edit'], ['Coordinate', 'Coordinate'], ['ArchiveRestore', 'Archive'], ['Delete', 'Delete'],
+  ['DetailsView', 'Details'], ['HistoryView', 'History'], ['AttachmentsView', 'View files'], ['AttachmentsUpload', 'Upload files'], ['AttachmentsDeleteOwn', 'Delete own files'],
+  ['AttachmentsDelete', 'Delete any file'], ['Download', 'Download'], ['Export', 'Export'], ['Administration', 'Enter'], ['TechnicalDetail', 'Technical detail'], ['Audit', 'Change history']
+];
+export type RightGridRow = { key: string; label: string; detail?: string; cells: Record<string, RightDefinition> };
+export type RightGridModule = { key: string; label: string; rows: RightDefinition[]; columns: { action: string; label: string }[]; resources: RightGridRow[] };
+
+/** The part of a key before the action: `Cases` for `Cases:View`, `tab.Cases.work` for `tab.Cases.work:View`. */
+export const resourceOf = (row: RightDefinition) => row.key.slice(0, row.key.lastIndexOf(':'));
+
+function resourceLabel(resource: string, row: RightDefinition, catalog: RightDefinition[]): Pick<RightGridRow, 'label' | 'detail'> {
+  if (!resource.startsWith('tab.')) return { label: row.featureLabel };
+  const view = catalog.find(r => r.key === `${resource}:View`);
+  return { label: view?.label ?? resource.slice(resource.lastIndexOf('.') + 1), detail: row.featureLabel };
+}
+
+/** Modules as tables: one row per resource, one column per action the module uses. A catalog action not listed above still gets a column, so no right can go missing. */
+export function gridRights(rows: RightDefinition[], catalog: RightDefinition[]): RightGridModule[] {
+  return groupRights(rows).map(group => {
+    const resources = new Map<string, RightGridRow>();
+    for (const row of group.rows) {
+      const key = resourceOf(row);
+      let resource = resources.get(key);
+      if (!resource) { resource = { key, ...resourceLabel(key, row, catalog), cells: {} }; resources.set(key, resource); }
+      resource.cells[row.action] = row;
+    }
+    const used = new Set(group.rows.map(r => r.action));
+    const known = ACTION_COLUMNS.filter(([action]) => used.has(action)).map(([action, label]) => ({ action, label }));
+    const other = [...used].filter(action => !ACTION_COLUMNS.some(([a]) => a === action)).map(action => ({ action, label: action }));
+    return { key: group.key, label: group.label, rows: group.rows, columns: [...known, ...other], resources: [...resources.values()] };
+  });
+}
+
+/** Sensitive rights first within each module, so a review starts with what matters most. */
+export function reviewGroups(rows: RightDefinition[]) {
+  return groupRights(rows).map(group => ({ key: group.key, label: group.label, rows: [...group.rows].sort((a, b) => Number(sensitive(b)) - Number(sensitive(a))) }));
+}
+
+/** Rights that this save would leave without a prerequisite, not counting those already in that state. */
+export function newlyBlocked(rows: RightDefinition[], base: string[], draft: string[]) {
+  const before = new Set(prerequisiteWarnings(rows, base).map(r => r.key));
+  return prerequisiteWarnings(rows, draft).filter(r => !before.has(r.key));
 }

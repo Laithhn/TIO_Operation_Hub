@@ -1,8 +1,9 @@
+import { seesTechnical } from '../rights';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { get, post, put, qs, type Paged } from '../api';
-import { usePermission, useForm, useMe, useRefresh, useUrlState } from '../hooks';
+import { useRight, useForm, useMe, useRefresh, useUrlState } from '../hooks';
 import { Badge, DataTable, DeleteAction, Dialog, FormError, PageHead, Pager, Restricted, SelectInput, TextInput, useToast, type Column } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { toNum, useClientOptions } from './common';
@@ -22,7 +23,7 @@ const arrow = (d: string) => d === 'Bidirectional' ? '⇄' : '→';
 
 function TechGate({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.grants.technicalDetail) return <Restricted need="Firewall rules need the Technical detail right." />;
+  if (!seesTechnical(me)) return <Restricted need="Firewall rules need the Technical detail right." />;
   return <>{children}</>;
 }
 
@@ -42,17 +43,17 @@ function ruleColumns(onEdit: ((r: RuleRow) => void) | null, showClient: boolean)
 export function FirewallRuleList() {
   const [f, set] = useUrlState({ clientId: '', protocol: '', q: '', sort: 'source', page: '1', pageSize: '25' });
   const me = useMe().data!;
-  const q = useQuery({ queryKey: ['firewall-rules', f], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs(f)}`), enabled: me.grants.technicalDetail });
+  const q = useQuery({ queryKey: ['firewall-rules', f], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs(f)}`), enabled: seesTechnical(me) });
   const clients = useClientOptions();
-  const canEng = usePermission('OtherOperations', 'Maintain');
-  const canCreate = usePermission('OtherOperations', 'Create');
+  const canEng = useRight('OtherOperations', 'Maintain');
+  const canCreate = useRight('OtherOperations', 'Create');
   const [edit, setEdit] = useState<RuleRow | 'new' | null>(null);
   const filtered = !!(f.clientId || f.protocol || f.q);
   return (
     <>
       <PageHead title="Firewall rules" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/environments', label: 'Environments' }, { label: 'Firewall rules' }]}
         sub="The allowed communication between servers: source, destination, ports, protocol, direction and purpose. Recorded configuration, not a live firewall export."
-        actions={canCreate && me.grants.technicalDetail && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New rule</button>} />
+        actions={canCreate && seesTechnical(me) && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New rule</button>} />
       <TechGate>
         <div className="toolbar">
           <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v, page: '1' })} options={clients} empty="All authorized clients" />
@@ -71,11 +72,11 @@ export function FirewallRuleList() {
 /** Rules of one environment or touching one server, for the environment tab and the server page. */
 export function FirewallRulesPanel({ environmentId, assetId, clientId }: { environmentId?: number; assetId?: number; clientId: number }) {
   const me = useMe().data!;
-  const canEng = usePermission('OtherOperations', 'Maintain');
-  const canCreate = usePermission('OtherOperations', 'Create');
+  const canEng = useRight('OtherOperations', 'Maintain');
+  const canCreate = useRight('OtherOperations', 'Create');
   const [edit, setEdit] = useState<RuleRow | 'new' | null>(null);
-  const q = useQuery({ queryKey: ['firewall-rules', { environmentId, assetId }], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs({ environmentId, assetId, pageSize: 200 })}`), enabled: me.grants.technicalDetail });
-  if (!me.grants.technicalDetail) return <Restricted need="Firewall rules need the Technical detail right." />;
+  const q = useQuery({ queryKey: ['firewall-rules', { environmentId, assetId }], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs({ environmentId, assetId, pageSize: 200 })}`), enabled: seesTechnical(me) });
+  if (!seesTechnical(me)) return <Restricted need="Firewall rules need the Technical detail right." />;
   return (
     <>
       {canCreate && <div className="toolbar"><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New firewall rule</button></div>}

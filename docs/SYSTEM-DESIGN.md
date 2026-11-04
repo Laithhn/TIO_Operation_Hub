@@ -40,7 +40,7 @@ The application does not initiate calls to Jira, client systems, secrets vaults 
 
 | Domain | Responsibilities | Important limit |
 |---|---|---|
-| Access and administration | Users, roles, mappings, resource/action grants, settings, audit and supported archive/restore | Administrator status alone does not imply business-record access |
+| Access and administration | Users, roles, rights, mappings, settings, audit and supported archive/restore | Administrator status alone does not imply business-record access |
 | Client context | Clients, projects, optional regions, contacts, responsibility boundaries, contextual organization relationships | Organization graph is not an authorization boundary |
 | Technical context | Environments, reported condition, catalog/version/installations, assets/components/storage, network/firewall and dependencies | No automatic discovery or continuous monitoring |
 | Work management | Cases, affected records, impact, state/history, waiting periods, manual Jira references, commitments and escalations | Jira state is not synchronized |
@@ -89,7 +89,7 @@ The normal release process builds the frontend and API as one matched package. A
 ## 7. Request, authorization, and data flow
 
 1. The user reaches the HTTPS IIS site and authenticates through the configured Forms or Windows mode.
-2. The application resolves the authenticated principal to an active TIO Hub user, groups/mappings where enabled, assigned roles, scope, grants and current session context.
+2. The application resolves the authenticated principal to an active TIO Hub user, groups/mappings where enabled, assigned roles, rights, scope and current session context.
 3. Endpoint and workflow checks authorize the requested resource/action. Query filters and domain checks constrain records; archive state is handled separately from scope. Frontend visibility does not replace these checks.
 4. The module validates input and applies the business transition. Shared persistence and audit behavior save structured data/history in SQL Server.
 5. The SPA renders permitted records. For files, the API checks ownership/authorization before returning bytes from configured storage. Export generation records its job and uses authorized query results.
@@ -111,7 +111,7 @@ Attachments and exports are file-backed. Database metadata, path configuration, 
 
 The application supports configured Forms or Windows Integrated authentication through IIS. Development sign-in is restricted to Development and Testing. Windows group mappings may contribute effective roles and scopes. Forms credentials are managed as hub accounts; session lifetime and lockout settings are configurable. Verify exact defaults against the release configuration before use.
 
-Effective authorization combines authenticated identity, active hub user, roles, resource/action grants and applicable scope. The API enforces permissions on protected operations. Restore/delete paths and dependent record changes require specific rights according to current decisions and code. Export history/download rules restrict downloads to the generating user; scheduled reports are generated separately for each eligible recipient using that recipient's own access as documented.
+Effective authorization combines authenticated identity, active hub user, roles and their rights, individual exceptions and applicable data scope; see RIGHTS-MODEL-DESIGN.md. The API enforces permissions on protected operations. Restore/delete paths and dependent record changes require specific rights according to current decisions and code. Export history/download rules restrict downloads to the generating user; scheduled reports are generated separately for each eligible recipient using that recipient's own access as documented.
 
 Before a production rollout, the owner must approve identity mode, MFA/identity-provider controls, bootstrap administrator, group mapping, lockout/session policy, access review cadence, business visibility boundary, export/technical/audit grants and incident handling. These controls must be validated on the exact target installation.
 

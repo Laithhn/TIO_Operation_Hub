@@ -36,7 +36,7 @@ public static class ContractQuery
         {
             // Filtering by a guessed product ID also reveals whether that product is
             // linked, even when the related-product projection is hidden.
-            db.CurrentUser.RequirePermission(ResourcePermissions.Products, ResourcePermissions.View);
+            db.CurrentUser.RequireRight(RightKeys.Products, RightKeys.View);
             q = q.Where(c => db.ProjectProducts.Any(p => p.ProjectId == c.ProjectId && p.ProductId == f.ProductId));
         }
         if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || (c.ContractReference != null && c.ContractReference.Contains(f.Q))
@@ -94,7 +94,7 @@ public static class ContractEndpoints
         g.MapGet("", async (long? clientId, ContractStatus? status, string? type, string? renewal, long? ownerId, long? productId, string? country, string? q, long? projectId, DateTimeOffset? asOf,
             string? sort, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var now = asOf ?? DateTimeOffset.UtcNow;
             var query = ContractQuery.Apply(db.Contracts.AsNoTracking(), new ContractFilter(clientId, status, type, renewal, ownerId, productId, country, q, projectId), now, db);
             var keys = new Dictionary<string, Expression<Func<Contract, object?>>>
@@ -125,7 +125,7 @@ public static class ContractEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var c = await db.Contracts.AsNoTracking().Include(x => x.Client).Include(x => x.Owner).Include(x => x.Environments).Include(x => x.SlaTargets).Include(x => x.PenaltyClauses)
                 .Include(x => x.Milestones).Include(x => x.Fees).Include(x => x.Payments).AsSplitQuery()
                 .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
@@ -135,8 +135,8 @@ public static class ContractEndpoints
             var project = await db.Projects.IgnoreQueryFilters(["Archive"]).AsNoTracking().Where(x => x.Id == c.ProjectId)
                 .Select(x => new { x.Id, x.Code, x.Name, x.Status }).FirstOrDefaultAsync(ct);
             var productIds = await db.ProjectProducts.AsNoTracking().Where(pp => pp.ProjectId == c.ProjectId).Select(pp => pp.ProductId).ToListAsync(ct);
-            var maintain = access.Me.HasClient(c.ClientId) && access.Me.HasPermissionIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId]));
-            var archive = access.Me.HasClient(c.ClientId) && access.Me.HasPermission(ResourcePermissions.Contracts, ResourcePermissions.ArchiveRestore);
+            var maintain = access.Me.HasClient(c.ClientId) && access.Me.HasRightIn(RightKeys.Contracts, RightKeys.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId]));
+            var archive = access.Me.HasClient(c.ClientId) && access.Me.HasRight(RightKeys.Contracts, RightKeys.ArchiveRestore);
             var state = ContractQuery.State(c, now);
             return ctx.WithETag(c, new
             {
@@ -157,8 +157,8 @@ public static class ContractEndpoints
                     x.Id, x.Condition, x.Percentage, x.Amount, x.DueDate, x.Status, x.PaidOn, x.Notes,
                     overdue = x.DueDate != null && x.DueDate < DateOnly.FromDateTime(now.UtcDateTime) && (x.Status == PaymentStatus.Pending || x.Status == PaymentStatus.Invoiced)
                 }),
-                products = await db.Products.AsNoTracking().Where(p => access.Me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View) && productIds.Contains(p.Id)).OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct),
-                environments = await db.Environments.AsNoTracking().Where(e => access.Me.HasPermission(ResourcePermissions.Environments, ResourcePermissions.View) && envIds.Contains(e.Id))
+                products = await db.Products.AsNoTracking().Where(p => access.Me.HasRight(RightKeys.Products, RightKeys.View) && productIds.Contains(p.Id)).OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct),
+                environments = await db.Environments.AsNoTracking().Where(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && envIds.Contains(e.Id))
                     .Select(e => new { e.Id, e.Name, e.Type, region = e.Region == null ? null : e.Region.Code }).ToListAsync(ct),
                 slaTargets = c.SlaTargets.OrderBy(t => t.Priority).Select(t => new { t.Id, t.Priority, t.ResponseMinutes, t.ResolutionMinutes, t.Basis, t.Notes }),
                 penaltyClauses = c.PenaltyClauses.OrderBy(t => t.Id).Select(t => new { t.Id, t.Name, t.Trigger, t.Calculation, t.FixedAmount, t.Percentage, t.ReferenceAmount, t.MonthlyCap, t.BillingTimeZone, currency = c.Currency }),
@@ -173,7 +173,7 @@ public static class ContractEndpoints
             if (input.ProjectId is null) throw new ValidationException("projectId", "Select the project this contract belongs to.");
             var project = await db.Projects.FirstOrDefaultAsync(x => x.Id == input.ProjectId, ct) ?? throw new ValidationException("projectId", "Select an existing project.");
             if (input.ClientId is not null && input.ClientId != project.ClientId) throw new ValidationException("projectId", "Select a project of the contract's client.");
-            access.RequireEngineerFor(project.ClientId, resource: ResourcePermissions.Contracts);
+            access.RequireEngineerFor(project.ClientId, resource: RightKeys.Contracts);
             var c = new Contract { ClientId = project.ClientId, ProjectId = project.Id };
             await ApplyAsync(c, input, db, access, ct);
             c.LastReviewedAt = clock.GetUtcNow();
@@ -187,7 +187,7 @@ public static class ContractEndpoints
             var c = await db.Contracts.Include(x => x.Environments).Include(x => x.SlaTargets).Include(x => x.Milestones).Include(x => x.Fees).Include(x => x.Payments).Include(x => x.PenaltyClauses).AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct)
                 ?? throw new NotFoundException("The contract");
             // A move between projects needs authority over both the old and the proposed project.
-            access.RequireIn(ResourcePermissions.Contracts, ResourcePermissions.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId, input.ProjectId ?? c.ProjectId]));
+            access.RequireIn(RightKeys.Contracts, RightKeys.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId, input.ProjectId ?? c.ProjectId]));
             db.ExpectVersion(ctx, c);
             await ApplyAsync(c, input, db, access, ct);
             // Saving the contract after checking it against the document counts as a review.
@@ -199,7 +199,7 @@ public static class ContractEndpoints
         g.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Contracts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
-            access.RequireArchiveFor(c.ClientId, resource: ResourcePermissions.Contracts);
+            access.RequireArchiveFor(c.ClientId, resource: RightKeys.Contracts);
             db.ExpectVersion(ctx, c);
             if (c.Status == ContractStatus.Active) throw new ValidationException("reason", "An Active contract cannot be archived. Record it as Ended or Terminated first.");
             var reason = Rules.RequireReason(input.Reason);
@@ -211,7 +211,7 @@ public static class ContractEndpoints
 
         g.MapGet("/{id:long}/penalty-assessments", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var contract = await db.Contracts.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.ClientId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The contract");
             // Assessments contain breach identities from every case on the contract,
             // including cases outside a project-only user's scope.
@@ -225,7 +225,7 @@ public static class ContractEndpoints
         g.MapPost("/{id:long}/penalty-assessments/recalculate", async (long id, PenaltyReasonInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var contract = await db.Contracts.Include(x => x.PenaltyClauses).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
-            access.RequireLeadFor(contract.ClientId, resource: ResourcePermissions.Contracts);
+            access.RequireLeadFor(contract.ClientId, resource: RightKeys.Contracts);
             var reason = Rules.RequireReason(input.Reason);
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
             await LockPenaltyAssessmentsAsync(id, db, ct);
@@ -297,7 +297,7 @@ public static class ContractEndpoints
         g.MapPost("/{id:long}/penalty-assessments/{assessmentId:long}/confirm", async (long id, long assessmentId, PenaltyReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var contract = await db.Contracts.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
-            access.RequireLeadFor(contract.ClientId, resource: ResourcePermissions.Contracts);
+            access.RequireLeadFor(contract.ClientId, resource: RightKeys.Contracts);
             await using var transaction = await db.Database.BeginTransactionAsync(ct);
             await LockPenaltyAssessmentsAsync(id, db, ct);
             var row = await db.PenaltyAssessments.FirstOrDefaultAsync(x => x.Id == assessmentId && x.ContractId == id, ct) ?? throw new NotFoundException("The penalty assessment");
@@ -349,10 +349,10 @@ public static class ContractEndpoints
         // A contract always belongs to a project of its client; it may move between that client's projects.
         if (i.ProjectId is null) check.Add("projectId", "Select the project this contract belongs to.");
         else if (!await db.Projects.AnyAsync(p => p.Id == i.ProjectId && p.ClientId == c.ClientId, ct)) check.Add("projectId", "Select a project of the contract's client.");
-        access.CheckOwnerChange(check, "ownerUserId", c.Id == 0 ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: ResourcePermissions.Contracts);
+        access.CheckOwnerChange(check, "ownerUserId", c.Id == 0 ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: RightKeys.Contracts);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, c.ClientId, null, "the owner", ct);
         var envIds = (i.EnvironmentIds ?? []).Distinct().ToList();
-        var applyEnvironments = RelatedRecordAccess.CanApply(access.Me, ResourcePermissions.Environments, envIds);
+        var applyEnvironments = RelatedRecordAccess.CanApply(access.Me, RightKeys.Environments, envIds);
         if (applyEnvironments && envIds.Count > 0 && await db.Environments.CountAsync(e => envIds.Contains(e.Id) && e.ClientId == c.ClientId, ct) != envIds.Count) check.Add("environmentIds", "Select environments of the same client.");
         var targets = i.SlaTargets ?? [];
         for (var n = 0; n < targets.Count; n++)

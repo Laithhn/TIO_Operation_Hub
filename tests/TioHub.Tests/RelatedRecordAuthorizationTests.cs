@@ -13,8 +13,8 @@ public sealed class RelatedRecordAuthorizationTests
     private static UserContext User(params string[] keys)
     {
         var me = new UserContext();
-        me.Set(new ResolvedUser(42, "test", "Test", "UTC", true, ["Operator"], Right.None,
-            PermissionHierarchy.WithAncestors(keys), Grant.None, false, [10], [20], [10], [], false, []));
+        me.Set(new ResolvedUser(42, "test", "Test", "UTC", true, ["Operator"],
+            Fixture.Rights(keys), false, [10], [20], [10], [], false, []));
         return me;
     }
 
@@ -31,7 +31,7 @@ public sealed class RelatedRecordAuthorizationTests
         NoteEndpoints.RequireLinkReadAccess(projectReader, 10, 20);
         Assert.Throws<ForbiddenException>(() => NoteEndpoints.RequireLinkReadAccess(projectReader, 10, null));
 
-        var clientReader = User("PersonalNotes:View", "Cases:View", PermissionHierarchy.Tab("ClientStructure", "cases", "View"));
+        var clientReader = User("PersonalNotes:View", "Cases:View", RightKeys.Tab("ClientStructure", "cases", "View"));
         NoteEndpoints.RequireLinkReadAccess(clientReader, 10, null);
         Assert.Throws<ForbiddenException>(() => NoteEndpoints.RequireLinkReadAccess(clientReader, 10, 20));
     }

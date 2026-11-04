@@ -1,5 +1,7 @@
 # Four-level permission inventory (2.44.0)
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 Generated from `Security/PermissionHierarchy.cs`. Keys are immutable. Every required key must be effective; grants never flow down from a parent.
 
 | Type | Key | Name | Parent | Required access |

@@ -723,11 +723,12 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var e = await Hub.As(HubFactory.Engineer2);
-        Assert.Equal(["Engineer", "Manager"], (await m.Get("/reference")).Body!["enums"]!["Role"]!.AsArray().Select(x => x!.GetValue<string>()));
         Assert.Equal((await m.Get("/clients?pageSize=1")).Total, (await e.Get("/clients?pageSize=1")).Total);
         var me = (await e.Get("/me")).Body!;
-        Assert.Equal("Engineer", me["businessRole"]!.GetValue<string>());
-        Assert.True(me["grants"]!["export"]!.GetValue<bool>() && me["grants"]!["technicalDetail"]!.GetValue<bool>() && me["grants"]!["audit"]!.GetValue<bool>());
+        var held = me["rights"]!.AsArray().Select(x => x!.GetValue<string>()).ToArray();
+        Assert.Contains(RightKeys.PlatformExport, held);
+        Assert.Contains(RightKeys.TechnicalDetail, held);
+        Assert.Contains(RightKeys.Audit, held);
         Assert.Contains((await e.Get("/assets?pageSize=200")).Body!["items"]!.AsArray(), a => a!["networkZone"]?.GetValue<string>() is not null);
         Assert.Equal(HttpStatusCode.OK, (await e.Get("/firewall-rules")).Status);
         Assert.Equal(HttpStatusCode.OK, (await e.Get("/admin/audit?pageSize=5")).Status);
@@ -1045,33 +1046,30 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         var m = await Hub.As(HubFactory.Manager);
         var e = await Hub.As(HubFactory.Engineer);
         var roles = (await m.Get("/admin/roles")).Body!;
-        Assert.Equal(new[] { "Export", "TechnicalDetail", "Audit", "Administer" },
-            roles["rights"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()));
-        Assert.Equal(ResourcePermissions.All.Order(), roles["permissions"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()).Order());
+        Assert.Equal(RightsCatalog.AllKeys.Order(), roles["catalog"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()).Order());
         var manager = roles["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == "Manager")!;
         Assert.True(manager["isLocked"]!.GetValue<bool>());
-        Assert.Equal(new[] { "Export", "TechnicalDetail", "Audit", "Administer" },
-            manager["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
-        Assert.Equal(ResourcePermissions.All.Order(), manager["permissions"]!.AsArray().Select(r => r!.GetValue<string>()).Order());
+        Assert.Equal(RightsCatalog.AllKeys.Order(), manager["rights"]!.AsArray().Select(r => r!.GetValue<string>()).Order());
         Assert.Equal(HttpStatusCode.Forbidden, (await e.Get("/admin/roles")).Status);
 
         // Read-only roles explicitly select page visibility and receive no business action permissions.
-        var readPermissions = ResourcePermissions.Catalog.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal)).Select(p => p.Key).ToArray();
-        var viewerRole = await m.Create("/admin/roles", new { name = U("Viewer"), description = "Read only", rights = Array.Empty<string>(), permissions = PermissionHierarchy.UpgradeLegacy(readPermissions, Right.None) });
+        var readPermissions = RightsCatalog.All.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal) && p.Action != RightKeys.HistoryView).Select(p => p.Key).ToArray();
+        var viewerRole = await m.Create("/admin/roles", new { name = U("Viewer"), description = "Read only", rights = Fixture.Rights(readPermissions, Flag.None) });
         Assert.Equal(HttpStatusCode.Conflict, (await m.Post("/admin/roles", new { name = manager["name"]!.GetValue<string>(), rights = Array.Empty<string>() })).Status);
         Assert.NotNull((await m.Post("/admin/roles", new { name = U("Bad"), rights = new[] { "Fly" } })).Error("rights"));
         var acct = $@"DEV\{U("viewer")}";
         await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId = viewerRole });
         var v = await Hub.As(acct);
         var me = v.Me;
-        Assert.Empty(me["rights"]!.AsArray());
+        Assert.DoesNotContain("Cases:Maintain", me["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.DoesNotContain(RightKeys.Audit, me["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
         var c = await NewClient();
         Assert.Equal(HttpStatusCode.OK, (await v.Get($"/clients/{c}")).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await v.Get("/export/contracts")).Status);
 
         // Multi-role grants combine, and the user access inspector reports their source roles.
-        var auditRole = await m.Create("/admin/roles", new { name = U("Auditor"), description = "Audit access", rights = new[] { "Audit" } });
+        var auditRole = await m.Create("/admin/roles", new { name = U("Auditor"), description = "Audit access", rights = new[] { RightKeys.Audit } });
         var userRow = (await m.Get("/admin/users")).Body!.AsArray().Single(x => x!["accountName"]!.GetValue<string>() == acct)!;
         var userId = Id(userRow);
         var userDetail = (await m.Get($"/admin/users/{userId}")).Body!;
@@ -1084,33 +1082,33 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         Assert.Equal(new[] { viewerRole, auditRole }, updatedUser["roleIds"]!.AsArray().Select(x => x!.GetValue<long>()).Order());
         v = await Hub.As(acct);
         var updatedMe = (await v.Get("/me")).Body!;
-        Assert.Contains("Audit", updatedMe["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.Contains(RightKeys.Audit, updatedMe["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
         var inspector = (await m.Get($"/admin/users/{userId}/access")).Body!;
-        Assert.Contains(inspector["effectiveRights"]!.AsArray(), x => x!["key"]!.GetValue<string>() == "Audit"
+        Assert.Contains(inspector["effectiveRights"]!.AsArray(), x => x!["key"]!.GetValue<string>() == RightKeys.Audit
             && x["sources"]!.AsArray().Any(s => s!.GetValue<string>().StartsWith("Auditor", StringComparison.Ordinal)));
 
         var clonedRole = await m.Create($"/admin/roles/{auditRole}/clone", new { name = U("AuditorCopy"), description = "Cloned audit access" });
         var cloneView = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(x => Id(x) == clonedRole)!;
-        Assert.Contains("Audit", cloneView["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.Contains(RightKeys.Audit, cloneView["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
         var auditRoleView = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(x => Id(x) == auditRole)!;
         Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{auditRole}", new
         {
-            name = auditRoleView["name"]!.GetValue<string>(), description = "Inactive audit access", rights = new[] { "Audit" }, permissions = Array.Empty<string>(), isActive = false
+            name = auditRoleView["name"]!.GetValue<string>(), description = "Inactive audit access", rights = Fixture.With([], "Audit"), isActive = false
         }, auditRoleView["version"]!.GetValue<string>())).Status);
         var afterDeactivation = (await v.Get("/me")).Body!;
-        Assert.DoesNotContain("Audit", afterDeactivation["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.DoesNotContain(RightKeys.Audit, afterDeactivation["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
 
         // Giving the role Edit lets its holders work at once; the TIO Manager role cannot lose a right; built-in roles cannot be deleted.
         var rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
-        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = new[] { "Export" }, permissions = readPermissions.Concat(ResourcePermissions.ExpandLegacy(Right.Edit | Right.Export)).Distinct().ToArray() }, rv["version"]!.GetValue<string>())).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = Fixture.Rights(readPermissions.Concat(Fixture.Engineer), Flag.Edit | Flag.Export) }, rv["version"]!.GetValue<string>())).Status);
         Assert.Equal(HttpStatusCode.Created, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.OK, (await v.Get("/export/contracts")).Status);
-        Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Edit" } }, manager["version"]!.GetValue<string>())).Error("rights"));
+        Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Cases:View" } }, manager["version"]!.GetValue<string>())).Error("rights"));
         Assert.NotNull((await m.Send(HttpMethod.Delete, $"/admin/roles/{Id(manager)}", null, manager["version"]!.GetValue<string>())).Error("role"));
         rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
         Assert.Equal(1, rv["userCount"]!.GetValue<int>());
         Assert.NotNull((await m.Send(HttpMethod.Delete, $"/admin/roles/{viewerRole}", null, rv["version"]!.GetValue<string>())).Error("role"));
-        var spare = await m.Create("/admin/roles", new { name = U("Spare"), rights = new[] { "Audit" } });
+        var spare = await m.Create("/admin/roles", new { name = U("Spare"), rights = new[] { RightKeys.Audit } });
         var sv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == spare)!["version"]!.GetValue<string>();
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/admin/roles/{spare}", null, sv)).Status);
 

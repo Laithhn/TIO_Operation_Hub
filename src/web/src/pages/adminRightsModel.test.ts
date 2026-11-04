@@ -1,62 +1,120 @@
 import { describe, expect, it } from 'vitest';
-import { dependencyWarnings, filterPermissionRows, groupPermissionRows, missingDependencies, permissionChanges, permissionRows, setPermissions, sensitive, type PermissionDefinition } from './adminRightsModel';
+import catalogJson from '../rightsCatalog.json';
+import { assignedCount, filterRights, gridRights, groupRights, missingPrerequisites, newlyBlocked, prerequisiteWarnings, reviewGroups, rightChanges, sensitive, setRights, sortedRights, withPrerequisites, type RightDefinition, type RightFilters } from './adminRightsModel';
 
-const definition = (action: string, changes: Partial<PermissionDefinition> = {}): PermissionDefinition => ({ key: `Cases:${action}`, resource: 'Cases', resourceLabel: 'Cases', action,
-  actionLabel: action, description: `May ${action.toLowerCase()} cases.`, module: 'Operations', isActive: true, riskLevel: action === 'Delete' ? 'High' : 'Standard', ...changes });
-const rows = permissionRows([{ key: 'Audit', label: 'View audit', description: 'Read change history.' }], [definition('View'), definition('Create'), definition('Delete'), definition('Old', { isActive: false })]);
-const noAccess = { rights: [], permissions: [] };
-const filters = { search: '', module: '', resource: '', action: '', risk: '', assignment: '' };
+const right = (key: string, changes: Partial<RightDefinition> = {}): RightDefinition => ({
+  key, label: key.split(':')[1], description: 'Test right', module: 'Cases', feature: key.split(':')[0], featureLabel: key.split(':')[0], action: key.split(':')[1],
+  kind: 'Action', riskLevel: 'Normal', supportsScope: true, requires: [], displayOrder: 0, isActive: true, ...changes
+});
+const rows = sortedRights([
+  right('Cases:View', { kind: 'Access', displayOrder: 1 }),
+  right('Cases:Create', { requires: ['Cases:View'], displayOrder: 2 }),
+  right('Cases:Delete', { requires: ['Cases:View'], riskLevel: 'High', displayOrder: 3 }),
+  right('Cases:HistoryView', { kind: 'Access', requires: ['Cases:View', 'Platform:Audit'], displayOrder: 4 }),
+  right('Platform:Audit', { module: 'Administration', riskLevel: 'High', displayOrder: 0 }),
+  right('Old:Retired', { isActive: false, displayOrder: 5 })
+]);
+const filters: RightFilters = { search: '', module: '', feature: '', kind: '', risk: '', assignment: '' };
+const only = (key: string) => rows.filter(r => r.key === key);
 
-describe('permission editor security semantics', () => {
-  it('keeps sibling actions independent and reports missing view without granting it', () => {
-    const draft = setPermissions(noAccess, rows.filter(r => r.key === 'Cases:Delete'), true);
-    expect(draft.permissions).toEqual(['Cases:Delete']);
-    expect(dependencyWarnings(rows, draft).map(r => r.key)).toEqual(['Cases:Delete']);
-    expect(noAccess.permissions).toEqual([]);
-    expect(permissionChanges(noAccess, draft, rows).grants.map(r => r.key)).toEqual(['Cases:Delete']);
+describe('rights editor security semantics', () => {
+  it('assigning one right changes nothing else and adds no prerequisite', () => {
+    const none: string[] = [];
+    const draft = setRights(none, only('Cases:Delete'), true);
+    expect(draft).toEqual(['Cases:Delete']);
+    expect(none).toEqual([]);
+    expect(rightChanges(none, draft, rows).grants.map(r => r.key)).toEqual(['Cases:Delete']);
   });
 
-  it('stages only explicitly provided leaves and never grants deprecated permissions', () => {
-    const draft = setPermissions({ rights: [], permissions: ['Legacy:Retained'] }, rows.filter(r => r.module === 'Operations'), true);
-    expect(draft.permissions).toEqual(['Cases:Create', 'Cases:Delete', 'Cases:View', 'Legacy:Retained']);
-    expect(draft.rights).toEqual([]);
-    const revoked = setPermissions(draft, rows.filter(r => r.key === 'Cases:Create'), false);
-    expect(revoked.permissions).toContain('Cases:Delete');
-    expect(revoked.permissions).toContain('Legacy:Retained');
-    expect(permissionChanges(draft, revoked, rows).revocations.map(r => r.key)).toEqual(['Cases:Create']);
+  it('never grants a retired right, and keeps a stored one until it is removed', () => {
+    expect(setRights([], only('Old:Retired'), true)).toEqual([]);
+    const kept = setRights(['Old:Retired'], only('Cases:View'), true);
+    expect(kept).toEqual(['Cases:View', 'Old:Retired']);
+    expect(setRights(kept, only('Old:Retired'), false)).toEqual(['Cases:View']);
   });
 
-  it('groups metadata without implying any assignments or mutating source rows', () => {
-    const groups = groupPermissionRows(rows);
-    expect(groups.find(g => g.label === 'Operations')?.resources.map(r => r.label)).toEqual(['Cases']);
-    expect(groups.find(g => g.label === 'Operations')?.rows).toHaveLength(4);
-    expect(noAccess).toEqual({ rights: [], permissions: [] });
-    expect(rows.find(r => r.key === 'Cases:Delete')).toMatchObject({ risk: 'High', active: true });
-    expect(sensitive(rows.find(r => r.key === 'Cases:Delete')!)).toBe(true);
+  it('reports a missing prerequisite instead of granting it', () => {
+    const draft = ['Cases:Delete'];
+    expect(missingPrerequisites(only('Cases:Delete')[0], draft)).toEqual(['Cases:View']);
+    expect(prerequisiteWarnings(rows, draft).map(r => r.key)).toEqual(['Cases:Delete']);
+    expect(draft).toEqual(['Cases:Delete']);
   });
 
-  it('combines search and independent metadata filters and limits a group action to filtered leaves', () => {
-    const shown = filterPermissionRows(rows, { ...filters, search: 'cases:delete', module: 'Operations', risk: 'High', action: 'Delete' }, noAccess, noAccess);
+  it('adds prerequisites only when asked, including indirect ones', () => {
+    const chain = [right('A:X', { requires: ['A:Y'] }), right('A:Y', { requires: ['A:Z'] }), right('A:Z')];
+    expect(withPrerequisites(['A:X'], chain)).toEqual(['A:X', 'A:Y', 'A:Z']);
+    expect(withPrerequisites(['Cases:HistoryView'], rows)).toEqual(['Cases:HistoryView', 'Cases:View', 'Platform:Audit']);
+  });
+
+  it('does not add a retired prerequisite', () => {
+    expect(withPrerequisites(['A:X'], [right('A:X', { requires: ['A:Gone'] }), right('A:Gone', { isActive: false })])).toEqual(['A:X']);
+  });
+
+  it('a filtered bulk selection covers only the matching rights', () => {
+    const shown = filterRights(rows, { ...filters, search: 'cases:delete' }, [], []);
     expect(shown.map(r => r.key)).toEqual(['Cases:Delete']);
-    expect(setPermissions(noAccess, shown, true).permissions).toEqual(['Cases:Delete']);
-    expect(filterPermissionRows(rows, { ...filters, search: 'missing' }, noAccess, noAccess)).toEqual([]);
+    expect(setRights([], shown, true)).toEqual(['Cases:Delete']);
+    expect(filterRights(rows, { ...filters, search: 'missing' }, [], [])).toEqual([]);
   });
 
-  it('compares saved assignments against a draft and can show only changes or differences', () => {
-    const saved = { rights: ['Audit'], permissions: ['Cases:View'] };
-    const draft = setPermissions(saved, rows.filter(r => r.key === 'Cases:Delete'), true);
-    expect(filterPermissionRows(rows, { ...filters, assignment: 'changed' }, draft, saved).map(r => r.key)).toEqual(['Cases:Delete']);
-    expect(filterPermissionRows(rows, { ...filters, assignment: 'different' }, draft, saved, saved).map(r => r.key)).toEqual(['Cases:Delete']);
-    expect(filterPermissionRows(rows, { ...filters, assignment: 'different' }, draft, saved)).toEqual([]);
-    expect(dependencyWarnings(rows, draft)).toEqual([]);
+  it('filters by assignment, staged changes and comparison', () => {
+    const base = ['Cases:View'];
+    const draft = ['Cases:View', 'Cases:Create'];
+    expect(filterRights(rows, { ...filters, assignment: 'granted' }, draft, base).map(r => r.key)).toEqual(['Cases:View', 'Cases:Create']);
+    expect(filterRights(rows, { ...filters, assignment: 'changed' }, draft, base).map(r => r.key)).toEqual(['Cases:Create']);
+    expect(filterRights(rows, { ...filters, assignment: 'different' }, draft, base, ['Cases:Create']).map(r => r.key)).toEqual(['Cases:View']);
+    expect(filterRights(rows, { ...filters, kind: 'Access' }, draft, base).map(r => r.key)).toEqual(['Cases:View', 'Cases:HistoryView']);
   });
 
-  it('explains explicit registry dependencies across component and cross-cutting permissions', () => {
-    const catalog = permissionRows([], [definition('HistoryView', { requires: ['Cases:View', 'Cases:DetailsView', 'Audit'] })]);
-    const selection = { rights: ['Audit'], permissions: ['Cases:View', 'Cases:HistoryView'] };
-    expect(missingDependencies(catalog[0], catalog, selection)).toEqual(['Cases:DetailsView']);
-    expect(dependencyWarnings(catalog, selection)).toHaveLength(1);
-    expect(selection.permissions).not.toContain('Cases:DetailsView');
-    expect(dependencyWarnings(catalog, { ...selection, permissions: [...selection.permissions, 'Cases:DetailsView'] })).toEqual([]);
+  it('groups by module and feature in catalog order', () => {
+    const groups = groupRights(rows);
+    expect(groups.map(g => g.key)).toEqual(['Administration', 'Cases']);
+    expect(groups[1].features.map(f => f.key)).toEqual(['Cases', 'Old']);
+  });
+
+  it('marks sensitive rights', () => {
+    expect(rows.filter(sensitive).map(r => r.key)).toEqual(['Platform:Audit', 'Cases:Delete']);
+  });
+
+  it('filters to the assigned rights that miss a prerequisite', () => {
+    expect(filterRights(rows, { ...filters, assignment: 'blocked' }, ['Cases:Delete', 'Platform:Audit'], []).map(r => r.key)).toEqual(['Cases:Delete']);
+  });
+
+  it('counts retired rights as not held', () => {
+    expect(assignedCount(rows, ['Cases:View', 'Old:Retired'])).toBe(1);
+  });
+
+  it('reports only what a save newly leaves without a prerequisite', () => {
+    expect(newlyBlocked(rows, ['Cases:Delete'], ['Cases:Delete'])).toEqual([]);
+    expect(newlyBlocked(rows, ['Cases:View', 'Cases:Create'], ['Cases:Create']).map(r => r.key)).toEqual(['Cases:Create']);
+  });
+
+  it('puts sensitive rights first in a review', () => {
+    const cases = rows.filter(r => ['Cases:Create', 'Cases:Delete'].includes(r.key));
+    expect(reviewGroups(cases)[0].rows.map(r => r.key)).toEqual(['Cases:Delete', 'Cases:Create']);
+  });
+
+  it('gives an unknown action its own grid column', () => {
+    const [module] = gridRights([right('Cases:Teleport'), right('Cases:View', { displayOrder: 1 })], []);
+    expect(module.columns.map(c => c.action)).toEqual(['View', 'Teleport']);
+  });
+});
+
+describe('rights grid over the real catalog', () => {
+  const catalog = sortedRights(catalogJson as RightDefinition[]);
+  const modules = gridRights(catalog, catalog);
+
+  it('shows every right in exactly one box, so none can be missed or doubled', () => {
+    const shown = modules.flatMap(m => m.resources.flatMap(r => Object.values(r.cells).map(c => c.key)));
+    expect([...shown].sort()).toEqual(catalog.map(r => r.key).sort());
+    for (const module of modules) for (const resource of module.resources)
+      for (const action of Object.keys(resource.cells)) expect(module.columns.map(c => c.action)).toContain(action);
+  });
+
+  it('names each row so that rows of a module can be told apart', () => {
+    for (const module of modules) {
+      const names = module.resources.map(r => `${r.label} ${r.detail ?? ''}`);
+      expect(names.filter((n, i) => names.indexOf(n) !== i), module.key).toEqual([]);
+    }
   });
 });

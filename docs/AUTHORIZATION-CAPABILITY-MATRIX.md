@@ -1,5 +1,7 @@
 # Registered capability coverage — 2.43.0
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 The explicit manifest contains 134 stable leaf keys. The four existing cross-cutting rights (Administration, Audit, Technical detail and Export) remain additional controls. Each key below is persisted in iam.PermissionDefinition. Group nodes have no grant semantics.
 
 Module categories cover their existing nested records. ClientStructure includes clients/regions/projects/organizations; Servers includes assets/components/volumes/storage; Products includes modules/versions/microservices; OtherOperations includes contacts/boundaries/firewall/escalations. Existing record scopes remain mandatory.

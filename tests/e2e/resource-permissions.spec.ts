@@ -21,12 +21,12 @@ async function api<T>(page: Page, path: string, body?: unknown, method = body ==
 async function role(page: Page, permissions: string[]) {
   // These journeys isolate action permissions while retaining explicit page visibility.
   // Default-deny visibility and revocation have their own granular-rights journeys.
-  const registry = await api<{ permissions: { key: string; action: string; nodeType: string; requires: string[] }[] }>(page, '/admin/roles');
-  const visibility = registry.permissions.filter(permission => permission.action.endsWith('View') || permission.nodeType !== 'Action').map(permission => permission.key);
-  const compatibilityActions = registry.permissions.filter(p => p.key.startsWith('tab.') && p.requires.some(key => permissions.includes(key))).map(p => p.key);
-  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('Browser permissions'), rights: [], permissions: [...new Set([...visibility, ...permissions, ...compatibilityActions])] });
+  const registry = await api<{ catalog: { key: string; action: string; kind: string; requires: string[] }[] }>(page, '/admin/roles');
+  const visibility = registry.catalog.filter(right => right.kind === 'Access').map(right => right.key);
+  const tabActions = registry.catalog.filter(right => right.key.startsWith('tab.') && right.requires.some(key => permissions.includes(key))).map(right => right.key);
+  const created = await api<{ id: number }>(page, '/admin/roles', { name: unique('Browser permissions'), rights: [...new Set([...visibility, ...permissions, ...tabActions, 'Platform:Audit'])] });
   const accountName = `DEV\\${unique('permissions')}`;
-  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', allClients: true, allInternal: true, roleId: created.id });
+  await api(page, '/admin/users', { accountName, displayName: accountName, workingTimeZone: 'UTC', allClients: true, allInternal: true, roleIds: [created.id] });
   await page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(accountName), url: test.info().project.use.baseURL as string }]);
 }
 async function fixture(page: Page) {

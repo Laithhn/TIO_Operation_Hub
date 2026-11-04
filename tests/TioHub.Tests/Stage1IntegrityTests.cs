@@ -44,7 +44,7 @@ public class SchemaReadinessTests
             var lookupsBefore = await db.LookupValues.CountAsync();
             var result = await DatabaseReadiness.CheckAsync(db, CancellationToken.None);
             Assert.True(result.Reachable);
-            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions", "20261102120000_PreserveLegacyEffectiveScopes", "20261102120037_UserPermissionOverrides", "20261102140000_ExportAccessFingerprint", "20261103060859_ScopedPermissionExceptions", "20261103083834_JiraIntegration", "20261103134931_ConfigurableCaseStatuses", "20261103140328_JiraSlaClockStart", "20261103142214_JiraClientRepresentative", "20261103142553_JiraInternalMember"], result.MissingMigrations);
+            Assert.Equal(["20261023100730_OptionalOrganizationGraph", "20261028080005_ReportBuilder", "20261028102910_ClientLogo", "20261028130133_NotificationResolution", "20261030062806_PermissionRegistry", "20261030080145_GranularAuthorization", "20261102103000_ProjectPermissions", "20261102110000_HierarchicalPermissions", "20261102120000_PreserveLegacyEffectiveScopes", "20261102120037_UserPermissionOverrides", "20261102140000_ExportAccessFingerprint", "20261103060859_ScopedPermissionExceptions", "20261103083834_JiraIntegration", "20261103134931_ConfigurableCaseStatuses", "20261103140328_JiraSlaClockStart", "20261103142214_JiraClientRepresentative", "20261103142553_JiraInternalMember", "20261103155046_RightsModel"], result.MissingMigrations);
             using var factory = new WebApplicationFactory<Program>().WithWebHostBuilder(b =>
             {
                 b.UseEnvironment("Testing");
@@ -97,9 +97,8 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         // Existing action-boundary scenarios retain explicit read grants so their assertions exercise the action under test.
-        permissions = ResourcePermissions.Catalog.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal)).Select(p => p.Key).Concat(permissions).Distinct().ToArray();
-        permissions = PermissionHierarchy.UpgradeLegacy(permissions, Right.None);
-        var roleId = await m.Create("/admin/roles", new { name = U("Stage1"), rights = Array.Empty<string>(), permissions });
+        var rights = Fixture.Rights(RightsCatalog.All.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal)).Select(p => p.Key).Concat(permissions), Flag.None);
+        var roleId = await m.Create("/admin/roles", new { name = U("Stage1"), rights });
         var account = $@"DEV\{U("stage1")}";
         await m.Create("/admin/users", new { accountName = account, displayName = "Stage 1 test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
         return await Hub.As(account);

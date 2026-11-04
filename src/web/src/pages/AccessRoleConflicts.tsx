@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api, ApiError, get } from '../api';
-import { usePermission } from '../hooks';
+import { useRight } from '../hooks';
 import { ErrorBox, StateMessage } from '../ui/kit';
-import type { AccessRole } from './AccessRoles';
+
+type AccessRole = { id: number; name: string; isActive: boolean; isLocked: boolean };
 
 type Pair = { firstRoleId: number; secondRoleId: number };
 type Policy = { pairs: Pair[]; version: string | null };
 const canonical = (pairs: Pair[]) => JSON.stringify(pairs.map(p => [Math.min(p.firstRoleId, p.secondRoleId), Math.max(p.firstRoleId, p.secondRoleId)]).sort((a, b) => a[0] - b[0] || a[1] - b[1]));
 
 export function AccessRoleConflicts({ roles, onDirty }: { roles: AccessRole[]; onDirty: (dirty: boolean) => void }) {
-  const editable = usePermission('AdminRoles', 'Maintain');
+  const editable = useRight('AdminRoles', 'Maintain');
   const query = useQuery({ queryKey: ['admin-role-conflicts'], queryFn: async () => {
     const response = await get<Policy>('/admin/roles/conflicts');
     if (!response || !Array.isArray(response.pairs) || (response.version !== null && typeof response.version !== 'string') ||

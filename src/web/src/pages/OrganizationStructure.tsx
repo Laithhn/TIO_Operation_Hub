@@ -1,4 +1,4 @@
-import { hasPermission } from '../permissions';
+import { hasRight } from '../rights';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
@@ -26,12 +26,12 @@ export type InitialRelationshipDraft = InitialOrganizationRelationship & { label
 type ProjectOption = { id: number; code: string; name: string };
 const display = (o: Organization) => `${o.code ? `${o.code} · ` : ''}${o.name}${o.isArchived ? ' (archived client)' : ''}`;
 
-/** Only a UI hint: the API rechecks these resource permissions and scope on every mutation. */
+/** Only a UI hint: the API rechecks these rights and scope on every mutation. */
 function useStructurePermissions() {
-  const me = useMe().data as (ReturnType<typeof useMe>['data'] & { permissions?: string[] });
+  const me = useMe().data;
   return {
-    canCreate: hasPermission(me, 'tab.ClientStructure.organizations', 'Create'),
-    canCoordinate: hasPermission(me, 'ClientStructure', 'Coordinate') && hasPermission(me, 'tab.ClientStructure.organizations', 'Maintain')
+    canCreate: hasRight(me, 'tab.ClientStructure.organizations', 'Create'),
+    canCoordinate: hasRight(me, 'ClientStructure', 'Coordinate') && hasRight(me, 'tab.ClientStructure.organizations', 'Maintain')
   };
 }
 

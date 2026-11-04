@@ -26,11 +26,6 @@ public static class MeEndpoints
             ctx.Response.Cookies.Append("XSRF-TOKEN", tokens.RequestToken!, new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.Strict, Secure = ctx.Request.IsHttps, Path = "/" });
             var user = await db.Users.AsNoTracking().FirstAsync(u => u.Id == me.UserId, ct);
             var version = typeof(Program).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion?.Split('+')[0] ?? "dev";
-            var legacyRights = BuiltInRoles.Names(me.IsSystem ? BuiltInRoles.All : me.Rights).ToHashSet(StringComparer.Ordinal);
-            if (me.HasRight(Right.Edit)) legacyRights.Add("Edit");
-            if (me.HasRight(Right.Manage)) legacyRights.Add("Manage");
-            if (me.HasRight(Right.Archive)) legacyRights.Add("Archive");
-            if (me.HasRight(Right.Delete)) legacyRights.Add("Delete");
             return Results.Ok(new
             {
                 id = me.UserId,
@@ -39,11 +34,8 @@ public static class MeEndpoints
                 timeZone = user.WorkingTimeZone,
                 roles = me.Roles,
                 roleLabels = me.Roles,
-                rights = legacyRights.OrderBy(x => x).ToArray(), permissions = me.PermissionKeys,
-                scopedAllowPermissions = me.ScopedExceptions.Where(s => s.Allow).Select(s => s.Key).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
-                businessRole = me.BusinessRole,
-                isAdministrator = me.IsAdministrator,
-                grants = new { export = me.Has(Grant.Export), technicalDetail = me.SeesTechnical, audit = me.Has(Grant.Audit) },
+                rights = me.EffectiveRights,
+                scopedAllowRights = me.ScopedExceptions.Where(s => s.Allow).Select(s => s.Key).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
                 scope = new
                 {
                     allClients = me.AllClients,
@@ -51,7 +43,7 @@ public static class MeEndpoints
                     projectCount = me.ProjectIds.Count,
                     allInternal = me.AllInternal,
                     internalTeamCount = me.TeamIds.Count,
-                    hasBusinessAccess = me.HasBusinessRole && (me.AllClients || me.ClientIds.Count > 0 || me.ProjectIds.Count > 0 || me.AllInternal || me.TeamIds.Count > 0)
+                    hasBusinessAccess = me.HasAccess && (me.AllClients || me.ClientIds.Count > 0 || me.ProjectIds.Count > 0 || me.AllInternal || me.TeamIds.Count > 0)
                 },
                 app = new { version, environmentName = app.Value.EnvironmentName, supportContact = app.Value.SupportContact, devSignIn = env.IsDevelopment(), authMode = auth.Value.Mode, mustChangePassword = ctx.User.HasClaim(c => c.Type == AuthEndpoints.MustChangeClaim), map = app.Value.SafeMapTileUrl is { } tiles ? new { tileUrl = tiles, attribution = app.Value.MapAttribution } : null }
             });
@@ -83,9 +75,9 @@ public static class MeEndpoints
             statusLabels.TryAdd(nameof(CaseStatus.PendingValidation), "Pending validation");
             statusLabels.TryAdd(nameof(CaseStatus.Cancelled), "Closed (cancelled)");
             statusLabels.TryAdd(Work.CaseStatuses.AllOpen, "All open statuses");
-            var readProducts = me.HasPermission(ResourcePermissions.Products, ResourcePermissions.View);
-            var readTeams = me.HasPermission(ResourcePermissions.Teams, ResourcePermissions.View);
-            var readJira = me.IsAdministrator || me.HasPermission(ResourcePermissions.Cases, ResourcePermissions.View);
+            var readProducts = me.HasRight(RightKeys.Products, RightKeys.View);
+            var readTeams = me.HasRight(RightKeys.Teams, RightKeys.View);
+            var readJira = me.IsAdministrator || me.HasRight(RightKeys.Cases, RightKeys.View);
             var products = await db.Products.AsNoTracking().Where(_ => readProducts).OrderBy(p => p.Code)
                 .Select(p => new
                 {
@@ -107,11 +99,12 @@ public static class MeEndpoints
         // People who can be assigned in a scope (owner pickers). Never exposes scope details.
         g.MapGet("/users/assignable", async (long? clientId, long? teamId, string? q, bool? includeInactive, UserContext me, HubDbContext db, UserResolver resolver, CancellationToken ct) =>
         {
-            if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business access.");
-            if (!CapabilityPermissions.BusinessResources.Any(r => me.HasPermission(r, ResourcePermissions.View)))
+            if (!me.HasAccess) throw new ForbiddenException("Your account has no business access.");
+            if (!RightChecks.BusinessResources.Any(r => me.HasRight(r, RightKeys.View)))
                 throw new ForbiddenException("Viewing assignees requires access to a business module.");
             if (clientId is { } c && !me.SeesClient(c)) throw new NotFoundException("The client");
-            var users = await db.Users.AsNoTracking().Where(u => u.IsActive || (includeInactive == true && me.IsLead))
+            var canSeeInactive = me.HasRight(RightKeys.Structure, RightKeys.Coordinate);
+            var users = await db.Users.AsNoTracking().Where(u => u.IsActive || (includeInactive == true && canSeeInactive))
                 .Where(u => q == null || u.DisplayName.Contains(q) || u.AccountName.Contains(q))
                 .OrderBy(u => u.DisplayName).Select(u => new { u.Id, u.DisplayName, u.AccountName, u.IsActive }).Take(300).ToListAsync(ct);
             var result = new List<object>();
@@ -131,7 +124,7 @@ public static class MeEndpoints
 /// <summary>Business vocabularies for the front end, so labels and options come from one place.</summary>
 public static class EnumCatalog
 {
-    public static readonly Dictionary<string, string[]> All = typeof(Role).Assembly.GetTypes()
-        .Where(t => t.IsEnum && t.Namespace == "TioHub.Api.Common" && t != typeof(Grant))
+    public static readonly Dictionary<string, string[]> All = typeof(EnumCatalog).Assembly.GetTypes()
+        .Where(t => t.IsEnum && t.Namespace == "TioHub.Api.Common")
         .ToDictionary(t => t.Name, t => Enum.GetNames(t));
 }

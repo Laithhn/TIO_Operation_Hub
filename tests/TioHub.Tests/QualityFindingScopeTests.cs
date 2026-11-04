@@ -11,8 +11,8 @@ public sealed class QualityFindingScopeTests
     public void Case_findings_require_the_current_scope_filtered_case()
     {
         var me = new UserContext();
-        me.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"], Right.None,
-            ResourcePermissions.All, Grant.None, false, [], [], [], [], false, [20]));
+        me.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"],
+            RightsCatalog.AllKeys, false, [], [], [], [], false, [20]));
         var options = new DbContextOptionsBuilder<HubDbContext>()
             .UseSqlServer("Server=(local);Database=unused;Integrated Security=true;TrustServerCertificate=true").Options;
         using var db = new HubDbContext(options, me, TimeProvider.System);

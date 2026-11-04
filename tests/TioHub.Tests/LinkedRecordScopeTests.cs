@@ -14,8 +14,8 @@ public sealed class LinkedRecordScopeTests
     private static UserContext User(params long[] clients)
     {
         var me = new UserContext();
-        me.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"], Right.None,
-            PermissionHierarchy.WithAncestors(["Cases:View"]), Grant.None, false, clients, [20], [30], [40], false, [50]));
+        me.Set(new ResolvedUser(42, "scope-test", "Scope test", "UTC", true, ["Operator"],
+            Fixture.Rights(["Cases:View"]), false, clients, [20], [30], [40], false, [50]));
         return me;
     }
 
@@ -58,8 +58,8 @@ public sealed class LinkedRecordScopeTests
         UserContext With(params string[] permissions)
         {
             var me = new UserContext();
-            me.Set(new ResolvedUser(42, "clone-test", "Clone test", "UTC", true, ["Operator"], Right.None,
-                PermissionHierarchy.WithAncestors(permissions), Grant.None, false, [10], [], [], [], false, []));
+            me.Set(new ResolvedUser(42, "clone-test", "Clone test", "UTC", true, ["Operator"],
+                Fixture.Rights(permissions), false, [10], [], [], [], false, []));
             return me;
         }
         var creator = With("Environments:Create", "Environments:View", "Servers:Create", "Installations:Create");

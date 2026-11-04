@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { canExportReport } from '../exportPermissions';
+import { canExportReport } from '../exportRights';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDate, label } from '../format';
-import { useEnum, useForm, useLeaveGuard, useMe, usePermission, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
@@ -67,7 +67,7 @@ export function ContractList() {
   const q = useQuery({ queryKey: ['contracts', f], queryFn: () => get<Paged<Row>>(`/contracts${qs(f)}`) });
   const clients = useClientOptions();
   const statuses = useEnum('ContractStatus');
-  const canLead = usePermission('Contracts', 'Create');
+  const canLead = useRight('Contracts', 'Create');
   const filtered = f.q || f.clientId || f.status || f.type || f.renewal || f.country || f.productId;
   return (
     <>
@@ -131,8 +131,8 @@ export function ClientContracts({ clientId, canCreate }: { clientId: number; can
 
 export function ContractDetail() {
   const T = useTypes();
-  const canViewProducts = usePermission('Products', 'View');
-  const canViewEnvironments = usePermission('Environments', 'View');
+  const canViewProducts = useRight('Products', 'View');
+  const canViewEnvironments = useRight('Environments', 'View');
   const { id } = useParams();
   const q = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail>(`/contracts/${id}`) });
   const nav = useNavigate();
@@ -210,7 +210,7 @@ type PenaltyAssessment = {
 
 function PenaltyAssessments({ contractId, clauses }: { contractId: number; clauses: Detail['penaltyClauses'] }) {
   const q = useQuery({ queryKey: ['penalty-assessments', contractId], queryFn: () => get<PenaltyAssessment[]>(`/contracts/${contractId}/penalty-assessments`) });
-  const canReview = usePermission('Contracts', 'Coordinate');
+  const canReview = useRight('Contracts', 'Coordinate');
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -281,8 +281,8 @@ export function ContractForm() {
   const models = useEnum('SupportModel');
   const priorities = useEnum('Priority');
   const bases = useEnum('SlaBasis');
-  const canViewProducts = usePermission('Products', 'View');
-  const canViewEnvironments = usePermission('Environments', 'View');
+  const canViewProducts = useRight('Products', 'View');
+  const canViewEnvironments = useRight('Environments', 'View');
   const existing = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail & { productIds?: number[] }>(`/contracts/${id}`), enabled: !isNew });
   const f = useForm({
     projectId: sp.get('projectId') ?? '', title: '', contractReference: '', type: 'SlaSupport', status: 'Draft', ownerUserId: null as number | null,
@@ -438,8 +438,8 @@ type ProjectDto = {
 /** A27: the project with its contracts, their SLA targets and renewal state, its products and environments. */
 export function ProjectDetail() {
   const T = useTypes();
-  const canViewProducts = usePermission('Products', 'View');
-  const canViewEnvironments = usePermission('Environments', 'View');
+  const canViewProducts = useRight('Products', 'View');
+  const canViewEnvironments = useRight('Environments', 'View');
   const { id } = useParams();
   const q = useQuery({ queryKey: ['project', id], queryFn: () => get<ProjectDto>(`/projects/${id}`) });
   const nav = useNavigate();

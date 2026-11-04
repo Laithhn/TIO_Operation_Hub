@@ -16,15 +16,13 @@ public static class RoleConflictEndpoints
         var g = api.MapGroup("/admin/roles/conflicts").WithTags("Administration");
         g.MapGet("", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.RequireAdministrator();
-            me.RequirePermission("AdminRoles:View");
+            me.RequireRight("AdminRoles:View");
             var setting = await db.Settings.AsNoTracking().SingleOrDefaultAsync(s => s.Key == RoleConflicts.SettingKey, ct);
             return Results.Ok(new { pairs = RoleConflicts.Parse(setting?.Value), version = setting is null ? null : Convert.ToBase64String(setting.RowVersion) });
         });
         g.MapPut("", async (Input input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
-            me.RequireAdministrator();
-            me.RequirePermission("AdminRoles:Maintain");
+            me.RequireRight("AdminRoles:Maintain");
             var setting = await db.Settings.SingleOrDefaultAsync(s => s.Key == RoleConflicts.SettingKey, ct);
             if (setting is null)
             {
@@ -45,15 +43,13 @@ public static class RoleConflictEndpoints
                 var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ToListAsync(ct);
                 var manager = await db.AppRoles.AsNoTracking().Where(r => r.Key == BuiltInRoles.ManagerKey && r.IsActive).Select(r => r.Id).SingleOrDefaultAsync(ct);
                 if (!await RoleConflicts.HasRecoveryAsync(db, manager, users.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())), resolver.IsForms, clock.GetUtcNow(), ct))
-                    throw new ValidationException("pairs", "Keep an active recovery administrator with Manager as their only directly assigned role and effective permission to maintain roles.");
-                var mappings = await db.GroupMappings.AsNoTracking().Where(m => m.Role != null).ToListAsync(ct);
-                var builtins = await db.AppRoles.AsNoTracking().Where(r => r.IsActive && (r.Key == BuiltInRoles.ManagerKey || r.Key == BuiltInRoles.EngineerKey)).ToListAsync(ct);
+                    throw new ValidationException("pairs", "Keep an active recovery administrator with Manager as their only directly assigned role and effective rights to maintain roles.");
+                var mappings = await db.GroupMappings.AsNoTracking().Include(m => m.Roles).ToListAsync(ct);
                 var activeRoleIds = (await db.AppRoles.AsNoTracking().Where(r => r.IsActive).Select(r => r.Id).ToListAsync(ct)).ToHashSet();
                 foreach (var user in users)
                 {
                     var groups = user.Id == me.UserId ? resolver.PrincipalGroups(ctx.User) : resolver.RequireGroups(user.MappedGroups).ToHashSet(StringComparer.OrdinalIgnoreCase);
-                    var mappedKeys = mappings.Where(m => groups.Contains(m.GroupName)).Select(m => m.Role == Role.Manager ? BuiltInRoles.ManagerKey : BuiltInRoles.EngineerKey).ToHashSet();
-                    var held = user.Roles.Select(r => r.AppRoleId).Concat(builtins.Where(r => r.Key != null && mappedKeys.Contains(r.Key)).Select(r => r.Id)).Distinct().ToArray();
+                    var held = user.Roles.Select(r => r.AppRoleId).Concat(mappings.Where(m => groups.Contains(m.GroupName)).SelectMany(m => m.Roles.Select(r => r.AppRoleId))).Distinct().ToArray();
                     var active = held.Where(activeRoleIds.Contains);
                     if (RoleConflicts.Conflicts(active, pairs))
                         throw new ValidationException("pairs", "The policy conflicts with an active user's assigned or last observed directory roles. Resolve those assignments first.");

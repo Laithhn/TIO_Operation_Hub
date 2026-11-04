@@ -303,8 +303,8 @@ public class OrganizationHierarchyTests(HubFactory hub) : Scenario(hub)
         await m.Create(Edges(hidden), Edge(hiddenOrg, standalone));
         using var scope = Hub.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
-        db.CurrentUser.Set(new ResolvedUser(m.UserId, "scoped", "Scoped", "UTC", true, ["Custom"], Right.None,
-            [ResourcePermissions.KeyOf(ResourcePermissions.Structure, ResourcePermissions.Coordinate)], Grant.None,
+        db.CurrentUser.Set(new ResolvedUser(m.UserId, "scoped", "Scoped", "UTC", true, ["Custom"],
+            [RightKeys.KeyOf(RightKeys.Structure, RightKeys.Coordinate)],
             false, [visible], [], [], [], false, []));
         Assert.False(await db.Organizations.AnyAsync(x => x.Id == hiddenOrg));
         Assert.False(await db.OrganizationRelationships.AnyAsync(x => x.ClientId == hidden));

@@ -30,17 +30,17 @@ public static class CloneEndpoints
     // module. Copying deployment can also read and replicate component details.
     public static void RequireSourcePermissions(UserContext me, bool environmentDetails, bool assets, bool installations, bool deployment)
     {
-        me.RequirePermission(ResourcePermissions.Environments, ResourcePermissions.View);
-        if (environmentDetails) me.RequirePermission(ResourcePermissions.Environments, ResourcePermissions.DetailsView);
+        me.RequireRight(RightKeys.Environments, RightKeys.View);
+        if (environmentDetails) me.RequireRight(RightKeys.Environments, RightKeys.DetailsView);
         if (assets || deployment)
         {
-            me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.View);
-            me.RequirePermission(ResourcePermissions.Servers, ResourcePermissions.DetailsView);
+            me.RequireRight(RightKeys.Servers, RightKeys.View);
+            me.RequireRight(RightKeys.Servers, RightKeys.DetailsView);
         }
         if (installations || deployment)
         {
-            me.RequirePermission(ResourcePermissions.Installations, ResourcePermissions.View);
-            me.RequirePermission(ResourcePermissions.Installations, ResourcePermissions.DetailsView);
+            me.RequireRight(RightKeys.Installations, RightKeys.View);
+            me.RequireRight(RightKeys.Installations, RightKeys.DetailsView);
         }
     }
 
@@ -61,7 +61,7 @@ public static class CloneEndpoints
         {
             RequireSourcePermissions(access.Me, false, input.AssetIds?.Count > 0, input.InstallationIds?.Count > 0, input.IncludeDeployment);
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireBusiness();
+            access.RequireAccess();
             if (input.TargetEnvironmentId is null) throw new ValidationException("targetEnvironmentId", "Select the environment to copy to.");
             var target = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == input.TargetEnvironmentId, ct)
                 ?? throw new ValidationException("targetEnvironmentId", "Select an environment you can access.");
@@ -77,7 +77,7 @@ public static class CloneEndpoints
         {
             RequireSourcePermissions(access.Me, false, input.AssetIds?.Count > 0, input.InstallationIds?.Count > 0, input.IncludeDeployment);
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireBusiness();
+            access.RequireAccess();
             var targets = (input.Targets ?? []).Where(t => t.EnvironmentId is not null).ToList();
             if (targets.Count == 0) throw new ValidationException("targets", "Select at least one environment to copy to.");
             if (targets.GroupBy(t => t.EnvironmentId).Any(g => g.Count() > 1)) throw new ValidationException("targets", "Each environment can be chosen once.");
@@ -120,7 +120,7 @@ public static class CloneEndpoints
             RequireSourcePermissions(access.Me, true, input.AssetIds is null || input.AssetIds.Count > 0,
                 input.InstallationIds is null || input.InstallationIds.Count > 0, input.IncludeDeployment);
             var source = await db.Environments.AsNoTracking().Include(e => e.Region).FirstOrDefaultAsync(e => e.Id == id, ct) ?? throw new NotFoundException("The environment");
-            access.RequireCreateFor(ResourcePermissions.Environments, source.ClientId);
+            access.RequireCreateFor(RightKeys.Environments, source.ClientId);
             if (input.RegionId == source.RegionId && string.Equals((input.Name ?? source.Name).Trim(), source.Name, StringComparison.OrdinalIgnoreCase))
                 throw new ValidationException("regionId", "Choose another region, or give the copy another name.");
             var env = new ClientEnvironment { ClientId = source.ClientId };
@@ -150,8 +150,8 @@ public static class CloneEndpoints
         CloneInput input, CancellationToken ct)
     {
             var assetIds = (input.AssetIds ?? []).Distinct().ToList();
-            if (assetIds.Count > 0) access.RequireCreateFor(ResourcePermissions.Servers, target.ClientId);
-            if (input.InstallationIds?.Count > 0) access.RequireCreateFor(ResourcePermissions.Installations, target.ClientId);
+            if (assetIds.Count > 0) access.RequireCreateFor(RightKeys.Servers, target.ClientId);
+            if (input.InstallationIds?.Count > 0) access.RequireCreateFor(RightKeys.Installations, target.ClientId);
             var instIds = (input.InstallationIds ?? []).Distinct().ToList();
             var check = new Check()
                 .When(target.ClientId != source.ClientId, "targetEnvironmentId", "Copies stay within the same client; choose an environment of this client.")
@@ -258,7 +258,7 @@ public static class CloneEndpoints
                     comp ??= db.Components.Local.FirstOrDefault(x => x.Id == 0 && ReferenceEquals(x.Installation, inst) && (c.MicroserviceId != null ? x.MicroserviceId == c.MicroserviceId : x.NormalizedName == c.NormalizedName));
                     if (comp is null)
                     {
-                        access.RequireCreateFor(ResourcePermissions.Servers, target.ClientId);
+                        access.RequireCreateFor(RightKeys.Servers, target.ClientId);
                         comp = new Component
                         {
                             Installation = inst, EnvironmentId = target.Id, ClientId = target.ClientId, MicroserviceId = c.MicroserviceId, Name = c.Name, NormalizedName = c.NormalizedName,
@@ -268,7 +268,7 @@ public static class CloneEndpoints
                         db.Components.Add(comp);
                     }
                     else if (hosts.Count > 0)
-                        access.RequireMaintain(ResourcePermissions.Servers, target.ClientId, null);
+                        access.RequireMaintain(RightKeys.Servers, target.ClientId, null);
                     foreach (var h in hosts)
                         comp.Hosts.Add(new ComponentHost { Asset = assetMap[h.AssetId], ClientId = target.ClientId, MicroserviceVersionId = input.CopyVersions ? h.MicroserviceVersionId : null });
                     var notCopied = c.Hosts.Where(h => !assetMap.ContainsKey(h.AssetId)).Select(h => h.AssetId).ToList();

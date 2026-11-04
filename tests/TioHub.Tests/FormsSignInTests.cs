@@ -1,3 +1,4 @@
+using TioHub.Api.Security;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json.Nodes;
@@ -92,9 +93,9 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
 {
     private const string AdminPw = "Correct horse battery 42", TempPw = "temporary-Blue-Lantern-7", ManagerPw = "my own passphrase 2026!";
 
-    private static object NewUser(string account, string role) => new
+    private static object NewUser(string account, string role, long roleId) => new
     {
-        accountName = account, displayName = "UAT " + role, email = (string?)null, workingTimeZone = "Asia/Dubai", roles = new[] { role }, allClients = true, allInternal = true,
+        accountName = account, displayName = "UAT " + role, email = (string?)null, workingTimeZone = "Asia/Dubai", roleIds = new[] { roleId }, allClients = true, allInternal = true,
         export = true, technicalDetail = true, audit = true, scopes = Array.Empty<object>()
     };
 
@@ -131,8 +132,7 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         var me = (await admin.Get("/me")).Body!;
         Assert.Equal("hub.admin", me["account"]!.GetValue<string>());
         Assert.Equal(["TIO Manager"], me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
-        Assert.Contains("Administer", me["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
-        Assert.Equal("Manager", me["businessRole"]!.GetValue<string>());
+        Assert.Contains(RightKeys.Administration, me["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
         // A44: the setting-up computer's time zone becomes the administrator's and the hub default (the shipped default was UTC).
         Assert.Equal("Asia/Dubai", me["timeZone"]!.GetValue<string>());
         Assert.Contains((await admin.Get("/admin/settings")).Body!.AsArray(), x => x!["key"]!.GetValue<string>() == "DefaultTimeZone" && x["value"]!.GetValue<string>() == "Asia/Dubai");
@@ -140,8 +140,9 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.False((await (await hub.NewSession()).Get("/auth/config")).Body!["setupRequired"]!.GetValue<bool>());
 
         // ---- administrator issues a temporary password to a non-administrator, never to an administrator ----
-        var managerId = (await admin.Post("/admin/users", NewUser("uat.manager", "Engineer"))).Body!["id"]!.GetValue<long>();
-        var protectedId = (await admin.Post("/admin/users", NewUser("uat.protected", "Manager"))).Body!["id"]!.GetValue<long>();
+        var roleIds = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray().Where(r => r!["key"] is not null).ToDictionary(r => r!["key"]!.GetValue<string>(), r => r!["id"]!.GetValue<long>());
+        var managerId = (await admin.Post("/admin/users", NewUser("uat.manager", "Engineer", roleIds["Engineer"]))).Body!["id"]!.GetValue<long>();
+        var protectedId = (await admin.Post("/admin/users", NewUser("uat.protected", "Manager", roleIds["Manager"]))).Body!["id"]!.GetValue<long>();
         Assert.Equal(HttpStatusCode.Forbidden, (await admin.Post($"/admin/users/{protectedId}/password", new { temporaryPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Post($"/admin/users/{managerId}/password", new { temporaryPassword = "uat.manager-12345" })).Status); // contains the account name
         Assert.Equal(HttpStatusCode.NoContent, (await admin.Post($"/admin/users/{managerId}/password", new { temporaryPassword = TempPw })).Status);
@@ -167,7 +168,7 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await mgr.Post("/auth/password", new { currentPassword = TempPw, newPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.NoContent, (await mgr.Post("/auth/password", new { currentPassword = TempPw, newPassword = ManagerPw })).Status);
         Assert.Equal(HttpStatusCode.OK, (await mgr.Get("/clients")).Status);
-        Assert.Equal("Engineer", (await mgr.Get("/me")).Body!["businessRole"]!.GetValue<string>());
+        Assert.DoesNotContain(RightKeys.Administration, (await mgr.Get("/me")).Body!["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
 
         // ---- a password change ends the account's other sessions ----
         var other = await hub.NewSession();

@@ -134,7 +134,7 @@ test.describe('Configuration navigation', () => {
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Configuration' }).click();
     await expect(page).toHaveURL(/\/admin\/config$/);
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Administration' }).click();
-    await expect(page).toHaveURL(/\/admin\/access$/);
+    await expect(page).toHaveURL(/\/admin\/users$/);
   });
 
   test('search filters across categories, highlights matches, navigates, and clearing restores the tree', async ({ page }) => {

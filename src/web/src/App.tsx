@@ -2,7 +2,7 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
-import { canAccessPath } from './permissions';
+import { canAccessPath, isAdministrator, hasAccess } from './rights';
 import { ErrorBox, PageHead, Restricted, StateMessage } from './ui/kit';
 import { LoadBoundary } from './ui/LoadBoundary';
 import { Shell } from './ui/Shell';
@@ -96,13 +96,13 @@ function Outside({ children }: { children: ReactNode }) {
 
 function Home() {
   const me = useMe().data!;
-  if (!me.businessRole) return me.isAdministrator ? <Navigate to="/admin/users" replace /> : <NoAccess />;
+  if (!hasAccess(me)) return isAdministrator(me) ? <Navigate to="/admin/users" replace /> : <NoAccess />;
   return <Dashboard />;
 }
 
 function MapHome() {
   const me = useMe().data!;
-  if (!me.businessRole) return me.isAdministrator ? <Navigate to="/admin/users" replace /> : <NoAccess />;
+  if (!hasAccess(me)) return isAdministrator(me) ? <Navigate to="/admin/users" replace /> : <NoAccess />;
   return <ClientMap />;
 }
 
@@ -117,7 +117,7 @@ function AdminRoute({ children }: { children: ReactNode }) {
   const me = useMe();
   if (me.isLoading) return <StateMessage kind="loading" />;
   if (me.error) return <ErrorBox error={me.error} />;
-  if (!me.data?.isAdministrator) return <><PageHead title="Access denied" /><Restricted need="The Administration right is required for this page." help="role" /></>;
+  if (!isAdministrator(me.data)) return <><PageHead title="Access denied" /><Restricted need="The Administration right is required for this page." help="role" /></>;
   return <>{children}</>;
 }
 
@@ -192,7 +192,7 @@ export const router = createBrowserRouter([
       { path: 'handovers', element: <HandoverList /> },
       { path: 'handovers/:id', element: <HandoverDetail /> },
       { path: 'reassignment', element: <ReassignmentQueue /> },
-      { path: 'admin', element: <Navigate to="/admin/access" replace /> },
+      { path: 'admin', element: <Navigate to="/admin/users" replace /> },
       { path: 'admin/access', element: <AdminRoute><AccessControl /></AdminRoute> },
       { path: 'admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },
       { path: 'admin/groups', element: <AdminRoute><AdminGroups /></AdminRoute> },

@@ -50,44 +50,44 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
     public async Task<bool> HasAssignableAccessAsync(long? userId, CancellationToken ct) =>
         userId is { } id && (await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true))?.HasAccess == true;
 
-    public void RequireBusiness()
+    public void RequireAccess()
     {
-        if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business access, so it cannot see client or internal records.");
+        if (!me.HasAccess) throw new ForbiddenException("Your account has no effective access, so it cannot see client or internal records.");
     }
 
     /// <summary>TIO Manager actions: client structure (clients, regions, projects), archive/restore, triage, assignment, handovers.</summary>
-    public void RequireLeadFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Structure)
+    public void RequireLeadFor(long? clientId, long? teamId = null, string resource = RightKeys.Structure)
     {
-        RequireIn(resource, ResourcePermissions.Coordinate, ResourceContext.ForRecord(clientId, teamId));
+        RequireIn(resource, RightKeys.Coordinate, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>A31: archiving and restoring needs the Archive right.</summary>
-    public void RequireArchiveFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Other)
+    public void RequireArchiveFor(long? clientId, long? teamId = null, string resource = RightKeys.Other)
     {
-        RequireIn(resource, ResourcePermissions.ArchiveRestore, ResourceContext.ForRecord(clientId, teamId));
+        RequireIn(resource, RightKeys.ArchiveRestore, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>Day-to-day work that any Operation Engineer may do (environments, contracts, network, products…).</summary>
-    public void RequireEngineerFor(long? clientId, long? teamId = null, string resource = ResourcePermissions.Other)
+    public void RequireEngineerFor(long? clientId, long? teamId = null, string resource = RightKeys.Other)
         => RequireCreateFor(resource, clientId, teamId);
 
     public void RequireCreateFor(string resource, long? clientId, long? teamId = null)
     {
-        RequireIn(resource, ResourcePermissions.Create, ResourceContext.ForRecord(clientId, teamId));
+        RequireIn(resource, RightKeys.Create, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>Maintain a record: every Operation Engineer and the TIO Manager (owner decision, 19 Oct 2026). Ownership changes stay with the Manager (CheckOwnerChange).</summary>
     public void RequireMaintain(long? clientId, long? teamId, params long?[] responsibleUserIds) =>
-        RequireMaintain(ResourcePermissions.Other, clientId, teamId, responsibleUserIds);
+        RequireMaintain(RightKeys.Other, clientId, teamId, responsibleUserIds);
 
     public void RequireMaintain(string resource, long? clientId, long? teamId, params long?[] responsibleUserIds) =>
-        RequireIn(resource, ResourcePermissions.Maintain, ResourceContext.ForRecord(clientId, teamId));
+        RequireIn(resource, RightKeys.Maintain, ResourceContext.ForRecord(clientId, teamId));
 
     /// <summary>Data scope first (hidden records answer 404), then the contextual decision. The context comes from the stored record.</summary>
     public void RequireIn(string resource, string action, ResourceContext context)
     {
         if (!me.SeesContext(context)) throw new NotFoundException("The record");
-        me.RequirePermissionIn(resource, action, context);
+        me.RequireRightIn(resource, action, context);
     }
 
     /// <summary>Validates an assignee/owner: exists, is active, has access and can access the record's scope.</summary>
@@ -105,10 +105,10 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
     }
 
     /// <summary>OPS-01 / ACC-03: only the TIO Manager or Manager changes ownership; an Engineer may only take unowned work themselves.</summary>
-    public void CheckOwnerChange(Check check, string field, long? current, long? requested, bool allowSelfTakeIfUnassigned = false, string resource = ResourcePermissions.Other)
+    public void CheckOwnerChange(Check check, string field, long? current, long? requested, bool allowSelfTakeIfUnassigned = false, string resource = RightKeys.Other)
     {
-        if (current == requested || me.HasPermission(resource, ResourcePermissions.Coordinate)) return;
-        if (allowSelfTakeIfUnassigned && current is null && requested == me.UserId && me.HasPermission(resource, ResourcePermissions.Maintain)) return;
+        if (current == requested || me.HasRight(resource, RightKeys.Coordinate)) return;
+        if (allowSelfTakeIfUnassigned && current is null && requested == me.UserId && me.HasRight(resource, RightKeys.Maintain)) return;
         check.Add(field, "You do not have permission to change the owner.");
     }
 

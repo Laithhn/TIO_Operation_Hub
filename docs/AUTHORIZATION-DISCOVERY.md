@@ -1,5 +1,7 @@
 # Authorization discovery and implementation baseline
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 For the implemented 2.43 editor, 134-key inventory, dependencies and revocation guarantees, see [AUTHORIZATION-2.43.md](AUTHORIZATION-2.43.md) and [AUTHORIZATION-CAPABILITY-MATRIX.md](AUTHORIZATION-CAPABILITY-MATRIX.md). This discovery baseline retains the earlier architecture/gap findings for comparison.
 
 **Reviewed:** 30 October 2026  

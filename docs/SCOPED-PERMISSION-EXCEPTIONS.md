@@ -1,5 +1,7 @@
 # Scoped permission exceptions: implementation and cutover requirements
 
+> In 2.48.0 the code names changed: `ScopedRights`, `UserRightException`, `RightExceptions`, and the coverage test is `ScopedRightCoverageTests`. The contract below still holds.
+
 **Status in 2.45.0:** implemented for an explicit allowlist in `ScopedPermissions`:
 `Contracts:Maintain`, `Commitments:Maintain` and `Environments:Maintain`. The API refuses a
 scope on every other permission. `ScopedPermissionCoverageTests` fails if a global check on an

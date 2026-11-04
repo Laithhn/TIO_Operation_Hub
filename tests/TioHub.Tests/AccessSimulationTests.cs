@@ -8,7 +8,7 @@ namespace TioHub.Tests;
 public sealed class AccessSimulationTests
 {
     private static ResolvedUser User(bool active = true) => new(1, "test", "Test", "UTC", active,
-        ["Tester"], Right.None, ["module.cases:Access", "area.Cases:Access", "Cases:View"], Grant.None,
+        ["Tester"], ["Cases:View"],
         false, [10], [20], [], [], false, [30]);
 
     [Fact]
@@ -70,15 +70,15 @@ public sealed class AccessSimulationTests
     public void Prerequisite_explanation_respects_denies_expiration_and_administrative_restriction()
     {
         var now = new DateTimeOffset(2026, 11, 2, 12, 0, 0, TimeSpan.Zero);
-        var denied = new UserPermissionOverride { PermissionKey = "area.Cases:Access", Effect = "Deny", ExpiresAt = now.AddHours(1) };
-        var result = AccessSimulation.ExplainPrerequisite(User(), denied.PermissionKey, ["Tester"], denied, now);
+        var denied = new UserRightException { RightKey = "Cases:View", Effect = "Deny", ExpiresAt = now.AddHours(1) };
+        var result = AccessSimulation.ExplainPrerequisite(User(), denied.RightKey, ["Tester"], denied, now);
         Assert.Equal("Explicitly denied or invalid exception", result.Reason);
         Assert.Equal(denied.ExpiresAt, result.ExpiresAt);
-        Assert.Equal("Effective", AccessSimulation.ExplainPrerequisite(User(), denied.PermissionKey, ["Tester"], denied, now.AddHours(1)).Reason);
+        Assert.Equal("Effective", AccessSimulation.ExplainPrerequisite(User(), denied.RightKey, ["Tester"], denied, now.AddHours(1)).Reason);
 
-        var admin = User() with { Rights = Right.Administer, Permissions = [] };
-        var direct = new UserPermissionOverride { PermissionKey = "Cases:View", Effect = "Allow" };
-        Assert.Equal("Direct allows are not applied to administrators", AccessSimulation.ExplainPrerequisite(admin, direct.PermissionKey, [], direct, now).Reason);
-        Assert.Equal("A prerequisite is not effective", AccessSimulation.ExplainPrerequisite(admin, direct.PermissionKey, ["Role"], direct, now).Reason);
+        var admin = User() with { Rights = [RightKeys.Administration] };
+        var direct = new UserRightException { RightKey = "Cases:View", Effect = "Allow" };
+        Assert.Equal("Direct allows are not applied to administrators", AccessSimulation.ExplainPrerequisite(admin, direct.RightKey, [], direct, now).Reason);
+        Assert.Equal("A prerequisite is not effective", AccessSimulation.ExplainPrerequisite(admin, direct.RightKey, ["Role"], direct, now).Reason);
     }
 }

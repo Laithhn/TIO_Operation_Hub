@@ -1,5 +1,7 @@
 # Authorization coverage matrix
 
+> **Superseded by 2.48.0 (A81).** Kept as a record of earlier releases. Current model: [RIGHTS-MODEL-DESIGN.md](RIGHTS-MODEL-DESIGN.md); administrators: [RIGHTS-ADMIN-GUIDE.md](RIGHTS-ADMIN-GUIDE.md); developers: [RIGHTS-DEVELOPER-GUIDE.md](RIGHTS-DEVELOPER-GUIDE.md).
+
 The implemented 2.43 capability inventory is in [AUTHORIZATION-CAPABILITY-MATRIX.md](AUTHORIZATION-CAPABILITY-MATRIX.md). The matrix below records the discovery baseline and gaps at that stage; it is not the current permission list.
 
 **Status:** Inventory for authorization remediation, reviewed 30 October 2026. “Existing guard” means the application has a corresponding resource/right/grant or scope concept; it is not a claim that every route has been verified by an adversarial integration test. Backend coverage must be audited at endpoint and operation level before production acceptance.
