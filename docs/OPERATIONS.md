@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Jira priorities and types (2.50.0)
+
+Apply the regenerated `database/01-schema.sql`, which only adds a table. After deploying, run **Preview import** for each client and map the listed Jira values. See `RELEASE-NOTES-2.50.0.md`.
+
 ### Data-protection keys (2.49.1)
 
 Once after installing, enter each Jira token again and expect everyone to be signed out. See `RELEASE-NOTES-2.49.1.md`.

@@ -34,10 +34,27 @@ export function JiraBanner({ s }: { s: JiraSource }) {
 }
 
 /** External Jira values, shown beside the case and never copied into its business fields. */
-export function JiraDetailsPanel({ s }: { s: JiraSource }) {
+export function JiraDetailsPanel({ s, caseId, canSync }: { s: JiraSource; caseId: number; canSync: boolean }) {
   const details: [string, React.ReactNode][] = (s.details ?? []).map(d => [d.name, d.value]);
+  const refresh = useRefresh();
+  const toast = useToast();
+  const [busy, setBusy] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const sync = async () => {
+    setBusy(true);
+    setProblem(null);
+    try {
+      const r = await post<{ issueKey: string; comments: number; activities: number; error?: string }>(`/cases/${caseId}/jira-source/sync`);
+      if (r.error) setProblem(`${r.issueKey} could not be imported: ${r.error}`);
+      else toast(`${r.issueKey} synchronized: ${r.comments} new comment(s), ${r.activities} new activity item(s).`);
+      await refresh();
+    }
+    catch (e) { setProblem(e instanceof ApiError ? e.summary : 'The request failed.'); }
+    finally { setBusy(false); }
+  };
   return (
-    <Panel title="Jira details (imported)">
+    <Panel title="Jira details (imported)" actions={canSync && <button className="btn" disabled={busy} onClick={sync}>{busy ? 'Synchronizing…' : 'Sync with Jira'}</button>}>
+      {problem && <div className="notice warn" style={{ marginBottom: 8 }}>{problem}</div>}
       <KV items={[
         ...details, ['Jira issue type', s.issueType], ['Jira component', s.components], ['Jira priority', s.priority], ['Jira due date', s.jiraDueDate], ['Jira resolution', s.resolution], ['Reporter', s.reporter],
         ['Jira created', s.jiraCreatedAt ? fmtDateTime(s.jiraCreatedAt) : null], ['Jira URL', <a href={s.url} target="_blank" rel="noopener noreferrer">{s.url}</a>]

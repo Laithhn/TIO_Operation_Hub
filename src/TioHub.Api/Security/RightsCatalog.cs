@@ -126,7 +126,7 @@ public static class RightsCatalog
         (RightKeys.Environments, "network", "Firewall rules", ["OtherOperations:View"]),
         (RightKeys.Environments, "conditions", "Condition history", ["Environments:View"]),
         (RightKeys.Environments, "quality", "Data quality", BusinessViewKeysStatic),
-        (RightKeys.Cases, "timeline", "Timeline", ["Cases:HistoryView"]),
+        (RightKeys.Cases, "timeline", "Timeline", ["Cases:DetailsView"]),
         (RightKeys.Cases, "affected", "Affected records", ["Cases:DetailsView"]),
         (RightKeys.Cases, "jira", "Jira references", ["Cases:View"]),
         (RightKeys.Cases, "impact", "Documented impact", ["Cases:View"]),

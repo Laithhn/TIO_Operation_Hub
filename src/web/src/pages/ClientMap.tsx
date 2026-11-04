@@ -1,3 +1,4 @@
+/// <reference types="vite/client" />
 import { SectionLabel } from '../ui/kit';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { lazy, Suspense, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -37,7 +38,12 @@ function useMedia(query: string) {
  */
 type Insights = { evaluatedAt: string; countries: { clients: MapClient[] } };
 
+// Image files, because Windows browsers show flag emoji as two letters. Each is fetched only when its country is listed.
+const FLAGS = import.meta.glob<string>('../../node_modules/flag-icons/flags/4x3/*.svg', { eager: true, query: '?no-inline', import: 'default' });
+
 function Iso({ code }: { code?: string }) {
+  const flag = code && FLAGS[`../../node_modules/flag-icons/flags/4x3/${code.toLowerCase()}.svg`];
+  if (flag) return <img className="cmap-flag" src={flag} alt="" title={code} loading="lazy" />;
   return code ? <span className="cmap-iso" aria-hidden="true">{code}</span> : <span className="cmap-iso none" aria-hidden="true" />;
 }
 

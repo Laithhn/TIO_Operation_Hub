@@ -64,7 +64,7 @@ function SignInForm() {
           <AuthInput label="Password" type="password" autoComplete="current-password" value={f.values.password} onChange={v => f.set('password', v)} />
         </div>
         <button className="btn btn-primary auth-submit" disabled={f.busy || !f.values.accountName || !f.values.password}><Icon name="lock" size={14} /> Sign in</button>
-        <p className="hint">Forgot your password? Ask the TIO Manager to issue a temporary one.</p>
+        <p className="hint">Forgot your password? Ask the System Administrator to issue a temporary one.</p>
       </form>
     </AuthFrame>
   );

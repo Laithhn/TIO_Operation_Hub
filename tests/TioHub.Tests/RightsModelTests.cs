@@ -145,6 +145,14 @@ public sealed class EndpointRightsCoverageTests(HubFactory hub)
     }
 
     [Fact]
+    public void The_case_timeline_tab_does_not_need_change_history()
+    {
+        var needs = RightsCatalog.Dependencies(RightKeys.Tab("Cases", "timeline", "View"));
+        Assert.DoesNotContain("Cases:HistoryView", needs);
+        Assert.DoesNotContain("Platform:Audit", needs);
+    }
+
+    [Fact]
     public void Rights_matrix_is_current()
     {
         var matrix = File.ReadAllText(Path.Combine(Repo(), "docs", "RIGHTS-COVERAGE-MATRIX.md"));

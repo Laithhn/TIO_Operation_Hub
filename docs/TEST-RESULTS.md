@@ -436,10 +436,30 @@ Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner
 | Suite | Result |
 |---|---|
 | Playwright, main config (real API, Microsoft Edge) | **160 passed, 0 failed** |
-| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Backend, full run inside the package build | **668 passed, 0 failed** |
 | Frontend, `vitest` | 81 passed |
 | `tsc -b --noEmit` | Clean |
 
 The browser check of the Reassign dialog uses intercepted, fictional data.
 
 Not run: the key folder and the changed `Install-TioHub.ps1` and `Upgrade-TioHub.ps1` on IIS; a real Jira site; the upgrade on a restored UAT backup.
+
+## Release 2.50.0: Jira priority and type, case sync, timeline (A86), 4 November 2026
+
+Actual runs on the isolated `(localdb)\\TioHubQALocalDB` instance, with the owner's approval.
+
+| Suite | Result |
+|---|---|
+| Backend, first full run (real SQL Server) | 671 of 672 passed. The failure was a wrong test: its "viewer" account holds the Operation Engineer role, and Jira was off |
+| Backend, the corrected tests | 3 passed |
+| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Playwright, main config (real API, Microsoft Edge) | 162 of 163 passed |
+| Playwright, `reporting-builder` rerun | 5 passed |
+| Frontend, `vitest` | 81 passed |
+| `tsc -b --noEmit` | Clean |
+
+The Playwright failure, in `reporting-builder.spec.ts`, expected a PDF download and received the Excel one. It is in report exports, which this release did not change, and it passed when rerun, so it is recorded as an unstable test. It was not investigated further. The whole main config was not run again.
+
+The Jira tests use a **fake Jira**, and browser checks of the mapping and Sync screens use intercepted, fictional data.
+
+Not run: a real Jira site, including its priority and issue type names; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS.

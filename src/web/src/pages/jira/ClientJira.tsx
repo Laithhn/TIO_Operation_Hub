@@ -12,8 +12,9 @@ import { JiraBadge, JiraCard, PreviewResult, SyncOffNotice, type JiraPreview, ty
 import './jira.css';
 
 type Settings = { isEnabled: boolean; jiraConnectionId?: number; defaultResponsibleTeamId?: number; defaultCaseType?: string; defaultPriority: string; nextReviewHours: number; importDoneIssues: boolean; importFrom?: string; syncOnStartup: boolean; fullReconciliation: boolean; fullReconciliationDays: number; syncIntervalMinutes: number; lastPreviewAt?: string; version: string };
+type ValueMapping = { id: number; kind: 'Priority' | 'IssueType'; jiraValue: string; target?: string };
 type ClientJiraDto = {
-  contracts?: { id: number; ref: string; title: string }[]; syncEnabled: boolean; canManage: boolean; settings?: Settings; summary: { enabled: boolean; assignedSpaces: number; lastSuccess?: string; syncIntervalMinutes: number; errors: number; warnings: number };
+  valueMappings?: ValueMapping[]; contracts?: { id: number; ref: string; title: string }[]; syncEnabled: boolean; canManage: boolean; settings?: Settings; summary: { enabled: boolean; assignedSpaces: number; lastSuccess?: string; syncIntervalMinutes: number; errors: number; warnings: number };
   connections: { id: number; name: string }[];
   spaces: { id: number; isEnabled: boolean; contractId?: number; contractRef?: string; contractTitle?: string; contractStatus?: string; projectKey: string; projectName: string; jiraProjectId: string; jiraConnectionId: number; connection?: string; siteUrl?: string; lastSync?: string; health: string; lastError?: string; cases: number }[];
   checks: { label: string; state: string }[]; issues: { id: number; type: string; issueKey?: string; projectKey?: string; description: string; suggestedAction: string; lastSeenAt: string }[]; runs: SyncRun[];
@@ -97,12 +98,13 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
           <Panel title="Imported data behavior">
             <div className="jira-behavior">
               <div><h4>Syncs from Jira</h4><ul><li>Workflow status (through validated mappings)</li><li>Jira assignee → case owner</li><li>Jira comments and activity</li><li>Jira references (Customer Cloud)</li></ul></div>
-              <div><h4>Preserved in TIO</h4><ul><li>Priority logic</li><li>Contractual SLA and penalties</li><li>Backup owner, responsible team, coordinator</li><li>Closing and cancelling cases</li><li>Local TIO comments</li></ul></div>
+              <div><h4>Preserved in TIO</h4><ul><li>Priority and type after a case is created</li><li>Contractual SLA and penalties</li><li>Backup owner, responsible team, coordinator</li><li>Closing and cancelling cases</li><li>Local TIO comments</li></ul></div>
             </div>
             <div className="notice" style={{ marginTop: 8, marginBottom: 0 }}>TIO comments are local only and are never sent back to Jira.</div>
           </Panel>
         </div>
       </div>
+      {(d.valueMappings?.length ?? 0) > 0 && <ValueMappings clientId={clientId} rows={d.valueMappings!} canManage={d.canManage} />}
       {dialog === 'preview' && <PreviewDialog clientId={clientId} onClose={() => { setDialog(null); refresh(); }} />}
       {dialog === 'history' && <HistoryDialog clientId={clientId} onClose={() => setDialog(null)} />}
       {contractOf && <ActionDialog title={`Contract of ${contractOf.projectKey}`} method="PUT" path={`/clients/${clientId}/jira/spaces/${contractOf.id}/contract`} submitLabel="Save" onClose={() => setContractOf(null)}
@@ -115,6 +117,32 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
       {release && <ActionDialog title="Release Jira space" danger path={`/clients/${clientId}/jira/spaces/${release}/release`} submitLabel="Release" onClose={() => setRelease(null)}
         intro="The space stops synchronizing and can be assigned again. Cases already imported stay with this client." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
     </>}</QueryState>
+  );
+}
+
+/** A86: Jira values whose name matches no case value. Until one is mapped, new cases use the client's default. */
+function ValueMappings({ clientId, rows, canManage }: { clientId: number; rows: ValueMapping[]; canManage: boolean }) {
+  const priorities = useEnum('Priority');
+  const T = useTypes();
+  const refresh = useRefresh();
+  const toast = useToast();
+  const [message, setMessage] = useState<string | null>(null);
+  const save = async (r: ValueMapping, target: string) => {
+    setMessage(null);
+    try { await put(`/clients/${clientId}/jira/value-mappings/${r.id}`, { target: target || null }); toast('Mapping saved. It applies to cases created from now on.'); await refresh(); }
+    catch (e) { setMessage(e instanceof ApiError ? e.summary : 'The request failed.'); }
+  };
+  return (
+    <Panel title="Jira priorities and issue types to map" pad={false}>
+      {message && <div className="notice warn" style={{ margin: 8 }}>{message}</div>}
+      <p className="hint" style={{ margin: '8px 10px' }}>A Jira value with the same name as a case value is used directly. The values below have no match, so new cases use the default in the settings until you map them. Existing cases keep their values.</p>
+      <DataTable<ValueMapping> caption="Jira priorities and issue types to map" tools={false} rows={rows} rowKey={r => r.id} columns={[
+        { key: 'k', header: 'Kind', render: r => r.kind === 'Priority' ? 'Priority' : 'Issue type' }, { key: 'v', header: 'Jira value', render: r => r.jiraValue },
+        { key: 't', header: 'Maps to', render: r => <select className="input" aria-label={`Case value for Jira ${r.jiraValue}`} disabled={!canManage} value={r.target ?? ''} onChange={e => save(r, e.target.value)}>
+          <option value="">Use the default</option>{(r.kind === 'Priority' ? enumOptions(priorities) : T.options('CaseType', r.target ?? '')).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
+        { key: 's', header: 'State', render: r => <JiraBadge value={r.target ? 'Passed' : 'Warning'} /> }
+      ]} />
+    </Panel>
   );
 }
 
@@ -160,8 +188,8 @@ function SettingsPanel({ clientId, d, onPreview, onSync }: { clientId: number; d
         <SelectInput label="Sync interval" value={v.syncIntervalMinutes} disabled={!can} onChange={x => f.set('syncIntervalMinutes', x)} empty={null} options={['5', '15', '30', '60', '240'].map(m => ({ value: m, label: `${m} minutes` }))} error={f.fieldError('syncIntervalMinutes')} />
         <TextInput label="Full reconciliation every (days)" value={v.fullReconciliationDays} disabled={!can} onChange={x => f.set('fullReconciliationDays', x)} error={f.fieldError('fullReconciliationDays')} />
         <SelectInput label="Responsible team for new cases" required={v.isEnabled} value={v.defaultResponsibleTeamId} disabled={!can} onChange={x => f.set('defaultResponsibleTeamId', x)} options={teams} error={f.fieldError('defaultResponsibleTeamId')} />
-        <SelectInput label="Case type for new cases" required={v.isEnabled} value={v.defaultCaseType} disabled={!can} onChange={x => f.set('defaultCaseType', x)} options={T.options('CaseType', v.defaultCaseType)} error={f.fieldError('defaultCaseType')} />
-        <SelectInput label="Priority for new cases" value={v.defaultPriority} disabled={!can} onChange={x => f.set('defaultPriority', x)} empty={null} options={enumOptions(priorities)} hint="Jira priority never changes the case priority." />
+        <SelectInput label="Case type when Jira has no match" required={v.isEnabled} value={v.defaultCaseType} disabled={!can} onChange={x => f.set('defaultCaseType', x)} options={T.options('CaseType', v.defaultCaseType)} error={f.fieldError('defaultCaseType')} />
+        <SelectInput label="Priority when Jira has no match" value={v.defaultPriority} disabled={!can} onChange={x => f.set('defaultPriority', x)} empty={null} options={enumOptions(priorities)} hint="New cases take their priority and type from Jira. After that, Jira no longer changes them." />
         <TextInput label="First review after (hours)" value={v.nextReviewHours} disabled={!can} onChange={x => f.set('nextReviewHours', x)} error={f.fieldError('nextReviewHours')} />
         <TextInput label="Import issues created from (optional)" type="date" value={v.importFrom} disabled={!can} onChange={x => f.set('importFrom', x)} error={f.fieldError('importFrom')} />
       </div>

@@ -17,6 +17,7 @@ public sealed record JiraRunContext(JiraConnection Connection, ClientJiraSpace S
 public sealed class JiraIssueOutcome
 {
     public bool Created, Updated, Failed;
+    public string? Error;
     public int Comments, Activities;
 }
 
@@ -276,6 +277,22 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         }
     }
 
+    /// <summary>A86: the case value of a Jira priority or issue type: the client's mapping, then a match by name. A value with neither is listed for a person to map, and null is returned.</summary>
+    public async Task<string?> ValueAsync(long clientId, JiraValueKind kind, string? jiraValue, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(jiraValue)) return null;
+        var value = Trim(jiraValue.Trim(), 200);
+        var local = db.ChangeTracker.Entries<JiraValueMapping>().Select(e => e.Entity).FirstOrDefault(v => v.ClientId == clientId && v.Kind == kind && string.Equals(v.JiraValue, value, StringComparison.OrdinalIgnoreCase));
+        var row = local ?? await db.JiraValueMappings.FirstOrDefaultAsync(v => v.ClientId == clientId && v.Kind == kind && v.JiraValue == value, ct);
+        if (row?.TargetCode is { } mapped) return mapped;
+        var named = kind == JiraValueKind.Priority
+            ? Enum.GetNames<Priority>().FirstOrDefault(n => string.Equals(n, value, StringComparison.OrdinalIgnoreCase))
+            : await db.LookupValues.AsNoTracking().Where(l => l.ListName == LookupLists.CaseType && !l.IsRetired && (l.Code == value || l.Label == value)).Select(l => l.Code).FirstOrDefaultAsync(ct);
+        if (named is not null) return named;
+        if (row is null) db.JiraValueMappings.Add(new JiraValueMapping { ClientId = clientId, Kind = kind, JiraValue = value });
+        return null;
+    }
+
     /// <summary>A84: the space's contract, while it is active and still belongs to the space's client.</summary>
     private async Task<SpaceContract?> SpaceContractAsync(ClientJiraSpace space, CancellationToken ct) => space.ContractId is not { } id ? null
         : await db.Contracts.AsNoTracking().Where(k => k.Id == id && k.ClientId == space.ClientId && k.Status == ContractStatus.Active).Select(k => new SpaceContract(k.Id, k.Ref)).FirstOrDefaultAsync(ct);
@@ -290,14 +307,19 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
     /// <summary>Creates the case with the same required values as POST /cases. No contract is linked; once a person links one, the SLA counts from Jira's creation time (A78).</summary>
     private async Task CreateCaseAsync(JiraRunContext x, JiraIssue issue, DateTimeOffset now, CancellationToken ct)
     {
-        var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the case type", null, ct);
+        // A86: priority and type come from Jira, by name or through the client's mapping. The client's defaults cover what Jira leaves open.
+        var lookups = new LookupService(db);
+        var typeCheck = new Check();
+        var (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(typeCheck, "type", LookupLists.CaseType, await ValueAsync(x.Space.ClientId, JiraValueKind.IssueType, issue.IssueTypeName, ct), "the case type", null, ct);
+        if (typeCheck.HasErrors) (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the case type", null, ct);
+        var priority = Enum.TryParse<Priority>(await ValueAsync(x.Space.ClientId, JiraValueKind.Priority, issue.PriorityName, ct), out var fromJira) ? fromJira : x.Settings.DefaultPriority;
         var title = CredentialGuard.LooksLikeSecret(issue.Summary) ? $"Jira issue {issue.Key}" : issue.Summary.Trim();
         var contract = await SpaceContractAsync(x.Space, ct);
         var c = new Case
         {
             ContractId = contract?.Id, SlaClockStartAt = issue.CreatedAt,
             Title = title.Length > 200 ? title[..200] : title, Type = typeCode, TypeCategory = typeCategory, Scope = WorkScope.Client, ClientId = x.Space.ClientId,
-            ResponsibleTeamId = x.Settings.DefaultResponsibleTeamId, ImpactSummary = $"Not yet assessed. Imported from Jira {issue.Key}.", Priority = x.Settings.DefaultPriority,
+            ResponsibleTeamId = x.Settings.DefaultResponsibleTeamId, ImpactSummary = $"Not yet assessed. Imported from Jira {issue.Key}.", Priority = priority,
             NextAction = "Review the case imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, StatusCode = await CaseStatuses.DefaultCodeAsync(db, CaseStatusBehavior.Initial, CaseStatus.New, ct), CycleStartedAt = now, LastReviewedAt = now
         };
         db.Cases.Add(c);
@@ -318,7 +340,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         await db.SaveChangesAsync(ct);
     }
 
-    /// <summary>External values for display. They never reach the case's priority, due date, team or other responsibility fields.</summary>
+    /// <summary>External values for display. After creation they never reach the case's priority or type, and they never reach its due date, team or other responsibility fields.</summary>
     private static void Snapshot(JiraCaseMapping m, JiraIssue i, JiraRunContext x, DateTimeOffset now)
     {
         static string? Safe(string? s, int max) => s is null || CredentialGuard.LooksLikeSecret(s) ? null : s.Length > max ? s[..max] : s;

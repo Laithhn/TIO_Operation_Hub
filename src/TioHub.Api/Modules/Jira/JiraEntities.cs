@@ -13,6 +13,8 @@ public enum JiraSyncType { Initial, Incremental, FullReconciliation }
 public enum JiraSyncTrigger { Schedule, Startup, Manual }
 public enum JiraSyncStatus { Running, Success, Warning, Failed, Skipped }
 public enum JiraIssueStatus { Open, Resolved, Dismissed }
+public enum JiraValueKind { Priority, IssueType }
+
 public enum JiraIssueType
 {
     DuplicateCaseCandidate, MissingUserMapping, UnknownWorkflowStatus, WorkflowTransitionBlocked, ClientOwnershipConflict,
@@ -193,6 +195,15 @@ public class JiraWorkflowStatusMapping : Entity
     public string JiraStatusName { get; set; } = "";
     public string? JiraStatusCategory { get; set; }
     public string? TargetStatusCode { get; set; }
+}
+
+/// <summary>A86: a Jira priority or issue type of one client that matches no case value by name. A null target waits for a person; the client's default applies until then.</summary>
+public class JiraValueMapping : Entity
+{
+    public long ClientId { get; set; }
+    public JiraValueKind Kind { get; set; }
+    public string JiraValue { get; set; } = "";
+    public string? TargetCode { get; set; }
 }
 
 public class JiraComment

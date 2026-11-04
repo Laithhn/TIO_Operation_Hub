@@ -4726,6 +4726,61 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("JiraUserMapping", "jira");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraValueMapping", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JiraValue")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("TargetCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ClientId", "Kind", "JiraValue")
+                        .IsUnique();
+
+                    b.ToTable("JiraValueMapping", "jira");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraWorkflowStatusMapping", b =>
                 {
                     b.Property<long>("Id")
@@ -8277,6 +8332,19 @@ namespace TioHub.Api.Data.Migrations
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("TioUser");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraValueMapping", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraWorkflowStatusMapping", b =>

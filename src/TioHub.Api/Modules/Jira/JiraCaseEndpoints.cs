@@ -56,10 +56,8 @@ public static class JiraCaseEndpoints
             var me = access.Me;
             me.RequireRight(RightKeys.Tab("Cases", "timeline", "View"));
             var c = await db.Cases.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Id, x.ClientId, x.ResponsibleTeamId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The case");
-            var canHistory = me.HasRight(RightKeys.Cases, RightKeys.HistoryView) && me.HasRight(RightKeys.Audit);
             var seesRestricted = me.HasRight(RightKeys.Cases, RightKeys.Coordinate);
             var rows = new List<ActivityRow>();
-            if (canHistory)
             {
                 var events = await db.CaseEvents.AsNoTracking().Where(e => e.CaseId == id).Select(e => new { e.Id, e.Type, e.FromValue, e.ToValue, e.Note, e.At, by = e.By == null ? null : e.By.DisplayName }).ToListAsync(ct);
                 rows.AddRange(events.Select(e => new ActivityRow($"e{e.Id}", "TIO", e.Type.ToString(), CategoryOf(e.Type), e.Type.ToString(), e.by, e.At, e.FromValue, e.ToValue, e.Note, false, null, false)));
@@ -95,6 +93,15 @@ public static class JiraCaseEndpoints
         });
 
         // Saved here only. There is no Jira call, queue or event behind this endpoint, and imported Jira comments have no edit endpoint at all.
+        // A86: reads only this case's issue, at once. The run itself works as the system, like the scheduled one, so it sees what a person's scope would hide.
+        g.MapPost("/jira-source/sync", async (long id, HubDbContext db, HubAccess access, IServiceScopeFactory scopes, CancellationToken ct) =>
+        {
+            var c = await db.Cases.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.ClientId, x.ResponsibleTeamId, x.OwnerUserId, x.BackupOwnerUserId, x.CoordinatorUserId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The case");
+            access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
+            using var scope = scopes.CreateScope();
+            return Results.Ok(await scope.ServiceProvider.GetRequiredService<JiraSyncService>().SyncCaseAsync(id, ct));
+        });
+
         g.MapPost("/comments", async (long id, CommentInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Cases.AsNoTracking().Where(x => x.Id == id).Select(x => new { x.Id, x.ClientId, x.ResponsibleTeamId }).FirstOrDefaultAsync(ct) ?? throw new NotFoundException("The case");

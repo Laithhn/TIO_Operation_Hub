@@ -55,6 +55,8 @@ public sealed record JiraPreview(int TotalIssues, int NewCases, int ExistingMatc
 public sealed record JiraPreviewSpace(string ProjectKey, int Issues, string? Error);
 public sealed record JiraPreviewRow(string IssueKey, string Summary, string ProjectKey, string? StatusName, string? AssigneeName, string Decision, long? CaseId, string? Problem);
 
+public sealed record JiraCaseSyncResult(string IssueKey, bool Updated, int Comments, int Activities, string? Error);
+
 public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSecretStore secrets, JiraCaseBridge bridge, TimeProvider clock, IOptions<JiraOptions> options, ILogger<JiraSyncService> log)
 {
     private static readonly string InstanceId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
@@ -169,6 +171,26 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
         return run;
     }
 
+    /// <summary>A86: one case's issue with its comments and activity. Nothing else in the space is read, and the space's checkpoint does not move.</summary>
+    public async Task<JiraCaseSyncResult> SyncCaseAsync(long caseId, CancellationToken ct)
+    {
+        if (!options.Value.Enabled) throw new ConflictException("Jira synchronization is switched off on this server (Jira:Enabled).");
+        var m = await db.JiraCaseMappings.IgnoreQueryFilters().AsNoTracking().FirstOrDefaultAsync(x => x.CaseId == caseId, ct) ?? throw new ConflictException("This case is not linked to a synchronized Jira issue.");
+        var space = await db.ClientJiraSpaces.IgnoreQueryFilters().Include(s => s.JiraConnection).FirstOrDefaultAsync(s => s.Id == m.ClientJiraSpaceId, ct);
+        if (space is null || space.ReleasedAt is not null || !space.IsEnabled || space.JiraConnection is not { IsEnabled: true } conn) throw new ConflictException($"The Jira space of {m.IssueKey} is not assigned and enabled, so it cannot be synchronized.");
+        var settings = await db.ClientJiraSettings.FirstOrDefaultAsync(x => x.ClientId == space.ClientId && x.IsEnabled, ct) ?? throw new ConflictException("Enable the client's Jira integration first.");
+        try
+        {
+            var auth = await secrets.AuthAsync(conn, ct);
+            var fields = await DetailFieldsAsync(conn, auth, ct);
+            await db.SaveChangesAsync(ct);
+            var issue = await jira.GetIssueAsync(auth, m.JiraIssueId, fields.Keys.ToArray(), ct) ?? throw new ConflictException($"Jira no longer shows {m.IssueKey} to this connection. The case was not changed.");
+            var outcome = await ProcessWithRetryAsync(new JiraRunContext(conn, space, settings, auth, fields, true), issue, ct);
+            return new JiraCaseSyncResult(m.IssueKey, outcome.Updated, outcome.Comments, outcome.Activities, outcome.Error);
+        }
+        catch (JiraApiException ex) { throw new ConflictException($"Jira could not be read: {ex.Message}"); }
+    }
+
     private async Task<JiraIssueOutcome> ProcessWithRetryAsync(JiraRunContext x, JiraIssue issue, CancellationToken ct)
     {
         for (var attempt = 0; ; attempt++)
@@ -187,20 +209,37 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
                 log.LogError(ex, "Jira issue {IssueId} of connection {ConnectionId} could not be imported", issue.Id, x.Connection.Id);
                 db.ChangeTracker.Clear();
                 db.Attach(x.Connection); db.Attach(x.Space); db.Attach(x.Settings);
-                await RecordFailureAsync(x, issue, ct);
-                return new JiraIssueOutcome { Failed = true };
+                var reason = FailureReason(ex);
+                await RecordFailureAsync(x, issue, reason, ct);
+                return new JiraIssueOutcome { Failed = true, Error = reason };
             }
         }
     }
 
-    private async Task RecordFailureAsync(JiraRunContext x, JiraIssue issue, CancellationToken ct)
+    /// <summary>Why an issue failed, in words an administrator can act on. Anything that looks like a credential stays in the log only.</summary>
+    internal static string FailureReason(Exception ex)
+    {
+        var reason = ex switch
+        {
+            ValidationException v => string.Join(" ", v.Errors.SelectMany(e => e.Value)) is { Length: > 0 } text ? text : v.Message,
+            ConflictException or NotFoundException or ForbiddenException => ex.Message,
+            DbUpdateConcurrencyException => "the case was changed by someone else during the import.",
+            DbUpdateException d when SqlErrors.IsUniqueViolation(d) => $"a record with the same unique value already exists. {d.GetBaseException().Message}",
+            _ => ex.GetBaseException().Message
+        };
+        return CredentialGuard.LooksLikeSecret(reason) ? "the error text was withheld because it looks like a credential. See the application log." : reason;
+    }
+
+    private async Task RecordFailureAsync(JiraRunContext x, JiraIssue issue, string reason, CancellationToken ct)
     {
         var fingerprint = $"failed:{x.Connection.Id}:{issue.Id}";
         var now = clock.GetUtcNow();
         var open = await db.JiraIntegrationIssues.FirstOrDefaultAsync(i => i.Fingerprint == fingerprint && i.Status == JiraIssueStatus.Open, ct);
-        if (open is not null) { open.LastSeenAt = now; open.Occurrences++; }
+        var description = JiraCaseBridge.Trim($"{issue.Key} could not be imported: {reason}", 1000);
+        const string action = "Correct the cause if it needs a change here. The import is tried again at the next run; the technical details are in the application log.";
+        if (open is not null) { open.LastSeenAt = now; open.Occurrences++; open.Description = description; open.SuggestedAction = action; }
         else db.JiraIntegrationIssues.Add(new JiraIntegrationIssue { Type = JiraIssueType.FailedIssueImport, Fingerprint = fingerprint, JiraConnectionId = x.Connection.Id, ClientId = x.Space.ClientId, ProjectKey = x.Space.ProjectKey,
-            JiraProjectId = x.Space.JiraProjectId, JiraIssueId = issue.Id, IssueKey = issue.Key, Description = $"{issue.Key} could not be imported on the server. Details are in the application log.", SuggestedAction = "Retried at the next run. If it stays, give the issue key to the application team.", LastSeenAt = now });
+            JiraProjectId = x.Space.JiraProjectId, JiraIssueId = issue.Id, IssueKey = issue.Key, Description = description, SuggestedAction = action, LastSeenAt = now });
         await db.SaveChangesAsync(ct);
         db.ChangeTracker.Clear();
         db.Attach(x.Connection); db.Attach(x.Space); db.Attach(x.Settings);
@@ -293,6 +332,8 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
                     foreach (var issue in page.Issues)
                     {
                         count++; total++;
+                        await bridge.ValueAsync(clientId, JiraValueKind.Priority, issue.PriorityName, ct);
+                        await bridge.ValueAsync(clientId, JiraValueKind.IssueType, issue.IssueTypeName, ct);
                         var c = await bridge.ClassifyAsync(conn, space, settings, issue, ct);
                         switch (c.Decision)
                         {

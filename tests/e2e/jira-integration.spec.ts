@@ -210,6 +210,53 @@ test('a reassigned Jira space offers only the contracts of the new client', asyn
   await expect.poll(() => sent).toEqual({ toClientId: id, contractId: 7, reason: 'Contract moved' });
 });
 
+test('a Jira priority with no match is mapped on the client page', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 1100 });
+  await page.goto('/');
+  const id = await clientId(page);
+  await page.route(`**/api/v1/clients/${id}/jira`, r => r.fulfill({ json: {
+    syncEnabled: true, canManage: true, summary: { enabled: false, assignedSpaces: 0, syncIntervalMinutes: 15, errors: 0, warnings: 0 }, connections: [{ id: 1, name: 'Demo Jira Cloud' }],
+    valueMappings: [{ id: 3, kind: 'Priority', jiraValue: 'Blocker' }, { id: 4, kind: 'IssueType', jiraValue: 'Story' }],
+    settings: { isEnabled: false, jiraConnectionId: 1, defaultPriority: 'Normal', nextReviewHours: 48, importDoneIssues: false, syncOnStartup: false, fullReconciliation: true, fullReconciliationDays: 7, syncIntervalMinutes: 15, version: 'AAAA' },
+    spaces: [], checks: [], issues: [], runs: [] } }));
+  let saved: unknown;
+  await page.route(`**/api/v1/clients/${id}/jira/value-mappings/3`, r => { saved = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
+  await page.goto(`/clients/${id}?tab=jira`);
+  await page.getByLabel('Case value for Jira Blocker').selectOption('Critical');
+  await expect.poll(() => saved).toEqual({ target: 'Critical' });
+  await expect(page.getByLabel('Case value for Jira Story').locator('option').nth(1)).toBeAttached();
+  await shot(page, 'value-mappings');
+});
+
+test('Sync with Jira on a case reports what came back', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 900 });
+  await page.goto('/cases');
+  const href = await page.locator('table tbody a').first().getAttribute('href');
+  const caseId = href!.split('/').pop();
+  await page.route(`**/api/v1${href}`, async r => {
+    const json = await (await r.fetch()).json();
+    await r.fulfill({ json: { ...json, statusFromJira: true, jiraSource: { issueKey: 'TAH-1', url: 'https://demo-site.atlassian.net/browse/TAH-1', connection: 'Demo Jira Cloud', connectionStatus: 'Connected' } } });
+  });
+  let calls = 0;
+  await page.route(`**/api/v1/cases/${caseId}/jira-source/sync`, r => { calls++; return r.fulfill({ json: calls === 1 ? { issueKey: 'TAH-1', updated: false, comments: 2, activities: 1 } : { issueKey: 'TAH-1', updated: false, comments: 0, activities: 0, error: 'Select an active team.' } }); });
+  await page.goto(href!);
+  await page.getByRole('button', { name: 'Sync with Jira' }).click();
+  await expect(page.getByText('TAH-1 synchronized: 2 new comment(s), 1 new activity item(s).')).toBeVisible();
+  await page.getByRole('button', { name: 'Sync with Jira' }).click();
+  await expect(page.getByText('TAH-1 could not be imported: Select an active team.')).toBeVisible();
+  await shot(page, 'case-sync');
+});
+
+test('the client map lists countries with a flag image', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 900 });
+  await page.goto('/map');
+  const flag = page.locator('.cmap-country .cmap-flag').first();
+  await expect(flag).toBeVisible();
+  await flag.scrollIntoViewIfNeeded();
+  await expect.poll(() => flag.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth)).toBeGreaterThan(0);
+  await shot(page, 'client-map-flags');
+});
+
 test('a Jira-synced case shows its status read-only and only actions that do not change it', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/cases');

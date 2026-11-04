@@ -86,8 +86,8 @@ public sealed class UserContext
         var info = RightsCatalog.Find(key);
         var missing = RightsCatalog.Dependencies(key).FirstOrDefault(required => !HasRight(required));
         throw new ForbiddenException(missing is not null
-            ? $"This also needs {RightsCatalog.Find(missing)?.Label ?? missing} ({missing}). Ask the TIO Manager."
-            : $"This needs {info?.Label ?? key} for {info?.FeatureLabel ?? key}. Ask the TIO Manager.");
+            ? $"This also needs {RightsCatalog.Find(missing)?.Label ?? missing} ({missing}). Ask the System Administrator."
+            : $"This needs {info?.Label ?? key} for {info?.FeatureLabel ?? key}. Ask the System Administrator.");
     }
 
     public void RequireRight(string resource, string action) => RequireRight(RightKeys.KeyOf(resource, action));

@@ -101,6 +101,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<Modules.Jira.JiraCaseMapping> JiraCaseMappings => Set<Modules.Jira.JiraCaseMapping>();
     public DbSet<Modules.Jira.JiraUserMapping> JiraUserMappings => Set<Modules.Jira.JiraUserMapping>();
     public DbSet<Modules.Jira.JiraWorkflowStatusMapping> JiraWorkflowStatusMappings => Set<Modules.Jira.JiraWorkflowStatusMapping>();
+    public DbSet<Modules.Jira.JiraValueMapping> JiraValueMappings => Set<Modules.Jira.JiraValueMapping>();
     public DbSet<Modules.Jira.JiraComment> JiraComments => Set<Modules.Jira.JiraComment>();
     public DbSet<Modules.Jira.JiraActivity> JiraActivities => Set<Modules.Jira.JiraActivity>();
     public DbSet<Modules.Jira.CaseComment> CaseComments => Set<Modules.Jira.CaseComment>();
@@ -1359,6 +1360,14 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.JiraConnectionId, x.JiraAccountId }).IsUnique();
             e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
             e.HasOne(x => x.TioUser).WithMany().HasForeignKey(x => x.TioUserId);
+        });
+        m.Entity<Modules.Jira.JiraValueMapping>(e =>
+        {
+            e.ToTable("JiraValueMapping", S);
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.JiraValue).HasMaxLength(200);
+            e.Property(x => x.TargetCode).HasMaxLength(100);
+            e.HasIndex(x => new { x.ClientId, x.Kind, x.JiraValue }).IsUnique();
         });
         m.Entity<Modules.Jira.JiraWorkflowStatusMapping>(e =>
         {

@@ -16,6 +16,7 @@ public static class JiraClientEndpoints
     public sealed record SettingsInput(bool IsEnabled, long? JiraConnectionId, long? DefaultResponsibleTeamId, string? DefaultCaseType, Priority? DefaultPriority, int? NextReviewHours,
         bool ImportDoneIssues, DateOnly? ImportFrom, bool SyncOnStartup, bool FullReconciliation, int? FullReconciliationDays, int? SyncIntervalMinutes);
     public sealed record AddSpacesInput(long? JiraConnectionId, string[]? JiraProjectIds, long? ContractId = null);
+    public sealed record ValueMappingInput(string? Target);
     public sealed record SpaceContractInput(long? ContractId, bool ApplyToOpenCases = false, string? Reason = null);
     public sealed record SpaceEnabledInput(bool Enabled);
     public sealed record ReleaseInput(string? Reason);
@@ -53,6 +54,7 @@ public static class JiraClientEndpoints
             var spaceContracts = await db.Contracts.IgnoreQueryFilters().AsNoTracking().Where(k => contractIds.Contains(k.Id)).Select(k => new { k.Id, k.Ref, k.Title, k.Status }).ToDictionaryAsync(k => k.Id, ct);
             var canManage = me.HasRight(RightKeys.Structure, RightKeys.Coordinate);
             var activeContracts = !canManage ? [] : await db.Contracts.AsNoTracking().Where(k => k.ClientId == id && k.Status == ContractStatus.Active).OrderBy(k => k.Ref).Select(k => new ContractOption(k.Id, k.Ref, k.Title)).ToListAsync(ct);
+            var valueMappings = await db.JiraValueMappings.AsNoTracking().Where(v => v.ClientId == id).OrderBy(v => v.Kind).ThenBy(v => v.JiraValue).Select(v => new { v.Id, v.Kind, v.JiraValue, target = v.TargetCode }).ToListAsync(ct);
             var selected = s?.JiraConnectionId;
             var connections = await db.JiraConnections.AsNoTracking().Where(c => c.IsEnabled || c.Id == selected).OrderBy(c => c.Name).Select(c => new { c.Id, c.Name }).ToListAsync(ct);
             var connection = s?.JiraConnectionId is { } cid ? await db.JiraConnections.AsNoTracking().FirstOrDefaultAsync(c => c.Id == cid, ct) : null;
@@ -68,6 +70,7 @@ public static class JiraClientEndpoints
             foreach (var i in openIssues.Where(i => i.Type is JiraIssueType.MissingUserMapping or JiraIssueType.UnknownWorkflowStatus).GroupBy(i => i.Type))
                 Check($"{i.Count()} {(i.Key == JiraIssueType.MissingUserMapping ? "user mapping" : "workflow mapping")} warning(s)", "Warning");
             foreach (var i in openIssues.Where(i => i.Type is JiraIssueType.ClientOwnershipConflict or JiraIssueType.IssueMovedBetweenSpaces).Take(5)) Check(i.Description, "Error");
+            if (valueMappings.Count(v => v.target is null) is > 0 and var unmapped) Check($"{unmapped} Jira priority or issue type value(s) to map", "Warning");
             var errors = openIssues.Count(i => i.Type is JiraIssueType.ClientOwnershipConflict or JiraIssueType.IssueMovedBetweenSpaces or JiraIssueType.FailedIssueImport);
             var warnings = openIssues.Count - errors;
 
@@ -76,6 +79,7 @@ public static class JiraClientEndpoints
                 syncEnabled = options.Value.Enabled && options.Value.WorkerSeconds > 0,
                 canManage,
                 contracts = activeContracts,
+                valueMappings,
                 settings = s is null ? null : new { s.IsEnabled, s.JiraConnectionId, s.DefaultResponsibleTeamId, s.DefaultCaseType, s.DefaultPriority, s.NextReviewHours, s.ImportDoneIssues, s.ImportFrom, s.SyncOnStartup, s.FullReconciliation, s.FullReconciliationDays, s.SyncIntervalMinutes, s.LastPreviewAt, version = Convert.ToBase64String(s.RowVersion) },
                 summary = new { enabled = s?.IsEnabled == true, assignedSpaces = spaces.Count, lastSuccess = states.Values.Max(x => x.LastSuccessAt), syncIntervalMinutes = s?.SyncIntervalMinutes ?? 15, errors, warnings },
                 connections,
@@ -181,6 +185,26 @@ public static class JiraClientEndpoints
             db.AuditReason = reason;
             await db.SaveChangesAsync(ct);
             return Results.Ok(new { applied });
+        });
+
+        // A86: applies to cases created from now on. An empty target leaves the value waiting, and the client's default applies.
+        g.MapPut("/value-mappings/{mappingId:long}", async (long id, long mappingId, ValueMappingInput i, HubDbContext db, HubAccess access, CancellationToken ct) =>
+        {
+            await RequireClientAsync(db, access.Me, id, ct);
+            RequireChange(access, id);
+            var m = await db.JiraValueMappings.FirstOrDefaultAsync(x => x.Id == mappingId && x.ClientId == id, ct) ?? throw new NotFoundException("The Jira value");
+            var target = Text.Clean(i.Target);
+            if (target is not null && m.Kind == JiraValueKind.Priority && !Enum.GetNames<Priority>().Contains(target)) throw new ValidationException("target", "Select a case priority.");
+            if (target is not null && m.Kind == JiraValueKind.IssueType)
+            {
+                var check = new Check();
+                await new LookupService(db).TypeAsync<CaseType>(check, "target", LookupLists.CaseType, target, "the case type", m.TargetCode, ct);
+                check.ThrowIfAny();
+            }
+            m.TargetCode = target;
+            db.AuditReason = $"Jira {m.Kind} {m.JiraValue} mapped to {target ?? "nothing"}";
+            await db.SaveChangesAsync(ct);
+            return Results.NoContent();
         });
 
         g.MapPost("/spaces/{spaceId:long}/release", async (long id, long spaceId, ReleaseInput i, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>

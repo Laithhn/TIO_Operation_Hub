@@ -295,7 +295,7 @@ export function CaseDetail() {
             ...(c.cancelReason ? [['Cancellation reason', c.cancelReason] as [string, string]] : [])
           ]} />
         </Panel>
-        {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} />}
+        {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
       </div>
       {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />

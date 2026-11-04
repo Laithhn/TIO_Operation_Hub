@@ -81,6 +81,8 @@
 .cmap-country > .ic:last-child { color: var(--cm-fg-2); transform: rotate(180deg); grid-column: 6; }
 .cmap-iso { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 20px; background: var(--cm-surface); border: 1px solid var(--cm-border); font-size: 10px; font-weight: 700; letter-spacing: .04em; color: var(--cm-fg); }
 .cmap-iso.none { visibility: hidden; }
+.cmap-flag { width: 28px; height: 20px; object-fit: cover; border: 1px solid var(--cm-border); }
+.cmap-details-head .cmap-flag { width: 40px; height: 28px; }
 .cmap-empty { padding: 18px 12px; color: var(--cm-fg-2); text-align: center; }
 .cmap-note { padding: 10px 12px; color: var(--cm-fg-2); font-size: var(--fs-xs); }
 

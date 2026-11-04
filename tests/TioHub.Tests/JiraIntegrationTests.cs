@@ -578,6 +578,92 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_new_case_takes_priority_and_type_from_jira_or_the_clients_mapping()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        _jira.Add("180", "TAH-180", priority: "High");
+        _jira.Add("181", "TAH-181", priority: "Blocker");
+        await RunAsync(f.SpaceId);
+        Assert.Equal(Priority.High, (await CaseOfAsync(f.ConnectionId, "180"))!.Priority);
+        Assert.Equal(Priority.Normal, (await CaseOfAsync(f.ConnectionId, "181"))!.Priority); // no match: the client's default, and it is listed
+
+        var rows = (await manager.Get($"/clients/{f.ClientId}/jira")).Body!["valueMappings"]!.AsArray();
+        var blocker = rows.First(r => r!["jiraValue"]!.GetValue<string>() == "Blocker")!["id"]!.GetValue<long>();
+        Assert.NotNull((await manager.Put($"/clients/{f.ClientId}/jira/value-mappings/{blocker}", new { target = "Nonsense" })).Error("target"));
+        Assert.Equal(HttpStatusCode.NoContent, (await manager.Put($"/clients/{f.ClientId}/jira/value-mappings/{blocker}", new { target = "Critical" })).Status);
+
+        _jira.Add("182", "TAH-182", priority: "Blocker");
+        await RunAsync(f.SpaceId);
+        Assert.Equal(Priority.Critical, (await CaseOfAsync(f.ConnectionId, "182"))!.Priority);
+        Assert.Equal(Priority.Normal, (await CaseOfAsync(f.ConnectionId, "181"))!.Priority); // existing cases keep theirs
+    }
+
+    [Fact]
+    public async Task Sync_on_a_case_reads_only_its_own_issue()
+    {
+        var f = await SetUpAsync();
+        var engineer = await _hub.As(HubFactory.Engineer);
+        var reader = await LimitedUserAsync(f.ClientId, "Cases:View", "Cases:DetailsView", "tab.Cases.timeline:View");
+        _jira.Add("190", "TAH-190");
+        _jira.Add("191", "TAH-191");
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "190");
+        var at = DateTimeOffset.UtcNow.AddHours(-1);
+        _jira.Comments["190"] = [new("c190", "acc", "Sam", "New here", at, at, null, null)];
+        _jira.Comments["191"] = [new("c191", "acc", "Sam", "Not this one", at, at, null, null)];
+        var searches = _jira.Jql.Count;
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await reader.Post($"/cases/{c!.Id}/jira-source/sync", new { })).Status);
+
+        // The switch is checked after the right, so someone without the right never learns it.
+        Assert.Equal(HttpStatusCode.Conflict, (await engineer.Post($"/cases/{c.Id}/jira-source/sync", new { })).Status);
+        var options = _hub.Services.GetRequiredService<Microsoft.Extensions.Options.IOptions<JiraOptions>>().Value;
+        options.Enabled = true;
+        Res r;
+        try { r = await engineer.Post($"/cases/{c.Id}/jira-source/sync", new { }); }
+        finally { options.Enabled = false; }
+        Assert.True(r.Status == HttpStatusCode.OK, r.Text);
+        Assert.Equal(1, r.Body!["comments"]!.GetValue<int>());
+        Assert.Equal(searches, _jira.Jql.Count);
+        Assert.True(await Db(db => db.JiraComments.AnyAsync(k => k.JiraCommentId == "c190")));
+        Assert.False(await Db(db => db.JiraComments.AnyAsync(k => k.JiraCommentId == "c191")));
+
+    }
+
+    private async Task<Api> LimitedUserAsync(long clientId, params string[] rights)
+    {
+        var manager = await _hub.As(HubFactory.Manager);
+        var role = await manager.Create("/admin/roles", new { name = $"Limited {Guid.NewGuid():N}"[..24], rights = TioHub.Tests.Fixture.Rights(rights) });
+        var account = $@"DEV\limited-{Guid.NewGuid():N}"[..24];
+        await manager.Create("/admin/users", new { accountName = account, displayName = "Fictional limited user", workingTimeZone = "UTC", roleIds = new[] { role }, scopes = new object[] { new { kind = "Client", clientId, projectId = (long?)null, teamId = (long?)null } } });
+        return await _hub.As(account);
+    }
+
+    [Fact]
+    public async Task The_timeline_tab_works_without_change_history()
+    {
+        var f = await SetUpAsync();
+        var reader = await LimitedUserAsync(f.ClientId, "Cases:View", "Cases:DetailsView", "tab.Cases.timeline:View");
+        _jira.Add("192", "TAH-192");
+        await RunAsync(f.SpaceId);
+        var c = await CaseOfAsync(f.ConnectionId, "192");
+        Assert.Contains("tab.Cases.timeline:View", reader.Me["rights"]!.AsArray().Select(k => k!.GetValue<string>()));
+        var activity = await reader.Get($"/cases/{c!.Id}/activity");
+        Assert.Equal(HttpStatusCode.OK, activity.Status);
+        Assert.NotEmpty(activity.Body!["items"]!.AsArray());
+        Assert.Equal(HttpStatusCode.Forbidden, (await reader.Get("/admin/audit")).Status);
+    }
+
+    [Fact]
+    public async Task A_failed_import_says_why()
+    {
+        Assert.Equal("Select an active team.", JiraSyncService.FailureReason(new ValidationException("team", "Select an active team.")));
+        Assert.Contains("withheld", JiraSyncService.FailureReason(new InvalidOperationException("password: hunter2hunter2")));
+        await Task.CompletedTask;
+    }
+
+    [Fact]
     public async Task A_reassigned_space_takes_a_contract_of_the_new_client_only()
     {
         var f = await SetUpAsync();

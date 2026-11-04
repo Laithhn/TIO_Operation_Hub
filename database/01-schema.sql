@@ -10040,3 +10040,62 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104075915_JiraValueMapping'
+)
+BEGIN
+    CREATE TABLE [jira].[JiraValueMapping] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientId] bigint NOT NULL,
+        [Kind] nvarchar(20) NOT NULL,
+        [JiraValue] nvarchar(200) NOT NULL,
+        [TargetCode] nvarchar(100) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_JiraValueMapping] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_JiraValueMapping_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_JiraValueMapping_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104075915_JiraValueMapping'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_JiraValueMapping_ClientId_Kind_JiraValue] ON [jira].[JiraValueMapping] ([ClientId], [Kind], [JiraValue]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104075915_JiraValueMapping'
+)
+BEGIN
+    CREATE INDEX [IX_JiraValueMapping_CreatedById] ON [jira].[JiraValueMapping] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104075915_JiraValueMapping'
+)
+BEGIN
+    CREATE INDEX [IX_JiraValueMapping_UpdatedById] ON [jira].[JiraValueMapping] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104075915_JiraValueMapping'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261104075915_JiraValueMapping', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
