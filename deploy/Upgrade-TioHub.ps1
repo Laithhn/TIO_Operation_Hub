@@ -76,6 +76,13 @@ if ($PSCmdlet.ShouldProcess($appDir, "replace application files (keeping $($keep
   Get-ChildItem $appDir -Force | Where-Object { $_.Name -notin $keep } | Remove-Item -Recurse -Force
   Get-ChildItem $appSource -Force | Where-Object { $_.Name -ne 'appsettings.Production.json' } | Copy-Item -Destination $appDir -Recurse -Force
   Ok "Version $version copied"
+  # A85: the keys that protect stored Jira tokens and sign-in sessions stay outside the application folder.
+  $pool = Get-Item "IIS:\AppPools\$SiteName"
+  $poolIdentity = if ($pool.processModel.identityType -eq 'SpecificUser') { $pool.processModel.userName } elseif ($pool.processModel.identityType -eq 'ApplicationPoolIdentity') { "IIS APPPOOL\$SiteName" } else { "NT AUTHORITY\$($pool.processModel.identityType)" }
+  $keysFolder = Join-Path $env:ProgramData 'TioHub\DataProtection-Keys'
+  New-Item -ItemType Directory -Force $keysFolder | Out-Null
+  & icacls $keysFolder /inheritance:r /grant "$($poolIdentity):(OI)(CI)M" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /Q | Out-Null
+  Ok "Key folder $keysFolder for $poolIdentity"
   Start-WebAppPool -Name $SiteName
   Start-Website -Name $SiteName
 }

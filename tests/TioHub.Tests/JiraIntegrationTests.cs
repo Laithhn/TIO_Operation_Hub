@@ -578,6 +578,24 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task A_reassigned_space_takes_a_contract_of_the_new_client_only()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var other = await _hub.ClientId("DEMO-HCP");
+        var earlier = await ActiveContractAsync(f.ClientId);
+        var theirs = await ActiveContractAsync(other);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = earlier })).Status);
+
+        var path = $"/admin/jira-connections/{f.ConnectionId}/spaces/100/reassign";
+        Assert.NotNull((await manager.Post(path, new { toClientId = other, reason = "Contract moved", contractId = earlier })).Error("contractId"));
+        Assert.Equal(1, await Db(db => db.ClientJiraSpaces.IgnoreQueryFilters().CountAsync(s => s.Id == f.SpaceId && s.ReleasedAt == null)));
+
+        await manager.Ok(path, new { toClientId = other, reason = "Contract moved", contractId = theirs });
+        Assert.Equal(theirs, await Db(db => db.ClientJiraSpaces.IgnoreQueryFilters().Where(s => s.JiraConnectionId == f.ConnectionId && s.JiraProjectId == "100" && s.ReleasedAt == null).Select(s => s.ContractId).FirstAsync()));
+    }
+
+    [Fact]
     public async Task A_space_only_takes_an_active_contract_of_its_client()
     {
         var f = await SetUpAsync();

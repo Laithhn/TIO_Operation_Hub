@@ -26,7 +26,7 @@ public static class JiraAdminEndpoints
     public sealed record RecalculateInput(string? Reason);
     public sealed record StatusMappingInput(string? TargetStatus);
     public sealed record ResolveInput(string? Action, long? CaseId, string? Note);
-    public sealed record ReassignInput(long? ToClientId, string? Reason);
+    public sealed record ReassignInput(long? ToClientId, string? Reason, long? ContractId = null);
     public sealed record TestStep(string Name, bool Passed, string Detail);
 
     public static string Health(bool enabled, bool? lastTestOk, IEnumerable<JiraSyncStatus?> lastStatuses)
@@ -284,12 +284,14 @@ public static class JiraAdminEndpoints
             if (target == current.ClientId) throw new ValidationException("toClientId", "The space already belongs to this client.");
             access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(current.ClientId, null));
             access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(target, null));
+            // A84: the earlier client's contract never follows the space.
+            await JiraClientEndpoints.CheckSpaceContractAsync(db, target, i.ContractId, ct);
             var now = clock.GetUtcNow();
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             current.ReleasedAt = now; current.ReleaseReason = reason; current.IsEnabled = false;
             db.AuditReason = reason;
             await db.SaveChangesAsync(ct);
-            db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = target, JiraConnectionId = id, JiraProjectId = projectId, ProjectKey = current.ProjectKey, ProjectName = current.ProjectName });
+            db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = target, JiraConnectionId = id, JiraProjectId = projectId, ProjectKey = current.ProjectKey, ProjectName = current.ProjectName, ContractId = i.ContractId });
             db.JiraIntegrationIssues.Add(new JiraIntegrationIssue { Type = JiraIssueType.SpaceReassignment, Status = JiraIssueStatus.Resolved, Fingerprint = $"reassign:{id}:{projectId}:{now.ToUnixTimeSeconds()}", JiraConnectionId = id, ClientId = target, ProjectKey = current.ProjectKey, JiraProjectId = projectId,
                 Description = $"Space {current.ProjectKey} moved from client {current.ClientId} to client {target}. Existing cases stayed with the earlier client.", SuggestedAction = "Issues of existing cases appear here if they change again.", LastSeenAt = now, Resolution = "Reassigned", ResolutionNote = reason, ResolvedById = access.Me.UserId, ResolvedAt = now });
             db.AuditReason = reason;

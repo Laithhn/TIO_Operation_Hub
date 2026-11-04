@@ -15,9 +15,11 @@ No API returns a token. Responses carry only whether one exists, the provider, t
 
 `OPERATIONS.md` used to say losing these keys only signs users out. With the encrypted provider, losing them also makes stored Jira tokens unreadable. Recovery is to enter the token again with **Rotate credentials**; no other data is affected.
 
-By default the keys are under the app-pool profile on one server and tied to the application's path. A token saved from another instance, a database restored from another server, a moved site or a changed identity then gives "cannot be decrypted".
+A deployed application keeps its keys in `%ProgramData%\TioHub\DataProtection-Keys`, with no setting (A85). The folder is outside every application folder and only the app-pool identity, SYSTEM and administrators can use it, so a new package folder, an upgrade or a restart keeps tokens readable. If the app-pool identity changes, grant the new one Modify on that folder; the application refuses to start with a clear message until then. Back up the folder, and keep it apart from the database backups if you can.
 
-**To keep tokens readable across these changes,** set `DataProtection__KeysFolder` (or `DataProtection:KeysFolder` in `appsettings.Production.json`) to a full path outside the application folder, the same one on every server and instance using this database:
+Several servers using one database, or a move to a new server, still need the same keys. Copy the folder to the new server, or use the setting below.
+
+**For several servers,** set `DataProtection__KeysFolder` (or `DataProtection:KeysFolder` in `appsettings.Production.json`) to a full path outside the application folder, the same one on every server and instance using this database:
 
 1. Create the folder and give only the app-pool identity and administrators access. **The keys in it are not encrypted at rest,** so that a copy works on another server; these permissions are their protection.
 2. Set the value and restart. The application refuses to start if the path is relative or it cannot write there.

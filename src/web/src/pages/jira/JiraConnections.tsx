@@ -163,10 +163,41 @@ export function JiraConnections() {
       {dialog === 'status' && c && <ActionDialog title={`${c.isEnabled ? 'Disable' : 'Enable'} ${c.name}`} path={`/admin/jira-connections/${c.id}/enabled`} submitLabel={c.isEnabled ? 'Disable' : 'Enable'} danger={c.isEnabled} onClose={() => setDialog(null)}
         intro={c.isEnabled ? 'Synchronization stops for every space of this connection. Cases and their imported history stay.' : 'Enabled spaces of this connection synchronize again.'}
         fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} transform={v => ({ enabled: !c.isEnabled, reason: v.reason })} />}
-      {reassign && c && <ActionDialog title={`Reassign space ${reassign.projectKey}`} path={`/admin/jira-connections/${c.id}/spaces/${reassign.jiraProjectId}/reassign`} submitLabel="Reassign" danger onClose={() => setReassign(null)}
-        intro="Future issues of this space go to the new client. Existing cases stay with their client and are never moved; a changed issue of an existing case appears for review."
-        fields={[{ name: 'toClientId', label: 'New client', kind: 'select', required: true, options: clients }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} transform={v => ({ toClientId: Number(v.toClientId), reason: v.reason })} />}
+      {reassign && c && <ReassignDialog connectionId={c.id} space={reassign} clients={clients} onClose={() => setReassign(null)} />}
     </>}</QueryState>
+  );
+}
+
+/** The contract list follows the chosen client: the earlier client's contract never moves with the space (A84). */
+function ReassignDialog({ connectionId, space, clients, onClose }: { connectionId: number; space: SpaceRow; clients: { value: string; label: string }[]; onClose: () => void }) {
+  const f = useForm({ toClientId: '', contractId: '', reason: '' });
+  const [confirmed, setConfirmed] = useState(false);
+  const refresh = useRefresh();
+  const toast = useToast();
+  const contracts = useQuery({ queryKey: ['client-jira', f.values.toClientId, 'contracts'], queryFn: () => get<{ contracts?: { id: number; ref: string; title: string }[] }>(`/clients/${f.values.toClientId}/jira`), enabled: !!f.values.toClientId, retry: false });
+  const chooseClient = (v: string) => { f.set('toClientId', v); f.set('contractId', ''); };
+  const run = async () => {
+    const v = f.values;
+    const ok = await f.submit(async () => { await post(`/admin/jira-connections/${connectionId}/spaces/${space.jiraProjectId}/reassign`, { toClientId: v.toClientId ? Number(v.toClientId) : null, contractId: v.contractId ? Number(v.contractId) : null, reason: v.reason }); return true; });
+    if (ok) { toast(`Space ${space.projectKey} reassigned.`); await refresh(); onClose(); }
+  };
+  return (
+    <Dialog title={`Reassign space ${space.projectKey}`} onClose={onClose}>
+      <div className="notice">Future issues of this space go to the new client. Existing cases stay with their client and are never moved; a changed issue of an existing case appears for review.</div>
+      <FormError error={f.error} fields={['toClientId', 'contractId', 'reason']} />
+      <div className="form-grid">
+        <SelectInput label="New client" required wide value={f.values.toClientId} onChange={chooseClient} options={clients} error={f.fieldError('toClientId')} />
+        <SelectInput label="Contract for new cases" empty="No contract" wide value={f.values.contractId} onChange={v => f.set('contractId', v)} error={f.fieldError('contractId')}
+          options={(contracts.data?.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` }))}
+          hint={contracts.isError ? 'The contracts of this client could not be read. You can link one later on its Jira tab.' : "Only the new client's active contracts. New cases follow its SLA, pause and penalty rules."} />
+        <TextInput label="Reason" required wide multiline value={f.values.reason} onChange={v => f.set('reason', v)} error={f.fieldError('reason')} />
+      </div>
+      <label className="check" style={{ marginTop: 12 }}><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> I confirm this action.</label>
+      <div className="form-actions">
+        <button className="btn" onClick={onClose}>Cancel</button>
+        <button className="btn btn-danger" disabled={!confirmed || f.busy} onClick={run}>{f.busy ? 'Saving…' : 'Reassign'}</button>
+      </div>
+    </Dialog>
   );
 }
 

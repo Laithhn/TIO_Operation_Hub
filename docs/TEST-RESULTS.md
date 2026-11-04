@@ -410,7 +410,7 @@ Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner
 |---|---|
 | Backend, first full run (real SQL Server) | 662 of 664 passed. One real defect and one out-of-date migration list, both fixed |
 | Backend, Jira and schema tests after the fixes | 62 passed |
-| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Backend, full run inside the package build | **664 passed, 0 failed** |
 | Playwright, main config (real API, Microsoft Edge) | 156 of 158 passed. One selector in an updated test; one browser closed mid-test |
 | Playwright, those two spec files after the fixes | `stage3-reporting` passed; all 9 of `jira-integration` passed |
 | Playwright, new contract test | 1 passed |
@@ -428,3 +428,18 @@ The Jira tests use a **fake Jira**, and browser checks of the Jira users and spa
 The conversion of existing Vitronic team members in `JiraUserClassification` found no such rows in these runs, so it has not been exercised with data.
 
 Not run: a real Jira site; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS; Jira Service Management internal notes on a real site.
+
+## Release 2.49.1: data-protection keys and reassigning a space (A84, A85), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval.
+
+| Suite | Result |
+|---|---|
+| Playwright, main config (real API, Microsoft Edge) | **160 passed, 0 failed** |
+| Backend, full run inside the package build | See `BUILD-INFO.txt` and the release report |
+| Frontend, `vitest` | 81 passed |
+| `tsc -b --noEmit` | Clean |
+
+The browser check of the Reassign dialog uses intercepted, fictional data.
+
+Not run: the key folder and the changed `Install-TioHub.ps1` and `Upgrade-TioHub.ps1` on IIS; a real Jira site; the upgrade on a restored UAT backup.

@@ -1,4 +1,6 @@
+using System.Security.AccessControl;
 using System.Security.Cryptography;
+using System.Security.Principal;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -72,13 +74,60 @@ public sealed class HubDataProtectionTests : IDisposable
         Assert.Contains("cannot be written", e.Message);
     }
 
+    private ServiceProvider DeployedHost(string defaultFolder, string contentRoot, string? keysFolder = null)
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["DataProtection:KeysFolder"] = keysFolder }).Build();
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new HostingEnvironment { ContentRootPath = contentRoot, ApplicationName = "TioHub.Api" });
+        services.AddHubDataProtection(config, defaultFolder);
+        return services.BuildServiceProvider();
+    }
+
     [Theory]
     [InlineData(null)]
     [InlineData("")]
-    public void Without_a_folder_nothing_is_configured(string? folder)
+    public void A_deployed_application_needs_no_setting_to_keep_a_token_readable_in_a_new_package_folder(string? keysFolder)
     {
-        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?> { ["DataProtection:KeysFolder"] = folder }).Build();
-        Assert.Empty(new ServiceCollection().AddHubDataProtection(config));
+        var keys = Path.Combine(root, "default", "keys");
+        string cipher;
+        using (var before = DeployedHost(keys, @"C:\release\TioHub-2.48.0\app", keysFolder)) cipher = Protector(before).Protect("token");
+        using var after = DeployedHost(keys, @"C:\release\TioHub-2.49.0\app", keysFolder);
+        Assert.Equal("token", Protector(after).Unprotect(cipher));
+        Assert.Single(Directory.GetFiles(keys, "key-*.xml"));
+    }
+
+    [Fact]
+    public void The_setting_wins_over_the_default_folder()
+    {
+        var chosen = Path.Combine(root, "chosen");
+        var unused = Path.Combine(root, "unused");
+        using var host = DeployedHost(unused, @"C:\sites\app", chosen);
+        Protector(host).Protect("token");
+        Assert.Single(Directory.GetFiles(chosen, "key-*.xml"));
+        Assert.False(Directory.Exists(unused));
+    }
+
+    [Fact]
+    public void The_default_folder_is_only_for_this_identity_system_and_administrators()
+    {
+        if (!OperatingSystem.IsWindows()) return;
+        var keys = Path.Combine(root, "restricted", "keys");
+        using var host = DeployedHost(keys, @"C:\sites\app");
+        var security = new DirectoryInfo(keys).GetAccessControl();
+        Assert.True(security.AreAccessRulesProtected);
+        var allowed = security.GetAccessRules(true, true, typeof(SecurityIdentifier)).Cast<FileSystemAccessRule>().Select(r => r.IdentityReference).ToHashSet();
+        Assert.Equal(new HashSet<IdentityReference> { new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null), new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null), WindowsIdentity.GetCurrent().User! }, allowed);
+    }
+
+    [Fact]
+    public void Without_a_folder_the_framework_keeps_the_location_but_not_the_path_as_the_name()
+    {
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>()).Build();
+        var services = new ServiceCollection();
+        services.AddSingleton<IHostEnvironment>(new HostingEnvironment { ContentRootPath = @"C:\sites\app", ApplicationName = "TioHub.Api" });
+        services.AddHubDataProtection(config);
+        using var host = services.BuildServiceProvider();
+        Assert.Equal(HubDataProtection.ApplicationName, host.GetRequiredService<Microsoft.Extensions.Options.IOptions<DataProtectionOptions>>().Value.ApplicationDiscriminator);
     }
 
     public void Dispose()

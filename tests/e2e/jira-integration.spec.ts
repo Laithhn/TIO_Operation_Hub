@@ -190,6 +190,26 @@ test('a Jira space is linked to a contract when assigned and later', async ({ pa
   await expect.poll(() => assigned).toEqual({ jiraConnectionId: 1, jiraProjectIds: ['600'], contractId: 7 });
 });
 
+test('a reassigned Jira space offers only the contracts of the new client', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 1100 });
+  await page.goto('/');
+  const id = await clientId(page);
+  await page.route(`**/api/v1/admin/jira-connections`, r => r.fulfill({ json: { summary: { total: 1, active: 1, spacesDiscovered: 1 }, syncEnabled: true, instances: [], connections: [{ id: 1, name: 'Demo Jira Cloud', siteUrl: 'https://demo-site.atlassian.net', type: 'JiraCloud', authMode: 'ApiToken', isEnabled: true, status: 'Active', health: 'Healthy', spaces: 1, assignedSpaces: 1, connectedClients: 1, credential: {} }] } }));
+  await page.route(`**/api/v1/admin/jira-connections/1/spaces`, r => r.fulfill({ json: [{ id: 1, jiraProjectId: '100', projectKey: 'TAH', projectName: 'Demo Transit', missing: false, assignedClientId: 99, assignedClient: 'Earlier client', cases: 0, health: 'NotRun', state: 'Assigned' }] }));
+  await page.route(`**/api/v1/clients/${id}/jira`, r => r.fulfill({ json: { contracts: [{ id: 7, ref: 'CT-1007', title: 'Fictional support agreement' }] } }));
+  let sent: unknown;
+  await page.route(`**/api/v1/admin/jira-connections/1/spaces/100/reassign`, r => { sent = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
+  await page.goto('/admin/integrations/jira');
+  await page.getByRole('button', { name: 'Reassign' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByLabel('New client').selectOption(String(id));
+  await dialog.getByLabel('Contract for new cases').selectOption('7');
+  await dialog.getByLabel('Reason').fill('Contract moved');
+  await dialog.getByLabel('I confirm this action.').check();
+  await dialog.getByRole('button', { name: 'Reassign' }).click();
+  await expect.poll(() => sent).toEqual({ toClientId: id, contractId: 7, reason: 'Contract moved' });
+});
+
 test('a Jira-synced case shows its status read-only and only actions that do not change it', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/cases');

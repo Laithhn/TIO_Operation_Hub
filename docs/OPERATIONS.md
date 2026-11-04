@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Data-protection keys (2.49.1)
+
+Once after installing, enter each Jira token again and expect everyone to be signed out. See `RELEASE-NOTES-2.49.1.md`.
+
 ### Jira users and space contracts (2.49.0)
 
 `database/01-schema.sql` changes existing data in this release, and going back needs the database backup. Read `RELEASE-NOTES-2.49.0.md` before upgrading, try it on a restored UAT backup first, and run **Recalculate first responses** once afterwards.
@@ -154,7 +158,7 @@ The owners still have to decide RPO, RTO, retention and hosting (BRD Section 9).
 | Database (business records **and** audit) | SQL Server full backup + transaction-log backups (FULL recovery) | Full daily, log every 15 min |
 | Attached files (`Attachments__Path`) | File-system backup of the folder, taken together with the database backup so files and their records match (a file whose record is gone is harmless; a record whose file is missing shows "file missing" on download) | Daily, with the database |
 | Application configuration | Copy of `appsettings.Production.json` / app-pool variables (no secrets) | On every change |
-| ASP.NET Core data-protection keys | Stored under the app-pool profile by default; back up `%LOCALAPPDATA%\ASP.NET\DataProtection-Keys` of the identity, or set `DataProtection__KeysFolder` and back up that folder (see `JIRA_SECURITY_AND_DEPLOYMENT.md`). Losing them signs users out of the antiforgery cookie and makes Jira API tokens stored with the encrypted provider unreadable (enter them again under Rotate credentials); no business data is encrypted with them. | Weekly |
+| ASP.NET Core data-protection keys | Stored in `%ProgramData%\TioHub\DataProtection-Keys` by default; back up that folder, or set `DataProtection__KeysFolder` and back up that folder (see `JIRA_SECURITY_AND_DEPLOYMENT.md`). Losing them signs users out of the antiforgery cookie and makes Jira API tokens stored with the encrypted provider unreadable (enter them again under Rotate credentials); no business data is encrypted with them. | Weekly |
 | Release packages | Keep the last three `release\*.zip` with their SHA-256 | Per release |
 
 ## 6. Restore and the restore drill

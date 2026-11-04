@@ -199,6 +199,10 @@ if ($PSCmdlet.ShouldProcess($InstallRoot, "grant $poolIdentity read on the appli
   }
   # App_Data holds the one-time setup code: only the pool identity, SYSTEM and administrators.
   & icacls (Join-Path $appDir 'App_Data') /inheritance:r /grant "$($poolIdentity):(OI)(CI)M" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /Q | Out-Null
+  # A85: the keys that protect stored Jira tokens and sign-in sessions stay outside the application folder.
+  $keysFolder = Join-Path $env:ProgramData 'TioHub\DataProtection-Keys'
+  New-Item -ItemType Directory -Force $keysFolder | Out-Null
+  & icacls $keysFolder /inheritance:r /grant "$(poolIdentity):(OI)(CI)M" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /Q | Out-Null
   Ok 'Permissions set'
 }
 

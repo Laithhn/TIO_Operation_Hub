@@ -27,7 +27,7 @@ public static class JiraClientEndpoints
     }
 
     /// <summary>A84: a space's cases can only follow an active contract of the client that owns the space.</summary>
-    private static async Task CheckSpaceContractAsync(HubDbContext db, long clientId, long? contractId, CancellationToken ct)
+    internal static async Task CheckSpaceContractAsync(HubDbContext db, long clientId, long? contractId, CancellationToken ct)
     {
         if (contractId is { } id && !await db.Contracts.AnyAsync(k => k.Id == id && k.ClientId == clientId && k.Status == ContractStatus.Active, ct))
             throw new ValidationException("contractId", "Select an active contract of this client.");
