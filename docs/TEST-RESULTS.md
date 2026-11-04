@@ -527,7 +527,7 @@ Resolution SLA of the 302 contract-linked cases on the restored copy, after `Jir
 | Suite | Result |
 |---|---|
 | Playwright, main config (real API, Microsoft Edge) | **165 passed, 0 failed** |
-| Backend, full run inside the package build | See the release report |
+| Backend, full run inside the package build | **683 passed, 0 failed** |
 
 The earlier unstable PDF download check in `reporting-builder.spec.ts` read the previous export row before the new one appeared; it now waits for the new row.
 
