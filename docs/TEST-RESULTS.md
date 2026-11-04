@@ -552,3 +552,35 @@ Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance with the owner'
 The whole main Playwright config was not run again after that test update; the application code did not change in between, except the SLA sweep, which the backend run covers. The outline bell icon came last: `notifications-redesign` passed with its final size and `usability-corrections` and `frame-smoke` with the icon before its size change; `tsc` and `vitest` were not run again after the size change.
 
 Not run: the deployed site or its data, so CS-1016 itself was not rechecked; a restored copy with 2.51.2; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.
+
+## Release 2.51.3: commitments recorded after the fact (A91), 4 November 2026
+
+Actual runs with the owner's standing approval, on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data on `NB01994\MSSQLSERVER22`. Package built from a clean worktree of commit `800838b`.
+
+| Suite | Result |
+|---|---|
+| Backend, full run inside the package build | **707 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge), final code | **174 passed, 0 failed** |
+| Frontend, `tsc` and `vitest` | No type errors; 85 passed |
+| `01-schema.sql` on the restored copy | No errors |
+| Package on the restored copy, Production mode, Jira off, about 7 minutes | Ready; home page answers; no errors in the log; backfill processed 280 cases, 0 failed |
+
+Restored copy `TioHub_UAT_From2510_A91`, from `TioHub_before_2.51.0_20261104-1730.bak`, 295 cases, all from Jira. It is left in place.
+
+| Figure | Before | After |
+|---|---|---|
+| Open cases, dashboard status | New 34 (31 New, 3 Waiting for customer in the report builder) | New 31, Waiting for customer 3, the same in every view |
+| Open-case age, average and oldest, days | 0 and 0 by hub creation | 97 and 296 by opening |
+| Cases opened in November | 295 by hub creation | 2 by opening; the rest in January to October |
+| Cases closed in November | 228 | 1; the rest in the months Jira closed them |
+| Cases closed before their hub creation | 0 | 228, which would have given negative ages on the hub basis |
+| Resolution SLA of the 262 contract-linked cases | Breached 262 (2 still counted pending) | Met 37, breached 225 (2 pending among them) |
+| Overdue open cases | 50 | 50 |
+| Unmeasured cases holding a due date | 0 | 0, so clearing old due dates was not exercised on this data |
+
+The resolution change comes from A90, not A91. CS-1016 opened on 18 January 2026 under CT-1001, which started on 15 October 2025. It is measured, and its January deadlines and breaches are correct.
+
+No contract-linked case has a first response, so all 262 show response breached. The 4 hub-user mappings were made after the comments were imported, and under A83 that needs an administrator's recalculation. On this data it would give 52 cases a first response: 7 met and 45 still breached. The other 210 have no reply from a mapped person; 30 unmapped authors wrote 2,030 of the 2,117 comments.
+
+Not run: signing in and using the screens on the restored copy, because that needs real credentials; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site; the deployed site.
+
