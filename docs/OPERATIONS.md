@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Long Jira text (2.50.2)
+
+Apply the regenerated `database/01-schema.sql`, which widens seven Jira columns and changes no data. Issues that failed on long text retry at the next synchronization. See `RELEASE-NOTES-2.50.2.md`.
+
 ### Notification scan (2.50.1)
 
 No database change compared with 2.50.0. Notifications held back by a long commitment description appear at the first scan after installing. See `RELEASE-NOTES-2.50.1.md`.

@@ -656,6 +656,22 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Long_jira_text_imports_in_full()
+    {
+        var f = await SetUpAsync();
+        var description = string.Concat(Enumerable.Repeat("Long description text. ", 3000));
+        var body = string.Concat(Enumerable.Repeat("Long comment text. ", 3000));
+        var at = DateTimeOffset.UtcNow.AddHours(-1);
+        _jira.Add("193", "TAH-193");
+        _jira.Change("193", i => i with { DescriptionText = description });
+        _jira.Comments["193"] = [new("c193", "acc", "Sam", body, at, at, null, null)];
+        var run = await RunAsync(f.SpaceId);
+        Assert.Equal(0, run.FailedRecords);
+        Assert.Equal(description, await Db(db => db.JiraCaseMappings.IgnoreQueryFilters().Where(m => m.JiraIssueId == "193").Select(m => m.DescriptionText).FirstAsync()));
+        Assert.Equal(body, await Db(db => db.JiraComments.Where(k => k.JiraCommentId == "c193").Select(k => k.BodyText).FirstAsync()));
+    }
+
+    [Fact]
     public async Task A_failed_import_says_why()
     {
         Assert.Equal("Select an active team.", JiraSyncService.FailureReason(new ValidationException("team", "Select an active team.")));

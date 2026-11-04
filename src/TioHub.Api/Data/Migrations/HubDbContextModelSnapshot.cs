@@ -3990,7 +3990,7 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<string>("FromValue")
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("ImportedAt")
                         .HasColumnType("datetimeoffset");
@@ -4005,7 +4005,7 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<string>("ToValue")
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -4061,16 +4061,16 @@ namespace TioHub.Api.Data.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Components")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DescriptionText")
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DetailsJson")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("IssueKey")
                         .IsRequired()
@@ -4104,8 +4104,8 @@ namespace TioHub.Api.Data.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<string>("Labels")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset>("LastSyncedAt")
                         .HasColumnType("datetimeoffset");
@@ -4189,7 +4189,7 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<string>("BodyText")
                         .IsRequired()
                         .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<long>("CaseId")
                         .HasColumnType("bigint");

@@ -1339,9 +1339,10 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.AssigneeName).HasMaxLength(255);
             e.Property(x => x.ReporterName).HasMaxLength(255);
             e.Property(x => x.Resolution).HasMaxLength(120);
-            e.Property(x => x.Labels).HasMaxLength(1000);
-            e.Property(x => x.Components).HasMaxLength(1000);
-            e.Property(x => x.DetailsJson).HasMaxLength(4000);
+            e.Property(x => x.Labels).HasColumnType("nvarchar(max)");
+            e.Property(x => x.Components).HasColumnType("nvarchar(max)");
+            e.Property(x => x.DetailsJson).HasColumnType("nvarchar(max)");
+            e.Property(x => x.DescriptionText).HasColumnType("nvarchar(max)"); // A87: Jira sets the length of what it stores, so these have no limit here
             e.Property(x => x.AppliedAssigneeAccountId).HasMaxLength(128);
             e.Property(x => x.AppliedStatusId).HasMaxLength(40);
             e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId }).IsUnique();
@@ -1382,6 +1383,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<Modules.Jira.JiraComment>(e =>
         {
             e.ToTable("JiraComment", S);
+            e.Property(x => x.BodyText).HasColumnType("nvarchar(max)");
             e.Property(x => x.JiraCommentId).HasMaxLength(40);
             e.Property(x => x.JiraIssueId).HasMaxLength(40);
             e.Property(x => x.AuthorAccountId).HasMaxLength(128);
@@ -1401,8 +1403,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.JiraIssueId).HasMaxLength(40);
             e.Property(x => x.Field).HasMaxLength(120);
             e.Property(x => x.ActorName).HasMaxLength(255);
-            e.Property(x => x.FromValue).HasMaxLength(400);
-            e.Property(x => x.ToValue).HasMaxLength(400);
+            e.Property(x => x.FromValue).HasColumnType("nvarchar(max)");
+            e.Property(x => x.ToValue).HasColumnType("nvarchar(max)");
             e.HasIndex(x => new { x.JiraConnectionId, x.ExternalEventId }).IsUnique();
             e.HasIndex(x => new { x.CaseId, x.At });
             e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId });

@@ -349,7 +349,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         m.ClientJiraSpaceId = x.Space.Id;
         m.Url = IssueUrl(x.Connection, i.Key);
         m.Summary = Safe(i.Summary, 400);
-        m.DescriptionText = CredentialGuard.LooksLikeSecret(i.DescriptionText) ? "[Withheld: the description looks like it contains a credential. Read it in Jira.]" : i.DescriptionText is { Length: > 8000 } d ? d[..8000] : i.DescriptionText;
+        m.DescriptionText = CredentialGuard.LooksLikeSecret(i.DescriptionText) ? "[Withheld: the description looks like it contains a credential. Read it in Jira.]" : i.DescriptionText;
         m.StatusId = i.StatusId;
         m.StatusName = i.StatusName;
         m.StatusCategory = i.StatusCategory;
@@ -362,10 +362,10 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         m.JiraUpdatedAt = i.UpdatedAt;
         m.JiraDueDate = i.DueDate;
         m.Resolution = i.Resolution;
-        m.Labels = Safe(string.Join(", ", i.Labels), 1000);
-        m.Components = Safe(string.Join(", ", i.Components), 1000);
+        m.Labels = Safe(string.Join(", ", i.Labels), int.MaxValue);
+        m.Components = Safe(string.Join(", ", i.Components), int.MaxValue);
         var details = i.Details.Where(d => x.DetailFields.ContainsKey(d.Key) && !CredentialGuard.LooksLikeSecret(d.Value))
-            .Select(d => new { name = x.DetailFields[d.Key], value = d.Value.Length > 500 ? d.Value[..500] : d.Value }).ToList();
+            .Select(d => new { name = x.DetailFields[d.Key], value = d.Value }).ToList();
         m.DetailsJson = details.Count == 0 ? null : JsonSerializer.Serialize(details);
         m.LastSyncedAt = now;
         m.MissingInJiraAt = null;
@@ -565,7 +565,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         foreach (var c in comments)
         {
             var withheld = CredentialGuard.LooksLikeSecret(c.BodyText);
-            var body = withheld ? "" : c.BodyText.Length > 32000 ? c.BodyText[..32000] : c.BodyText;
+            var body = withheld ? "" : c.BodyText;
             if (existing.TryGetValue(c.Id, out var row))
             {
                 if (row.JiraUpdatedAt != c.Updated || row.DeletedInJiraAt is not null || row.VisibilityValue != c.VisibilityValue)
@@ -587,7 +587,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
     {
         var relevant = changes.Where(c => RelevantChangelogFields.Contains(c.Field)).ToList();
         var existing = (await db.JiraActivities.AsNoTracking().Where(x => x.JiraConnectionId == conn.Id && x.JiraIssueId == issueId).Select(x => x.ExternalEventId).ToListAsync(ct)).ToHashSet();
-        static string? Safe(string? s) => s is null || CredentialGuard.LooksLikeSecret(s) ? null : s.Length > 400 ? s[..400] : s;
+        static string? Safe(string? s) => s is null || CredentialGuard.LooksLikeSecret(s) ? null : s;
         var imported = 0;
         foreach (var c in relevant.Where(c => !existing.Contains(c.EventId)))
         {

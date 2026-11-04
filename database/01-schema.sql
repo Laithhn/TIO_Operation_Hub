@@ -10099,3 +10099,114 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var24 nvarchar(max);
+    SELECT @var24 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraComment]') AND [c].[name] = N'BodyText');
+    IF @var24 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraComment] DROP CONSTRAINT ' + @var24 + ';');
+    ALTER TABLE [jira].[JiraComment] ALTER COLUMN [BodyText] nvarchar(max) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var25 nvarchar(max);
+    SELECT @var25 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraCaseMapping]') AND [c].[name] = N'Labels');
+    IF @var25 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraCaseMapping] DROP CONSTRAINT ' + @var25 + ';');
+    ALTER TABLE [jira].[JiraCaseMapping] ALTER COLUMN [Labels] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var26 nvarchar(max);
+    SELECT @var26 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraCaseMapping]') AND [c].[name] = N'DetailsJson');
+    IF @var26 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraCaseMapping] DROP CONSTRAINT ' + @var26 + ';');
+    ALTER TABLE [jira].[JiraCaseMapping] ALTER COLUMN [DetailsJson] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var27 nvarchar(max);
+    SELECT @var27 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraCaseMapping]') AND [c].[name] = N'DescriptionText');
+    IF @var27 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraCaseMapping] DROP CONSTRAINT ' + @var27 + ';');
+    ALTER TABLE [jira].[JiraCaseMapping] ALTER COLUMN [DescriptionText] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var28 nvarchar(max);
+    SELECT @var28 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraCaseMapping]') AND [c].[name] = N'Components');
+    IF @var28 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraCaseMapping] DROP CONSTRAINT ' + @var28 + ';');
+    ALTER TABLE [jira].[JiraCaseMapping] ALTER COLUMN [Components] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var29 nvarchar(max);
+    SELECT @var29 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraActivity]') AND [c].[name] = N'ToValue');
+    IF @var29 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraActivity] DROP CONSTRAINT ' + @var29 + ';');
+    ALTER TABLE [jira].[JiraActivity] ALTER COLUMN [ToValue] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    DECLARE @var30 nvarchar(max);
+    SELECT @var30 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[JiraActivity]') AND [c].[name] = N'FromValue');
+    IF @var30 IS NOT NULL EXEC(N'ALTER TABLE [jira].[JiraActivity] DROP CONSTRAINT ' + @var30 + ';');
+    ALTER TABLE [jira].[JiraActivity] ALTER COLUMN [FromValue] nvarchar(max) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261104095746_JiraLongText'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261104095746_JiraLongText', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
