@@ -1275,6 +1275,8 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         _jira.Add("130", "TAH-130", assigneeId: "acc-none", assigneeName: "Nobody Mapped");
         _jira.Add("131", "TAH-131", assigneeId: "acc-client", assigneeName: "Fictional Rep 130");
         _jira.Add("132", "TAH-132", assigneeId: "acc-staff", assigneeName: "Fictional Staff");
+        await RunAsync(f.SpaceId);
+        // Closed before its assignee is mapped: a closed ticket takes no new owner.
         await MapStatusAsync(f.ConnectionId, "9", "Closed");
         _jira.Change("132", i => i with { StatusId = "9", StatusName = "Done", StatusCategory = "done" });
         await RunAsync(f.SpaceId);

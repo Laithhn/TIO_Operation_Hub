@@ -616,3 +616,20 @@ Actual runs from a copy of the working tree on the isolated `(localdb)\TioHubQAL
 
 Not run: the full backend and main Playwright suites, since only these screens changed, and no 2.53.1 package has been built. Checked by eye on one screenshot of a new user, with the fictional data.
 
+## Release 2.54.0, 5 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+| Suite | Result |
+|---|---|
+| Backend, full run inside the package build | See `BUILD-INFO.txt` of the package and the release report |
+| Playwright, main config (real API, Microsoft Edge) | **185 passed, 0 failed** |
+| Playwright, access-control isolated config | **13 passed, 0 failed** |
+| Frontend, `tsc` and `vitest` | No type errors; 93 passed |
+
+The application on restored copy `TioHub_UAT_A93_11051209`, Production mode with Jira off: 26 tickets took the priority already read from Jira, leaving every ticket's priority matching Jira (2 Critical, 21 High, 269 Normal, 3 Low), with no errors in the log. Resolution SLA of the 262 contract-linked tickets changed from 224 breached, 37 met and 1 pending to 224 breached, 37 met and 1 pending, because no ticket crossed its deadline at its new target. Overdue open tickets stayed at 51.
+
+The rename in 2.53.0 changed the value that switches on the list of related records when deleting a ticket. An audit of every change in that commit found no other code value affected; a browser test now covers it.
+
+Not run: the screens on a restored copy with real sign-in; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.
+
