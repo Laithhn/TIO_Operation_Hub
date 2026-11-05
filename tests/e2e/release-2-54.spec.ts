@@ -136,7 +136,7 @@ test('engineers start on My dashboard and managers on the overview, and both can
 
   // A101: the page has its own right, which an administrator can see.
   await page.goto('/admin/rights');
-  await expect(page.getByRole('main').getByText('My dashboard', { exact: true }).first()).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Feature' }).getByRole('option', { name: 'My dashboard', exact: true })).toHaveCount(1);
 });
 
 test('the executive overview opens with At a glance, and a section can be folded', async ({ page }) => {

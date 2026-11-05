@@ -87,8 +87,24 @@ public sealed class RightsModelUpgradeTests
     private static async Task Upgrade(HubDbContext db)
     {
         await db.GetService<IMigrator>().MigrateAsync();
+        // A later release's grant, not part of this upgrade. My_dashboard_goes_to_every_role_holding_ticket_view tests it.
+        await db.Database.ExecuteSqlRawAsync("DELETE g FROM [iam].[RoleRight] g JOIN [iam].[AppRole] r ON r.Id = g.AppRoleId WHERE g.[RightKey] = N'MyDashboard:View' AND ISNULL(r.[Key], N'') <> N'Manager'");
         await RightsCatalog.SynchronizeAsync(db);
     }
+
+    [ApprovedOverrideSqlFact]
+    public Task My_dashboard_goes_to_every_role_holding_ticket_view() => WithDatabase(async db =>
+    {
+        await db.GetService<IMigrator>().MigrateAsync();
+        var complete = await RoleRights(db, "Complete");
+        Assert.Contains("Cases:View", complete);
+        Assert.Contains("MyDashboard:View", complete);
+        Assert.DoesNotContain("MyDashboard:View", await RoleRights(db, "Composed"));
+        Assert.Empty(await RoleRights(db, "Orphan"));
+        await RightsCatalog.SynchronizeAsync(db);
+        var row = await db.RightDefinitions.AsNoTracking().SingleAsync(r => r.Key == "MyDashboard:View");
+        Assert.Equal(("Dashboard", "MyDashboard", true), (row.Module, row.Feature, row.IsActive));
+    });
 
     [ApprovedOverrideSqlFact]
     public Task Role_grants_convert_by_the_documented_rules() => WithDatabase(async db =>
