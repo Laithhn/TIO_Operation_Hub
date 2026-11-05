@@ -799,3 +799,40 @@ table.grid th .grid-sort{white-space:nowrap}
 .rb-file{display:flex;align-items:center;gap:6px}
 .rb-file .input{flex:1}
 @media (max-width:600px){.rb-footer{position:static;justify-content:flex-start}.rb-footer-state{flex:1 1 100%}}
+
+/* User dialog and data scope: one record per line, with room to read and click. */
+.ud-heading{font-size:var(--fs-md);font-weight:700;margin:0 0 8px}
+.dialog .form-section{border-top:1px solid var(--line);margin-top:16px;padding-top:12px}
+.ud-group,.scope-editor{border:0;border-top:1px solid var(--line);margin:12px 0 0;padding:12px 0 0;min-width:0}
+.ud-group>legend,.scope-editor>legend{font-weight:700;font-size:var(--fs-md);color:var(--fg);padding:0 8px 0 0}
+.ud-roles{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:8px}
+.ud-role{display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);cursor:pointer}
+.ud-role:hover{background:var(--strip)}
+.ud-role.on{border-color:var(--navy);box-shadow:inset 3px 0 0 var(--navy)}
+.ud-role input{margin-top:3px;flex:none}
+.ud-role b{display:block;font-weight:600}
+.ud-role small{display:block;margin-top:2px}
+.ud-summary{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.ud-summary>div{flex:1 1 110px;padding:8px 10px;border:1px solid var(--line)}
+.ud-summary dt{font-size:var(--fs-xs);color:var(--muted)}
+.ud-summary dd{margin:2px 0 0;font-size:var(--fs-lg,16px);font-weight:700}
+.scope-all{display:flex;flex-wrap:wrap;gap:4px 24px;margin:8px 0}
+.scope-tabs{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--line-strong);margin:8px 0 10px}
+.scope-tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:7px 12px;font:inherit;color:var(--fg-2);cursor:pointer}
+.scope-tab:hover{background:var(--strip)}
+.scope-tab.on{border-bottom-color:var(--navy);color:var(--fg);font-weight:600}
+.scope-covered{margin:0}
+.scope-chips{list-style:none;display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;padding:0}
+.scope-chip{display:inline-flex;align-items:center;gap:2px;padding:1px 2px 1px 8px;background:var(--strip);border:1px solid var(--line-strong);font-size:var(--fs-sm)}
+.scope-chip button{background:none;border:0;cursor:pointer;font-size:15px;line-height:1;padding:2px 6px;color:var(--fg-2)}
+.scope-chip button:hover{color:var(--bad)}
+.scope-tools{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px 16px;margin-bottom:6px}
+.scope-search{flex:1 1 240px;margin:0}
+.scope-list{max-height:260px;overflow-y:auto;border:1px solid var(--line)}
+.scope-row{display:grid;grid-template-columns:auto minmax(90px,max-content) 0 minmax(0,1fr);align-items:center;column-gap:10px;padding:6px 10px;cursor:pointer;border-bottom:1px solid var(--line)}
+.scope-row:last-child{border-bottom:0}
+.scope-row:hover{background:var(--strip)}
+.scope-row:has(input:checked){background:#eef3fb}
+.scope-code{font-weight:600}
+.scope-sep{font-size:0;width:0;overflow:hidden}
+.scope-name{min-width:0;overflow-wrap:anywhere}

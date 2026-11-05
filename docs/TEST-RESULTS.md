@@ -604,3 +604,15 @@ Actual runs with the owner's standing approval, on the isolated `(localdb)\TioHu
 
 Not run: the whole main Playwright config again after the test updates, as only test text changed; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site; signing in on a restored copy.
 
+## Release 2.53.1: clearer user dialog, 5 November 2026
+
+Actual runs from a copy of the working tree on the isolated `(localdb)\TioHubQALocalDB` instance. Only the user dialog, the data scope list and their styles changed.
+
+| Suite | Result |
+|---|---|
+| Playwright, `usability-corrections` (with a new test of the dialog) and `access-control-real-api` | **14 passed, 0 failed** |
+| Playwright, access-control isolated config | **13 passed, 0 failed** |
+| Frontend, `tsc` and `vitest` | No type errors; 91 passed |
+
+Not run: the full backend and main Playwright suites, since only these screens changed, and no 2.53.1 package has been built. Checked by eye on one screenshot of a new user, with the fictional data.
+

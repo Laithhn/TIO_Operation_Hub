@@ -169,22 +169,23 @@ export function UserDialog({ user, targets, onClose, onCreated, initialName, cre
     }
   };
   return (
-    <Dialog title={user ? `User ${user.displayName}` : 'New user'} onClose={onClose}>
+    <Dialog title={user ? `User ${user.displayName}` : 'New user'} onClose={onClose} wide>
       {self && <div className="notice warn">You cannot change your own roles or data scope.</div>}
       <FormError error={f.error} />
+      <h3 className="ud-heading">Account</h3>
       <div className="form-grid">
-        <TextInput label={forms ? 'Account name (used to sign in)' : 'Organization account (DOMAIN\name)'} required value={f.values.accountName} onChange={v => f.set('accountName', v)} disabled={!!user} error={f.fieldError('accountName')} />
+        <TextInput label={forms ? 'Account name (used to sign in)' : 'Organization account (DOMAIN\\name)'} required value={f.values.accountName} onChange={v => f.set('accountName', v)} disabled={!!user} error={f.fieldError('accountName')} />
         <TextInput label="Display name" required value={f.values.displayName} onChange={v => f.set('displayName', v)} error={f.fieldError('displayName')} />
         <TextInput label="Email" value={f.values.email} onChange={v => f.set('email', v)} />
         <TimeZoneSelect label="Working time zone" required value={f.values.workingTimeZone} onChange={v => f.set('workingTimeZone', v)} error={f.fieldError('workingTimeZone')} />
-        <fieldset className="field wide" disabled={self}>
+        <fieldset className="field wide ud-group" disabled={self}>
           <legend>Roles</legend>
           <div className="hint">Rights from active roles combine. Data scope is set separately below and decides which records those rights reach.</div>
-          {(roles.data?.roles ?? []).map(r => <label key={r.id} className="check-row">
+          <div className="ud-roles">{(roles.data?.roles ?? []).map(r => <label key={r.id} className={`ud-role${f.values.roleIds.includes(String(r.id)) ? ' on' : ''}`}>
             <input type="checkbox" checked={f.values.roleIds.includes(String(r.id))}
               onChange={e => f.set('roleIds', e.target.checked ? [...f.values.roleIds, String(r.id)] : f.values.roleIds.filter(id => id !== String(r.id)))} />
-            <span>{r.name}{r.description ? <small className="hint"> — {r.description}</small> : null}</span>
-          </label>)}
+            <span><b>{r.name}</b>{r.description ? <small className="hint">{r.description}</small> : null}</span>
+          </label>)}</div>
           {f.fieldError('roleIds') && <div className="field-error">{f.fieldError('roleIds')}</div>}
           {(user?.directoryRoles.length ?? 0) > 0 && <div className="hint">From directory groups, not editable here: {user!.directoryRoles.map(r => `${r.name} (${r.group})`).join(', ')}.</div>}
         </fieldset>
@@ -195,8 +196,13 @@ export function UserDialog({ user, targets, onClose, onCreated, initialName, cre
         <h3>Effective access</h3>
         {access.isLoading ? <StateMessage kind="loading" /> : access.error ? <ErrorBox error={access.error} /> : <>
           <p className="hint">This shows saved access; unsaved role changes are not included. An operation can still depend on data scope, ownership and workflow. For more detail, see Access review.</p>
-          <p>{access.data?.effectiveRights.length ?? 0} effective rights from roles and individual exceptions.</p>
-          {access.data?.scopes && <p>Effective scope: {access.data.scopes.allClients ? 'all clients' : `${access.data.scopes.clientIds.length} clients and ${access.data.scopes.projectIds.length} projects`}; {access.data.scopes.allInternal ? 'all internal teams' : `${access.data.scopes.teamIds.length} internal teams`}.</p>}
+          <dl className="ud-summary">
+            <div><dt>Effective rights</dt><dd>{access.data?.effectiveRights.length ?? 0}</dd></div>
+            {access.data?.scopes && <><div><dt>Clients</dt><dd>{access.data.scopes.allClients ? 'All' : access.data.scopes.clientIds.length}</dd></div>
+              <div><dt>Projects</dt><dd>{access.data.scopes.allClients ? 'All' : access.data.scopes.projectIds.length}</dd></div>
+              <div><dt>Internal teams</dt><dd>{access.data.scopes.allInternal ? 'All' : access.data.scopes.teamIds.length}</dd></div></>}
+          </dl>
+          <p className="sr-only">{access.data?.effectiveRights.length ?? 0} effective rights from roles and individual exceptions.</p>
           <details><summary>Show effective rights</summary><ul>{access.data?.effectiveRights.map(p => <li key={p.key}>
             <strong>{p.label}</strong> <code>{p.key}</code> <span className="hint">from {p.sources.join(', ') || 'no active role source'}</span>
           </li>)}</ul></details>

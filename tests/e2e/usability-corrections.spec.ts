@@ -271,6 +271,53 @@ test('Renew contract opens a new contract with the details carried over, and sav
   expect(untouched).toMatchObject({ title, status: 'Active', endDate: '2025-12-31', payments: [{ status: 'Paid' }] });
 });
 
+test('the user dialog keeps data scope readable: one record per line, search, chips and quick selection', async ({ page }) => {
+  await page.goto('/admin/users');
+  await page.getByRole('button', { name: /New user/i }).click();
+  const dialog = page.getByRole('dialog', { name: 'New user' });
+  const scope = dialog.getByRole('group', { name: 'Direct data scope' });
+  await expect(scope.getByRole('button', { name: 'Clients (0 selected)' })).toHaveAttribute('aria-pressed', 'true');
+
+  // One record per line: each row starts below the one before.
+  const rows = scope.locator('.scope-row');
+  const total = await rows.count();
+  expect(total).toBeGreaterThan(1);
+  const [a, b] = [await rows.nth(0).boundingBox(), await rows.nth(1).boundingBox()];
+  expect(b!.y).toBeGreaterThanOrEqual(a!.y + a!.height - 1);
+  expect(a!.x).toBe(b!.x);
+
+  // Search narrows the list, and what is chosen stays in view and can be removed.
+  const code = (await rows.nth(0).locator('.scope-code').innerText()).trim();
+  await scope.getByLabel('Search scope targets').fill(code);
+  await expect(rows.first()).toContainText(code);
+  await rows.first().getByRole('checkbox').check();
+  await expect(scope.getByRole('button', { name: 'Clients (1 selected)' })).toBeVisible();
+  await scope.getByLabel('Search scope targets').fill('no such record anywhere');
+  await expect(scope.getByText('No matching targets.')).toBeVisible();
+  await expect(scope.getByRole('list', { name: 'Selected clients' }).getByText(code)).toBeVisible();
+  await scope.getByRole('button', { name: `Remove ${code}` }).click();
+  await expect(scope.getByRole('button', { name: 'Clients (0 selected)' })).toBeVisible();
+
+  // Select all shown, and clear; the other lists keep their own choice.
+  await scope.getByLabel('Search scope targets').fill('');
+  await scope.getByRole('button', { name: 'Select all shown' }).click();
+  await expect(scope.getByRole('button', { name: `Clients (${total} selected)` })).toBeVisible();
+  await scope.getByRole('button', { name: 'Clear shown' }).click();
+  await expect(scope.getByRole('button', { name: 'Clients (0 selected)' })).toBeVisible();
+  await scope.getByRole('button', { name: /^Internal teams/ }).click();
+  await expect(scope.locator('.scope-row').first()).toBeVisible();
+
+  // Ticking everything explains why the list is gone.
+  await scope.getByRole('button', { name: /^Clients/ }).click();
+  await scope.getByRole('checkbox', { name: 'All clients and projects' }).check();
+  await expect(scope.getByText('every record here is included')).toBeVisible();
+  await expect(scope.locator('.scope-row')).toHaveCount(0);
+
+  // Roles are one choice each, and Save stays reachable at the bottom.
+  await expect(dialog.getByRole('group', { name: 'Roles' }).getByRole('checkbox').first()).toBeVisible();
+  await expect(dialog.getByRole('button', { name: 'Save user' })).toBeVisible();
+});
+
 test('the notifications button shows the outline bell, with its unread count and name', async ({ page }) => {
   await openCases(page);
   const button = page.locator('.bell-btn');
