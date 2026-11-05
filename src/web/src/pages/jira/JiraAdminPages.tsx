@@ -115,6 +115,10 @@ export function JiraConflicts() {
 const classificationLabels: Record<string, string> = { TioUser: 'TIO user', VitronicTeamMember: 'Vitronic team member', ClientContact: 'Client contact' };
 
 type ResolveKind = 'user' | 'contact' | 'newContact' | 'teamMember' | 'newUser';
+type MappableUser = { id: number; name: string; teamMember: boolean; jiraAccounts: string[] };
+
+/** A92: says who is a team member and who already has a Jira account mapped, so that a second account goes to the right person on purpose. */
+const mappableLabel = (u: MappableUser) => `${u.name}${u.teamMember ? ' · Vitronic team member' : ''}${u.jiraAccounts.length ? ` · ${u.jiraAccounts.length} Jira account${u.jiraAccounts.length === 1 ? '' : 's'} already mapped` : ''}`;
 
 /** BR-01, BR-02: unmapped Jira users stay listed until an administrator resolves them. Mapping never grants sign-in. */
 function UserMappings({ connectionId }: { connectionId: number }) {
@@ -131,6 +135,7 @@ function UserMappings({ connectionId }: { connectionId: number }) {
   const [history, setHistory] = useState<UserRow | null>(null);
   const [recalculating, setRecalculating] = useState(false);
   const targets = useQuery({ queryKey: ['scope-targets'], queryFn: () => get<UserDialogTargets>('/admin/scope-targets'), enabled: resolving?.kind === 'newUser' });
+  const mappable = useQuery({ queryKey: ['jira-mappable-users', connectionId], queryFn: () => get<MappableUser[]>(`/admin/jira-connections/${connectionId}/mappable-users`), enabled: resolving?.kind === 'user' });
   const nameOf = (r: UserRow) => r.jiraDisplayName ?? r.jiraAccountId;
   const contactName = (id?: number) => contacts.data?.find(k => k.id === id)?.name;
   const clear = async (r: UserRow) => {
@@ -162,7 +167,7 @@ function UserMappings({ connectionId }: { connectionId: number }) {
       ]} />
     </Panel>
     <Panel title="Mapped Jira users" pad={false} actions={can && <button className="btn" onClick={() => setRecalculating(true)}>Recalculate first responses</button>}>
-      <p className="hint" style={{ margin: '8px 10px' }}>A public reply by a TIO user or Vitronic team member can be the first response; a client contact's cannot. A case assigned to a client contact waits on the customer, which pauses the SLA if the contract allows it, until Jira reassigns it. A changed mapping applies from now on: results already calculated change only when you recalculate.</p>
+      <p className="hint" style={{ margin: '8px 10px' }}>A public reply by a TIO user or Vitronic team member can be the first response; a client contact's cannot. A case assigned to a client contact waits on the customer, which pauses the SLA if the contract allows it, until Jira reassigns it. A changed mapping applies at once: the first responses of that person's comments, and the SLA results that follow from them, are recalculated. Recalculate first responses does the same for everyone.</p>
       <DataTable<UserRow> caption="Mapped Jira users" rows={mapped} loading={q.isLoading} error={q.error} rowKey={u => u.id} columns={[
         { key: 'n', header: 'Jira user', render: u => u.jiraDisplayName ?? <span className="muted">No name</span> }, { key: 'i', header: 'Account ID', render: u => <span className="mono">{u.jiraAccountId}</span> },
         { key: 'c', header: 'Classification', render: u => classificationLabels[u.classification] },
@@ -175,9 +180,9 @@ function UserMappings({ connectionId }: { connectionId: number }) {
         </span> }
       ]} />
     </Panel>
-    {r && resolving.kind === 'user' && <ActionDialog title={`Map ${nameOf(r)} to a TIO user`} method="PUT" path={`/admin/jira-user-mappings/${r.id}`} submitLabel="Map" onClose={() => setResolving(null)}
-      intro="The person keeps their classification, rights and sign-in." initial={r.matchingUsers.length === 1 ? { tioUserId: String(r.matchingUsers[0]) } : undefined}
-      fields={[{ name: 'tioUserId', label: 'TIO user', kind: 'user', required: true }]} transform={v => ({ tioUserId: Number(v.tioUserId), clientContactId: null })} />}
+    {r && resolving.kind === 'user' && mappable.data && <ActionDialog title={`Map ${nameOf(r)} to a TIO user`} method="PUT" path={`/admin/jira-user-mappings/${r.id}`} submitLabel="Map" onClose={() => setResolving(null)}
+      intro="The person keeps their classification, rights and sign-in. Someone with several Jira accounts can have each one mapped to them; check the name before mapping another. First responses from this account's comments are recalculated when you map it." initial={r.matchingUsers.length === 1 ? { tioUserId: String(r.matchingUsers[0]) } : undefined}
+      fields={[{ name: 'tioUserId', label: 'TIO user', kind: 'select', required: true, options: mappable.data.map(u => ({ value: String(u.id), label: mappableLabel(u) })) }]} transform={v => ({ tioUserId: Number(v.tioUserId), clientContactId: null })} />}
     {r && resolving.kind === 'contact' && <ActionDialog title={`Map ${nameOf(r)} to a client contact`} method="PUT" path={`/admin/jira-user-mappings/${r.id}`} submitLabel="Map" onClose={() => setResolving(null)}
       intro="Their comments do not count as a first response. No sign-in is granted." initial={r.matchingContacts.length === 1 ? { clientContactId: String(r.matchingContacts[0]) } : undefined}
       fields={[{ name: 'clientContactId', label: 'Client contact', kind: 'select', required: true, options: (contacts.data ?? []).map(k => ({ value: String(k.id), label: `${k.clientCode} · ${k.name}${k.role ? ` (${k.role})` : ''}` })) }]}

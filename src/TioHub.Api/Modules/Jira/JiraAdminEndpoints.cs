@@ -62,7 +62,11 @@ public static class JiraAdminEndpoints
             throw new ValidationException("displayName", "A client contact with this name or email already exists. Map the Jira user to that contact instead.");
     }
 
-    /// <summary>Issues of this person are applied again at the next run, without a Jira request. That applies from then on; earlier SLA results stay (BR-04).</summary>
+    /// <summary>A92: a changed mapping decides whose replies count, so that person's first responses and SLA results follow at once. A first response a person recorded stays.</summary>
+    private static Task<int> RecalculateForAsync(JiraCaseBridge bridge, JiraUserMapping m, CancellationToken ct) =>
+        bridge.RecalculateFirstResponsesAsync(m.JiraConnectionId, $"Jira user mapping changed: {m.JiraAccountId}", ct, m.JiraAccountId);
+
+    /// <summary>Issues of this person are applied again at the next run, without a Jira request. Their first responses are recalculated at once (A92).</summary>
     private static Task ReapplyAssigneeAsync(HubDbContext db, JiraUserMapping m, CancellationToken ct) =>
         db.JiraCaseMappings.IgnoreQueryFilters().Where(x => x.JiraConnectionId == m.JiraConnectionId && x.AssigneeAccountId == m.JiraAccountId).ExecuteUpdateAsync(u => u.SetProperty(x => x.AppliedAssigneeAccountId, (string?)null), ct);
 
@@ -328,6 +332,15 @@ public static class JiraAdminEndpoints
                 matchingContacts = r.TioUserId is not null || r.ClientContactId is not null ? [] : contacts.Where(k => string.Equals(k.Name, r.JiraDisplayName, StringComparison.OrdinalIgnoreCase)).Select(k => k.Id).ToArray()
             }));
         });
+        // A92: who a Jira user can be mapped to: every active hub user, including Vitronic team members, who hold no role and so are not case-owner choices.
+        g.MapGet("/jira-connections/{id:long}/mappable-users", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
+        {
+            RequireAdmin(me);
+            var users = await db.Users.AsNoTracking().Where(u => u.IsActive).OrderBy(u => u.DisplayName)
+                .Select(u => new { u.Id, u.DisplayName, teamMember = u.Classification == UserClassification.VitronicTeamMember }).ToListAsync(ct);
+            var mapped = await db.JiraUserMappings.AsNoTracking().Where(m => m.JiraConnectionId == id && m.TioUserId != null).Select(m => new { TioUserId = m.TioUserId!.Value, m.JiraDisplayName, m.JiraAccountId }).ToListAsync(ct);
+            return Results.Ok(users.Select(u => new { u.Id, name = u.DisplayName, u.teamMember, jiraAccounts = mapped.Where(m => m.TioUserId == u.Id).Select(m => m.JiraAccountId).ToArray() }));
+        });
         // A79: who a Jira user can represent: the contacts of the clients using this connection.
         g.MapGet("/jira-connections/{id:long}/client-contacts", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
@@ -336,24 +349,25 @@ public static class JiraAdminEndpoints
             return Results.Ok(await db.Contacts.AsNoTracking().Where(k => clients.Contains(k.ClientId) && k.ArchivedAt == null)
                 .Join(db.Clients.AsNoTracking(), k => k.ClientId, c => c.Id, (k, c) => new { k.Id, k.Name, k.Role, clientCode = c.Code }).OrderBy(k => k.clientCode).ThenBy(k => k.Name).ToListAsync(ct));
         });
-        g.MapPut("/jira-user-mappings/{id:long}", async (long id, UserMappingInput i, HubDbContext db, UserContext me, CancellationToken ct) =>
+        g.MapPut("/jira-user-mappings/{id:long}", async (long id, UserMappingInput i, HubDbContext db, UserContext me, JiraCaseBridge bridge, CancellationToken ct) =>
         {
             RequireAdmin(me);
             var m = await db.JiraUserMappings.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The Jira user mapping");
             if (i.TioUserId is { } uid && !await db.Users.AnyAsync(u => u.Id == uid && u.IsActive, ct)) throw new ValidationException("tioUserId", "Select an active hub user.");
             if (i.TioUserId is not null && i.ClientContactId is not null) throw new ValidationException("clientContactId", "Map this Jira user to one of: a hub user, a Vitronic team member or a client contact.");
             if (i.ClientContactId is { } contact && !await db.Contacts.AnyAsync(k => k.Id == contact && k.ArchivedAt == null, ct)) throw new ValidationException("clientContactId", "Select a current client contact.");
-            if (i.TioUserId is not null && await db.JiraUserMappings.AnyAsync(x => x.Id != id && x.JiraConnectionId == m.JiraConnectionId && x.TioUserId == i.TioUserId, ct)) throw new ValidationException("tioUserId", "Another Jira user of this connection is already mapped to this person.");
+            // A92: one person can have several Jira accounts, so a hub user can be mapped more than once. A client contact stays one to one.
             if (i.ClientContactId is not null && await db.JiraUserMappings.AnyAsync(x => x.Id != id && x.JiraConnectionId == m.JiraConnectionId && x.ClientContactId == i.ClientContactId, ct)) throw new ValidationException("clientContactId", "Another Jira user of this connection is already mapped to this contact.");
             m.TioUserId = i.TioUserId;
             m.ClientContactId = i.ClientContactId;
             db.AuditReason = MappingNote(m, i.TioUserId is not null ? $"mapped to hub user {i.TioUserId}" : i.ClientContactId is not null ? $"mapped to client contact {i.ClientContactId}" : "mapping cleared");
             await db.SaveChangesAsync(ct);
             await ReapplyAssigneeAsync(db, m, ct);
+            await RecalculateForAsync(bridge, m, ct);
             return Results.NoContent();
         });
         // A83: a new record and its mapping are saved together. Nothing is created for a Jira user who is already mapped, or for a person who already has a record.
-        g.MapPost("/jira-user-mappings/{id:long}/team-member", async (long id, TeamMemberInput i, HubDbContext db, UserContext me, CancellationToken ct) =>
+        g.MapPost("/jira-user-mappings/{id:long}/team-member", async (long id, TeamMemberInput i, HubDbContext db, UserContext me, JiraCaseBridge bridge, CancellationToken ct) =>
         {
             RequireAdmin(me);
             var m = await UnmappedAsync(db, id, ct);
@@ -371,9 +385,10 @@ public static class JiraAdminEndpoints
             db.AuditReason = MappingNote(m, "created as a Vitronic team member with no sign-in access");
             await db.SaveChangesAsync(ct);
             await ReapplyAssigneeAsync(db, m, ct);
+            await RecalculateForAsync(bridge, m, ct);
             return Results.Created($"/api/v1/admin/users/{user.Id}", new { user.Id });
         });
-        g.MapPost("/jira-user-mappings/{id:long}/user", async (long id, AdminEndpoints.UserInput i, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
+        g.MapPost("/jira-user-mappings/{id:long}/user", async (long id, AdminEndpoints.UserInput i, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, JiraCaseBridge bridge, CancellationToken ct) =>
         {
             me.RequireAdministrator();
             var m = await UnmappedAsync(db, id, ct);
@@ -386,9 +401,10 @@ public static class JiraAdminEndpoints
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
             await ReapplyAssigneeAsync(db, m, ct);
+            await RecalculateForAsync(bridge, m, ct);
             return Results.Created($"/api/v1/admin/users/{user.Id}", new { user.Id });
         });
-        g.MapPost("/jira-user-mappings/{id:long}/contact", async (long id, ContactMappingInput i, HubDbContext db, UserContext me, CancellationToken ct) =>
+        g.MapPost("/jira-user-mappings/{id:long}/contact", async (long id, ContactMappingInput i, HubDbContext db, UserContext me, JiraCaseBridge bridge, CancellationToken ct) =>
         {
             RequireAdmin(me);
             var m = await UnmappedAsync(db, id, ct);
@@ -411,9 +427,10 @@ public static class JiraAdminEndpoints
             await db.SaveChangesAsync(ct);
             await ReapplyAssigneeAsync(db, m, ct);
             await tx.CommitAsync(ct);
+            await RecalculateForAsync(bridge, m, ct);
             return Results.Created($"/api/v1/contacts/{contact.Id}", new { contact.Id });
         });
-        // A83: results already calculated change only here, on an administrator's decision with a reason.
+        // A83: every case of the connection, on an administrator's decision with a reason. A mapping change does the same for that person's comments by itself (A92).
         g.MapPost("/jira-connections/{id:long}/recalculate-first-responses", async (long id, RecalculateInput i, HubDbContext db, UserContext me, JiraCaseBridge bridge, CancellationToken ct) =>
         {
             RequireAdmin(me);

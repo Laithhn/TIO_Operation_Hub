@@ -157,6 +157,28 @@ test('every status can be chosen for a Jira status, and an unmapped Jira user is
   await expect.poll(() => saved).toEqual({ tioUserId: null, clientContactId: 5 });
 });
 
+test('a Jira user can be mapped to a team member with no role, who already has another Jira account', async ({ page }) => {
+  await page.setViewportSize({ width: 1672, height: 900 });
+  await page.goto('/');
+  await page.route('**/api/v1/admin/jira-connections', r => r.fulfill({ json: { syncEnabled: true, connections: [{ id: 1, name: 'Demo Jira Cloud' }] } }));
+  await page.route('**/api/v1/admin/jira-connections/1/users', r => r.fulfill({ json: [{ id: 1, jiraAccountId: 'acc-1', jiraDisplayName: 'Fictional Twin', classification: 'Unmapped', loginEnabled: false, matchingUsers: [22], matchingContacts: [], lastSeenAt: new Date().toISOString() }] }));
+  await page.route('**/api/v1/admin/jira-connections/1/client-contacts', r => r.fulfill({ json: [] }));
+  await page.route('**/api/v1/admin/jira-connections/1/mappable-users', r => r.fulfill({ json: [{ id: 21, name: 'Fictional Engineer', teamMember: false, jiraAccounts: [] }, { id: 22, name: 'Fictional Twin', teamMember: true, jiraAccounts: ['acc-old'] }] }));
+  let saved: unknown;
+  await page.route('**/api/v1/admin/jira-user-mappings/1', r => { saved = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
+  await page.goto('/admin/integrations/jira/conflicts?tab=users');
+  await page.getByLabel('Resolve Fictional Twin').selectOption('user');
+  const dialog = page.getByRole('dialog');
+  const select = dialog.getByLabel('TIO user');
+  await expect(select).toHaveValue('22');
+  await expect(select.locator('option:checked')).toHaveText('Fictional Twin · Vitronic team member · 1 Jira account already mapped');
+  await expect(select.getByRole('option', { name: 'Fictional Engineer', exact: true })).toHaveCount(1);
+  await expect(dialog).not.toContainText('not assignable');
+  await dialog.getByLabel('I confirm this action.').check();
+  await dialog.getByRole('button', { name: 'Map', exact: true }).click();
+  await expect.poll(() => saved).toEqual({ tioUserId: 22, clientContactId: null });
+});
+
 test('a client contact is created from an unmapped Jira user with only the client, already chosen', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/');

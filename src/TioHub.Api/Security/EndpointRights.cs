@@ -51,6 +51,7 @@ public static class EndpointRights
         ["POST /admin/jira-connections"] = Rights("AdminIntegrations:Create"),
         ["PUT /admin/jira-connections/{id:long}"] = Rights("AdminIntegrations:Maintain"),
         ["GET /admin/jira-connections/{id:long}/client-contacts"] = Rights("AdminIntegrations:View"),
+        ["GET /admin/jira-connections/{id:long}/mappable-users"] = Rights("AdminIntegrations:View"),
         ["POST /admin/jira-connections/{id:long}/credentials"] = Rights("AdminIntegrations:Maintain"),
         ["POST /admin/jira-connections/{id:long}/recalculate-first-responses"] = Rights("AdminIntegrations:Maintain"),
         ["POST /admin/jira-connections/{id:long}/discover"] = Rights("AdminIntegrations:Maintain"),

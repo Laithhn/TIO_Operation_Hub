@@ -206,6 +206,29 @@ test('a commitment can be completed before its deadline through the form', async
   await expect(page.getByText('On time', { exact: true })).toBeVisible();
 });
 
+test('clicking a row opens its own record, and the client link still opens the client', async ({ page }) => {
+  const openFromRow = async (list: string, record: RegExp) => {
+    await page.goto(list);
+    const row = page.locator('tr.vt-row', { has: page.locator('.client-display a') }).filter({ has: page.locator(`a[href^="${list}/"]`) }).first();
+    await expect(row).toBeVisible();
+    // A plain cell, not a link: the last named column's text would be arbitrary, so click the row's edge inside the client cell.
+    await row.locator('.client-display').locator('..').click({ position: { x: 1, y: 1 } });
+    await expect(page).toHaveURL(record);
+  };
+  await openFromRow('/cases', /\/cases\/\d+$/);
+  await openFromRow('/commitments', /\/commitments\/\d+$/);
+  await openFromRow('/environments', /\/environments\/\d+$/);
+
+  await page.goto('/cases');
+  await page.locator('tr.vt-row .client-display a').first().click();
+  await expect(page).toHaveURL(/\/clients\/\d+$/);
+
+  // A list of clients has only the client to open.
+  await page.goto('/clients');
+  await page.locator('tr.vt-row').first().locator('td').nth(2).click({ position: { x: 2, y: 2 } });
+  await expect(page).toHaveURL(/\/clients\/\d+$/);
+});
+
 test('the notifications button shows the outline bell, with its unread count and name', async ({ page }) => {
   await openCases(page);
   const button = page.locator('.bell-btn');

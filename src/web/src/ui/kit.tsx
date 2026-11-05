@@ -490,11 +490,13 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
     if (document.activeElement?.closest(`#${tableId}`)) refocusSort.current = { key: c.key, rows };
   };
 
-  // Ease of use: a click anywhere on a row opens its record (the row's first link); links, buttons and fields keep their own behaviour.
+  // Ease of use: a click anywhere on a row opens its record: the row's first link, passing over a client link in a column of its own, because
+  // that row is about something else (a case, a commitment). A list of clients has no other link, so it still opens the client. Links, buttons and fields keep their own behaviour.
   const openRow = (event: React.MouseEvent<HTMLTableRowElement>) => {
     const t = event.target as HTMLElement;
     if (t.closest('a,button,[role="button"],input,select,textarea,label,summary,details') || window.getSelection()?.toString()) return;
-    const a = event.currentTarget.querySelector<HTMLAnchorElement>('a[href]');
+    const links = [...event.currentTarget.querySelectorAll<HTMLAnchorElement>('a[href]')];
+    const a = links.find(l => !l.closest('.client-display')) ?? links[0];
     if (!a) return;
     const href = a.getAttribute('href')!;
     if (event.ctrlKey || event.metaKey || event.button === 1) window.open(href, '_blank', 'noopener');

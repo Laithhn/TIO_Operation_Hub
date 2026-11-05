@@ -1012,7 +1012,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Resolving_a_jira_user_refuses_duplicates_and_is_audited()
+    public async Task Resolving_a_jira_user_refuses_a_second_record_and_is_audited()
     {
         var f = await SetUpAsync();
         var manager = await _hub.As(HubFactory.Manager);
@@ -1031,7 +1031,6 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         // A person with a record is mapped to it, not created again.
         Assert.NotNull((await manager.Post($"/admin/jira-user-mappings/{aId}/team-member", new { displayName = ownerName })).Error("displayName"));
         await MapUserAsync(f.ConnectionId, "acc-a", owner);
-        Assert.NotNull((await manager.Put($"/admin/jira-user-mappings/{b}", new { tioUserId = owner })).Error("tioUserId"));
         // A mapped Jira user cannot gain a second record.
         Assert.Equal(HttpStatusCode.Conflict, (await manager.Post($"/admin/jira-user-mappings/{aId}/team-member", new { displayName = "Fictional New 153" })).Status);
 
@@ -1055,6 +1054,50 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         await RunAsync(f.SpaceId);
         var row = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == "acc-both");
         Assert.NotNull((await manager.Put($"/admin/jira-user-mappings/{row!["id"]!.GetValue<long>()}", new { tioUserId = manager.UserId, clientContactId = 1 })).Error("clientContactId"));
+    }
+
+    [Fact]
+    public async Task A_person_with_two_jira_accounts_is_mapped_from_both_and_replies_from_either_count()
+    {
+        var f = await SetUpAsync();
+        var first = DateTimeOffset.UtcNow.AddHours(-5);
+        var second = DateTimeOffset.UtcNow.AddHours(-2);
+        _jira.Add("125", "TAH-125");
+        _jira.Comments["125"] = [new("c125", "acc-old", "Fictional Twin 125", "Reply from the older account", first, first, null, null)];
+        _jira.Add("126", "TAH-126");
+        _jira.Comments["126"] = [new("c126", "acc-new", "Fictional Twin 125", "Reply from the newer account", second, second, null, null)];
+        await RunAsync(f.SpaceId);
+        await CreateTeamMemberAsync(f.ConnectionId, "acc-old", "Fictional Twin 125");
+        var manager = await _hub.As(HubFactory.Manager);
+
+        // The team member has no role, so is no case-owner choice, yet can be chosen here, and shows the account already mapped.
+        var choices = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/mappable-users")).Body!.AsArray();
+        var twin = choices.Single(u => u!["name"]!.GetValue<string>() == "Fictional Twin 125")!;
+        var twinId = twin["id"]!.GetValue<long>();
+        Assert.True(twin["teamMember"]!.GetValue<bool>());
+        Assert.Equal(["acc-old"], twin["jiraAccounts"]!.AsArray().Select(a => a!.GetValue<string>()));
+        Assert.DoesNotContain((await manager.Get("/users/assignable")).Body!.AsArray(), u => u!["id"]!.GetValue<long>() == twinId);
+
+        var rows = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/users")).Body!.AsArray();
+        var newer = rows.Single(u => u!["jiraAccountId"]!.GetValue<string>() == "acc-new")!;
+        Assert.Equal([twinId], newer["matchingUsers"]!.AsArray().Select(a => a!.GetValue<long>()));
+        Assert.Null((await CaseOfAsync(f.ConnectionId, "126"))!.FirstResponseAt);
+        Assert.Equal(HttpStatusCode.NoContent, (await manager.Put($"/admin/jira-user-mappings/{newer["id"]!.GetValue<long>()}", new { tioUserId = twinId })).Status);
+
+        // Mapping is enough: nobody has to recalculate by hand.
+        Assert.Equal(first, (await CaseOfAsync(f.ConnectionId, "125"))!.FirstResponseAt);
+        Assert.Equal(second, (await CaseOfAsync(f.ConnectionId, "126"))!.FirstResponseAt);
+    }
+
+    [Fact]
+    public async Task An_inactive_user_cannot_be_mapped_or_offered()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var inactive = await Db(db => db.Users.Where(u => !u.IsActive).Select(u => (long?)u.Id).FirstOrDefaultAsync());
+        if (inactive is { } id) Assert.DoesNotContain((await manager.Get($"/admin/jira-connections/{f.ConnectionId}/mappable-users")).Body!.AsArray(), u => u!["id"]!.GetValue<long>() == id);
+        var viewer = await _hub.As(HubFactory.Viewer);
+        Assert.Equal(HttpStatusCode.Forbidden, (await viewer.Get($"/admin/jira-connections/{f.ConnectionId}/mappable-users")).Status);
     }
 
     [Fact]
@@ -1141,7 +1184,51 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Changing_a_classification_keeps_the_recorded_first_response()
+    public async Task Mapping_a_user_turns_a_false_response_breach_into_met_and_clearing_it_undoes_that()
+    {
+        var f = await SetUpAsync();
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        var manager = await _hub.As(HubFactory.Manager);
+        var contract = await ActiveContractAsync(f.ClientId);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        var created = DateTimeOffset.UtcNow.AddDays(-20);
+        var reply = created.AddMinutes(30);
+        _jira.Add("127", "TAH-127");
+        _jira.Change("127", i => i with { CreatedAt = created });
+        _jira.Comments["127"] = [new("c127", "acc-late", "Fictional Late", "We are on it", reply, reply, null, null)];
+        await RunAsync(f.SpaceId);
+        var before = await CaseOfAsync(f.ConnectionId, "127");
+        Assert.Null(before!.FirstResponseAt);
+        Assert.Equal(SlaState.Breached, before.ResponseSlaStatus);
+
+        await MapUserAsync(f.ConnectionId, "acc-late", owner);
+        var mapped = await CaseOfAsync(f.ConnectionId, "127");
+        Assert.Equal(reply, mapped!.FirstResponseAt);
+        Assert.Equal(SlaState.Met, mapped.ResponseSlaStatus);
+
+        var row = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == "acc-late")!;
+        Assert.Equal(HttpStatusCode.NoContent, (await manager.Put($"/admin/jira-user-mappings/{row["id"]!.GetValue<long>()}", new { tioUserId = (long?)null, clientContactId = (long?)null })).Status);
+        var cleared = await CaseOfAsync(f.ConnectionId, "127");
+        Assert.Null(cleared!.FirstResponseAt);
+        Assert.Equal(SlaState.Breached, cleared.ResponseSlaStatus);
+    }
+
+    [Fact]
+    public async Task A_closed_case_with_no_first_response_stops_counting_at_closing()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var opened = now.AddDays(-20);
+        var closed = opened.AddDays(2);
+        var c = new Case { Scope = WorkScope.Client, ClientId = 1, ContractId = 1, Status = CaseStatus.Closed, CreatedAt = now, SlaClockStartAt = opened, ClosedAt = closed, ResolvedAt = closed, SlaContractRef = "CT-1",
+            SlaResponseMinutes = 60, SlaResolutionMinutes = 10000, SlaBasis = SlaBasis.CalendarHours };
+        CaseSla.Evaluate(c, [], now, null);
+        Assert.Equal(SlaState.Breached, c.ResponseSlaStatus);
+        Assert.Equal((int)(closed - opened).TotalMinutes, c.ResponseElapsedMinutes);
+        await Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task A_change_to_a_client_contact_takes_back_the_first_response()
     {
         var f = await SetUpAsync();
         var owner = await _hub.UserId(HubFactory.Engineer);
@@ -1157,10 +1244,12 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         await RunAsync(f.SpaceId);
         Assert.Equal(first, (await CaseOfAsync(f.ConnectionId, "125"))!.FirstResponseAt);
 
+        // A92: a client contact's reply is no first response, so the change follows at once and stays after the next run.
         await MapContactAsync(f.ConnectionId, "acc-team", contact);
+        Assert.Null((await CaseOfAsync(f.ConnectionId, "125"))!.FirstResponseAt);
         _jira.Change("125", i => i);
         await RunAsync(f.SpaceId);
-        Assert.Equal(first, (await CaseOfAsync(f.ConnectionId, "125"))!.FirstResponseAt);
+        Assert.Null((await CaseOfAsync(f.ConnectionId, "125"))!.FirstResponseAt);
     }
 
     [Fact]

@@ -289,7 +289,7 @@ export function CaseDetail() {
           {p.canReopen && <button className="btn" onClick={() => setDialog('reopen')}>Reopen</button>}
         <DeleteAction button path={`/cases/${c.id}`} what={`case ${c.ref}`} afterTo={'/cases'} /></>} />
       {c.statusFromJira && <div className="notice">This case's status follows Jira, so change it there. {!c.contract ? 'Link an SLA contract to calculate the due dates from the Jira creation time.' : c.sla.resolution.status === 'NotApplicable' ? 'This case is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
-      {c.clientRepresentative && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The case waits on the customer until Jira reassigns it.</div>}
+      {c.clientRepresentative && open && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The case waits on the customer until Jira reassigns it.</div>}
       {!c.statusFromJira && c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
       {c.jiraSource && <JiraBanner s={c.jiraSource} />}
       <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>

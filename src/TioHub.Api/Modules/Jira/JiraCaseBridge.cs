@@ -211,11 +211,12 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         return changed;
     }
 
-    /// <summary>A83: an administrator's decision to apply today's mappings to the stored comments. Corrects mappings made later, deleted comments and first responses taken from any comment by 2.47.0.</summary>
-    public async Task<int> RecalculateFirstResponsesAsync(long connectionId, string reason, CancellationToken ct)
+    /// <summary>A83: applies today's mappings to the stored comments. Corrects mappings made later, deleted comments and first responses taken from any comment by 2.47.0. A92: with an account, only the cases that person commented on, after a mapping change.</summary>
+    public async Task<int> RecalculateFirstResponsesAsync(long connectionId, string reason, CancellationToken ct, string? accountId = null)
     {
         var replies = TeamReplies(connectionId);
-        var rows = await db.JiraCaseMappings.AsNoTracking().IgnoreQueryFilters().Where(m => m.JiraConnectionId == connectionId && m.CaseId != null)
+        var rows = await db.JiraCaseMappings.AsNoTracking().IgnoreQueryFilters().Where(m => m.JiraConnectionId == connectionId && m.CaseId != null
+                && (accountId == null || db.JiraComments.Any(k => k.CaseId == m.CaseId && k.JiraConnectionId == connectionId && k.AuthorAccountId == accountId)))
             .Select(m => new { CaseId = m.CaseId!.Value, m.IssueKey,
                 Recorded = db.Cases.IgnoreQueryFilters().Where(c => c.Id == m.CaseId).Select(c => c.FirstResponseAt).FirstOrDefault(),
                 Reply = replies.Where(k => k.CaseId == m.CaseId).Min(k => (DateTimeOffset?)k.JiraCreatedAt) })
@@ -235,7 +236,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         return changed;
     }
 
-    /// <summary>A83: synchronization only records a first response that is still open, from comments arriving now. A mapping changed later does not touch earlier comments (BR-04).</summary>
+    /// <summary>A83: synchronization only records a first response that is still open, from comments arriving now. A mapping change recalculates that person's comments separately (A92).</summary>
     private async Task RecordNewReplyAsync(long connectionId, Case c, string issueKey, DateTimeOffset now, CancellationToken ct)
     {
         if (c.FirstResponseAt is not null) return;

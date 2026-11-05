@@ -124,9 +124,9 @@ public static class CaseEndpoints
                     },
                     startAt = c.OpenedAt, startsAtJiraCreation = c.SlaClockStartAt != null,
                     response = new { status = CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now), dueAt = c.ResponseDueAt, actualAt = c.FirstResponseAt, elapsedMinutes = c.ResponseElapsedMinutes,
-                        breachMinutes = c.ResponseDueAt is { } rd && (c.FirstResponseAt ?? now) > rd && c.ResponseSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.FirstResponseAt ?? now) - rd).TotalMinutes : null },
+                        breachMinutes = c.ResponseDueAt is { } rd && (c.FirstResponseAt ?? c.ClosedAt ?? c.CancelledAt ?? now) > rd && c.ResponseSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.FirstResponseAt ?? c.ClosedAt ?? c.CancelledAt ?? now) - rd).TotalMinutes : null },
                     resolution = new { status = CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now), dueAt = c.ResolutionDueAt, actualAt = c.ResolvedAt, elapsedMinutes = c.ResolutionElapsedMinutes,
-                        breachMinutes = c.ResolutionDueAt is { } xd && (c.ResolvedAt ?? now) > xd && c.ResolutionSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.ResolvedAt ?? now) - xd).TotalMinutes : null },
+                        breachMinutes = c.ResolutionDueAt is { } xd && (c.ResolvedAt ?? c.ClosedAt ?? c.CancelledAt ?? now) > xd && c.ResolutionSlaStatus is SlaState.Breached or SlaState.Pending ? (int?)((c.ResolvedAt ?? c.ClosedAt ?? c.CancelledAt ?? now) - xd).TotalMinutes : null },
                     pausedMinutes = c.SlaPausedMinutes, note = c.SlaNote, calculatedAt = c.SlaCalculatedAt,
                     operationalDueAt = c.DueAt
                 },

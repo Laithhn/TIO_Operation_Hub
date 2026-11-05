@@ -218,7 +218,8 @@ public static class CaseSla
                 if (due is null) { note ??= "No support time falls within the next four years of the calendar."; return (SlaState.NotMeasurable, null, null); }
                 if (actual is { } a) return (a <= due ? SlaState.Met : SlaState.Breached, due, (int)SlaClock.Counted(start, a, cal, pauses).TotalMinutes);
                 if (untracked) { note ??= $"The case was opened before {what}s were recorded, and none was recorded since."; return (SlaState.NotMeasurable, due, null); }
-                return (now > due ? SlaState.Breached : SlaState.Pending, due, (int)SlaClock.Counted(start, now, cal, pauses).TotalMinutes);
+                // A91: a finished case stops counting, or an unanswered one would run on for ever.
+                return (now > due ? SlaState.Breached : SlaState.Pending, due, (int)SlaClock.Counted(start, c.ClosedAt ?? c.CancelledAt ?? now, cal, pauses).TotalMinutes);
             }
             (rState, rDue, rElapsed) = Measure(c.SlaResponseMinutes, c.FirstResponseAt, "response", trackingFrom is { } tf && c.CreatedAt < tf);
             // A case closed before resolution times were recorded has no reliable resolution instant.

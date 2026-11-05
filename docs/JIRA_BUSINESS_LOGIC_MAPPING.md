@@ -77,7 +77,8 @@ No SLA or penalty code changed. These tests hold it in place: `The_first_jira_co
 2. **A78:** the clock starts at the Jira creation time. Cases not from Jira still start at their hub creation time.
 3. A person links a contract when the case should be measured, with the existing action. **An old issue can be breached the moment its contract is linked,** because its clock started in Jira.
 4. **A90:** the resolution time of an imported case is Jira's resolution date or, with none, its last update.
-5. **A91:** age and opened reporting use the Jira creation time. The import time is shown as Added to hub. A case opened before the contract's start date is not measured (A90) and has no contractual due date.
+5. **A92:** one person can have several Jira accounts, each mapped to the same hub user.
+6. **A91:** age and opened reporting use the Jira creation time. The import time is shown as Added to hub. A case opened before the contract's start date is not measured (A90) and has no contractual due date.
 
 **Known limit:** Jira gives no resolution time here, so a case closed from Jira counts as resolved when the synchronization sees it, up to one sync interval late.
 
