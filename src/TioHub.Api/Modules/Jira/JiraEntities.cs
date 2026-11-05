@@ -96,6 +96,13 @@ public class ClientJiraSettings : Entity
 }
 
 /// <summary>Validated ownership: one active client per connection and Jira project (filtered unique index).</summary>
+/// <summary>A93: a contract linked to a Jira space. Not a foreign key to the contract: a deleted contract reads as none.</summary>
+public class ClientJiraSpaceContract : Entity
+{
+    public long ClientJiraSpaceId { get; set; }
+    public long ContractId { get; set; }
+}
+
 public class ClientJiraSpace : Entity
 {
     public long ClientId { get; set; }
@@ -106,8 +113,8 @@ public class ClientJiraSpace : Entity
     public string ProjectKey { get; set; } = "";
     public string ProjectName { get; set; } = "";
     public bool IsEnabled { get; set; } = true;
-    /// <summary>A84: the contract of cases created from this space. Not a foreign key: a deleted contract reads as none.</summary>
-    public long? ContractId { get; set; }
+    /// <summary>A93: the contracts of this space. Each ticket belongs to the one valid on its creation date.</summary>
+    public List<ClientJiraSpaceContract> Contracts { get; set; } = [];
     /// <summary>Set when released or reassigned; the row stays as history and its cases stay with the client.</summary>
     public DateTimeOffset? ReleasedAt { get; set; }
     public string? ReleaseReason { get; set; }

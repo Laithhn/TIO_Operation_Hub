@@ -97,6 +97,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<Modules.Jira.JiraDiscoveredSpace> JiraDiscoveredSpaces => Set<Modules.Jira.JiraDiscoveredSpace>();
     public DbSet<Modules.Jira.ClientJiraSettings> ClientJiraSettings => Set<Modules.Jira.ClientJiraSettings>();
     public DbSet<Modules.Jira.ClientJiraSpace> ClientJiraSpaces => Set<Modules.Jira.ClientJiraSpace>();
+    public DbSet<Modules.Jira.ClientJiraSpaceContract> ClientJiraSpaceContracts => Set<Modules.Jira.ClientJiraSpaceContract>();
     public DbSet<Modules.Jira.JiraSpaceSyncState> JiraSpaceSyncStates => Set<Modules.Jira.JiraSpaceSyncState>();
     public DbSet<Modules.Jira.JiraCaseMapping> JiraCaseMappings => Set<Modules.Jira.JiraCaseMapping>();
     public DbSet<Modules.Jira.JiraUserMapping> JiraUserMappings => Set<Modules.Jira.JiraUserMapping>();
@@ -1299,6 +1300,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
             e.HasOne<Team>().WithMany().HasForeignKey(x => x.DefaultResponsibleTeamId);
             e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.ClientJiraSpaceContract>(e =>
+        {
+            e.ToTable("ClientJiraSpaceContract", S);
+            e.HasIndex(x => new { x.ClientJiraSpaceId, x.ContractId }).IsUnique();
+            e.HasIndex(x => x.ContractId);
+            e.HasOne<Modules.Jira.ClientJiraSpace>().WithMany(x => x.Contracts).HasForeignKey(x => x.ClientJiraSpaceId);
         });
         m.Entity<Modules.Jira.ClientJiraSpace>(e =>
         {

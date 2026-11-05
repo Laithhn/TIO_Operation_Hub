@@ -138,6 +138,8 @@ using (var scope = app.Services.CreateScope())
     await TioHub.Api.Modules.Attachments.StorageSettings.LoadAsync(db, attachmentStore, CancellationToken.None);
     // A61: start of first-response tracking, resolution times from the status history, first SLA evaluation (re-runnable).
     await TioHub.Api.Modules.Work.CaseSla.BackfillAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
+    // A93: once, existing tickets of Jira spaces take their contract from their creation date.
+    await TioHub.Api.Modules.Jira.JiraSpaceContracts.ReconcileOnceAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
     attachmentStore.Prepare();
 }
 

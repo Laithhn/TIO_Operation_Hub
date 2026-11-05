@@ -556,7 +556,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var earlier = await CaseOfAsync(f.ConnectionId, "170");
         Assert.Null(earlier!.ContractId);
 
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { contract } })).Status);
         _jira.Add("171", "TAH-171");
         await RunAsync(f.SpaceId);
         var c = await CaseOfAsync(f.ConnectionId, "171");
@@ -569,12 +569,151 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         Assert.NotNull(c.PenaltyTermsSnapshotJson);
         Assert.Contains(CaseEventType.ContractChanged, await Db(db => db.CaseEvents.Where(e => e.CaseId == c.Id).Select(e => e.Type).ToListAsync()));
 
-        // An earlier case stays out until someone asks, and then only an open one with no contract joins.
-        Assert.Null((await CaseOfAsync(f.ConnectionId, "170"))!.ContractId);
-        Assert.NotNull((await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract, applyToOpenCases = true })).Error("reason"));
-        var applied = await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract, applyToOpenCases = true, reason = "Covers the whole space" });
-        Assert.Equal(1, applied.Body!["applied"]!.GetValue<int>());
+        // A93: an earlier case covered by the contract's dates joined when the contract was linked.
         Assert.Equal(contract, (await CaseOfAsync(f.ConnectionId, "170"))!.ContractId);
+    }
+
+    private async Task<long> DatedContractAsync(long clientId, string? start, string? end, string status = "Active")
+    {
+        var manager = await _hub.As(HubFactory.Manager);
+        var project = await manager.Create("/projects", new { clientId, code = $"P{Guid.NewGuid():N}"[..8], name = "Fictional SLA project", status = "Active", ownerUserId = manager.UserId });
+        return await manager.Create("/contracts", new { projectId = project, title = "Fictional yearly agreement", contractReference = $"FIC-{Guid.NewGuid():N}"[..12], type = "SlaSupport", status, ownerUserId = manager.UserId,
+            startDate = start, endDate = end, renewalTerms = "RenewalByAgreement", noticeDays = 30, supportModel = "Remote", supportTimeZone = "Asia/Dubai", support24x7 = true, slaPauseWhileWaitingOnCustomer = true,
+            coverage = "PSOP", obligations = "Monthly report", slaTargets = new[] { new { priority = "Normal", responseMinutes = 60, resolutionMinutes = 240, basis = "CalendarHours" } } });
+    }
+
+    private void Ticket(string id, string created)
+    {
+        _jira.Add(id, $"TAH-{id}");
+        _jira.Change(id, i => i with { CreatedAt = DateTimeOffset.Parse(created) });
+    }
+
+    [Fact]
+    public async Task Each_ticket_takes_the_one_contract_valid_on_its_creation_date()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var y2025 = await DatedContractAsync(f.ClientId, "2025-01-01", "2025-12-31");
+        var y2026 = await DatedContractAsync(f.ClientId, "2026-01-01", "2026-12-31");
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { y2025, y2026 } })).Status);
+        Ticket("301", "2024-06-15T08:00:00Z");
+        Ticket("302", "2025-06-15T08:00:00Z");
+        Ticket("303", "2026-06-15T08:00:00Z");
+        Ticket("304", "2027-06-15T08:00:00Z");
+        Ticket("305", "2025-12-31T19:00:00Z"); // 23:00 on the last day in the contract's time zone
+        Ticket("306", "2025-12-31T20:30:00Z"); // already 1 January 2026 there
+        await RunAsync(f.SpaceId);
+
+        async Task Check(string id, long? contract, SlaState? state = null)
+        {
+            var c = await CaseOfAsync(f.ConnectionId, id);
+            Assert.Equal(contract, c!.ContractId);
+            if (contract is null)
+            {
+                Assert.Equal(SlaState.NotMeasurable, c.ResponseSlaStatus);
+                Assert.Equal(SlaState.NotMeasurable, c.ResolutionSlaStatus);
+                Assert.Null(c.ResolutionDueAt);
+                Assert.Null(c.DueAt);
+                Assert.Contains("creation date", c.SlaNote);
+            }
+            else Assert.NotEqual(SlaState.NotMeasurable, c.ResolutionSlaStatus);
+        }
+        await Check("301", null);
+        await Check("302", y2025);
+        await Check("303", y2026);
+        await Check("304", null);
+        await Check("305", y2025);
+        await Check("306", y2026);
+
+        // A renewal does not move older tickets, and a ticket outside every contract joins only the one that covers it.
+        var y2027 = await DatedContractAsync(f.ClientId, "2027-01-01", "2027-12-31");
+        var saved = await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { y2025, y2026, y2027 } });
+        Assert.Equal(1, saved.Body!["changed"]!.GetValue<int>());
+        await Check("302", y2025);
+        await Check("303", y2026);
+        await Check("304", y2027);
+        await Check("301", null);
+    }
+
+    [Fact]
+    public async Task Contracts_of_a_space_cannot_overlap_and_need_a_start_date()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var path = $"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts";
+        var a = await DatedContractAsync(f.ClientId, "2025-01-01", "2025-12-31");
+        var sameDay = await DatedContractAsync(f.ClientId, "2025-12-31", "2026-12-31");
+        var open = await DatedContractAsync(f.ClientId, "2025-06-01", null);
+        var b = await DatedContractAsync(f.ClientId, "2026-01-01", null);
+        var draft = await DatedContractAsync(f.ClientId, "2030-01-01", "2030-12-31", "Draft");
+        Assert.Contains("overlaps", (await manager.Put(path, new { contractIds = new[] { a, sameDay } })).Error("contractIds"));
+        Assert.Contains("overlaps", (await manager.Put(path, new { contractIds = new[] { a, open } })).Error("contractIds"));
+        Assert.NotNull((await manager.Put(path, new { contractIds = new[] { draft } })).Error("contractIds"));
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put(path, new { contractIds = new[] { a, b } })).Status);
+
+        // Removing a contract takes a reason, and editing a linked contract into another's dates is refused.
+        Assert.NotNull((await manager.Put(path, new { contractIds = new[] { b } })).Error("reason"));
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put(path, new { contractIds = new[] { b }, reason = "Linked in error" })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put(path, new { contractIds = new[] { a, b } })).Status);
+        var row = await manager.Get($"/contracts/{a}");
+        var edited = await manager.Put($"/contracts/{a}", new { projectId = row.Body!["project"]?["id"]?.GetValue<long>() ?? row.Body!["projectId"]!.GetValue<long>(), title = "Fictional yearly agreement", contractReference = $"FIC-{Guid.NewGuid():N}"[..12], type = "SlaSupport", status = "Active", ownerUserId = manager.UserId,
+            startDate = "2025-01-01", endDate = "2026-03-31", renewalTerms = "RenewalByAgreement", noticeDays = 30, supportModel = "Remote", supportTimeZone = "Asia/Dubai", support24x7 = true, slaPauseWhileWaitingOnCustomer = true,
+            coverage = "PSOP", obligations = "Monthly report", slaTargets = new[] { new { priority = "Normal", responseMinutes = 60, resolutionMinutes = 240, basis = "CalendarHours" } } }, row.ETag);
+        Assert.Contains("overlap", edited.Error("endDate"));
+    }
+
+    [Fact]
+    public async Task The_date_rule_covers_closed_tickets_and_a_person_cannot_choose_another_contract()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var outside = await DatedContractAsync(f.ClientId, "2020-01-01", "2020-12-31");
+        var covering = await DatedContractAsync(f.ClientId, "2026-01-01", "2030-12-31");
+        Ticket("311", "2026-06-15T08:00:00Z");
+        Ticket("312", "2026-06-15T08:00:00Z");
+        await RunAsync(f.SpaceId);
+        await MapStatusAsync(f.ConnectionId, "9", "Closed");
+        _jira.Change("312", i => i with { ResolvedAt = DateTimeOffset.Parse("2026-06-15T09:00:00Z"), StatusId = "9", StatusName = "Done", StatusCategory = "done" });
+        await RunAsync(f.SpaceId);
+        var one = (await CaseOfAsync(f.ConnectionId, "311"))!.Id;
+
+        // With no contract on the space a person still links one by hand; linking contracts then replaces that choice.
+        await manager.Ok($"/cases/{one}/contract", new { contractId = outside }, await manager.Version($"/cases/{one}"));
+        Assert.False((await manager.Get($"/cases/{one}")).Body!["contractFromJiraSpace"]!.GetValue<bool>());
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { covering } })).Status);
+        Assert.Equal(covering, (await CaseOfAsync(f.ConnectionId, "311"))!.ContractId);
+        var closed = await CaseOfAsync(f.ConnectionId, "312");
+        Assert.Equal(covering, closed!.ContractId);
+        Assert.Equal(SlaState.Met, closed.ResolutionSlaStatus);
+
+        var body = await manager.Get($"/cases/{one}");
+        Assert.True(body.Body!["contractFromJiraSpace"]!.GetValue<bool>());
+        Assert.NotNull((await manager.Post($"/cases/{one}/contract", new { contractId = outside, reason = "Hand choice" }, body.ETag)).Error("contractId"));
+
+        // Unlinking the last contract takes it from the tickets, with the reason in the record.
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = Array.Empty<long>(), reason = "Linked in error" })).Status);
+        var free = await CaseOfAsync(f.ConnectionId, "311");
+        Assert.Null(free!.ContractId);
+        Assert.False(free.SlaNoCoveringContract);
+        Assert.Equal(SlaState.NotApplicable, free.ResolutionSlaStatus);
+        Assert.Null(free.DueAt);
+    }
+
+    [Fact]
+    public async Task The_next_sync_puts_a_ticket_back_on_the_contract_of_its_date()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var covering = await DatedContractAsync(f.ClientId, "2026-01-01", "2030-12-31");
+        var other = await DatedContractAsync(f.ClientId, "2020-01-01", "2020-12-31");
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { covering } })).Status);
+        Ticket("321", "2026-06-15T08:00:00Z");
+        await RunAsync(f.SpaceId);
+        var id = (await CaseOfAsync(f.ConnectionId, "321"))!.Id;
+        await Db(db => db.Cases.IgnoreQueryFilters().Where(c => c.Id == id).ExecuteUpdateAsync(s => s.SetProperty(c => c.ContractId, other)));
+        _jira.Change("321", i => i);
+        await RunAsync(f.SpaceId);
+        Assert.Equal(covering, (await CaseOfAsync(f.ConnectionId, "321"))!.ContractId);
     }
 
     [Fact]
@@ -703,7 +842,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var f = await SetUpAsync();
         var manager = await _hub.As(HubFactory.Manager);
         var contract = await ActiveContractAsync(f.ClientId);
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { contract } })).Status);
         var resolved = DateTimeOffset.UtcNow.AddDays(-20);
         _jira.Add("195", "TAH-195");
         _jira.Change("195", i => i with { CreatedAt = resolved.AddMinutes(-30) });
@@ -717,8 +856,9 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         Assert.Equal(resolved, closed!.ResolvedAt);
         Assert.Equal(SlaState.Met, closed.ResolutionSlaStatus);
         var old = await CaseOfAsync(f.ConnectionId, "196");
-        Assert.Equal(SlaState.NotApplicable, old!.ResolutionSlaStatus);
-        Assert.Contains("before", old.SlaNote);
+        Assert.Null(old!.ContractId);
+        Assert.Equal(SlaState.NotMeasurable, old.ResolutionSlaStatus);
+        Assert.Contains("creation date", old.SlaNote);
     }
 
     [Fact]
@@ -727,12 +867,12 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var f = await SetUpAsync();
         var manager = await _hub.As(HubFactory.Manager);
         var contract = await ActiveContractAsync(f.ClientId);
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
         _jira.Add("198", "TAH-198");
         _jira.Change("198", i => i with { CreatedAt = new DateTimeOffset(2020, 1, 1, 0, 0, 0, TimeSpan.Zero) });
         await RunAsync(f.SpaceId);
         var id = (await CaseOfAsync(f.ConnectionId, "198"))!.Id;
-        // What 2.51.1 leaves behind: not measured, with the due date of its earlier deadline.
+        // This space has no contracts, so a person can link one by hand. What 2.51.1 left: not measured, with the due date of its earlier deadline.
+        await manager.Ok($"/cases/{id}/contract", new { contractId = contract }, await manager.Version($"/cases/{id}"));
         var stale = new DateTimeOffset(2020, 1, 2, 0, 0, 0, TimeSpan.Zero);
         await Db(db => db.Cases.IgnoreQueryFilters().Where(c => c.Id == id).ExecuteUpdateAsync(s => s.SetProperty(c => c.DueAt, stale)));
         Assert.True((await manager.Get($"/cases/{id}")).Body!["overdue"]!.GetValue<bool>());
@@ -750,7 +890,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var f = await SetUpAsync();
         var manager = await _hub.As(HubFactory.Manager);
         var contract = await ActiveContractAsync(f.ClientId);
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { contract } })).Status);
         var created = DateTimeOffset.UtcNow.AddDays(-200);
         _jira.Add("197", "TAH-197");
         _jira.Change("197", i => i with { CreatedAt = created });
@@ -788,33 +928,34 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var other = await _hub.ClientId("DEMO-HCP");
         var earlier = await ActiveContractAsync(f.ClientId);
         var theirs = await ActiveContractAsync(other);
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = earlier })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { earlier } })).Status);
 
         var path = $"/admin/jira-connections/{f.ConnectionId}/spaces/100/reassign";
-        Assert.NotNull((await manager.Post(path, new { toClientId = other, reason = "Contract moved", contractId = earlier })).Error("contractId"));
+        Assert.NotNull((await manager.Post(path, new { toClientId = other, reason = "Contract moved", contractId = earlier })).Error("contractIds"));
         Assert.Equal(1, await Db(db => db.ClientJiraSpaces.IgnoreQueryFilters().CountAsync(s => s.Id == f.SpaceId && s.ReleasedAt == null)));
 
         await manager.Ok(path, new { toClientId = other, reason = "Contract moved", contractId = theirs });
-        Assert.Equal(theirs, await Db(db => db.ClientJiraSpaces.IgnoreQueryFilters().Where(s => s.JiraConnectionId == f.ConnectionId && s.JiraProjectId == "100" && s.ReleasedAt == null).Select(s => s.ContractId).FirstAsync()));
+        var moved = await Db(db => db.ClientJiraSpaces.IgnoreQueryFilters().Where(s => s.JiraConnectionId == f.ConnectionId && s.JiraProjectId == "100" && s.ReleasedAt == null).Select(s => s.Id).FirstAsync());
+        Assert.Equal([theirs], await Db(db => db.ClientJiraSpaceContracts.Where(l => l.ClientJiraSpaceId == moved).Select(l => l.ContractId).ToListAsync()));
     }
 
     [Fact]
-    public async Task A_space_only_takes_an_active_contract_of_its_client()
+    public async Task A_space_only_takes_contracts_of_its_client_and_an_ended_one_still_covers_its_time()
     {
         var f = await SetUpAsync();
         var manager = await _hub.As(HubFactory.Manager);
         var foreign = await ActiveContractAsync(await _hub.ClientId("DEMO-HCP"));
-        Assert.NotNull((await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = foreign })).Error("contractId"));
-        Assert.NotNull((await manager.Post($"/clients/{f.ClientId}/jira/spaces", new { jiraConnectionId = f.ConnectionId, jiraProjectIds = new[] { "200" }, contractId = foreign })).Error("contractId"));
+        Assert.NotNull((await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { foreign } })).Error("contractIds"));
+        Assert.NotNull((await manager.Post($"/clients/{f.ClientId}/jira/spaces", new { jiraConnectionId = f.ConnectionId, jiraProjectIds = new[] { "200" }, contractId = foreign })).Error("contractIds"));
 
-        // A contract that ended later links no new case, and an administrator hears about it.
+        // A contract that ended still covers the tickets of its time: the dates decide.
         var contract = await ActiveContractAsync(f.ClientId);
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { contract } })).Status);
         await Db(db => db.Contracts.Where(k => k.Id == contract).ExecuteUpdateAsync(u => u.SetProperty(k => k.Status, ContractStatus.Ended)));
         _jira.Add("172", "TAH-172");
         await RunAsync(f.SpaceId);
-        Assert.Null((await CaseOfAsync(f.ConnectionId, "172"))!.ContractId);
-        Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.MissingCaseInformation, f.ConnectionId));
+        Assert.Equal(contract, (await CaseOfAsync(f.ConnectionId, "172"))!.ContractId);
+        Assert.Equal(0, await OpenIssuesAsync(JiraIssueType.MissingCaseInformation, f.ConnectionId));
     }
 
     [Fact]
@@ -1190,7 +1331,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var owner = await _hub.UserId(HubFactory.Engineer);
         var manager = await _hub.As(HubFactory.Manager);
         var contract = await ActiveContractAsync(f.ClientId);
-        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contract", new { contractId = contract })).Status);
+        Assert.Equal(HttpStatusCode.OK, (await manager.Put($"/clients/{f.ClientId}/jira/spaces/{f.SpaceId}/contracts", new { contractIds = new[] { contract } })).Status);
         var created = DateTimeOffset.UtcNow.AddDays(-20);
         var reply = created.AddMinutes(30);
         _jira.Add("127", "TAH-127");

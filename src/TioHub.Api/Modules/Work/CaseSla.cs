@@ -202,6 +202,7 @@ public static class CaseSla
         string? note = null;
 
         if (c.Scope == WorkScope.Internal || c.ClientId is null) { rState = xState = SlaState.NotApplicable; note = "Internal work has no contractual SLA."; }
+        else if (c.ContractId is null && c.SlaNoCoveringContract) { rState = xState = SlaState.NotMeasurable; note = "No contract linked to this Jira space covers the ticket's creation date."; }
         else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this case."; }
         else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The case was cancelled."; }
         else if (BeforeContract(c) && c.SlaContractStart is { } contractStart) { rState = xState = SlaState.NotApplicable; note = $"The case was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }

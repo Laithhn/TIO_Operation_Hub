@@ -113,6 +113,7 @@ public static class CaseEndpoints
                 jiraSource = canJira ? await Jira.JiraCaseEndpoints.SourceAsync(db, c.Id, now, ct) : null,
                 removedJiraReferences = c.JiraReferences.Where(j => canJira && canHistory && j.RemovedAt != null).Select(j => new { j.Id, instance = j.JiraInstance!.Name, j.IssueKey, j.RemovedAt }),
                 commitments, events,
+                contractFromJiraSpace = await Jira.JiraSpaceContracts.DecidesCaseAsync(db, c.Id, ct),
                 contract = c.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == c.ContractId).Select(k => new { k.Id, k.Ref, k.Title, k.Status }).FirstOrDefaultAsync(ct),
                 sla = new
                 {
@@ -433,6 +434,7 @@ public static class CaseEndpoints
             var c = await LoadForChangeAsync(db, id, ct);
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
+            if (await Jira.JiraSpaceContracts.DecidesCaseAsync(db, c.Id, ct)) throw new ValidationException("contractId", "The contract of this ticket comes from its creation date and the contracts linked to its Jira space.");
             var check = new Check();
             if (input.ContractId is not null) await CheckContractAsync(check, db, input.ContractId.Value, c.ClientId, ct);
             if (input.ContractId == c.ContractId) check.Add("contractId", "This contract is already linked.");

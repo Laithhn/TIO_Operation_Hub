@@ -155,7 +155,7 @@ type CaseDto = {
   jiraReferences: { id: number; instance: string; kind: string; jiraInstanceId: number; issueKey: string; url: string; reuseReason?: string; origin: string }[]; jiraSource?: JiraSource; removedJiraReferences: { id: number; instance: string; issueKey: string; removedAt: string }[];
   commitments: { id: number; ref: string; description: string; status: string; currentDueAt: string; timeZone: string }[];
   events: { id: number; type: string; fromValue?: string; toValue?: string; note?: string; at: string; by?: string }[];
-  contract?: { id: number; ref: string; title: string; status: string };
+  contract?: { id: number; ref: string; title: string; status: string }; contractFromJiraSpace: boolean;
   sla: CaseSlaT;
   permissions: { canEdit: boolean; canTriage: boolean; canAssign: boolean; canStart: boolean; canClose: boolean; canRequestValidation: boolean; canReturnToWork: boolean; canChangeStatus: boolean; canSetWaiting: boolean; canChangeDue: boolean; canAuthorizeEvidenceException: boolean; canReopen: boolean; canCancel: boolean };
   version: string;
@@ -288,7 +288,7 @@ export function CaseDetail() {
           {p.canCancel && <button className="btn btn-danger" onClick={() => setDialog('cancel')}>Cancel case</button>}
           {p.canReopen && <button className="btn" onClick={() => setDialog('reopen')}>Reopen</button>}
         <DeleteAction button path={`/cases/${c.id}`} what={`case ${c.ref}`} afterTo={'/cases'} /></>} />
-      {c.statusFromJira && <div className="notice">This case's status follows Jira, so change it there. {!c.contract ? 'Link an SLA contract to calculate the due dates from the Jira creation time.' : c.sla.resolution.status === 'NotApplicable' ? 'This case is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
+      {c.statusFromJira && <div className="notice">This case's status follows Jira, so change it there. {!c.contract ? (c.contractFromJiraSpace ? "No contract linked to this Jira space covers the ticket's creation date, so it is not measured." : 'Link an SLA contract to calculate the due dates from the Jira creation time.') : c.sla.resolution.status === 'NotApplicable' ? 'This case is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
       {c.clientRepresentative && open && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The case waits on the customer until Jira reassigns it.</div>}
       {!c.statusFromJira && c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
       {c.jiraSource && <JiraBanner s={c.jiraSource} />}
@@ -316,7 +316,7 @@ export function CaseDetail() {
         </Panel>
         {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
       </div>
-      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
+      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
       {tab === 'escalations' && <Panel title="Escalations about this case" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
       {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
@@ -408,9 +408,9 @@ function SlaPanel({ c, canEdit, canChangeContract, onRespond, onContract }: { c:
       {canEdit && c.contract && !s.response.actualAt && <button className="btn" onClick={onRespond}>Record first response</button>}
       {canChangeContract && <button className="btn" onClick={onContract}>{c.contract ? 'Change contract' : 'Link contract'}</button>}</>}>
       <DL items={[
-        ['Contract', c.contract ? <><Link to={`/contracts/${c.contract.id}`}>{c.contract.ref}</Link> · {c.contract.title} {c.contract.status !== 'Active' && <Badge tone="warn">{label(c.contract.status)}</Badge>}</> : <span className="muted">No contract linked — not measured</span>],
+        ['Contract', c.contract ? <><Link to={`/contracts/${c.contract.id}`}>{c.contract.ref}</Link> · {c.contract.title} {c.contract.status !== 'Active' && <Badge tone="warn">{label(c.contract.status)}</Badge>}</> : <span className="muted">{c.contractFromJiraSpace ? 'No contract covers the creation date — not measurable' : 'No contract linked — not measured'}</span>],
         ...(a ? [['Applied target', <>{a.priority} priority · {a.basis === 'CalendarHours' ? 'calendar hours' : a.basis === 'SupportHours' ? (a.support24x7 ? 'support hours (24×7)' : `support hours ${a.supportDays.replace(/, /g, ' ')} ${a.supportFrom ?? ''}–${a.supportTo ?? ''} ${a.timeZone ?? ''}`) : 'basis not set'}
-          {a.pausesWhileWaitingOnCustomer && ' · paused while waiting on the customer'}<div className="hint">Taken from {a.contractRef} on {fmtDateTime(a.at)}; later contract edits do not change it.</div></>] as [string, React.ReactNode]] : []),
+          {a.pausesWhileWaitingOnCustomer && ' · paused while waiting on the customer'}<div className="hint">Taken from {a.contractRef} on {fmtDateTime(a.at)}; later contract edits do not change it.{c.contractFromJiraSpace && ' This contract was valid when the ticket was created.'}</div></>] as [string, React.ReactNode]] : []),
         ['Clock start', <>{fmtDateTime(s.startAt)} <span className="hint">({s.startsAtJiraCreation ? 'Jira creation time' : 'hub creation time'}; deadlines and elapsed time count from here)</span></>],
         ...(s.pausedMinutes ? [['Paused (waiting on the customer)', minutes(s.pausedMinutes)] as [string, string]] : []),
         ['Operational due date', s.operationalDueAt ? <>{fmtDateTime(s.operationalDueAt)} <span className="hint">{s.startsAtJiraCreation ? '(the contractual resolution deadline of this synchronized case)' : '(agreed by the team; separate from the contractual deadlines)'}</span></> : <span className="muted">None</span>]

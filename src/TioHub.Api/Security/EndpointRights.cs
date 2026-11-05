@@ -182,7 +182,7 @@ public static class EndpointRights
         ["PUT /clients/{id:long}/jira/value-mappings/{mappingId:long}"] = Rights("tab.ClientStructure.jira:View"),
         ["POST /clients/{id:long}/jira/spaces"] = Rights("tab.ClientStructure.jira:View"),
         ["PUT /clients/{id:long}/jira/spaces/{spaceId:long}"] = Rights("tab.ClientStructure.jira:View"),
-        ["PUT /clients/{id:long}/jira/spaces/{spaceId:long}/contract"] = Rights("tab.ClientStructure.jira:View"),
+        ["PUT /clients/{id:long}/jira/spaces/{spaceId:long}/contracts"] = Rights("tab.ClientStructure.jira:View"),
         ["POST /clients/{id:long}/jira/spaces/{spaceId:long}/release"] = Rights("tab.ClientStructure.jira:View"),
         ["POST /clients/{id:long}/jira/sync"] = Rights("tab.ClientStructure.jira:View"),
         ["GET /clients/{id:long}/logo"] = HandlerOnly("Any effective access plus client scope. A logo identifies a client the caller can already see."),

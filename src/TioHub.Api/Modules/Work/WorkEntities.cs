@@ -87,6 +87,8 @@ public class Case : Entity, IClientOwned, IAccountable
     public bool SlaPauseOnCustomerWaiting { get; set; }
     public string? SlaContractRef { get; set; }
     public DateTimeOffset? SlaAppliedAt { get; set; }
+    /// <summary>A93: the Jira space has contracts, but none covers this ticket's creation date, so it is Not measurable.</summary>
+    public bool SlaNoCoveringContract { get; set; }
     /// <summary>A90: from the contract's start date: work opened before it is not measured against the contract.</summary>
     public DateOnly? SlaContractStart { get; set; }
     /// <summary>A63: penalty terms copied from the contract when the case is linked, so later contract edits do not rewrite its basis.</summary>

@@ -75,6 +75,7 @@ public static class SettingKeys
     public const string PaymentReminderDays = "Contracts.PaymentReminderDays";
     /// <summary>A61: when first responses began to be recorded; set once by the application.</summary>
     public const string SlaTrackingFrom = "Sla.FirstResponseTrackingFrom";
+    public const string JiraContractsByDateFrom = "Jira.ContractsByDateFrom";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

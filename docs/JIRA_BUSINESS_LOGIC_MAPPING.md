@@ -15,7 +15,7 @@ How Jira data reaches a case, what is preserved, and which decisions the owner s
 | Operational due date | **Never.** Jira's due date is shown as external detail |
 | Contract | **Never linked automatically** |
 | Priority and case type | **A86:** a new case takes them from Jira, by the same name or through the client's mapping, otherwise the client's default. After creation Jira changes neither |
-| Contract | **A84:** the contract linked to the Jira space, while active. Its SLA, pause and penalty rules apply from the Jira creation time. Cases with a contract keep it; open cases with none join only when an authorized person asks |
+| Contract | **A93:** the contract linked to the Jira space that was valid on the ticket's creation date, open or closed. Its SLA, pause and penalty rules apply from the Jira creation time. A ticket no linked contract covers has none and is Not measurable. A person cannot choose another |
 | First response | **A82:** the time of the earliest public Jira comment by someone mapped as a hub user or a Vitronic team member. Internal notes, customer comments and unmapped authors do not count. Comments from before someone is mapped count only after **Recalculate first responses** (A83), so map your team before the first import where you can. People cannot record it on these cases |
 | Progress summary, last review | **Never** set by imported comments or activity |
 | Waiting | **Never** |

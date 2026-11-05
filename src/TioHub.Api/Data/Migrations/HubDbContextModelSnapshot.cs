@@ -3896,9 +3896,6 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long>("ClientId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("ContractId")
-                        .HasColumnType("bigint");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -3958,6 +3955,52 @@ namespace TioHub.Api.Data.Migrations
                         .HasFilter("[ReleasedAt] IS NULL");
 
                     b.ToTable("ClientJiraSpace", "jira");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSpaceContract", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClientJiraSpaceId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ContractId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("UpdatedById")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("UpdatedById");
+
+                    b.HasIndex("ClientJiraSpaceId", "ContractId")
+                        .IsUnique();
+
+                    b.ToTable("ClientJiraSpaceContract", "jira");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraActivity", b =>
@@ -6358,6 +6401,9 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<DateOnly?>("SlaContractStart")
                         .HasColumnType("date");
 
+                    b.Property<bool>("SlaNoCoveringContract")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SlaNote")
                         .HasMaxLength(300)
                         .HasColumnType("nvarchar(300)");
@@ -8184,6 +8230,25 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("JiraConnection");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSpaceContract", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Jira.ClientJiraSpace", null)
+                        .WithMany("Contracts")
+                        .HasForeignKey("ClientJiraSpaceId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Jira.JiraActivity", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Work.Case", null)
@@ -9025,6 +9090,11 @@ namespace TioHub.Api.Data.Migrations
             modelBuilder.Entity("TioHub.Api.Modules.Inventory.Component", b =>
                 {
                     b.Navigation("Hosts");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Jira.ClientJiraSpace", b =>
+                {
+                    b.Navigation("Contracts");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Reporting.ReportSchedule", b =>

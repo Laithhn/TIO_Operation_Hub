@@ -158,6 +158,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
                 await EnsureSourceReferenceAsync(x, c, m, now, ct);
                 var caseChanged = await ApplyOwnerAsync(x.Connection, x.Space, c, m, now, ct);
                 if (m.JiraCreatedAt is { } jiraCreated && c.SlaClockStartAt != jiraCreated) { c.SlaClockStartAt = jiraCreated; caseChanged = true; }
+                caseChanged |= JiraSpaceContracts.Apply(db, c, m.JiraCreatedAt ?? c.SlaClockStartAt, await JiraSpaceContracts.TermsAsync(db, m.ClientJiraSpaceId, ct), now);
                 caseChanged |= await ApplyStatusAsync(x.Connection, x.Space, c, m, now, ct);
                 caseChanged |= ApplyJiraResolutionTime(c, m, now);
                 if (!outcome.Created && (caseChanged || snapshotChanged)) outcome.Updated = true;
@@ -272,12 +273,6 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         var reference = await db.JiraReferences.FirstOrDefaultAsync(j => j.CaseId == c.Id && j.JiraInstanceId == conn.JiraInstanceId && j.IssueKey == issueKey && j.RemovedAt == null, ct);
         if (reference is not null) reference.Origin = JiraReferenceOrigin.AdoptedSource;
         CaseEndpoints.AddEvent(db, c, CaseEventType.JiraAdded, null, $"Synchronized source {issueKey}", "Case adopted as the source of the Jira issue", db.CurrentUser, now);
-        // A84: a contract a person already linked stays.
-        if (c.ContractId is null && await SpaceContractAsync(space, ct) is { } contract)
-        {
-            c.ContractId = contract.Id;
-            CaseEndpoints.AddEvent(db, c, CaseEventType.ContractChanged, "No contract", contract.Ref, $"Contract of Jira space {space.ProjectKey}", db.CurrentUser, now);
-        }
     }
 
     /// <summary>A86: the case value of a Jira priority or issue type: the client's mapping, then a match by name. A value with neither is listed for a person to map, and null is returned.</summary>
@@ -315,11 +310,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         return found.Count == 1 ? found[0] : null;
     }
 
-    /// <summary>A84: the space's contract, while it is active and still belongs to the space's client.</summary>
-    private async Task<SpaceContract?> SpaceContractAsync(ClientJiraSpace space, CancellationToken ct) => space.ContractId is not { } id ? null
-        : await db.Contracts.AsNoTracking().Where(k => k.Id == id && k.ClientId == space.ClientId && k.Status == ContractStatus.Active).Select(k => new SpaceContract(k.Id, k.Ref)).FirstOrDefaultAsync(ct);
 
-    private sealed record SpaceContract(long Id, string Ref);
 
     private Task<Case> LoadCaseAsync(long id, CancellationToken ct) =>
         db.Cases.IgnoreQueryFilters().Include(c => c.Owner).Include(c => c.WaitingIntervals).FirstAsync(c => c.Id == id, ct);
@@ -336,10 +327,12 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         if (typeCheck.HasErrors) (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the case type", null, ct);
         var priority = Enum.TryParse<Priority>(await ValueAsync(x.Space.ClientId, JiraValueKind.Priority, issue.PriorityName, ct), out var fromJira) ? fromJira : x.Settings.DefaultPriority;
         var title = CredentialGuard.LooksLikeSecret(issue.Summary) ? $"Jira issue {issue.Key}" : issue.Summary.Trim();
-        var contract = await SpaceContractAsync(x.Space, ct);
+        // A93: the contract valid when the ticket was created.
+        var terms = await JiraSpaceContracts.TermsAsync(db, x.Space.Id, ct);
+        var contract = issue.CreatedAt is { } opened ? JiraSpaceContracts.Covering(terms, opened) : null;
         var c = new Case
         {
-            ContractId = contract?.Id, SlaClockStartAt = issue.CreatedAt,
+            ContractId = contract?.Id, SlaNoCoveringContract = terms.Count > 0 && contract is null, SlaClockStartAt = issue.CreatedAt,
             Title = title.Length > 200 ? title[..200] : title, Type = typeCode, TypeCategory = typeCategory, Scope = WorkScope.Client, ClientId = x.Space.ClientId,
             ResponsibleTeamId = x.Settings.DefaultResponsibleTeamId, ImpactSummary = $"Not yet assessed. Imported from Jira {issue.Key}.", Priority = priority,
             NextAction = "Review the case imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, StatusCode = await CaseStatuses.DefaultCodeAsync(db, CaseStatusBehavior.Initial, CaseStatus.New, ct), CycleStartedAt = now, LastReviewedAt = now
@@ -349,14 +342,9 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         CaseEndpoints.AddEvent(db, c, CaseEventType.Created, null, CaseStatus.New.ToString(), $"Imported from Jira {issue.Key}", db.CurrentUser, now);
         if (contract is not null)
         {
-            CaseEndpoints.AddEvent(db, c, CaseEventType.ContractChanged, "No contract", contract.Ref, $"Contract of Jira space {x.Space.ProjectKey}", db.CurrentUser, now);
-            await ResolveAutomaticAsync($"contract:{x.Space.Id}", now, ct);
+            CaseEndpoints.AddEvent(db, c, CaseEventType.ContractChanged, "No contract", contract.Ref, $"The contract linked to Jira space {x.Space.ProjectKey} that covers the ticket's creation date", db.CurrentUser, now);
         }
-        else if (x.Space.ContractId is not null)
-        {
-            Raise(JiraIssueType.MissingCaseInformation, x, issue, $"contract:{x.Space.Id}", now, $"The contract of Jira space {x.Space.ProjectKey} is not active, so {issue.Key} and later issues become cases with no contract.",
-                "Link an active contract to the space, then link it to these cases.", c.Id, null);
-        }
+        await ResolveAutomaticAsync($"contract:{x.Space.Id}", now, ct); // raised by releases before A93
         db.JiraCaseMappings.Add(new JiraCaseMapping { JiraConnectionId = x.Connection.Id, JiraIssueId = issue.Id, IssueKey = issue.Key, JiraProjectId = issue.ProjectId, ClientId = x.Space.ClientId,
             ClientJiraSpaceId = x.Space.Id, CaseId = c.Id, Source = JiraMappingSource.Created, Url = IssueUrl(x.Connection, issue.Key), LastSyncedAt = now });
         await db.SaveChangesAsync(ct);

@@ -12,11 +12,13 @@ import { JiraBadge, JiraCard, PreviewResult, SyncOffNotice, type JiraPreview, ty
 import './jira.css';
 
 type Settings = { isEnabled: boolean; jiraConnectionId?: number; defaultResponsibleTeamId?: number; defaultCaseType?: string; defaultPriority: string; nextReviewHours: number; importDoneIssues: boolean; importFrom?: string; syncOnStartup: boolean; fullReconciliation: boolean; fullReconciliationDays: number; syncIntervalMinutes: number; lastPreviewAt?: string; version: string };
+type SpaceContract = { id: number; ref: string; title: string; status: string; startDate?: string; endDate?: string };
+const contractPeriod = (k: SpaceContract) => `${k.startDate ?? 'no start date'} to ${k.endDate ?? 'no end date'}`;
 type ValueMapping = { id: number; kind: 'Priority' | 'IssueType'; jiraValue: string; target?: string };
 type ClientJiraDto = {
-  valueMappings?: ValueMapping[]; contracts?: { id: number; ref: string; title: string }[]; syncEnabled: boolean; canManage: boolean; settings?: Settings; summary: { enabled: boolean; assignedSpaces: number; lastSuccess?: string; syncIntervalMinutes: number; errors: number; warnings: number };
+  valueMappings?: ValueMapping[]; contracts?: SpaceContract[]; syncEnabled: boolean; canManage: boolean; settings?: Settings; summary: { enabled: boolean; assignedSpaces: number; lastSuccess?: string; syncIntervalMinutes: number; errors: number; warnings: number };
   connections: { id: number; name: string }[];
-  spaces: { id: number; isEnabled: boolean; contractId?: number; contractRef?: string; contractTitle?: string; contractStatus?: string; projectKey: string; projectName: string; jiraProjectId: string; jiraConnectionId: number; connection?: string; siteUrl?: string; lastSync?: string; health: string; lastError?: string; cases: number }[];
+  spaces: { id: number; isEnabled: boolean; contracts: SpaceContract[]; projectKey: string; projectName: string; jiraProjectId: string; jiraConnectionId: number; connection?: string; siteUrl?: string; lastSync?: string; health: string; lastError?: string; cases: number }[];
   checks: { label: string; state: string }[]; issues: { id: number; type: string; issueKey?: string; projectKey?: string; description: string; suggestedAction: string; lastSeenAt: string }[]; runs: SyncRun[];
 };
 type Available = { id: number; jiraProjectId: string; projectKey: string; projectName: string; assignedClient?: string; availability: string };
@@ -73,7 +75,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
           { key: 'k', header: 'Space key', render: s => s.siteUrl ? <a className="mono" href={`${s.siteUrl}/browse/${encodeURIComponent(s.projectKey)}`} target="_blank" rel="noopener noreferrer">{s.projectKey}</a> : s.projectKey },
           { key: 'n', header: 'Space name', render: s => s.projectName },
           { key: 'c', header: 'Connection', render: s => s.connection },
-          { key: 'ct', header: 'Contract', render: s => <>{s.contractId ? <span title={s.contractTitle}>{s.contractRef ?? 'Deleted contract'}{s.contractStatus && s.contractStatus !== 'Active' && <Badge tone="warn">{label(s.contractStatus)}</Badge>}</span> : <span className="muted">None</span>}{canManage && <> <button className="linkbtn" aria-label={`Change the contract of ${s.projectKey}`} onClick={() => setContractOf(s)}>Change</button></>}</> },
+          { key: 'ct', header: 'Contract', render: s => <>{s.contracts.length ? s.contracts.map(k => <div key={k.id} title={k.title}>{k.ref} <span className="hint">{contractPeriod(k)}</span>{k.status !== 'Active' && <> <Badge tone="warn">{label(k.status)}</Badge></>}</div>) : <span className="muted">None</span>}{canManage && <> <button className="linkbtn" aria-label={`Change the contracts of ${s.projectKey}`} onClick={() => setContractOf(s)}>Change</button></>}</> },
           { key: 'l', header: 'Last sync', render: s => s.lastSync ? fmtDateTime(s.lastSync) : <span className="muted">Never</span> },
           { key: 'h', header: 'Sync health', render: s => <span title={s.lastError}><JiraBadge value={s.health === 'Success' ? 'Healthy' : s.health} /></span> },
           { key: 'u', header: 'Case count', className: 'num', render: s => hasRight(me, 'Cases', 'View') ? <Link to={`/cases?clientId=${clientId}&jiraSpace=${s.projectKey}&status=all`}>{s.cases}</Link> : s.cases },
@@ -107,13 +109,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
       {(d.valueMappings?.length ?? 0) > 0 && <ValueMappings clientId={clientId} rows={d.valueMappings!} canManage={d.canManage} />}
       {dialog === 'preview' && <PreviewDialog clientId={clientId} onClose={() => { setDialog(null); refresh(); }} />}
       {dialog === 'history' && <HistoryDialog clientId={clientId} onClose={() => setDialog(null)} />}
-      {contractOf && <ActionDialog title={`Contract of ${contractOf.projectKey}`} method="PUT" path={`/clients/${clientId}/jira/spaces/${contractOf.id}/contract`} submitLabel="Save" onClose={() => setContractOf(null)}
-        intro="New cases from this space follow this contract: its SLA targets, support hours, pause rule and penalties, counted from the Jira creation time. Cases that already have a contract keep it."
-        initial={{ contractId: contractOf.contractId ? String(contractOf.contractId) : '' }}
-        fields={[{ name: 'contractId', label: 'Contract', kind: 'select', options: (d.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` })) },
-          { name: 'applyToOpenCases', label: 'Also link open cases from this space that have no contract', kind: 'checkbox', hint: 'Their SLA counts from the Jira creation time, so older cases can breach at once.' },
-          { name: 'reason', label: 'Reason', kind: 'textarea', hint: 'Required when changing a contract or linking open cases.' }]}
-        transform={v => ({ contractId: v.contractId ? Number(v.contractId) : null, applyToOpenCases: v.applyToOpenCases === 'true', reason: v.reason })} />}
+      {contractOf && <SpaceContractsDialog clientId={clientId} space={contractOf} options={d.contracts ?? []} onClose={() => setContractOf(null)} />}
       {release && <ActionDialog title="Release Jira space" danger path={`/clients/${clientId}/jira/spaces/${release}/release`} submitLabel="Release" onClose={() => setRelease(null)}
         intro="The space stops synchronizing and can be assigned again. Cases already imported stay with this client." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
     </>}</QueryState>
@@ -259,6 +255,36 @@ function HistoryDialog({ clientId, onClose }: { clientId: number; onClose: () =>
   return (
     <Dialog title="Synchronization history" wide onClose={onClose}>
       <QueryState q={q}>{q.data && <><RunsTable runs={q.data.items} /><Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={setPage} onSize={setSize} /></>}</QueryState>
+    </Dialog>
+  );
+}
+
+/** A93: the contracts of a Jira space. Each ticket takes the one valid on its creation date. */
+function SpaceContractsDialog({ clientId, space, options, onClose }: { clientId: number; space: ClientJiraDto['spaces'][number]; options: SpaceContract[]; onClose: () => void }) {
+  const f = useForm({ contractIds: space.contracts.map(k => k.id), reason: '' });
+  const [confirmed, setConfirmed] = useState(false);
+  const toast = useToast();
+  const refresh = useRefresh();
+  const v = f.values;
+  const removing = space.contracts.some(k => !v.contractIds.includes(k.id));
+  const toggle = (id: number, on: boolean) => f.set('contractIds', on ? [...v.contractIds, id] : v.contractIds.filter(x => x !== id));
+  const save = async () => {
+    const r = await f.submit(() => put<{ changed: number }>(`/clients/${clientId}/jira/spaces/${space.id}/contracts`, { contractIds: v.contractIds, reason: v.reason || null }));
+    if (r) { toast(`Contracts of ${space.projectKey} saved; ${r.changed} case(s) changed.`); await refresh(); onClose(); }
+  };
+  return (
+    <Dialog title={`Contracts of ${space.projectKey}`} onClose={onClose}>
+      <div className="notice">Each ticket belongs to the contract valid on its Jira creation date, whether open or closed, and a renewal does not move older tickets. A ticket no contract covers is Not measurable. Saving applies this to the existing cases of this space, so their SLA results and penalties can change. Dates of these contracts must not overlap.</div>
+      <FormError error={f.error} fields={['contractIds', 'reason']} />
+      <fieldset className="wide" style={{ border: 0, padding: 0, margin: '8px 0' }}>
+        <legend className="flabel">Contracts</legend>
+        {options.length === 0 && <p className="hint">This client has no contract that can be linked.</p>}
+        {options.map(k => <div key={k.id}><label className="check"><input type="checkbox" checked={v.contractIds.includes(k.id)} onChange={e => toggle(k.id, e.target.checked)} /> {k.ref} · {k.title} <span className="hint">{contractPeriod(k)}{k.status !== 'Active' ? ` · ${label(k.status)}` : ''}</span></label></div>)}
+        {f.fieldError('contractIds') && <div className="err">{f.fieldError('contractIds')}</div>}
+      </fieldset>
+      <TextInput label="Reason" required={removing} multiline wide value={v.reason} onChange={x => f.set('reason', x)} error={f.fieldError('reason')} hint={removing ? 'Needed because a contract is removed: its tickets lose it.' : 'Optional when only adding.'} />
+      <label className="check" style={{ marginTop: 8 }}><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> I confirm this action.</label>
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={!confirmed || f.busy} onClick={save}>{f.busy ? 'Saving…' : 'Save'}</button></div>
     </Dialog>
   );
 }

@@ -289,13 +289,13 @@ public static class JiraAdminEndpoints
             access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(current.ClientId, null));
             access.RequireIn(RightKeys.Structure, RightKeys.Coordinate, ResourceContext.ForRecord(target, null));
             // A84: the earlier client's contract never follows the space.
-            await JiraClientEndpoints.CheckSpaceContractAsync(db, target, i.ContractId, ct);
+            await JiraSpaceContracts.CheckAsync(db, target, i.ContractId is { } contract ? [contract] : [], ct);
             var now = clock.GetUtcNow();
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             current.ReleasedAt = now; current.ReleaseReason = reason; current.IsEnabled = false;
             db.AuditReason = reason;
             await db.SaveChangesAsync(ct);
-            db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = target, JiraConnectionId = id, JiraProjectId = projectId, ProjectKey = current.ProjectKey, ProjectName = current.ProjectName, ContractId = i.ContractId });
+            db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = target, JiraConnectionId = id, JiraProjectId = projectId, ProjectKey = current.ProjectKey, ProjectName = current.ProjectName, Contracts = i.ContractId is { } linked ? [new ClientJiraSpaceContract { ContractId = linked }] : [] });
             db.JiraIntegrationIssues.Add(new JiraIntegrationIssue { Type = JiraIssueType.SpaceReassignment, Status = JiraIssueStatus.Resolved, Fingerprint = $"reassign:{id}:{projectId}:{now.ToUnixTimeSeconds()}", JiraConnectionId = id, ClientId = target, ProjectKey = current.ProjectKey, JiraProjectId = projectId,
                 Description = $"Space {current.ProjectKey} moved from client {current.ClientId} to client {target}. Existing cases stayed with the earlier client.", SuggestedAction = "Issues of existing cases appear here if they change again.", LastSeenAt = now, Resolution = "Reassigned", ResolutionNote = reason, ResolvedById = access.Me.UserId, ResolvedAt = now });
             db.AuditReason = reason;

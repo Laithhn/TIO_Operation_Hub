@@ -10252,3 +10252,101 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    ALTER TABLE [work].[Case] ADD [SlaNoCoveringContract] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    CREATE TABLE [jira].[ClientJiraSpaceContract] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientJiraSpaceId] bigint NOT NULL,
+        [ContractId] bigint NOT NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        [UpdatedAt] datetimeoffset NOT NULL,
+        [UpdatedById] bigint NULL,
+        [RowVersion] rowversion NOT NULL,
+        CONSTRAINT [PK_ClientJiraSpaceContract] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ClientJiraSpaceContract_ClientJiraSpace_ClientJiraSpaceId] FOREIGN KEY ([ClientJiraSpaceId]) REFERENCES [jira].[ClientJiraSpace] ([Id]),
+        CONSTRAINT [FK_ClientJiraSpaceContract_User_CreatedById] FOREIGN KEY ([CreatedById]) REFERENCES [iam].[User] ([Id]),
+        CONSTRAINT [FK_ClientJiraSpaceContract_User_UpdatedById] FOREIGN KEY ([UpdatedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_ClientJiraSpaceContract_ClientJiraSpaceId_ContractId] ON [jira].[ClientJiraSpaceContract] ([ClientJiraSpaceId], [ContractId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSpaceContract_ContractId] ON [jira].[ClientJiraSpaceContract] ([ContractId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSpaceContract_CreatedById] ON [jira].[ClientJiraSpaceContract] ([CreatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    CREATE INDEX [IX_ClientJiraSpaceContract_UpdatedById] ON [jira].[ClientJiraSpaceContract] ([UpdatedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    EXEC(N'INSERT INTO [jira].[ClientJiraSpaceContract] ([ClientJiraSpaceId], [ContractId], [CreatedAt], [UpdatedAt])
+    SELECT s.[Id], s.[ContractId], SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET() FROM [jira].[ClientJiraSpace] s
+    WHERE s.[ContractId] IS NOT NULL AND s.[ReleasedAt] IS NULL');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    DECLARE @var31 nvarchar(max);
+    SELECT @var31 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[jira].[ClientJiraSpace]') AND [c].[name] = N'ContractId');
+    IF @var31 IS NOT NULL EXEC(N'ALTER TABLE [jira].[ClientJiraSpace] DROP CONSTRAINT ' + @var31 + ';');
+    ALTER TABLE [jira].[ClientJiraSpace] DROP COLUMN [ContractId];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105070845_JiraSpaceContracts'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261105070845_JiraSpaceContracts', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

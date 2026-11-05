@@ -204,25 +204,25 @@ test('a Jira space is linked to a contract when assigned and later', async ({ pa
   const id = await clientId(page);
   await page.route(`**/api/v1/clients/${id}/jira`, r => r.fulfill({ json: {
     syncEnabled: true, canManage: true, summary: { enabled: false, assignedSpaces: 1, syncIntervalMinutes: 15, errors: 0, warnings: 0 }, connections: [{ id: 1, name: 'Demo Jira Cloud' }],
-    contracts: [{ id: 7, ref: 'CT-1007', title: 'Fictional support agreement' }],
+    contracts: [{ id: 7, ref: 'CT-1007', title: 'Fictional support agreement', status: 'Active', startDate: '2026-01-01', endDate: '2026-12-31' }, { id: 8, ref: 'CT-1008', title: 'Fictional renewal', status: 'Active', startDate: '2027-01-01', endDate: '2027-12-31' }],
     settings: { isEnabled: false, jiraConnectionId: 1, defaultPriority: 'Normal', nextReviewHours: 48, importDoneIssues: false, syncOnStartup: false, fullReconciliation: true, fullReconciliationDays: 7, syncIntervalMinutes: 15, version: 'AAAA' },
-    spaces: [{ id: 1, isEnabled: true, projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', health: 'NotRun', cases: 0 }],
+    spaces: [{ id: 1, isEnabled: true, contracts: [], projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', health: 'NotRun', cases: 0 }],
     checks: [], issues: [], runs: [] } }));
   await page.route(`**/api/v1/clients/${id}/jira/available-spaces**`, r => r.fulfill({ json: [{ id: 1, jiraProjectId: '600', projectKey: 'CRM', projectName: 'Customer Portal', availability: 'Available' }] }));
   let linked: unknown;
-  await page.route(`**/api/v1/clients/${id}/jira/spaces/1/contract`, r => { linked = r.request().postDataJSON(); return r.fulfill({ json: { applied: 2 } }); });
+  await page.route(`**/api/v1/clients/${id}/jira/spaces/1/contracts`, r => { linked = r.request().postDataJSON(); return r.fulfill({ json: { changed: 2 } }); });
   let assigned: unknown;
   await page.route(`**/api/v1/clients/${id}/jira/spaces`, r => { assigned = r.request().postDataJSON(); return r.fulfill({ json: { added: 1 } }); });
   await page.goto(`/clients/${id}?tab=jira`);
 
-  await page.getByRole('button', { name: 'Change the contract of TAH' }).click();
+  await page.getByRole('button', { name: 'Change the contracts of TAH' }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Contract', { exact: true }).selectOption('7');
-  await dialog.getByLabel('Also link open cases from this space that have no contract').check();
-  await dialog.getByLabel('Reason').fill('Covers the whole space');
+  await expect(dialog).toContainText('Each ticket belongs to the contract valid on its Jira creation date');
+  await dialog.getByLabel(/CT-1007/).check();
+  await dialog.getByLabel(/CT-1008/).check();
   await dialog.getByLabel('I confirm this action.').check();
   await dialog.getByRole('button', { name: 'Save' }).click();
-  await expect.poll(() => linked).toEqual({ contractId: 7, applyToOpenCases: true, reason: 'Covers the whole space' });
+  await expect.poll(() => linked).toEqual({ contractIds: [7, 8], reason: null });
 
   await page.getByRole('button', { name: '+ Add Jira space' }).click();
   await page.getByLabel('Select CRM').check();

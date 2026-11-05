@@ -460,7 +460,7 @@ Each right's prerequisites apply too. All record operations also enforce data sc
 | `GET /clients/{id:long}/jira/runs.csv` | Rights | `ClientStructure:View`, `tab.ClientStructure.jira:View` |  |  |
 | `POST /clients/{id:long}/jira/spaces` | Rights | `tab.ClientStructure.jira:View` |  |  |
 | `PUT /clients/{id:long}/jira/spaces/{spaceId:long}` | Rights | `tab.ClientStructure.jira:View` |  |  |
-| `PUT /clients/{id:long}/jira/spaces/{spaceId:long}/contract` | Rights | `tab.ClientStructure.jira:View` |  |  |
+| `PUT /clients/{id:long}/jira/spaces/{spaceId:long}/contracts` | Rights | `tab.ClientStructure.jira:View` |  |  |
 | `POST /clients/{id:long}/jira/spaces/{spaceId:long}/release` | Rights | `tab.ClientStructure.jira:View` |  |  |
 | `POST /clients/{id:long}/jira/sync` | Rights | `tab.ClientStructure.jira:View` |  |  |
 | `PUT /clients/{id:long}/jira/value-mappings/{mappingId:long}` | Rights | `tab.ClientStructure.jira:View` |  |  |

@@ -189,10 +189,15 @@ public static class ContractEndpoints
             // A move between projects needs authority over both the old and the proposed project.
             access.RequireIn(RightKeys.Contracts, RightKeys.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId, input.ProjectId ?? c.ProjectId]));
             db.ExpectVersion(ctx, c);
+            var before = (c.StartDate, c.EndDate, c.Status);
             await ApplyAsync(c, input, db, access, ct);
+            // A93: the tickets of a Jira space follow these dates, so a linked contract cannot overlap another and they are matched again.
+            var dates = before != (c.StartDate, c.EndDate, c.Status);
+            if (dates) await Jira.JiraSpaceContracts.CheckEditedDatesAsync(db, c.Id, c.StartDate, c.EndDate, ct);
             // Saving the contract after checking it against the document counts as a review.
             c.LastReviewedAt = clock.GetUtcNow();
             await db.SaveChangesAsync(ct);
+            if (dates) foreach (var space in await Jira.JiraSpaceContracts.SpacesOfAsync(db, c.Id, ct)) await Jira.JiraSpaceContracts.ReconcileAsync(db, space, [], clock.GetUtcNow(), ct);
             return Results.NoContent();
         });
 
