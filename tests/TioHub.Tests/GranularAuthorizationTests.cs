@@ -120,6 +120,16 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
+    public async Task My_dashboard_needs_its_own_right_as_well_as_ticket_access()
+    {
+        var manager = await Hub.As(HubFactory.Manager);
+        var (ticketsOnly, _) = await User(manager, await Role(manager, "Cases:View"));
+        Assert.Equal(HttpStatusCode.Forbidden, (await ticketsOnly.Get("/dashboard/me")).Status);
+        var (both, _) = await User(manager, await Role(manager, "Cases:View", "MyDashboard:View"));
+        Assert.Equal(HttpStatusCode.OK, (await both.Get("/dashboard/me")).Status);
+    }
+
+    [Fact]
     public async Task Revocation_invalidates_an_independent_instance_cache_without_waiting_for_expiration()
     {
         var manager = await Hub.As(HubFactory.Manager);

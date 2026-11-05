@@ -2,7 +2,7 @@ import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
-import { canAccessPath, isAdministrator, hasAccess } from './rights';
+import { hasRight, canAccessPath, isAdministrator, hasAccess } from './rights';
 import { ErrorBox, PageHead, Restricted, StateMessage } from './ui/kit';
 import { LoadBoundary } from './ui/LoadBoundary';
 import { Shell } from './ui/Shell';
@@ -95,10 +95,18 @@ function Outside({ children }: { children: ReactNode }) {
   return <LoadBoundary><Suspense fallback={<div style={{ padding: 24 }}><StateMessage kind="loading" /></div>}>{children}</Suspense></LoadBoundary>;
 }
 
-function Home() {
+function Overview() {
   const me = useMe().data!;
   if (!hasAccess(me)) return isAdministrator(me) ? <Navigate to="/admin/users" replace /> : <NoAccess />;
   return <Dashboard />;
+}
+
+/** A100: engineers start on their own work and managers on everything they can see. The same test decides the dashboard's default view. A link with filters still opens the overview. */
+function Home() {
+  const me = useMe().data!;
+  const { search } = useLocation();
+  if (hasAccess(me) && !search && !hasRight(me, 'ClientStructure', 'Coordinate') && hasRight(me, 'MyDashboard', 'View')) return <Navigate to="/my-dashboard" replace />;
+  return <Overview />;
 }
 
 function MapHome() {
@@ -142,6 +150,7 @@ export const router = createBrowserRouter([
   {
     path: '/', element: <Root />, children: [
       { index: true, element: <Home /> },
+      { path: 'overview', element: <Overview /> },
       { path: 'map', element: <MapHome /> },
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },

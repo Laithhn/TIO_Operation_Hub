@@ -26,9 +26,11 @@ const integrations = (m: Me) => isAdministrator(m) && hasRight(m, 'AdminIntegrat
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
-  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|my-dashboard|map|actions|notifications|data-quality)/, show: biz, side: [
+  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|my-dashboard|overview|map|actions|notifications|data-quality)/, show: biz, side: [
     { to: '/my-dashboard', label: 'My dashboard', icon: 'user' },
-    { to: '/', label: 'Executive overview', icon: 'dashboard', end: true },
+    // For managers it is the start page; for others the start page is My dashboard, so the overview has its own address.
+    { to: '/', label: 'Executive overview', icon: 'dashboard', end: true, show: m => hasRight(m, 'ClientStructure', 'Coordinate') || !hasRight(m, 'MyDashboard', 'View') },
+    { to: '/overview', label: 'Executive overview', icon: 'dashboard', show: m => !hasRight(m, 'ClientStructure', 'Coordinate') && hasRight(m, 'MyDashboard', 'View') },
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
     { to: '/notifications', label: 'Notifications', icon: 'bell' },

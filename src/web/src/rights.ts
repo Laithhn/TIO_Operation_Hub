@@ -52,8 +52,8 @@ const businessResources = ['ClientStructure', 'Projects', 'Contracts', 'Environm
 export function routePermissions(pathname: string): string[] {
   const parts = pathname.split('/').filter(Boolean);
   const root = parts[0] ?? '';
-  if (root === 'my-dashboard') return ['Cases:View'];
-  if (['', 'map', 'actions', 'data-quality'].includes(root)) return ['Dashboard:View', ...businessResources.map(r => `${r}:View`)];
+  if (root === 'my-dashboard') return ['MyDashboard:View'];
+  if (['', 'overview', 'map', 'actions', 'data-quality'].includes(root)) return ['Dashboard:View', ...businessResources.map(r => `${r}:View`)];
   if (root === 'notifications') return ['Notifications:View'];
   if (root === 'notes') return ['PersonalNotes:View'];
   if (root === 'reporting-center' || root === 'reports') return ['Reporting:View'];

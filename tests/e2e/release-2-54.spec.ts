@@ -111,6 +111,34 @@ test('My dashboard shows my own work and each figure opens its list', async ({ p
   await expect(page).toHaveURL(new RegExp(`ownerId=${me.id}`));
 });
 
+test('engineers start on My dashboard and managers on the overview, and both can open the other', async ({ page, baseURL }) => {
+  const as = (who: string) => page.context().addCookies([{ name: 'tiohub-dev-user', value: encodeURIComponent(who), url: baseURL! }]);
+  const side = page.getByRole('complementary', { name: 'Section menu' });
+
+  await as('DEV\\engineer');
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/my-dashboard$/);
+  await expect(page.getByRole('heading', { name: 'My dashboard', exact: true })).toBeVisible();
+  await side.getByRole('link', { name: 'Executive overview' }).click();
+  await expect(page).toHaveURL(/\/overview$/);
+  await expect(page.getByRole('heading', { name: 'Operations Command Center' })).toBeVisible();
+  // A link with filters still opens the overview, and Back does not bounce.
+  await page.goto('/?period=7d');
+  await expect(page.getByRole('heading', { name: 'Operations Command Center' })).toBeVisible();
+  await expect(page).toHaveURL(/\/\?period=7d$/);
+
+  await as('DEV\\manager');
+  await page.goto('/');
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Operations Command Center' })).toBeVisible();
+  await side.getByRole('link', { name: 'My dashboard' }).click();
+  await expect(page).toHaveURL(/\/my-dashboard$/);
+
+  // A101: the page has its own right, which an administrator can see.
+  await page.goto('/admin/rights');
+  await expect(page.getByRole('main').getByText('My dashboard', { exact: true }).first()).toBeVisible();
+});
+
 test('the executive overview opens with At a glance, and a section can be folded', async ({ page }) => {
   await page.goto('/');
   const glance = page.getByRole('region', { name: 'At a glance' });

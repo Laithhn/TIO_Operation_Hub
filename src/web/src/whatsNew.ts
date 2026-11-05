@@ -1,6 +1,12 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.54.1', date: '5 November 2026', changes: [
+      'Engineers now start on My dashboard when they sign in. The executive overview is still under Dashboard.',
+      'My dashboard has its own right on the Rights page, so it can be given or taken away for each role.'
+    ]
+  },
+  {
     version: '2.54.0', date: '5 November 2026', changes: [
       'Ticket priorities now follow Jira, including existing tickets, and SLA targets follow the priority.',
       'The ticket timeline is easier to read: comments are cards with their author, changes are short lines, and everything is grouped by day.',

@@ -42,6 +42,7 @@ Write-Host "== Front end" -ForegroundColor Cyan
 Push-Location "$root\src\web"
 npm ci --no-audit --no-fund; if ($LASTEXITCODE) { throw 'npm ci failed' }
 npm run build; if ($LASTEXITCODE) { throw 'front-end build failed' }
+if (-not $SkipTests) { npm test; if ($LASTEXITCODE) { throw 'front-end tests failed' } }
 Pop-Location
 
 if (-not $SkipTests) {

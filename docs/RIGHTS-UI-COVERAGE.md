@@ -17,7 +17,9 @@ All record screens also depend on data scope (client, project or team). A record
 
 | Screen or address | What it is | Browser needs | Controls and server |
 |---|---|---|---|
+| `/my-dashboard` | My dashboard. Start page for anyone who holds this right and can't coordinate clients | `MyDashboard:View` (requires `Cases:View`) | Only the person's own work |
 | `/` | Executive overview | `Dashboard:View` (requires every business module's View) | Dashboard API |
+| `/overview` | Executive overview, at its own address for those who start on My dashboard | As `/` | Dashboard API |
 | `/map` | Client map | `ClientMap:View`, `Dashboard:View` | Dashboard API |
 | `/actions` | Action list | `ActionList:View`, `Dashboard:View` | Actions API |
 | `/notifications` | Notifications; bell in the top bar | `Notifications:View`. Mark read `Notifications:Maintain`, dismiss `Notifications:Delete` | Own notices, filtered by source record |

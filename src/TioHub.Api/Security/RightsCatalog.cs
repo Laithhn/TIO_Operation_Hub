@@ -150,6 +150,7 @@ public static class RightsCatalog
     /// <summary>Features that are not record resources. <c>Base</c> is a right every action in the feature needs beyond the feature's own View.</summary>
     private static readonly (string Resource, string Module, string Label, string? ViewNeeds, string[] Actions)[] Features =
     [
+        ("MyDashboard", "Dashboard", "My dashboard", RightKeys.KeyOf(RightKeys.Cases, RightKeys.View), [RightKeys.View]),
         ("ClientMap", "Dashboard", "Client map", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View]),
         ("ActionList", "Dashboard", "Action list", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View]),
         ("DataQuality", "Dashboard", "Data quality", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View, RightKeys.Maintain]),

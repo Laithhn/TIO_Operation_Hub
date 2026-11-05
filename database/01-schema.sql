@@ -10350,3 +10350,31 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105122619_MyDashboardRight'
+)
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM [iam].[RightDefinition] WHERE [Key] = N'MyDashboard:View')
+        INSERT [iam].[RightDefinition] ([Key],[Label],[Description],[Module],[Feature],[Kind],[RiskLevel],[DisplayOrder],[IsActive],[CreatedAt],[UpdatedAt])
+        VALUES (N'MyDashboard:View', N'View', N'View in My dashboard. Data, ownership and scope checks still apply.', N'Dashboard', N'MyDashboard', N'Access', N'Normal', 0, 1, SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET());
+    INSERT [iam].[RoleRight] ([AppRoleId],[RightKey])
+    SELECT r.[AppRoleId], N'MyDashboard:View' FROM [iam].[RoleRight] r
+    WHERE r.[RightKey] = N'Cases:View'
+      AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[AppRoleId] AND x.[RightKey] = N'MyDashboard:View');
+    UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105122619_MyDashboardRight'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261105122619_MyDashboardRight', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

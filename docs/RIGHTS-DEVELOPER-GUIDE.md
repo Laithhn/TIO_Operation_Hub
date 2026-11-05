@@ -37,6 +37,16 @@ dotnet run --project build/RightsManifest
 
 `No_operation_succeeds_for_someone_without_its_right` calls every operation as a person holding one unrelated right. A `Handler` entry whose handler forgets the check fails there, unless the record lookup fails first. So also add a direct test with a record that exists.
 
+## Adding a page
+
+A page cannot exist outside the rights. `pageRights.test.ts` reads every route in `App.tsx` and `pages/Reports.tsx`. It fails until someone holding every right can open the page and someone holding none cannot, and a release package can't be built while it fails. Until the page is registered, everyone gets Access denied, including the TIO Manager.
+
+1. Add the route.
+2. Decide what opens it. **A new screen with its own purpose gets its own right**, so it can be given and taken away and shows on the Rights page: add a line to `Features` in `Security/RightsCatalog.cs`, with `ViewNeeds` set to the right its data needs. A form or detail of an existing feature uses that feature's rights.
+3. Register it in `rights.ts`: in `routePermissions` for a top-level page, or in `adminAreas` or `reportingAreas`.
+4. Run the generator, and add the page to [RIGHTS-UI-COVERAGE.md](RIGHTS-UI-COVERAGE.md).
+5. Follow **Adding a right** below. A new right opens the page only for the TIO Manager until a migration or an administrator gives it to other roles.
+
 ## Adding a right
 
 Add a right when an action has **different business or security consequences** from the rights that exist. Two buttons that mean the same thing share a right.

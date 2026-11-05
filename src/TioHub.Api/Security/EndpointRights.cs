@@ -220,7 +220,7 @@ public static class EndpointRights
         ["GET /dashboard"] = Rights("Cases:View", "ClientStructure:View", "Commitments:View", "Contracts:View", "Dashboard:View", "Environments:View", "Installations:View", "OtherOperations:View", "Products:View", "Projects:View", "Servers:View", "Teams:View"),
         ["GET /dashboard/actions"] = Rights("ActionList:View", "Cases:View", "ClientStructure:View", "Commitments:View", "Contracts:View", "Dashboard:View", "Environments:View", "Installations:View", "OtherOperations:View", "Products:View", "Projects:View", "Servers:View", "Teams:View"),
         ["GET /dashboard/command-center"] = Rights("Cases:View", "ClientStructure:View", "Commitments:View", "Contracts:View", "Dashboard:View", "Environments:View", "Installations:View", "OtherOperations:View", "Products:View", "Projects:View", "Servers:View", "Teams:View"),
-        ["GET /dashboard/me"] = Rights("Cases:View"),
+        ["GET /dashboard/me"] = Rights("MyDashboard:View"),
         ["GET /dashboard/insights"] = Rights("Cases:View", "ClientStructure:View", "Commitments:View", "Contracts:View", "Dashboard:View", "Environments:View", "Installations:View", "OtherOperations:View", "Products:View", "Projects:View", "Servers:View", "Teams:View"),
         ["GET /data-quality"] = Rights("Cases:View", "ClientStructure:View", "Commitments:View", "Contracts:View", "DataQuality:View", "Environments:View", "Installations:View", "OtherOperations:View", "Products:View", "Projects:View", "Servers:View", "Teams:View"),
         ["POST /data-quality/scan"] = Rights("DataQuality:Maintain").Also("OtherOperations:Maintain"),
