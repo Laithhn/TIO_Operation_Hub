@@ -96,6 +96,15 @@ export function useUrlState<T extends Record<string, string>>(defaults: T): [T, 
   return [state, set];
 }
 
+/** A102: a search field kept in the URL. It survives changing pages, and follows the URL when something else clears it. */
+export function useUrlSearch(value: string, apply: (v: string) => void): [string, (v: string) => void] {
+  const [text, setText] = useState(value);
+  const debounced = useDebounced(text);
+  useEffect(() => { if (debounced !== value) apply(debounced); }, [debounced]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (value !== debounced) setText(value); }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  return [text, setText];
+}
+
 export function useDebounced<T>(value: T, ms = 300): T {
   const [v, setV] = useState(value);
   useEffect(() => { const t = setTimeout(() => setV(value), ms); return () => clearTimeout(t); }, [value, ms]);

@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { vtTable } from './vtTable';
+import { vtTable, startDelete } from './vtTable';
 
 // A96-A98, against the real API, the built front end and the fictional seed of an isolated database.
 
@@ -70,7 +70,7 @@ test('deleting one ticket lists what is deleted with it', async ({ page }) => {
   const clients = await api<{ items: { id: number }[] }>(page, '/clients?pageSize=1');
   await api(page, '/commitments', { scope: 'Client', clientId: clients.items[0].id, caseId: id, description: `Commitment of ${title}`, type: 'CustomerUpdate', ownerUserId: me.id, dueLocal: new Date(Date.now() + 864000000).toISOString().slice(0, 16), timeZone: 'UTC' });
   await page.goto(`/cases/${id}`);
-  await page.getByRole('button', { name: /^Delete ticket/ }).click();
+  await startDelete(page, /ticket/);
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByText('Will be deleted with it').or(dialog.getByText('Will be unlinked').or(dialog.getByText(/Commitments/))).first()).toBeVisible();
 });
@@ -104,10 +104,10 @@ test('My dashboard shows my own work and each figure opens its list', async ({ p
   await page.goto('/my-dashboard');
   await expect(page.getByRole('heading', { name: 'My dashboard', exact: true })).toBeVisible();
   const figures = page.getByRole('region', { name: 'My work now' });
-  await expect(figures.getByText('Open tickets')).toBeVisible();
+  await expect(figures.getByText('open tickets')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'My last 30 days' })).toBeVisible();
   const me = await api<{ id: number }>(page, '/me');
-  await figures.getByRole('link', { name: /^Open tickets/ }).click();
+  await figures.getByRole('link', { name: /open tickets/ }).click();
   await expect(page).toHaveURL(new RegExp(`ownerId=${me.id}`));
 });
 

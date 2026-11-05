@@ -37,8 +37,7 @@ async function clientFixture(page: Page) {
 }
 
 async function openStructure(page: Page, clientId: number) {
-  await page.goto(`/clients/${clientId}`);
-  await page.getByRole('tab', { name: 'Organizations', exact: true }).click();
+  await page.goto(`/clients/${clientId}?tab=organizations`);
   await expect(page.getByRole('heading', { name: 'Organizational Structure', exact: true })).toBeVisible();
   await expect(page.getByLabel('Organization context')).toBeVisible();
 }

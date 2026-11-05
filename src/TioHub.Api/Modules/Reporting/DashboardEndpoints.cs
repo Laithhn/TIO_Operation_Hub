@@ -259,7 +259,7 @@ public static class DashboardEndpoints
             var resolution = recent.Select(c => CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now)).ToList();
             static double? Hours(List<double> v) => v.Count == 0 ? null : Math.Round(v.Average(), 1);
             var seesCommitments = access.Me.HasRight(RightKeys.Commitments, RightKeys.View);
-            var commitments = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).Where(_ => seesCommitments).OrderBy(c => c.CurrentDueAt).Take(10).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
+            var commitments = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).Where(_ => seesCommitments).OrderBy(c => c.CurrentDueAt).Take(25).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
             var openCommitments = seesCommitments ? await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).CountAsync(ct) : 0;
             var overdueCommitments = seesCommitments ? await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me, Due: "overdue"), now, days, db).CountAsync(ct) : 0;
             var ids = rows.Select(r => r.Id).ToList();

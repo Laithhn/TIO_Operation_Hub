@@ -3,6 +3,8 @@
 Recorded on 16 October 2026 on a Windows 11 developer machine (SQL Server LocalDB 15.0, .NET SDK 10.0.401, Node 22.23.3, Microsoft Edge).
 Re-run with the commands in the README; results below are from actual runs, not expectations.
 
+**2.55.0 (5 November 2026, usability review A102):** on the isolated QA instance: 732 backend tests passed; 198 real-API browser tests with 190 passing on the last full run, and the 8 others passing after their corrections, rerun on their own; 13 intercepted browser tests and the front-end unit tests passed. The whole browser suite was not run again after those last corrections. User validation is not done: see USABILITY-VALIDATION-PLAN.md.
+
 **Latest (2.48.0, 3 November 2026):** 660 backend, 74 frontend, 158 real-API browser and 7 intercepted browser tests passed. **After the rights screen update, 4 November:** 660 backend, 81 frontend, 158 real-API browser and 13 intercepted browser tests passed. See [RELEASE-VALIDATION-2.48.0.md](RELEASE-VALIDATION-2.48.0.md). The sections below record earlier releases.
 
 ## Automated .NET tests — `dotnet test tests/TioHub.Tests`

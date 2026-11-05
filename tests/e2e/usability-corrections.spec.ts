@@ -127,29 +127,17 @@ test('the ticket list says what each search covers, for a record outside the fir
   await expect(vtRow(table, made[17].title)).toBeVisible();
   await expect(vtRow(table, target.title)).toHaveCount(0);
 
-  // The page-only filter is named for its scope, finds nothing outside the page and says so.
-  const pageFilter = table.getByLabel('Filter rows on this page only');
-  await expect(pageFilter).toHaveAttribute('placeholder', 'Filter this page…');
-  await expect(pageFilter).toHaveAccessibleDescription(/other pages are not searched/);
-  await pageFilter.fill(target.ref);
-  await expect(table.locator('.table-count')).toHaveText('0 of 15 rows on this page');
-  await expect(table.getByText('Only this page was filtered. Other pages may have matching rows.')).toBeVisible();
-  await pageFilter.fill('');
-
-  // The text conditions in the Filter card are page-only as well, and say so.
-  await table.getByRole('button', { name: 'Filter', exact: true }).click();
-  await expect(page.getByText('Text conditions filter the rows on this page only.')).toBeVisible();
-  await page.keyboard.press('Escape');
+  // A102: there is no filter for the rows on one page any more, on this list.
+  await expect(table.getByLabel('Filter rows on this page only')).toHaveCount(0);
+  await expect(table.getByRole('button', { name: 'Filter', exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Search all tickets', { exact: true })).toHaveCount(1);
 
   // Going to the next page finds it the slow way, and pagination still works.
   await page.getByRole('button', { name: 'Next', exact: true }).click();
   await expect(page).toHaveURL(/page=2/);
   await expect(vtRow(table, target.title)).toBeVisible();
-  await pageFilter.fill(target.ref);
-  await expect(table.locator('.table-count')).toHaveText(/^1 of \d+ rows on this page$/);
-  await pageFilter.fill('');
 
-  // Full-list search is on the page, covers every page and returns to page 1.
+  // The one search covers every page, returns to page 1 and gives the total.
   const search = page.getByLabel('Search all tickets', { exact: true });
   await expect(search).toBeVisible();
   await search.fill(target.ref);
@@ -157,14 +145,9 @@ test('the ticket list says what each search covers, for a record outside the fir
   await expect(page).not.toHaveURL(/page=2/);
   await expect(vtRow(table, target.title)).toBeVisible();
   await expect(table.locator('.vt-row')).toHaveCount(1);
+  await expect(table.locator('.table-count')).toHaveText('1 match');
   await search.fill('');
   await expect(vtRow(table, target.title)).toHaveCount(0);
-
-  // The Ref field in the Filter card is the same full-list search.
-  await table.getByRole('button', { name: 'Filter', exact: true }).click();
-  await page.getByLabel('Search all tickets by reference').fill(target.ref);
-  await expect(vtRow(table, target.title)).toBeVisible();
-  await expect(search).toHaveValue(target.ref);
 });
 
 test('new-case guidance names only an active risk type', async ({ page }) => {
@@ -335,6 +318,7 @@ test('ticket detail and dashboard explain their dates and statuses', async ({ pa
   await expect(page.getByRole('heading', { name: 'Tickets', exact: true })).toBeVisible();
   const rows = await api<{ items: { id: number; ref: string }[] }>(page, '/cases?pageSize=1');
   await page.goto(`/cases/${rows.items[0].id}`);
+  await page.locator('summary', { hasText: 'Supporting details' }).click();
   const age = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Age and waiting' }) });
   await expect(age.getByText('Age since opening')).toBeVisible();
   await expect(age.getByText('(hub creation time)')).toBeVisible();

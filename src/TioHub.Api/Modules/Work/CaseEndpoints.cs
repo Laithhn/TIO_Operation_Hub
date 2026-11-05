@@ -58,6 +58,25 @@ public static class CaseEndpoints
             return Results.Ok(paged with { Items = paged.Items.Select(r => r with { JiraAssigneeKind = kindOf.GetValueOrDefault(r.Id) }).ToList() });
         });
 
+        // A102: the counts of the ticket list's quick views. Each uses the filter its view opens, so a count equals its list (AC-11).
+        g.MapGet("/quick-views", async (HubDbContext db, HubAccess access, HubSettings settings, FreshnessService fresh, TimeProvider clock, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            var now = clock.GetUtcNow();
+            var days = await settings.UpcomingDaysAsync(ct);
+            var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
+            var coverage = await settings.CoveragePrioritiesAsync(ct);
+            Task<int> Count(CaseFilter f) => CaseQuery.Apply(db.Cases.AsNoTracking(), f, now, days, policy, db, coverage).CountAsync(ct);
+            return Results.Ok(new
+            {
+                open = await Count(new CaseFilter()),
+                mine = access.Me.UserId is { } me ? await Count(new CaseFilter(OwnerId: me)) : 0,
+                overdue = await Count(new CaseFilter(Due: "overdue")),
+                unassigned = await Count(new CaseFilter(Unassigned: true)),
+                waitingForCustomer = await Count(new CaseFilter(WaitingFor: WaitingReason.Customer))
+            });
+        });
+
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
         {
             access.RequireAccess();
@@ -661,11 +680,11 @@ public static class CaseEndpoints
     }
 
     public sealed record CaseListQuery(long? ClientId, long? RegionId, long? EnvironmentId, long? ProductId, long? TeamId, long? OwnerId, bool? Unassigned, string? Status,
-        Priority? Priority, WorkScope? Scope, string? Due, bool? Waiting, bool? ReviewOverdue, bool? Stale, string? JiraKey, string? Q, DateTimeOffset? CreatedFrom, DateTimeOffset? CreatedTo,
+        string? Priority, WorkScope? Scope, string? Due, bool? Waiting, bool? ReviewOverdue, bool? Stale, string? JiraKey, string? Q, DateTimeOffset? CreatedFrom, DateTimeOffset? CreatedTo,
         bool? CoverageGap, bool? DeactivatedOwner, string? Country, DateTimeOffset? AsOf, string? Sort, int? Page, int? PageSize, long? ContractId = null, string? Sla = null,
-        string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null)
+        string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null, WaitingReason? WaitingFor = null)
     {
-        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, Priority, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla, JiraSource, JiraConnectionId, JiraSpace);
+        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, null, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla, JiraSource, JiraConnectionId, JiraSpace, CaseQuery.ParsePriorities(Priority), WaitingFor);
     }
 
     private static double AgeDays(DateTimeOffset from, Case c, DateTimeOffset now) => Math.Round(Math.Max(0, ((c.ClosedAt ?? c.CancelledAt ?? now) - from).TotalDays), 1);

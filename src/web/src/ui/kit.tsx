@@ -1,11 +1,11 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { cloneElement, createContext, Fragment, isValidElement, lazy, Suspense, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
+import { cloneElement, createContext, Fragment, isValidElement, lazy, Suspense, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type CSSProperties, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ApiError, del, get, type UserRef } from '../api';
+import { ApiError, type UserRef } from '../api';
 import { useMe, useReference } from '../hooks';
 import { fmtDateTime, label } from '../format';
 import { Icon } from './Icon';
-import { hasRight, resourceForRecord, canDeletePath, canExport } from '../rights';
+import { canDeletePath, canExport } from '../rights';
 import { createPortal } from 'react-dom';
 import { Button, Card, Icon as VtIcon, Spinner, TabBar, TabBarTitleItem, Toolbar, ToolbarContrItem } from '../vt';
 import { activeCriteriaCount, DEFAULT_OPERATOR, isCriterionIncomplete, rowMatches, TEXT_FILTER_OPERATORS, type TextFilterOperator } from './tableFilter';
@@ -188,7 +188,7 @@ export function Person({ u, gap = 'Unassigned' }: { u?: UserRef | null; gap?: st
 
 // ---------- menus (ease of use: fewer buttons in a row) ----------
 
-export type MenuItem = { label: ReactNode; to?: string; onClick?: () => void; danger?: boolean; hidden?: boolean };
+export type MenuItem = { label: ReactNode; to?: string; onClick?: () => void; danger?: boolean; hidden?: boolean; ariaLabel?: string };
 
 /** A button that opens a short list of actions. Keyboard: Enter/Space opens, arrows move, Escape closes. */
 export function Menu({ label: text, items, primary, align = 'right', title }: { label: ReactNode; items: MenuItem[]; primary?: boolean; align?: 'left' | 'right'; title?: string }) {
@@ -219,7 +219,7 @@ export function Menu({ label: text, items, primary, align = 'right', title }: { 
       </button>
       {open && (
         <div className={`menu-list ${align}`} role="menu">
-          {shown.map((i, n) => <button key={n} role="menuitem" className={i.danger ? 'danger' : undefined} onClick={() => pick(i)}>{i.label}</button>)}
+          {shown.map((i, n) => <button key={n} role="menuitem" aria-label={i.ariaLabel} className={i.danger ? 'danger' : undefined} onClick={() => pick(i)}>{i.label}</button>)}
         </div>
       )}
     </div>
@@ -398,13 +398,23 @@ function useOverflow<E extends HTMLElement>() {
  * export). The rows are a native table (GUI-05): screen readers announce rows, column headers and cells, a sortable header is a button
  * with aria-sort, and sorting is announced. On phones the secondary columns move into a details row under each record (GUI-06).
  */
-export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey, selectable }: {
+export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey, selectable, search, totalCount, columnFilters: offerColumnFilters = true, details, fit }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
   sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
   /** Remembers this person's column choice in this browser under this name. */
   columnsKey?: string;
   /** Rows can be ticked for an action on several at once. On by default wherever the table has its toolbar. */
   selectable?: boolean;
+  /** A102: the toolbar's search covers the whole list on the server, in place of the filter for the rows on this page. */
+  search?: { value: string; onChange: (v: string) => void; label: string; placeholder?: string };
+  /** A server list's number of matching records over all its pages. */
+  totalCount?: number;
+  /** False leaves out the Filter card, where the page has filters of its own. */
+  columnFilters?: boolean;
+  /** A102: secondary information of a record, shown when its row is expanded. */
+  details?: (r: T) => ReactNode;
+  /** The table takes the panel's width and wraps its text, instead of scrolling sideways. */
+  fit?: boolean;
 }) {
   const nav = useNavigate();
   const me = useMe().data;
@@ -481,7 +491,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const visibleCols = columns.filter(c => !hidden[c.key]);
   const primary = useMemo(() => primaryKeys(columns), [columns]);
   const secondaryCols = visibleCols.filter(c => !primary.has(c.key));
-  const hasDetails = phone && secondaryCols.length > 0;
+  const hasDetails = !!details || (phone && secondaryCols.length > 0);
   const lastVisible = visibleCols.filter(c => headerText(c)).length <= 1;
 
   // Sorting: server-sorted lists send their sort key; every other column sorts in the browser.
@@ -519,7 +529,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   // card hangs from the toolbar's button and would otherwise lose its place (it jumped to the top-left corner).
   const hadRows = useRef(false);
   if (hasRows) hadRows.current = true;
-  const showTools = tools && !error && (hasRows || hadRows.current);
+  const showTools = tools && !error && (hasRows || hadRows.current || !!search);
   const total = rows?.length ?? 0;
   const clearFilters = () => { setColumnFilters({}); setFilterOperators({}); };
   // Unnamed columns hold the row actions: they stay at the right edge while the table scrolls sideways (GUI-11). UX-002: the first named
@@ -537,14 +547,15 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
         <div className="vt-table-toolbar">
           <Toolbar alignItems="center" paddingTop="xs" paddingBottom="xs" paddingLeft="normal" paddingRight="normal">
             <ToolbarContrItem columnGap="small" alignItems="center">
-              <input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
-                aria-label={server ? 'Filter rows on this page only' : 'Filter rows'} aria-describedby={server ? `${tableId}-scope` : undefined} />
-              {server && <span id={`${tableId}-scope`} className="sr-only">Only the rows loaded on this page are filtered; other pages are not searched.</span>}
-              <span className="muted table-count" aria-live="polite">{loading ? 'Loading…' : <>{needle || activeFilters ? `${sorted.length} of ${total}` : `${total}`} row{total === 1 ? '' : 's'}{server && (needle || activeFilters) ? ' on this page' : ''}</>}</span>
+              {search ? <input className="input table-search table-search-all" type="search" value={search.value} onChange={e => search.onChange(e.target.value)} placeholder={search.placeholder ?? search.label} aria-label={search.label} />
+                : <><input className="input table-search" type="search" value={q} onChange={e => setQ(e.target.value)} placeholder={server ? 'Filter this page…' : 'Filter rows…'}
+                  aria-label={server ? 'Filter rows on this page only' : 'Filter rows'} aria-describedby={server ? `${tableId}-scope` : undefined} />
+                  {server && <span id={`${tableId}-scope`} className="sr-only">Only the rows loaded on this page are filtered; other pages are not searched.</span>}</>}
+              <span className="muted table-count" aria-live="polite">{loading ? 'Loading…' : search && totalCount !== undefined && !activeFilters ? <>{totalCount} {search.value.trim() ? (totalCount === 1 ? 'match' : 'matches') : (totalCount === 1 ? 'row' : 'rows')}</> : <>{needle || activeFilters ? `${sorted.length} of ${total}` : `${total}`} row{total === 1 ? '' : 's'}{server && (needle || activeFilters) ? ' on this page' : ''}</>}</span>
             </ToolbarContrItem>
             <ToolbarContrItem justifySelf="end" columnGap="small" alignItems="center">
-              <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
-                onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />
+              {offerColumnFilters && <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
+                onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />}
               <Button ref={columnsButton as never} type="bare" icon="COLUMNSELECT" text="Columns" onClick={() => { setShowFilters(false); setColumnSearch(''); setShowColumns(v => !v); }} />
               {canExport(me) && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={() => exportRows()} />}
             </ToolbarContrItem>
@@ -614,7 +625,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
       {!loading && !error && !!rows && (
         <div ref={scroller} className={`vt-table-scroll${overflowing ? ' is-overflowing' : ''}`}
           {...(overflowing && { tabIndex: 0, role: 'group', 'aria-label': `${caption ?? 'Table'}: scroll sideways for more columns` })}>
-          <table id={tableId} className="grid vt-grid">
+          <table id={tableId} className={`grid vt-grid${details ? ' has-details' : ''}${fit || details ? ' fit' : ''}`}>
             {caption && <caption className="sr">{caption}</caption>}
             <thead>
               <tr>
@@ -658,9 +669,10 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
                     {hasDetails && open && (
                       <tr className="row-details" id={detailsId}>
                         <td colSpan={colSpan}>
-                          <dl className="row-details-list">
+                          {phone && secondaryCols.length > 0 && <dl className="row-details-list">
                             {secondaryCols.map(c => <div key={c.key}><dt>{headerText(c) || 'Actions'}</dt><dd>{c.render(x.r)}</dd></div>)}
-                          </dl>
+                          </dl>}
+                          {details?.(x.r)}
                         </td>
                       </tr>
                     )}
@@ -703,14 +715,56 @@ function findDeleteAction(node: ReactNode): DeleteTarget | null {
   return findDeleteAction(props.children);
 }
 
-export function DeleteAction({ path, what, onDone, button, afterTo }: { path: string; what: string; onDone?: () => void; button?: boolean; afterTo?: string }) {
+/** A102: a row's actions behind one small button. The list is fixed to the window, so a scrolling table cannot cut it off. */
+function RowMenu({ what, items }: { what: string; items: MenuItem[] }) {
+  const [at, setAt] = useState<CSSProperties | null>(null);
+  const button = useRef<HTMLButtonElement>(null);
+  const list = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!at) return;
+    list.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    const away = (e: Event) => { if (!list.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node)) setAt(null); };
+    const moved = () => setAt(null);
+    document.addEventListener('mousedown', away);
+    window.addEventListener('scroll', moved, true);
+    window.addEventListener('resize', moved);
+    return () => { document.removeEventListener('mousedown', away); window.removeEventListener('scroll', moved, true); window.removeEventListener('resize', moved); };
+  }, [at]);
+  const toggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (at) { setAt(null); return; }
+    const r = button.current!.getBoundingClientRect();
+    const up = r.bottom + 90 > window.innerHeight;
+    setAt({ position: 'fixed', right: window.innerWidth - r.right, left: 'auto', ...(up ? { top: 'auto', bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+  };
+  const keys = (e: React.KeyboardEvent) => {
+    const all = Array.from(list.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
+    const n = all.indexOf(document.activeElement as HTMLElement);
+    if (e.key === 'Escape') { setAt(null); button.current?.focus(); }
+    if (e.key === 'ArrowDown') { e.preventDefault(); all[(n + 1) % all.length]?.focus(); }
+    if (e.key === 'ArrowUp') { e.preventDefault(); all[(n - 1 + all.length) % all.length]?.focus(); }
+  };
+  return (
+    <>
+      <button ref={button} type="button" className="row-menu-btn" aria-haspopup="menu" aria-expanded={!!at} aria-label={`Actions for ${what}`} onClick={toggle}><span aria-hidden="true">⋯</span></button>
+      {at && createPortal(<div ref={list} className="menu-list" role="menu" aria-label={`Actions for ${what}`} style={at} onKeyDown={keys} onClick={e => e.stopPropagation()}>
+        {items.map((i, n) => <button key={n} type="button" role="menuitem" aria-label={i.ariaLabel} className={i.danger ? 'danger' : undefined} onClick={() => { setAt(null); i.onClick?.(); }}>{i.label}</button>)}
+      </div>, document.body)}
+    </>
+  );
+}
+
+/** A37, A102: Delete sits in a small actions menu, with its confirmation; shown only with the Delete records right. On a page (`button`) it is in the More menu, with any `more` actions. */
+export function DeleteAction({ path, what, onDone, button, afterTo, more = [] }: { path: string; what: string; onDone?: () => void; button?: boolean; afterTo?: string; more?: MenuItem[] }) {
   const me = useMe().data;
   const nav = useNavigate();
   const [open, setOpen] = useState(false);
-  if (!canDeletePath(me, path)) return null;
+  const can = canDeletePath(me, path);
+  if (!can && !more.some(i => !i.hidden)) return null;
+  const item: MenuItem = { label: button ? 'Delete…' : 'Delete', danger: true, hidden: !can, ariaLabel: `Delete ${what}`, onClick: () => setOpen(true) };
   return (
     <>
-      <button className={button ? 'btn btn-danger-outline' : 'linkbtn danger-link'} onClick={e => { e.stopPropagation(); setOpen(true); }} aria-label={`Delete ${what}`}>Delete</button>
+      {button ? <Menu label="More" items={[...more, item]} /> : <RowMenu what={what} items={[item]} />}
       {open && <ConfirmDelete path={path} what={what} onClose={() => setOpen(false)} onDone={() => { onDone?.(); if (afterTo) nav(afterTo, { replace: true }); }} />}
     </>
   );
@@ -723,97 +777,12 @@ type DepGroup = { type: string; label: string; count: number; unlinked: boolean;
 export type DeletePreview = { label: string; total: number; delete: DepGroup[]; unlink: DepGroup[] };
 export const errText = (e: unknown) => (e instanceof ApiError ? [e.detail ?? e.title, ...Object.values(e.errors ?? {}).flat()].join(' ') : (e as Error).message);
 
-export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; what: string; onClose: () => void; onDone?: () => void }) {
-  const me = useMe().data;
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [understood, setUnderstood] = useState(false);
-  const [open, setOpen] = useState<string | null>(null);
-  const [itemBusy, setItemBusy] = useState<string | null>(null);
-  const [itemError, setItemError] = useState<Record<string, string>>({});
-  const toast = useToast();
-  const qc = useQueryClient();
-  const m = path.match(/^\/([a-z-]+)\/(\d+)$/);
-  const cascade = !!m && CASCADE_KINDS.includes(m[1]);
-  const depPath = cascade ? `/dependents/${m![1]}/${m![2]}` : null;
-  const deps = useQuery({ queryKey: ['dependents', depPath], queryFn: () => get<DeletePreview>(depPath!), enabled: cascade, staleTime: 0, gcTime: 0 });
-  const d = deps.data;
-  const hasDeps = !!d && (d.total > 0 || d.unlink.length > 0);
-  const canCascade = canDeletePath(me, path) && !!d &&
-    d.delete.filter(g => g.main).every(g => hasRight(me, resourceForRecord(g.type), 'Delete')) &&
-    d.unlink.filter(g => g.main).every(g => hasRight(me, resourceForRecord(g.type), 'Maintain'));
-  const finish = async (msg: string) => { toast(msg); onClose(); onDone?.(); await qc.invalidateQueries(); };
-  const go = async () => {
-    setBusy(true); setError(null);
-    try { await del(path); await finish(`${what} deleted.`); }
-    catch (e) { setError(errText(e)); }
-    finally { setBusy(false); }
-  };
-  const goAll = async () => {
-    setBusy(true); setError(null);
-    try { const r = await del<{ deleted: number }>(depPath!); await finish(`${what} deleted with ${(r?.deleted ?? 1) - 1} related record(s).`); }
-    catch (e) { setError(errText(e)); }
-    finally { setBusy(false); }
-  };
-  const deleteItem = async (g: DepGroup, it: DepItem) => {
-    const key = `${g.type}-${it.id}`;
-    setItemBusy(key); setItemError(x => ({ ...x, [key]: '' }));
-    try { await del(it.deletePath!); toast(`${it.label} deleted.`); await deps.refetch(); }
-    catch (e) { setItemError(x => ({ ...x, [key]: errText(e) })); }
-    finally { setItemBusy(null); }
-  };
-  return (
-    <Dialog title={`Delete ${what}?`} onClose={onClose} wide={hasDeps}>
-      {cascade && deps.isLoading && <div className="state-msg"><span className="spin" /> Checking what belongs to {what}…</div>}
-      {cascade && !!deps.error && <div className="notice bad" role="alert">{errText(deps.error)}</div>}
-      {(!cascade || (d && !hasDeps)) && <p style={{ marginTop: 0 }}>This permanently removes <b>{what}</b>. The change history keeps a record of the deletion.</p>}
-      {d && hasDeps && (
-        <>
-          <p style={{ marginTop: 0 }}><b>{d.label}</b> still has related records. Delete them one by one below, or delete everything at once.</p>
-          {d.total > 0 && <section className="dep-list" aria-label="Records that will be deleted">
-            <h3>Will be deleted with it ({d.total})</h3>
-            <ul>
-              {d.delete.filter(g => g.main).map(g => (
-                <li key={g.type}>
-                  <button className="dep-head" aria-expanded={open === g.type} onClick={() => setOpen(open === g.type ? null : g.type)} disabled={g.items.length === 0}>
-                    <span>{g.label}</span><b>{g.count}</b>{g.items.length > 0 && <span className="caret" aria-hidden="true">{open === g.type ? '▴' : '▾'}</span>}
-                  </button>
-                  {open === g.type && <ul className="dep-items">
-                    {g.items.map(it => {
-                      const key = `${g.type}-${it.id}`;
-                      return (
-                        <li key={key}>
-                          {it.link ? <Link to={it.link} target="_blank" rel="noopener">{it.label}</Link> : <span>{it.label}</span>}
-                          {it.deletePath && canDeletePath(me, it.deletePath) && <button className="linkbtn danger-link" disabled={itemBusy !== null} onClick={() => deleteItem(g, it)} aria-label={`Delete ${it.label}`}>{itemBusy === key ? 'Deleting…' : 'Delete'}</button>}
-                          {itemError[key] && <div className="err">{itemError[key]}</div>}
-                        </li>
-                      );
-                    })}
-                    {g.count > g.items.length && <li className="muted">and {g.count - g.items.length} more</li>}
-                  </ul>}
-                </li>
-              ))}
-            </ul>
-            {d.delete.some(g => !g.main) && <p className="hint dep-also">Also removed: {d.delete.filter(g => !g.main).map(g => `${g.label} (${g.count})`).join(', ')}.</p>}
-          </section>}
-          {d.unlink.length > 0 && <section className="dep-list" aria-label="Records that will be kept and unlinked">
-            <h3>Kept, but no longer linked</h3>
-            <ul>{d.unlink.map(g => <li key={g.type}><div className="dep-head static"><span>{g.label}</span><b>{g.count}</b></div></li>)}</ul>
-          </section>}
-          <label className="check" style={{ marginTop: 10 }}><input type="checkbox" checked={understood} onChange={e => setUnderstood(e.target.checked)} /> I understand that {what} and the {d.total} record(s) listed above are deleted permanently.</label>
-        </>
-      )}
-      {hasDeps && !canCascade && <p className="notice">Deleting this structure needs Delete permission for each affected record type and Edit permission for records that will be unlinked.</p>}
-      {error && <div className="notice bad" role="alert">{error}</div>}
-      <div className="form-actions">
-        <button className="btn" onClick={onClose}>Cancel</button>
-        {d && hasDeps
-          ? <button className="btn btn-danger" disabled={busy || !understood || !canCascade} onClick={goAll}>{busy ? 'Deleting…' : `Delete everything (${d.total + 1})`}</button>
-          : <button className="btn btn-danger" disabled={busy || (cascade && deps.isLoading)} onClick={go}>{busy ? 'Deleting…' : 'Delete'}</button>}
-      </div>
-    </Dialog>
-  );
+/** The dialog comes with its first use, to keep the first download small. */
+const ConfirmDeleteDialog = lazy(() => import('./ConfirmDelete').then(m => ({ default: m.ConfirmDelete })));
+export function ConfirmDelete(props: { path: string; what: string; onClose: () => void; onDone?: () => void }) {
+  return <Suspense fallback={null}><ConfirmDeleteDialog {...props} /></Suspense>;
 }
+
 
 export function Pager({ page, pageSize, total, onPage, onSize }: { page: number; pageSize: number; total: number; onPage: (p: number) => void; onSize: (s: number) => void }) {
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;

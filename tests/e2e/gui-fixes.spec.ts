@@ -1,6 +1,6 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
-import { VT_ROW, vtHeader, vtTable } from './vtTable';
+import { VT_ROW, vtHeader, vtTable, startDelete } from './vtTable';
 
 // Regression tests for the GUI bug-fix brief of 27 Oct 2026 (GUI-01 … GUI-13). Each describe names its ticket.
 // All data is created in the run's own LocalDB database (playwright.config.ts); the default identity is DEV\manager.
@@ -316,7 +316,7 @@ test.describe('GUI-06 Mobile tables', () => {
           const h = await box(table.getByRole('columnheader', { name, exact: true }));
           expect(h.x + h.width, `${path} ${width}: ${name} visible`).toBeLessThanOrEqual(view.x + view.width + 1);
         }
-        const del = table.getByRole('button', { name: /^Delete / }).first();
+        const del = table.getByRole('button', { name: /^Actions for / }).first();
         const d = await box(del);
         expect(d.x + d.width, `${path} ${width}: row action visible`).toBeLessThanOrEqual(width);
         expect(await scroller.evaluate(e => e.scrollWidth - e.clientWidth), `${path} ${width}: no sideways panning`).toBeLessThanOrEqual(1);
@@ -638,15 +638,15 @@ test.describe('Filter card while filtering, and the dashboard KPI tiers', () => 
     await page.goto('/clients');
     const card = await openFilter(page);
     const before = await box(card);
-    // The client search is a server filter: the list reloads and, here, matches nothing.
-    await card.getByLabel('Search clients by name or alias').fill('ZZZ-NO-SUCH-CLIENT');
+    // The country filter is a server filter: the list reloads and, here, matches nothing.
+    await card.getByLabel('Filter by country').fill('ZZZ-NO-SUCH-COUNTRY');
     await expect(vtTable(page).locator('.table-count')).toHaveText('0 rows');
     await expect(card).toBeVisible();
     const after = await box(card);
     expect(Math.abs(after.x - before.x), 'card stays in place horizontally').toBeLessThanOrEqual(2);
     expect(Math.abs(after.y - before.y), 'card stays in place vertically').toBeLessThanOrEqual(2);
     await expect(vtTable(page).getByRole('button', { name: /^Filter/ })).toBeVisible();
-    await card.getByLabel('Search clients by name or alias').fill('');
+    await card.getByLabel('Filter by country').fill('');
     await expect(vtTable(page).locator('.table-count')).not.toHaveText('0 rows');
     const back = await box(card);
     expect(Math.abs(back.y - before.y)).toBeLessThanOrEqual(2);
@@ -678,9 +678,9 @@ test.describe('Filter card while filtering, and the dashboard KPI tiers', () => 
     const valueSize = (gr: Locator) => gr.locator('.kpi-v [class*="valueField__value__"]').first().evaluate(e => parseFloat(getComputedStyle(e).fontSize));
     expect(await valueSize(main)).toBeGreaterThanOrEqual(28);
     expect(await valueSize(more)).toBeLessThan(await valueSize(main));
-    // White cards, 12 px corners, no coloured surfaces.
+    // White cards, square like every panel (A103), no coloured surfaces.
     const card = main.locator('.kpi').first();
-    expect(await card.evaluate(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).borderTopLeftRadius])).toEqual(['rgb(255, 255, 255)', '12px']);
+    expect(await card.evaluate(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).borderTopLeftRadius])).toEqual(['rgb(255, 255, 255)', '0px']);
     // States follow the figures: an open case overdue makes Open cases critical; zero overdue payments is OK. Never colour alone.
     const cases = main.locator('.kpi').filter({ hasText: 'Open tickets' });
     const overdueText = await cases.locator('.kpi-lines li').first().textContent();

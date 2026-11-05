@@ -7,7 +7,7 @@ import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api'
 import { fmtDate, label, qty } from '../format';
 import { useRight, useEnum, useForm, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, ArchiveDialog, UserPicker } from '../ui/pickers';
-import { Badge, Checkbox, DataTable, Dialog, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, FreshnessBadge, type FreshnessT, Menu, FormSection, QuantityInput, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, DataTable, Dialog, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, FreshnessBadge, type FreshnessT, FormSection, QuantityInput, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { InfraSummary, type Infra } from './Clients';
 import { FirewallRulesPanel } from './Firewall';
@@ -332,7 +332,7 @@ export function InstallationDetail() {
       <PageHead title={`${i.product.code} · ${i.instanceName}`} crumbs={[{ to: `/clients/${i.environment.clientId}`, label: i.environment.clientCode }, ...(i.environment.region ? [{ to: `/regions/${i.environment.region.id}`, label: i.environment.region.code }] : []), { to: `/environments/${i.environment.id}`, label: i.environment.name }, { label: i.instanceName }]}
         sub={<>Installation in {i.environment.name} ({label(i.environment.type)}) · version <span className="chip">{i.version?.version ?? 'Unknown'}</span></>}
         actions={<>{canEng && <button className="btn" onClick={() => setDialog('version')}>Confirm version change</button>}{canCreateComponent && <button className="btn" onClick={() => setDialog('component')}>+ Component</button>}
-          <Menu label="More" items={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canClone }, { label: 'Archive installation…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /><DeleteAction button path={`/installations/${i.id}`} what={`installation ${i.instanceName}`} afterTo={`/environments/${i.environment.id}`} /></>} />
+          <DeleteAction button path={`/installations/${i.id}`} what={`installation ${i.instanceName}`} afterTo={`/environments/${i.environment.id}`} more={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canClone }, { label: 'Archive installation…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /></>} />
       <div className="cols">
         <Panel title="Installation"><DL items={[
           ['Product', `${i.product.code} · ${i.product.name}`], ['Module', i.module?.code ?? 'None'], ['Installed version', i.version?.version ?? <Badge tone="warn">Unknown</Badge>],
@@ -433,7 +433,7 @@ export function AssetDetail() {
       <PageHead title={a.name} crumbs={[{ to: `/clients/${a.environment.clientId}`, label: a.environment.clientCode }, { to: `/environments/${a.environment.id}`, label: a.environment.name }, { label: a.name }]}
         sub={<>{T.name('AssetType', a.type)} · {a.role ?? 'Role not recorded'} · <StatusBadge value={a.lifecycle} /></>}
         actions={<>{canEng && <button className="btn" onClick={() => setDialog('edit')}>Edit</button>}{canEng && <button className="btn" onClick={() => setDialog('volume')}>+ Volume</button>}
-          <Menu label="More" items={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canClone }, { label: 'Archive server…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /><DeleteAction button path={`/assets/${a.id}`} what={`server ${a.name}`} afterTo={`/environments/${a.environment.id}`} /></>} />
+          <DeleteAction button path={`/assets/${a.id}`} what={`server ${a.name}`} afterTo={`/environments/${a.environment.id}`} more={[{ label: 'Copy to other environments…', onClick: () => setDialog('clone'), hidden: !canClone }, { label: 'Archive server…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} /></>} />
       <div className="cols">
         <Panel title="Recorded specification">
           <DL items={[

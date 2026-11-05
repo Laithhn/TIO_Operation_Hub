@@ -13,13 +13,27 @@ public sealed record CaseFilter(
     bool? Unassigned = null, string? Status = null, Priority? Priority = null, WorkScope? Scope = null, string? Due = null, bool? Waiting = null,
     bool? ReviewOverdue = null, bool? Stale = null, string? JiraKey = null, string? Q = null, DateTimeOffset? CreatedFrom = null, DateTimeOffset? CreatedTo = null,
     bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null,
-    string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null);
+    string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null,
+    IReadOnlyCollection<Priority>? Priorities = null, WaitingReason? WaitingFor = null);
 
 public static class CaseQuery
 {
     public static readonly CaseStatus[] Done = [CaseStatus.Closed, CaseStatus.Cancelled];
 
     public static bool IsOpen(CaseStatus s) => s is not (CaseStatus.Closed or CaseStatus.Cancelled);
+
+    /// <summary>A102: "Critical,High" as the priorities of a list link or export. Null means no priority filter; a name that is not a priority is refused.</summary>
+    public static IReadOnlyCollection<Priority>? ParsePriorities(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var list = new List<Priority>();
+        foreach (var part in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!Enum.TryParse<Priority>(part, true, out var p) || !Enum.IsDefined(p)) throw new ValidationException("priority", $"{part} is not a priority.");
+            list.Add(p);
+        }
+        return list.Count == 0 ? null : list;
+    }
 
     public static IQueryable<Case> Apply(IQueryable<Case> q, CaseFilter f, DateTimeOffset now, int upcomingDays, ReviewPolicy? policy, HubDbContext db, IReadOnlyCollection<Priority>? coveragePriorities = null)
     {
@@ -32,6 +46,7 @@ public static class CaseQuery
         if (f.OwnerId is not null) q = q.Where(c => c.OwnerUserId == f.OwnerId);
         if (f.Unassigned == true) q = q.Where(c => c.OwnerUserId == null);
         if (f.Priority is not null) q = q.Where(c => c.Priority == f.Priority);
+        if (f.Priorities is { Count: > 0 } priorities) q = q.Where(c => priorities.Contains(c.Priority));
         if (f.Scope is not null) q = q.Where(c => c.Scope == f.Scope);
         q = f.Status switch
         {
@@ -56,6 +71,7 @@ public static class CaseQuery
         };
         if (f.Waiting == true) q = q.Where(c => c.WaitingReason != null);
         if (f.Waiting == false) q = q.Where(c => c.WaitingReason == null);
+        if (f.WaitingFor is not null) q = q.Where(c => c.WaitingReason == f.WaitingFor);
         if (f.ReviewOverdue == true) q = q.Where(c => c.NextReviewAt < now);
         if (f.Stale == true) q = StaleOnly(q, now, policy);
         if (!string.IsNullOrWhiteSpace(f.JiraKey))
@@ -63,7 +79,11 @@ public static class CaseQuery
             var key = f.JiraKey.Trim().ToUpperInvariant();
             q = q.Where(c => c.JiraReferences.Any(j => j.RemovedAt == null && j.IssueKey == key));
         }
-        if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || c.NextAction.Contains(f.Q));
+        if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || c.NextAction.Contains(f.Q)
+            // A102: one search for the whole list, so it also finds a ticket by its client or Jira key.
+            || (c.Client != null && (c.Client.Name.Contains(f.Q) || c.Client.Code.Contains(f.Q)))
+            || (c.JiraSource != null && c.JiraSource.IssueKey.Contains(f.Q))
+            || c.JiraReferences.Any(j => j.RemovedAt == null && j.IssueKey.Contains(f.Q)));
         if (f.ContractId is not null) q = q.Where(c => c.ContractId == f.ContractId);
         // A76: synchronized source of a case.
         if (f.JiraSource == "synchronized") q = q.Where(c => c.JiraSource != null);

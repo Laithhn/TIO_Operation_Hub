@@ -4,13 +4,14 @@ import { flushSync } from 'react-dom';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, del, exportCsv, get, post, put, qs, upload, type Paged, type UserRef } from '../api';
 import { fmtDate, label } from '../format';
-import { useRight, useDebounced, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useRight, useEnum, useForm, useLeaveGuard, useLookup, useMe, useReference, useRefresh, useUrlState, useTypes, useDebounced, useUrlSearch } from '../hooks';
 import { canViewTab, hasRight, canAudit } from '../rights';
 import { ArchiveDialog, UserPicker } from '../ui/pickers';
 import {
   Badge, Checkbox, ConditionBadge, DataTable, Dialog, DL, enumOptions, ErrorBox, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, Restricted,
   SelectInput, StateMessage, StatusBadge, Tabs, TextInput, Unknown, useToast, When, type ConditionT, type FreshnessT, Menu, DeleteAction, FormSection } from '../ui/kit';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
+import { ActionQueue } from './ActionQueue';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { ClientJiraIntegration } from './jira/ClientJira';
 import { ClientDisplay, ClientLogo, logoProblem, type LogoRules } from '../ui/ClientLogo';
@@ -27,9 +28,7 @@ type ClientRow = {
 export function ClientList() {
   // A29: main clients are listed with their sub-clients right below them.
   const [f, set] = useUrlState({ q: '', country: '', status: '', structure: '', level: '', sort: 'tree', page: '1', pageSize: '15' });
-  const [text, setText] = useState(f.q);
-  const dq = useDebounced(text);
-  useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [text, setText] = useUrlSearch(f.q, v => set({ q: v }));
   const statuses = useEnum('ClientStatus');
   const me = useMe().data;
   const canViewStructure = hasRight(me, 'ClientStructure', 'View');
@@ -46,11 +45,11 @@ export function ClientList() {
       <PageHead title="Clients" sub="Countries group clients for reporting; regions are optional and shown only where a client has them."
         actions={canCreate && <Link className="btn btn-primary" to="/clients/new">+ New Client</Link>} />
       <DataTable<ClientRow> caption="Clients" rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'}
-        sort={f.sort} onSort={s => set({ sort: s })}
+        sort={f.sort} onSort={s => set({ sort: s })} totalCount={q.data?.totalCount}
+        search={{ value: text, onChange: setText, label: 'Search all clients', placeholder: 'Search all clients by name or alias' }}
         columns={[
           { key: 'code', header: 'Alias', sort: 'code', render: r => r.parentClientId
-              ? <span className="sub-client"><span aria-hidden="true">↳ </span><ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} /></span> : <ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} />,
-            filter: <input className="input" placeholder="Search by name or alias" aria-label="Search clients by name or alias" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 200 }} /> },
+              ? <span className="sub-client"><span aria-hidden="true">↳ </span><ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} /></span> : <ClientDisplay id={r.id} code={r.code} name={r.name} logoUrl={r.logoUrl ?? null} /> },
           { key: 'name', header: 'Client', sort: 'name', priority: 'primary', render: r => <><Link to={`/clients/${r.id}`}>{r.name}</Link>
               {canViewStructure && (r.parentClientId ? <div className="hint">Sub-client of {r.parentCode}</div> : r.subClientCount > 0 ? <div className="hint">{r.subClientCount} sub-client(s)</div> : null)}</>,
             ...(canViewStructure ? { filter: <select className="input" aria-label="Filter by level" value={f.level} onChange={e => set({ level: e.target.value, page: '1' })}><option value="">All levels</option><option value="main">Main clients</option><option value="sub">Sub-clients</option></select> } : {}) },
@@ -292,6 +291,17 @@ type Overview = {
   boundaries?: BoundaryRow[];
   personalDataRestricted: boolean; dataQuality: { rule: string; count: number }[]; gaps: string[];
 };
+/** What GET /dashboard/actions requires (Security/EndpointRights.cs). */
+const ACTION_LIST_RIGHTS = ['ActionList:View', 'Cases:View', 'ClientStructure:View', 'Commitments:View', 'Contracts:View', 'Dashboard:View', 'Environments:View', 'Installations:View', 'OtherOperations:View', 'Products:View', 'Projects:View', 'Servers:View', 'Teams:View'];
+
+/** A102: a client's pages grouped by what people come for. Overview comes first: its risks and outstanding work. */
+const CLIENT_AREAS = [
+  { key: 'operational', label: 'Operational', tabs: ['cases', 'commitments', 'escalations', 'contacts'] },
+  { key: 'technical', label: 'Technical', tabs: ['structure', 'infra', 'jira'] },
+  { key: 'commercial', label: 'Commercial', tabs: ['contracts', 'projects', 'organizations'] },
+  { key: 'records', label: 'Records', tabs: ['files', 'notes', 'history'] }
+];
+
 const clientTabSpecs = [
   { key: 'structure', label: 'Regions & environments', permissions: ['ClientStructure:View', 'Environments:View'] },
   { key: 'organizations', label: 'Organizations', permissions: ['ClientStructure:View'] },
@@ -352,18 +362,23 @@ function EnvTable({ envs }: { envs: EnvCard[] }) {
 export function ClientDetail() {
   const { id } = useParams();
   const [detailSearch] = useSearchParams();
-  const [tab, setTab] = useState(() => detailSearch.get('tab') ?? 'structure');
+  const [tab, setTab] = useState(() => detailSearch.get('tab') ?? 'overview');
   const [regionFilter, setRegionFilter] = useState('');
   const me = useMe().data!;
   const visibleTabs = clientTabSpecs.filter(spec => canViewTab(me, 'ClientStructure', spec.key) && (spec.key !== 'history' || canAudit(me)) && spec.permissions.every(key => {
     const [resource, action] = key.split(':');
     return hasRight(me, resource, action);
   }));
-  const activeTab = visibleTabs.some(spec => spec.key === tab) ? tab : (visibleTabs[0]?.key ?? '');
+  const activeTab = visibleTabs.some(spec => spec.key === tab) ? tab : 'overview';
+  const areas = CLIENT_AREAS.map(a => ({ ...a, tabs: visibleTabs.filter(spec => a.tabs.includes(spec.key)) })).filter(a => a.tabs.length > 0);
+  const activeArea = areas.find(a => a.tabs.some(spec => spec.key === activeTab));
+  const canSeeRisks = ACTION_LIST_RIGHTS.every(key => { const [resource, action] = key.split(':'); return hasRight(me, resource, action); });
   const canViewStructure = hasRight(me, 'ClientStructure', 'View');
   const client = useQuery({ queryKey: ['client', id], queryFn: () => get<ClientDto>(`/clients/${id}`) });
   const overviewTabs = ['structure', 'organizations', 'contracts', 'cases', 'commitments', 'escalations', 'infra', 'projects', 'contacts'];
-  const ov = useQuery({ queryKey: ['client-overview', id, activeTab, regionFilter], queryFn: () => get<Overview>(`/clients/${id}/overview${qs({ tab: activeTab, regionId: activeTab === 'structure' ? regionFilter : '' })}`), enabled: overviewTabs.includes(activeTab) });
+  // The Overview page takes its counts from the structure section, where the person may see it.
+  const overviewSection = activeTab === 'overview' && visibleTabs.some(spec => spec.key === 'structure') ? 'structure' : activeTab;
+  const ov = useQuery({ queryKey: ['client-overview', id, overviewSection, regionFilter], queryFn: () => get<Overview>(`/clients/${id}/overview${qs({ tab: overviewSection, regionId: activeTab === 'structure' ? regionFilter : '' })}`), enabled: overviewTabs.includes(overviewSection) });
   const canStructureCreate = useRight('ClientStructure', 'Create');
   const canProjectCreate = useRight('Projects', 'Create');
   const canStructureMaintain = useRight('ClientStructure', 'Maintain');
@@ -391,13 +406,19 @@ export function ClientDetail() {
               { label: 'Sub-client', to: `/clients/new?parentId=${id}`, hidden: !canStructureCreate || !!c.parent },
               { label: 'Contract', to: `/contracts/new?clientId=${id}`, hidden: !canContractCreate }
             ]} />}
-            {full && <Menu label="More" items={[{ label: 'Archive client…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }]} />}
-          <DeleteAction button path={`/clients/${c.id}`} what={`client ${c.code}`} afterTo={c.parent ? `/clients/${c.parent.id}` : '/clients'} /></>} />
+            <DeleteAction button path={`/clients/${c.id}`} what={`client ${c.code}`} afterTo={c.parent ? `/clients/${c.parent.id}` : '/clients'} more={[{ label: 'Archive client…', onClick: () => setDialog('archive'), danger: true, hidden: !full || !canArchive }]} /></>} />
         <div className="client-head" data-testid="client-identity">
-          <ClientLogo clientId={c.id} name={c.name} code={c.code} logoUrl={c.logoUrl ?? null} size="lg" />
+          <ClientLogo clientId={c.id} name={c.name} code={c.code} logoUrl={c.logoUrl ?? null} size="md" />
           <div className="client-head-text"><div className="client-head-name">{c.name}</div><div className="muted">{c.code}{c.country ? ` · ${c.country}` : ''}{c.parent ? ` · sub-client of ${c.parent.code}` : ''}</div></div>
         </div>
         {!full && <div className="notice warn">You see this client through a project scope only: summary and project-linked records are shown; other details are restricted.</div>}
+        <nav className="area-nav" aria-label="Client areas">
+          <button type="button" aria-pressed={activeTab === 'overview'} onClick={() => setTab('overview')}>Overview</button>
+          {areas.map(a => <button key={a.key} type="button" aria-pressed={activeArea?.key === a.key} onClick={() => setTab(a.tabs[0].key)}>{a.label}</button>)}
+        </nav>
+        {activeArea && <Tabs value={activeTab} onChange={setTab} tabs={activeArea.tabs.map(({ key, label }) => ({ key, label }))} />}
+        {activeTab === 'overview' && <>
+          {canSeeRisks ? <div className="dash"><ActionQueue params={{ clientId: String(id) }} title="Risks and outstanding work" clear="Nothing on this client is overdue, due within 24 hours or down." showClient={false} /></div> : <div className="notice">The list of risks and outstanding work needs the action list rights. Tickets and commitments are under Operational.</div>}
         {canViewStructure && <div className="cols">
           <Panel title="Management">
             <DL items={[
@@ -406,7 +427,7 @@ export function ClientDetail() {
               ['Last reviewed', <When v={c.lastReviewedAt} />], ['Freshness', <FreshnessBadge f={c.freshness} />], ['Operational state', <StatusBadge value={c.status} />]
             ]} />
           </Panel>
-          {o && activeTab === 'structure' && <Panel title="At a glance">
+          {o && <Panel title="At a glance">
             <DL items={[
               ...(hasRight(me, 'Environments', 'View') ? [['Environments', `${o.counts.environments} (${o.counts.environmentsWithInstallations} with applications)`] as [string, React.ReactNode]] : []),
               ...(hasRight(me, 'Installations', 'View') && hasRight(me, 'Products', 'View') ? [['Application installations', o.counts.installations] as [string, React.ReactNode]] : [])
@@ -427,9 +448,9 @@ export function ClientDetail() {
             ]} />
           </Panel>
         )}
-        <Tabs value={activeTab} onChange={setTab} tabs={visibleTabs.map(({ key, label }) => ({ key, label }))} />
-        {overviewTabs.includes(activeTab) && ov.error && <ErrorBox error={ov.error} />}
-        {overviewTabs.includes(activeTab) && !o && !ov.error && <StateMessage kind="loading" />}
+        </>}
+        {overviewTabs.includes(overviewSection) && ov.error && <ErrorBox error={ov.error} />}
+        {overviewTabs.includes(overviewSection) && !o && !ov.error && <StateMessage kind="loading" />}
         {activeTab === 'jira' && <ClientJiraIntegration clientId={Number(id)} />}
         {activeTab === 'organizations' && <OrganizationStructure clientId={Number(id)} projects={o?.projects} />}
         {o && activeTab === 'structure' && (<>

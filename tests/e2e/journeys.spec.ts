@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { VT_ROW, VT_CELL, VT_HEADER, exactText, openColumnFilter, vtHeader, vtTable } from './vtTable';
+import { VT_ROW, VT_CELL, VT_HEADER, exactText, openColumnFilter, vtHeader, vtTable, startDelete } from './vtTable';
 
 const unique = (p: string) => `${p}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
 
@@ -25,9 +25,9 @@ test.describe('Shell and visual language', () => {
     const clientTable = vtTable(page);
     await expect(clientTable.getByRole('table', { name: 'Clients' })).toBeVisible();
     await openColumnFilter(page);
-    await expect(page.getByLabel('Search clients by name or alias')).toBeVisible();
+    await expect(page.getByLabel('Filter by status')).toBeVisible();
     await page.keyboard.press('Escape');
-    await expect(page.getByLabel('Search clients by name or alias')).toBeHidden();
+    await expect(page.getByLabel('Filter by status')).toBeHidden();
     const aliasHeader = vtHeader(clientTable, /^Alias/);
     await aliasHeader.click();
     await expect(page).toHaveURL(/sort=code/);
@@ -512,6 +512,7 @@ test.describe('Regions', () => {
     const name = unique('Lab');
     await page.goto('/clients?q=DEMO-NTA');
     await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).click();
+    await page.getByRole('navigation', { name: 'Client areas' }).getByRole('button', { name: 'Technical' }).click();
     await page.getByRole('link', { name: 'R2 · R2 Coast' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'R2 · R2 Coast' })).toBeVisible();
     await page.locator('section.panel', { has: page.getByRole('heading', { name: 'Environments in this region' }) }).getByRole('link', { name: '+ Environment in R2' }).click();
@@ -738,8 +739,8 @@ test.describe('Dashboard visualizations', () => {
     await side.getByRole('link', { name: 'Show the overview for Saudi Arabia' }).click();
     await expect(page).toHaveURL(/\/\?.*country=Saudi/);
     await expect(page.getByRole('heading', { level: 1, name: 'Operations Command Center' })).toBeVisible();
-    await expect(page.getByLabel('Country', { exact: true })).toHaveValue('Saudi Arabia');
-    await expect(page.getByRole('button', { name: 'Reset filters' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Remove filter Country: Saudi Arabia' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Clear all' })).toBeVisible();
     await expect(page.getByRole('group', { name: /OpenStreetMap of clients by country/ })).toHaveCount(0);
     const panel = page.locator('section.viz-panel', { has: page.getByRole('heading', { name: 'Open tickets by status' }) });
     const toggle = panel.getByRole('button', { name: 'Table view' });
@@ -769,11 +770,12 @@ test.describe('Dashboard visualizations', () => {
   test('modern overview: section tabs, needs-attention strip and the Leaflet map with layers, full screen and client markers (A51)', async ({ page }) => {
     await page.goto('/');
     const nav = page.getByRole('navigation', { name: 'Dashboard sections' });
-    await expect(nav.getByRole('link', { name: 'Overview' })).toHaveAttribute('aria-current', 'true');
+    await expect(nav.getByRole('link', { name: 'Attention' })).toHaveAttribute('aria-current', 'true');
     // The attention queue lists what needs action now, each row opening its record (or says all clear).
     const strip = page.locator('section#attention');
     await expect(strip).toBeVisible();
-    const first = strip.getByRole('link', { name: /^Open / }).first();
+    const first = strip.locator('tr.vt-row a[href]').first();
+    await expect(first.or(strip.getByText(/all clear/)).first()).toBeVisible();
     if (await first.count()) {
       const href = await first.getAttribute('href');
       expect(href).toMatch(/^\//);
@@ -844,7 +846,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await row.getByRole('link', { name: 'nta-r1-app01' }).click();
     await expect(page.locator('section.panel', { has: page.getByRole('heading', { name: /Firewall rules/ }) })).toContainText(purpose);
     await page.goto(`/firewall-rules?q=${encodeURIComponent(purpose)}`);
-    await page.getByRole('button', { name: /^Delete rule nta-r1-app01/ }).click();
+    await startDelete(page, /rule nta-r1-app01/);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(purpose) })).toHaveCount(0);
   });
@@ -870,11 +872,11 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     // The sorted header carries aria-sort (and shows the framework's ARROWUP for ascending).
     await expect(nameHeader).toHaveAttribute('aria-sort', 'ascending');
     // Unused values delete straight from the table; values in use are refused with the reason.
-    await page.getByRole('button', { name: `Delete ${label}` }).click();
+    await startDelete(page, `${label}`);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(label) })).toHaveCount(0);
     await page.goto('/admin/config/environment-types');
-    await page.getByRole('button', { name: 'Delete Production' }).click();
+    await startDelete(page, 'Production');
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByRole('dialog').getByRole('alert')).toContainText(/is used by/);
   });
@@ -890,7 +892,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await expect(dlg).toBeHidden();
     await page.getByLabel('Filter rows').fill(code);
     await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(code) })).toBeVisible();
-    await page.getByRole('button', { name: `Delete team ${code}` }).click();
+    await startDelete(page, `team ${code}`);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(code) })).toHaveCount(0);
   });
@@ -898,6 +900,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
   test('a responsibility boundary names any person with separate contact details', async ({ page }) => {
     await page.goto('/clients?q=DEMO-NTA');
     await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).click();
+    await page.getByRole('navigation', { name: 'Client areas' }).getByRole('button', { name: 'Operational' }).click();
     await page.getByRole('tab', { name: /Contacts/ }).click();
     await page.getByRole('button', { name: '+ Boundary' }).click();
     const dlg = page.getByRole('dialog');
@@ -916,7 +919,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     const row = page.locator(VT_ROW).filter({ hasText: /Lina Haddad \(fictional\)/ }).last();
     await expect(row).toContainText('lina.haddad@example.org');
     await expect(row).toContainText('+971 4 555 0100');
-    await row.getByRole('button', { name: /^Delete responsibility boundary/ }).click();
+    await startDelete(row, /responsibility boundary/);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByRole('dialog')).toBeHidden();
   });
@@ -1005,13 +1008,14 @@ test.describe('Escalations (A41)', () => {
 
     // The client page lists it; the used channel cannot be deleted.
     await page.getByRole('link', { name: 'DEMO-NTA' }).first().click();
+    await page.getByRole('navigation', { name: 'Client areas' }).getByRole('button', { name: 'Operational' }).click();
     await page.getByRole('tab', { name: 'Escalations' }).click();
     await page.getByLabel('Status').selectOption('all');
     await page.getByLabel('Filter rows').first().fill(title);
     await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(title) })).toContainText('Resolved');
     await page.goto('/admin/config/escalation-channels');
     await page.getByLabel('Filter rows').fill(channel);
-    await page.getByRole('button', { name: `Delete ${channel}` }).click();
+    await startDelete(page, `${channel}`);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
     await expect(page.getByRole('dialog').getByRole('alert')).toContainText(/is used by/);
   });
@@ -1038,7 +1042,7 @@ test.describe('Delete with dependencies and time zones (A43, A44)', () => {
     await call(page, 'POST', '/escalations', { clientId: client, title: 'Letter to delete', channel: 'Email', ownerUserId: me.id });
 
     await page.goto(`/clients/${client}`);
-    await page.getByRole('button', { name: `Delete client ${code}` }).click();
+    await startDelete(page, `client ${code}`);
     const dlg = page.getByRole('dialog');
     await expect(dlg.getByText('Will be deleted with it')).toBeVisible();
     // Each group opens to its records, which can be deleted one by one.
@@ -1172,6 +1176,7 @@ test.describe('Notes (A47)', () => {
     await page.screenshot({ path: 'test-results/visual-notes-1600.png' });
     await page.goto('/clients?q=DEMO-NTA');
     await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).click();
+    await page.getByRole('navigation', { name: 'Client areas' }).getByRole('button', { name: 'Records' }).click();
     await page.getByRole('tab', { name: 'My notes' }).click();
     await expect(page.getByRole('link', { name: title, exact: true })).toBeVisible();
 
@@ -1488,10 +1493,10 @@ test.describe('Operations Command Center (A60)', () => {
     await expect(page.getByRole('heading', { name: /Tickets opened and closed — the chosen dates/ })).toBeVisible();
     await page.getByRole('group', { name: 'Show' }).getByRole('button', { name: 'My work' }).click();
     await expect(page).toHaveURL(/view=mine/);
-    await expect(page.getByText(/filter\(s\) active/)).toBeVisible();
-    await page.getByRole('button', { name: 'Reset filters' }).click();
+    await expect(page.getByRole('group', { name: 'Active filters' })).toBeVisible();
+    await page.getByRole('button', { name: 'Clear all' }).click();
     await expect(page.getByLabel('Reporting period')).toHaveValue('30d');
-    await expect(page.getByText(/filter\(s\) active/)).toHaveCount(0);
+    await expect(page.getByRole('group', { name: 'Active filters' })).toHaveCount(0);
 
     // Sections: contract health tiles, measured SLA compliance (A61), environment health, data quality.
     await expect(page.locator('[aria-label="Contract health"]').getByRole('link')).toHaveCount(6);
@@ -1524,6 +1529,7 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(page).toHaveURL(/\/cases\/\d+$/);
 
     // The case shows its contractual SLA: contract link, applied target, deadlines and outcomes.
+    await page.locator('summary', { hasText: 'Supporting details' }).click();
     const sla = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Contractual SLA', exact: true }) });
     await expect(sla.getByRole('link', { name: /^CT-/ })).toBeVisible();
     await expect(sla).toContainText('High priority');
@@ -1548,7 +1554,9 @@ test.describe('Measured SLA compliance (A61)', () => {
     await page.getByLabel('Search all tickets', { exact: true }).fill(title);
     const row = page.locator(VT_ROW).filter({ hasText: title });
     await expect(row).toBeVisible();
-    await expect(row.getByTitle('Response')).toBeVisible();
+    await row.locator('.row-disclose').click();
+    await expect(page.locator('.row-details').getByTitle('Response')).toBeVisible();
+    await page.getByRole('button', { name: /^Advanced filters/ }).click();
     await page.getByLabel('Contractual SLA', { exact: true }).selectOption('noContract');
     await expect(row).toHaveCount(0);
 
@@ -1560,7 +1568,7 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(band.getByText('Response compliance')).toBeVisible();
     await band.getByRole('link', { name: /Overall \(both met\)/ }).click();
     await expect(page).toHaveURL(/\/cases\?.*sla=withContract/);
-    await expect(page.getByLabel('Contractual SLA', { exact: true })).toHaveValue('withContract');
+    await expect(page.getByRole('button', { name: 'Remove filter SLA: Contract linked' })).toBeVisible();
     await expect(page.getByText(/Opened from/)).toBeVisible();
     await page.screenshot({ path: 'test-results/visual-sla-cases-1600.png', fullPage: true });
   });

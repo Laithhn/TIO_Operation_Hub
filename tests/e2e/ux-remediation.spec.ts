@@ -120,10 +120,10 @@ test.describe('UX-001 Narrow-screen navigation', () => {
 test.describe('UX-002 Narrow operational tables', () => {
   test('tablet: a table wider than its panel keeps the record identifier pinned and scrolls by keyboard', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 });
-    await page.goto('/cases');
+    await page.goto('/commitments');
     const scroller = page.locator('.vt-table-scroll').first();
     await expect(scroller).toHaveClass(/is-overflowing/);
-    await expect(scroller).toHaveAttribute('aria-label', 'Tickets: scroll sideways for more columns');
+    await expect(scroller).toHaveAttribute('aria-label', 'Commitments: scroll sideways for more columns');
     const ref = page.locator('tbody tr.vt-row td.col-identity').first();
     const before = await ref.boundingBox();
     // Keyboard: the scroll area takes focus and the arrow keys move it.
@@ -145,7 +145,7 @@ test.describe('UX-002 Narrow operational tables', () => {
     await expect(table.locator('tbody tr.vt-row').first()).toBeVisible();
     const headers = await table.locator('thead th').evaluateAll(es => es.map(e => (e.textContent ?? '').trim()).filter(t => t && t !== 'Details' && t !== 'Actions'));
     const visibleHeaders = await table.locator('thead th:visible').evaluateAll(es => es.map(e => (e.textContent ?? '').trim()).filter(t => t && t !== 'Details' && t !== 'Actions'));
-    expect(visibleHeaders).toContain('Work');
+    expect(visibleHeaders).toContain('Ticket');
     expect(visibleHeaders.length).toBeLessThan(headers.length);
     const row = table.locator('tbody tr.vt-row').first();
     // Without panning: the identifier link lies inside the screen width (the table itself starts below the filters).

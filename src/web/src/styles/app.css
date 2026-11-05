@@ -850,12 +850,6 @@ a.glance-tile:hover{background:var(--strip);border-color:var(--line-strong)}
 .glance-delta.bad{color:var(--bad)}
 .band-toggle{margin-left:auto}
 /* My dashboard */
-.my-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:var(--gap)}
-.my-tile{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);color:inherit;text-decoration:none}
-a.my-tile:hover{background:var(--strip);border-color:var(--line-strong)}
-.my-tile b{font-size:24px;line-height:1.2}
-.my-tile.bad b{color:var(--bad)}
-.my-tile.warn b{color:var(--warn)}
 .my-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:var(--gap);align-items:start}
 @media (max-width:1100px){.my-grid{grid-template-columns:minmax(0,1fr)}}
 /* What's new */
@@ -873,8 +867,73 @@ a.my-tile:hover{background:var(--strip);border-color:var(--line-strong)}
 .bulk-list li{display:flex;gap:10px;justify-content:space-between;padding:5px 10px;border-bottom:1px solid var(--line)}
 .bulk-list li:last-child{border-bottom:0}
 .bulk-list .err{white-space:normal}
-.my-tile b.none{font-size:var(--fs-md);font-weight:600;color:var(--muted)}
 .vt-grid th.col-select,.vt-grid td.col-select{width:34px;min-width:34px;max-width:34px;box-sizing:border-box;padding:0 4px}
 .vt-grid .col-select input{width:18px;height:18px;margin:3px;display:block;cursor:pointer}
 .vt-table-scroll.is-overflowing .vt-grid .col-select{position:sticky;left:0;z-index:2;background:var(--surface)}
 .vt-table-scroll.is-overflowing .vt-grid:has(.col-select) .col-identity{left:34px}
+/* A102: filters, row actions, compact figures, client areas and ticket focus */
+.filterbar{margin-bottom:var(--gap)}
+.filterbar .toolbar{margin-bottom:0}
+.filterbar-row{align-items:flex-end}
+.filterbar-row .field{min-width:150px;flex:0 1 190px;margin:0}
+.filterbar-advanced{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.filterbar-toggle{white-space:nowrap}
+.filterbar-chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:8px}
+.filterbar-chips .flabel{margin:0 4px 0 0}
+.filter-chip{border:1px solid var(--line-strong);background:var(--info-soft);color:var(--navy);padding:2px 8px;font-size:var(--fs-xs);cursor:pointer}
+.filter-chip:hover{border-color:var(--navy)}
+.view-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--gap)}
+.view-chips button{border:1px solid var(--line-strong);background:var(--surface);padding:5px 12px;font-size:var(--fs);color:var(--fg-2);cursor:pointer}
+.view-chips button b{margin-left:6px;color:var(--navy)}
+.view-chips button:hover{border-color:var(--navy)}
+.view-chips button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--on-navy)}
+.view-chips button[aria-pressed="true"] b{color:var(--on-navy)}
+.vt-table-toolbar .table-search.table-search-all{width:480px;max-width:100%}
+.row-menu-btn{width:28px;height:28px;border:1px solid transparent;background:none;color:var(--fg-2);font-size:18px;line-height:1;cursor:pointer}
+.row-menu-btn:hover,.row-menu-btn[aria-expanded="true"]{border-color:var(--line-strong);background:var(--surface-2)}
+.menu-list[role="menu"]{display:flex;flex-direction:column}
+body>.menu-list{min-width:140px}
+.stat-strip{display:flex;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);margin-bottom:var(--gap)}
+.stat{display:flex;align-items:baseline;gap:6px;padding:7px 14px;border-right:1px solid var(--line);color:var(--fg-2);text-decoration:none;font-size:var(--fs);white-space:nowrap}
+.stat:last-child{border-right:0}
+a.stat:hover{background:var(--strip)}
+.stat b{font-size:var(--fs-md);font-weight:700;color:var(--fg)}
+.stat.zero,.stat.zero b{color:var(--muted);font-weight:400}
+.stat.bad b{color:var(--bad)}
+.stat.warn b{color:var(--warn)}
+.stat.bad,.stat.warn{font-weight:600}
+.stat small{font-size:var(--fs-xs);font-weight:400;color:var(--muted)}
+.area-nav{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--line-strong);margin:var(--gap) 0 8px}
+.area-nav button{border:0;border-bottom:3px solid transparent;background:none;padding:6px 16px;font-size:var(--fs-md);font-weight:600;color:var(--fg-2);cursor:pointer}
+.area-nav button:hover{color:var(--fg)}
+.area-nav button[aria-pressed="true"]{color:var(--navy);border-bottom-color:var(--navy)}
+.focus-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:var(--gap)}
+.focus-cell{background:var(--surface);padding:10px 14px;min-width:0}
+.focus-cell .flabel{display:block;margin-bottom:3px}
+.focus-cell .when{display:block;margin-top:2px;color:var(--muted);font-size:var(--fs-xs)}
+.focus-cell .focus-text{overflow-wrap:anywhere}
+.more-details{margin:var(--gap) 0;background:var(--surface);border:1px solid var(--line)}
+.more-details>summary{padding:9px 14px;font-weight:600;cursor:pointer}
+.more-details>summary .hint{font-weight:400;margin-left:8px}
+.more-details[open]>summary{border-bottom:1px solid var(--line)}
+.more-details-body{padding:var(--gap)}
+.more-details-body .panel:last-child{margin-bottom:0}
+.next-step{color:var(--fg-2)}
+.dash .dash-filters{display:block}
+.dash .dash-filters .filterbar-row{margin:0}
+.dash .dash-filters .filterbar-advanced{margin-top:8px}
+.glance{padding:10px 14px}
+.glance-sentence{margin-bottom:8px}
+.glance-tiles{gap:8px}
+.glance-tile{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:2px 8px;padding:6px 10px}
+.glance-tile .flabel{order:2;margin:0}
+.glance-tile b{font-size:20px;order:1}
+.glance-tile .glance-delta{order:3;flex-basis:100%}
+.stat-strip-plain{border:0;margin:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+.stat-strip-plain .stat{border-right:0;padding:4px 8px 4px 0;white-space:normal;flex-wrap:wrap;gap:0 6px}
+.stat-strip-plain .stat small{flex-basis:100%}
+.stat-strip-plain .stat.zero b{font-weight:400}
+.stat{padding:6px 12px}
+.vt-grid.fit{width:100%;min-width:0}
+.dash .dash-filters .field{flex:0 1 240px}
+.vt-grid.fit th.col-actions,.vt-grid.fit td.col-actions{width:44px;min-width:44px;padding:0 6px;text-align:center}

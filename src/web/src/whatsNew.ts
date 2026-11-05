@@ -1,6 +1,20 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.55.0', date: '5 November 2026', changes: [
+      'Critical or high on the overview now opens both priorities, with the same number of tickets.',
+      'Tickets and Clients have one search that covers every page, and it stays when you change pages. It also finds a ticket by its client or Jira key.',
+      'Tickets has quick views with counts: My tickets, Overdue, Unassigned and Waiting for customer.',
+      'The main filters are on show, and the rest are under Advanced filters. Active filters appear as chips, with Clear all.',
+      'The ticket table fits the screen. Expand a row to see the rest, or add columns under Columns.',
+      'Delete has moved into a small menu on each row, and under More on a record\'s page.',
+      'The overview starts with the summary and the urgent work, including each item\'s next action.',
+      'My dashboard has a compact row of figures and one queue of tickets and commitments, with a next step for each.',
+      'A client opens on its risks and outstanding work, and its pages are grouped into Operational, Technical, Commercial and Records.',
+      'A ticket starts with its latest activity, next action, owner and SLA state, with the timeline straight below. The rest is under Supporting details.'
+    ]
+  },
+  {
     version: '2.54.1', date: '5 November 2026', changes: [
       'Engineers now start on My dashboard when they sign in. The executive overview is still under Dashboard.',
       'My dashboard has its own right on the Rights page, so it can be given or taken away for each role.'

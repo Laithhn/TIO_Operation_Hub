@@ -6,14 +6,16 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, useRight, useReference, useRefresh, useUrlState, useTypes } from '../hooks';
+import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, useRight, useReference, useRefresh, useUrlSearch, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
+import { FilterBar, type FilterChip } from '../ui/FilterBar';
 import { ClientDisplay, initialsOf, toneOf } from '../ui/ClientLogo';
 import { caseTypeGuidance } from '../caseTypeGuidance';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
+import { activeQuickView, CRITICAL_OR_HIGH, quickViews, TICKET_FILTER_DEFAULTS, type QuickViewCounts, type TicketFilters } from './ticketViews';
 import { CaseActivity, JiraBanner, JiraDetailsPanel, jiraOriginLabel, type JiraSource } from './jira/CaseJira';
 
 type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; internalAssignee?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
@@ -40,11 +42,10 @@ export function SlaPair({ response, resolution }: { response: string; resolution
 
 export function CaseList() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', jiraSource: '', jiraSpace: '', jiraConnectionId: '', createdFrom: '', createdTo: '', sort: '-created', page: '1', pageSize: '15' });
-  const [text, setText] = useState(f.q);
-  const dq = useDebounced(text);
-  useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [f, set] = useUrlState({ ...TICKET_FILTER_DEFAULTS, sort: '-created', page: '1', pageSize: '15' });
+  const [text, setText] = useUrlSearch(f.q, v => set({ q: v }));
   const q = useQuery({ queryKey: ['cases', f], queryFn: () => get<Paged<CaseRow>>(`/cases${qs(f)}`) });
+  const counts = useQuery({ queryKey: ['cases', 'quick-views'], queryFn: () => get<QuickViewCounts>('/cases/quick-views') });
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const products = useProductOptions();
@@ -53,48 +54,100 @@ export function CaseList() {
   const canEng = useRight('Cases', 'Create');
   const exportParams = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
+  const views = quickViews(me.id);
+  const view = activeQuickView(f, views);
+  const applyFilters = (patch: Partial<TicketFilters>) => set({ ...TICKET_FILTER_DEFAULTS, ...patch });
+
+  const statusOptions = [{ value: 'open', label: 'Open' }, { value: 'all', label: 'All' }, { value: 'done', label: 'Closed or cancelled' }, ...statuses.map(s => ({ value: `code:${s.code}`, label: s.label }))];
+  // A link can name a stage that is not in the list, such as Cancelled.
+  if (!statusOptions.some(o => o.value === f.status)) statusOptions.push({ value: f.status, label: f.status });
+  const priorityOptions = [{ value: CRITICAL_OR_HIGH, label: 'Critical or high' }, ...priorities.map(p => ({ value: p, label: p }))];
+  const ownerOptions = [{ value: String(me.id), label: 'Me' }, { value: 'none', label: 'Unassigned' }];
+  const deadlineOptions = [{ value: 'overdue', label: 'Overdue' }, { value: '24h', label: 'Due within 24 hours' }, { value: 'upcoming', label: 'Due soon' }, { value: 'none', label: 'No deadline' }];
+  const attentionOptions = [{ value: 'waiting', label: 'Waiting' }, { value: 'customer', label: 'Waiting for customer' }, { value: 'review', label: 'Next review passed' }, { value: 'stale', label: 'Stale review' }, { value: 'coverage', label: 'No backup (coverage policy)' }];
+  const scopeOptions = [{ value: 'Client', label: 'Client-related' }, { value: 'Internal', label: 'Internal' }];
+  const sourceOptions = [{ value: 'synchronized', label: 'Synchronized from Jira' }, { value: 'notSynchronized', label: 'Not synchronized' }];
+  const attention = f.waitingFor === 'Customer' ? 'customer' : f.waiting ? 'waiting' : f.reviewOverdue ? 'review' : f.stale ? 'stale' : f.coverageGap ? 'coverage' : '';
+  const nameOf = (list: { value: string; label: string }[], v: string) => list.find(o => o.value === v)?.label ?? v;
+
+  const advancedCount = [f.teamId, f.productId, f.scope, attention, f.sla, f.jiraKey, f.jiraSource, f.jiraSpace].filter(Boolean).length;
+  const chip = (key: string, shown: string | false | undefined, label: string, clear: Partial<TicketFilters>): FilterChip[] => shown ? [{ key, label, onClear: () => set(clear) }] : [];
+  const chips: FilterChip[] = [
+    ...chip('q', f.q, `Search: ${f.q}`, { q: '' }),
+    ...chip('clientId', f.clientId, `Client: ${nameOf(clients, f.clientId)}`, { clientId: '' }),
+    ...chip('owner', f.ownerId || f.unassigned, f.unassigned ? 'Unassigned' : f.ownerId === String(me.id) ? 'Owner: me' : 'Owner: selected person', { ownerId: '', unassigned: '' }),
+    ...chip('status', f.status !== 'open' && f.status, `Status: ${nameOf(statusOptions, f.status)}`, { status: 'open' }),
+    ...chip('priority', f.priority, `Priority: ${nameOf(priorityOptions, f.priority)}`, { priority: '' }),
+    ...chip('due', f.due, `Deadline: ${nameOf(deadlineOptions, f.due)}`, { due: '' }),
+    ...chip('teamId', f.teamId, `Team: ${nameOf(teams, f.teamId)}`, { teamId: '' }),
+    ...chip('productId', f.productId, `Product: ${nameOf(products, f.productId)}`, { productId: '' }),
+    ...chip('scope', f.scope, `Scope: ${nameOf(scopeOptions, f.scope)}`, { scope: '' }),
+    ...chip('attention', attention, nameOf(attentionOptions, attention), { waiting: '', waitingFor: '', reviewOverdue: '', stale: '', coverageGap: '' }),
+    ...chip('sla', f.sla, `SLA: ${nameOf(SLA_FILTERS, f.sla)}`, { sla: '' }),
+    ...chip('jiraKey', f.jiraKey, `Jira key: ${f.jiraKey}`, { jiraKey: '' }),
+    ...chip('jiraSource', f.jiraSource, nameOf(sourceOptions, f.jiraSource), { jiraSource: '' }),
+    ...chip('jiraSpace', f.jiraSpace, `Jira space: ${f.jiraSpace}`, { jiraSpace: '' }),
+    ...chip('jiraConnectionId', f.jiraConnectionId, 'One Jira connection', { jiraConnectionId: '' }),
+    ...chip('country', f.country, `Country: ${f.country}`, { country: '' }),
+    ...chip('contractId', f.contractId, `Contract #${f.contractId}`, { contractId: '' }),
+    ...chip('opened', f.createdFrom || f.createdTo, `Opened${f.createdFrom ? ` from ${fmtDateTime(f.createdFrom)}` : ''}${f.createdTo ? ` until ${fmtDateTime(f.createdTo)}` : ''}`, { createdFrom: '', createdTo: '' }),
+    ...chip('asOf', f.asOf, `Evaluated at ${fmtDateTime(f.asOf)}`, { asOf: '' })
+  ];
+
   return (
     <>
-      <PageHead title="Tickets" sub="Hub management records. Synchronized tickets follow their Jira status through validated mappings; other tickets are independent of any Jira ticket. Unassigned is an ownership gap, not a status. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time."
+      <PageHead title="Tickets" sub="Synchronized tickets follow their Jira status. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time."
         actions={<>{canExportReport(me, 'cases') && <button className="btn" onClick={() => exportCsv('cases', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/cases/new">+ New Ticket</Link>}</>} />
-      <div className="toolbar">
-        <TextInput label="Search all tickets" type="search" value={text} onChange={setText} placeholder="Reference, title or next action" hint="Searches every page. The table's own filter covers this page only." />
-        <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
-        <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
-        <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
-        <SelectInput label="Owner" value={f.unassigned ? 'none' : f.ownerId} onChange={v => v === 'none' ? set({ unassigned: 'true', ownerId: '' }) : set({ ownerId: v, unassigned: '' })} options={[{ value: String(me.id), label: 'Me' }, { value: 'none', label: 'Unassigned' }]} empty="Anyone" />
-        <SelectInput label="Deadline" value={f.due} onChange={v => set({ due: v })} options={[{ value: 'overdue', label: 'Overdue' }, { value: '24h', label: 'Due within 24 hours' }, { value: 'upcoming', label: 'Due soon' }, { value: 'none', label: 'No deadline' }]} empty="Any" />
-        <SelectInput label="Attention" value={f.waiting ? 'waiting' : f.reviewOverdue ? 'review' : f.stale ? 'stale' : f.coverageGap ? 'coverage' : ''}
-          onChange={v => set({ waiting: v === 'waiting' ? 'true' : '', reviewOverdue: v === 'review' ? 'true' : '', stale: v === 'stale' ? 'true' : '', coverageGap: v === 'coverage' ? 'true' : '' })}
-          options={[{ value: 'waiting', label: 'Waiting' }, { value: 'review', label: 'Next review passed' }, { value: 'stale', label: 'Stale review' }, { value: 'coverage', label: 'No backup (coverage policy)' }]} empty="Any" />
-        <SelectInput label="Contractual SLA" value={f.sla} onChange={v => set({ sla: v })} options={SLA_FILTERS} empty="Any" />
-        <TextInput label="Jira key" value={f.jiraKey} onChange={v => set({ jiraKey: v })} placeholder="ABC-123" />
-        <SelectInput label="Jira source" value={f.jiraSource} onChange={v => set({ jiraSource: v })} options={[{ value: 'synchronized', label: 'Synchronized from Jira' }, { value: 'notSynchronized', label: 'Not synchronized' }]} empty="Any" />
-        <TextInput label="Jira space" value={f.jiraSpace} onChange={v => set({ jiraSpace: v.toUpperCase() })} placeholder="TAH" />
-        {(f.contractId || f.createdFrom || f.createdTo) && <div className="notice" style={{ margin: 0 }}>
-          {f.contractId && <>Contract #{f.contractId}. </>}{(f.createdFrom || f.createdTo) && <>Opened {f.createdFrom ? `from ${fmtDateTime(f.createdFrom)}` : ''} {f.createdTo ? `until ${fmtDateTime(f.createdTo)}` : ''} (from dashboard). </>}
-          <button className="linkbtn" onClick={() => set({ contractId: '', createdFrom: '', createdTo: '' })}>Clear</button></div>}
-        {f.asOf && <div className="notice" style={{ margin: 0 }}>Evaluated at {fmtDateTime(f.asOf)} (from dashboard). <button className="linkbtn" onClick={() => set({ asOf: '' })}>Use now</button></div>}
+      <div className="view-chips" role="group" aria-label="Quick views">
+        {views.map(v => <button key={v.key} type="button" aria-pressed={view === v.key} onClick={() => applyFilters(v.filter)}>{v.label}<b>{counts.data?.[v.count] ?? '…'}</b></button>)}
       </div>
-      <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Tickets" columnsKey="cases"
+      <FilterBar chips={chips} onClearAll={() => applyFilters({})} advancedCount={advancedCount}
+        common={<>
+          <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
+          <SelectInput label="Owner" value={f.unassigned ? 'none' : f.ownerId} onChange={v => v === 'none' ? set({ unassigned: 'true', ownerId: '' }) : set({ ownerId: v, unassigned: '' })} options={ownerOptions} empty="Anyone" />
+          <SelectInput label="Status" value={f.status} onChange={v => set({ status: v })} options={statusOptions} empty={null} />
+          <SelectInput label="Priority" value={f.priority} onChange={v => set({ priority: v })} options={priorityOptions} empty="Any" />
+          <SelectInput label="Deadline" value={f.due} onChange={v => set({ due: v })} options={deadlineOptions} empty="Any" />
+        </>}
+        advanced={<>
+          <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
+          <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
+          <SelectInput label="Scope" value={f.scope} onChange={v => set({ scope: v })} options={scopeOptions} empty="All" />
+          <SelectInput label="Attention" value={attention} onChange={v => set({ waiting: v === 'waiting' ? 'true' : '', waitingFor: v === 'customer' ? 'Customer' : '', reviewOverdue: v === 'review' ? 'true' : '', stale: v === 'stale' ? 'true' : '', coverageGap: v === 'coverage' ? 'true' : '' })} options={attentionOptions} empty="Any" />
+          <SelectInput label="Contractual SLA" value={f.sla} onChange={v => set({ sla: v })} options={SLA_FILTERS} empty="Any" />
+          <TextInput label="Jira key" value={f.jiraKey} onChange={v => set({ jiraKey: v })} placeholder="ABC-123" />
+          <SelectInput label="Jira source" value={f.jiraSource} onChange={v => set({ jiraSource: v })} options={sourceOptions} empty="Any" />
+          <TextInput label="Jira space" value={f.jiraSpace} onChange={v => set({ jiraSpace: v.toUpperCase() })} placeholder="TAH" />
+        </>} />
+      <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Tickets" columnsKey="cases-v2"
+        search={{ value: text, onChange: setText, label: 'Search all tickets', placeholder: 'Search all tickets: reference, title, client, Jira key or next action' }} totalCount={q.data?.totalCount} columnFilters={false}
+        details={r => <dl className="row-details-list">
+          <div><dt>Next action</dt><dd>{r.nextAction?.trim() || <span className="muted">None recorded</span>}</dd></div>
+          <div><dt>Next review</dt><dd>{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</dd></div>
+          <div><dt>Team</dt><dd>{r.teamName ?? <span className="muted">None</span>}</dd></div>
+          <div><dt>Reporter</dt><dd>{r.jiraReporter ?? <span className="muted">None</span>}</dd></div>
+          <div><dt>Opened</dt><dd>{fmtDateTime(r.openedAt ?? r.createdAt)}</dd></div>
+          <div><dt>Updated</dt><dd>{r.updatedAt ? fmtDateTime(r.updatedAt) : <span className="muted">None</span>}</dd></div>
+          <div><dt>Resolution</dt><dd>{r.jiraResolution ?? (r.resolvedAt ? 'Resolved' : 'Unresolved')}</dd></div>
+          <div><dt>Contractual SLA</dt><dd>{r.contractRef && <span className="mono">{r.contractRef} </span>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></dd></div>
+          <div><dt>Jira</dt><dd>{r.jiraKeys.length || r.jiraSourceKey ? <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</>}</> : <span className="muted">None</span>}</dd></div>
+          {(r.waitingReason || r.stale) && <div><dt>Flags</dt><dd>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</dd></div>}
+        </dl>}
         columns={[
-          { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span>,
-            filter: <select className="input" aria-label="Filter by scope" value={f.scope} onChange={e => set({ scope: e.target.value })}><option value="">All</option><option value="Client">Client-related</option><option value="Internal">Internal</option></select> },
-          { key: 'work', header: 'Work', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '26rem', filter: <input className="input" aria-label="Search all tickets by title or reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
-          { key: 'owner', header: 'Assignee', sort: 'owner', render: r => r.ownerName ? <PersonCell name={r.ownerName} badge={r.ownerDeactivated && <Badge tone="bad">Deactivated</Badge>} /> : r.internalAssignee ? <PersonCell name={r.internalAssignee} badge={<Badge tone="info">Vitronic</Badge>} /> : r.jiraAssignee ? <PersonCell name={r.jiraAssignee} badge={r.jiraAssigneeKind === 'ClientContact' ? <Badge tone="info">Client contact</Badge> : r.jiraAssigneeKind === 'TioUser' ? undefined : <Badge tone="warn">Not mapped</Badge>} /> : <span className="muted">Unassigned</span> },
-          { key: 'reporter', header: 'Reporter', render: r => r.jiraReporter ? <PersonCell name={r.jiraReporter} /> : <span className="muted">None</span> },
-          { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} />,
-            filter: <select className="input" aria-label="Filter by priority" value={f.priority} onChange={e => set({ priority: e.target.value })}><option value="">All</option>{priorities.map(s => <option key={s}>{s}</option>)}</select> },
-          { key: 'status', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.statusCode} enumName="CaseStatus" />{r.status === 'Cancelled' && <span className="chip">Cancelled</span>}</>,
-            filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="done">Closed or cancelled</option>{statuses.map(s => <option key={s.code} value={`code:${s.code}`}>{s.label}</option>)}</select> },
-          { key: 'resolution', header: 'Resolution', render: r => r.jiraResolution ?? (r.resolvedAt ? 'Resolved' : 'Unresolved') },
-          { key: 'created', header: 'Opened', sort: 'created', render: r => fmtDateTime(r.openedAt ?? r.createdAt) },
+          { key: 'work', header: 'Ticket', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '24rem' },
+          { key: 'client', header: 'Client', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span> },
+          { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} /> },
+          { key: 'status', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.statusCode} enumName="CaseStatus" />{r.status === 'Cancelled' && <span className="chip">Cancelled</span>}</> },
+          { key: 'owner', header: 'Owner', sort: 'owner', maxWidth: '11rem', render: r => r.ownerName ? <PersonCell name={r.ownerName} badge={r.ownerDeactivated && <Badge tone="bad">Deactivated</Badge>} /> : r.internalAssignee ? <PersonCell name={r.internalAssignee} badge={<Badge tone="info">Vitronic</Badge>} /> : r.jiraAssignee ? <PersonCell name={r.jiraAssignee} badge={r.jiraAssigneeKind === 'ClientContact' ? <Badge tone="info">Client contact</Badge> : r.jiraAssigneeKind === 'TioUser' ? undefined : <Badge tone="warn">Not mapped</Badge>} /> : <span className="muted">Unassigned</span> },
+          { key: 'due', header: 'Deadline', sort: 'due', maxWidth: '10rem', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">None</span> },
+          { key: 'reporter', header: 'Reporter', defaultHidden: true, render: r => r.jiraReporter ? <PersonCell name={r.jiraReporter} /> : <span className="muted">None</span> },
+          { key: 'resolution', header: 'Resolution', defaultHidden: true, render: r => r.jiraResolution ?? (r.resolvedAt ? 'Resolved' : 'Unresolved') },
+          { key: 'created', header: 'Opened', sort: 'created', defaultHidden: true, render: r => fmtDateTime(r.openedAt ?? r.createdAt) },
           { key: 'hubCreated', header: 'Added to hub', defaultHidden: true, render: r => fmtDateTime(r.createdAt) },
-          { key: 'updated', header: 'Updated', sort: 'updated', render: r => r.updatedAt ? fmtDateTime(r.updatedAt) : <span className="muted">None</span> },
-          { key: 'due', header: 'Due date', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">None</span> },
-          { key: 'jira', header: 'Jira', render: r => <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <div className="hint"><Badge tone="info">Synchronized</Badge> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</div>}</> },
-          { key: 'sla', header: 'Contractual SLA', render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
-          { key: 'ref', header: 'Ref', sort: 'ref', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search all tickets by reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
+          { key: 'updated', header: 'Updated', sort: 'updated', defaultHidden: true, render: r => r.updatedAt ? fmtDateTime(r.updatedAt) : <span className="muted">None</span> },
+          { key: 'jira', header: 'Jira', defaultHidden: true, render: r => <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <div className="hint"><Badge tone="info">Synchronized</Badge> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</div>}</> },
+          { key: 'sla', header: 'Contractual SLA', defaultHidden: true, render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
+          { key: 'ref', header: 'Ref', sort: 'ref', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link> },
           { key: 'title', header: 'Title', sort: 'title', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
           { key: 'type', header: 'Type', defaultHidden: true, render: r => label(r.type) },
           { key: 'team', header: 'Team', defaultHidden: true, render: r => r.teamName },
@@ -268,6 +321,8 @@ export function CaseDetail() {
   const close = () => setDialog(null);
   const common = { path: '', version: c?.version, onClose: close };
   // A61: a progress update can be the first response to the customer, until one is recorded.
+  const activity = useQuery({ queryKey: ['case-activity', Number(id), 'latest'], queryFn: () => get<{ items: { kind: string; source: string; title: string; actor?: string; at: string }[] }>(`/cases/${id}/activity?filter=all&system=true&pageSize=1`), enabled: allowedTabs.includes('timeline') });
+  const latest = activity.data?.items[0];
   const responseField = c?.contract && !c.sla.response.actualAt && !c.statusFromJira ? [{ name: 'customerResponse', label: 'This update was sent to the customer (first response)', kind: 'checkbox' as const, hint: 'Records the first response for the contractual SLA at this time.' }] : [];
   return (
     <QueryState q={q}>{c && p && (<>
@@ -280,43 +335,24 @@ export function CaseDetail() {
           {p.canStart && <button className="btn btn-primary" onClick={() => setDialog('start')}>Start work</button>}
           {p.canEdit && open && <button className="btn" onClick={() => setDialog('progress')}>Record progress</button>}
           {p.canSetWaiting && <button className="btn" onClick={() => setDialog(c.waiting ? 'unwait' : 'wait')}>{c.waiting ? 'End waiting' : 'Set waiting'}</button>}
-          {p.canChangeStatus && c.statusOptions.length > 0 && <button className="btn" onClick={() => setDialog('status')}>Change status</button>}
           {p.canRequestValidation && <button className="btn" onClick={() => setDialog('validate')}>Request validation</button>}
           {p.canReturnToWork && <button className="btn" onClick={() => setDialog('resume')}>Return to work</button>}
           {p.canClose && <button className="btn btn-primary" onClick={() => setDialog('close')}>Close</button>}
-          {p.canChangeDue && <button className="btn" onClick={() => setDialog('due')}>Change due date</button>}
-          {p.canCancel && <button className="btn btn-danger" onClick={() => setDialog('cancel')}>Cancel ticket</button>}
           {p.canReopen && <button className="btn" onClick={() => setDialog('reopen')}>Reopen</button>}
-        <DeleteAction button path={`/cases/${c.id}`} what={`ticket ${c.ref}`} afterTo={'/cases'} /></>} />
+          <DeleteAction button path={`/cases/${c.id}`} what={`ticket ${c.ref}`} afterTo={'/cases'} more={[
+            { label: 'Change status', onClick: () => setDialog('status'), hidden: !p.canChangeStatus || c.statusOptions.length === 0 },
+            { label: 'Change due date', onClick: () => setDialog('due'), hidden: !p.canChangeDue },
+            { label: 'Cancel ticket', onClick: () => setDialog('cancel'), danger: true, hidden: !p.canCancel }
+          ]} /></>} />
       {c.statusFromJira && <div className="notice">This ticket's status follows Jira, so change it there. {!c.contract ? (c.contractFromJiraSpace ? "No contract linked to this Jira space covers the ticket's creation date, so it is not measured." : 'Link an SLA contract to calculate the due dates from the Jira creation time.') : c.sla.resolution.status === 'NotApplicable' ? 'This ticket is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
       {c.clientRepresentative && open && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The ticket waits on the customer until Jira reassigns it.</div>}
       {!c.statusFromJira && c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
-      {c.jiraSource && <JiraBanner s={c.jiraSource} />}
-      <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>
-        <Panel title="Management summary">
-          <DL items={[
-            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], ...(c.internalAssignee ? [['Assigned in Jira to', <>{c.internalAssignee} <Badge tone="info">Vitronic team member</Badge></>] as [string, ReactNode]] : []), ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
-            ['Responsible party', `${label(c.responsibleParty)}${c.responsibleOrganization ? ` · ${c.responsibleOrganization}` : ''}`],
-            ['Impact', c.impactSummary], ['Progress', c.progressSummary ?? <span className="muted">No progress recorded</span>],
-            ['Next action', c.nextAction], ['Next review', <><When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</>],
-            ['Due', c.dueAt ? <>{c.dueLocal} <span className="muted">({c.dueTimeZone})</span></> : <span className="muted">No deadline</span>],
-            ['Last progress update', <><When v={c.lastReviewedAt} /> <FreshnessBadge f={c.freshness} /></>]
-          ]} />
-        </Panel>
-        <Panel title="Age and waiting">
-          <DL items={[
-            ['Opened', <>{fmtDateTime(c.openedAt)} <span className="hint">({c.openedFromJira ? 'Jira creation time' : 'hub creation time'})</span></>],
-            ...(c.openedFromJira ? [['Added to the hub', <>{fmtDateTime(c.createdAt)} <span className="hint">(import time; not used for age, deadlines or opened reporting)</span></>] as [string, ReactNode]] : []),
-            [open ? 'Age since opening' : 'Age from opening to closing', `${c.ageDays} days`], ...(c.currentCycleAgeDays !== undefined && c.currentCycleAgeDays !== null ? [['Current cycle age (after reopen)', `${c.currentCycleAgeDays} days`] as [string, string]] : []),
-            ['Reopened', `${c.reopenCount} time(s)`], ['Recorded waiting', `${c.waitingHours} h (the operational due date is not paused${c.sla.applied?.pausesWhileWaitingOnCustomer ? '; the contractual SLA pauses while waiting on the customer' : ''})`],
-            ['Validation request', c.validationRequest], ['Outcome', c.outcome], ['Validation evidence', c.validationEvidence],
-            ...(c.evidenceException ? [['Evidence exception', <>{c.evidenceException.reason}<div className="hint">Authorized by {c.evidenceException.approvedBy?.name} · follow-up {c.evidenceException.followUpOwner?.name} by {c.evidenceException.followUpDate}</div></>] as [string, React.ReactNode]] : []),
-            ...(c.cancelReason ? [['Cancellation reason', c.cancelReason] as [string, string]] : [])
-          ]} />
-        </Panel>
-        {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
-      </div>
-      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
+      <section className="focus-grid" aria-label="What matters now">
+        <div className="focus-cell"><span className="flabel">Latest activity</span>{latest ? <><span className="focus-text">{latest.source === 'TIO' && latest.kind !== 'Comment' ? label(latest.kind) : latest.title}</span><span className="when">{latest.actor ?? 'System'} · {fmtDateTime(latest.at)}</span></> : <span className="muted">{activity.isLoading ? 'Loading…' : 'No activity yet'}</span>}</div>
+        <div className="focus-cell"><span className="flabel">Next action</span><span className="focus-text">{c.nextAction?.trim() || <span className="muted">None recorded</span>}</span><span className="when">Next review <When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</span></div>
+        <div className="focus-cell"><span className="flabel">Owner</span><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}<span className="when">{c.team?.name ?? 'No team'}{c.backupOwner ? ` · backup ${c.backupOwner.name}` : ''}</span></div>
+        <div className="focus-cell"><span className="flabel">SLA and deadline</span>{c.contract && c.sla.resolution.status !== 'NotApplicable' ? <SlaPair response={c.sla.response.status} resolution={c.sla.resolution.status} /> : <span className="muted">Not measured against a contract</span>}<span className="when">{c.dueAt ? <>Due {c.dueLocal} ({c.dueTimeZone})</> : 'No deadline'}{c.scope === 'Client' && p.canEdit && open && !c.statusFromJira && c.contract && !c.sla.response.actualAt && <> · <button className="linkbtn" onClick={() => setDialog('respond')}>Record first response</button></>}</span></div>
+      </section>
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
       {tab === 'escalations' && <Panel title="Escalations about this ticket" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
       {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
@@ -352,6 +388,37 @@ export function CaseDetail() {
       </Panel>}
       {tab === 'files' && <AttachmentsWorkspace recordType="Case" recordId={c.id} />}
       {tab === 'history' && <HistoryPanel entityType="Case" entityId={c.id} />}
+      <details className="more-details">
+        <summary>Supporting details<span className="hint">Ownership, impact, age and waiting{c.scope === 'Client' ? ', contractual SLA and penalties' : ''}{c.jiraSource ? ', Jira' : ''}</span></summary>
+        <div className="more-details-body">
+      {c.jiraSource && <JiraBanner s={c.jiraSource} />}
+      <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>
+        <Panel title="Management summary">
+          <DL items={[
+            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], ...(c.internalAssignee ? [['Assigned in Jira to', <>{c.internalAssignee} <Badge tone="info">Vitronic team member</Badge></>] as [string, ReactNode]] : []), ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
+            ['Responsible party', `${label(c.responsibleParty)}${c.responsibleOrganization ? ` · ${c.responsibleOrganization}` : ''}`],
+            ['Impact', c.impactSummary], ['Progress', c.progressSummary ?? <span className="muted">No progress recorded</span>],
+            ['Next action', c.nextAction], ['Next review', <><When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</>],
+            ['Due', c.dueAt ? <>{c.dueLocal} <span className="muted">({c.dueTimeZone})</span></> : <span className="muted">No deadline</span>],
+            ['Last progress update', <><When v={c.lastReviewedAt} /> <FreshnessBadge f={c.freshness} /></>]
+          ]} />
+        </Panel>
+        <Panel title="Age and waiting">
+          <DL items={[
+            ['Opened', <>{fmtDateTime(c.openedAt)} <span className="hint">({c.openedFromJira ? 'Jira creation time' : 'hub creation time'})</span></>],
+            ...(c.openedFromJira ? [['Added to the hub', <>{fmtDateTime(c.createdAt)} <span className="hint">(import time; not used for age, deadlines or opened reporting)</span></>] as [string, ReactNode]] : []),
+            [open ? 'Age since opening' : 'Age from opening to closing', `${c.ageDays} days`], ...(c.currentCycleAgeDays !== undefined && c.currentCycleAgeDays !== null ? [['Current cycle age (after reopen)', `${c.currentCycleAgeDays} days`] as [string, string]] : []),
+            ['Reopened', `${c.reopenCount} time(s)`], ['Recorded waiting', `${c.waitingHours} h (the operational due date is not paused${c.sla.applied?.pausesWhileWaitingOnCustomer ? '; the contractual SLA pauses while waiting on the customer' : ''})`],
+            ['Validation request', c.validationRequest], ['Outcome', c.outcome], ['Validation evidence', c.validationEvidence],
+            ...(c.evidenceException ? [['Evidence exception', <>{c.evidenceException.reason}<div className="hint">Authorized by {c.evidenceException.approvedBy?.name} · follow-up {c.evidenceException.followUpOwner?.name} by {c.evidenceException.followUpDate}</div></>] as [string, React.ReactNode]] : []),
+            ...(c.cancelReason ? [['Cancellation reason', c.cancelReason] as [string, string]] : [])
+          ]} />
+        </Panel>
+        {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
+      </div>
+      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
+        </div>
+      </details>
 
       {dialog === 'triage' && <ActionDialog {...common} title="Triage ticket" path={`/cases/${id}/triage`} submitLabel="Confirm triage" intro="Confirm scope, team, impact, priority and next-review time. Next action is optional."
         initial={{ responsibleTeamId: c.team ? String(c.team.id) : '', impactSummary: c.impactSummary, priority: c.priority, nextAction: c.nextAction, nextReviewAt: toLocalInput(c.nextReviewAt) }}

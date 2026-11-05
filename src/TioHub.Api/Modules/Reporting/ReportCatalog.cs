@@ -138,8 +138,8 @@ public static class ReportCatalog
     }
 
     private static CaseFilter CaseFilterOf(ReportContext x) => new(x.L("clientId"), x.L("regionId"), x.L("environmentId"), x.L("productId"), x.L("teamId"), x.L("ownerId"), x.B("unassigned"), x.S("status"),
-        x.E<Priority>("priority"), x.E<WorkScope>("scope"), x.S("due"), x.B("waiting"), x.B("reviewOverdue"), x.B("stale"), x.S("jiraKey"), x.S("q"), x.From("createdFrom"), x.To("createdTo"),
-        x.B("coverageGap"), x.B("deactivatedOwner"), x.S("country"), x.L("contractId"), x.S("sla"), x.S("jiraSource"), x.L("jiraConnectionId"), x.S("jiraSpace"));
+        null, x.E<WorkScope>("scope"), x.S("due"), x.B("waiting"), x.B("reviewOverdue"), x.B("stale"), x.S("jiraKey"), x.S("q"), x.From("createdFrom"), x.To("createdTo"),
+        x.B("coverageGap"), x.B("deactivatedOwner"), x.S("country"), x.L("contractId"), x.S("sla"), x.S("jiraSource"), x.L("jiraConnectionId"), x.S("jiraSpace"), CaseQuery.ParsePriorities(x.S("priority")), x.E<WaitingReason>("waitingFor"));
 
     public static readonly IReadOnlyList<ReportDefinition> All = Build();
 
@@ -156,12 +156,12 @@ public static class ReportCatalog
             Description = "Tickets with status, priority, owner, next action, due date and Jira references — the same rows as the Tickets list.",
             Filters = [Client, Team, Product, Owner,
                 new("status", "Status", FilterKind.Select, Options: ["open", "all", "done", .. Names<CaseStatus>()], Hint: "Empty = open tickets."),
-                new("priority", "Priority", FilterKind.Select, Options: Names<Priority>()),
+                new("priority", "Priority", FilterKind.Select, Options: [.. Names<Priority>(), "Critical,High"]),
                 new("scope", "Work scope", FilterKind.Select, Options: Names<WorkScope>()),
                 .. Range("createdFrom", "createdTo", "Opened", hint: "The Jira creation time of a synchronized ticket, otherwise the hub creation time."),
                 new("due", "Deadline", FilterKind.Select, true, ["overdue", "24h", "upcoming", "none"]),
                 new("waiting", "Waiting only", FilterKind.Bool, true), new("q", "Title or reference contains", FilterKind.Text, true)],
-            ListKeys = ["regionId", "environmentId", "unassigned", "reviewOverdue", "stale", "jiraKey", "coverageGap", "deactivatedOwner", "country", "contractId", "sla", "asOf", "jiraSource", "jiraSpace", "jiraConnectionId"],
+            ListKeys = ["regionId", "environmentId", "unassigned", "reviewOverdue", "stale", "jiraKey", "coverageGap", "deactivatedOwner", "country", "contractId", "sla", "asOf", "jiraSource", "jiraSpace", "jiraConnectionId", "waitingFor"],
             Query = async (x, ct) => (await Cases(x, CaseFilterOf(x), ct)).OrderBy(c => c.Id).Select(CaseEndpoints.Row(x.Now, (await x.Fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record)))),
             Cols = [
                 new("Reference", "Hub ticket reference", r => r.Ref),

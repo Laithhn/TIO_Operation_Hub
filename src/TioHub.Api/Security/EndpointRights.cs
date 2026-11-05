@@ -129,6 +129,7 @@ public static class EndpointRights
         ["DELETE /boundaries/{id:long}"] = Rights("tab.ClientStructure.contacts:Delete"),
         ["POST /boundaries/{id:long}/archive"] = Rights("tab.ClientStructure.contacts:ArchiveRestore").Also("ClientStructure:Create", "OtherOperations:ArchiveRestore"),
         ["GET /cases"] = Rights("Cases:View"),
+        ["GET /cases/quick-views"] = Rights("Cases:View"),
         ["POST /cases"] = Handler("Cases:Coordinate", "Cases:Create", "tab.Cases.jira:Create"),
         ["GET /cases/{id:long}"] = Rights("Cases:DetailsView", "Cases:View").Also("Cases:HistoryView", "Commitments:View", "Environments:View", "Servers:View", "tab.Cases.timeline:View"),
         ["PUT /cases/{id:long}"] = Handler("Cases:Coordinate", "Cases:Maintain", "tab.Cases.affected:View"),

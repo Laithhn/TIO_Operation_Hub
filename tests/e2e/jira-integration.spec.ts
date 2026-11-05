@@ -1,3 +1,4 @@
+import { startDelete } from './vtTable';
 import { expect, test, type Page } from '@playwright/test';
 
 // A76: the Jira screens against the real API. No Jira site is reachable from these tests: connection creation stores
@@ -128,7 +129,7 @@ test('administrators add and remove a ticket status, and it is offered for Jira 
   await page.goto('/cases');
   await page.locator('table tbody a[href^="/cases/"]').first().click();
   await page.goto('/admin/config/case-statuses');
-  await page.getByRole('button', { name: `Delete ${name}` }).click();
+  await startDelete(page, `${name}`);
   await page.getByRole('dialog').getByRole('button', { name: /Delete/ }).click();
   await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
 });
@@ -281,6 +282,7 @@ test('Sync with Jira on a ticket reports what came back', async ({ page }) => {
   let calls = 0;
   await page.route(`**/api/v1/cases/${caseId}/jira-source/sync`, r => { calls++; return r.fulfill({ json: calls === 1 ? { issueKey: 'TAH-1', updated: false, comments: 2, activities: 1 } : { issueKey: 'TAH-1', updated: false, comments: 0, activities: 0, error: 'Select an active team.' } }); });
   await page.goto(href!);
+  await page.locator('summary', { hasText: 'Supporting details' }).click();
   await page.getByRole('button', { name: 'Sync with Jira' }).click();
   await expect(page.getByText('TAH-1 synchronized: 2 new comment(s), 1 new activity item(s).')).toBeVisible();
   await page.getByRole('button', { name: 'Sync with Jira' }).click();
@@ -314,6 +316,10 @@ test('a Jira-synced ticket shows its status read-only and only actions that do n
   await expect(page.getByText('Assigned in Jira to Fictional Representative')).toBeVisible();
   for (const name of ['Start work', 'Set waiting', 'End waiting', 'Close', 'Cancel ticket', 'Change due date', 'Change status', 'Reopen', 'Request validation'])
     await expect(page.locator('.page-head').getByRole('button', { name, exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'More', exact: true }).click();
+  for (const name of ['Cancel ticket', 'Change due date', 'Change status'])
+    await expect(page.getByRole('menuitem', { name, exact: true })).toHaveCount(0);
+  await page.keyboard.press('Escape');
   await expect(page.getByRole('link', { name: 'Edit', exact: true })).toBeVisible();
   await shot(page, 'synced-case');
 });
@@ -322,30 +328,30 @@ test.describe('Tickets table columns', () => {
   test('the default columns can be added to and removed from, and the choice is remembered', async ({ page }) => {
     await page.setViewportSize({ width: 1800, height: 900 });
     await page.goto('/cases');
-    await page.evaluate(() => localStorage.removeItem('vt-columns:cases'));
+    await page.evaluate(() => localStorage.removeItem('vt-columns:cases-v2'));
     await page.reload();
     const table = page.getByRole('table', { name: 'Tickets' });
     const headers = table.getByRole('columnheader');
     await expect(headers.first()).toBeVisible();
-    const shown = (await headers.allInnerTexts()).map(t => t.trim().split('\n')[0]).filter(t => t && t !== 'Actions');
-    expect(shown).toEqual(['Client / scope', 'Work', 'Assignee', 'Reporter', 'Priority', 'Status', 'Resolution', 'Opened', 'Updated', 'Due date', 'Jira', 'Contractual SLA']);
+    const shown = (await headers.allInnerTexts()).map(t => t.trim().split('\n')[0]).filter(t => t && t !== 'Actions' && t !== 'Details');
+    expect(shown).toEqual(['Ticket', 'Client', 'Priority', 'Status', 'Owner', 'Deadline']);
     await shot(page, 'cases-columns');
 
     await page.getByRole('button', { name: 'Columns' }).click();
     const list = page.getByRole('list', { name: 'Columns shown' });
     await list.getByRole('checkbox', { name: 'Team' }).check();
-    await list.getByRole('checkbox', { name: 'Reporter' }).uncheck();
+    await list.getByRole('checkbox', { name: 'Client' }).uncheck();
     await expect(table.getByRole('columnheader', { name: 'Team' })).toBeVisible();
-    await expect(table.getByRole('columnheader', { name: 'Reporter' })).toHaveCount(0);
+    await expect(table.getByRole('columnheader', { name: 'Client' })).toHaveCount(0);
 
     await page.reload();
     await expect(table.getByRole('columnheader', { name: 'Team' })).toBeVisible();
-    await expect(table.getByRole('columnheader', { name: 'Reporter' })).toHaveCount(0);
+    await expect(table.getByRole('columnheader', { name: 'Client' })).toHaveCount(0);
 
     await page.getByRole('button', { name: 'Columns' }).click();
     await page.getByRole('button', { name: 'Reset' }).click();
-    await expect(table.getByRole('columnheader', { name: 'Reporter' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Client' })).toBeVisible();
     await expect(table.getByRole('columnheader', { name: 'Team' })).toHaveCount(0);
-    await page.evaluate(() => localStorage.removeItem('vt-columns:cases'));
+    await page.evaluate(() => localStorage.removeItem('vt-columns:cases-v2'));
   });
 });

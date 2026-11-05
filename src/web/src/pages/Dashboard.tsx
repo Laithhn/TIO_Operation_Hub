@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
@@ -10,8 +10,11 @@ import {
 } from '../ui/charts';
 import { Icon } from '../ui/Icon';
 import { Badge, DataTable, PageHead, SelectInput, StateMessage, TextInput } from '../ui/kit';
+import { FilterBar, type FilterChip } from '../ui/FilterBar';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { useClientOptions, useProductOptions, useTeamOptions } from './common';
+import { ActionQueue, dueText, SEVERITY_RANK, SEVERITY_TONE, span } from './ActionQueue';
+import { CRITICAL_OR_HIGH } from './ticketViews';
 
 type Measure = { key: string; label: string; value: number; definition: string; drilldown: string };
 type Dash = { evaluatedAt: string; upcomingDays: number; cases: Measure[]; commitments: Measure[]; caseAge: { averageDays: number | null; oldestDays: number | null; totalWaitingHours: number; definition: string }; deferred: string };
@@ -67,11 +70,6 @@ type SlaBlock = {
   byPriority: { priority: string; cases: number; response: SlaTally; resolution: SlaTally }[];
   trend: { key: string; label: string; responseMet: number; responseMeasured: number; resolutionMet: number; resolutionMeasured: number }[];
 };
-type ActionRow = {
-  category: string; recordType: string; recordId: number; reference: string; title: string; clientId?: number | null; clientCode?: string | null; owner: string; reason: string;
-  nextAction?: string | null; dueAt?: string | null; link: string; severity: string; priority?: string | null;
-};
-
 
 // Reported condition uses the reserved status colours, always with a glyph and a label (never colour alone).
 const STATUS_OF: Record<string, string> = { Healthy: STATUS.good, Degraded: STATUS.warning, Unavailable: STATUS.critical, Unknown: STATUS.neutral };
@@ -89,20 +87,6 @@ const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 
 const rate = (met: number, measured: number) => (measured ? `${Math.round((met / measured) * 100)} %` : null);
 const PERIOD_LABEL: Record<string, string> = { today: 'today', '7d': 'the last 7 days', '30d': 'the last 30 days', quarter: 'this quarter', custom: 'the chosen dates' };
-
-/** Hours (from now) as "3 d 4 h" / "5 h" / "20 min". */
-function span(ms: number) {
-  const m = Math.round(Math.abs(ms) / 60000);
-  if (m < 60) return `${m} min`;
-  const h = Math.floor(m / 60);
-  if (h < 48) return `${h} h`;
-  return `${Math.floor(h / 24)} d ${h % 24} h`;
-}
-function dueText(iso?: string | null) {
-  if (!iso) return <span className="muted">No date</span>;
-  const ms = new Date(iso).getTime() - Date.now();
-  return ms < 0 ? <span className="t-bad"><b>{span(ms)}</b> overdue</span> : <span className={ms < 86400000 ? 't-warn' : undefined}>due in {span(ms)}</span>;
-}
 
 /** The KPI cards in two tiers (owner request, 28 Oct 2026): five main figures, then the supporting ones. The titles are fixed, so the
  *  loading state shows the same cards with placeholders and the page does not jump when the figures arrive. */
@@ -229,71 +213,6 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
   return <KpiTiers main={main} more={more} />;
 }
 
-const SEVERITY_RANK: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
-const SEVERITY_TONE: Record<string, 'bad' | 'warn' | 'info' | 'neutral'> = { Critical: 'bad', High: 'warn', Medium: 'info', Low: 'neutral' };
-const QUEUE: Record<string, string> = {
-  OverdueCase: 'Overdue ticket', CaseDueSoon: 'Ticket due within 24 h', EscalationOverdue: 'Escalation past target', EnvironmentCondition: 'Environment degraded or down',
-  OverdueCommitment: 'Overdue commitment', PaymentDue: 'Payment', ContractRenewal: 'Contract renewal', Unassigned: 'Unassigned ticket'
-};
-type QueueRow = ActionRow & { also: string[] };
-
-/** A60: one queue of what needs action now, from the action list — most severe and earliest due first, one row per record. */
-function ActionCenter({ params }: { params: Record<string, string> }) {
-  const q = useQuery({ queryKey: ['actions', params], queryFn: () => get<{ items: ActionRow[] }>(`/dashboard/actions${qs(params)}`), placeholderData: keepPreviousData });
-  const [cat, setCat] = useState('');
-  const [all, setAll] = useState(false);
-  const rows = useMemo(() => {
-    const items = (q.data?.items ?? []).filter(i => QUEUE[i.category] && (i.category !== 'Unassigned' || i.severity === 'High'));
-    const byRecord = new Map<string, QueueRow>();
-    for (const i of [...items].sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity])) {
-      const key = `${i.recordType}:${i.recordId}`;
-      const have = byRecord.get(key);
-      if (!have) byRecord.set(key, { ...i, also: [] });
-      else if (have.category !== i.category && !have.also.includes(QUEUE[i.category])) have.also.push(QUEUE[i.category]);
-    }
-    return [...byRecord.values()].sort((a, b) => SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity]
-      || (a.dueAt ? new Date(a.dueAt).getTime() : Infinity) - (b.dueAt ? new Date(b.dueAt).getTime() : Infinity));
-  }, [q.data]);
-  const counts = useMemo(() => rows.reduce<Record<string, number>>((m, r) => ({ ...m, [r.category]: (m[r.category] ?? 0) + 1 }), {}), [rows]);
-  const shown = rows.filter(r => !cat || r.category === cat);
-  const visible = all ? shown : shown.slice(0, 8);
-  const critical = rows.filter(r => r.severity === 'Critical').length;
-  return (
-    <section className="dash-band" id="attention" aria-labelledby="attention-h">
-      <div className="band-head">
-        <span className="band-ic" aria-hidden="true"><Icon name="bell" size={16} /></span>
-        <h2 className="band-title" id="attention-h">Needs immediate attention</h2>
-        <span className="hint">{q.isLoading ? 'Loading…' : rows.length === 0 ? 'Nothing is overdue, due within 24 hours or down — all clear.' : `${rows.length} item(s) · ${critical} critical`}</span>
-      </div>
-      <section className="panel cc-queue">
-        {rows.length > 0 && (
-          <div className="cc-chips" role="group" aria-label="Issue type">
-            <button aria-pressed={!cat} onClick={() => setCat('')}>All <b>{rows.length}</b></button>
-            {Object.keys(QUEUE).filter(k => counts[k]).map(k => (
-              <button key={k} aria-pressed={cat === k} onClick={() => setCat(cat === k ? '' : k)}>{QUEUE[k]} <b>{counts[k]}</b></button>
-            ))}
-          </div>
-        )}
-        <DataTable<QueueRow> rowKey={r => `${r.recordType}:${r.recordId}`} rows={visible} loading={q.isLoading} error={q.error} tools={false} pageSize={50} empty="none"
-          caption="Needs immediate attention" columns={[
-            { key: 'p', header: 'Priority', render: r => <><Badge tone={SEVERITY_TONE[r.severity] ?? 'neutral'}>{r.severity}</Badge>{r.priority && <span className="hint pay-sub">{r.priority} priority</span>}</> },
-            { key: 'i', header: 'Issue', render: r => <><span className="cc-kind">{QUEUE[r.category]}</span><Link to={r.link}><b>{r.reference}</b></Link> <span className="cc-title">{r.title}</span></> },
-            { key: 'c', header: 'Client', render: r => r.clientId ? <ClientDisplay id={r.clientId} code={r.clientCode ?? 'Client'} /> : <span className="muted">Internal</span> },
-            { key: 'o', header: 'Owner', render: r => r.owner === 'Unassigned' ? <Badge tone="warn">Unassigned</Badge> : r.owner },
-            { key: 'd', header: 'Age / due', className: 'nowrap', render: r => dueText(r.dueAt) },
-            { key: 's', header: 'Status', render: r => <>{r.reason}{r.also.length > 0 && <span className="hint">also: {r.also.join(', ')}</span>}</> },
-            { key: 'a', header: 'Action', className: 'nowrap', render: r => <Link className="btn btn-sm" to={r.link} title={r.nextAction ?? undefined} aria-label={`Open ${r.reference}`}>Open</Link> }
-          ]} />
-        <div className="cc-queue-foot">
-          {shown.length > 8 && <button className="linkbtn" onClick={() => setAll(v => !v)}>{all ? 'Show the top 8' : `Show all ${shown.length}`}</button>}
-          <Link to={`/actions${qs(params)}`}>Open the full action list</Link>
-          <span className="hint">Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record; other warnings on it are listed under Status.</span>
-        </div>
-      </section>
-    </section>
-  );
-}
-
 function Band({ id, icon, title, hint, children }: { id: string; icon: string; title: string; hint?: React.ReactNode; children: React.ReactNode }) {
   const storage = 'tiohub.dash.collapsed';
   const [closed, setClosed] = useState(() => { try { return (JSON.parse(localStorage.getItem(storage) ?? '[]') as string[]).includes(id); } catch { return false; } });
@@ -340,8 +259,8 @@ function AtAGlance({ cc, params }: { cc: CC; params: Record<string, string> }) {
       <div className="glance-tiles">
         <Link className="glance-tile" to={to(window)}><span className="flabel">Opened in {period}</span><b>{c.openedInPeriod}</b><Delta now={c.openedInPeriod} before={c.previous.opened} goodWhenUp={false} /></Link>
         <div className="glance-tile"><span className="flabel">Closed in {period}</span><b>{c.closedInPeriod}</b><Delta now={c.closedInPeriod} before={c.previous.closed} goodWhenUp /></div>
-        <Link className="glance-tile" to={to({ priority: 'Critical' })}><span className="flabel">Critical or high, open</span><b>{c.criticalHigh}</b><span className="glance-delta">of {c.openCount} open</span></Link>
-        <Link className="glance-tile" to={to({ sla: 'breached', status: 'all', createdFrom: cc.period.from, createdTo: cc.period.to })}><span className="flabel">SLA response met</span><b>{cc.sla.response.rate === null ? '—' : `${cc.sla.response.rate}%`}</b><span className="glance-delta">resolution {cc.sla.resolution.rate === null ? 'not measured' : `${cc.sla.resolution.rate}%`}</span></Link>
+        <Link className="glance-tile" to={to({ priority: CRITICAL_OR_HIGH })}><span className="flabel">Critical or high, open</span><b>{c.criticalHigh}</b><span className="glance-delta">of {c.openCount} open</span></Link>
+        <Link className="glance-tile" to={to({ sla: 'withContract', status: 'all', createdFrom: cc.period.from, createdTo: cc.period.to })}><span className="flabel">SLA response met</span><b>{cc.sla.response.rate === null ? '—' : `${cc.sla.response.rate}%`}</b><span className="glance-delta">resolution {cc.sla.resolution.rate === null ? 'not measured' : `${cc.sla.resolution.rate}%`}</span></Link>
       </div>
     </section>
   );
@@ -702,13 +621,13 @@ function QualityCharts({ d, deferred }: { d: InsightsT; deferred: string }) {
 }
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview' }, { id: 'attention', label: 'Attention' }, { id: 'cases', label: 'Tickets' }, { id: 'escalations', label: 'Escalations' },
+  { id: 'attention', label: 'Attention' }, { id: 'overview', label: 'Figures' }, { id: 'cases', label: 'Tickets' }, { id: 'escalations', label: 'Escalations' },
   { id: 'sla', label: 'Contractual SLA' }, { id: 'contracts', label: 'Contracts & SLAs' }, { id: 'payments', label: 'Payments' }, { id: 'health', label: 'Health' }, { id: 'quality', label: 'Data quality' }
 ];
 
 /** A51: sticky section navigation; the section in view is highlighted. */
 function DashNav() {
-  const [active, setActive] = useState('overview');
+  const [active, setActive] = useState('attention');
   // A clicked section stays current while the smooth scroll runs (sections near the end cannot reach the top);
   // the user's own scrolling (wheel, touch, keys) hands control back to the position tracking.
   const pinned = useRef<string | null>(null);
@@ -744,7 +663,9 @@ function DashNav() {
   );
 }
 
-/** A60 (owner request, 22 Oct 2026): the Executive overview as an Operations Command Center. */
+const PERIODS = [{ value: 'today', label: 'Today' }, { value: '7d', label: 'Last 7 days' }, { value: '30d', label: 'Last 30 days' }, { value: 'quarter', label: 'This quarter' }, { value: 'custom', label: 'Custom range' }];
+
+/** A60 (owner request, 22 Oct 2026): the Executive overview as an Operations Command Center. A102: the summary and urgent work come first. */
 export function Dashboard() {
   const me = useMe().data!;
   const canManage = useRight('ClientStructure', 'Coordinate');
@@ -765,14 +686,24 @@ export function Dashboard() {
   const products = useProductOptions();
   const countries = insights.data?.countries;
   const countryOptions = [...(countries?.rows ?? []).map(c => c.country), ...(countries?.unknownCountryClients ? ['Unknown'] : [])].map(c => ({ value: c, label: c }));
-  const active = [f.clientId, f.teamId, f.productId, f.country, f.slaContractId, f.slaPriority].filter(Boolean).length + (f.period !== '30d' ? 1 : 0) + (f.view !== defaults.view ? 1 : 0);
+  const nameOf = (list: { value: string; label: string }[], v: string) => list.find(o => o.value === v)?.label ?? v;
+  const chips: FilterChip[] = [
+    ...(f.period !== '30d' ? [{ key: 'period', label: `Period: ${nameOf(PERIODS, f.period)}`, onClear: () => set({ period: '30d', from: '', to: '' }) }] : []),
+    ...(f.view !== defaults.view ? [{ key: 'view', label: mine ? 'My work' : 'All I can see', onClear: () => set({ view: defaults.view }) }] : []),
+    ...(f.clientId ? [{ key: 'client', label: `Client: ${nameOf(clients, f.clientId)}`, onClear: () => set({ clientId: '' }) }] : []),
+    ...(f.teamId ? [{ key: 'team', label: `Team: ${nameOf(teams, f.teamId)}`, onClear: () => set({ teamId: '' }) }] : []),
+    ...(f.productId ? [{ key: 'product', label: `Product: ${nameOf(products, f.productId)}`, onClear: () => set({ productId: '' }) }] : []),
+    ...(f.country ? [{ key: 'country', label: `Country: ${f.country}`, onClear: () => set({ country: '' }) }] : []),
+    ...(f.slaContractId ? [{ key: 'slaContract', label: 'SLA: one contract', onClear: () => set({ slaContractId: '' }) }] : []),
+    ...(f.slaPriority ? [{ key: 'slaPriority', label: `SLA priority: ${f.slaPriority}`, onClear: () => set({ slaPriority: '' }) }] : [])
+  ];
   const qc = useQueryClient();
   const refreshing = dash.isFetching || insights.isFetching || cc.isFetching;
   const linkParams = { clientId: f.clientId, teamId: f.teamId, productId: f.productId, country: f.country };
   return (
     <div className="dash">
       <PageHead title="Operations Command Center"
-        sub={<>Real-time visibility into customer operations, service performance, and operational risks.{' '}
+        sub={<>
           {cc.data && <span className="cc-fresh">Last refreshed {fmtDateTime(cc.data.evaluatedAt)} ({me.timeZone}) · only records you are authorized to see.</span>}</>}
         actions={<>
           <button className="btn" onClick={() => qc.invalidateQueries({ predicate: q => ['dashboard', 'insights', 'command-center', 'actions'].includes(String(q.queryKey[0])) })} disabled={refreshing}>
@@ -781,38 +712,38 @@ export function Dashboard() {
           <Link className="btn" to={`/map${qs(linkParams)}`}>Client map</Link>
           <Link className="btn btn-primary" to={`/actions${qs(params)}`}>Action list</Link>
         </>} />
-      <div className="toolbar dash-filters">
-        <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
-        <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
-        <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
-        <SelectInput label="Country" value={f.country} onChange={v => set({ country: v })} options={countryOptions} empty="All countries" />
-        <SelectInput label="Reporting period" value={f.period} onChange={v => set({ period: v })} empty={null}
-          options={[{ value: 'today', label: 'Today' }, { value: '7d', label: 'Last 7 days' }, { value: '30d', label: 'Last 30 days' }, { value: 'quarter', label: 'This quarter' }, { value: 'custom', label: 'Custom range' }]} />
-        {custom && <>
-          <TextInput label="From" type="date" value={f.from} onChange={v => set({ from: v })} />
-          <TextInput label="To" type="date" value={f.to} onChange={v => set({ to: v })} error={f.from && f.to && f.from > f.to ? 'The end is before the start.' : undefined} />
-        </>}
-        <div className="field cc-view">
-          <span className="flabel">Show</span>
-          <div className="seg" role="group" aria-label="Show">
-            <button aria-pressed={!mine} onClick={() => set({ view: 'all' })}>All I can see</button>
-            <button aria-pressed={mine} onClick={() => set({ view: 'mine' })}>My work</button>
+      <FilterBar className="dash-filters" chips={chips} onClearAll={() => set(defaults)} advancedCount={[f.clientId, f.teamId, f.productId, f.country].filter(Boolean).length}
+        common={<>
+          <SelectInput label="Reporting period" value={f.period} onChange={v => set({ period: v })} empty={null} options={PERIODS} />
+          {custom && <>
+            <TextInput label="From" type="date" value={f.from} onChange={v => set({ from: v })} />
+            <TextInput label="To" type="date" value={f.to} onChange={v => set({ to: v })} error={f.from && f.to && f.from > f.to ? 'The end is before the start.' : undefined} />
+          </>}
+          <div className="field cc-view">
+            <span className="flabel">Show</span>
+            <div className="seg" role="group" aria-label="Show">
+              <button aria-pressed={!mine} onClick={() => set({ view: 'all' })}>All I can see</button>
+              <button aria-pressed={mine} onClick={() => set({ view: 'mine' })}>My work</button>
+            </div>
           </div>
-        </div>
-        {active > 0 && <div className="cc-active"><span className="chip">{active} filter(s) active</span>
-          <button className="btn" onClick={() => set(defaults)}>Reset filters</button></div>}
-      </div>
-      <p className="hint cc-scope">The reporting period applies to opened, closed and received figures and to targets met; open, overdue and due figures are always as of now.</p>
-      <DashNav />
+        </>}
+        advanced={<>
+          <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized clients" />
+          <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
+          <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
+          <SelectInput label="Country" value={f.country} onChange={v => set({ country: v })} options={countryOptions} empty="All countries" />
+        </>} />
       {(dash.isLoading || insights.isLoading || cc.isLoading) && <StateMessage kind="loading" />}
       {(dash.error || insights.error || cc.error) && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       {cc.data && <AtAGlance cc={cc.data} params={params} />}
+      <ActionQueue params={params} />
+      <DashNav />
       <section id="overview" aria-label="Key figures">
         {dash.data && insights.data && cc.data ? <KpiGrid dash={dash.data} d={insights.data} cc={cc.data} />
           : (dash.isLoading || insights.isLoading || cc.isLoading) && <KpiSkeleton />}
         {mine && <p className="hint" style={{ margin: '-4px 0 var(--gap)' }}>My work: tickets, commitments, escalations, payments and environments you own. Contract figures need the whole view.</p>}
+        <p className="hint cc-scope">The reporting period applies to opened, closed and received figures and to targets met; open, overdue and due figures are always as of now.</p>
       </section>
-      <ActionCenter params={params} />
       {insights.data && dash.data && cc.data && <>
         <CaseCharts d={insights.data} age={dash.data.caseAge} cc={cc.data} />
         <SlaCharts cc={cc.data} scope={params} slaContractId={f.slaContractId} slaPriority={f.slaPriority} onFilter={x => set(x)} />

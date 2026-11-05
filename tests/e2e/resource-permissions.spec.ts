@@ -105,6 +105,7 @@ test.describe('Resource permissions in application actions', () => {
     await role(page, ['Cases:Coordinate']);
     await page.goto(`/cases/${record.id}`);
     await expect(page.getByRole('button', { name: 'Triage', exact: true })).toBeVisible();
+    await page.locator('summary', { hasText: 'Supporting details' }).click();
     await expect(page.getByRole('button', { name: 'Link contract', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Edit', exact: true })).toHaveCount(0);
     await page.getByRole('button', { name: 'Reassign', exact: true }).click();

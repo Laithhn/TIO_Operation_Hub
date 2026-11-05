@@ -117,8 +117,7 @@ test('case-status configuration updates ticket labels without renaming cancelled
     await page.goto(`/cases/${work.id}`);
     await expect(page.locator('.page-head .sub')).toContainText(newLabel);
     await page.goto(`/cases?clientId=${organization.id}&status=Cancelled`);
-    await openColumnFilter(page, 'Status');
-    await expect(page.getByLabel('Filter by status', { exact: true }).locator('option[value="code:Closed"]')).toHaveText(newLabel);
+    await expect(page.getByLabel('Status', { exact: true }).locator('option[value="code:Closed"]')).toHaveText(newLabel);
     await expect(page.locator(VT_ROW).filter({ hasText: 'Label ticket' })).toContainText(newLabel);
     await page.goto(`/commitments/${commitment.id}`);
     await expect(page.locator('.page-head .sub')).toContainText('Cancelled');

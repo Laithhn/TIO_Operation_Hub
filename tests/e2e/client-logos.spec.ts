@@ -67,7 +67,7 @@ test.describe.serial('A71 client logos', () => {
     await page.reload();
     await expect(logoIn(page.getByTestId('client-identity'))).toHaveClass(/has-img/);
     const box = await logoIn(page.getByTestId('client-identity')).boundingBox();
-    expect(Math.round(box!.width)).toBe(96);
+    expect(Math.round(box!.width)).toBe(48);
   });
 
   test('the logo appears in the client list, ticket list, map side list and report builder; others show initials', async ({ page }) => {

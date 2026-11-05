@@ -38,3 +38,13 @@ export const VT_HEADER = HEADER_CELL;
 
 /** A text matcher for a whole cell (getByRole('cell', { name, exact: true }) did this). */
 export const exactText = (text: string): RegExp => new RegExp(`^\\s*${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`);
+
+const escaped = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** A102: opens Delete of a record, from its row's actions menu or its page's More menu. `what` is what the record is called, such as `ticket CS-1`. */
+export async function startDelete(scope: Scope, what: string | RegExp) {
+  const page = 'page' in scope ? scope.page() : scope;
+  const source = typeof what === 'string' ? `${escaped(what)}$` : what.source.replace(/^\^/, '');
+  await scope.getByRole('button', { name: new RegExp(`^Actions for .*${source}`) }).or(scope.getByRole('button', { name: 'More', exact: true })).first().click();
+  await page.getByRole('menuitem', { name: new RegExp(`^Delete .*${source}`) }).click();
+}

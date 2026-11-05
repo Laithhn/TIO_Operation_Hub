@@ -181,11 +181,10 @@ export function EnvironmentDetail() {
             { label: 'Server', onClick: () => setDialog('asset'), hidden: !canCreateServer },
             { label: 'Installation (product)', onClick: () => setDialog('install'), hidden: !canCreateInstallation }
           ]} />}
-          <Menu label="More" items={[
+          <DeleteAction button path={`/environments/${e.id}`} what={`environment ${e.name}`} afterTo={`/clients/${e.client.id}`} more={[
             { label: 'Copy servers or environment…', onClick: () => setDialog('clone'), hidden: !(canCreateServer || canCreateInstallation || canCreateEnvironment) },
             { label: 'Archive environment…', onClick: () => setDialog('archive'), danger: true, hidden: !canArchive }
-          ]} />
-        <DeleteAction button path={`/environments/${e.id}`} what={`environment ${e.name}`} afterTo={`/clients/${e.client.id}`} /></>} />
+          ]} /></>} />
       <div className="cols">
         <Panel title="Ownership and coverage">
           <DL items={[
