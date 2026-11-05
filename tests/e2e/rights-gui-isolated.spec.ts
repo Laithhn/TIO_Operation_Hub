@@ -8,7 +8,7 @@ const mime: Record<string, string> = { '.js': 'text/javascript', '.css': 'text/c
 const keys = (...modules: string[]) => catalog.filter(r => modules.includes(r.module)).map(r => r.key);
 const roles = () => [
   { id: 1, key: 'manager', name: 'TIO Manager', description: 'Full authority.', isActive: true, isLocked: true, userCount: 2, rights: catalog.map(r => r.key), version: 'r1' },
-  { id: 2, key: 'engineer', name: 'Operation Engineer', description: 'Day to day operations.', isActive: true, isLocked: false, userCount: 9, rights: keys('Cases', 'Dashboard', 'Commitments'), version: 'r1' },
+  { id: 2, key: 'engineer', name: 'Operation Engineer', description: 'Day to day operations.', isActive: true, isLocked: false, userCount: 9, rights: keys('Tickets', 'Dashboard', 'Commitments'), version: 'r1' },
   { id: 3, name: 'Client Viewer', description: 'Read only client work.', isActive: true, isLocked: false, userCount: 4, rights: catalog.filter(r => r.key.endsWith(':View')).map(r => r.key), version: 'r1' },
   { id: 4, name: 'Old role', isActive: false, isLocked: false, userCount: 0, rights: keys('Notes'), version: 'r1' }
 ];

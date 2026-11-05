@@ -584,3 +584,23 @@ No contract-linked case has a first response, so all 262 show response breached.
 
 Not run: signing in and using the screens on the restored copy, because that needs real credentials; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site; the deployed site.
 
+## Releases 2.51.4 to 2.53.0, 5 November 2026
+
+Actual runs with the owner's standing approval, on the isolated `(localdb)\TioHubQALocalDB` instance and restored copies on `NB01994\MSSQLSERVER22`. Packages were built from clean worktrees.
+
+| Suite | Result |
+|---|---|
+| 2.51.4 package build, backend | **711 passed, 0 failed** (commit `6c458da`) |
+| 2.51.4 Playwright, main config | **176 passed, 0 failed** |
+| 2.52.0 backend, full run | **715 passed, 0 failed** |
+| 2.52.0 Playwright, main config | 174 of 176 passed; 2 failures were test data missing the new `contracts` field, corrected and passing in the 2.53.0 runs |
+| 2.53.0 package build, backend | **715 passed, 0 failed** (commit `00ac35e`) |
+| 2.53.0 Playwright, main config | 168 of 177 passed before test updates; all 9 failures expected the old word. After the updates, the 6 affected spec files passed in full (96 tests) |
+| 2.53.0 Playwright, access-control isolated config | 13 passed, after the rights catalog was regenerated |
+| 2.53.0 Playwright, `role-matrix`, `granular-rights`, `resource-permissions`, `access-control-real-api`, regenerated catalog | 13 passed |
+| Frontend, `tsc` and `vitest` | No type errors; 91 passed |
+
+`01-schema.sql` of 2.52.0 ran on restored copy `TioHub_UAT_A93_11051209` from `TioHub_before_2.51.3_20261105-0927.bak`, twice, with no errors. The application then started in Production mode with Jira off, with no errors in its log. Of 295 tickets, 262 stayed on CT-1001, because its dates cover them all, and both spaces kept it as their link. So moving a ticket to or from a contract by date was exercised by the tests, not by this data. Resolution SLA changed from 260 breached and 2 pending to 224 breached, 37 met and 1 pending, the effect of 2.51.1's correction reaching this copy. The 2.53.0 package then started on the same copy with no errors, and its bundle holds the new text.
+
+Not run: the whole main Playwright config again after the test updates, as only test text changed; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site; signing in on a restored copy.
+
