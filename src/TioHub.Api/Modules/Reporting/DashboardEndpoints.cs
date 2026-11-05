@@ -67,20 +67,20 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
             filters = p,
             cases = new object[]
             {
-                M("openCases", "Open cases", open.Count, "All cases except Closed and Cancelled. Waiting cases stay open.", link("/cases", "status=open")),
-                M("overdueCases", "Overdue cases", await Cases(baseCase with { Due = "overdue" }).CountAsync(ct), "Open cases with a due time strictly before the evaluation time.", link("/cases", "due=overdue")),
-                M("noDeadlineCases", "Open cases without a deadline", await Cases(baseCase with { Due = "none" }).CountAsync(ct), "Open cases with no due time; not counted as overdue or on time.", link("/cases", "due=none")),
-                M("unassignedCases", "Unassigned cases", await Cases(baseCase with { Unassigned = true }).CountAsync(ct), "Open cases with no owner (an ownership condition, not a status).", link("/cases", "unassigned=true")),
-                M("waitingCases", "Waiting cases", await Cases(baseCase with { Waiting = true }).CountAsync(ct), "Open cases with a recorded waiting reason. Deadlines are not paused.", link("/cases", "waiting=true")),
-                M("reviewOverdueCases", "Next review passed", await Cases(baseCase with { ReviewOverdue = true }).CountAsync(ct), "Open cases whose next-review time is in the past.", link("/cases", "reviewOverdue=true")),
-                M("staleCases", "Stale cases", await Cases(baseCase with { Stale = true }).CountAsync(ct), "Open cases whose last meaningful review is older than the policy or whose next-review date passed.", link("/cases", "stale=true"))
+                M("openCases", "Open tickets", open.Count, "All tickets except Closed and Cancelled. Waiting tickets stay open.", link("/cases", "status=open")),
+                M("overdueCases", "Overdue tickets", await Cases(baseCase with { Due = "overdue" }).CountAsync(ct), "Open tickets with a due time strictly before the evaluation time.", link("/cases", "due=overdue")),
+                M("noDeadlineCases", "Open tickets without a deadline", await Cases(baseCase with { Due = "none" }).CountAsync(ct), "Open tickets with no due time; not counted as overdue or on time.", link("/cases", "due=none")),
+                M("unassignedCases", "Unassigned tickets", await Cases(baseCase with { Unassigned = true }).CountAsync(ct), "Open tickets with no owner (an ownership condition, not a status).", link("/cases", "unassigned=true")),
+                M("waitingCases", "Waiting tickets", await Cases(baseCase with { Waiting = true }).CountAsync(ct), "Open tickets with a recorded waiting reason. Deadlines are not paused.", link("/cases", "waiting=true")),
+                M("reviewOverdueCases", "Next review passed", await Cases(baseCase with { ReviewOverdue = true }).CountAsync(ct), "Open tickets whose next-review time is in the past.", link("/cases", "reviewOverdue=true")),
+                M("staleCases", "Stale tickets", await Cases(baseCase with { Stale = true }).CountAsync(ct), "Open tickets whose last meaningful review is older than the policy or whose next-review date passed.", link("/cases", "stale=true"))
             },
             caseAge = new
             {
                 averageDays = open.Count == 0 ? (double?)null : Math.Round(open.Average(c => (now - c.OpenedAt).TotalDays), 1),
                 oldestDays = open.Count == 0 ? (double?)null : Math.Round(open.Max(c => (now - c.OpenedAt).TotalDays), 1),
                 totalWaitingHours = Math.Round(waitingHours, 1),
-                definition = "Age is calendar time since the case was opened: the Jira creation time of a synchronized case, otherwise the hub creation time. Waiting time sums recorded waiting intervals and does not pause any deadline."
+                definition = "Age is calendar time since the ticket was opened: the Jira creation time of a synchronized ticket, otherwise the hub creation time. Waiting time sums recorded waiting intervals and does not pause any deadline."
             },
             commitments = new object[]
             {
@@ -143,7 +143,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
 
         if (Want("CoverageGap"))
         {
-            await AddCases("CoverageGap", baseCase with { CoverageGap = true }, r => $"{r.Priority} priority case without an active backup owner");
+            await AddCases("CoverageGap", baseCase with { CoverageGap = true }, r => $"{r.Priority} priority ticket without an active backup owner");
             if (p.TeamId is null && p.OwnerId is null)
             {
                 var envQ = db.Environments.AsNoTracking().Where(e => crit.Contains(e.Criticality) && (e.BackupOwnerUserId == null || !e.BackupOwner!.IsActive));

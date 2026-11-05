@@ -36,7 +36,7 @@ public static class ReferenceData
         (SettingKeys.ApprovedLinkHosts, "", "Comma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted)."),
         (SettingKeys.VaultReferencePrefix, "vault://", "Required prefix of approved vault references. The hub stores references only, never secrets."),
         (SettingKeys.CoverageCriticalities, "Critical,High", "Environment criticalities that require an active backup owner (coverage policy)."),
-        (SettingKeys.CoveragePriorities, "Critical", "Case priorities that require an active backup owner (coverage policy)."),
+        (SettingKeys.CoveragePriorities, "Critical", "Ticket priorities that require an active backup owner (coverage policy)."),
         (SettingKeys.UpcomingDays, "7", "Upcoming window for commitments, in calendar days (Section 7 proposed default)."),
         (SettingKeys.DefaultTimeZone, "UTC", "Default display time zone for new users."),
         (SettingKeys.PaymentReminderDays, "14", "Days before a contract payment is due that its owner and the managers are reminded (1–90).")
@@ -45,7 +45,7 @@ public static class ReferenceData
     // OPS-04 pilot defaults; condition evidence interval is an implementation assumption (BRD gives no figure).
     private static readonly (string Type, ReviewScope Scope, int? Days, bool Next, string Notes)[] Policies =
     [
-        (RecordTypes.Case, ReviewScope.Record, 2, true, "Active cases every 2 calendar days and by the explicit next-review time (pilot default)."),
+        (RecordTypes.Case, ReviewScope.Record, 2, true, "Active tickets every 2 calendar days and by the explicit next-review time (pilot default)."),
         (RecordTypes.Client, ReviewScope.Record, 90, true, "Client records every 90 days and after material change (pilot default)."),
         (RecordTypes.Contact, ReviewScope.Record, 90, false, "Contact records every 90 days (pilot default)."),
         (RecordTypes.Environment, ReviewScope.Inventory, 30, true, "Environment inventory every 30 days and after material change (pilot default)."),

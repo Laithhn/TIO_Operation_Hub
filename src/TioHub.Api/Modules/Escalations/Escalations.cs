@@ -304,7 +304,7 @@ public static class EscalationEndpoints
         // Links must belong to the same client (or one of its sub-clients' records belong to the sub-client itself).
         if (i.ProjectId is not null && !await db.Projects.AnyAsync(p => p.Id == i.ProjectId && p.ClientId == i.ClientId, ct)) check.Add("projectId", "Select a project of this client.");
         if (i.ContractId is not null && !await db.Contracts.AnyAsync(c => c.Id == i.ContractId && c.ClientId == i.ClientId, ct)) check.Add("contractId", "Select a contract of this client.");
-        if (i.CaseId is not null && !await db.Cases.AnyAsync(c => c.Id == i.CaseId && c.ClientId == i.ClientId, ct)) check.Add("caseId", "Select a case of this client.");
+        if (i.CaseId is not null && !await db.Cases.AnyAsync(c => c.Id == i.CaseId && c.ClientId == i.ClientId, ct)) check.Add("caseId", "Select a ticket of this client.");
         var receivedAt = i.ReceivedAt ?? existing?.ReceivedAt ?? now;
         if (existing is not null && receivedAt != existing.ReceivedAt)
         {

@@ -87,7 +87,7 @@ public static class BuilderEndpoints
         g.MapGet("/report-types", (UserContext me) =>
         {
             ExportService.RequireExport(me);
-            return Results.Ok(new[] { new { key = "cases", name = "Cases report", category = ReportCatalog.Operations, builder = true, catalogKey = "cases" } });
+            return Results.Ok(new[] { new { key = "cases", name = "Tickets report", category = ReportCatalog.Operations, builder = true, catalogKey = "cases" } });
         });
 
         g.MapGet("/report-types/cases", async (UserContext me, ExportStore store, HubDbContext db, CancellationToken ct) =>
@@ -97,8 +97,8 @@ public static class BuilderEndpoints
             var statusCodes = await db.LookupValues.AsNoTracking().Where(l => l.ListName == CaseStatuses.List && !l.IsRetired).OrderBy(l => l.SortOrder).Select(l => l.Code).ToListAsync(ct);
             return Results.Ok(new
             {
-                key = "cases", name = "Cases report", schemaVersion = 1,
-                description = "Build a cases report with filters, columns, sorting and grouping; preview it live and export it to Excel or PDF.",
+                key = "cases", name = "Tickets report", schemaVersion = 1,
+                description = "Build a tickets report with filters, columns, sorting and grouping; preview it live and export it to Excel or PDF.",
                 fields = CasesFields.VisibleTo(me).Select(f => new
                 {
                     f.Key, f.Label, type = f.Type.ToString(), f.Category, f.Description, f.Sortable, f.Groupable, filterable = f.Filterable && f.Build is not null,
@@ -149,10 +149,10 @@ public static class BuilderEndpoints
                 return Results.Problem(statusCode: StatusCodes.Status504GatewayTimeout, title: "The preview took too long", detail: "Narrow the filters (for example a shorter date range or fewer clients) and try again.");
             }
             ReportingMetrics.PreviewMs.Record(watch.Elapsed.TotalMilliseconds);
-            logs.CreateLogger("Reporting").LogDebug("Cases preview: {Total} row(s) in {Ms} ms", result.Total, (int)watch.Elapsed.TotalMilliseconds);
+            logs.CreateLogger("Reporting").LogDebug("Tickets preview: {Total} row(s) in {Ms} ms", result.Total, (int)watch.Elapsed.TotalMilliseconds);
             var o = store.Options;
             var warnings = new List<string>(v.Warnings);
-            if (result.Total > o.MaxRows) warnings.Add($"{result.Total:N0} cases match; one export holds at most {o.MaxRows:N0}. Narrow the filters before exporting.");
+            if (result.Total > o.MaxRows) warnings.Add($"{result.Total:N0} tickets match; one export holds at most {o.MaxRows:N0}. Narrow the filters before exporting.");
             if (result.Total > o.PdfMaxRows && result.Total <= o.MaxRows) warnings.Add($"A detailed PDF holds at most {o.PdfMaxRows:N0} rows; use Excel or the PDF summary for this result.");
             return Results.Ok(new
             {
@@ -313,17 +313,17 @@ public static class BuilderEndpoints
             var k = await svc.ClockAsync(cutoff, ct);
             var v = await svc.ValidateAsync(definition, zone, k, ct);
             var total = await (await svc.QueryAsync(v, k, cutoff, ct)).CountAsync(ct);
-            if (total == 0) throw new ValidationException("definition", "No cases match these filters: there is nothing to export.");
-            if (total > o.MaxRows) throw new ValidationException("definition", $"{total:N0} cases match; one export can hold at most {o.MaxRows:N0}. Narrow the filters and export again.");
+            if (total == 0) throw new ValidationException("definition", "No tickets match these filters: there is nothing to export.");
+            if (total > o.MaxRows) throw new ValidationException("definition", $"{total:N0} tickets match; one export can hold at most {o.MaxRows:N0}. Narrow the filters and export again.");
             if (format == ExportFormat.Pdf && options.PdfMode == "detailed" && total > o.PdfMaxRows)
-                throw new ValidationException("options.pdfMode", $"{total:N0} cases match; a detailed PDF holds at most {o.PdfMaxRows:N0}. Use Excel or the PDF summary.");
+                throw new ValidationException("options.pdfMode", $"{total:N0} tickets match; a detailed PDF holds at most {o.PdfMaxRows:N0}. Use Excel or the PDF summary.");
             var active = await db.ExportJobs.CountAsync(j => j.UserId == me.UserId && j.DefinitionJson != null && (j.Status == ExportStatus.Pending || j.Status == ExportStatus.Processing), ct);
             if (active >= o.MaxActiveExportsPerUser)
                 return Results.Problem(statusCode: StatusCodes.Status429TooManyRequests, title: "Too many exports in progress", detail: $"You have {active} exports queued or running. Wait for one to finish, or cancel one.");
             var summary = string.Join("; ", v.Summary.Select(s => $"{s.Label} = {s.Value}"));
             var job = new ExportJob
             {
-                UserId = me.UserId!.Value, Report = "cases", ReportName = saved?.Name ?? "Cases report", Format = format, FiltersJson = "{}", FilterSummary = summary.Length > 2000 ? summary[..2000] : summary,
+                UserId = me.UserId!.Value, Report = "cases", ReportName = saved?.Name ?? "Tickets report", Format = format, FiltersJson = "{}", FilterSummary = summary.Length > 2000 ? summary[..2000] : summary,
                 ColumnsJson = JsonSerializer.Serialize(v.Columns.Select(x => x.Key)), TimeZone = zone.Id, Status = ExportStatus.Pending, RequestedAt = now, Source = "Report builder",
                 AccessFingerprint = ExportAccessFingerprint.For(me), DefinitionJson = CasesReportService.Serialize(v.Definition), OptionsJson = JsonSerializer.Serialize(options, Json), IdempotencyKey = string.IsNullOrEmpty(key) ? null : key,
                 SavedReportId = saved?.Id, CutoffAt = cutoff

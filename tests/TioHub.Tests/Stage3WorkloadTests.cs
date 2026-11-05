@@ -15,7 +15,7 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
 
     private static Task<long> Case(Api m, long client, long team, long? owner, long? contract = null) => m.Create("/cases", new
     {
-        title = U("Workload case"), type = "Incident", scope = "Client", clientId = client, contractId = contract, responsibleTeamId = team,
+        title = U("Workload ticket"), type = "Incident", scope = "Client", clientId = client, contractId = contract, responsibleTeamId = team,
         ownerUserId = owner, impactSummary = "Workload regression", priority = "Normal", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1)
     });
 
@@ -55,7 +55,7 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
         var rows = report["rows"]!.AsArray();
         Assert.Equal(3, rows.Count);
         Assert.Equal(new[] { 1, 1, 2 }, rows.Select(x => x![2]!.GetValue<int>()).Order().ToArray());
-        Assert.Equal("4", Metric(report, "Open cases"));
+        Assert.Equal("4", Metric(report, "Open tickets"));
         Assert.Equal("2", Metric(report, "Open commitments"));
         Assert.Equal("3", Metric(report, "Average per owner")); // Six items divided by two user identities.
 
@@ -95,9 +95,9 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
         await m.Ok($"/commitments/{cancelledCommitment}/cancel", new { reason = "Excluded from open workload" }, await m.Version($"/commitments/{cancelledCommitment}"));
 
         var report = await Workload(m, client);
-        Assert.Equal("3", Metric(report, "Open cases"));
+        Assert.Equal("3", Metric(report, "Open tickets"));
         Assert.Equal("2", Metric(report, "Open commitments"));
-        Assert.Equal("1", Metric(report, "Unassigned cases"));
+        Assert.Equal("1", Metric(report, "Unassigned tickets"));
         Assert.Equal("4", Metric(report, "Average per owner")); // Four assigned items, one person, two teams.
         Assert.Equal(3, report["total"]!.GetValue<int>());
         var aging = (await m.Post("/reports/case-aging/preview", new { filters = new { clientId = client.ToString() } })).Body!;
@@ -139,7 +139,7 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
         // Nonmember work remains in the responsible team's report without being attributed to a different member.
         var reportA = await Workload(m, client, teamA);
         Assert.Equal("2", Metric(reportA, "Open commitments"));
-        Assert.Equal("2", Metric(reportA, "Open cases"));
+        Assert.Equal("2", Metric(reportA, "Open tickets"));
         Assert.Equal("1", Metric(await Workload(m, client, teamB), "Open commitments"));
         Assert.Equal("4", Metric(await Workload(m, client), "Open commitments")); // Includes the independent, no-team promise once.
     }
@@ -155,10 +155,10 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
         await Case(m, client, team, null, contract);
         var result = await m.Post("/reports/sla-compliance/preview", new { filters = new { clientId = client.ToString() } });
         Assert.Equal(HttpStatusCode.OK, result.Status);
-        Assert.Equal("1", Metric(result.Body!, "Contract-linked cases"));
+        Assert.Equal("1", Metric(result.Body!, "Contract-linked tickets"));
         Assert.Equal("1", Metric(result.Body!, "Not measurable"));
         Assert.Equal("Not available", Metric(result.Body!, "Response compliance"));
-        Assert.DoesNotContain(result.Body!["summary"]!.AsArray(), row => row!["label"]!.GetValue<string>() == "Cases measured");
+        Assert.DoesNotContain(result.Body!["summary"]!.AsArray(), row => row!["label"]!.GetValue<string>() == "Tickets measured");
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class Stage3WorkloadTests(HubFactory hub) : Scenario(hub)
         await Case(m, client, teamB, ownerB, contract);
         var result = await m.Post("/reports/sla-compliance/preview", new { filters = new { clientId = client.ToString() } });
         Assert.Equal(HttpStatusCode.OK, result.Status);
-        Assert.Equal("3", Metric(result.Body!, "Contract-linked cases"));
+        Assert.Equal("3", Metric(result.Body!, "Contract-linked tickets"));
         foreach (var title in new[] { "By team", "By owner" })
         {
             var rows = result.Body!["breakdowns"]!.AsArray().Single(x => x!["title"]!.GetValue<string>() == title)!["rows"]!.AsArray();

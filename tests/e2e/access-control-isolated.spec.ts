@@ -41,8 +41,8 @@ async function application(page: Page, initialExceptions: RightException[] = [])
       else if (path === '/api/v1/admin/users/2/password' && route.request().method() === 'POST') { passwordSubmitted = true; return route.fulfill({ status: 204 }); }
       else if (path === '/api/v1/admin/users/2/access') data = {
         user, roles: [{ id: 2, name: 'Engineer' }],
-        effectiveRights: [{ key: 'Cases:View', label: 'View cases', description: 'View cases', module: 'Cases', riskLevel: 'Normal', sources: ['Engineer'] }],
-        restrictedRights: [{ key: 'Cases:Delete', label: 'Delete cases', module: 'Cases', restrictionReason: 'Not granted' }],
+        effectiveRights: [{ key: 'Cases:View', label: 'View tickets', description: 'View tickets', module: 'Cases', riskLevel: 'Normal', sources: ['Engineer'] }],
+        restrictedRights: [{ key: 'Cases:Delete', label: 'Delete tickets', module: 'Cases', restrictionReason: 'Not granted' }],
         scopes: { allClients: false, clientIds: [10], projectIds: [], allInternal: false, teamIds: [20] }
       };
       else if (path === '/api/v1/admin/users/2/right-exceptions' && route.request().method() === 'GET') data = { version: `v${version}`, exceptions };

@@ -38,7 +38,7 @@ async function updateLookup(page: Page, row: Lookup, patch: Partial<Lookup>) {
 async function renameThroughConfiguration(page: Page, slug: string, title: string, row: Lookup, newLabel: string) {
   await page.goto('/admin/config');
   await expect(page.getByRole('heading', { name: 'Configuration', exact: true })).toBeVisible();
-  const category = slug === 'case-statuses' ? 'Contracts & Cases' : 'Clients & Environments';
+  const category = slug === 'case-statuses' ? 'Contracts & Tickets' : 'Clients & Environments';
   await page.locator('main').getByRole('link', { name: category, exact: true }).click();
   await page.locator('main').getByRole('link', { name: title, exact: true }).click();
   await expect(page).toHaveURL(new RegExp(`/admin/config/${slug}$`));
@@ -97,11 +97,11 @@ test('reported-condition configuration changes labels only, including an unrepor
   }
 });
 
-test('case-status configuration updates case labels without renaming cancelled commitments', async ({ page }) => {
+test('case-status configuration updates ticket labels without renaming cancelled commitments', async ({ page }) => {
   const me = await signedIn(page);
   const organization = await client(page, me.id);
   const reference = await api<{ teams: { id: number; isActive: boolean }[] }>(page, '/reference');
-  const work = await api<{ id: number }>(page, '/cases', { title: unique('Label case'), type: 'Incident', scope: 'Client', clientId: organization.id,
+  const work = await api<{ id: number }>(page, '/cases', { title: unique('Label ticket'), type: 'Incident', scope: 'Client', clientId: organization.id,
     responsibleTeamId: reference.teams.find(t => t.isActive)!.id, impactSummary: 'Label isolation regression', priority: 'Normal', ownerUserId: me.id,
     nextReviewAt: new Date(Date.now() + 86400000).toISOString() });
   const commitment = await api<{ id: number }>(page, '/commitments', { description: unique('Label commitment'), type: 'CustomerUpdate', scope: 'Client', clientId: organization.id,
@@ -111,15 +111,15 @@ test('case-status configuration updates case labels without renaming cancelled c
     await api(page, `${path}/cancel`, { reason: 'Configuration label regression' }, 'POST', record.version);
   }
   const original = await lookup(page, 'CaseStatusLabel', 'Closed');
-  const newLabel = unique('Case finished');
+  const newLabel = unique('Ticket finished');
   try {
-    await renameThroughConfiguration(page, 'case-statuses', 'Case statuses', original, newLabel);
+    await renameThroughConfiguration(page, 'case-statuses', 'Ticket statuses', original, newLabel);
     await page.goto(`/cases/${work.id}`);
     await expect(page.locator('.page-head .sub')).toContainText(newLabel);
     await page.goto(`/cases?clientId=${organization.id}&status=Cancelled`);
     await openColumnFilter(page, 'Status');
     await expect(page.getByLabel('Filter by status', { exact: true }).locator('option[value="code:Closed"]')).toHaveText(newLabel);
-    await expect(page.locator(VT_ROW).filter({ hasText: 'Label case' })).toContainText(newLabel);
+    await expect(page.locator(VT_ROW).filter({ hasText: 'Label ticket' })).toContainText(newLabel);
     await page.goto(`/commitments/${commitment.id}`);
     await expect(page.locator('.page-head .sub')).toContainText('Cancelled');
     await expect(page.getByText(newLabel, { exact: true })).toHaveCount(0);

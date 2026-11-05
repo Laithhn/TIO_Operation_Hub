@@ -172,14 +172,14 @@ function Details({ d, clients, f, onClose }: { d: CountryFigures; clients: MapCl
         <Iso code={d.iso} />
         <div>
           <h2>{d.country}</h2>
-          <p>{d.clients} client{d.clients === 1 ? '' : 's'} · {d.servers} server{d.servers === 1 ? '' : 's'} · {d.openCases} open case{d.openCases === 1 ? '' : 's'}
+          <p>{d.clients} client{d.clients === 1 ? '' : 's'} · {d.servers} server{d.servers === 1 ? '' : 's'} · {d.openCases} open ticket{d.openCases === 1 ? '' : 's'}
             {overdue > 0 && <> · <span className="t-bad">{overdue} overdue</span></>} · {d.activeContracts} active contract{d.activeContracts === 1 ? '' : 's'}</p>
         </div>
         <button type="button" className="cmap-icon-btn" onClick={onClose} aria-label="Close country details" title="Close"><Icon name="close" size={18} /></button>
       </div>
       <Tabs label="Country details" value={tab} onChange={setTab} tabs={[
         { key: 'clients', label: `Clients (${d.clients})` }, { key: 'servers', label: `Servers (${d.servers})` },
-        { key: 'cases', label: `Cases (${d.openCases})` }, { key: 'contracts', label: `Contracts (${d.activeContracts})` }]} />
+        { key: 'cases', label: `Tickets (${d.openCases})` }, { key: 'contracts', label: `Contracts (${d.activeContracts})` }]} />
       <div className="cmap-details-body" role="tabpanel" aria-label={`${d.country}: ${tab}`}>
         {tab === 'clients' && (
           <table className="cmap-table">
@@ -208,16 +208,16 @@ function Details({ d, clients, f, onClose }: { d: CountryFigures; clients: MapCl
             ))}</tbody>
           </table>
           <MoreLink to={`/assets${qs(base)}`} shown={servers.data.items.length} total={servers.data.totalCount} what="servers" /></>)}</Loading>}
-        {tab === 'cases' && <Loading q={cases}>{cases.data && (cases.data.items.length === 0 ? <div className="cmap-empty">No open cases.</div> : <>
+        {tab === 'cases' && <Loading q={cases}>{cases.data && (cases.data.items.length === 0 ? <div className="cmap-empty">No open tickets.</div> : <>
           <table className="cmap-table">
-            <caption className="sr">Open cases in {d.country}</caption>
-            <thead><tr><th scope="col">Case</th><th scope="col">Client</th><th scope="col">Priority</th><th scope="col">Due</th></tr></thead>
+            <caption className="sr">Open tickets in {d.country}</caption>
+            <thead><tr><th scope="col">Ticket</th><th scope="col">Client</th><th scope="col">Priority</th><th scope="col">Due</th></tr></thead>
             <tbody>{cases.data.items.map(k => (
               <tr key={k.id}><td><Link to={`/cases/${k.id}`}>{k.ref}</Link><span className="cmap-sub">{k.title}</span></td><td>{k.clientCode}</td><td>{k.priority}</td>
                 <td>{k.dueAt ? <span className={k.overdue ? 't-bad' : undefined}>{fmtDate(k.dueAt)}{k.overdue && ' · overdue'}</span> : <span className="muted">No due date</span>}</td></tr>
             ))}</tbody>
           </table>
-          <MoreLink to={`/cases${qs({ country: d.country, clientId: f.clientId || undefined, productId: f.productId || undefined, teamId: f.teamId || undefined })}`} shown={cases.data.items.length} total={cases.data.totalCount} what="open cases" /></>)}</Loading>}
+          <MoreLink to={`/cases${qs({ country: d.country, clientId: f.clientId || undefined, productId: f.productId || undefined, teamId: f.teamId || undefined })}`} shown={cases.data.items.length} total={cases.data.totalCount} what="open tickets" /></>)}</Loading>}
         {tab === 'contracts' && <Loading q={contracts}>{contracts.data && (contracts.data.items.length === 0 ? <div className="cmap-empty">No active contracts.</div> : <>
           <table className="cmap-table">
             <caption className="sr">Active contracts in {d.country}</caption>
@@ -302,7 +302,7 @@ export function ClientMap() {
         </div>
         <Link className="cmap-btn cmap-exec" to={`/${qs(params)}`}>Operations Command Center</Link>
       </div>
-      {f.teamId && <p className="cmap-scope">The team filter narrows the open and overdue case counts; clients, servers and contracts are not assigned to teams.</p>}
+      {f.teamId && <p className="cmap-scope">The team filter narrows the open and overdue ticket counts; clients, servers and contracts are not assigned to teams.</p>}
       <div className="cmap-body">
         <aside className="cmap-left" aria-label="Country explorer" id="cmap-left" hidden={!leftOpen}>
           {all && <Explorer rows={rows} clients={clients} layer={layer} selected={f.country} onSelect={select} unknown={unknown} />}
@@ -327,7 +327,7 @@ export function ClientMap() {
               : <div className="cmap-pick">
                   <Icon name="map" size={28} />
                   <h2>Select a country</h2>
-                  <p>Choose a country on the map or in the list to see its clients, servers, open cases and active contracts.</p>
+                  <p>Choose a country on the map or in the list to see its clients, servers, open tickets and active contracts.</p>
                   <button type="button" className="cmap-btn" onClick={() => setRightOpen(false)}>Hide this panel</button>
                 </div>}
           </aside>

@@ -463,7 +463,7 @@ public class AC06_CaseLifecycle(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await eng.Post($"/cases/{id}/reopen", new { reason = "Again", nextAction = "x", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) }, V())).Status);
         await lead.Ok($"/cases/{id}/reopen", new { reason = "Recurred", nextAction = "Re-check", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) }, V());
         Assert.NotNull((await lead.Post($"/cases/{id}/cancel", new { }, V())).Error("reason"));
-        await lead.Ok($"/cases/{id}/cancel", new { reason = "Duplicate of another case" }, V());
+        await lead.Ok($"/cases/{id}/cancel", new { reason = "Duplicate of another ticket" }, V());
         var events = (await m.Get($"/cases/{id}")).Body!["events"]!.AsArray().Select(e => e!["type"]!.GetValue<string>()).ToList();
         foreach (var t in new[] { "Created", "Triaged", "OwnerChanged", "Started", "WaitingStarted", "WaitingEnded", "ValidationRequested", "EvidenceException", "Closed", "Reopened", "Cancelled" })
             Assert.Contains(t, events);
@@ -826,7 +826,7 @@ public class AC13_HistoryAndConflict(HubFactory hub) : Scenario(hub)
         Assert.NotNull((await lead.Post($"/clients/{c}/archive", new { reason = "Contract ended" }, await lead.Version($"/clients/{c}"))).Error("exceptionReason"));
         var eng = await Hub.As(HubFactory.Engineer);
         Assert.Equal(HttpStatusCode.Forbidden, (await eng.Post($"/clients/{c}/archive", new { reason = "Contract ended", exceptionReason = "x" }, await eng.Version($"/clients/{c}"))).Status);
-        await m.Ok($"/clients/{c}/archive", new { reason = "Contract ended", exceptionReason = "Open case handled under internal follow-up" }, await m.Version($"/clients/{c}"));
+        await m.Ok($"/clients/{c}/archive", new { reason = "Contract ended", exceptionReason = "Open ticket handled under internal follow-up" }, await m.Version($"/clients/{c}"));
         Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/clients/{c}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/cases/{caseId}")).Status);
         Assert.Contains((await m.Get("/admin/archived?recordType=Client")).Body!.AsArray(), a => Id(a) == c);
@@ -1647,7 +1647,7 @@ public class AC43_DeleteWithDependents(HubFactory hub) : Scenario(hub)
         Assert.Equal(1, Count("Firewall rules"));
         Assert.Equal(1, Count("Projects"));
         Assert.Equal(1, Count("Contracts"));
-        Assert.Equal(1, Count("Cases"));
+        Assert.Equal(1, Count("Tickets"));
         Assert.Equal(1, Count("Commitments"));
         Assert.Equal(1, Count("Escalations"));
         Assert.Equal(1, Count("Responsibility boundaries"));

@@ -270,7 +270,7 @@ export function NotificationsPage() {
   </span>;
   return (
     <>
-      <PageHead title="Notifications" sub="Work assigned to you, due and overdue cases, commitments and escalations, contracts that need a renewal decision and contract payments coming due. Alerts are resolved automatically when their cause is cleared; read and resolved notices are cleared after 90 days."
+      <PageHead title="Notifications" sub="Work assigned to you, due and overdue tickets, commitments and escalations, contracts that need a renewal decision and contract payments coming due. Alerts are resolved automatically when their cause is cleared; read and resolved notices are cleared after 90 days."
         actions={act.canMaintain && d && d.unreadCount > 0 && <button className="btn" onClick={act.readAll}>Mark all as read ({d.unreadCount})</button>} />
       <Tabs value={f.show} onChange={v => set({ show: v, page: '1' })} tabs={[{ key: 'all', label: 'All' }, { key: 'unread', label: `Unread${d ? ` (${d.unreadCount})` : ''}` },
         { key: 'critical', label: `Critical${d?.criticalCount !== undefined ? ` (${d.criticalCount})` : ''}` },

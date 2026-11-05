@@ -62,7 +62,7 @@ public sealed class HandoverAuthorizationTests
     {
         var handover = new Handover
         {
-            Summary = "Case summary", OutstandingActions = "Case action", DocumentationNotes = "Case documentation",
+            Summary = "Ticket summary", OutstandingActions = "Ticket action", DocumentationNotes = "Ticket documentation",
             AcknowledgmentNote = "Acknowledgment", CancelReason = "Cancellation", ExceptionReason = "Exception",
             Items = [new HandoverItem { RecordType = RecordTypes.Case }, new HandoverItem { RecordType = RecordTypes.Commitment }]
         };
@@ -77,9 +77,9 @@ public sealed class HandoverAuthorizationTests
 
         var authorized = User(["Teams:View", "Cases:View", "Commitments:View"]);
         var visible = TeamEndpoints.VisibleHandoverText(authorized, handover);
-        Assert.Equal("Case summary", visible.Summary);
-        Assert.Equal("Case action", visible.OutstandingActions);
-        Assert.Equal("Case documentation", visible.DocumentationNotes);
+        Assert.Equal("Ticket summary", visible.Summary);
+        Assert.Equal("Ticket action", visible.OutstandingActions);
+        Assert.Equal("Ticket documentation", visible.DocumentationNotes);
         Assert.Equal("Acknowledgment", visible.AcknowledgmentNote);
         Assert.Equal("Cancellation", visible.CancelReason);
         Assert.Equal("Exception", visible.ExceptionReason);

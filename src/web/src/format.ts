@@ -60,7 +60,7 @@ export function inDays(days: number, hour = 9): string {
 export function label(v?: string | null): string {
   if (!v) return '';
   const special: Record<string, string> = {
-    TIO: 'TIO', OtherItdDivision: 'Other ITD division', CustomerIT: 'Customer IT', UAT: 'UAT', DR: 'DR', VM: 'VM', vCPU: 'vCPU', PhysicalCore: 'Physical core',
+    Case: 'Ticket', Cases: 'Tickets', TIO: 'TIO', OtherItdDivision: 'Other ITD division', CustomerIT: 'Customer IT', UAT: 'UAT', DR: 'DR', VM: 'VM', vCPU: 'vCPU', PhysicalCore: 'Physical core',
     GB: 'GB', GiB: 'GiB', TB: 'TB', TiB: 'TiB', TCP: 'TCP', UDP: 'UDP', ICMP: 'ICMP', NAT: 'NAT', CustomerCloud: 'Customer Cloud', InternalOnPrem: 'Internal On-prem',
     LogicalEndpoint: 'Logical endpoint', RecordedContractualDeadline: 'Recorded deadline',
     Manager: 'TIO Manager', Engineer: 'Operation Engineer', OnPrem: 'On-prem', OneWay: 'One way', Dependencies: 'Firewall rules', TCPandUDP: 'TCP and UDP'

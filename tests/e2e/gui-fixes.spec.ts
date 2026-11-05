@@ -462,7 +462,7 @@ test.describe('GUI-10 Global navigation', () => {
     const more = main.getByRole('button', { name: /^More/ });
     await more.click();
     const rest = await page.locator('#nav-more-list a').allInnerTexts();
-    expect([...inHeader, ...rest].sort()).toEqual(['Administration', 'Cases', 'Clients', 'Commitments', 'Dashboard', 'Escalations', 'Notes', 'Products', 'Reporting Center', 'Teams']);
+    expect([...inHeader, ...rest].sort()).toEqual(['Administration', 'Clients', 'Commitments', 'Dashboard', 'Escalations', 'Notes', 'Products', 'Reporting Center', 'Teams', 'Tickets']);
     await expect(page.locator('#nav-more-list a').first()).toBeFocused();
     await page.screenshot({ path: 'test-results/gui-10-header-1024.png' });
     await page.keyboard.press('Escape');
@@ -538,7 +538,7 @@ test.describe('GUI-12 Target sizes', () => {
     await page.goto('/admin/rights');
     await atLeast(page.locator('.rights-grid-cell label').first(), 'rights grid box', 32);
     await page.getByRole('button', { name: 'List', exact: true }).click();
-    await page.getByRole('button', { name: 'Expand Cases', exact: true }).click();
+    await page.getByRole('button', { name: 'Expand Tickets', exact: true }).click();
     await atLeast(page.locator('.rights-node .rights-leaf label').first(), 'rights checkbox target', 32);
     // Phones: the details toggle and the drawer controls are 40 px or more.
     await page.setViewportSize({ width: 390, height: 800 });
@@ -667,7 +667,7 @@ test.describe('Filter card while filtering, and the dashboard KPI tiers', () => 
     release();
     await expect(main.locator('.kpi.is-loading')).toHaveCount(0);
     const titles = (gr: Locator) => gr.locator('.kpi-title').allTextContents();
-    expect(await titles(main)).toEqual(['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open cases']);
+    expect(await titles(main)).toEqual(['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open tickets']);
     expect(await titles(more)).toEqual(['Clients', 'Targets met (period)', 'Contractual SLA met (period)', 'Environment health', 'Data quality']);
     // Loading did not change the card size much (no jump when the figures arrive).
     expect(Math.abs((await box(main.locator('.kpi').first())).height - loadingH)).toBeLessThanOrEqual(40);
@@ -682,7 +682,7 @@ test.describe('Filter card while filtering, and the dashboard KPI tiers', () => 
     const card = main.locator('.kpi').first();
     expect(await card.evaluate(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).borderTopLeftRadius])).toEqual(['rgb(255, 255, 255)', '12px']);
     // States follow the figures: an open case overdue makes Open cases critical; zero overdue payments is OK. Never colour alone.
-    const cases = main.locator('.kpi').filter({ hasText: 'Open cases' });
+    const cases = main.locator('.kpi').filter({ hasText: 'Open tickets' });
     const overdueText = await cases.locator('.kpi-lines li').first().textContent();
     if (!/None overdue/.test(overdueText ?? '')) await expect(cases.locator('.kpi-status')).toHaveText(/Critical/);
     else await expect(cases.locator('.kpi-status')).not.toHaveText(/Critical/);
@@ -697,7 +697,7 @@ test.describe('Filter card while filtering, and the dashboard KPI tiers', () => 
     await expect(page.locator('.cc-kpi-tiers')).not.toContainText(/last period|vs\./i);
     // Keyboard: the card is a link with its figures in its name; Enter opens the list.
     await cases.focus();
-    await expect(cases).toHaveAttribute('aria-label', /^Open cases: \d+\./);
+    await expect(cases).toHaveAttribute('aria-label', /^Open tickets: \d+\./);
     await page.keyboard.press('Enter');
     await expect(page).toHaveURL(/\/cases\?/);
     await page.goBack();

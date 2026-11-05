@@ -35,10 +35,10 @@ test('next action remains optional through triage, progress, validation, closure
   });
   await page.goto(`/cases/${created.id}`);
   await page.getByRole('button', { name: 'Triage', exact: true }).click();
-  const triage = page.getByRole('dialog', { name: 'Triage case', exact: true });
+  const triage = page.getByRole('dialog', { name: 'Triage ticket', exact: true });
   await expect(triage.getByLabel('Next action (optional)', { exact: true })).toHaveValue('');
   await triage.getByLabel('Next review', { exact: true }).fill(future());
-  await confirm(page, 'Triage case', 'Confirm triage');
+  await confirm(page, 'Triage ticket', 'Confirm triage');
   await page.getByRole('button', { name: 'Start work', exact: true }).click();
   await confirm(page, 'Start work', 'Start');
 
@@ -57,16 +57,16 @@ test('next action remains optional through triage, progress, validation, closure
   await confirm(page, 'Request validation', 'Request validation');
 
   await page.getByRole('button', { name: 'Close', exact: true }).click();
-  const close = page.getByRole('dialog', { name: 'Close case', exact: true });
+  const close = page.getByRole('dialog', { name: 'Close ticket', exact: true });
   await close.getByLabel('Outcome', { exact: true }).fill('Customer confirmed recovery');
   await close.getByLabel('Validation evidence', { exact: true }).fill('Customer acceptance recorded');
-  await confirm(page, 'Close case', 'Close case');
+  await confirm(page, 'Close ticket', 'Close ticket');
   await page.getByRole('button', { name: 'Reopen', exact: true }).click();
-  const reopen = page.getByRole('dialog', { name: 'Reopen case', exact: true });
+  const reopen = page.getByRole('dialog', { name: 'Reopen ticket', exact: true });
   await reopen.getByLabel('Reopening reason', { exact: true }).fill('Follow-up investigation');
   await reopen.getByLabel('Next review', { exact: true }).fill(future());
   await expect(reopen.getByLabel('Next action (optional)', { exact: true })).toHaveValue('');
-  await confirm(page, 'Reopen case', 'Reopen');
+  await confirm(page, 'Reopen ticket', 'Reopen');
   const saved = await api<{ status: string; nextAction: string; reopenCount: number }>(page, `/cases/${created.id}`);
   expect(saved.status).toBe('Triaged');
   expect(saved.nextAction).toBe('');

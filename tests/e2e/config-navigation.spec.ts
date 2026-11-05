@@ -8,7 +8,7 @@ const TREE: [string, [string, string][]][] = [
   ['Servers', [['Server types', '/admin/config/server-types'], ['Server roles', '/admin/config/server-roles'], ['Network zones', '/admin/config/network-zones'],
     ['Operating systems', '/admin/config/operating-systems'], ['Project phases', '/admin/config/project-phases']]],
   ['Products & Installations', [['Component roles', '/admin/config/component-roles']]],
-  ['Contracts & Cases', [['Contract types', '/admin/config/contract-types'], ['Case types', '/admin/config/case-types'], ['Case statuses', '/admin/config/case-statuses'],
+  ['Contracts & Tickets', [['Contract types', '/admin/config/contract-types'], ['Ticket types', '/admin/config/case-types'], ['Ticket statuses', '/admin/config/case-statuses'],
     ['Escalation channels', '/admin/config/escalation-channels'], ['Priority guidance', '/admin/config/priority-guidance']]],
   ['Teams', [['Team member roles', '/admin/config/team-member-roles']]],
   ['System', [['Review policies', '/admin/policies'], ['Jira instances', '/admin/jira'], ['Settings', '/admin/settings']]]
@@ -46,12 +46,12 @@ test.describe('Configuration navigation', () => {
     expect(await expandedCategories(page)).toEqual([]);
     await page.screenshot({ path: 'test-results/config-nav-overview-1600.png' });
     // A card opens its category page, which lists the category's pages.
-    await page.getByRole('main').getByRole('link', { name: 'Contracts & Cases', exact: true }).click();
+    await page.getByRole('main').getByRole('link', { name: 'Contracts & Tickets', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/config\/category\/contracts-cases$/);
-    await expect(page.getByRole('heading', { level: 1, name: 'Contracts & Cases' })).toBeVisible();
-    const list = page.getByRole('main').getByRole('list', { name: 'Contracts & Cases pages' });
+    await expect(page.getByRole('heading', { level: 1, name: 'Contracts & Tickets' })).toBeVisible();
+    const list = page.getByRole('main').getByRole('list', { name: 'Contracts & Tickets pages' });
     await expect(list.getByRole('link')).toHaveText(TREE[3][1].map(([n]) => n));
-    await expect(category(page, 'Contracts & Cases')).toHaveAttribute('aria-expanded', 'true');
+    await expect(category(page, 'Contracts & Tickets')).toHaveAttribute('aria-expanded', 'true');
   });
 
   test('every configuration page is reachable from its category in the sidebar', async ({ page }) => {
@@ -108,7 +108,7 @@ test.describe('Configuration navigation', () => {
   });
 
   test('a direct URL opens the right category and old URLs still work', async ({ page }) => {
-    for (const [url, cat, name] of [['/admin/config/escalation-channels', 'Contracts & Cases', 'Escalation channels'], ['/admin/policies', 'System', 'Review policies'],
+    for (const [url, cat, name] of [['/admin/config/escalation-channels', 'Contracts & Tickets', 'Escalation channels'], ['/admin/policies', 'System', 'Review policies'],
       ['/admin/network-zones', 'Servers', 'Network zones']] as const) {
       await page.evaluate(() => sessionStorage.removeItem('tiohub.config-nav'));
       await page.goto(url);
@@ -127,9 +127,9 @@ test.describe('Configuration navigation', () => {
   test('breadcrumbs lead back to the category, the overview and Administration', async ({ page }) => {
     await page.goto('/admin/config/escalation-channels');
     const crumbs = page.getByRole('navigation', { name: 'Breadcrumb' });
-    await expect(crumbs).toHaveText('Administration›Configuration›Contracts & Cases›Escalation channels');
-    await expect(crumbs.getByRole('link')).toHaveText(['Administration', 'Configuration', 'Contracts & Cases']);
-    await crumbs.getByRole('link', { name: 'Contracts & Cases' }).click();
+    await expect(crumbs).toHaveText('Administration›Configuration›Contracts & Tickets›Escalation channels');
+    await expect(crumbs.getByRole('link')).toHaveText(['Administration', 'Configuration', 'Contracts & Tickets']);
+    await crumbs.getByRole('link', { name: 'Contracts & Tickets' }).click();
     await expect(page).toHaveURL(/\/admin\/config\/category\/contracts-cases$/);
     await page.getByRole('navigation', { name: 'Breadcrumb' }).getByRole('link', { name: 'Configuration' }).click();
     await expect(page).toHaveURL(/\/admin\/config$/);
@@ -150,7 +150,7 @@ test.describe('Configuration navigation', () => {
     await expect(side(page).locator('.cfg-cat')).toHaveCount(0);
     await page.screenshot({ path: 'test-results/config-nav-search-1600.png' });
     // Descriptions are searched too, across categories.
-    await search(page).fill('case');
+    await search(page).fill('ticket');
     await expect(results.getByRole('link', { name: /^Jira instances/ })).toBeVisible();
     // Empty state, then Escape clears and the previous tree comes back.
     await search(page).fill('zzz no such page');
@@ -168,7 +168,7 @@ test.describe('Configuration navigation', () => {
     await results.getByRole('link', { name: /^Escalation channels/ }).click();
     await expect(page).toHaveURL(/\/admin\/config\/escalation-channels$/);
     await expect(search(page)).toHaveValue('');
-    expect(await expandedCategories(page)).toEqual([...before, 'Contracts & Cases']);
+    expect(await expandedCategories(page)).toEqual([...before, 'Contracts & Tickets']);
     // Enter opens the first result.
     await search(page).fill('operating');
     await search(page).press('Enter');
@@ -195,12 +195,12 @@ test.describe('Configuration navigation', () => {
     await expect(page.locator('.cfg-nav')).toHaveCount(0);
     await expect(side(page).getByRole('link', { name: 'Configuration' })).toBeVisible();
     await side(page).getByRole('button', { name: 'Expand menu' }).click();
-    await expect(category(page, 'Contracts & Cases')).toHaveAttribute('aria-expanded', 'true');
+    await expect(category(page, 'Contracts & Tickets')).toHaveAttribute('aria-expanded', 'true');
 
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.getByRole('button', { name: /^Menu/ }).click();
     const drawer = page.locator('#hub-drawer');
-    await expect(drawer.getByRole('button', { name: 'Contracts & Cases', exact: true })).toHaveAttribute('aria-expanded', 'true');
+    await expect(drawer.getByRole('button', { name: 'Contracts & Tickets', exact: true })).toHaveAttribute('aria-expanded', 'true');
     await drawer.getByRole('textbox', { name: 'Search configuration' }).fill('zones');
     await drawer.getByRole('link', { name: /^Network zones/ }).click();
     await expect(page).toHaveURL(/\/admin\/config\/network-zones$/);

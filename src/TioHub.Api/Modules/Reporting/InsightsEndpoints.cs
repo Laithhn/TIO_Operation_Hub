@@ -230,7 +230,7 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
             escalations = escalationMore,
             payments = paymentMore,
             countries = await CountriesAsync(p, now, ct),
-            cases = new { byStatus, byPriority, age, trend, trendNote = "Weeks start Monday (UTC). Opened = opened in the week (the Jira creation time of a synchronized case, otherwise the hub creation time); closed = closed in the week, regardless of current status." },
+            cases = new { byStatus, byPriority, age, trend, trendNote = "Weeks start Monday (UTC). Opened = opened in the week (the Jira creation time of a synchronized ticket, otherwise the hub creation time); closed = closed in the week, regardless of current status." },
             commitments,
             environments = new { condition, needsVerification, note = "Manually reported condition, not live monitoring. Needs verification = last report older than the condition review period." },
             dataQuality = dq,

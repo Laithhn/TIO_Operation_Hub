@@ -24,9 +24,9 @@ type ClientContact = { id: number; name: string; role?: string; clientCode: stri
 type StatusRow = { id: number; jiraProjectId: string; projectKey?: string; jiraStatusId: string; jiraStatusName: string; jiraStatusCategory?: string; targetStatus?: string };
 
 const ACTION_TEXT: Record<string, { title: string; intro: string; submit: string }> = {
-  Adopt: { title: 'Adopt the existing case', intro: 'The case becomes the synchronized source of this Jira issue. Its manual references stay. From the next run, Jira status and assignee apply to it through the normal rules.', submit: 'Adopt case' },
-  CreateNew: { title: 'Create a new case', intro: 'The existing reference is left as it is, and the next run creates a separate case for this Jira issue.', submit: 'Create at next run' },
-  Ignore: { title: 'Ignore this Jira issue', intro: 'This issue will not become a case. The decision is kept in the history.', submit: 'Ignore issue' },
+  Adopt: { title: 'Adopt the existing ticket', intro: 'The ticket becomes the synchronized source of this Jira issue. Its manual references stay. From the next run, Jira status and assignee apply to it through the normal rules.', submit: 'Adopt ticket' },
+  CreateNew: { title: 'Create a new ticket', intro: 'The existing reference is left as it is, and the next run creates a separate ticket for this Jira issue.', submit: 'Create at next run' },
+  Ignore: { title: 'Ignore this Jira issue', intro: 'This issue will not become a ticket. The decision is kept in the history.', submit: 'Ignore issue' },
   Dismiss: { title: 'Dismiss', intro: 'The item leaves the list. If the problem still exists at the next run, it appears again.', submit: 'Dismiss' }
 };
 
@@ -45,7 +45,7 @@ function IssuesTable({ types, status }: { types?: string; status: string }) {
     <DataTable<IssueRow> caption="Jira integration issues" exportName="jira-issues" rows={q.data?.items} loading={q.isLoading} error={q.error} rowKey={i => i.id} columns={[
       { key: 'c', header: 'Connection', render: i => i.connection }, { key: 's', header: 'Space', render: i => i.projectKey && <span className="mono">{i.projectKey}</span> }, { key: 'i', header: 'Jira issue', render: i => i.issueKey && <span className="mono">{i.issueKey}</span> },
       { key: 'l', header: 'Client', render: i => i.clientId ? <Link to={`/clients/${i.clientId}?tab=jira`}>{i.client}</Link> : <span className="muted">—</span> },
-      { key: 'p', header: 'Existing case', render: i => { const x = i.candidate ?? i.caseRef; return x ? <Link to={`/cases/${x.id}`} title={x.title}>{x.ref}</Link> : <span className="muted">—</span>; } },
+      { key: 'p', header: 'Existing ticket', render: i => { const x = i.candidate ?? i.caseRef; return x ? <Link to={`/cases/${x.id}`} title={x.title}>{x.ref}</Link> : <span className="muted">—</span>; } },
       { key: 't', header: 'Conflict type', render: i => label(i.type) }, { key: 'd', header: 'Description and suggested action', render: i => <>{i.description}<div className="hint">{i.suggestedAction}</div></> },
       { key: 'w', header: 'Last seen', render: i => <When v={i.lastSeenAt} /> },
       { key: 'r', header: 'Resolution', render: i => i.status === 'Open' ? <JiraBadge value="Open" /> : <><JiraBadge value={i.status} /><div className="hint">{i.resolution}{i.resolutionNote ? `: ${i.resolutionNote}` : ''}</div></> },
@@ -72,7 +72,7 @@ export function JiraImportReview() {
     finally { setBusy(false); }
   };
   return <>
-    <PageHead title="Jira import review" crumbs={crumbs} sub="See what an import would do before it runs, and decide the cases that need a person." />
+    <PageHead title="Jira import review" crumbs={crumbs} sub="See what an import would do before it runs, and decide the tickets that need a person." />
     <SyncOffNotice on={!!conn.data?.syncEnabled} />
     <Panel title="Dry-run import preview">
       <div className="toolbar">
@@ -84,12 +84,12 @@ export function JiraImportReview() {
         <PreviewResult p={result} />
         <DataTable caption="Issues in the preview" exportName="jira-preview" rows={result.samples} rowKey={s => s.issueKey} columns={[
           { key: 'k', header: 'Jira issue', render: s => <span className="mono">{s.issueKey}</span> }, { key: 'n', header: 'Summary', render: s => s.summary }, { key: 'p', header: 'Space', render: s => s.projectKey }, { key: 's', header: 'Jira status', render: s => s.statusName }, { key: 'a', header: 'Assignee', render: s => s.assigneeName ?? <span className="muted">Unassigned</span> },
-          { key: 'd', header: 'Proposed result', render: s => <>{label(s.decision)}{s.problem && <div className="hint err">{s.problem}</div>}</> }, { key: 'c', header: 'Case', render: s => s.caseId ? <Link to={`/cases/${s.caseId}`}>Open</Link> : <span className="muted">—</span> }
+          { key: 'd', header: 'Proposed result', render: s => <>{label(s.decision)}{s.problem && <div className="hint err">{s.problem}</div>}</> }, { key: 'c', header: 'Ticket', render: s => s.caseId ? <Link to={`/cases/${s.caseId}`}>Open</Link> : <span className="muted">—</span> }
         ]} />
       </> : !busy && <StateMessage kind="none">Choose a client with assigned spaces and run the preview.</StateMessage>}
     </Panel>
-    <Panel title="Cases requiring review" pad={false}><IssuesTable status="Open" types="DuplicateCaseCandidate" /></Panel>
-    <Panel title="Issues missing required case information" pad={false}><IssuesTable status="Open" types="MissingCaseInformation" /></Panel>
+    <Panel title="Tickets requiring review" pad={false}><IssuesTable status="Open" types="DuplicateCaseCandidate" /></Panel>
+    <Panel title="Issues missing required ticket information" pad={false}><IssuesTable status="Open" types="MissingCaseInformation" /></Panel>
   </>;
 }
 
@@ -157,7 +157,7 @@ function UserMappings({ connectionId }: { connectionId: number }) {
   return <>
     {error && <div className="notice warn" style={{ margin: 8 }}>{error}</div>}
     <Panel title={`Unmapped Jira users (${unmapped.length})`} pad={false}>
-      <p className="hint" style={{ margin: '8px 10px' }}>Jira users appear here when they are assigned an issue or comment on one, and stay until they are resolved. Their replies do not count as a first response, and a case they are assigned keeps its current owner.</p>
+      <p className="hint" style={{ margin: '8px 10px' }}>Jira users appear here when they are assigned an issue or comment on one, and stay until they are resolved. Their replies do not count as a first response, and a ticket they are assigned keeps its current owner.</p>
       <DataTable<UserRow> caption="Unmapped Jira users" rows={unmapped} loading={q.isLoading} error={q.error} rowKey={u => u.id} columns={[
         { key: 'n', header: 'Jira user', render: u => u.jiraDisplayName ?? <span className="muted">No name</span> }, { key: 'i', header: 'Account ID', render: u => <span className="mono">{u.jiraAccountId}</span> },
         { key: 'm', header: 'Possible match', render: u => u.matchingUsers.length ? 'A TIO user has this name' : u.matchingContacts.length ? 'A client contact has this name' : <span className="muted">None</span> },
@@ -167,7 +167,7 @@ function UserMappings({ connectionId }: { connectionId: number }) {
       ]} />
     </Panel>
     <Panel title="Mapped Jira users" pad={false} actions={can && <button className="btn" onClick={() => setRecalculating(true)}>Recalculate first responses</button>}>
-      <p className="hint" style={{ margin: '8px 10px' }}>A public reply by a TIO user or Vitronic team member can be the first response; a client contact's cannot. A case assigned to a client contact waits on the customer, which pauses the SLA if the contract allows it, until Jira reassigns it. A changed mapping applies at once: the first responses of that person's comments, and the SLA results that follow from them, are recalculated. Recalculate first responses does the same for everyone.</p>
+      <p className="hint" style={{ margin: '8px 10px' }}>A public reply by a TIO user or Vitronic team member can be the first response; a client contact's cannot. A ticket assigned to a client contact waits on the customer, which pauses the SLA if the contract allows it, until Jira reassigns it. A changed mapping applies at once: the first responses of that person's comments, and the SLA results that follow from them, are recalculated. Recalculate first responses does the same for everyone.</p>
       <DataTable<UserRow> caption="Mapped Jira users" rows={mapped} loading={q.isLoading} error={q.error} rowKey={u => u.id} columns={[
         { key: 'n', header: 'Jira user', render: u => u.jiraDisplayName ?? <span className="muted">No name</span> }, { key: 'i', header: 'Account ID', render: u => <span className="mono">{u.jiraAccountId}</span> },
         { key: 'c', header: 'Classification', render: u => classificationLabels[u.classification] },
@@ -192,11 +192,11 @@ function UserMappings({ connectionId }: { connectionId: number }) {
       fields={[{ name: 'clientId', label: 'Client', kind: 'select', required: true, options: clients }, { name: 'name', label: 'Name', hint: "Empty uses the name from Jira." }, { name: 'email', label: 'Email' }, { name: 'phone', label: 'Phone' }, { name: 'role', label: 'Role' }, { name: 'organization', label: 'Organization' }]}
       transform={v => ({ ...v, clientId: Number(v.clientId) })} />}
     {r && resolving.kind === 'teamMember' && <ActionDialog title={`Create a Vitronic team member for ${nameOf(r)}`} path={`/admin/jira-user-mappings/${r.id}/team-member`} submitLabel="Create and map" onClose={() => setResolving(null)}
-      intro="An internal record with no sign-in and no password. They can own cases through Jira and count as the team for SLA rules. Sign-in can be granted later on the Users page." initial={{ displayName: r.jiraDisplayName ?? '' }}
+      intro="An internal record with no sign-in and no password. They can own tickets through Jira and count as the team for SLA rules. Sign-in can be granted later on the Users page." initial={{ displayName: r.jiraDisplayName ?? '' }}
       fields={[{ name: 'displayName', label: 'Name', required: true }, { name: 'email', label: 'Email' }]} />}
     {r && resolving.kind === 'newUser' && targets.data && <UserDialog user={null} targets={targets.data} initialName={r.jiraDisplayName} createPath={`/admin/jira-user-mappings/${r.id}/user`} onClose={() => setResolving(null)} />}
     {recalculating && <ActionDialog title="Recalculate first responses" danger path={`/admin/jira-connections/${connectionId}/recalculate-first-responses`} submitLabel="Recalculate" onClose={() => setRecalculating(false)}
-      intro="Applies today's user mappings to every stored comment of this connection. First responses and SLA results of existing cases can change, including closed ones. First responses a person recorded stay."
+      intro="Applies today's user mappings to every stored comment of this connection. First responses and SLA results of existing tickets can change, including closed ones. First responses a person recorded stay."
       fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
     {history && <Dialog title={`History of ${nameOf(history)}`} onClose={() => setHistory(null)} wide><MappingHistory id={history.id} /></Dialog>}
   </>;
@@ -224,15 +224,15 @@ function WorkflowMappings({ connectionId }: { connectionId: number }) {
   };
   const save = async (r: StatusRow, target: string) => {
     setError(null);
-    try { await put(`/admin/jira-status-mappings/${r.id}`, { targetStatus: target || null }); toast('Mapping saved. Cases update at the next run.'); refresh(); }
+    try { await put(`/admin/jira-status-mappings/${r.id}`, { targetStatus: target || null }); toast('Mapping saved. Tickets update at the next run.'); refresh(); }
     catch (e) { setError(e instanceof ApiError ? e.summary : 'The request failed.'); }
   };
-  return <Panel title="Jira workflow status → case status" pad={false} actions={can && <button className="btn" onClick={discover}>Discover statuses</button>}>
+  return <Panel title="Jira workflow status → ticket status" pad={false} actions={can && <button className="btn" onClick={discover}>Discover statuses</button>}>
     {error && <div className="notice warn" style={{ margin: 8 }}>{error}</div>}
-    <p className="hint" style={{ margin: '8px 10px' }}>Nothing is mapped automatically. Every active case status can be chosen. A status that closes the case records the Jira issue and status as its outcome and evidence. Cancelling and reopening stay with people.</p>
+    <p className="hint" style={{ margin: '8px 10px' }}>Nothing is mapped automatically. Every active ticket status can be chosen. A status that closes the ticket records the Jira issue and status as its outcome and evidence. Cancelling and reopening stay with people.</p>
     <DataTable<StatusRow> caption="Jira workflow mappings" rows={q.data?.rows} loading={q.isLoading} error={q.error} rowKey={r => r.id} columns={[
       { key: 'p', header: 'Space', render: r => r.projectKey ?? (r.jiraProjectId || 'All spaces') }, { key: 's', header: 'Jira status', render: r => r.jiraStatusName }, { key: 'c', header: 'Jira category', render: r => r.jiraStatusCategory },
-      { key: 't', header: 'Case status', render: r => <select className="input" aria-label={`Case status for ${r.jiraStatusName}`} disabled={!can} value={r.targetStatus ?? ''} onChange={e => save(r, e.target.value)}><option value="">Not mapped</option>{q.data!.targets.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}</select> },
+      { key: 't', header: 'Ticket status', render: r => <select className="input" aria-label={`Ticket status for ${r.jiraStatusName}`} disabled={!can} value={r.targetStatus ?? ''} onChange={e => save(r, e.target.value)}><option value="">Not mapped</option>{q.data!.targets.map(t => <option key={t.code} value={t.code}>{t.label}</option>)}</select> },
       { key: 'x', header: 'State', render: r => <JiraBadge value={r.targetStatus ? 'Passed' : 'Warning'} /> }
     ]} />
   </Panel>;
@@ -262,8 +262,8 @@ export function JiraMonitoring() {
         <JiraCard icon="note" title="Comment sync" value={<JiraBadge value={h.commentSync} />} />
         <JiraCard icon="history" title="Activity sync" value={<JiraBadge value={h.activitySync} />} />
         <JiraCard icon="calendar" title="Last full reconciliation" value={h.lastFullReconciliation ? fmtDateTime(h.lastFullReconciliation) : 'Never'} />
-        <JiraCard icon="plus" title="Created cases (24h)" value={h.last24h.created} />
-        <JiraCard icon="edit" title="Updated cases (24h)" value={h.last24h.updated} />
+        <JiraCard icon="plus" title="Created tickets (24h)" value={h.last24h.created} />
+        <JiraCard icon="edit" title="Updated tickets (24h)" value={h.last24h.updated} />
         <JiraCard icon="error" title="Failed records (24h)" value={h.last24h.failed} />
         <JiraCard icon="history" title="Average duration" value={h.averageDurationSeconds != null ? `${h.averageDurationSeconds} s` : '—'} />
         <JiraCard icon="warning" title="Pending conflicts" value={<Link to="/admin/integrations/jira/conflicts">{h.pendingConflicts}</Link>} />

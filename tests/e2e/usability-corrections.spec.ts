@@ -19,7 +19,7 @@ async function api<T>(page: Page, path: string, body?: unknown): Promise<T> {
 
 async function openCases(page: Page) {
   await page.goto('/cases');
-  await expect(page.getByRole('heading', { name: 'Cases', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tickets', exact: true })).toBeVisible();
 }
 
 test.describe('global search focus', () => {
@@ -38,7 +38,7 @@ test.describe('global search focus', () => {
 
   test('Ctrl+K and / return focus to the element that had it', async ({ page }) => {
     await openCases(page);
-    const field = page.getByLabel('Search all cases', { exact: true });
+    const field = page.getByLabel('Search all tickets', { exact: true });
     await field.focus();
     await page.keyboard.press('Control+k');
     await expect(dialog(page)).toBeVisible();
@@ -47,7 +47,7 @@ test.describe('global search focus', () => {
     await expect(dialog(page)).toBeHidden();
     await expect(field).toBeFocused();
 
-    const newCase = page.getByRole('link', { name: '+ New Case' });
+    const newCase = page.getByRole('link', { name: '+ New Ticket' });
     await newCase.focus();
     await page.keyboard.press('/');
     await expect(dialog(page)).toBeVisible();
@@ -57,7 +57,7 @@ test.describe('global search focus', () => {
 
   test('a click outside returns focus too, and focus on nothing falls back to the search button', async ({ page }) => {
     await openCases(page);
-    const newCase = page.getByRole('link', { name: '+ New Case' });
+    const newCase = page.getByRole('link', { name: '+ New Ticket' });
     await newCase.focus();
     await page.keyboard.press('/');
     await expect(dialog(page)).toBeVisible();
@@ -106,7 +106,7 @@ test.describe('global search focus', () => {
   });
 });
 
-test('the case list says what each search covers, for a record outside the first page', async ({ page }) => {
+test('the ticket list says what each search covers, for a record outside the first page', async ({ page }) => {
   await openCases(page);
   const me = await api<{ id: number }>(page, '/me');
   const clients = await api<{ items: { id: number }[] }>(page, '/clients?pageSize=1');
@@ -123,7 +123,7 @@ test('the case list says what each search covers, for a record outside the first
   // Newest first and 15 per page: the first one made is on a later page.
   const target = made[0];
   await openCases(page);
-  const table = vtTable(page, 'Cases');
+  const table = vtTable(page, 'Tickets');
   await expect(vtRow(table, made[17].title)).toBeVisible();
   await expect(vtRow(table, target.title)).toHaveCount(0);
 
@@ -150,7 +150,7 @@ test('the case list says what each search covers, for a record outside the first
   await pageFilter.fill('');
 
   // Full-list search is on the page, covers every page and returns to page 1.
-  const search = page.getByLabel('Search all cases', { exact: true });
+  const search = page.getByLabel('Search all tickets', { exact: true });
   await expect(search).toBeVisible();
   await search.fill(target.ref);
   await expect(page).toHaveURL(new RegExp(`q=${target.ref}`));
@@ -162,14 +162,14 @@ test('the case list says what each search covers, for a record outside the first
 
   // The Ref field in the Filter card is the same full-list search.
   await table.getByRole('button', { name: 'Filter', exact: true }).click();
-  await page.getByLabel('Search all cases by reference').fill(target.ref);
+  await page.getByLabel('Search all tickets by reference').fill(target.ref);
   await expect(vtRow(table, target.title)).toBeVisible();
   await expect(search).toHaveValue(target.ref);
 });
 
 test('new-case guidance names only an active risk type', async ({ page }) => {
   await page.goto('/cases/new');
-  const select = page.getByLabel('Case type', { exact: true });
+  const select = page.getByLabel('Ticket type', { exact: true });
   await expect(select.getByRole('option', { name: 'Risk follow-up' })).toHaveCount(1);
   await expect(page.getByText('Use Risk follow-up for risk actions; this does not imply formal risk acceptance.')).toBeVisible();
 
@@ -181,8 +181,8 @@ test('new-case guidance names only an active risk type', async ({ page }) => {
     await route.fulfill({ response, json: body });
   });
   await page.reload();
-  await expect(page.getByLabel('Case type', { exact: true }).getByRole('option', { name: 'Incident' })).toHaveCount(1);
-  await expect(page.getByLabel('Case type', { exact: true }).getByRole('option', { name: 'Risk follow-up' })).toHaveCount(0);
+  await expect(page.getByLabel('Ticket type', { exact: true }).getByRole('option', { name: 'Incident' })).toHaveCount(1);
+  await expect(page.getByLabel('Ticket type', { exact: true }).getByRole('option', { name: 'Risk follow-up' })).toHaveCount(0);
   await expect(page.getByText('for risk actions')).toHaveCount(0);
 });
 
@@ -229,6 +229,48 @@ test('clicking a row opens its own record, and the client link still opens the c
   await expect(page).toHaveURL(/\/clients\/\d+$/);
 });
 
+test('Renew contract opens a new contract with the details carried over, and saves nothing until asked', async ({ page }) => {
+  await page.goto('/clients');
+  await expect(page.getByRole('heading', { name: 'Clients', exact: true })).toBeVisible();
+  const me = await api<{ id: number }>(page, '/me');
+  const clients = await api<{ items: { id: number }[] }>(page, '/clients?pageSize=1');
+  const client = clients.items[0].id;
+  const project = await api<{ id: number }>(page, '/projects', { clientId: client, code: `R${Math.random().toString(36).slice(2, 8)}`, name: 'Renewal project', status: 'Active', ownerUserId: me.id });
+  const title = `Renewal agreement ${Math.random().toString(36).slice(2, 8)}`;
+  const old = await api<{ id: number }>(page, '/contracts', { projectId: project.id, title, contractReference: 'FIC-RENEW', type: 'SlaSupport', status: 'Active', ownerUserId: me.id,
+    startDate: '2025-01-01', endDate: '2025-12-31', renewalTerms: 'RenewalByAgreement', noticeDays: 45, supportModel: 'Remote', supportTimeZone: 'Asia/Dubai', support24x7: true, slaPauseWhileWaitingOnCustomer: true,
+    coverage: 'PSOP coverage', obligations: 'Monthly report', currency: 'SAR', slaTargets: [{ priority: 'High', responseMinutes: 60, resolutionMinutes: 240, basis: 'CalendarHours' }],
+    fees: [{ description: 'Support fee', unit: 'Year', quantity: 1, unitPrice: 1000 }], payments: [{ condition: 'Paid in advance', percentage: 100, dueDate: '2025-02-01', status: 'Paid', paidOn: '2025-02-02' }] });
+  const before = await api<{ count?: number; totalCount: number }>(page, `/contracts?clientId=${client}&pageSize=1`);
+
+  await page.goto(`/contracts/${old.id}`);
+  await page.getByRole('link', { name: 'Renew contract' }).click();
+  await expect(page).toHaveURL(new RegExp(`/contracts/new\\?renewFrom=${old.id}$`));
+  await expect(page.getByRole('heading', { level: 1, name: /^Renew CT-/ })).toBeVisible();
+  await expect(page.getByLabel('Title', { exact: false }).first()).toHaveValue(title);
+  await expect(page.getByLabel('Start date', { exact: false }).first()).toHaveValue('2026-01-01');
+  await expect(page.getByLabel('End date', { exact: false }).first()).toHaveValue('2026-12-31');
+  // Opening the page saved nothing.
+  expect((await api<{ totalCount: number }>(page, `/contracts?clientId=${client}&pageSize=1`)).totalCount).toBe(before.totalCount);
+
+  // The details can be changed before saving.
+  await page.getByLabel('Title', { exact: false }).first().fill(`${title} 2026`);
+  await page.getByRole('button', { name: /^Save/ }).click();
+  await expect(page).toHaveURL(/\/contracts\/\d+$/);
+  const id = Number(page.url().split('/').pop());
+  expect(id).not.toBe(old.id);
+  const renewed = await api<{ title: string; status: string; startDate: string; endDate: string; coverage: string; noticeDays: number; slaTargets: { priority: string; responseMinutes: number }[]; fees: { description: string }[]; payments: { status: string; dueDate: string; paidOn?: string }[] }>(page, `/contracts/${id}`);
+  expect(renewed).toMatchObject({ title: `${title} 2026`, status: 'Draft', startDate: '2026-01-01', endDate: '2026-12-31', coverage: 'PSOP coverage', noticeDays: 45 });
+  expect(renewed.slaTargets).toMatchObject([{ priority: 'High', responseMinutes: 60 }]);
+  expect(renewed.fees).toMatchObject([{ description: 'Support fee' }]);
+  expect(renewed.payments).toMatchObject([{ status: 'Pending', dueDate: '2026-02-01' }]);
+  expect(renewed.payments[0].paidOn ?? null).toBeNull();
+
+  // The old contract is untouched.
+  const untouched = await api<{ title: string; status: string; endDate: string; payments: { status: string }[] }>(page, `/contracts/${old.id}`);
+  expect(untouched).toMatchObject({ title, status: 'Active', endDate: '2025-12-31', payments: [{ status: 'Paid' }] });
+});
+
 test('the notifications button shows the outline bell, with its unread count and name', async ({ page }) => {
   await openCases(page);
   const button = page.locator('.bell-btn');
@@ -241,9 +283,9 @@ test('the notifications button shows the outline bell, with its unread count and
   await expect(page.getByRole('dialog', { name: 'Notifications' })).toBeVisible();
 });
 
-test('case detail and dashboard explain their dates and statuses', async ({ page }) => {
+test('ticket detail and dashboard explain their dates and statuses', async ({ page }) => {
   await page.goto('/cases');
-  await expect(page.getByRole('heading', { name: 'Cases', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Tickets', exact: true })).toBeVisible();
   const rows = await api<{ items: { id: number; ref: string }[] }>(page, '/cases?pageSize=1');
   await page.goto(`/cases/${rows.items[0].id}`);
   const age = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Age and waiting' }) });
@@ -251,7 +293,7 @@ test('case detail and dashboard explain their dates and statuses', async ({ page
   await expect(age.getByText('(hub creation time)')).toBeVisible();
 
   await page.goto('/');
-  const panel = page.locator('.viz-panel, section', { has: page.getByRole('heading', { name: 'Open cases by status' }) }).first();
+  const panel = page.locator('.viz-panel, section', { has: page.getByRole('heading', { name: 'Open tickets by status' }) }).first();
   await expect(panel).toContainText('Waiting for customer is a status');
   await expect(panel).not.toContainText('it is not a status');
 });

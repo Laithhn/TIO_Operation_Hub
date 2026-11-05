@@ -93,12 +93,12 @@ test.describe('Resource permissions in application actions', () => {
     await expect(dialog.getByRole('button', { name: 'Copy', exact: true })).toBeDisabled();
   });
 
-  test('case coordinator without structure coordination gets assignment and contract controls', async ({ page }) => {
+  test('ticket coordinator without structure coordination gets assignment and contract controls', async ({ page }) => {
     const { client } = await fixture(page);
     const me = await api<{ id: number }>(page, '/me');
     const reference = await api<{ teams: { id: number; isActive: boolean }[] }>(page, '/reference');
     const record = await api<{ id: number }>(page, '/cases', {
-      title: unique('Coordinated case'), type: 'Incident', scope: 'Client', clientId: client.id,
+      title: unique('Coordinated ticket'), type: 'Incident', scope: 'Client', clientId: client.id,
       responsibleTeamId: reference.teams.find(t => t.isActive)!.id, ownerUserId: me.id,
       priority: 'Normal', impactSummary: 'Permission regression', nextReviewAt: new Date(Date.now() + 86400000).toISOString()
     });

@@ -48,12 +48,12 @@ export function SyncOffNotice({ on }: { on: boolean }) {
 export function PreviewResult({ p }: { p: JiraPreview }) {
   return (
     <>
-      <div className="notice">Dry run: nothing was saved, and no case, mapping or notification was created.{p.truncated && ' Only the first issues were read, so the real totals are higher.'}</div>
+      <div className="notice">Dry run: nothing was saved, and no ticket, mapping or notification was created.{p.truncated && ' Only the first issues were read, so the real totals are higher.'}</div>
       <div className="jira-cards">
         <JiraCard icon="list" title="Jira issues found" value={p.totalIssues} />
-        <JiraCard icon="plus" title="New cases proposed" value={p.newCases} />
-        <JiraCard icon="case" title="Existing cases matched" value={p.existingMatched} />
-        <JiraCard icon="warning" title="Cases requiring review" value={p.requiringReview} />
+        <JiraCard icon="plus" title="New tickets proposed" value={p.newCases} />
+        <JiraCard icon="case" title="Existing tickets matched" value={p.existingMatched} />
+        <JiraCard icon="warning" title="Tickets requiring review" value={p.requiringReview} />
         <JiraCard icon="users" title="Missing user mappings" value={p.missingUserMappings} />
         <JiraCard icon="network" title="Missing workflow mappings" value={p.missingWorkflowMappings} />
         <JiraCard icon="error" title="Ownership conflicts" value={p.ownershipConflicts} />

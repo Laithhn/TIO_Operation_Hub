@@ -39,7 +39,7 @@ public static class SearchExportEndpoints
             var key = t.ToUpperInvariant();
             hits.AddRange((await db.Cases.AsNoTracking().Where(c => access.Me.HasRight(RightKeys.Cases, RightKeys.View) && (c.Ref.Contains(t) || c.Title.Contains(t) || c.JiraReferences.Any(j => j.RemovedAt == null && j.IssueKey == key))).OrderByDescending(c => c.Id).Take(n)
                 .Select(c => new { c.Id, c.Ref, c.Title, c.Status, client = c.Client == null ? "Internal" : c.Client.Code, jira = c.JiraReferences.Where(j => j.RemovedAt == null && j.IssueKey == key).Select(j => j.JiraInstance!.Name + " " + j.IssueKey).FirstOrDefault() }).ToListAsync(ct))
-                .Select(c => new SearchHit(c.jira is null ? "Cases" : "Jira references", $"{c.Ref} · {c.Title}", c.jira is null ? $"{c.client} · {c.Status}" : $"{c.jira} · {c.client}", $"/cases/{c.Id}")));
+                .Select(c => new SearchHit(c.jira is null ? "Tickets" : "Jira references", $"{c.Ref} · {c.Title}", c.jira is null ? $"{c.client} · {c.Status}" : $"{c.jira} · {c.client}", $"/cases/{c.Id}")));
             hits.AddRange((await db.Commitments.AsNoTracking().Where(c => access.Me.HasRight(RightKeys.Commitments, RightKeys.View) && (c.Ref.Contains(t) || c.Description.Contains(t))).Take(n).Select(c => new { c.Id, c.Ref, c.Description, c.Status }).ToListAsync(ct))
                 .Select(c => new SearchHit("Commitments", $"{c.Ref} · {c.Description}", c.Status.ToString(), $"/commitments/{c.Id}")));
             hits.AddRange((await db.Escalations.AsNoTracking().Where(e => access.Me.HasRight(RightKeys.Other, RightKeys.View) && (e.Ref.Contains(t) || e.Title.Contains(t) || (e.ChannelReference != null && e.ChannelReference.Contains(t)))).OrderByDescending(e => e.Id).Take(n)

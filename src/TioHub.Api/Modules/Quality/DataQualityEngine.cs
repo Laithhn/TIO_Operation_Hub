@@ -31,7 +31,7 @@ public sealed class DataQualityEngine(HubDbContext db, FreshnessService fresh, H
         {
             [CountryUnknown] = "Country unknown (onboarding follow-up)",
             [MissingOwner] = "Missing owner",
-            [UnknownEnvironment] = "Unknown environment on case",
+            [UnknownEnvironment] = "Unknown environment on ticket",
             [UnknownVersion] = "Unknown installed version",
             [StaleReview] = "Stale review",
             [ConditionNeedsVerification] = "Condition needs verification",

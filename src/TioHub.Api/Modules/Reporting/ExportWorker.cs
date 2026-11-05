@@ -150,9 +150,9 @@ public sealed class ExportWorker(IServiceScopeFactory scopes, IOptions<Reporting
             // ---- limits, before any row is read ----
             var q = await svc.QueryAsync(v, k, cutoff, stop);
             var total = await q.CountAsync(stop);
-            if (total > opts.MaxRows) throw new Refused($"{total:N0} cases match; one export can hold at most {opts.MaxRows:N0}. Narrow the filters and export again.");
+            if (total > opts.MaxRows) throw new Refused($"{total:N0} tickets match; one export can hold at most {opts.MaxRows:N0}. Narrow the filters and export again.");
             if (job.Format == ExportFormat.Pdf && options.PdfMode == "detailed" && total > opts.PdfMaxRows)
-                throw new Refused($"{total:N0} cases match; a detailed PDF holds at most {opts.PdfMaxRows:N0}. Use Excel, the PDF summary, or narrower filters.");
+                throw new Refused($"{total:N0} tickets match; a detailed PDF holds at most {opts.PdfMaxRows:N0}. Use Excel, the PDF summary, or narrower filters.");
 
             // ---- rows in deterministic chunks; a cancel request is honoured between chunks ----
             var rows = new List<CaseReportRow>(total);

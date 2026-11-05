@@ -92,8 +92,8 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         if (string.Equals(issue.StatusCategory, "done", StringComparison.OrdinalIgnoreCase) && !settings.ImportDoneIssues) return new(JiraIssueDecision.SkipDone);
         if (settings.DefaultResponsibleTeamId is null || !await db.Teams.AnyAsync(t => t.Id == settings.DefaultResponsibleTeamId && t.IsActive, ct))
             return new(JiraIssueDecision.MissingCaseInformation, Problem: "The client's Jira settings have no active default responsible team.");
-        if (string.IsNullOrWhiteSpace(settings.DefaultCaseType)) return new(JiraIssueDecision.MissingCaseInformation, Problem: "The client's Jira settings have no default case type.");
-        if (string.IsNullOrWhiteSpace(issue.Summary)) return new(JiraIssueDecision.MissingCaseInformation, Problem: "The Jira issue has no summary, and a case needs a title.");
+        if (string.IsNullOrWhiteSpace(settings.DefaultCaseType)) return new(JiraIssueDecision.MissingCaseInformation, Problem: "The client's Jira settings have no default ticket type.");
+        if (string.IsNullOrWhiteSpace(issue.Summary)) return new(JiraIssueDecision.MissingCaseInformation, Problem: "The Jira issue has no summary, and a ticket needs a title.");
         return new(JiraIssueDecision.Create);
     }
 
@@ -123,27 +123,27 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         {
             case JiraIssueDecision.AdoptCandidate:
                 Raise(JiraIssueType.DuplicateCaseCandidate, x, issue, CaseFingerprint(x.Connection.Id, issue.Id), now,
-                    $"{issue.Key} is already referenced by one case of this client. No case was created.",
-                    "Adopt the case as the synchronized source of this issue, or decide that a new case is needed.", classification.CaseId, classification.CaseId);
+                    $"{issue.Key} is already referenced by one ticket of this client. No ticket was created.",
+                    "Adopt the ticket as the synchronized source of this issue, or decide that a new ticket is needed.", classification.CaseId, classification.CaseId);
                 break;
             case JiraIssueDecision.AmbiguousCandidates:
                 Raise(JiraIssueType.DuplicateCaseCandidate, x, issue, CaseFingerprint(x.Connection.Id, issue.Id), now,
-                    $"{issue.Key} is referenced by {classification.Candidates!.Length} cases (ids {string.Join(", ", classification.Candidates)}). No case was created.",
-                    "Choose which case is the source of this issue, or ignore the issue.", null, classification.Candidates.Length > 0 ? classification.Candidates[0] : null);
+                    $"{issue.Key} is referenced by {classification.Candidates!.Length} tickets (ids {string.Join(", ", classification.Candidates)}). No ticket was created.",
+                    "Choose which ticket is the source of this issue, or ignore the issue.", null, classification.Candidates.Length > 0 ? classification.Candidates[0] : null);
                 break;
             case JiraIssueDecision.ForeignCandidate:
                 Raise(JiraIssueType.ClientOwnershipConflict, x, issue, CaseFingerprint(x.Connection.Id, issue.Id), now,
-                    $"{issue.Key} belongs to a space of this client, but it is referenced by a case of another client. No case was created.",
-                    "Check the space assignment and the reference. Cases are never moved between clients automatically.", null, classification.Candidates![0]);
+                    $"{issue.Key} belongs to a space of this client, but it is referenced by a ticket of another client. No ticket was created.",
+                    "Check the space assignment and the reference. Tickets are never moved between clients automatically.", null, classification.Candidates![0]);
                 break;
             case JiraIssueDecision.MovedFromOtherClient:
                 Raise(JiraIssueType.IssueMovedBetweenSpaces, x, issue, $"moved:{x.Connection.Id}:{issue.Id}", now,
-                    $"{issue.Key} is now in space {x.Space.ProjectKey}, owned by another client, while its case stays with the original client. The case was not changed.",
-                    "Decide who owns the work. The case is not moved automatically.", classification.CaseId, null);
+                    $"{issue.Key} is now in space {x.Space.ProjectKey}, owned by another client, while its ticket stays with the original client. The ticket was not changed.",
+                    "Decide who owns the work. The ticket is not moved automatically.", classification.CaseId, null);
                 break;
             case JiraIssueDecision.MissingCaseInformation:
                 Raise(JiraIssueType.MissingCaseInformation, x, issue, CaseFingerprint(x.Connection.Id, issue.Id), now,
-                    $"{issue.Key} cannot become a case: {classification.Problem}", "Complete the client's Jira settings; the issue is imported at the next run.", null, null);
+                    $"{issue.Key} cannot become a ticket: {classification.Problem}", "Complete the client's Jira settings; the issue is imported at the next run.", null, null);
                 break;
             case JiraIssueDecision.Create:
                 await ResolveAutomaticAsync(CaseFingerprint(x.Connection.Id, issue.Id), now, ct);
@@ -272,7 +272,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             ClientJiraSpaceId = space.Id, CaseId = c.Id, Source = JiraMappingSource.Adopted, Url = url, LastSyncedAt = now });
         var reference = await db.JiraReferences.FirstOrDefaultAsync(j => j.CaseId == c.Id && j.JiraInstanceId == conn.JiraInstanceId && j.IssueKey == issueKey && j.RemovedAt == null, ct);
         if (reference is not null) reference.Origin = JiraReferenceOrigin.AdoptedSource;
-        CaseEndpoints.AddEvent(db, c, CaseEventType.JiraAdded, null, $"Synchronized source {issueKey}", "Case adopted as the source of the Jira issue", db.CurrentUser, now);
+        CaseEndpoints.AddEvent(db, c, CaseEventType.JiraAdded, null, $"Synchronized source {issueKey}", "Ticket adopted as the source of the Jira issue", db.CurrentUser, now);
     }
 
     /// <summary>A86: the case value of a Jira priority or issue type: the client's mapping, then a match by name. A value with neither is listed for a person to map, and null is returned.</summary>
@@ -323,8 +323,8 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         // A86: priority and type come from Jira, by name or through the client's mapping. The client's defaults cover what Jira leaves open.
         var lookups = new LookupService(db);
         var typeCheck = new Check();
-        var (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(typeCheck, "type", LookupLists.CaseType, await ValueAsync(x.Space.ClientId, JiraValueKind.IssueType, issue.IssueTypeName, ct), "the case type", null, ct);
-        if (typeCheck.HasErrors) (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the case type", null, ct);
+        var (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(typeCheck, "type", LookupLists.CaseType, await ValueAsync(x.Space.ClientId, JiraValueKind.IssueType, issue.IssueTypeName, ct), "the ticket type", null, ct);
+        if (typeCheck.HasErrors) (typeCode, typeCategory) = await lookups.TypeAsync<CaseType>(new Check(), "type", LookupLists.CaseType, x.Settings.DefaultCaseType, "the ticket type", null, ct);
         var priority = Enum.TryParse<Priority>(await ValueAsync(x.Space.ClientId, JiraValueKind.Priority, issue.PriorityName, ct), out var fromJira) ? fromJira : x.Settings.DefaultPriority;
         var title = CredentialGuard.LooksLikeSecret(issue.Summary) ? $"Jira issue {issue.Key}" : issue.Summary.Trim();
         // A93: the contract valid when the ticket was created.
@@ -335,7 +335,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             ContractId = contract?.Id, SlaNoCoveringContract = terms.Count > 0 && contract is null, SlaClockStartAt = issue.CreatedAt,
             Title = title.Length > 200 ? title[..200] : title, Type = typeCode, TypeCategory = typeCategory, Scope = WorkScope.Client, ClientId = x.Space.ClientId,
             ResponsibleTeamId = x.Settings.DefaultResponsibleTeamId, ImpactSummary = $"Not yet assessed. Imported from Jira {issue.Key}.", Priority = priority,
-            NextAction = "Review the case imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, StatusCode = await CaseStatuses.DefaultCodeAsync(db, CaseStatusBehavior.Initial, CaseStatus.New, ct), CycleStartedAt = now, LastReviewedAt = now
+            NextAction = "Review the ticket imported from Jira.", NextReviewAt = now.AddHours(Math.Max(1, x.Settings.NextReviewHours)), Status = CaseStatus.New, StatusCode = await CaseStatuses.DefaultCodeAsync(db, CaseStatusBehavior.Initial, CaseStatus.New, ct), CycleStartedAt = now, LastReviewedAt = now
         };
         db.Cases.Add(c);
         await db.SaveChangesAsync(ct);
@@ -407,7 +407,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
             var representative = $"client:{c.Id}";
             if (contact.ClientId != c.ClientId)
             {
-                Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, representative, now, $"{m.IssueKey} is assigned to {contact.Name}, a contact of another client, so the case is unchanged.",
+                Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, representative, now, $"{m.IssueKey} is assigned to {contact.Name}, a contact of another client, so the ticket is unchanged.",
                     "Map this Jira user to a contact of the right client.", c.Id, null, m.AssigneeAccountId);
                 return false;
             }
@@ -424,8 +424,8 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         c.InternalAssignee = null;
         if (map.TioUserId is null)
         {
-            Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, fingerprint, now, $"Jira user {m.AssigneeName ?? "(no name)"} is not mapped to a hub user or client contact, so the case keeps its current owner.",
-                "Map the Jira user to a hub user or a client contact; the case is updated at the next run.", c.Id, null, m.AssigneeAccountId);
+            Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, fingerprint, now, $"Jira user {m.AssigneeName ?? "(no name)"} is not mapped to a hub user or client contact, so the ticket keeps its current owner.",
+                "Map the Jira user to a hub user or a client contact; the ticket is updated at the next run.", c.Id, null, m.AssigneeAccountId);
             return false;
         }
         var ended = await EndClientRepresentationAsync(c, m, now, ct);
@@ -434,11 +434,11 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         if (!CaseQuery.IsOpen(c.Status)) { m.AppliedAssigneeAccountId = m.AssigneeAccountId; return ended; }
         var check = new Check();
         await access.CheckAssignableAsync(check, "owner", map.TioUserId, c.ClientId, c.ResponsibleTeamId, "the owner", ct);
-        if (map.TioUserId == c.BackupOwnerUserId) check.Add("owner", "This person is the case's backup owner, and the owner and backup must be different people.");
+        if (map.TioUserId == c.BackupOwnerUserId) check.Add("owner", "This person is the ticket's backup owner, and the owner and backup must be different people.");
         if (check.HasErrors)
         {
-            Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, conflict, now, $"{m.IssueKey}: the mapped user cannot own this case. {check.First("owner")}",
-                "Change the user mapping or the case's backup owner.", c.Id, null, m.AssigneeAccountId);
+            Raise(JiraIssueType.MissingUserMapping, conn, space, m.JiraIssueId, m.IssueKey, conflict, now, $"{m.IssueKey}: the mapped user cannot own this ticket. {check.First("owner")}",
+                "Change the user mapping or the ticket's backup owner.", c.Id, null, m.AssigneeAccountId);
             return ended;
         }
         await ResolveAutomaticAsync(conflict, now, ct);
@@ -493,8 +493,8 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         var behavior = row?.TargetStatusCode is { } mapped ? await CaseStatuses.BehaviorOfAsync(db, mapped, ct) : null;
         if (behavior is null)
         {
-            Raise(JiraIssueType.UnknownWorkflowStatus, conn, space, null, null, unknown, now, $"Jira status \"{m.StatusName}\" in space {space.ProjectKey} has no case status, so cases keep their current status.",
-                "Map the Jira status to a case status; cases are updated at the next run.", null, null, m.StatusId);
+            Raise(JiraIssueType.UnknownWorkflowStatus, conn, space, null, null, unknown, now, $"Jira status \"{m.StatusName}\" in space {space.ProjectKey} has no ticket status, so tickets keep their current status.",
+                "Map the Jira status to a ticket status; tickets are updated at the next run.", null, null, m.StatusId);
             return false;
         }
         await ResolveAutomaticAsync(unknown, now, ct);

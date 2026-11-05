@@ -132,7 +132,7 @@ public static class EnvironmentEndpoints
             if (openCases > 0)
             {
                 if (string.IsNullOrWhiteSpace(input.ExceptionReason))
-                    throw new ValidationException("Open cases affect this environment.", new Dictionary<string, string[]> { ["exceptionReason"] = [$"{openCases} open case(s) affect this environment. A TIO Manager must record an exception reason to archive anyway."] });
+                    throw new ValidationException("Open tickets affect this environment.", new Dictionary<string, string[]> { ["exceptionReason"] = [$"{openCases} open ticket(s) affect this environment. A TIO Manager must record an exception reason to archive anyway."] });
                 access.Me.RequireRight(RightKeys.Environments, RightKeys.Coordinate);
                 reason += " — Manager exception: " + Rules.RequireReason(input.ExceptionReason, "exceptionReason", "the exception reason");
             }

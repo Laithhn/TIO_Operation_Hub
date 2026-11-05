@@ -125,14 +125,14 @@ export function TeamDetail() {
       {a.data && (<>
         <Panel title="Assignments and coverage" pad={false}>
           <DataTable rowKey={p => p.userId} rows={a.data.people} columns={[
-            { key: 'n', header: 'Engineer', render: p => <Link to={`/cases?ownerId=${p.userId}`}>{p.name}</Link> }, { key: 'c', header: 'Open cases', className: 'num', render: p => p.openCases },
+            { key: 'n', header: 'Engineer', render: p => <Link to={`/cases?ownerId=${p.userId}`}>{p.name}</Link> }, { key: 'c', header: 'Open tickets', className: 'num', render: p => p.openCases },
             { key: 'w', header: 'Waiting', className: 'num', render: p => p.waiting }, { key: 'o', header: 'Overdue items', className: 'num', render: p => p.overdue ? <Badge tone="bad">{p.overdue}</Badge> : 0 },
             { key: 'b', header: 'Backup for', className: 'num', render: p => p.backupFor }, { key: 'm', header: 'Open commitments', className: 'num', render: p => p.openCommitments }
           ]} />
           <p className="hint" style={{ padding: 10 }}>{a.data.note}</p>
         </Panel>
         <div className="cols">
-          <Panel title={`Unassigned team cases (${a.data.unassigned.length})`}>{a.data.unassigned.length === 0 ? <StateMessage kind="none">No unassigned cases.</StateMessage> : <ul className="timeline">{a.data.unassigned.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /><div className="when">{c.nextAction}</div></li>)}</ul>}</Panel>
+          <Panel title={`Unassigned team tickets (${a.data.unassigned.length})`}>{a.data.unassigned.length === 0 ? <StateMessage kind="none">No unassigned tickets.</StateMessage> : <ul className="timeline">{a.data.unassigned.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /><div className="when">{c.nextAction}</div></li>)}</ul>}</Panel>
           <Panel title={`Coverage gaps (${a.data.coverageGaps.length})`}>{a.data.coverageGaps.length === 0 ? <StateMessage kind="none">No coverage gaps under the configured policy.</StateMessage> : <ul className="timeline">{a.data.coverageGaps.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /> — no active backup owner</li>)}</ul>}</Panel>
         </div>
         <AttachmentsWorkspace recordType="Team" recordId={Number(id)} />

@@ -9,7 +9,7 @@ const sectionMenu = (page: Page) => page.getByRole('complementary', { name: 'Sec
 async function openBuilder(page: Page) {
   const preview = page.waitForResponse(r => r.url().endsWith('/api/v1/reporting/reports/cases/preview') && r.request().method() === 'POST');
   await page.goto('/reporting-center/library');
-  await page.getByRole('link', { name: 'Build report: Cases report' }).click();
+  await page.getByRole('link', { name: 'Build report: Tickets report' }).click();
   await expect(page).toHaveURL(/\/reporting-center\/builder\/cases$/);
   expect((await preview).ok()).toBeTruthy();
   await expect(page.getByRole('heading', { name: 'Preview' })).toBeVisible();
@@ -40,7 +40,7 @@ test.describe('A70 Reporting Center navigation', () => {
     else { await main.getByRole('button', { name: /^More/ }).click(); await page.locator('#nav-more-list').getByRole('link', { name: 'Reporting Center' }).click(); }
     await expect(page).toHaveURL(/\/reporting-center$/);
     await expect(main.locator('a[aria-current="page"]')).toHaveText('Reporting Center');
-    for (const area of ['Overview', 'Report library', 'Cases report builder', 'My reports', 'Scheduled reports', 'Export history', 'Templates'])
+    for (const area of ['Overview', 'Report library', 'Tickets report builder', 'My reports', 'Scheduled reports', 'Export history', 'Templates'])
       await expect(sectionMenu(page).getByRole('link', { name: area })).toBeVisible();
     await page.screenshot({ path: 'test-results/a70-overview-1600.png', fullPage: true });
     // Deep links keep the section active.
@@ -58,9 +58,9 @@ test.describe('A70 Reporting Center navigation', () => {
     await page.getByRole('button', { name: 'Menu, current section Reporting Center' }).click();
     const all = page.getByRole('navigation', { name: 'All sections' });
     await expect(all.locator('.drawer-section.current')).toContainText('Reporting Center (current section)');
-    await expect(all.getByRole('link', { name: 'Cases report builder' })).toBeVisible();
+    await expect(all.getByRole('link', { name: 'Tickets report builder' })).toBeVisible();
     await page.screenshot({ path: 'test-results/a70-drawer-390.png' });
-    await all.getByRole('link', { name: 'Cases report builder' }).click();
+    await all.getByRole('link', { name: 'Tickets report builder' }).click();
     await expect(page).toHaveURL(/\/builder\/cases$/);
     await expect(page.getByRole('heading', { name: 'Preview' })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(0);
@@ -68,7 +68,7 @@ test.describe('A70 Reporting Center navigation', () => {
   });
 });
 
-test.describe('A70 Cases Report Builder', () => {
+test.describe('A70 Tickets Report Builder', () => {
   test('filters, conditions, columns and paging go to the server and the preview follows them', async ({ page }) => {
     await openBuilder(page);
     let body = await nextPreview(page, () => page.getByRole('button', { name: 'Critical', exact: true }).click());
@@ -76,7 +76,7 @@ test.describe('A70 Cases Report Builder', () => {
     await expect(page.getByLabel('Filters in force')).toContainText('Priority: Critical');
     body = await nextPreview(page, () => page.getByRole('button', { name: 'High', exact: true }).click());
     expect(body.definition.filters.priorities).toEqual(['Critical', 'High']);
-    const table = page.getByRole('region', { name: 'Cases report preview' });
+    const table = page.getByRole('region', { name: 'Tickets report preview' });
     await expect(table).toBeVisible();
     await expect(table.getByRole('link').first()).toHaveAttribute('href', /^\/cases\/\d+$/);
 
@@ -188,7 +188,7 @@ test.describe('A70 Cases Report Builder', () => {
     await page.goto('/reporting-center/templates');
     await page.screenshot({ path: 'test-results/a70-templates-1600.png', fullPage: true });
     const req = page.waitForRequest(r => r.url().endsWith('/reporting/reports/cases/preview') && r.method() === 'POST');
-    await page.getByRole('link', { name: 'Use template Open critical and high cases' }).click();
+    await page.getByRole('link', { name: 'Use template Open critical and high tickets' }).click();
     const body = (await req).postDataJSON() as { definition: { filters: { priorities: string[]; statuses: string[] } } };
     expect(body.definition.filters.priorities).toEqual(['Critical', 'High']);
     await expect(page.getByLabel('Filters in force')).toContainText('Priority: Critical, High');

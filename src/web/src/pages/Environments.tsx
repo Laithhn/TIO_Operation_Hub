@@ -57,7 +57,7 @@ export function EnvironmentList() {
           { key: 'fresh', header: 'Inventory review', render: r => <FreshnessBadge f={r.inventoryFreshness} /> },
           { key: 'apps', header: 'Installations', className: 'num', render: r => r.installationCount },
           { key: 'assets', header: 'Assets', className: 'num', render: r => r.assetCount },
-          { key: 'cases', header: 'Open cases', className: 'num', render: r => r.openCases },
+          { key: 'cases', header: 'Open tickets', className: 'num', render: r => r.openCases },
           { key: 'owner', header: 'Owner / backup', render: r => <><Person u={r.owner} gap="No owner (gap)" />{r.backupOwner ? <span className="muted"> / {r.backupOwner.name}</span> : <> <Badge tone="warn">No backup</Badge></>}</> }, { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/environments/${r.id}`} what={`environment ${r.name}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
@@ -233,7 +233,7 @@ export function EnvironmentDetail() {
         </Panel>
       )}
       {o && tab === 'work' && (<div className="cols">
-        <Panel title="Open cases affecting this environment">{o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.status} enumName="CaseStatus" /><div className="when">{c.owner} · {c.nextAction}</div></li>)}</ul>}</Panel>
+        <Panel title="Open tickets affecting this environment">{o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.status} enumName="CaseStatus" /><div className="when">{c.owner} · {c.nextAction}</div></li>)}</ul>}</Panel>
         <Panel title="Related open commitments">{o.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.commitments.map(c => <li key={c.id}><Link to={`/commitments/${c.id}`}>{c.ref}</Link> {c.description}<div className="when">due {fmtDateTime(c.currentDueAt)}</div></li>)}</ul>}</Panel>
         <Panel title="Responsibility boundaries">{o.boundaries.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.boundaries.map(b => <li key={b.id}><b>{b.area}</b>: <BoundaryPerson b={b} /> {label(b.party)}{b.organization && ` · ${b.organization}`}{b.coordinator && ` · coordinator ${b.coordinator}`} <span className="chip">{b.environmentSpecific ? 'This environment' : 'Whole client'}</span></li>)}</ul>}</Panel>
       </div>)}

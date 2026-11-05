@@ -126,7 +126,7 @@ export function JiraConnections() {
             {health.data ? <>
               <KV items={[
                 ['Issue sync', <JiraBadge value={health.data.issueSync} />], ['Comment sync', <JiraBadge value={health.data.commentSync} />], ['Activity sync', <JiraBadge value={health.data.activitySync} />],
-                ['Last full reconciliation', health.data.lastFullReconciliation ? fmtDateTime(health.data.lastFullReconciliation) : 'Never'], ['Issues read (24h)', health.data.last24h.issues], ['Cases created (24h)', health.data.last24h.created], ['Cases updated (24h)', health.data.last24h.updated],
+                ['Last full reconciliation', health.data.lastFullReconciliation ? fmtDateTime(health.data.lastFullReconciliation) : 'Never'], ['Issues read (24h)', health.data.last24h.issues], ['Tickets created (24h)', health.data.last24h.created], ['Tickets updated (24h)', health.data.last24h.updated],
                 ['Comments synced (24h)', health.data.last24h.comments], ['Failed records (24h)', <span className={health.data.last24h.failed ? 'err' : ''}>{health.data.last24h.failed}</span>], ['Average duration', health.data.averageDurationSeconds != null ? `${health.data.averageDurationSeconds} s` : '—']
               ]} />
               {health.data.pendingConflicts > 0 && <div className="notice warn" style={{ marginTop: 8 }}>{health.data.pendingConflicts} item(s) need review.</div>}
@@ -150,7 +150,7 @@ export function JiraConnections() {
           { key: 'i', header: 'Space ID', render: s => <span className="mono">{s.jiraProjectId}</span> },
           { key: 'c', header: 'Assigned client', render: s => s.assignedClientId ? <Link to={`/clients/${s.assignedClientId}?tab=jira`}>{s.assignedClient}</Link> : s.assignedClient ?? <span className="muted">Not assigned</span> },
           { key: 'l', header: 'Last sync', render: s => s.lastSync ? fmtDateTime(s.lastSync) : <span className="muted">Never</span> },
-          { key: 'u', header: 'Cases', className: 'num', render: s => s.cases },
+          { key: 'u', header: 'Tickets', className: 'num', render: s => s.cases },
           { key: 'h', header: 'Health', render: s => <JiraBadge value={s.missing ? 'NotAccessible' : s.health === 'Success' ? 'Healthy' : s.health ?? 'NotConfigured'} /> },
           { key: 's', header: 'Status', render: s => <JiraBadge value={s.state} /> },
           { key: 'r', header: '', render: s => canMaintain && s.assignedClient && <button className="linkbtn" onClick={() => setReassign(s)}>Reassign</button> }
@@ -161,7 +161,7 @@ export function JiraConnections() {
       {dialog === 'edit' && c && <ConnectionDialog connection={c} instances={d.instances} onClose={() => setDialog(null)} />}
       {dialog === 'rotate' && c && <RotateDialog c={c} onClose={() => setDialog(null)} />}
       {dialog === 'status' && c && <ActionDialog title={`${c.isEnabled ? 'Disable' : 'Enable'} ${c.name}`} path={`/admin/jira-connections/${c.id}/enabled`} submitLabel={c.isEnabled ? 'Disable' : 'Enable'} danger={c.isEnabled} onClose={() => setDialog(null)}
-        intro={c.isEnabled ? 'Synchronization stops for every space of this connection. Cases and their imported history stay.' : 'Enabled spaces of this connection synchronize again.'}
+        intro={c.isEnabled ? 'Synchronization stops for every space of this connection. Tickets and their imported history stay.' : 'Enabled spaces of this connection synchronize again.'}
         fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} transform={v => ({ enabled: !c.isEnabled, reason: v.reason })} />}
       {reassign && c && <ReassignDialog connectionId={c.id} space={reassign} clients={clients} onClose={() => setReassign(null)} />}
     </>}</QueryState>
@@ -183,13 +183,13 @@ function ReassignDialog({ connectionId, space, clients, onClose }: { connectionI
   };
   return (
     <Dialog title={`Reassign space ${space.projectKey}`} onClose={onClose}>
-      <div className="notice">Future issues of this space go to the new client. Existing cases stay with their client and are never moved; a changed issue of an existing case appears for review.</div>
+      <div className="notice">Future issues of this space go to the new client. Existing tickets stay with their client and are never moved; a changed issue of an existing ticket appears for review.</div>
       <FormError error={f.error} fields={['toClientId', 'contractId', 'reason']} />
       <div className="form-grid">
         <SelectInput label="New client" required wide value={f.values.toClientId} onChange={chooseClient} options={clients} error={f.fieldError('toClientId')} />
-        <SelectInput label="Contract for new cases" empty="No contract" wide value={f.values.contractId} onChange={v => f.set('contractId', v)} error={f.fieldError('contractId')}
+        <SelectInput label="Contract for new tickets" empty="No contract" wide value={f.values.contractId} onChange={v => f.set('contractId', v)} error={f.fieldError('contractId')}
           options={(contracts.data?.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` }))}
-          hint={contracts.isError ? 'The contracts of this client could not be read. You can link one later on its Jira tab.' : "Only the new client's active contracts. New cases follow its SLA, pause and penalty rules."} />
+          hint={contracts.isError ? 'The contracts of this client could not be read. You can link one later on its Jira tab.' : "Only the new client's active contracts. New tickets follow its SLA, pause and penalty rules."} />
         <TextInput label="Reason" required wide multiline value={f.values.reason} onChange={v => f.set('reason', v)} error={f.fieldError('reason')} />
       </div>
       <label className="check" style={{ marginTop: 12 }}><input type="checkbox" checked={confirmed} onChange={e => setConfirmed(e.target.checked)} /> I confirm this action.</label>

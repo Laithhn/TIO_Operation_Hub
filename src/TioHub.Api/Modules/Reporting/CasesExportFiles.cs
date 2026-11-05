@@ -68,14 +68,14 @@ public static class CasesExportFiles
         }
         var sheets = new List<XlsxSheet>
         {
-            new("Cases Data", v.Columns.Select(c => c.Label).ToList(), page.Rows.Select(r => (IReadOnlyList<object?>)v.Columns.Select(c => Cell(c, CasesFields.Value(r, c), x.Zone, label)).ToList()))
+            new("Tickets Data", v.Columns.Select(c => c.Label).ToList(), page.Rows.Select(r => (IReadOnlyList<object?>)v.Columns.Select(c => Cell(c, CasesFields.Value(r, c), x.Zone, label)).ToList()))
         };
         if (o.IncludeSummary)
         {
-            var lines = new List<IReadOnlyList<object?>> { new object?[] { "Total cases", page.Total, "" }, Array.Empty<object?>() };
+            var lines = new List<IReadOnlyList<object?>> { new object?[] { "Total tickets", page.Total, "" }, Array.Empty<object?>() };
             void Block(string title, IEnumerable<(string Key, int Count)> rows, Func<string, string>? name = null)
             {
-                lines.Add([title, "Cases", "Share"]);
+                lines.Add([title, "Tickets", "Share"]);
                 lines.AddRange(rows.Select(r => (IReadOnlyList<object?>)new object?[] { name?.Invoke(r.Key) ?? (r.Key.Length == 0 ? "(none)" : r.Key), r.Count, Pct(r.Count, page.Total) }));
                 lines.Add([]);
             }
@@ -89,9 +89,9 @@ public static class CasesExportFiles
         if (o.IncludeFilters)
         {
             var rows = v.Summary.Select(s => (IReadOnlyList<object?>)new object?[] { s.Label, s.Value }).ToList();
-            if (rows.Count == 0) rows.Add(["Filters", "None: every case you are authorized to see"]);
+            if (rows.Count == 0) rows.Add(["Filters", "None: every ticket you are authorized to see"]);
             rows.Add([]);
-            rows.Add(["Sort", v.Sort.Count == 0 ? "Case ID" : string.Join(", ", v.Sort.Select(s => $"{s.Field.Label} {(s.Desc ? "descending" : "ascending")}"))]);
+            rows.Add(["Sort", v.Sort.Count == 0 ? "Ticket ID" : string.Join(", ", v.Sort.Select(s => $"{s.Field.Label} {(s.Desc ? "descending" : "ascending")}"))]);
             rows.Add(["Group by", v.GroupBy?.Label ?? "None"]);
             sheets.Add(new XlsxSheet("Applied Filters", ["Filter", "Value"], rows));
         }
@@ -142,13 +142,13 @@ public static class CasesExportFiles
             pdf.TextRight(PdfDocument.Width - M, 42, $"by {x.GeneratedBy} · data as of {Csv.Format(x.Cutoff, x.Zone)}", 8.5, false, "#C8D7E6");
         }
 
-        Header("TIO Operations Hub · Cases report · Management summary");
+        Header("TIO Operations Hub · Tickets report · Management summary");
         var total = page.Total;
         int Sum(Dictionary<string, int> d, params string[] keys) => keys.Sum(k => d.GetValueOrDefault(k));
         var open = page.Open;
         var tiles = new (string Label, string Value, string Note)[]
         {
-            ("Total cases", total.ToString("N0", CultureInfo.InvariantCulture), "matching the filters"),
+            ("Total tickets", total.ToString("N0", CultureInfo.InvariantCulture), "matching the filters"),
             ("Open", open.ToString("N0", CultureInfo.InvariantCulture), "not closed or cancelled"),
             ("In progress", Sum(page.ByStatus, "InProgress").ToString("N0", CultureInfo.InvariantCulture), "status In progress"),
             ("Closed", (total - open).ToString("N0", CultureInfo.InvariantCulture), "closed or cancelled"),
@@ -165,7 +165,7 @@ public static class CasesExportFiles
         // Three panels: by priority (columns), SLA status and status (labelled horizontal bars; never colour alone).
         double py = 152, ph = 190, pw = (W - 20) / 3;
         void Panel(int i, string title) { var px = M + i * (pw + 10); pdf.Rect(px, py, pw, ph, "#FFFFFF").Line(px, py, px + pw, py, Line).Line(px, py + ph, px + pw, py + ph, Line); pdf.Text(px, py + 16, title, 10, true, Navy); }
-        Panel(0, "Cases by priority");
+        Panel(0, "Tickets by priority");
         var pri = PriorityOrder.Select(k => (k, page.ByPriority.GetValueOrDefault(k))).ToList();
         var maxP = Math.Max(1, pri.Max(p => p.Item2));
         var bw = (pw - 40) / pri.Count;
@@ -192,21 +192,21 @@ public static class CasesExportFiles
         }
         Panel(1, "SLA status");
         Bars(1, Ordered(page.BySla, CasesFields.SlaStatuses), k => k switch { "AtRisk" => "At risk", "OnTrack" => "On track", "NotMeasurable" => "Not measurable", "NotApplicable" => "No SLA", _ => k }, k => SlaColor.GetValueOrDefault(k, Blue));
-        Panel(2, "Cases by status");
+        Panel(2, "Tickets by status");
         Bars(2, Ordered(page.ByStatus, [.. page.ByStatus.Keys]), k => Convert.ToString(label(CasesFields.ByKey["status"], k)) ?? k, _ => Blue);
 
         // Applied filters.
         var fy = py + ph + 22;
         pdf.Text(M, fy, "Applied filters", 10, true, Navy);
         fy += 14;
-        List<(string Label, string Value)> filters = v.Summary.Count == 0 ? [("Filters", "None: every case the requester is authorized to see")] : [.. v.Summary];
+        List<(string Label, string Value)> filters = v.Summary.Count == 0 ? [("Filters", "None: every ticket the requester is authorized to see")] : [.. v.Summary];
         foreach (var (l, val) in filters.Take(8))
         {
             pdf.Text(M, fy, l, 8, true, Grey).Text(M + 110, fy, PdfDocument.Fit(val, W - 110, 8), 8);
             fy += 12;
         }
         if (filters.Count > 8) { pdf.Text(M, fy, $"... {filters.Count - 8} more: see the Excel export's Applied Filters sheet.", 8, false, Grey); fy += 12; }
-        pdf.Text(M, PdfDocument.Height - 22, $"Contains only cases the requester was authorized to see · export reference {x.ExportId} · times in {x.Zone.Id}", 7, false, Grey);
+        pdf.Text(M, PdfDocument.Height - 22, $"Contains only tickets the requester was authorized to see · export reference {x.ExportId} · times in {x.Zone.Id}", 7, false, Grey);
 
         if (o.PdfMode == "detailed")
         {
@@ -220,7 +220,7 @@ public static class CasesExportFiles
             var pages = Math.Max(1, (int)Math.Ceiling(page.Rows.Count / (double)perPage));
             for (var p = 0; p < pages; p++)
             {
-                Header($"TIO Operations Hub · Cases report · Details, page {p + 1} of {pages}");
+                Header($"TIO Operations Hub · Tickets report · Details, page {p + 1} of {pages}");
                 pdf.Rect(M, top - 14, W, rowH + 2, Light);
                 var cx = M;
                 for (var c = 0; c < cols.Count; c++) { pdf.Text(cx + 3, top - 2, PdfDocument.Fit(cols[c].Label, widths[c] - 6, 7.5, true), 7.5, true, Navy); cx += widths[c]; }

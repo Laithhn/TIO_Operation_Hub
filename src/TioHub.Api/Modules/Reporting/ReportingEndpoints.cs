@@ -22,7 +22,7 @@ public static class ReportingEndpoints
     {
         "csv" => ExportFormat.Csv,
         "xlsx" or "excel" => ExportFormat.Xlsx,
-        "pdf" => throw new ValidationException("format", "PDF is available for the Cases report in the Report Builder; for this report use CSV or Excel."),
+        "pdf" => throw new ValidationException("format", "PDF is available for the Tickets report in the Report Builder; for this report use CSV or Excel."),
         _ => throw new ValidationException("format", "Choose CSV or Excel.")
     };
 
@@ -43,7 +43,7 @@ public static class ReportingEndpoints
             {
                 r.Key, r.Name, r.Category, r.Description, r.Icon, r.Operational,
                 formats = new[] { new { key = "csv", label = "CSV", available = true, note = (string?)null }, new { key = "xlsx", label = "Excel (.xlsx)", available = true, note = (string?)null },
-                    new { key = "pdf", label = "PDF", available = false, note = (string?)(r.Key == "cases" ? "PDF is available in the Cases Report Builder (Build report)." : "A formatted PDF layout is available for the Cases report only.") } },
+                    new { key = "pdf", label = "PDF", available = false, note = (string?)(r.Key == "cases" ? "PDF is available in the Tickets Report Builder (Build report)." : "A formatted PDF layout is available for the Tickets report only.") } },
                 builder = r.Key == "cases",
                 filters = r.Filters.Select(f => new { f.Key, f.Label, kind = f.Kind.ToString(), f.Advanced, f.Options, f.Hint, f.RangeEnd }),
                 columns = r.Columns
@@ -456,7 +456,7 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
             var saved = await db.SavedReports.AsNoTracking().FirstOrDefaultAsync(r => r.Id == savedId, ct);
             db.ExportJobs.Add(new ExportJob
             {
-                UserId = userId, Report = "cases", ReportName = saved?.Name ?? "Cases report", Format = s.Format, FiltersJson = "{}", FilterSummary = s.FilterSummary, TimeZone = s.TimeZone,
+                UserId = userId, Report = "cases", ReportName = saved?.Name ?? "Tickets report", Format = s.Format, FiltersJson = "{}", FilterSummary = s.FilterSummary, TimeZone = s.TimeZone,
                 Status = saved is null ? ExportStatus.Failed : ExportStatus.Pending, RequestedAt = now, CompletedAt = saved is null ? now : null, Error = saved is null ? "The saved report no longer exists." : null,
                 Source = "Schedule", ScheduleId = s.Id, SavedReportId = saved?.Id, DefinitionJson = saved?.DefinitionJson ?? "{}", OptionsJson = s.OptionsJson, CutoffAt = now
             });

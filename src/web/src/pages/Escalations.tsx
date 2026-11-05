@@ -163,7 +163,7 @@ export function EscalationForm() {
         <FormSection title="Related records (optional)">
           <SelectInput label="Project" value={v.projectId} onChange={x => f.set('projectId', x)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} />
           <SelectInput label="Contract" value={v.contractId} onChange={x => f.set('contractId', x)} options={(contracts.data?.items ?? []).filter(c => String(c.clientId) === v.clientId).map(c => ({ value: String(c.id), label: `${c.ref} · ${c.title}` }))} empty="None" error={f.fieldError('contractId')} />
-          <SelectInput label="Case" value={v.caseId} onChange={x => f.set('caseId', x)} options={(cases.data?.items ?? []).map(c => ({ value: String(c.id), label: `${c.ref} · ${c.title}` }))} empty="None" error={f.fieldError('caseId')} />
+          <SelectInput label="Ticket" value={v.caseId} onChange={x => f.set('caseId', x)} options={(cases.data?.items ?? []).map(c => ({ value: String(c.id), label: `${c.ref} · ${c.title}` }))} empty="None" error={f.fieldError('caseId')} />
         </FormSection>
         <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{isNew ? 'Record escalation' : 'Save escalation'}</button></div>
       </Panel>
@@ -204,7 +204,7 @@ export function EscalationDetail() {
             ['Resolved', e.resolvedAt ? <When v={e.resolvedAt} /> : null], ['Resolution', e.resolutionSummary], ['Closed', e.closedAt ? <When v={e.closedAt} /> : null],
             ['Project', e.project ? <Link to={`/projects/${e.project.id}`}>{e.project.code} · {e.project.name}</Link> : null],
             ['Contract', e.contract ? <Link to={`/contracts/${e.contract.id}`}>{e.contract.ref} · {e.contract.title}</Link> : null],
-            ['Case', e.case ? <Link to={`/cases/${e.case.id}`}>{e.case.ref} · {e.case.title}</Link> : null]
+            ['Ticket', e.case ? <Link to={`/cases/${e.case.id}`}>{e.case.ref} · {e.case.title}</Link> : null]
           ] as [string, React.ReactNode][]).filter(([, v]) => v !== null && v !== undefined && v !== '')} />
         </Panel>
         <Panel title={e.direction === 'Raised' ? 'Escalated to' : 'Escalated by'}>

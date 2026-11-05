@@ -199,7 +199,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
       const tip = (name: string, d: CountryRow) =>
         `<b>${esc(name)}</b><div class="osm-tip-v"><b>${metric.value(d)}</b> ${esc(metric.label.toLowerCase())}</div>` +
         `<div>${d.clients} client(s): ${esc(d.clientCodes.join(', '))}</div><div>${d.environments} environment(s)${d.servers !== undefined ? `, ${d.servers} server(s)` : ''}</div>` +
-        `<div>${d.openCases} open case(s)${d.overdueCases ? `, <b class="t-bad">${d.overdueCases} overdue</b>` : ''}</div>` +
+        `<div>${d.openCases} open ticket(s)${d.overdueCases ? `, <b class="t-bad">${d.overdueCases} overdue</b>` : ''}</div>` +
         `<div>${d.openCommitments} open commitment(s)${d.overdueCommitments ? `, <b class="t-bad">${d.overdueCommitments} overdue</b>` : ''}</div>` +
         (d.activeContracts !== undefined ? `<div>${d.activeContracts} active contract(s)</div>` : '') + `<div class="muted">Click for the clients in ${esc(name)}</div>`;
       for (const f of mine) {
@@ -263,7 +263,7 @@ export default function LeafletMap({ data, clients, metric, selected, onSelect, 
           const logo = c.logoUrl ? `<img class="osm-pop-logo" src="${esc(c.logoUrl)}" alt="" width="28" height="28">` : '';
           const popup = `<div class="osm-pop"><div class="osm-pop-h">${logo}<b>${esc(c.code)}</b> <span class="muted">${esc(c.name)}</span></div>` +
             (c.parentClientId ? '<div class="muted">Sub-client</div>' : '') +
-            `<div class="osm-pop-grid"><span><b>${c.environments}</b> env.</span><span><b>${c.servers}</b> servers</span><span><b>${c.openCases}</b> open cases</span>` +
+            `<div class="osm-pop-grid"><span><b>${c.environments}</b> env.</span><span><b>${c.servers}</b> servers</span><span><b>${c.openCases}</b> open tickets</span>` +
             `<span><b>${c.openCommitments}</b> commitments</span><span><b>${c.activeContracts}</b> contracts</span></div>` +
             `<div class="osm-pop-state t-${st.tone}">${esc(st.label)}</div><a href="/clients/${c.id}" data-client="${c.id}">Open ${esc(c.code)} →</a></div>`;
           L.marker(pos, {

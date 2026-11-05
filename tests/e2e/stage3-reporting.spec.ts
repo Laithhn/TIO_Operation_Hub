@@ -44,13 +44,13 @@ async function preview(page: Page, key: string) {
   return result.request().postDataJSON() as { filters: Record<string, string> };
 }
 
-test('case reporting uses configured status labels and submits an explicit not-waiting filter', async ({ page }) => {
+test('ticket reporting uses configured status labels and submits an explicit not-waiting filter', async ({ page }) => {
   const { me, client } = await fixture(page);
   const reference = await api<{ teams: { id: number; isActive: boolean }[] }>(page, '/reference');
   const common = { type: 'Incident', scope: 'Client', clientId: client.id, responsibleTeamId: reference.teams.find(team => team.isActive)!.id,
     ownerUserId: me.id, impactSummary: 'Reporting regression', priority: 'Normal', nextReviewAt: new Date(Date.now() + 86400000).toISOString() };
-  const includedTitle = unique('Not waiting case');
-  const excludedTitle = unique('Waiting case');
+  const includedTitle = unique('Not waiting ticket');
+  const excludedTitle = unique('Waiting ticket');
   await api(page, '/cases', { ...common, title: includedTitle });
   const waiting = await api<{ id: number }>(page, '/cases', { ...common, title: excludedTitle });
   const row = await api<{ version: string }>(page, `/cases/${waiting.id}`);
@@ -60,11 +60,11 @@ test('case reporting uses configured status labels and submits an explicit not-w
   try {
     await updateLookup(page, original, { label: renamed });
     await page.goto(`/?clientId=${client.id}`);
-    const statusChart = page.locator('section.viz-panel').filter({ has: page.getByRole('heading', { name: 'Open cases by status', exact: true }) });
+    const statusChart = page.locator('section.viz-panel').filter({ has: page.getByRole('heading', { name: 'Open tickets by status', exact: true }) });
     await expect(statusChart.getByText(renamed, { exact: true })).toBeVisible();
     await statusChart.getByRole('button', { name: 'Table view', exact: true }).click();
     await expect(statusChart.locator(VT_CELL).filter({ hasText: exactText(renamed) })).toBeVisible();
-    await report(page, 'Cases report');
+    await report(page, 'Tickets report');
     await page.getByLabel('Client', { exact: true }).selectOption(String(client.id));
     const status = page.getByLabel('Status', { exact: true });
     await expect(status.locator('option[value="New"]')).toHaveText(renamed);
@@ -77,7 +77,7 @@ test('case reporting uses configured status labels and submits an explicit not-w
     await expect(page.getByLabel('Filters in force').getByText(/^no$/i)).toBeVisible();
     const request = await preview(page, 'cases');
     expect(request.filters).toMatchObject({ clientId: String(client.id), status: 'New', waiting: 'false' });
-    const table = page.getByRole('region', { name: 'Preview of Cases report', exact: true });
+    const table = page.getByRole('region', { name: 'Preview of Tickets report', exact: true });
     await expect(table).toContainText(includedTitle);
     await expect(table).not.toContainText(excludedTitle);
     await expect(table).toContainText(renamed);

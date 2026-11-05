@@ -48,9 +48,9 @@ test.describe('A73 Client Map', () => {
     await expect(d.getByRole('tab', { name: /^Clients \(\d+\)/ })).toHaveAttribute('aria-selected', 'true');
     const rows = d.locator('tbody tr');
     expect(await rows.count()).toBeGreaterThan(0);
-    await expect(rows.first().locator('.cmap-status')).toHaveText(/overdue|renewal due|open case|Nothing overdue/);
+    await expect(rows.first().locator('.cmap-status')).toHaveText(/overdue|renewal due|open ticket|Nothing overdue/);
     await page.screenshot({ path: 'test-results/visual-client-map-country-1600.png' });
-    for (const [tab, api] of [['Servers', '/api/v1/assets?'], ['Cases', '/api/v1/cases?'], ['Contracts', '/api/v1/contracts?']] as const) {
+    for (const [tab, api] of [['Servers', '/api/v1/assets?'], ['Tickets', '/api/v1/cases?'], ['Contracts', '/api/v1/contracts?']] as const) {
       const req = page.waitForRequest(r => r.url().includes(api) && r.url().includes('country=Saudi'));
       await d.getByRole('tab', { name: new RegExp(`^${tab}`) }).click();
       const res = await (await req).response();
@@ -75,7 +75,7 @@ test.describe('A73 Client Map', () => {
 
   test('switching layers updates the legend and the list figures; search, sort and the clients tab', async ({ page }) => {
     await open(page);
-    for (const [layer, legend] of [['Servers', 'Servers per country'], ['Open cases', 'Open cases per country'], ['Overdue', 'Overdue items per country'], ['Contracts', 'Active contracts per country'], ['Clients', 'Clients per country']]) {
+    for (const [layer, legend] of [['Servers', 'Servers per country'], ['Open tickets', 'Open tickets per country'], ['Overdue', 'Overdue items per country'], ['Contracts', 'Active contracts per country'], ['Clients', 'Clients per country']]) {
       await layers(page).getByRole('radio', { name: new RegExp(`^${layer}`) }).click();
       await expect(layers(page).getByRole('radio', { name: new RegExp(`^${layer}`) })).toHaveAttribute('aria-checked', 'true');
       await expect(page.getByLabel(legend)).toBeVisible();

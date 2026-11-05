@@ -54,7 +54,7 @@ export function ReportingOverview() {
   return (
     <div className="rc-overview">
       <div className="rc-period">
-        <span className="hint">Your report usage{o ? ` since ${fmtDateTime(o.from)}` : ''} — exports and schedules, not case or SLA performance.</span>
+        <span className="hint">Your report usage{o ? ` since ${fmtDateTime(o.from)}` : ''} — exports and schedules, not ticket or SLA performance.</span>
         <div className="seg" role="group" aria-label="Period">
           {[7, 30, 90].map(d => <button key={d} aria-pressed={days === d} onClick={() => setDays(d)}>Last {d} days</button>)}
         </div>
@@ -84,8 +84,8 @@ export function ReportingOverview() {
           <div className="panel-head"><h2>Quick actions</h2></div>
           <div className="panel-body">
             {[
-              { to: '/reporting-center/builder/cases', icon: 'filter', t: 'Build a cases report', s: 'Filters, columns, live preview, Excel and PDF' },
-              { to: '/reporting-center/templates', icon: 'copy', t: 'Start from a template', s: 'Ready-made cases report configurations' },
+              { to: '/reporting-center/builder/cases', icon: 'filter', t: 'Build a tickets report', s: 'Filters, columns, live preview, Excel and PDF' },
+              { to: '/reporting-center/templates', icon: 'copy', t: 'Start from a template', s: 'Ready-made tickets report configurations' },
               { to: '/reporting-center/library', icon: 'report', t: 'Browse the report library', s: `${o?.availableReports ?? 13} reports in four categories` },
               { to: '/reporting-center/schedules', icon: 'calendar', t: 'Schedule a report', s: 'Recurring files for you and colleagues' }
             ].map(a => (

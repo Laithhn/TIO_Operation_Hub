@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDate, label } from '../format';
+import { renewalPeriod, shiftDay } from './contractRenewal';
 import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
@@ -72,7 +73,7 @@ export function ContractList() {
   return (
     <>
       <PageHead title="Projects & contracts" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, { label: 'Contract register' }]}
-        sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; cases linked to a contract are measured against them."
+        sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; tickets linked to a contract are measured against them."
         actions={<>
           {canExportReport(me, 'contracts') && <button className="btn" onClick={() => exportCsv('contracts', f)}>Export CSV</button>}
           {canLead && <Link className="btn btn-primary" to={`/contracts/new${f.clientId ? `?clientId=${f.clientId}` : ''}`}>+ New contract</Link>}
@@ -130,6 +131,7 @@ export function ClientContracts({ clientId, canCreate }: { clientId: number; can
 }
 
 export function ContractDetail() {
+  const canRenew = useRight('Contracts', 'Create');
   const T = useTypes();
   const canViewProducts = useRight('Products', 'View');
   const canViewEnvironments = useRight('Environments', 'View');
@@ -146,6 +148,7 @@ export function ContractDetail() {
           sub={<><StatusBadge value={c.status} /> <RenewalBadge state={c.renewalState} /> {c.renewalNote && <span className="muted">{c.renewalNote}</span>}</>}
           actions={<>
             {c.permissions.canEdit && <Link className="btn btn-primary" to={`/contracts/${c.id}/edit`}>Edit</Link>}
+            {canRenew && <Link className="btn" to={`/contracts/new?renewFrom=${c.id}`}>Renew contract</Link>}
             {c.permissions.canArchive && c.status !== 'Active' && <button className="btn" onClick={() => setArchive(true)}>Archive</button>}
           <DeleteAction button path={`/contracts/${c.id}`} what={`contract ${c.ref}`} afterTo={'/contracts'} /></>} />
         <div className="cols">
@@ -174,7 +177,7 @@ export function ContractDetail() {
           </Panel>
         </div>
         <Panel title="SLA targets (recorded)" pad={false}>
-          <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote} {c.slaPauseWhileWaitingOnCustomer ? 'The clock pauses while a case waits on the customer.' : 'The clock does not pause while a case waits on the customer.'} <Link to={`/cases?contractId=${c.id}&status=all`}>Cases measured against this contract</Link></p>
+          <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote} {c.slaPauseWhileWaitingOnCustomer ? 'The clock pauses while a ticket waits on the customer.' : 'The clock does not pause while a ticket waits on the customer.'} <Link to={`/cases?contractId=${c.id}&status=all`}>Tickets measured against this contract</Link></p>
           <DataTable<Target> rowKey={t => t.priority} rows={c.slaTargets} caption="SLA targets"
             columns={[
               { key: 'p', header: 'Priority', render: t => t.priority },
@@ -284,6 +287,9 @@ export function ContractForm() {
   const canViewProducts = useRight('Products', 'View');
   const canViewEnvironments = useRight('Environments', 'View');
   const existing = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail & { productIds?: number[] }>(`/contracts/${id}`), enabled: !isNew });
+  // Renewing starts a new contract from a copy of this one: nothing is saved, and the old contract is untouched, until the person saves.
+  const renewFrom = isNew ? sp.get('renewFrom') : null;
+  const source = useQuery({ queryKey: ['contract', renewFrom], queryFn: () => get<Detail & { productIds?: number[] }>(`/contracts/${renewFrom}`), enabled: !!renewFrom });
   const f = useForm({
     projectId: sp.get('projectId') ?? '', title: '', contractReference: '', type: 'SlaSupport', status: 'Draft', ownerUserId: null as number | null,
     startDate: '', endDate: '', renewalTerms: 'Unknown', noticeDays: '', supportModel: 'Unknown', supportHours: '', supportTimeZone: '', onSiteEngineersRequired: '',
@@ -295,25 +301,27 @@ export function ContractForm() {
   });
   useLeaveGuard(f.dirty && !f.busy);
   useEffect(() => {
-    const c = existing.data;
+    const c = existing.data ?? source.data;
+    const renewing = !existing.data;
+    const period = renewing ? renewalPeriod(c?.startDate, c?.endDate) : null;
     if (c) f.reset({
-      projectId: String(c.project.id), title: c.title, contractReference: c.contractReference ?? '', type: c.type, status: c.status,
-      ownerUserId: c.owner?.id ?? null, startDate: c.startDate ?? '', endDate: c.endDate ?? '', renewalTerms: c.renewalTerms, noticeDays: c.noticeDays?.toString() ?? '',
+      projectId: String(c.project.id), title: c.title, contractReference: c.contractReference ?? '', type: c.type, status: renewing ? 'Draft' : c.status,
+      ownerUserId: c.owner?.id ?? null, startDate: period ? period.startDate : c.startDate ?? '', endDate: period ? period.endDate : c.endDate ?? '', renewalTerms: c.renewalTerms, noticeDays: c.noticeDays?.toString() ?? '',
       supportModel: c.supportModel, supportHours: c.supportHours ?? '', supportTimeZone: c.supportTimeZone ?? '', onSiteEngineersRequired: c.onSiteEngineersRequired?.toString() ?? '',
       coverage: c.coverage ?? '', obligations: c.obligations ?? '', environmentIds: c.environments.map(e => e.id), targets: c.slaTargets.map(toForm),
       support24x7: c.support24x7, supportDays: c.supportDays, supportFrom: c.supportFrom ?? '', supportTo: c.supportTo ?? '', currency: c.currency ?? '',
       slaPauseWhileWaitingOnCustomer: c.slaPauseWhileWaitingOnCustomer,
-      milestones: c.milestones.map(m => ({ id: m.id, phase: m.phase, description: m.description ?? '', completionPercent: m.completionPercent?.toString() ?? '', date: m.date ?? '' })),
-      fees: c.fees.map(x => ({ id: x.id, description: x.description, unit: x.unit ?? '', quantity: x.quantity?.toString() ?? '', unitPrice: x.unitPrice?.toString() ?? '' })),
-      payments: c.payments.map(x => ({ id: x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: x.dueDate ?? '', status: x.status, paidOn: x.paidOn ?? '', notes: x.notes ?? '' })),
-      penalties: (c.penaltyClauses ?? []).map(x => ({ ...x, fixedAmount: x.fixedAmount?.toString() ?? '', percentage: x.percentage?.toString() ?? '', referenceAmount: x.referenceAmount?.toString() ?? '', monthlyCap: x.monthlyCap?.toString() ?? '' }))
+      milestones: c.milestones.map(m => ({ id: renewing ? undefined : m.id, phase: m.phase, description: m.description ?? '', completionPercent: renewing ? '' : m.completionPercent?.toString() ?? '', date: period ? shiftDay(m.date, period.shiftDays) : m.date ?? '' })),
+      fees: c.fees.map(x => ({ id: renewing ? undefined : x.id, description: x.description, unit: x.unit ?? '', quantity: x.quantity?.toString() ?? '', unitPrice: x.unitPrice?.toString() ?? '' })),
+      payments: c.payments.map(x => ({ id: renewing ? undefined : x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: period ? shiftDay(x.dueDate, period.shiftDays) : x.dueDate ?? '', status: renewing ? 'Pending' : x.status, paidOn: renewing ? '' : x.paidOn ?? '', notes: x.notes ?? '' })),
+      penalties: (c.penaltyClauses ?? []).map(x => ({ ...x, id: renewing ? undefined : x.id, fixedAmount: x.fixedAmount?.toString() ?? '', percentage: x.percentage?.toString() ?? '', referenceAmount: x.referenceAmount?.toString() ?? '', monthlyCap: x.monthlyCap?.toString() ?? '' }))
     });
-  }, [existing.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [existing.data, source.data]); // eslint-disable-line react-hooks/exhaustive-deps
   // The contract belongs to a project; the project gives the client and the covered products. An existing contract may move only between its client's projects.
-  const onlyClient = existing.data ? String(existing.data.clientId) : sp.get('clientId') ?? '';
+  const onlyClient = existing.data ? String(existing.data.clientId) : source.data ? String(source.data.clientId) : sp.get('clientId') ?? '';
   const projects = useQuery({ queryKey: ['projects-of', onlyClient], queryFn: () => get<Paged<{ id: number; code: string; name: string; clientId: number; clientCode: string; products: { code: string }[] }>>(`/projects?pageSize=200${onlyClient ? `&clientId=${onlyClient}` : ''}`) });
   const project = projects.data?.items.find(p => String(p.id) === f.values.projectId);
-  const clientId = project?.clientId ?? existing.data?.clientId ?? null;
+  const clientId = project?.clientId ?? existing.data?.clientId ?? source.data?.clientId ?? null;
   const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`), enabled: !!clientId && canViewEnvironments });
   const setTarget = (i: number, patch: Partial<TargetForm>) => f.set('targets', f.values.targets.map((t, n) => (n === i ? { ...t, ...patch } : t)));
   const unused = priorities.filter(p => !f.values.targets.some(t => t.priority === p));
@@ -340,11 +348,12 @@ export function ContractForm() {
     if (res) { toast('Contract saved.'); refresh(); nav(`/contracts/${(res as { id: number }).id}`); }
   };
 
-  if (!isNew && existing.isLoading) return <StateMessage kind="loading" />;
+  if ((!isNew && existing.isLoading) || (renewFrom && source.isLoading)) return <StateMessage kind="loading" />;
   return (
     <>
-      <PageHead title={isNew ? 'New contract' : `Edit ${existing.data?.ref ?? ''}`} crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, ...(project ? [{ to: `/projects/${project.id}`, label: project.code }] : [])]}
+      <PageHead title={source.data ? `Renew ${source.data.ref}` : isNew ? 'New contract' : `Edit ${existing.data?.ref ?? ''}`} crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, ...(project ? [{ to: `/projects/${project.id}`, label: project.code }] : [])]}
         sub="Record what the signed contract says. Leave a value empty when it is not known yet — it is shown as Unknown, never guessed." />
+      {source.data && <div className="notice">This is a new contract, copied from {source.data.ref}. Change anything you need; nothing is saved until you press Save, and {source.data.ref} stays as it is. The dates are set to the next period, milestone and payment dates move with them, and payments start again as Pending. It starts as Draft: set it to Active once signed. Tickets from a Jira space follow it only after you link it to the space.</div>}
       <FormError error={f.error} />
       <Panel title="Contract">
         <div className="form-grid">
@@ -379,8 +388,8 @@ export function ContractForm() {
         </div>
       </Panel>
       <Panel title="SLA targets (recorded)" actions={unused.length > 0 && <button className="btn" onClick={() => f.set('targets', [...f.values.targets, { priority: unused[0], response: '', resolution: '', unit: 'h', basis: 'SupportHours', notes: '' }])}>+ Target</button>}>
-        <p className="hint">One row per priority, as written in the contract. Cases linked to this contract are timed against the target for their priority; changes apply to cases linked from now on.</p>
-        <label className="check" style={{ margin: '8px 0' }}><input type="checkbox" checked={f.values.slaPauseWhileWaitingOnCustomer} onChange={e => f.set('slaPauseWhileWaitingOnCustomer', e.target.checked)} /> Pause the SLA clock while a case waits on the customer</label>
+        <p className="hint">One row per priority, as written in the contract. Tickets linked to this contract are timed against the target for their priority; changes apply to tickets linked from now on.</p>
+        <label className="check" style={{ margin: '8px 0' }}><input type="checkbox" checked={f.values.slaPauseWhileWaitingOnCustomer} onChange={e => f.set('slaPauseWhileWaitingOnCustomer', e.target.checked)} /> Pause the SLA clock while a ticket waits on the customer</label>
         {f.values.targets.length === 0 ? <StateMessage kind="none">No SLA targets recorded.</StateMessage> : (
           <table className="grid sla-edit">
             <thead><tr><th>Priority</th><th>Response</th><th>Resolution</th><th>Unit</th><th>Clock</th><th>Notes</th><th /></tr></thead>

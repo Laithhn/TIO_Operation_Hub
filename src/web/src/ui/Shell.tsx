@@ -55,9 +55,9 @@ const SECTIONS: Section[] = [
     { to: '/products', label: 'All products', icon: 'app', end: true },
     { to: '/products/new', label: 'New product', icon: 'plus', show: action('Products', 'Create') }
   ] },
-  { key: 'cases', label: 'Cases', to: '/cases', match: /^\/cases/, show: biz, side: [
-    { to: '/cases', label: 'All cases', icon: 'case', end: true },
-    { to: '/cases/new', label: 'New case', icon: 'plus', show: action('Cases', 'Create') }
+  { key: 'cases', label: 'Tickets', to: '/cases', match: /^\/cases/, show: biz, side: [
+    { to: '/cases', label: 'All tickets', icon: 'case', end: true },
+    { to: '/cases/new', label: 'New ticket', icon: 'plus', show: action('Cases', 'Create') }
   ] },
   { key: 'commitments', label: 'Commitments', to: '/commitments', match: /^\/commitments/, show: biz, side: [
     { to: '/commitments', label: 'All commitments', icon: 'commitment', end: true },
@@ -82,7 +82,7 @@ const SECTIONS: Section[] = [
   { key: 'reporting', label: 'Reporting Center', to: '/reporting-center', match: /^\/(reporting-center|reports)(\/|$)/, show: m => biz(m) && canExport(m), side: [
     { to: '/reporting-center', label: 'Overview', icon: 'dashboard', end: true },
     { to: '/reporting-center/library', label: 'Report library', icon: 'report' },
-    { to: '/reporting-center/builder/cases', label: 'Cases report builder', icon: 'filter' },
+    { to: '/reporting-center/builder/cases', label: 'Tickets report builder', icon: 'filter' },
     { to: '/reporting-center/my-reports', label: 'My reports', icon: 'list' },
     { to: '/reporting-center/schedules', label: 'Scheduled reports', icon: 'calendar' },
     { to: '/reporting-center/history', label: 'Export history', icon: 'history' },
@@ -339,13 +339,13 @@ export function Shell({ children }: { children: ReactNode }) {
           {me && <div className={f.secondaryHeader.secondaryHeaderContr}><Menu label="+ New" title="Create a record" items={[
             { label: 'Client', to: '/clients/new', hidden: !hasRight(me, 'ClientStructure', 'Create') },
             { label: 'Environment', to: '/environments/new', hidden: !hasRight(me, 'Environments', 'Create') },
-            { label: 'Case', to: '/cases/new', hidden: !hasRight(me, 'Cases', 'Create') },
+            { label: 'Ticket', to: '/cases/new', hidden: !hasRight(me, 'Cases', 'Create') },
             { label: 'Commitment', to: '/commitments/new', hidden: !hasRight(me, 'Commitments', 'Create') },
             { label: 'Escalation', to: '/escalations/new', hidden: !hasRight(me, 'OtherOperations', 'Create') },
             { label: 'Note', to: '/notes' },
             { label: 'Product', to: '/products/new', hidden: !hasRight(me, 'Products', 'Create') }
           ]} /></div>}
-          <button className={f.secondaryNode.menuNode} ref={searchButton} onClick={openPalette} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, cases… (/ or Ctrl+K)">
+          <button className={f.secondaryNode.menuNode} ref={searchButton} onClick={openPalette} aria-label="Search (/ or Ctrl+K)" title="Search clients, environments, servers, tickets… (/ or Ctrl+K)">
             <Icon name="search" size={24} />
           </button>
           {hasRight(me, 'Notifications', 'View') && <NotificationBell />}

@@ -44,7 +44,7 @@ export const ENTITY: Record<string, EntityInfo> = {
   Payment: { icon: 'MONEY', source: 'Payment management', action: 'Review payment', plural: 'payments', list: '/notifications?show=payments' },
   Contract: { icon: 'DOCUMENT', source: 'Contract management', action: 'Review contract', plural: 'contracts', list: '/contracts' },
   Commitment: { icon: 'commitment', source: 'Commitment management', action: 'View commitment', plural: 'commitments', list: '/commitments' },
-  Case: { icon: 'case', source: 'Case management', action: 'View case', plural: 'cases', list: '/cases' },
+  Case: { icon: 'case', source: 'Ticket management', action: 'View ticket', plural: 'tickets', list: '/cases' },
   Escalation: { icon: 'escalation', source: 'Escalations', action: 'View escalation', plural: 'escalations', list: '/escalations' },
   Client: { icon: 'clients', source: 'Client management', action: 'View client', plural: 'clients', list: '/clients' },
   Project: { icon: 'project', source: 'Projects', action: 'View project', plural: 'projects', list: '/projects' },

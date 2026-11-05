@@ -734,8 +734,8 @@ export function CloneDialog({ sourceEnvironmentId, clientId, sourceRegionCode, s
         </>}
         <SelectInput label="Lifecycle of copied servers" value={f.values.lifecycle} onChange={v => f.set('lifecycle', v)} options={enumOptions(lifecycles)} empty={null} hint="Planned until someone confirms the servers exist." />
         {mode === 'new' && <>
-          <TextInput label="Find in names" value={f.values.find} onChange={v => f.set('find', v)} error={f.fieldError('find')} hint="For example r1; matched without regard to case." />
-          <TextInput label="Replace with" value={f.values.replace} onChange={v => f.set('replace', v)} error={f.fieldError('replace')} hint="For example r2; follows the case of each match." />
+          <TextInput label="Find in names" value={f.values.find} onChange={v => f.set('find', v)} error={f.fieldError('find')} hint="For example r1; matched without regard to ticket." />
+          <TextInput label="Replace with" value={f.values.replace} onChange={v => f.set('replace', v)} error={f.fieldError('replace')} hint="For example r2; follows the ticket of each match." />
         </>}
       </div>
       {mode === 'existing' && (

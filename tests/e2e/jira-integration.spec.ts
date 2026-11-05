@@ -47,7 +47,7 @@ test('a local comment appears in the activity timeline and says it stays local',
   await page.locator('table tbody a[href^="/cases/"]').first().click();
   await expect(page.getByText('This comment is saved in TIO Operations Hub only and will not be sent to Jira.')).toBeVisible();
   const text = `Local note ${Date.now()}`;
-  await page.getByLabel('Add a comment to this case (TIO only)').fill(text);
+  await page.getByLabel('Add a comment to this ticket (TIO only)').fill(text);
   await page.getByRole('button', { name: 'Add comment' }).click();
   await expect(page.getByText(text)).toBeVisible();
   await page.getByRole('button', { name: /TIO comments/ }).click();
@@ -63,7 +63,7 @@ test('adding spaces shows conflicts, and the preview reports what an import woul
   await page.route(`**/api/v1/clients/${id}/jira`, r => r.fulfill({ json: {
     syncEnabled: true, canManage: true, summary: { enabled: false, assignedSpaces: 1, syncIntervalMinutes: 15, errors: 0, warnings: 0 }, connections: [{ id: 1, name: 'Demo Jira Cloud' }],
     settings: { isEnabled: false, jiraConnectionId: 1, defaultPriority: 'Normal', nextReviewHours: 48, importDoneIssues: false, syncOnStartup: false, fullReconciliation: true, fullReconciliationDays: 7, syncIntervalMinutes: 15, version: 'AAAA' },
-    spaces: [{ id: 1, isEnabled: true, projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', siteUrl: 'https://demo-site.atlassian.net', health: 'NotRun', cases: 0 }],
+    spaces: [{ id: 1, isEnabled: true, contracts: [], projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', siteUrl: 'https://demo-site.atlassian.net', health: 'NotRun', cases: 0 }],
     checks: [], issues: [], runs: [] } }));
   await page.route(`**/api/v1/clients/${id}/jira/available-spaces**`, r => r.fulfill({ json: [
     { id: 1, jiraProjectId: '600', projectKey: 'CRM', projectName: 'Customer Portal', availability: 'Available' },
@@ -83,7 +83,7 @@ test('adding spaces shows conflicts, and the preview reports what an import woul
   await page.getByRole('button', { name: 'Preview import' }).click();
   const dialog = page.getByRole('dialog');
   await expect(dialog.getByText('Dry run: nothing was saved')).toBeVisible();
-  for (const [title, value] of [['New cases proposed', '7'], ['Existing cases matched', '2'], ['Cases requiring review', '1'], ['Ownership conflicts', '1']]) {
+  for (const [title, value] of [['New tickets proposed', '7'], ['Existing tickets matched', '2'], ['Tickets requiring review', '1'], ['Ownership conflicts', '1']]) {
     await expect(dialog.locator('.jira-card', { hasText: title }).locator('.jira-card-value')).toHaveText(value);
   }
   if (process.env.TIOHUB_JIRA_SHOTS) await page.screenshot({ path: `${process.env.TIOHUB_JIRA_SHOTS}/preview-dialog.png` });
@@ -96,7 +96,7 @@ test('history status and space actions stay on screen at the mockup width', asyn
   const run = { id: 1, jiraConnectionId: 1, projectKey: 'TAH', type: 'Incremental', trigger: 'Schedule', status: 'Success', startedAt: new Date().toISOString(), issuesRetrieved: 14, casesCreated: 2, casesUpdated: 5, commentsImported: 8, activitiesImported: 1, failedRecords: 0 };
   await page.route(`**/api/v1/clients/${id}/jira`, r => r.fulfill({ json: {
     syncEnabled: true, canManage: true, summary: { enabled: true, assignedSpaces: 1, syncIntervalMinutes: 15, errors: 0, warnings: 0 }, connections: [{ id: 1, name: 'Demo Jira Cloud' }],
-    spaces: [{ id: 1, isEnabled: true, projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', siteUrl: 'https://demo-site.atlassian.net', health: 'Success', cases: 12 }],
+    spaces: [{ id: 1, isEnabled: true, contracts: [], projectKey: 'TAH', projectName: 'Demo Transit', jiraProjectId: '100', jiraConnectionId: 1, connection: 'Demo Jira Cloud', siteUrl: 'https://demo-site.atlassian.net', health: 'Success', cases: 12 }],
     checks: [], issues: [], runs: [run] } }));
   await page.goto(`/clients/${id}?tab=jira`);
   for (const name of ['Actions', 'Status']) {
@@ -111,7 +111,7 @@ test('history status and space actions stay on screen at the mockup width', asyn
 
 const shot = async (page: Page, name: string) => { if (process.env.TIOHUB_JIRA_SHOTS) await page.screenshot({ path: `${process.env.TIOHUB_JIRA_SHOTS}/${name}.png` }); };
 
-test('administrators add and remove a case status, and it is offered for Jira mapping', async ({ page }) => {
+test('administrators add and remove a ticket status, and it is offered for Jira mapping', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 1100 });
   const name = `Waiting for parts ${Date.now()}`;
   await page.goto('/admin/config/case-statuses');
@@ -145,7 +145,7 @@ test('every status can be chosen for a Jira status, and an unmapped Jira user is
   let saved: unknown;
   await page.route('**/api/v1/admin/jira-user-mappings/1', r => { saved = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
   await page.goto('/admin/integrations/jira/conflicts?tab=workflow');
-  await expect(page.getByLabel('Case status for Done').locator('option[value="Closed"]')).toHaveText('Closed');
+  await expect(page.getByLabel('Ticket status for Done').locator('option[value="Closed"]')).toHaveText('Closed');
   await shot(page, 'workflow-mappings');
   await page.getByRole('tab', { name: 'Jira users' }).click();
   await expect(page.getByRole('table', { name: 'Mapped Jira users', exact: true })).toContainText('Vitronic team member');
@@ -226,7 +226,7 @@ test('a Jira space is linked to a contract when assigned and later', async ({ pa
 
   await page.getByRole('button', { name: '+ Add Jira space' }).click();
   await page.getByLabel('Select CRM').check();
-  await page.getByLabel('Contract for cases from these spaces').selectOption('7');
+  await page.getByLabel('Contract for tickets from these spaces').selectOption('7');
   await page.getByRole('button', { name: 'Assign selected' }).click();
   await expect.poll(() => assigned).toEqual({ jiraConnectionId: 1, jiraProjectIds: ['600'], contractId: 7 });
 });
@@ -244,7 +244,7 @@ test('a reassigned Jira space offers only the contracts of the new client', asyn
   await page.getByRole('button', { name: 'Reassign' }).click();
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('New client').selectOption(String(id));
-  await dialog.getByLabel('Contract for new cases').selectOption('7');
+  await dialog.getByLabel('Contract for new tickets').selectOption('7');
   await dialog.getByLabel('Reason').fill('Contract moved');
   await dialog.getByLabel('I confirm this action.').check();
   await dialog.getByRole('button', { name: 'Reassign' }).click();
@@ -263,13 +263,13 @@ test('a Jira priority with no match is mapped on the client page', async ({ page
   let saved: unknown;
   await page.route(`**/api/v1/clients/${id}/jira/value-mappings/3`, r => { saved = r.request().postDataJSON(); return r.fulfill({ status: 204 }); });
   await page.goto(`/clients/${id}?tab=jira`);
-  await page.getByLabel('Case value for Jira Blocker').selectOption('Critical');
+  await page.getByLabel('Ticket value for Jira Blocker').selectOption('Critical');
   await expect.poll(() => saved).toEqual({ target: 'Critical' });
-  await expect(page.getByLabel('Case value for Jira Story').locator('option').nth(1)).toBeAttached();
+  await expect(page.getByLabel('Ticket value for Jira Story').locator('option').nth(1)).toBeAttached();
   await shot(page, 'value-mappings');
 });
 
-test('Sync with Jira on a case reports what came back', async ({ page }) => {
+test('Sync with Jira on a ticket reports what came back', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/cases');
   const href = await page.locator('table tbody a[href^="/cases/"]').first().getAttribute('href');
@@ -298,7 +298,7 @@ test('the client map lists countries with a flag image', async ({ page }) => {
   await shot(page, 'client-map-flags');
 });
 
-test('a Jira-synced case shows its status read-only and only actions that do not change it', async ({ page }) => {
+test('a Jira-synced ticket shows its status read-only and only actions that do not change it', async ({ page }) => {
   await page.setViewportSize({ width: 1672, height: 900 });
   await page.goto('/cases');
   const href = await page.locator('table tbody a[href^="/cases/"]').first().getAttribute('href');
@@ -311,19 +311,19 @@ test('a Jira-synced case shows its status read-only and only actions that do not
   await page.goto(href!);
   await expect(page.getByText('status follows Jira')).toBeVisible();
   await expect(page.getByText('Assigned in Jira to Fictional Representative')).toBeVisible();
-  for (const name of ['Start work', 'Set waiting', 'End waiting', 'Close', 'Cancel case', 'Change due date', 'Change status', 'Reopen', 'Request validation'])
+  for (const name of ['Start work', 'Set waiting', 'End waiting', 'Close', 'Cancel ticket', 'Change due date', 'Change status', 'Reopen', 'Request validation'])
     await expect(page.locator('.page-head').getByRole('button', { name, exact: true })).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Edit', exact: true })).toBeVisible();
   await shot(page, 'synced-case');
 });
 
-test.describe('Cases table columns', () => {
+test.describe('Tickets table columns', () => {
   test('the default columns can be added to and removed from, and the choice is remembered', async ({ page }) => {
     await page.setViewportSize({ width: 1800, height: 900 });
     await page.goto('/cases');
     await page.evaluate(() => localStorage.removeItem('vt-columns:cases'));
     await page.reload();
-    const table = page.getByRole('table', { name: 'Cases' });
+    const table = page.getByRole('table', { name: 'Tickets' });
     const headers = table.getByRole('columnheader');
     await expect(headers.first()).toBeVisible();
     const shown = (await headers.allInnerTexts()).map(t => t.trim().split('\n')[0]).filter(t => t && t !== 'Actions');

@@ -509,7 +509,7 @@ export function AdminAudit() {
     <>
       <PageHead title="Change history" sub="Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed." />
       <div className="toolbar">
-        <TextInput label="Record type" value={f.entityType} onChange={v => set({ entityType: v })} placeholder="Client, Case…" />
+        <TextInput label="Record type" value={f.entityType} onChange={v => set({ entityType: v })} placeholder="Client, Ticket…" />
         <SelectInput label="Action" value={f.action} onChange={v => set({ action: v })} options={['Create', 'Update', 'StatusChange', 'OwnerChange', 'Archive', 'Restore', 'AccessChange', 'AccessGranted', 'AccessRevoked', 'Export', 'Remove'].map(a => ({ value: a, label: label(a) }))} empty="Any" />
         <SelectInput label="Category" value={f.category} onChange={v => set({ category: v })} options={[{ value: 'Business', label: 'Business records' }, { value: 'Access', label: 'Access administration' }]} empty="Any" />
       </div>

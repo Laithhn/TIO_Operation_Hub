@@ -106,10 +106,10 @@ function dueText(iso?: string | null) {
 
 /** The KPI cards in two tiers (owner request, 28 Oct 2026): five main figures, then the supporting ones. The titles are fixed, so the
  *  loading state shows the same cards with placeholders and the page does not jump when the figures arrive. */
-const MAIN_KPIS = ['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open cases'];
+const MAIN_KPIS = ['Active contracts', 'Overdue payments', 'Upcoming commitments', 'Active escalations', 'Open tickets'];
 const MORE_KPIS = ['Clients', 'Targets met (period)', 'Contractual SLA met (period)', 'Environment health', 'Data quality'];
 const KPI_ICON: Record<string, string> = {
-  'Active contracts': 'list', 'Overdue payments': 'report', 'Upcoming commitments': 'commitment', 'Active escalations': 'escalation', 'Open cases': 'case',
+  'Active contracts': 'list', 'Overdue payments': 'report', 'Upcoming commitments': 'commitment', 'Active escalations': 'escalation', 'Open tickets': 'case',
   Clients: 'clients', 'Targets met (period)': 'dashboard', 'Contractual SLA met (period)': 'matrix', 'Environment health': 'server', 'Data quality': 'quality'
 };
 const kpiIcon = (label: string, size = 20) => <Icon name={KPI_ICON[label]} size={size} />;
@@ -189,7 +189,7 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
         { text: e.overdue ? `${e.overdue} past a target` : 'None past a target', status: e.overdue ? 'critical' : 'healthy' },
         { text: e.highestLevel ? `Highest active level: ${e.highestLevel}` : 'No active escalation', status: e.highestLevel ? 'warning' : 'neutral' }
       ]} />}
-    <Kpi label="Open cases" icon={kpiIcon('Open cases')} value={openCases.value} to={openCases.drilldown}
+    <Kpi label="Open tickets" icon={kpiIcon('Open tickets')} value={openCases.value} to={openCases.drilldown}
       status={overdueCases.value ? 'critical' : cc.cases.criticalHigh ? 'warning' : 'info'}
       bar={{ total: openCases.value, segments: [{ value: overdueCases.value, status: 'critical', label: 'Overdue' }] }}
       lines={[
@@ -202,17 +202,17 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
       lines={[{ text: `${count(d.countries.rows.length, 'country', 'countries')}${d.countries.unknownCountryClients ? `, ${d.countries.unknownCountryClients} without a country` : ''}` }]} />
     <Kpi size="small" label="Targets met (period)" icon={kpiIcon('Targets met (period)', 18)} value={targets ?? undefined} unavailable={targets === null} to="/escalations?status=all"
       status={cc.cases.risk.approaching ? 'warning' : 'neutral'}
-      tooltip={targets === null ? 'No escalation targets or case due dates were measured in the period.' : undefined}
+      tooltip={targets === null ? 'No escalation targets or ticket due dates were measured in the period.' : undefined}
       lines={[
         ...(e ? [{ text: `Escalation response ${resp ?? 'n/a'} · resolution ${reso ?? 'n/a'}` }] : []),
-        { text: `Case due dates met: ${adh ?? 'n/a'}${cc.cases.risk.approaching ? ` · ${cc.cases.risk.approaching} case(s) due within 24 h` : ''}`, status: cc.cases.risk.approaching ? 'warning' as const : undefined }
+        { text: `Ticket due dates met: ${adh ?? 'n/a'}${cc.cases.risk.approaching ? ` · ${cc.cases.risk.approaching} ticket(s) due within 24 h` : ''}`, status: cc.cases.risk.approaching ? 'warning' as const : undefined }
       ]} />
     <Kpi size="small" label="Contractual SLA met (period)" icon={kpiIcon('Contractual SLA met (period)', 18)} value={sla ?? undefined} unavailable={sla === null}
       to="/cases?sla=withContract&status=all" status={cc.sla.breachedOpen ? 'critical' : cc.sla.approaching ? 'warning' : 'neutral'}
       tooltip={sla === null ? 'No contractual obligations were measured in the period.' : undefined}
       lines={[
         { text: `Response ${cc.sla.response.rate ?? 'n/a'}${cc.sla.response.rate !== null ? ' %' : ''} · resolution ${cc.sla.resolution.rate ?? 'n/a'}${cc.sla.resolution.rate !== null ? ' %' : ''}` },
-        { text: `${cc.sla.response.measured + cc.sla.resolution.measured} obligation(s) measured${cc.sla.breachedOpen ? ` · ${cc.sla.breachedOpen} open case(s) breached` : ''}`, status: cc.sla.breachedOpen ? 'critical' : undefined }
+        { text: `${cc.sla.response.measured + cc.sla.resolution.measured} obligation(s) measured${cc.sla.breachedOpen ? ` · ${cc.sla.breachedOpen} open ticket(s) breached` : ''}`, status: cc.sla.breachedOpen ? 'critical' : undefined }
       ]} />
     <Kpi size="small" label="Environment health" icon={kpiIcon('Environment health', 18)} value={`${env('Healthy')} / ${envTotal}`} to="/environments"
       status={env('Unavailable') ? 'critical' : env('Degraded') ? 'warning' : envTotal ? 'healthy' : 'neutral'}
@@ -232,8 +232,8 @@ function KpiGrid({ dash, d, cc }: { dash: Dash; d: InsightsT; cc: CC }) {
 const SEVERITY_RANK: Record<string, number> = { Critical: 0, High: 1, Medium: 2, Low: 3 };
 const SEVERITY_TONE: Record<string, 'bad' | 'warn' | 'info' | 'neutral'> = { Critical: 'bad', High: 'warn', Medium: 'info', Low: 'neutral' };
 const QUEUE: Record<string, string> = {
-  OverdueCase: 'Overdue case', CaseDueSoon: 'Case due within 24 h', EscalationOverdue: 'Escalation past target', EnvironmentCondition: 'Environment degraded or down',
-  OverdueCommitment: 'Overdue commitment', PaymentDue: 'Payment', ContractRenewal: 'Contract renewal', Unassigned: 'Unassigned case'
+  OverdueCase: 'Overdue ticket', CaseDueSoon: 'Ticket due within 24 h', EscalationOverdue: 'Escalation past target', EnvironmentCondition: 'Environment degraded or down',
+  OverdueCommitment: 'Overdue commitment', PaymentDue: 'Payment', ContractRenewal: 'Contract renewal', Unassigned: 'Unassigned ticket'
 };
 type QueueRow = ActionRow & { also: string[] };
 
@@ -316,23 +316,23 @@ function CaseCharts({ d, age, cc }: { d: InsightsT; age: Dash['caseAge']; cc: CC
   const trend = cc.cases.trend.map(t => ({ label: t.label, a: t.a, b: t.b }));
   const adh = rate(cc.cases.adherence.onTime, cc.cases.adherence.measured);
   return (
-    <Band id="cases" icon="case" title="Cases and commitments" hint={<>{cc.cases.openCount} open now · {cc.cases.openedInPeriod} opened and {cc.cases.closedInPeriod} closed in {PERIOD_LABEL[cc.period.name]}</>}>
+    <Band id="cases" icon="case" title="Tickets and commitments" hint={<>{cc.cases.openCount} open now · {cc.cases.openedInPeriod} opened and {cc.cases.closedInPeriod} closed in {PERIOD_LABEL[cc.period.name]}</>}>
       <div className="viz-grid three">
-        <VizPanel title="Deadline risk of open cases" sub={<>By the case due date (not a contractual SLA measurement). Due dates met by cases closed in the period: <b>{adh ?? 'not available'}</b>{adh && ` (${cc.cases.adherence.measured} closed with a due date)`}.</>}
-          table={tableOf(risk, 'Open cases')}>
-          <PartBar data={risk} colorOf={b => RISK_OF[b.key] ?? STATUS.neutral} unit="open cases" />
+        <VizPanel title="Deadline risk of open tickets" sub={<>By the ticket due date (not a contractual SLA measurement). Due dates met by tickets closed in the period: <b>{adh ?? 'not available'}</b>{adh && ` (${cc.cases.adherence.measured} closed with a due date)`}.</>}
+          table={tableOf(risk, 'Open tickets')}>
+          <PartBar data={risk} colorOf={b => RISK_OF[b.key] ?? STATUS.neutral} unit="open tickets" />
         </VizPanel>
-        <VizPanel title="Open cases by priority" sub="Darker = more urgent. Click a slice for the list." table={tableOf(d.cases.byPriority)}>
-          <Donut data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key] ?? RAMP[1]} centerLabel="open cases" />
+        <VizPanel title="Open tickets by priority" sub="Darker = more urgent. Click a slice for the list." table={tableOf(d.cases.byPriority)}>
+          <Donut data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key] ?? RAMP[1]} centerLabel="open tickets" />
         </VizPanel>
-        <VizPanel title="Open cases by status" sub="The status shown on each case, as in the case list and the report builder. Waiting for customer is a status; other waiting reasons keep the case's status." table={tableOf(byStatus)}>
-          <HBars data={byStatus} unit="case(s)" empty="No open cases." />
+        <VizPanel title="Open tickets by status" sub="The status shown on each ticket, as in the ticket list and the report builder. Waiting for customer is a status; other waiting reasons keep the ticket's status." table={tableOf(byStatus)}>
+          <HBars data={byStatus} unit="ticket(s)" empty="No open tickets." />
         </VizPanel>
-        <VizPanel title="Age of open cases" table={tableOf(d.cases.age, 'Open cases')}
-          sub={<>Since opening: the Jira creation time of a synchronized case, otherwise the hub creation time. Average {age.averageDays ?? '—'}{age.averageDays !== null && ' days'}, oldest {age.oldestDays ?? '—'}{age.oldestDays !== null && ' days'}.</>}>
-          <Columns data={d.cases.age} unit="case(s)" height={140} />
+        <VizPanel title="Age of open tickets" table={tableOf(d.cases.age, 'Open tickets')}
+          sub={<>Since opening: the Jira creation time of a synchronized ticket, otherwise the hub creation time. Average {age.averageDays ?? '—'}{age.averageDays !== null && ' days'}, oldest {age.oldestDays ?? '—'}{age.oldestDays !== null && ' days'}.</>}>
+          <Columns data={d.cases.age} unit="ticket(s)" height={140} />
         </VizPanel>
-        <VizPanel title={`Cases opened and closed — ${PERIOD_LABEL[cc.period.name]}`} sub={`Per ${cc.period.unit}, in your time zone. Opened is the Jira creation time of a synchronized case, otherwise the hub creation time, so an import does not count as newly opened work.`}
+        <VizPanel title={`Tickets opened and closed — ${PERIOD_LABEL[cc.period.name]}`} sub={`Per ${cc.period.unit}, in your time zone. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time, so an import does not count as newly opened work.`}
           table={{ columns: ['Period', 'Opened', 'Closed'], rows: trend.map(t => [t.label, t.a, t.b]) }}>
           <TrendLines data={trend} aLabel="Opened" bLabel="Closed" />
         </VizPanel>
@@ -366,7 +366,7 @@ function EscalationCharts({ d, cc }: { d: InsightsT; cc: CC }) {
         <DataTable<EscRow> rowKey={r => r.id} rows={e.attention} tools={false} empty="none" caption="Escalation attention list" columns={[
           { key: 'r', header: 'Escalation', render: r => <><Link to={`/escalations/${r.id}`}><b>{r.ref}</b></Link> <span className="cc-title">{r.title}</span></> },
           { key: 'c', header: 'Client', render: r => <ClientDisplay id={r.clientId} code={r.client} /> },
-          { key: 'k', header: 'Related case', render: r => r.caseId ? <Link to={`/cases/${r.caseId}`}>{r.caseRef}</Link> : <span className="muted">—</span> },
+          { key: 'k', header: 'Related ticket', render: r => r.caseId ? <Link to={`/cases/${r.caseId}`}>{r.caseRef}</Link> : <span className="muted">—</span> },
           { key: 'l', header: 'Level', className: 'num', render: r => r.level },
           { key: 'o', header: 'Owner', render: r => r.owner },
           { key: 'd', header: 'Raised', className: 'nowrap', render: r => fmtDate(r.receivedAt) },
@@ -508,8 +508,8 @@ function ContractCharts({ d, cc }: { d: InsightsT; cc: CC }) {
         <section className="panel viz-panel cc-sla">
           <div className="panel-head"><h2>Measured SLA compliance</h2></div>
           <div className="panel-body">
-            <p>Configured targets above are the contractual terms. What cases achieved against them is measured in <a href="#sla">Contractual SLA compliance</a>.</p>
-            <p className="hint">Response and resolution {rateText(cc.sla.response)} / {rateText(cc.sla.resolution)} for client cases opened in {PERIOD_LABEL[cc.period.name]}.</p>
+            <p>Configured targets above are the contractual terms. What tickets achieved against them is measured in <a href="#sla">Contractual SLA compliance</a>.</p>
+            <p className="hint">Response and resolution {rateText(cc.sla.response)} / {rateText(cc.sla.resolution)} for client tickets opened in {PERIOD_LABEL[cc.period.name]}.</p>
           </div>
         </section>
       </div>
@@ -539,7 +539,7 @@ function SlaCharts({ cc, scope, slaContractId, slaPriority, onFilter }: {
   const priorities = ['Critical', 'High', 'Normal', 'Low'];
   return (
     <Band id="sla" icon="matrix" title="Contractual SLA compliance"
-      hint={<>{s.withContract} of {s.casesInPeriod} client case(s) opened in {PERIOD_LABEL[cc.period.name]} are linked to a contract · <Link to={link('noContract')}>{s.withoutContract} without a contract</Link> (not measured)</>}>
+      hint={<>{s.withContract} of {s.casesInPeriod} client ticket(s) opened in {PERIOD_LABEL[cc.period.name]} are linked to a contract · <Link to={link('noContract')}>{s.withoutContract} without a contract</Link> (not measured)</>}>
       <div className="sla-filters">
         <SelectInput label="Contract" value={slaContractId} onChange={v => onFilter({ slaContractId: v })} empty="All contracts"
           options={[...s.byContract.map(k => ({ value: String(k.contractId), label: `${k.contractRef} · ${k.client ?? ''}` })),
@@ -553,42 +553,42 @@ function SlaCharts({ cc, scope, slaContractId, slaPriority, onFilter }: {
         <Link to={link('resolutionBreached')} className={`cc-tile${s.resolution.breached ? ' bad' : s.resolution.measured ? ' good' : ''}`}>
           <b>{rateText(s.resolution)}</b><span>Resolution compliance</span><small>{ratio(s.resolution)} met · {s.resolution.pending} pending · {s.resolution.notMeasurable} not measurable</small></Link>
         <Link to={link('withContract')} className="cc-tile">
-          <b>{s.overall.rate === null ? 'not available' : `${s.overall.rate} %`}</b><span>Overall (both met)</span><small>{s.overall.compliant} of {s.overall.completed} case(s) with both obligations completed</small></Link>
+          <b>{s.overall.rate === null ? 'not available' : `${s.overall.rate} %`}</b><span>Overall (both met)</span><small>{s.overall.compliant} of {s.overall.completed} ticket(s) with both obligations completed</small></Link>
         <Link to={link('approaching', { status: '', createdFrom: '', createdTo: '' }, false)} className={`cc-tile${s.approaching ? ' warn' : ''}`}>
           <b>{s.approaching}</b><span>Approaching breach</span><small>open, a deadline within 24 hours</small></Link>
         <Link to={link('breached', { status: '', createdFrom: '', createdTo: '' }, false)} className={`cc-tile${s.breachedOpen ? ' bad' : ''}`}>
           <b>{s.breachedOpen}</b><span>Open and breached</span><small>open now, any obligation breached</small></Link>
       </div>
       <div className="viz-grid three">
-        <VizPanel title="First response" sub={<>Rate = met ÷ (met + breached) = {ratio(s.response)}. Click a part for the cases.</>} table={tableOf(parts(s.response, 'response'), 'Cases')}>
-          <PartBar data={parts(s.response, 'response')} colorOf={b => OUTCOME_OF[b.key] ?? STATUS.neutral} unit="case(s)" />
+        <VizPanel title="First response" sub={<>Rate = met ÷ (met + breached) = {ratio(s.response)}. Click a part for the tickets.</>} table={tableOf(parts(s.response, 'response'), 'Tickets')}>
+          <PartBar data={parts(s.response, 'response')} colorOf={b => OUTCOME_OF[b.key] ?? STATUS.neutral} unit="ticket(s)" />
         </VizPanel>
-        <VizPanel title="Resolution" sub={<>Rate = met ÷ (met + breached) = {ratio(s.resolution)}. Click a part for the cases.</>} table={tableOf(parts(s.resolution, 'resolution'), 'Cases')}>
-          <PartBar data={parts(s.resolution, 'resolution')} colorOf={b => OUTCOME_OF[b.key] ?? STATUS.neutral} unit="case(s)" />
+        <VizPanel title="Resolution" sub={<>Rate = met ÷ (met + breached) = {ratio(s.resolution)}. Click a part for the tickets.</>} table={tableOf(parts(s.resolution, 'resolution'), 'Tickets')}>
+          <PartBar data={parts(s.resolution, 'resolution')} colorOf={b => OUTCOME_OF[b.key] ?? STATUS.neutral} unit="ticket(s)" />
         </VizPanel>
-        <VizPanel title={`Obligations met and breached — ${PERIOD_LABEL[cc.period.name]}`} sub={`By the week, day or hour the case was opened; response and resolution together.`}
+        <VizPanel title={`Obligations met and breached — ${PERIOD_LABEL[cc.period.name]}`} sub={`By the week, day or hour the ticket was opened; response and resolution together.`}
           table={{ columns: ['Period', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.trend.map(t => [t.label, t.responseMet, t.responseMeasured, t.resolutionMet, t.resolutionMeasured]) }}>
           <TrendLines data={trend} aLabel="Met" bLabel="Breached" />
         </VizPanel>
         <div className="span-2">
           <VizPanel title="By contract" sub="Contracts with the most breaches first (top 10)."
-            table={{ columns: ['Contract', 'Client', 'Cases', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byContract.map(k => [k.contractRef, k.client ?? '', k.cases, k.response.met, k.response.measured, k.resolution.met, k.resolution.measured]) }}>
-            {s.byContract.length === 0 ? <div className="viz-empty">No case opened in the period is linked to a contract.</div> : (
+            table={{ columns: ['Contract', 'Client', 'Tickets', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byContract.map(k => [k.contractRef, k.client ?? '', k.cases, k.response.met, k.response.measured, k.resolution.met, k.resolution.measured]) }}>
+            {s.byContract.length === 0 ? <div className="viz-empty">No ticket opened in the period is linked to a contract.</div> : (
               <DataTable caption="SLA results by contract" rows={s.byContract} rowKey={k => k.contractId} tools={false} columns={[
                 { key: 'contract', header: 'Contract', render: k => <><Link to={`/contracts/${k.contractId}`}>{k.contractRef}</Link> <span className="hint">{k.title}</span></> },
                 { key: 'client', header: 'Client', render: k => k.client },
-                { key: 'cases', header: 'Cases', className: 'num', render: k => <Link to={link('withContract', { contractId: String(k.contractId) })}>{k.cases}</Link> },
+                { key: 'cases', header: 'Tickets', className: 'num', render: k => <Link to={link('withContract', { contractId: String(k.contractId) })}>{k.cases}</Link> },
                 { key: 'response', header: 'Response', render: k => <>{rateText(k.response)} <span className="hint">({ratio(k.response)})</span></> },
                 { key: 'resolution', header: 'Resolution', render: k => <>{rateText(k.resolution)} <span className="hint">({ratio(k.resolution)})</span></> },
                 { key: 'breached', header: 'Breached', className: 'num', render: k => k.breached ? <Link className="err" to={link('responseBreached', { contractId: String(k.contractId) })}>{k.breached}</Link> : 0 }
               ]} />)}
           </VizPanel>
         </div>
-        <VizPanel title="By priority" sub="Each case is measured against the target for its priority."
-          table={{ columns: ['Priority', 'Cases', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byPriority.map(p => [p.priority, p.cases, p.response.met, p.response.measured, p.resolution.met, p.resolution.measured]) }}>
+        <VizPanel title="By priority" sub="Each ticket is measured against the target for its priority."
+          table={{ columns: ['Priority', 'Tickets', 'Response met', 'Response measured', 'Resolution met', 'Resolution measured'], rows: s.byPriority.map(p => [p.priority, p.cases, p.response.met, p.response.measured, p.resolution.met, p.resolution.measured]) }}>
           <DataTable caption="SLA results by priority" rows={s.byPriority} rowKey={p => p.priority} tools={false} columns={[
             { key: 'priority', header: 'Priority', render: p => p.priority },
-            { key: 'cases', header: 'Cases', className: 'num', render: p => p.cases ? <Link to={link('withContract', { priority: p.priority })}>{p.cases}</Link> : 0 },
+            { key: 'cases', header: 'Tickets', className: 'num', render: p => p.cases ? <Link to={link('withContract', { priority: p.priority })}>{p.cases}</Link> : 0 },
             { key: 'response', header: 'Response', render: p => <>{rateText(p.response)} <span className="hint">({ratio(p.response)})</span></> },
             { key: 'resolution', header: 'Resolution', render: p => <>{rateText(p.resolution)} <span className="hint">({ratio(p.resolution)})</span></> }
           ]} />
@@ -658,7 +658,7 @@ function QualityCharts({ d, deferred }: { d: InsightsT; deferred: string }) {
 }
 
 const SECTIONS = [
-  { id: 'overview', label: 'Overview' }, { id: 'attention', label: 'Attention' }, { id: 'cases', label: 'Cases' }, { id: 'escalations', label: 'Escalations' },
+  { id: 'overview', label: 'Overview' }, { id: 'attention', label: 'Attention' }, { id: 'cases', label: 'Tickets' }, { id: 'escalations', label: 'Escalations' },
   { id: 'sla', label: 'Contractual SLA' }, { id: 'contracts', label: 'Contracts & SLAs' }, { id: 'payments', label: 'Payments' }, { id: 'health', label: 'Health' }, { id: 'quality', label: 'Data quality' }
 ];
 
@@ -765,7 +765,7 @@ export function Dashboard() {
       <section id="overview" aria-label="Key figures">
         {dash.data && insights.data && cc.data ? <KpiGrid dash={dash.data} d={insights.data} cc={cc.data} />
           : (dash.isLoading || insights.isLoading || cc.isLoading) && <KpiSkeleton />}
-        {mine && <p className="hint" style={{ margin: '-4px 0 var(--gap)' }}>My work: cases, commitments, escalations, payments and environments you own. Contract figures need the whole view.</p>}
+        {mine && <p className="hint" style={{ margin: '-4px 0 var(--gap)' }}>My work: tickets, commitments, escalations, payments and environments you own. Contract figures need the whole view.</p>}
       </section>
       <ActionCenter params={params} />
       {insights.data && dash.data && cc.data && <>

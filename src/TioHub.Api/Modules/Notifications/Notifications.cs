@@ -112,7 +112,7 @@ public static class AssignmentNotices
         string role(string f) => f switch { "BackupOwnerUserId" => "backup owner", "CoordinatorUserId" => "operation engineer", _ => "owner" };
         (string Title, string Link, string Key)? x = i.Entity switch
         {
-            Case c => ($"Case {c.Ref}: you are now the {role(i.Field)}", $"/cases/{c.Id}", $"case:{c.Id}:{i.Field}:{i.UserId}"),
+            Case c => ($"Ticket {c.Ref}: you are now the {role(i.Field)}", $"/cases/{c.Id}", $"case:{c.Id}:{i.Field}:{i.UserId}"),
             Commitment c => ($"Commitment {c.Ref}: you are now the owner", $"/commitments/{c.Id}", $"commitment:{c.Id}:owner:{i.UserId}"),
             Escalations.Escalation esc => ($"Escalation {esc.Ref}: you are now the owner", $"/escalations/{esc.Id}", $"escalation:{esc.Id}:owner:{i.UserId}"),
             ClientEnvironment e => ($"Environment {e.Name}: you are now the {role(i.Field)}", $"/environments/{e.Id}", $"env:{e.Id}:{i.Field}:{i.UserId}"),
@@ -170,7 +170,7 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
         foreach (var c in cases)
         {
             var overdue = c.DueAt < now;
-            Add(c.OwnerUserId!.Value, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, $"Case {c.Ref} is {(overdue ? "overdue" : "due soon")}", c.Title, $"/cases/{c.Id}",
+            Add(c.OwnerUserId!.Value, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, $"Ticket {c.Ref} is {(overdue ? "overdue" : "due soon")}", c.Title, $"/cases/{c.Id}",
                 $"case-{(overdue ? "overdue" : "due")}:{c.Id}:{c.DueAt:yyyyMMddHHmm}");
         }
         var commitments = await db.Commitments.IgnoreQueryFilters().AsNoTracking()

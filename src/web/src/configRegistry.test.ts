@@ -20,7 +20,7 @@ describe('configuration registry', () => {
       ['Clients & Environments', ['Reported conditions', 'Organization relationship types', 'Environment types', 'Responsibility areas', 'Project team roles']],
       ['Servers', ['Server types', 'Server roles', 'Network zones', 'Operating systems', 'Project phases']],
       ['Products & Installations', ['Component roles']],
-      ['Contracts & Cases', ['Contract types', 'Case types', 'Case statuses', 'Escalation channels', 'Priority guidance']],
+      ['Contracts & Tickets', ['Contract types', 'Ticket types', 'Ticket statuses', 'Escalation channels', 'Priority guidance']],
       ['Teams', ['Team member roles']],
       ['System', ['Review policies', 'Jira instances', 'Settings']]
     ]);
@@ -47,14 +47,14 @@ describe('configuration registry', () => {
   it('builds breadcrumbs with clickable parents', () => {
     expect(configCrumbs('escalation-channels')).toEqual([
       { to: '/admin', label: 'Administration' }, { to: '/admin/config', label: 'Configuration' },
-      { to: '/admin/config/category/contracts-cases', label: 'Contracts & Cases' }, { label: 'Escalation channels' }
+      { to: '/admin/config/category/contracts-cases', label: 'Contracts & Tickets' }, { label: 'Escalation channels' }
     ]);
   });
 
   it('searches names and descriptions across categories, every word must match', () => {
     const names = (q: string) => searchConfig(configTree(admin), q).flatMap(g => g.pages.map(p => p.name));
     expect(names('roles')).toEqual(['Organization relationship types', 'Project team roles', 'Server roles', 'Component roles', 'Team member roles']);
-    expect(names('CASE')).toEqual(['Case types', 'Case statuses', 'Priority guidance', 'Jira instances']);
+    expect(names('TICKET')).toEqual(['Ticket types', 'Ticket statuses', 'Priority guidance', 'Jira instances']);
     expect(names('server form')).toContain('Network zones');
     expect(names('no such page')).toEqual([]);
     expect(names('  ')).toHaveLength(CONFIG_PAGES.length);

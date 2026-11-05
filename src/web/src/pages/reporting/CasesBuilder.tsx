@@ -63,18 +63,18 @@ const OP_LABEL: Record<string, string> = {
 
 /** Built-in starting points (Templates area). Real definitions: opening one runs it on the caller's authorized data. */
 export const TEMPLATES: { key: string; name: string; description: string; definition: () => Definition }[] = [
-  { key: 'open-critical-high', name: 'Open critical and high cases', description: 'Open cases of priority Critical or High, most urgent first, with owner, SLA status and due date.',
+  { key: 'open-critical-high', name: 'Open critical and high tickets', description: 'Open tickets of priority Critical or High, most urgent first, with owner, SLA status and due date.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', statuses: [...OPEN_STATUSES], priorities: ['Critical', 'High'] }, sort: [{ field: 'priority', direction: 'asc' }, { field: 'dueAt', direction: 'asc' }] }) },
-  { key: 'sla-breached-30', name: 'SLA breaches, last 30 days', description: 'Cases opened in the last 30 days whose contractual response or resolution SLA is breached, by client.',
+  { key: 'sla-breached-30', name: 'SLA breaches, last 30 days', description: 'Tickets opened in the last 30 days whose contractual response or resolution SLA is breached, by client.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', datePreset: 'last30', slaStatuses: ['Breached'] }, columns: ['caseId', 'clientCode', 'title', 'priority', 'status', 'responseSla', 'resolutionSla', 'contract'], groupBy: 'clientCode', sort: [{ field: 'clientCode', direction: 'asc' }] }) },
-  { key: 'overdue-by-owner', name: 'Overdue cases by owner', description: 'Open cases whose due time has passed, grouped by owner, oldest due first.',
+  { key: 'overdue-by-owner', name: 'Overdue tickets by owner', description: 'Open tickets whose due time has passed, grouped by owner, oldest due first.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', due: 'overdue' }, columns: ['caseId', 'owner', 'clientCode', 'title', 'priority', 'dueAt', 'ageDays'], groupBy: 'owner', sort: [{ field: 'dueAt', direction: 'asc' }] }) },
-  { key: 'created-this-month', name: 'Cases opened this month by client', description: 'Everything opened this calendar month (report time zone), grouped by client.',
+  { key: 'created-this-month', name: 'Tickets opened this month by client', description: 'Everything opened this calendar month (report time zone), grouped by client.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', datePreset: 'thisMonth' }, columns: ['caseId', 'clientCode', 'title', 'type', 'priority', 'status', 'createdAt'], groupBy: 'clientCode', sort: [{ field: 'createdAt', direction: 'desc' }] }) },
-  { key: 'waiting-customer', name: 'Waiting for the customer', description: 'Open cases waiting for the customer for more than 7 days (advanced condition on the waiting reason and age).',
+  { key: 'waiting-customer', name: 'Waiting for the customer', description: 'Open tickets waiting for the customer for more than 7 days (advanced condition on the waiting reason and age).',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'createdAt', statuses: [...OPEN_STATUSES], conditions: { op: 'and', rules: [{ field: 'waitingReason', operator: 'in', value: ['Customer'] }, { field: 'ageDays', operator: 'gt', value: 7 }] } },
       columns: ['caseId', 'clientCode', 'title', 'owner', 'waitingReason', 'nextAction', 'ageDays'], sort: [{ field: 'ageDays', direction: 'desc' }] }) },
-  { key: 'closed-last-month', name: 'Closed last month', description: 'Cases closed in the previous calendar month with resolution SLA outcome and Jira references.',
+  { key: 'closed-last-month', name: 'Closed last month', description: 'Tickets closed in the previous calendar month with resolution SLA outcome and Jira references.',
     definition: () => ({ ...emptyDefinition(), filters: { dateField: 'closedAt', datePreset: 'lastMonth', statuses: ['Closed'] }, columns: ['caseId', 'clientCode', 'title', 'priority', 'closedAt', 'resolutionSla', 'jiraKeys'], sort: [{ field: 'closedAt', direction: 'asc' }] }) }
 ];
 
@@ -279,7 +279,7 @@ function SaveDialog({ definition, saved, asNew, teams, onClose, onSaved }: {
         {visibility === 'Team' && <SelectInput label="Team" value={teamId} onChange={setTeamId} options={teams.map(t => ({ value: String(t.id), label: t.label }))} empty={null} error={error?.field('teamId')} />}
         {visibility === 'Shared' && <MultiPick label="Share with" options={(users.data ?? []).filter(u => u.id !== me.id).map(u => ({ value: String(u.id), label: u.name }))} value={shares} onChange={setShares} all="Nobody yet" />}
         {error?.field('shareUserIds') && <div className="err">{error.field('shareUserIds')}</div>}
-        <p className="hint">People you share with can run, duplicate and favorite the report; only you can change it. Each person sees only the cases their own access allows.</p>
+        <p className="hint">People you share with can run, duplicate and favorite the report; only you can change it. Each person sees only the tickets their own access allows.</p>
       </fieldset>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={busy || !name.trim()} onClick={submit}>{busy ? 'Saving…' : editing ? 'Save report' : 'Save as new'}</button></div>
     </Dialog>
@@ -309,7 +309,7 @@ function ExportDialog({ format, definition, savedId, total, cutoff, zone, limits
   };
   return (
     <Dialog title={format === 'xlsx' ? 'Export to Excel (.xlsx)' : 'Export to PDF'} onClose={onClose}>
-      <p className="hint">{total.toLocaleString()} case(s) · data as of {fmtDateTime(cutoff, zone)} ({zone}). The file is generated in the background and kept for {limits.retentionDays} days; only you can download it, and the export is audited.</p>
+      <p className="hint">{total.toLocaleString()} ticket(s) · data as of {fmtDateTime(cutoff, zone)} ({zone}). The file is generated in the background and kept for {limits.retentionDays} days; only you can download it, and the export is audited.</p>
       {error && <div className="notice error" role="alert">{error}</div>}
       <div className="form-grid"><div className="field wide"><label htmlFor="rb-file">File name</label>
         <div className="rb-file"><input id="rb-file" className="input" value={fileName} maxLength={100} onChange={e => setFileName(e.target.value)} /><span className="muted">.{format}</span></div></div></div>
@@ -323,7 +323,7 @@ function ExportDialog({ format, definition, savedId, total, cutoff, zone, limits
       ) : (
         <fieldset className="rb-opts"><legend className="flabel">PDF layout</legend>
           <label className="check"><input type="radio" name="rb-pdf" checked={pdfMode === 'summary'} onChange={() => setPdfMode('summary')} /> Management summary (one page: counts, status, priority and SLA charts, filters)</label>
-          <label className="check"><input type="radio" name="rb-pdf" checked={pdfMode === 'detailed'} disabled={tooBigForDetail} onChange={() => setPdfMode('detailed')} /> Summary and detailed case table</label>
+          <label className="check"><input type="radio" name="rb-pdf" checked={pdfMode === 'detailed'} disabled={tooBigForDetail} onChange={() => setPdfMode('detailed')} /> Summary and detailed ticket table</label>
           {tooBigForDetail && <p className="hint">A detailed PDF holds at most {limits.pdfMaxRows.toLocaleString()} rows; use Excel for the full table.</p>}
         </fieldset>
       )}
@@ -493,7 +493,7 @@ export function CasesBuilder() {
   const nums = (v: string[]) => v.map(Number);
   const myTeams = o.teams.filter(t => o.myTeams.includes(Number(t.id)));
   const exportBlocked = !p || pending || invalid || !p.exportable;
-  const exportReason = !p ? 'The preview is loading.' : invalid ? 'Fix the configuration first.' : p.total === 0 ? 'No cases match: nothing to export.' : p.total > p.limits.maxRows ? `More than ${p.limits.maxRows.toLocaleString()} rows: narrow the filters.` : pending ? 'Waiting for the preview to refresh.' : undefined;
+  const exportReason = !p ? 'The preview is loading.' : invalid ? 'Fix the configuration first.' : p.total === 0 ? 'No tickets match: nothing to export.' : p.total > p.limits.maxRows ? `More than ${p.limits.maxRows.toLocaleString()} rows: narrow the filters.` : pending ? 'Waiting for the preview to refresh.' : undefined;
 
   // Chips for the filters in force, each removable (the server summary is shown in the preview header as well).
   const chips: { key: string; text: string; remove: () => void }[] = [];
@@ -548,7 +548,7 @@ export function CasesBuilder() {
       <div className="rb-config" aria-label="Report configuration">
         <div className="rb-config-head">
           <div>
-            <h2>{saved ? saved.name : 'New cases report'}{dirty && saved && <span className="rb-dirty"> · unsaved changes</span>}</h2>
+            <h2>{saved ? saved.name : 'New tickets report'}{dirty && saved && <span className="rb-dirty"> · unsaved changes</span>}</h2>
             <p className="hint">{saved ? `${saved.visibility}${saved.team ? ` · ${saved.team}` : ''}${!saved.isOwner ? ` · by ${saved.owner} (read-only: “Save as new” makes your copy)` : ''}` : template ? `From template “${TEMPLATES.find(t => t.key === template)?.name}”` : 'Filter, choose columns and sort; the preview updates as you go.'}</p>
           </div>
           <div className="rb-config-tools">
@@ -574,19 +574,19 @@ export function CasesBuilder() {
               <TextInput label="To (day, inclusive)" type="date" value={f.dateRange.toDay ?? ''} onChange={v => setF({ dateRange: { ...f.dateRange, toDay: v } })} />
             </div>}
             {p && (p.dateRange.from || p.dateRange.toExclusive) && <p className="hint rb-range">Resolved in {zone}: {p.dateRange.from ? fmtDateTime(p.dateRange.from, zone) : '…'} to before {p.dateRange.toExclusive ? fmtDateTime(p.dateRange.toExclusive, zone) : '…'} (stored in UTC).</p>}
-            <ChipPick label="Case status" options={statusOptions} value={f.statuses ?? []} onChange={v => setF({ statuses: v })} />
+            <ChipPick label="Ticket status" options={statusOptions} value={f.statuses ?? []} onChange={v => setF({ statuses: v })} />
             <div className="rb-quick"><button type="button" className="linkbtn" onClick={() => setF({ statuses: [...OPEN_STATUSES] })}>Open statuses only</button></div>
             <ChipPick label="Priority" options={m.priorities.map(x => ({ value: x, label: x }))} value={f.priorities ?? []} onChange={v => setF({ priorities: v })} />
             <ChipPick label="SLA status" options={m.slaStatuses.map(x => ({ value: x, label: SLA_LABEL[x] ?? x }))} value={f.slaStatuses ?? []} onChange={v => setF({ slaStatuses: v })} />
             <MultiPick label="Owner" options={o.owners.map(u => ({ value: String(u.id), label: u.label, sub: u.active === false ? 'deactivated' : undefined }))} value={ids(f.ownerIds)} onChange={v => setF({ ownerIds: nums(v) })} all={f.unassigned ? 'Unassigned only' : 'Anyone'}
               extra={<label className="check mp-opt"><input type="checkbox" checked={!!f.unassigned} onChange={e => setF({ unassigned: e.target.checked || undefined })} /> Unassigned</label>} />
-            <TextInput label="Search: case ID, title, next action or Jira key" value={f.q ?? ''} onChange={v => setF({ q: v || undefined })} maxLength={200} />
+            <TextInput label="Search: ticket ID, title, next action or Jira key" value={f.q ?? ''} onChange={v => setF({ q: v || undefined })} maxLength={200} />
             <details className="rb-more" open={!!(f.teamIds?.length || f.productIds?.length || f.environmentIds?.length || f.types?.length || f.due || f.scope || f.waiting !== undefined || f.ageMin !== undefined || f.ageMax !== undefined || f.jira || f.jiraKey) || undefined}>
               <summary>More filters</summary>
               <MultiPick label="Team" options={o.teams.map(t => ({ value: String(t.id), label: t.label }))} value={ids(f.teamIds)} onChange={v => setF({ teamIds: nums(v) })} all="All teams" />
               <MultiPick label="Product" options={o.products.map(x => ({ value: String(x.id), label: x.label, sub: x.sub }))} value={ids(f.productIds)} onChange={v => setF({ productIds: nums(v) })} all="All products" />
               <MultiPick label="Environment" options={envOptions} value={ids(f.environmentIds)} onChange={v => setF({ environmentIds: nums(v) })} all={f.clientIds?.length ? 'All environments of the clients' : 'All environments'} />
-              <MultiPick label="Case type" options={o.types.map(t => ({ value: String(t.id), label: t.label, sub: t.retired ? 'retired' : undefined }))} value={f.types ?? []} onChange={v => setF({ types: v })} all="All types" />
+              <MultiPick label="Ticket type" options={o.types.map(t => ({ value: String(t.id), label: t.label, sub: t.retired ? 'retired' : undefined }))} value={f.types ?? []} onChange={v => setF({ types: v })} all="All types" />
               <div className="rb-row3">
                 <SelectInput label="Due date" value={f.due ?? ''} onChange={v => setF({ due: v || undefined })} options={m.dueOptions.map(x => ({ value: x, label: DUE_LABEL[x] ?? x }))} empty="Any" />
                 <SelectInput label="Work scope" value={f.scope ?? ''} onChange={v => setF({ scope: v || undefined })} options={m.scopes.map(x => ({ value: x, label: x }))} empty="Any" />
@@ -630,7 +630,7 @@ export function CasesBuilder() {
               ))}
             </ol>
             {def.sort.length < m.limits.maxSort && <button type="button" className="btn btn-sm" onClick={() => setDef(d => ({ ...d, sort: [...d.sort, { field: sortable.find(x => !d.sort.some(y => y.field === x.key))!.key, direction: 'asc' }] }))}>+ Sort field</button>}
-            <p className="hint">Rows with equal values keep a stable order by Case ID, so pages never overlap.</p>
+            <p className="hint">Rows with equal values keep a stable order by Ticket ID, so pages never overlap.</p>
             <SelectInput label="Group by" value={def.groupBy ?? ''} onChange={v => setDef(d => ({ ...d, groupBy: v || null }))} options={fields.filter(x => x.groupable).map(x => ({ value: x.key, label: x.label }))} empty="No grouping" />
             <TimeZoneSelect label="Time zone for dates" value={zone} onChange={setZone} hint="Presets and days are calendar days in this zone; times are shown in it." />
           </div>
@@ -641,7 +641,7 @@ export function CasesBuilder() {
         <div className="rb-preview-head">
           <div>
             <h2 id="rb-preview-title">Preview</h2>
-            <p className="hint" aria-live="polite">{p ? <>Showing {p.total === 0 ? 0 : `${fromIdx.toLocaleString()}–${toIdx.toLocaleString()}`} of <b>{p.total.toLocaleString()}</b> matching case(s) · exact count · server-side query · data as of {fmtDateTime(p.cutoff, zone)} · {p.durationMs} ms</> : 'Loading…'}</p>
+            <p className="hint" aria-live="polite">{p ? <>Showing {p.total === 0 ? 0 : `${fromIdx.toLocaleString()}–${toIdx.toLocaleString()}`} of <b>{p.total.toLocaleString()}</b> matching ticket(s) · exact count · server-side query · data as of {fmtDateTime(p.cutoff, zone)} · {p.durationMs} ms</> : 'Loading…'}</p>
           </div>
           <div className="rb-preview-tools">
             {pending && <span className="hint"><span className="spin" aria-hidden="true" /> Updating…</span>}
@@ -653,7 +653,7 @@ export function CasesBuilder() {
             {chips.map(c => <span key={c.key} className="chip rc-chip">{c.text}<button type="button" aria-label={`Remove filter ${c.text}`} onClick={c.remove}>×</button></span>)}
             <button type="button" className="linkbtn" onClick={() => setF({ datePreset: undefined, dateRange: undefined, clientIds: [], statuses: [], priorities: [], slaStatuses: [], ownerIds: [], unassigned: undefined, teamIds: [], productIds: [], environmentIds: [], types: [], due: undefined, scope: undefined, waiting: undefined, ageMin: undefined, ageMax: undefined, jira: undefined, jiraKey: undefined, q: undefined, conditions: undefined })}>Clear all</button>
           </div>
-        ) : <p className="hint">No filters: every case you are authorized to see.</p>}
+        ) : <p className="hint">No filters: every ticket you are authorized to see.</p>}
 
         {invalid && <div className="notice error" role="alert"><b>The configuration needs attention.</b><ul>{fieldErrors.map(([k, v]) => <li key={k}>{v.join(' ')}</li>)}</ul></div>}
         {err && !invalid && (err.status === 504
@@ -663,7 +663,7 @@ export function CasesBuilder() {
         {p && !err && <>
           {p.warnings.map(w => <div key={w} className="notice warn" role="status">{w}</div>)}
           {p.total > 0 && (
-            <div className="rb-summary" aria-label="Breakdown of all matching cases">
+            <div className="rb-summary" aria-label="Breakdown of all matching tickets">
               <MiniBars title="By status" data={p.summary.byStatus} order={m.statuses} text={statusLabel} tone={() => 'info'} />
               <MiniBars title="By priority" data={p.summary.byPriority} order={m.priorities} text={k => k} tone={k => PRIORITY_TONE[k] ?? 'neutral'} />
               <MiniBars title="By SLA status" data={p.summary.bySla} order={m.slaStatuses} text={k => SLA_LABEL[k] ?? k} tone={k => SLA_TONE[k] ?? 'neutral'} />
@@ -676,9 +676,9 @@ export function CasesBuilder() {
               {p.groups.length > 30 && <span className="hint">+{p.groups.length - 30} more in the export</span>}
             </div>
           )}
-          {p.total === 0 ? <StateMessage kind="nomatch">No cases match this configuration. Remove a filter or widen the date range.</StateMessage> : (
+          {p.total === 0 ? <StateMessage kind="nomatch">No tickets match this configuration. Remove a filter or widen the date range.</StateMessage> : (
             <div className={pending ? 'rb-stale' : undefined}>
-              <DataTable<{ id: number; cells: unknown[]; clientId?: number | null }> caption="Cases report preview" rows={p.rows} rowKey={r => r.id} tools={false} pageSize={100} tableWrapClassName="rc-preview rb-table" columns={tableColumns} />
+              <DataTable<{ id: number; cells: unknown[]; clientId?: number | null }> caption="Tickets report preview" rows={p.rows} rowKey={r => r.id} tools={false} pageSize={100} tableWrapClassName="rc-preview rb-table" columns={tableColumns} />
               <nav className="pager rb-pager" aria-label="Preview pages">
                 <span>Rows {fromIdx.toLocaleString()}–{toIdx.toLocaleString()} of {p.total.toLocaleString()}</span>
                 <span className="right">
@@ -696,7 +696,7 @@ export function CasesBuilder() {
       </section>
 
       <div className="rb-footer" role="toolbar" aria-label="Report actions">
-        <span className="hint rb-footer-state">{exportReason ?? `${p?.total.toLocaleString()} case(s) ready to export · max ${m.limits.maxRows.toLocaleString()} rows · files kept ${m.limits.retentionDays} days`}</span>
+        <span className="hint rb-footer-state">{exportReason ?? `${p?.total.toLocaleString()} ticket(s) ready to export · max ${m.limits.maxRows.toLocaleString()} rows · files kept ${m.limits.retentionDays} days`}</span>
         <button className="btn" onClick={() => dirty ? setConfirmReset(true) : resetAll()} disabled={!dirty}>{saved ? 'Revert changes' : 'Reset'}</button>
         <button className="btn" onClick={() => setDialog('save')} disabled={!hasRight(permissionUser, 'SavedReports', saved ? 'Maintain' : 'Create') || invalid || (saved !== null && (!saved.isOwner || !dirty))} title={saved && !saved.isOwner ? 'Only the owner can change this report.' : undefined}>Save configuration</button>
         <button className="btn" onClick={() => setDialog('saveAs')} disabled={invalid}>Save as…</button>

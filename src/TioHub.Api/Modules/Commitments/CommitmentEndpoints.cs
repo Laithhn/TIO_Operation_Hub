@@ -281,7 +281,7 @@ public static class CommitmentEndpoints
     private static async Task CheckLinksAsync(Check check, HubDbContext db, long? clientId, long? teamId, long? caseId, long? projectId, CancellationToken ct)
     {
         if (caseId is not null && !await db.Cases.AnyAsync(c => c.Id == caseId && c.ClientId == clientId && (clientId != null || c.ResponsibleTeamId == teamId), ct))
-            check.Add("caseId", "Link a case in the same client or internal scope.");
+            check.Add("caseId", "Link a ticket in the same client or internal scope.");
         if (projectId is not null && (clientId is null || !await db.Projects.AnyAsync(p => p.Id == projectId && p.ClientId == clientId, ct)))
             check.Add("projectId", "Link a project of the same client.");
     }

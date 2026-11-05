@@ -89,6 +89,6 @@ public static class CaseStatuses
     {
         if (value.ListName != List || value.IsRetired || !Enum.TryParse<CaseStatusBehavior>(value.Category, out var b) || !Required.Contains(b)) return;
         if (!await db.LookupValues.AnyAsync(l => l.ListName == List && l.Id != value.Id && l.Category == value.Category && !l.IsRetired, ct))
-            throw new ValidationException(field, $"{value.Label} is the last active status that behaves as {b}. Case actions need one, so add another first.");
+            throw new ValidationException(field, $"{value.Label} is the last active status that behaves as {b}. Ticket actions need one, so add another first.");
     }
 }

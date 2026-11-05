@@ -27,8 +27,8 @@ public static partial class Deletion
     {
         ["Environment"] = "environments", ["Asset"] = "servers", ["Installation"] = "installations", ["Component"] = "components", ["ComponentHost"] = "server–component links",
         ["Volume"] = "volumes", ["FirewallRule"] = "firewall rules", ["Region"] = "regions", ["Project"] = "projects", ["Contract"] = "contracts", ["ContractEnvironment"] = "contract coverage",
-        ["Contact"] = "contacts", ["ResponsibilityBoundary"] = "responsibility boundaries", ["Case"] = "cases", ["CaseEnvironment"] = "cases", ["CaseAsset"] = "cases",
-        ["CaseComponent"] = "cases", ["Commitment"] = "commitments", ["Client"] = "clients (sub-clients)", ["ClientTeamMember"] = "project teams", ["Team"] = "teams",
+        ["Contact"] = "contacts", ["ResponsibilityBoundary"] = "responsibility boundaries", ["Case"] = "tickets", ["CaseEnvironment"] = "tickets", ["CaseAsset"] = "tickets",
+        ["CaseComponent"] = "tickets", ["Commitment"] = "commitments", ["Client"] = "clients (sub-clients)", ["ClientTeamMember"] = "project teams", ["Team"] = "teams",
         ["TeamMember"] = "team members", ["UserScope"] = "user access scopes", ["UserRightException"] = "individual permission exceptions", ["GroupMappingScope"] = "group mappings", ["Product"] = "products", ["Handover"] = "handovers",
         ["SharedStorage"] = "shared storage", ["ProjectProduct"] = "projects", ["JiraReference"] = "Jira links", ["User"] = "users",
         ["Organization"] = "organizations", ["OrganizationRelationship"] = "organization relationships"
@@ -174,11 +174,11 @@ public static partial class Deletion
         }).WithTags("Delete");
         api.MapDelete("/cases/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>
         {
-            var x = await Load(db.Cases.Where(c => c.Id == id), "The case", ct);
+            var x = await Load(db.Cases.Where(c => c.Id == id), "The ticket", ct);
             // A visible case may link to environments outside the caller's project. Deletion
             // removes the whole case and its links, not just the visible portion.
             if (x.ClientId is { } cid) RequireWholeClientScope(access.Me, cid);
-            return await RunAsync(db, files, access.Me, x, RecordTypes.Case, id, $"Case {x.Ref}", async () =>
+            return await RunAsync(db, files, access.Me, x, RecordTypes.Case, id, $"Ticket {x.Ref}", async () =>
             {
                 await db.CaseEnvironments.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);
                 await db.CaseAssets.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);

@@ -491,7 +491,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   };
 
   // Ease of use: a click anywhere on a row opens its record: the row's first link, passing over a client link in a column of its own, because
-  // that row is about something else (a case, a commitment). A list of clients has no other link, so it still opens the client. Links, buttons and fields keep their own behaviour.
+  // that row is about something else (a ticket, a commitment). A list of clients has no other link, so it still opens the client. Links, buttons and fields keep their own behaviour.
   const openRow = (event: React.MouseEvent<HTMLTableRowElement>) => {
     const t = event.target as HTMLElement;
     if (t.closest('a,button,[role="button"],input,select,textarea,label,summary,details') || window.getSelection()?.toString()) return;
@@ -684,7 +684,7 @@ export function DeleteAction({ path, what, onDone, button, afterTo }: { path: st
 }
 
 /** A43: record kinds that can be deleted together with everything that belongs to them. */
-const CASCADE_KINDS = ['clients', 'regions', 'environments', 'projects', 'contracts', 'assets', 'installations', 'components', 'cases', 'commitments', 'escalations', 'teams'];
+const CASCADE_KINDS = ['clients', 'regions', 'environments', 'projects', 'contracts', 'assets', 'installations', 'components', 'tickets', 'commitments', 'escalations', 'teams'];
 type DepItem = { id: number; label: string; link?: string | null; deletePath?: string | null };
 type DepGroup = { type: string; label: string; count: number; unlinked: boolean; main: boolean; items: DepItem[] };
 type DepPreview = { label: string; total: number; delete: DepGroup[]; unlink: DepGroup[] };

@@ -37,34 +37,34 @@ export const CONFIG_LISTS: ConfigList[] = [
   { slug: 'project-phases', list: 'ProjectPhase', group: 'Servers', title: 'Project phases', usedBy: 'servers', about: 'Where a server is in its delivery, for example Requested or Deployed.' },
   { slug: 'component-roles', list: 'ComponentRole', group: 'Products & installations', title: 'Component roles', usedBy: 'components',
     about: 'Roles of the components of an installation, for example Application, Database or Workflow.' },
-  { slug: 'contract-types', list: 'ContractType', group: 'Contracts & cases', title: 'Contract types', usedBy: 'contracts',
+  { slug: 'contract-types', list: 'ContractType', group: 'Contracts & tickets', title: 'Contract types', usedBy: 'contracts',
     about: 'Offered on the contract form. Each type belongs to a category used in reports.',
     categories: [
       { value: 'SlaSupport', label: 'SLA & support', hint: 'Support with recorded SLA targets' }, { value: 'Implementation', label: 'Implementation', hint: 'Delivery project' },
       { value: 'Maintenance', label: 'Maintenance', hint: 'Operation and maintenance' }, { value: 'Subscription', label: 'Subscription', hint: 'Licence or service subscription' },
       { value: 'Other', label: 'Other', hint: 'Anything else' }
     ] },
-  { slug: 'case-types', list: 'CaseType', group: 'Contracts & cases', title: 'Case types', usedBy: 'cases',
-    about: 'Offered when opening a case. Each type belongs to a category used in reports.',
+  { slug: 'case-types', list: 'CaseType', group: 'Contracts & tickets', title: 'Ticket types', usedBy: 'cases',
+    about: 'Offered when opening a ticket. Each type belongs to a category used in reports.',
     categories: [
       { value: 'Incident', label: 'Incident', hint: 'Something is broken' }, { value: 'Request', label: 'Request', hint: 'Something is asked for' },
       { value: 'ProblemFollowUp', label: 'Problem follow-up', hint: 'Root cause work' }, { value: 'MaintenanceCoordination', label: 'Maintenance coordination', hint: 'Planned work' },
       { value: 'Improvement', label: 'Improvement', hint: 'Make something better' }, { value: 'RiskFollowUp', label: 'Risk follow-up', hint: 'Track a risk' }
     ] },
-  { slug: 'case-statuses', list: 'CaseStatusLabel', group: 'Contracts & cases', title: 'Case statuses', usedBy: 'cases',
-    about: 'The statuses shown on cases. Each one behaves in a fixed way, which decides the case actions, SLA clocks and open or closed counts.',
+  { slug: 'case-statuses', list: 'CaseStatusLabel', group: 'Contracts & tickets', title: 'Ticket statuses', usedBy: 'cases',
+    about: 'The statuses shown on tickets. Each one behaves in a fixed way, which decides the ticket actions, SLA clocks and open or closed counts.',
     categories: [
-      { value: 'Initial', label: 'Initial', hint: 'Where a new case starts' }, { value: 'Opened', label: 'Opened', hint: 'Triaged and ready for work' },
+      { value: 'Initial', label: 'Initial', hint: 'Where a new ticket starts' }, { value: 'Opened', label: 'Opened', hint: 'Triaged and ready for work' },
       { value: 'Active', label: 'Active', hint: 'Work is under way' }, { value: 'WaitingForCustomer', label: 'Waiting for customer', hint: 'Waiting on the customer; pauses the SLA if the contract says so' },
       { value: 'Resolved', label: 'Resolved', hint: 'Stops the resolution SLA clock, and closing then needs this step first' }, { value: 'Closed', label: 'Closed', hint: 'Finished; needs an outcome and evidence' },
-      { value: 'Reopened', label: 'Reopened', hint: 'Shown after a closed case is reopened' }
+      { value: 'Reopened', label: 'Reopened', hint: 'Shown after a closed ticket is reopened' }
     ] },
-  { slug: 'escalation-channels', list: 'EscalationChannel', group: 'Contracts & cases', title: 'Escalation channels', usedBy: 'escalations and their logged communications',
+  { slug: 'escalation-channels', list: 'EscalationChannel', group: 'Contracts & tickets', title: 'Escalation channels', usedBy: 'escalations and their logged communications',
     about: 'How escalations arrive or are raised and how replies go out, for example e-mail, formal letter, verbal or Jira. The hub records the channel and its reference; it never sends anything.' },
   { slug: 'team-member-roles', list: 'TeamMemberRole', group: 'Teams', title: 'Team member roles', usedBy: 'team members',
     about: 'Roles offered when adding or editing a member of an internal team (Teams), for example Team lead or Support engineer.' },
-  { slug: 'priority-guidance', list: 'PriorityGuidance', group: 'Contracts & cases', title: 'Priority guidance', usedBy: 'the case form (guidance text)',
-    about: 'The explanation shown for each case priority. Rename or reword it to match your service levels.' }
+  { slug: 'priority-guidance', list: 'PriorityGuidance', group: 'Contracts & tickets', title: 'Priority guidance', usedBy: 'the ticket form (guidance text)',
+    about: 'The explanation shown for each ticket priority. Rename or reword it to match your service levels.' }
 ];
 
 export type ConfigCategoryId = 'clients-environments' | 'servers' | 'products-installations' | 'contracts-cases' | 'teams' | 'system';
@@ -86,7 +86,7 @@ export const CONFIG_CATEGORIES: ConfigCategory[] = [
   { id: 'clients-environments', name: 'Clients & Environments', icon: 'clients', order: 1, description: 'Conditions, environment types, responsibilities and project roles.' },
   { id: 'servers', name: 'Servers', icon: 'server', order: 2, description: 'Server types, roles, network zones, operating systems and phases.' },
   { id: 'products-installations', name: 'Products & Installations', icon: 'app', order: 3, description: 'Roles of the components of an installation.' },
-  { id: 'contracts-cases', name: 'Contracts & Cases', icon: 'case', order: 4, description: 'Contract and case types, statuses, escalation channels and priorities.' },
+  { id: 'contracts-cases', name: 'Contracts & Tickets', icon: 'case', order: 4, description: 'Contract and ticket types, statuses, escalation channels and priorities.' },
   { id: 'teams', name: 'Teams', icon: 'team', order: 5, description: 'Roles of the members of internal teams.' },
   { id: 'system', name: 'System', icon: 'admin', order: 6, description: 'Review policies, Jira instances and application settings.' }
 ];
@@ -107,10 +107,10 @@ const LIST_PLACES: Record<string, { category: ConfigCategoryId; order: number; d
   'project-phases': { category: 'servers', order: 5, description: 'Delivery phases of a server, such as Requested or Deployed.' },
   'component-roles': { category: 'products-installations', order: 1, description: 'Roles of installation components, such as Database or Workflow.' },
   'contract-types': { category: 'contracts-cases', order: 1, description: 'Types offered on the contract form.' },
-  'case-types': { category: 'contracts-cases', order: 2, description: 'Types offered when opening a case.' },
+  'case-types': { category: 'contracts-cases', order: 2, description: 'Types offered when opening a ticket.' },
   'case-statuses': { category: 'contracts-cases', order: 3, description: 'Display labels of the built-in case statuses.' },
   'escalation-channels': { category: 'contracts-cases', order: 4, description: 'How escalations arrive and how replies go out.' },
-  'priority-guidance': { category: 'contracts-cases', order: 5, description: 'Guidance text shown for each case priority.' },
+  'priority-guidance': { category: 'contracts-cases', order: 5, description: 'Guidance text shown for each ticket priority.' },
   'team-member-roles': { category: 'teams', order: 1, description: 'Roles of the members of internal teams.' }
 };
 
@@ -123,7 +123,7 @@ export const CONFIG_PAGES: ConfigPage[] = [
   { id: 'review-policies', name: 'Review policies', category: 'system', route: '/admin/policies', kind: 'system', order: 1, visible: admin,
     description: 'How often records must be reviewed before they show as stale.' },
   { id: 'jira-instances', name: 'Jira instances', category: 'system', route: '/admin/jira', kind: 'system', order: 2, visible: admin,
-    description: 'Jira sites that cases may link to.' },
+    description: 'Jira sites that tickets may link to.' },
   { id: 'settings', name: 'Settings', category: 'system', route: '/admin/settings', kind: 'system', order: 3, visible: admin,
     description: 'Approved link hosts, coverage policy and other application values.' }
 ];

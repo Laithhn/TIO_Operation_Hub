@@ -55,10 +55,10 @@ export function CaseList() {
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
   return (
     <>
-      <PageHead title="Cases" sub="Hub management records. Synchronized cases follow their Jira status through validated mappings; other cases are independent of any Jira ticket. Unassigned is an ownership gap, not a status. Opened is the Jira creation time of a synchronized case, otherwise the hub creation time."
-        actions={<>{canExportReport(me, 'cases') && <button className="btn" onClick={() => exportCsv('cases', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/cases/new">+ New Case</Link>}</>} />
+      <PageHead title="Tickets" sub="Hub management records. Synchronized tickets follow their Jira status through validated mappings; other tickets are independent of any Jira ticket. Unassigned is an ownership gap, not a status. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time."
+        actions={<>{canExportReport(me, 'cases') && <button className="btn" onClick={() => exportCsv('cases', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/cases/new">+ New Ticket</Link>}</>} />
       <div className="toolbar">
-        <TextInput label="Search all cases" type="search" value={text} onChange={setText} placeholder="Reference, title or next action" hint="Searches every page. The table's own filter covers this page only." />
+        <TextInput label="Search all tickets" type="search" value={text} onChange={setText} placeholder="Reference, title or next action" hint="Searches every page. The table's own filter covers this page only." />
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
@@ -76,11 +76,11 @@ export function CaseList() {
           <button className="linkbtn" onClick={() => set({ contractId: '', createdFrom: '', createdTo: '' })}>Clear</button></div>}
         {f.asOf && <div className="notice" style={{ margin: 0 }}>Evaluated at {fmtDateTime(f.asOf)} (from dashboard). <button className="linkbtn" onClick={() => set({ asOf: '' })}>Use now</button></div>}
       </div>
-      <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Cases" columnsKey="cases"
+      <DataTable<CaseRow> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Tickets" columnsKey="cases"
         columns={[
           { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span>,
             filter: <select className="input" aria-label="Filter by scope" value={f.scope} onChange={e => set({ scope: e.target.value })}><option value="">All</option><option value="Client">Client-related</option><option value="Internal">Internal</option></select> },
-          { key: 'work', header: 'Work', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '26rem', filter: <input className="input" aria-label="Search all cases by title or reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
+          { key: 'work', header: 'Work', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '26rem', filter: <input className="input" aria-label="Search all tickets by title or reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
           { key: 'owner', header: 'Assignee', sort: 'owner', render: r => r.ownerName ? <PersonCell name={r.ownerName} badge={r.ownerDeactivated && <Badge tone="bad">Deactivated</Badge>} /> : r.internalAssignee ? <PersonCell name={r.internalAssignee} badge={<Badge tone="info">Vitronic</Badge>} /> : r.jiraAssignee ? <PersonCell name={r.jiraAssignee} badge={<Badge tone="warn">Not mapped</Badge>} /> : <span className="muted">Unassigned</span> },
           { key: 'reporter', header: 'Reporter', render: r => r.jiraReporter ? <PersonCell name={r.jiraReporter} /> : <span className="muted">None</span> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} />,
@@ -94,7 +94,7 @@ export function CaseList() {
           { key: 'due', header: 'Due date', sort: 'due', render: r => r.dueAt ? <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.dueAt)}{r.overdue && ' · overdue'}</span> : <span className="muted">None</span> },
           { key: 'jira', header: 'Jira', render: r => <>{r.jiraKeys.map(k => <span key={k} className="chip mono">{k}</span>)}{r.jiraSourceKey && <div className="hint"><Badge tone="info">Synchronized</Badge> {r.jiraStatus}{r.jiraConnectionName ? ` · ${r.jiraConnectionName}` : ''}</div>}</> },
           { key: 'sla', header: 'Contractual SLA', render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
-          { key: 'ref', header: 'Ref', sort: 'ref', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search all cases by reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
+          { key: 'ref', header: 'Ref', sort: 'ref', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search all tickets by reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
           { key: 'title', header: 'Title', sort: 'title', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
           { key: 'type', header: 'Type', defaultHidden: true, render: r => label(r.type) },
           { key: 'team', header: 'Team', defaultHidden: true, render: r => r.teamName },
@@ -103,7 +103,7 @@ export function CaseList() {
           { key: 'jiraAssignee', header: 'Jira assignee', defaultHidden: true, render: r => r.jiraAssignee ?? <span className="muted">None</span> },
           { key: 'jiraPriority', header: 'Jira priority', defaultHidden: true, render: r => r.jiraPriority ?? <span className="muted">None</span> },
           { key: 'jiraType', header: 'Jira issue type', defaultHidden: true, render: r => r.jiraIssueType ?? <span className="muted">None</span> },
-          { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/cases/${r.id}`} what={`case ${r.ref}`} /> }
+          { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/cases/${r.id}`} what={`ticket ${r.ref}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
     </>
@@ -211,21 +211,21 @@ export function CaseForm() {
         responsibleOrganization: v.responsibleOrganization, coordinatorUserId: v.coordinatorUserId, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt), affected, changeNote: v.changeNote || null }, version);
       return { id: Number(id) };
     });
-    if (r) { toast(isNew ? 'Case created.' : 'Case saved.'); refresh(); nav(`/cases/${r.id}`); }
+    if (r) { toast(isNew ? 'Ticket created.' : 'Ticket saved.'); refresh(); nav(`/cases/${r.id}`); }
   };
   return (
     <>
-      <PageHead title={isNew ? 'New case' : `Edit ${existing.data?.ref ?? ''}`} crumbs={[{ to: '/cases', label: 'Cases' }]} />
+      <PageHead title={isNew ? 'New ticket' : `Edit ${existing.data?.ref ?? ''}`} crumbs={[{ to: '/cases', label: 'Tickets' }]} />
       <Panel>
         <FormError error={f.error} />
         {f.error?.isConflict && <button className="btn" style={{ marginBottom: 10 }} onClick={async () => { const r = await existing.refetch(); setVersion(r.data?.version); f.setError(null); }}>Reload latest</button>}
         <div className="form-grid">
           <TextInput label="Title" required wide value={v.title} onChange={x => f.set('title', x)} error={f.fieldError('title')} maxLength={200} />
-          <SelectInput label="Case type" required value={v.type} onChange={x => f.set('type', x)} options={T.options('CaseType', v.type)} error={f.fieldError('type')} hint={caseTypeGuidance(T.all('CaseType'))} />
+          <SelectInput label="Ticket type" required value={v.type} onChange={x => f.set('type', x)} options={T.options('CaseType', v.type)} error={f.fieldError('type')} hint={caseTypeGuidance(T.all('CaseType'))} />
           <SelectInput label="Work scope" required value={v.scope} onChange={x => f.set('scope', x)} options={[{ value: 'Client', label: 'Client-related' }, { value: 'Internal', label: 'Internal' }]} empty={null} disabled={!isNew} error={f.fieldError('scope')} />
           {v.scope === 'Client' && <SelectInput label="Client" required value={v.clientId} onChange={x => f.set('clientId', x)} options={clients} error={f.fieldError('clientId')} disabled={!isNew} />}
           {isNew && cid && <SelectInput label="Contract (SLA)" value={v.contractId} onChange={x => f.set('contractId', x)} options={contractOptions} empty="No contract" error={f.fieldError('contractId')}
-            hint={contracts.isLoading ? 'Loading contracts…' : contractOptions.length === 0 ? 'This client has no contract: the case is not measured against an SLA.' : 'Response and resolution targets are taken from this contract for the case priority.'} />}
+            hint={contracts.isLoading ? 'Loading contracts…' : contractOptions.length === 0 ? 'This client has no contract: the ticket is not measured against an SLA.' : 'Response and resolution targets are taken from this contract for the ticket priority.'} />}
           <SelectInput label="Responsible team" required value={v.responsibleTeamId} onChange={x => f.set('responsibleTeamId', x)} options={teams} error={f.fieldError('responsibleTeamId')} disabled={!isNew && !canLead} />
           <SelectInput label="Priority" required value={v.priority} onChange={x => f.set('priority', x)} options={enumOptions(priorities)} empty={null} error={f.fieldError('priority')} disabled={!isNew && !canLead} />
           <TextInput label="Impact summary" required wide multiline value={v.impactSummary} onChange={x => f.set('impactSummary', x)} error={f.fieldError('impactSummary')} />
@@ -236,13 +236,13 @@ export function CaseForm() {
           <UserPicker label="Internal coordinator" value={v.coordinatorUserId} onChange={x => f.set('coordinatorUserId', x)} clientId={cid} teamId={v.scope === 'Internal' ? toNum(v.responsibleTeamId) : null} error={f.fieldError('coordinatorUserId')} empty="None" />
           <TextInput label="Next action (optional)" wide value={v.nextAction} onChange={x => f.set('nextAction', x)} error={f.fieldError('nextAction')} />
           <TextInput label={`Next review (${me.timeZone})`} required type="datetime-local" value={v.nextReviewAt} onChange={x => f.set('nextReviewAt', x)} error={f.fieldError('nextReviewAt')} />
-          {isNew && <TextInput label="Due (optional)" type="datetime-local" value={v.dueLocal} onChange={x => f.set('dueLocal', x)} error={f.fieldError('dueLocal')} hint="Without a deadline the case is listed separately, never as overdue." />}
+          {isNew && <TextInput label="Due (optional)" type="datetime-local" value={v.dueLocal} onChange={x => f.set('dueLocal', x)} error={f.fieldError('dueLocal')} hint="Without a deadline the ticket is listed separately, never as overdue." />}
           {isNew && v.dueLocal && <TimeZoneSelect label="Due time zone" required value={v.dueTimeZone} onChange={x => f.set('dueTimeZone', x)} error={f.fieldError('dueTimeZone')} />}
           {(isNew || canViewTab(me, 'Cases', 'affected')) && <AffectedPicker clientId={cid} value={v.affected} onChange={x => f.set('affected', x)} error={f.fieldError('affected.environmentIds') ?? f.fieldError('affected.assetIds')} />}
           {!isNew && <TextInput label="Change note (kept in the timeline)" wide value={v.changeNote} onChange={x => f.set('changeNote', x)} />}
         </div>
-        <p className="hint" style={{ marginTop: 8 }}>Jira tickets are created and updated in Jira by staff; the hub never writes to Jira.{!isNew && ' Change the owner, due date or status with the actions on the case page.'}</p>
-        <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{f.busy ? 'Saving…' : isNew ? 'Create case' : 'Save case'}</button></div>
+        <p className="hint" style={{ marginTop: 8 }}>Jira tickets are created and updated in Jira by staff; the hub never writes to Jira.{!isNew && ' Change the owner, due date or status with the actions on the ticket page.'}</p>
+        <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{f.busy ? 'Saving…' : isNew ? 'Create ticket' : 'Save ticket'}</button></div>
       </Panel>
     </>
   );
@@ -271,7 +271,7 @@ export function CaseDetail() {
   const responseField = c?.contract && !c.sla.response.actualAt && !c.statusFromJira ? [{ name: 'customerResponse', label: 'This update was sent to the customer (first response)', kind: 'checkbox' as const, hint: 'Records the first response for the contractual SLA at this time.' }] : [];
   return (
     <QueryState q={q}>{c && p && (<>
-      <PageHead title={`${c.ref} · ${c.title}`} crumbs={[{ to: '/cases', label: 'Cases' }, ...(c.client ? [{ to: `/clients/${c.client.id}`, label: c.client.code }] : [{ label: 'Internal' }]), { label: c.ref }]}
+      <PageHead title={`${c.ref} · ${c.title}`} crumbs={[{ to: '/cases', label: 'Tickets' }, ...(c.client ? [{ to: `/clients/${c.client.id}`, label: c.client.code }] : [{ label: 'Internal' }]), { label: c.ref }]}
         sub={<><StatusBadge value={c.statusCode} enumName="CaseStatus" />{c.status === 'Cancelled' && <span className="chip">Cancelled</span>} <StatusBadge value={c.priority} /> {T.name('CaseType', c.type)} · {c.scope === 'Internal' ? 'Internal work' : 'Client-related'} {c.waiting && <Badge tone="warn">Waiting on {label(c.waiting.reason)}</Badge>} {c.overdue && <Badge tone="bad">Overdue</Badge>} {c.ownerDeactivated && <Badge tone="bad">Owner deactivated</Badge>}</>}
         actions={<>
           {p.canEdit && <Link className="btn" to={`/cases/${id}/edit`}>Edit</Link>}
@@ -285,11 +285,11 @@ export function CaseDetail() {
           {p.canReturnToWork && <button className="btn" onClick={() => setDialog('resume')}>Return to work</button>}
           {p.canClose && <button className="btn btn-primary" onClick={() => setDialog('close')}>Close</button>}
           {p.canChangeDue && <button className="btn" onClick={() => setDialog('due')}>Change due date</button>}
-          {p.canCancel && <button className="btn btn-danger" onClick={() => setDialog('cancel')}>Cancel case</button>}
+          {p.canCancel && <button className="btn btn-danger" onClick={() => setDialog('cancel')}>Cancel ticket</button>}
           {p.canReopen && <button className="btn" onClick={() => setDialog('reopen')}>Reopen</button>}
-        <DeleteAction button path={`/cases/${c.id}`} what={`case ${c.ref}`} afterTo={'/cases'} /></>} />
-      {c.statusFromJira && <div className="notice">This case's status follows Jira, so change it there. {!c.contract ? (c.contractFromJiraSpace ? "No contract linked to this Jira space covers the ticket's creation date, so it is not measured." : 'Link an SLA contract to calculate the due dates from the Jira creation time.') : c.sla.resolution.status === 'NotApplicable' ? 'This case is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
-      {c.clientRepresentative && open && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The case waits on the customer until Jira reassigns it.</div>}
+        <DeleteAction button path={`/cases/${c.id}`} what={`ticket ${c.ref}`} afterTo={'/cases'} /></>} />
+      {c.statusFromJira && <div className="notice">This ticket's status follows Jira, so change it there. {!c.contract ? (c.contractFromJiraSpace ? "No contract linked to this Jira space covers the ticket's creation date, so it is not measured." : 'Link an SLA contract to calculate the due dates from the Jira creation time.') : c.sla.resolution.status === 'NotApplicable' ? 'This ticket is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
+      {c.clientRepresentative && open && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The ticket waits on the customer until Jira reassigns it.</div>}
       {!c.statusFromJira && c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
       {c.jiraSource && <JiraBanner s={c.jiraSource} />}
       <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>
@@ -318,7 +318,7 @@ export function CaseDetail() {
       </div>
       {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
       <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
-      {tab === 'escalations' && <Panel title="Escalations about this case" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
+      {tab === 'escalations' && <Panel title="Escalations about this ticket" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
       {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
       {tab === 'affected' && <Panel title="Affected records">
         {c.environments.length === 0 && c.unknownEnvironmentReason && <div className="notice warn">Environment not yet identified: {c.unknownEnvironmentReason}</div>}
@@ -353,7 +353,7 @@ export function CaseDetail() {
       {tab === 'files' && <AttachmentsWorkspace recordType="Case" recordId={c.id} />}
       {tab === 'history' && <HistoryPanel entityType="Case" entityId={c.id} />}
 
-      {dialog === 'triage' && <ActionDialog {...common} title="Triage case" path={`/cases/${id}/triage`} submitLabel="Confirm triage" intro="Confirm scope, team, impact, priority and next-review time. Next action is optional."
+      {dialog === 'triage' && <ActionDialog {...common} title="Triage ticket" path={`/cases/${id}/triage`} submitLabel="Confirm triage" intro="Confirm scope, team, impact, priority and next-review time. Next action is optional."
         initial={{ responsibleTeamId: c.team ? String(c.team.id) : '', impactSummary: c.impactSummary, priority: c.priority, nextAction: c.nextAction, nextReviewAt: toLocalInput(c.nextReviewAt) }}
         fields={[{ name: 'responsibleTeamId', label: 'Responsible team', kind: 'select', required: true, options: teams }, { name: 'impactSummary', label: 'Impact', kind: 'textarea', required: true }, { name: 'priority', label: 'Priority', kind: 'select', required: true, options: ['Critical', 'High', 'Normal', 'Low'].map(x => ({ value: x, label: x })) },
           { name: 'nextAction', label: 'Next action (optional)' }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }, { name: 'ownerUserId', label: 'Owner (optional)', kind: 'user', clientId: c.client?.id, teamId: c.team?.id }]}
@@ -384,8 +384,8 @@ export function CaseDetail() {
       {dialog === 'due' && <ActionDialog {...common} title="Change due date" path={`/cases/${id}/due`} initial={{ dueTimeZone: c.dueTimeZone ?? me.timeZone }} submitLabel="Save due date" intro="Due-date changes need a reason and are kept in the timeline. Leave the date empty and tick nothing to remove the deadline."
         fields={[{ name: 'dueLocal', label: 'New due (local time)', kind: 'datetime' }, { name: 'dueTimeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]}
         transform={v => ({ dueLocal: v.dueLocal || null, dueTimeZone: v.dueTimeZone || c.dueTimeZone || me.timeZone, clear: !v.dueLocal, reason: v.reason })} />}
-      {dialog === 'cancel' && <ActionDialog {...common} title="Cancel case" danger path={`/cases/${id}/cancel`} submitLabel="Cancel case" intro="Links and history are kept." fields={[{ name: 'reason', label: 'Cancellation reason', kind: 'textarea', required: true }]} />}
-      {dialog === 'reopen' && <ActionDialog {...common} title="Reopen case" path={`/cases/${id}/reopen`} submitLabel="Reopen" intro="The earlier closure or cancellation stays in history. Ownership is rechecked."
+      {dialog === 'cancel' && <ActionDialog {...common} title="Cancel ticket" danger path={`/cases/${id}/cancel`} submitLabel="Cancel ticket" intro="Links and history are kept." fields={[{ name: 'reason', label: 'Cancellation reason', kind: 'textarea', required: true }]} />}
+      {dialog === 'reopen' && <ActionDialog {...common} title="Reopen ticket" path={`/cases/${id}/reopen`} submitLabel="Reopen" intro="The earlier closure or cancellation stays in history. Ownership is rechecked."
         fields={[{ name: 'reason', label: 'Reopening reason', kind: 'textarea', required: true }, { name: 'nextAction', label: 'Next action (optional)' }, { name: 'nextReviewAt', label: 'Next review', kind: 'datetime', required: true }]}
         transform={v => ({ reason: v.reason, nextAction: v.nextAction, nextReviewAt: fromLocalInput(v.nextReviewAt) })} />}
       {dialog === 'jira' && <JiraDialog caseId={c.id} onClose={close} />}
@@ -413,7 +413,7 @@ function SlaPanel({ c, canEdit, canChangeContract, onRespond, onContract }: { c:
           {a.pausesWhileWaitingOnCustomer && ' · paused while waiting on the customer'}<div className="hint">Taken from {a.contractRef} on {fmtDateTime(a.at)}; later contract edits do not change it.{c.contractFromJiraSpace && ' This contract was valid when the ticket was created.'}</div></>] as [string, React.ReactNode]] : []),
         ['Clock start', <>{fmtDateTime(s.startAt)} <span className="hint">({s.startsAtJiraCreation ? 'Jira creation time' : 'hub creation time'}; deadlines and elapsed time count from here)</span></>],
         ...(s.pausedMinutes ? [['Paused (waiting on the customer)', minutes(s.pausedMinutes)] as [string, string]] : []),
-        ['Operational due date', s.operationalDueAt ? <>{fmtDateTime(s.operationalDueAt)} <span className="hint">{s.startsAtJiraCreation ? '(the contractual resolution deadline of this synchronized case)' : '(agreed by the team; separate from the contractual deadlines)'}</span></> : <span className="muted">None</span>]
+        ['Operational due date', s.operationalDueAt ? <>{fmtDateTime(s.operationalDueAt)} <span className="hint">{s.startsAtJiraCreation ? '(the contractual resolution deadline of this synchronized ticket)' : '(agreed by the team; separate from the contractual deadlines)'}</span></> : <span className="muted">None</span>]
       ]} />
       {c.contract && <DataTable caption="Contractual SLA measurements" rows={slaRows} rowKey={r => r.key} tableClassName="sla-table" columns={[
         { key: 'measurement', header: 'Measurement', render: r => r.name },
@@ -424,8 +424,8 @@ function SlaPanel({ c, canEdit, canChangeContract, onRespond, onContract }: { c:
       ]} />}
       {!!penaltyPreview.data?.items.length && <>
         <h3 style={{ marginTop: 16 }}>Indicative penalties</h3>
-        <p className="hint">Calculated from the clause snapshot taken when this contract was linked. These monthly totals combine cases sharing the recorded clause terms and apply monthly caps. The same totals can appear on multiple case pages; do not add them together as billing totals. Amounts need review and do not create credits or invoices.</p>
-        <DataTable caption="Indicative case penalties" rows={penaltyPreview.data.items.map((x, i) => ({ ...x, rowKey: `${x.id}-${x.month}-${i}` }))} rowKey={x => x.rowKey} columns={[
+        <p className="hint">Calculated from the clause snapshot taken when this contract was linked. These monthly totals combine tickets sharing the recorded clause terms and apply monthly caps. The same totals can appear on multiple ticket pages; do not add them together as billing totals. Amounts need review and do not create credits or invoices.</p>
+        <DataTable caption="Indicative ticket penalties" rows={penaltyPreview.data.items.map((x, i) => ({ ...x, rowKey: `${x.id}-${x.month}-${i}` }))} rowKey={x => x.rowKey} columns={[
           { key: 'clause', header: 'Clause', render: x => x.name }, { key: 'trigger', header: 'Trigger', render: x => label(x.trigger) },
           { key: 'month', header: 'Billing month', render: x => x.month },
           { key: 'amount', header: 'Amount', className: 'num', render: x => new Intl.NumberFormat(undefined, { style: 'currency', currency: x.currency }).format(x.amount) },
@@ -441,8 +441,8 @@ function ContractDialog({ c, onClose }: { c: CaseDto; onClose: () => void }) {
   const contracts = useClientContracts(c.client?.id ?? null);
   const options = [...(contracts.data?.items ?? []).filter(k => k.id !== c.contract?.id).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}${k.status === 'Active' ? '' : ` (${label(k.status)})`}` }))];
   return <ActionDialog title={c.contract ? 'Change contract' : 'Link contract'} path={`/cases/${c.id}/contract`} version={c.version} onClose={onClose} submitLabel="Save contract"
-    intro="The response and resolution targets are taken again from the chosen contract for the case priority and the case is measured again from its clock start. The change is kept in the timeline."
-    fields={[{ name: 'contractId', label: 'Contract', kind: 'select', options, hint: c.contract ? 'Leave empty to remove the contract: the case is then not measured.' : undefined }, { name: 'reason', label: 'Reason', kind: 'textarea', required: !!c.contract }]}
+    intro="The response and resolution targets are taken again from the chosen contract for the ticket priority and the ticket is measured again from its clock start. The change is kept in the timeline."
+    fields={[{ name: 'contractId', label: 'Contract', kind: 'select', options, hint: c.contract ? 'Leave empty to remove the contract: the ticket is then not measured.' : undefined }, { name: 'reason', label: 'Reason', kind: 'textarea', required: !!c.contract }]}
     transform={v => ({ contractId: toNum(v.contractId), reason: v.reason || null })} />;
 }
 
@@ -454,8 +454,8 @@ function CloseDialog({ c, canException, onClose }: { c: CaseDto; canException: b
        { name: 'followUpOwnerId', label: 'Follow-up owner', kind: 'user' as const, required: true, clientId: c.client?.id, teamId: c.team?.id }, { name: 'followUpDate', label: 'Follow-up date', kind: 'date' as const, required: true }];
   return (
     <>
-      <ActionDialog key={mode} title="Close case" path={`/cases/${c.id}/close`} version={c.version} onClose={onClose} submitLabel="Close case"
-        intro={<>An outcome is always required. Without validation evidence, only the TIO Manager can authorize a case-specific exception; an engineer's reason alone cannot waive evidence.
+      <ActionDialog key={mode} title="Close ticket" path={`/cases/${c.id}/close`} version={c.version} onClose={onClose} submitLabel="Close ticket"
+        intro={<>An outcome is always required. Without validation evidence, only the TIO Manager can authorize a ticket-specific exception; an engineer's reason alone cannot waive evidence.
           {canException && <div style={{ marginTop: 6 }}><label className="check"><input type="checkbox" checked={mode === 'exception'} onChange={e => setMode(e.target.checked ? 'exception' : 'evidence')} /> Close without evidence (Manager exception)</label></div>}</>}
         fields={fields} transform={v => ({ outcome: v.outcome, validationEvidence: v.validationEvidence || null, evidenceExceptionReason: v.evidenceExceptionReason || null, followUpOwnerId: toNum(v.followUpOwnerId ?? ''), followUpDate: v.followUpDate || null })} />
     </>

@@ -57,7 +57,7 @@ describe('severity and sections', () => {
   });
 
   it('summarises long reference lists', () => {
-    const many = [1, 2, 3, 4, 5].map(i => n({ kind: 'Overdue', title: `Case CS-10${i} is overdue`, entityType: 'Case' }));
+    const many = [1, 2, 3, 4, 5].map(i => n({ kind: 'Overdue', title: `Ticket CS-10${i} is overdue`, entityType: 'Case' }));
     const g = buildSections(many)[0].entries[0];
     expect(g.type === 'group' && g.body).toMatch(/and 2 more require attention\.$/);
   });

@@ -35,7 +35,7 @@ type Values = Record<string, string>;
 
 const CATEGORY_ORDER = ['Operations', 'Technical', 'Governance', 'Operational intelligence'];
 const CATEGORY_HINT: Record<string, string> = {
-  Operations: 'Day-to-day work: cases, commitments and what needs attention.',
+  Operations: 'Day-to-day work: tickets, commitments and what needs attention.',
   Technical: 'Environments, installed versions and infrastructure.',
   Governance: 'Data quality and contracts.',
   'Operational intelligence': 'KPIs computed on the server: SLA, delivery, backlog, workload and client health.'
@@ -567,7 +567,7 @@ function PickSaved({ onPick, onClose }: { onPick: (r: { id: number; name: string
   return (
     <Dialog title="Schedule a saved report" onClose={onClose}>
       {list.isLoading && <StateMessage kind="loading" />}
-      {list.data?.length === 0 && <StateMessage kind="none">You have no saved reports yet. <Link to="/reporting-center/builder/cases">Build and save a cases report</Link> first.</StateMessage>}
+      {list.data?.length === 0 && <StateMessage kind="none">You have no saved reports yet. <Link to="/reporting-center/builder/cases">Build and save a tickets report</Link> first.</StateMessage>}
       {!!list.data?.length && <SelectInput label="Saved report" value={id} onChange={setId} options={list.data.map(r => ({ value: String(r.id), label: r.isOwner ? r.name : `${r.name} (${r.owner})` }))} />}
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button>
         <button className="btn btn-primary" disabled={!id} onClick={() => { const r = list.data!.find(x => String(x.id) === id)!; onPick({ id: r.id, name: r.name }); }}>Continue</button></div>
@@ -638,12 +638,12 @@ function Schedules({ reports, creating, setCreating }: { reports: ReportDef[]; c
 /** A70: the areas of the Reporting Center (sub-routes of /reporting-center; the section menu lists them). */
 const AREAS: Record<string, { label: string; sub: string }> = {
   '': { label: 'Overview', sub: 'Your report usage, recent exports, upcoming schedules and quick actions.' },
-  library: { label: 'Report library', sub: 'All reports by category: configure, preview and export (CSV or Excel); the Cases report also has the Report Builder.' },
-  'builder/cases': { label: 'Cases report builder', sub: 'Filters, columns, sorting and grouping with a live server-side preview; save, export to Excel or PDF, or schedule.' },
-  'my-reports': { label: 'My reports', sub: 'Saved Cases Report Builder configurations: yours, your team’s and those shared with you.' },
+  library: { label: 'Report library', sub: 'All reports by category: configure, preview and export (CSV or Excel); the Tickets report also has the Report Builder.' },
+  'builder/cases': { label: 'Tickets report builder', sub: 'Filters, columns, sorting and grouping with a live server-side preview; save, export to Excel or PDF, or schedule.' },
+  'my-reports': { label: 'My reports', sub: 'Saved Tickets Report Builder configurations: yours, your team’s and those shared with you.' },
   schedules: { label: 'Scheduled reports', sub: 'Recurring report files for you and colleagues, each generated with the recipient’s own access.' },
   history: { label: 'Export history', sub: 'Every export with status, rows, format, expiry and secure download; queued exports update live.' },
-  templates: { label: 'Templates', sub: 'Ready-made Cases Report Builder configurations to start from.' }
+  templates: { label: 'Templates', sub: 'Ready-made Tickets Report Builder configurations to start from.' }
 };
 
 /** Links from before A70 (?tab=history&export=…, ?tab=schedules, ?tab=catalog&report=…) open the matching area. */

@@ -126,8 +126,8 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
                 || c.ResponseSlaStatus == SlaState.Breached || c.ResolutionSlaStatus == SlaState.Breached, ct);
         var sla = new
         {
-            definition = "Cases opened in the period with a linked contract. A rate is met ÷ (met + breached); pending and not measurable obligations are excluded. "
-                + "Overall counts cases whose response and resolution are both completed, compliant only when both were met. A pending obligation past its deadline counts as breached.",
+            definition = "Tickets opened in the period with a linked contract. A rate is met ÷ (met + breached); pending and not measurable obligations are excluded. "
+                + "Overall counts tickets whose response and resolution are both completed, compliant only when both were met. A pending obligation past its deadline counts as breached.",
             casesInPeriod = slaRows.Count,
             withContract = measured.Count,
             withoutContract = slaRows.Count - measured.Count,

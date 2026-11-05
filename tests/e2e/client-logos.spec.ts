@@ -70,7 +70,7 @@ test.describe.serial('A71 client logos', () => {
     expect(Math.round(box!.width)).toBe(96);
   });
 
-  test('the logo appears in the client list, case list, map side list and report builder; others show initials', async ({ page }) => {
+  test('the logo appears in the client list, ticket list, map side list and report builder; others show initials', async ({ page }) => {
     // One shared logo lookup per page, never a request per client.
     let lookups = 0;
     page.on('request', r => { if (r.url().endsWith('/api/v1/clients/logos')) lookups++; });

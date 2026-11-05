@@ -92,11 +92,11 @@ public static class JiraClientEndpoints
             var check = new Check();
             if (i.JiraConnectionId is { } cid && !await db.JiraConnections.AnyAsync(c => c.Id == cid, ct)) check.Add("jiraConnectionId", "Select a Jira connection.");
             if (i.IsEnabled && i.JiraConnectionId is null) check.Add("jiraConnectionId", "Select a Jira connection.");
-            if (i.IsEnabled && i.DefaultResponsibleTeamId is null) check.Add("defaultResponsibleTeamId", "Jira has no responsible team, so imported cases need this default.");
+            if (i.IsEnabled && i.DefaultResponsibleTeamId is null) check.Add("defaultResponsibleTeamId", "Jira has no responsible team, so imported tickets need this default.");
             if (i.DefaultResponsibleTeamId is { } team && !await db.Teams.AnyAsync(t => t.Id == team && t.IsActive, ct)) check.Add("defaultResponsibleTeamId", "Select an active team.");
-            if (i.IsEnabled && string.IsNullOrWhiteSpace(i.DefaultCaseType)) check.Add("defaultCaseType", "Jira issue types are not case types, so imported cases need this default.");
+            if (i.IsEnabled && string.IsNullOrWhiteSpace(i.DefaultCaseType)) check.Add("defaultCaseType", "Jira issue types are not ticket types, so imported tickets need this default.");
             string? typeCode = null;
-            if (!string.IsNullOrWhiteSpace(i.DefaultCaseType)) (typeCode, _) = await new LookupService(db).TypeAsync<CaseType>(check, "defaultCaseType", LookupLists.CaseType, i.DefaultCaseType, "the case type", s?.DefaultCaseType, ct);
+            if (!string.IsNullOrWhiteSpace(i.DefaultCaseType)) (typeCode, _) = await new LookupService(db).TypeAsync<CaseType>(check, "defaultCaseType", LookupLists.CaseType, i.DefaultCaseType, "the ticket type", s?.DefaultCaseType, ct);
             if (i.SyncIntervalMinutes is < 5 or > 1440) check.Add("syncIntervalMinutes", "Enter between 5 and 1440 minutes.");
             if (i.NextReviewHours is < 1 or > 2160) check.Add("nextReviewHours", "Enter between 1 and 2160 hours.");
             if (i.FullReconciliationDays is < 1 or > 90) check.Add("fullReconciliationDays", "Enter between 1 and 90 days.");
@@ -163,7 +163,7 @@ public static class JiraClientEndpoints
             var added = wanted.Where(k => s.Contracts.All(l => l.ContractId != k)).ToList();
             if (removed.Count == 0 && added.Count == 0) return Results.Ok(new { changed = 0 });
             var hasCases = await db.JiraCaseMappings.IgnoreQueryFilters().AnyAsync(m => m.ClientJiraSpaceId == spaceId && m.CaseId != null, ct);
-            if (hasCases && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) throw new ForbiddenException("Changing the contracts of a space with cases needs the right to coordinate cases.");
+            if (hasCases && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) throw new ForbiddenException("Changing the contracts of a space with tickets needs the right to coordinate tickets.");
             var reason = removed.Count == 0 ? Text.Clean(i.Reason) : Rules.RequireReason(i.Reason, "reason", "why a contract is removed from the space");
             db.ClientJiraSpaceContracts.RemoveRange(removed);
             foreach (var k in added) s.Contracts.Add(new ClientJiraSpaceContract { ContractId = k });
@@ -181,11 +181,11 @@ public static class JiraClientEndpoints
             RequireChange(access, id);
             var m = await db.JiraValueMappings.FirstOrDefaultAsync(x => x.Id == mappingId && x.ClientId == id, ct) ?? throw new NotFoundException("The Jira value");
             var target = Text.Clean(i.Target);
-            if (target is not null && m.Kind == JiraValueKind.Priority && !Enum.GetNames<Priority>().Contains(target)) throw new ValidationException("target", "Select a case priority.");
+            if (target is not null && m.Kind == JiraValueKind.Priority && !Enum.GetNames<Priority>().Contains(target)) throw new ValidationException("target", "Select a ticket priority.");
             if (target is not null && m.Kind == JiraValueKind.IssueType)
             {
                 var check = new Check();
-                await new LookupService(db).TypeAsync<CaseType>(check, "target", LookupLists.CaseType, target, "the case type", m.TargetCode, ct);
+                await new LookupService(db).TypeAsync<CaseType>(check, "target", LookupLists.CaseType, target, "the ticket type", m.TargetCode, ct);
                 check.ThrowIfAny();
             }
             m.TargetCode = target;
@@ -256,7 +256,7 @@ public static class JiraClientEndpoints
             var bytes = Csv.Build("Jira synchronization history", me.AccountName, $"Client {id}", TimeZoneInfo.Utc, now, new List<CsvColumn<JiraSyncRun>>
             {
                 new("Started", "When the run started", r => r.StartedAt), new("Jira space", "Space key", r => r.ProjectKey), new("Type", "Initial, incremental or full reconciliation", r => r.Type.ToString()), new("Trigger", "What started it", r => r.Trigger.ToString()),
-                new("Issues retrieved", "Issues read from Jira", r => r.IssuesRetrieved), new("Cases created", "New cases", r => r.CasesCreated), new("Cases updated", "Changed cases", r => r.CasesUpdated), new("Comments imported", "New Jira comments", r => r.CommentsImported),
+                new("Issues retrieved", "Issues read from Jira", r => r.IssuesRetrieved), new("Tickets created", "New tickets", r => r.CasesCreated), new("Tickets updated", "Changed tickets", r => r.CasesUpdated), new("Comments imported", "New Jira comments", r => r.CommentsImported),
                 new("Failed records", "Issues needing another attempt", r => r.FailedRecords), new("Status", "Result", r => r.Status.ToString()), new("Error", "Safe error text", r => r.Error)
             }, rows);
             await db.AuditActionAsync("Export", "JiraSyncRun", null, "Jira synchronization history", id, null, new { rows = rows.Count }, ct);

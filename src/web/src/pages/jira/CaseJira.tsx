@@ -12,7 +12,7 @@ export type JiraSource = {
   components?: string; labels?: string; description?: string; summary?: string; jiraCreatedAt?: string; jiraUpdatedAt?: string; jiraDueDate?: string; ownerFromJira: boolean; lastSync: string; nextSync?: string; details?: { name: string; value: string }[];
 };
 
-export const jiraOriginLabel = (o: string) => o === 'ImportedSource' ? 'Imported source' : o === 'AdoptedSource' ? 'Source (adopted case)' : 'Manual reference';
+export const jiraOriginLabel = (o: string) => o === 'ImportedSource' ? 'Imported source' : o === 'AdoptedSource' ? 'Source (adopted ticket)' : 'Manual reference';
 
 /** Connection status, key, Jira status, assignee and sync times above the management summary (approved mockups 3 and 4). */
 export function JiraBanner({ s }: { s: JiraSource }) {
@@ -90,7 +90,7 @@ export function CaseActivity({ caseId, canComment }: { caseId: number; canCommen
         {d.items.map(r => <li key={r.key} className={`activity-item ${r.source === 'Jira' ? 'source-jira' : r.kind === 'Comment' ? 'source-comment' : ''}`}>
           <b>{r.source === 'TIO' && r.kind !== 'Comment' ? label(r.kind) : r.title}</b> <Badge tone={r.source === 'Jira' ? 'info' : 'neutral'}>{r.source === 'Jira' ? 'Jira' : 'TIO'}</Badge>{r.edited && <span className="hint"> edited in Jira</span>}
           {(r.from || r.to) && <> {r.from ?? '—'} → {r.to ?? '—'}</>}
-          {r.restricted ? <div className="activity-body muted">This Jira comment is restricted. Its text is visible to case coordinators only.</div> : r.body && (r.kind === 'Comment' || r.kind === 'JiraComment' ? <div className="activity-body">{r.body}</div> : <> — {r.body}</>)}
+          {r.restricted ? <div className="activity-body muted">This Jira comment is restricted. Its text is visible to ticket coordinators only.</div> : r.body && (r.kind === 'Comment' || r.kind === 'JiraComment' ? <div className="activity-body">{r.body}</div> : <> — {r.body}</>)}
           <div className="when">{fmtDateTime(r.at)} · {r.actor ?? 'system'}{r.reference ? ` · ${r.reference}` : ''}</div>
         </li>)}
       </ul>)}</QueryState>
@@ -115,7 +115,7 @@ function CommentComposer({ caseId }: { caseId: number }) {
   return (
     <div className="activity-composer">
       <FormError error={error} />
-      <label className="flabel" htmlFor="case-comment">Add a comment to this case (TIO only)</label>
+      <label className="flabel" htmlFor="case-comment">Add a comment to this ticket (TIO only)</label>
       <textarea id="case-comment" className="input" rows={2} style={{ width: '100%' }} value={body} maxLength={8000} onChange={e => setBody(e.target.value)} />
       {error?.field('body') && <div className="err">{error.field('body')}</div>}
       <div className="form-actions" style={{ justifyContent: 'space-between' }}>

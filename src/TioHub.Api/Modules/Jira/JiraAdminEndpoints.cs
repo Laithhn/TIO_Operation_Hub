@@ -163,7 +163,7 @@ public static class JiraAdminEndpoints
             if (site is not null && await db.JiraConnections.AnyAsync(x => x.SiteUrl == site && x.Id != id, ct)) check.Add("siteUrl", "This Jira site already has a connection.");
             if (await db.JiraConnections.AnyAsync(x => x.Name == i.Name!.Trim() && x.Id != id, ct)) check.Add("name", "This name is already used.");
             // Issue and project ids belong to one site; moving the connection would attach them to the wrong issues.
-            if (site != c.SiteUrl && await db.JiraCaseMappings.IgnoreQueryFilters().AnyAsync(m => m.JiraConnectionId == id, ct)) check.Add("siteUrl", "Cases were imported from this site, so its address cannot change. Create a new connection.");
+            if (site != c.SiteUrl && await db.JiraCaseMappings.IgnoreQueryFilters().AnyAsync(m => m.JiraConnectionId == id, ct)) check.Add("siteUrl", "Tickets were imported from this site, so its address cannot change. Create a new connection.");
             check.ThrowIfAny();
             c.Name = i.Name!.Trim(); c.SiteUrl = site!; c.AuthMode = i.AuthMode!.Value; c.AccountEmail = i.AccountEmail!.Trim(); c.CloudId = Text.Clean(i.CloudId);
             if (!string.IsNullOrWhiteSpace(i.DetailFieldNames)) c.DetailFieldNames = i.DetailFieldNames.Trim();
@@ -297,7 +297,7 @@ public static class JiraAdminEndpoints
             await db.SaveChangesAsync(ct);
             db.ClientJiraSpaces.Add(new ClientJiraSpace { ClientId = target, JiraConnectionId = id, JiraProjectId = projectId, ProjectKey = current.ProjectKey, ProjectName = current.ProjectName, Contracts = i.ContractId is { } linked ? [new ClientJiraSpaceContract { ContractId = linked }] : [] });
             db.JiraIntegrationIssues.Add(new JiraIntegrationIssue { Type = JiraIssueType.SpaceReassignment, Status = JiraIssueStatus.Resolved, Fingerprint = $"reassign:{id}:{projectId}:{now.ToUnixTimeSeconds()}", JiraConnectionId = id, ClientId = target, ProjectKey = current.ProjectKey, JiraProjectId = projectId,
-                Description = $"Space {current.ProjectKey} moved from client {current.ClientId} to client {target}. Existing cases stayed with the earlier client.", SuggestedAction = "Issues of existing cases appear here if they change again.", LastSeenAt = now, Resolution = "Reassigned", ResolutionNote = reason, ResolvedById = access.Me.UserId, ResolvedAt = now });
+                Description = $"Space {current.ProjectKey} moved from client {current.ClientId} to client {target}. Existing tickets stayed with the earlier client.", SuggestedAction = "Issues of existing tickets appear here if they change again.", LastSeenAt = now, Resolution = "Reassigned", ResolutionNote = reason, ResolvedById = access.Me.UserId, ResolvedAt = now });
             db.AuditReason = reason;
             await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
@@ -475,7 +475,7 @@ public static class JiraAdminEndpoints
             RequireAdmin(me);
             var m = await db.JiraWorkflowStatusMappings.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The status mapping");
             if (i.TargetStatus is { } t && !await db.LookupValues.AnyAsync(l => l.ListName == CaseStatuses.List && l.Code == t && !l.IsRetired, ct))
-                throw new ValidationException("targetStatus", "Select an active case status.");
+                throw new ValidationException("targetStatus", "Select an active ticket status.");
             m.TargetStatusCode = i.TargetStatus;
             await db.SaveChangesAsync(ct);
             await db.JiraCaseMappings.IgnoreQueryFilters().Where(x => x.JiraConnectionId == m.JiraConnectionId && x.StatusId == m.JiraStatusId && (m.JiraProjectId == "" || x.JiraProjectId == m.JiraProjectId)).ExecuteUpdateAsync(u => u.SetProperty(x => x.AppliedStatusId, (string?)null), ct);
@@ -563,12 +563,12 @@ public static class JiraAdminEndpoints
             {
                 if (space is null || issue.JiraIssueId is null || issue.IssueKey is null) throw new ValidationException("action", "The space of this issue is no longer assigned.");
                 var conn = await db.JiraConnections.AsNoTracking().FirstAsync(c => c.Id == issue.JiraConnectionId, ct);
-                var caseId = input.CaseId ?? issue.CandidateCaseId ?? throw new ValidationException("caseId", "Select the case to adopt.");
-                var c = await db.Cases.FirstOrDefaultAsync(x => x.Id == caseId, ct) ?? throw new NotFoundException("The case");
+                var caseId = input.CaseId ?? issue.CandidateCaseId ?? throw new ValidationException("caseId", "Select the ticket to adopt.");
+                var c = await db.Cases.FirstOrDefaultAsync(x => x.Id == caseId, ct) ?? throw new NotFoundException("The ticket");
                 // Never by title: the case must already reference this issue, and belong to the space's client.
                 var referenced = await db.JiraReferences.AnyAsync(j => j.CaseId == caseId && j.JiraInstanceId == conn.JiraInstanceId && j.IssueKey == issue.IssueKey && j.RemovedAt == null, ct);
-                if (!referenced || c.ClientId != space.ClientId) throw new ValidationException("caseId", "Only a case of this client that references this Jira issue can be adopted.");
-                if (await db.JiraCaseMappings.AnyAsync(m => m.CaseId == caseId, ct)) throw new ConflictException("This case is already synchronized from another Jira issue.");
+                if (!referenced || c.ClientId != space.ClientId) throw new ValidationException("caseId", "Only a ticket of this client that references this Jira issue can be adopted.");
+                if (await db.JiraCaseMappings.AnyAsync(m => m.CaseId == caseId, ct)) throw new ConflictException("This ticket is already synchronized from another Jira issue.");
                 if (await db.JiraCaseMappings.AnyAsync(m => m.JiraConnectionId == conn.Id && m.JiraIssueId == issue.JiraIssueId, ct)) throw new ConflictException("This Jira issue is already synchronized.");
                 await bridge.AdoptAsync(conn, space, c, issue.JiraIssueId, issue.IssueKey, now, ct);
             }

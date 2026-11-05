@@ -59,7 +59,7 @@ public static class CaseEndpoints
             var c = await db.Cases.AsNoTracking().Include(x => x.Client).Include(x => x.ResponsibleTeam).Include(x => x.Owner).Include(x => x.BackupOwner)
                 .Include(x => x.Environments).Include(x => x.Assets).Include(x => x.Components)
                 .Include(x => x.JiraReferences).ThenInclude(j => j.JiraInstance).Include(x => x.WaitingIntervals)
-                .AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+                .AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The ticket");
             var now = DateTimeOffset.UtcNow;
             var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
             var envIds = c.Environments.Select(e => e.EnvironmentId).ToList();
@@ -139,10 +139,10 @@ public static class CaseEndpoints
         g.MapGet("/{id:long}/penalty-preview", async (long id, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             access.RequireAccess();
-            var c = await db.Cases.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+            var c = await db.Cases.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The ticket");
             // A penalty preview applies monthly caps across all cases on the contract.
             // A project-only view would omit other cases and produce an incorrect amount.
-            if (c.ClientId is { } clientId && !access.Me.HasClient(clientId)) throw new NotFoundException("The case");
+            if (c.ClientId is { } clientId && !access.Me.HasClient(clientId)) throw new NotFoundException("The ticket");
             if (c.ContractId is null || string.IsNullOrWhiteSpace(c.PenaltyTermsSnapshotJson)) return Results.Ok(new { contractRef = c.SlaContractRef, items = Array.Empty<object>() });
             var terms = JsonSerializer.Deserialize<PenaltyClauseSnapshot[]>(c.PenaltyTermsSnapshotJson) ?? [];
             var now = clock.GetUtcNow();
@@ -176,7 +176,7 @@ public static class CaseEndpoints
             access.Me.RequireRight(RightKeys.Cases, RightKeys.Create);
             var now = clock.GetUtcNow();
             var check = new Check();
-            var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the case type", null, ct);
+            var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the ticket type", null, ct);
             check.Text("title", input.Title, 200, "the title", true)
                  .When(input.Scope is null, "scope", "Select Client-related or Internal.")
                  .Text("impactSummary", input.ImpactSummary, 2000, "the impact summary", true)
@@ -192,7 +192,7 @@ public static class CaseEndpoints
             if (input.ClientId is not null && !access.Me.HasClient(input.ClientId.Value)) check.Add("clientId", "Select a client you can access.");
             if (input.ResponsibleTeamId is not null && !await db.Teams.AnyAsync(t => t.Id == input.ResponsibleTeamId && t.IsActive, ct)) check.Add("responsibleTeamId", "Select an active team.");
             if (input.Scope == WorkScope.Internal && input.ResponsibleTeamId is not null && !access.Me.SeesInternal(input.ResponsibleTeamId)) check.Add("responsibleTeamId", "You have no internal scope for this team.");
-            if (input.OwnerUserId is not null && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && input.OwnerUserId != access.Me.UserId) check.Add("ownerUserId", "Case coordination permission is required to assign someone else. Leave it Unassigned or take it yourself.");
+            if (input.OwnerUserId is not null && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && input.OwnerUserId != access.Me.UserId) check.Add("ownerUserId", "Ticket coordination permission is required to assign someone else. Leave it Unassigned or take it yourself.");
             if (input.BackupOwnerUserId is not null && input.BackupOwnerUserId == input.OwnerUserId) check.Add("backupOwnerUserId", "The backup must be a different person.");
             await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, input.ClientId, input.ResponsibleTeamId, "the owner", ct);
             await access.CheckAssignableAsync(check, "backupOwnerUserId", input.BackupOwnerUserId, input.ClientId, input.ResponsibleTeamId, "the backup owner", ct);
@@ -234,11 +234,11 @@ public static class CaseEndpoints
                  .Text("nextAction", input.NextAction, 1000, "the next action")
                  .When(input.Priority is null, "priority", "Select the priority.")
                  .When(input.ResponsibleTeamId is null, "responsibleTeamId", "Select the responsible team.")
-                 .When(CaseQuery.IsOpen(c.Status) && input.NextReviewAt is null, "nextReviewAt", "Every open case needs a next review time.")
+                 .When(CaseQuery.IsOpen(c.Status) && input.NextReviewAt is null, "nextReviewAt", "Every open ticket needs a next review time.")
                  .Text("changeNote", input.ChangeNote, 1000, "Note").Text("responsibleOrganization", input.ResponsibleOrganization, 150, "Responsible organization");
-            var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the case type", c.Type, ct);
-            if (input.Priority != c.Priority && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("priority", "Case coordination permission is required to change the priority.");
-            if (input.ResponsibleTeamId != c.ResponsibleTeamId && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("responsibleTeamId", "Case coordination permission is required to change the team.");
+            var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the ticket type", c.Type, ct);
+            if (input.Priority != c.Priority && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("priority", "Ticket coordination permission is required to change the priority.");
+            if (input.ResponsibleTeamId != c.ResponsibleTeamId && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("responsibleTeamId", "Ticket coordination permission is required to change the team.");
             if (input.ResponsibleTeamId is not null && !await db.Teams.AnyAsync(t => t.Id == input.ResponsibleTeamId, ct)) check.Add("responsibleTeamId", "Select a team.");
             await access.CheckAssignableAsync(check, "coordinatorUserId", input.CoordinatorUserId, c.ClientId, input.ResponsibleTeamId, "the coordinator", ct);
             check.ThrowIfAny();
@@ -303,18 +303,18 @@ public static class CaseEndpoints
         g.MapPost("/{id:long}/assign", async (long id, AssignInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await LoadForChangeAsync(db, id, ct);
-            if (!access.Me.SeesScope(c.ClientId, c.ResponsibleTeamId)) throw new NotFoundException("The case");
+            if (!access.Me.SeesScope(c.ClientId, c.ResponsibleTeamId)) throw new NotFoundException("The ticket");
             db.ExpectVersion(ctx, c);
-            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("ownerUserId", "Reopen the case before changing its owner.");
+            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("ownerUserId", "Reopen the ticket before changing its owner.");
             var now = clock.GetUtcNow();
             var check = new Check();
             // ACC-03: only a Lead or Manager reassigns; an Engineer may take unassigned work of their own team.
             var selfTake = input.OwnerUserId == access.Me.UserId && c.OwnerUserId is null && access.Me.HasRight(RightKeys.Cases, RightKeys.Maintain)
                 && await db.TeamMembers.AnyAsync(m => m.TeamId == c.ResponsibleTeamId && m.UserId == access.Me.UserId && m.IsActive, ct);
-            if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && !selfTake) throw new ForbiddenException("Only the TIO Manager can assign this case. You can take unassigned work of your own team.");
+            if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && !selfTake) throw new ForbiddenException("Only the TIO Manager can assign this ticket. You can take unassigned work of your own team.");
             if (input.BackupOwnerUserId is not null && input.BackupOwnerUserId == input.OwnerUserId) check.Add("backupOwnerUserId", "The backup must be a different person.");
             if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate) && input.BackupOwnerUserId != c.BackupOwnerUserId) check.Add("backupOwnerUserId", "Only the TIO Manager can change the backup owner.");
-            if (c.Status == CaseStatus.InProgress && input.OwnerUserId is null) check.Add("ownerUserId", "A case in progress must keep an active owner.");
+            if (c.Status == CaseStatus.InProgress && input.OwnerUserId is null) check.Add("ownerUserId", "A ticket in progress must keep an active owner.");
             check.Text("reason", input.Reason, 1000, "Reason");
             await access.CheckAssignableAsync(check, "ownerUserId", input.OwnerUserId, c.ClientId, c.ResponsibleTeamId, "the owner", ct);
             await access.CheckAssignableAsync(check, "backupOwnerUserId", input.BackupOwnerUserId, c.ClientId, c.ResponsibleTeamId, "the backup owner", ct);
@@ -334,14 +334,14 @@ public static class CaseEndpoints
 
         g.MapPost("/{id:long}/start", async (long id, ProgressInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            var c = await db.Cases.Include(x => x.Owner).Include(x => x.Environments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+            var c = await db.Cases.Include(x => x.Owner).Include(x => x.Environments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The ticket");
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             RequireStatus(c, CaseStatus.Triaged);
             // WRK-04: an active owner is required before In progress.
-            if (c.OwnerUserId is null) throw new ValidationException("Assign an owner first.", new Dictionary<string, string[]> { ["ownerUserId"] = ["The case is Unassigned. An active owner is required before work can start."] });
-            if (c.Owner is { IsActive: false }) throw new ValidationException("The owner is deactivated.", new Dictionary<string, string[]> { ["ownerUserId"] = ["The owner is deactivated. Reassign the case to an active owner before starting."] });
+            if (c.OwnerUserId is null) throw new ValidationException("Assign an owner first.", new Dictionary<string, string[]> { ["ownerUserId"] = ["The ticket is Unassigned. An active owner is required before work can start."] });
+            if (c.Owner is { IsActive: false }) throw new ValidationException("The owner is deactivated.", new Dictionary<string, string[]> { ["ownerUserId"] = ["The owner is deactivated. Reassign the ticket to an active owner before starting."] });
             var now = clock.GetUtcNow();
             ApplyProgress(c, input, now, required: false);
             if (input.CustomerResponse) RecordFirstResponse(db, c, now, "Progress update sent to the customer", access.Me, now);
@@ -355,7 +355,7 @@ public static class CaseEndpoints
             var c = await LoadForChangeAsync(db, id, ct);
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
-            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("progressSummary", "The case is closed or cancelled.");
+            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("progressSummary", "The ticket is closed or cancelled.");
             var now = clock.GetUtcNow();
             ApplyProgress(c, input, now, required: true);
             // A progress update is a meaningful review of the case (OPS-03); viewing or unrelated edits are not.
@@ -376,7 +376,7 @@ public static class CaseEndpoints
             await RequireStatusFromHubAsync(db, c, ct);
             RequireStatus(c, CaseStatus.InProgress);
             if (!await CaseStatuses.HasActiveAsync(db, CaseStatusBehavior.Resolved, ct))
-                throw new ValidationException("status", "No case status behaves as Resolved, so close the case instead.");
+                throw new ValidationException("status", "No ticket status behaves as Resolved, so close the ticket instead.");
             var check = new Check().Text("progressSummary", input.ProgressSummary, 2000, "the delivered outcome or progress", true)
                 .Text("validationRequest", input.ValidationRequest, 1000, "Validation request").Text("nextAction", input.NextAction, 1000, "Next action");
             if (string.IsNullOrWhiteSpace(input.ValidationRequest) && string.IsNullOrWhiteSpace(input.NextAction)) check.Add("validationRequest", "Record the validation request or the next action.");
@@ -414,14 +414,14 @@ public static class CaseEndpoints
             var c = await LoadForChangeAsync(db, id, ct);
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
-            if (await db.JiraCaseMappings.AnyAsync(m => m.CaseId == c.Id, ct)) throw new ValidationException("respondedAt", "This case's first response is its first Jira comment.");
-            if (c.Status == CaseStatus.Cancelled) throw new ValidationException("respondedAt", "The case was cancelled.");
+            if (await db.JiraCaseMappings.AnyAsync(m => m.CaseId == c.Id, ct)) throw new ValidationException("respondedAt", "This ticket's first response is its first Jira comment.");
+            if (c.Status == CaseStatus.Cancelled) throw new ValidationException("respondedAt", "The ticket was cancelled.");
             if (c.FirstResponseAt is { } fr) throw new ConflictException("The first response is already recorded.", new() { ["respondedAt"] = [$"Recorded at {fr:yyyy-MM-dd HH:mm} UTC; a first response is recorded once."] });
             var now = clock.GetUtcNow();
             var at = input.RespondedAt ?? now;
             var check = new Check().Text("channel", input.Channel, 60, "the channel", true).Text("note", input.Note, 1000, "Note");
             if (at > now.AddMinutes(1)) check.Add("respondedAt", "The response time is in the future.");
-            if (at < (c.SlaClockStartAt ?? c.CreatedAt).AddMinutes(-1)) check.Add("respondedAt", "The response time is before the case was opened.");
+            if (at < (c.SlaClockStartAt ?? c.CreatedAt).AddMinutes(-1)) check.Add("respondedAt", "The response time is before the ticket was opened.");
             check.ThrowIfAny();
             RecordFirstResponse(db, c, at, $"{input.Channel!.Trim()}{(string.IsNullOrWhiteSpace(input.Note) ? "" : $": {input.Note.Trim()}")}", access.Me, now);
             await db.SaveChangesAsync(ct);
@@ -468,7 +468,7 @@ public static class CaseEndpoints
             if (usesException)
             {
                 // An engineer-entered reason alone can never waive evidence (Section 5.3).
-                if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("evidenceExceptionReason", "Case coordination permission is required to authorize closing without validation evidence.");
+                if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("evidenceExceptionReason", "Ticket coordination permission is required to authorize closing without validation evidence.");
                 if (input.FollowUpOwnerId is null) check.Add("followUpOwnerId", "Select the follow-up owner for the missing evidence.");
                 if (input.FollowUpDate is null) check.Add("followUpDate", "Enter the follow-up date.");
                 await access.CheckAssignableAsync(check, "followUpOwnerId", input.FollowUpOwnerId, c.ClientId, c.ResponsibleTeamId, "the follow-up owner", ct);
@@ -498,7 +498,7 @@ public static class CaseEndpoints
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
-            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The case is already closed or cancelled.");
+            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The ticket is already closed or cancelled.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the cancellation reason");
             var now = clock.GetUtcNow();
             c.CancelReason = reason;
@@ -512,11 +512,11 @@ public static class CaseEndpoints
         // Reopen to Triaged by a Lead/Manager with a reason; earlier closure or cancellation stays in history; ownership is rechecked.
         g.MapPost("/{id:long}/reopen", async (long id, ReasonInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            var c = await db.Cases.Include(x => x.Owner).Include(x => x.BackupOwner).Include(x => x.Environments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+            var c = await db.Cases.Include(x => x.Owner).Include(x => x.BackupOwner).Include(x => x.Environments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The ticket");
             access.RequireLeadFor(c.ClientId, c.ResponsibleTeamId, RightKeys.Cases);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
-            if (CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "Only closed or cancelled cases can be reopened.");
+            if (CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "Only closed or cancelled tickets can be reopened.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reopening reason");
             var now = clock.GetUtcNow();
             var check = new Check().Text("nextAction", input.NextAction, 1000, "the next action")
@@ -549,7 +549,7 @@ public static class CaseEndpoints
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
             var options = await StatusOptionsAsync(db, c, ct);
-            if (input.Code is null || !options.Contains(input.Code)) throw new ValidationException("code", "Select another status of the same stage. Other changes have their own action on the case.");
+            if (input.Code is null || !options.Contains(input.Code)) throw new ValidationException("code", "Select another status of the same stage. Other changes have their own action on the ticket.");
             AddEvent(db, c, CaseEventType.StatusChanged, c.StatusCode, input.Code, null, access.Me, clock.GetUtcNow());
             c.StatusCode = input.Code;
             await db.SaveChangesAsync(ct);
@@ -563,7 +563,7 @@ public static class CaseEndpoints
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
-            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The case is closed or cancelled.");
+            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The ticket is closed or cancelled.");
             var now = clock.GetUtcNow();
             new Check().When(input.Reason is null, "reason", "Select Customer, Internal team, Vendor or Planned change.")
                 .When(input.NextReviewAt is null || input.NextReviewAt < now, "nextReviewAt", "Waiting needs a future next review time.")
@@ -584,7 +584,7 @@ public static class CaseEndpoints
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await RequireStatusFromHubAsync(db, c, ct);
-            if (c.WaitingReason is null) throw new ValidationException("reason", "The case is not waiting.");
+            if (c.WaitingReason is null) throw new ValidationException("reason", "The ticket is not waiting.");
             var now = clock.GetUtcNow();
             EndWaiting(db, c, access.Me, now, input.Reason);
             await SyncWaitingStatusAsync(db, c, ct);
@@ -598,7 +598,7 @@ public static class CaseEndpoints
             var c = await LoadForChangeAsync(db, id, ct);
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId);
             db.ExpectVersion(ctx, c);
-            if (SlaSetsDue(c)) throw new ValidationException("dueLocal", "This case's due date comes from its Jira creation time and its contract's SLA.");
+            if (SlaSetsDue(c)) throw new ValidationException("dueLocal", "This ticket's due date comes from its Jira creation time and its contract's SLA.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reason for the due-date change");
             var check = new Check();
             var due = input.Clear ? null : ParseDue(check, input.DueLocal, input.DueTimeZone, required: true);
@@ -627,7 +627,7 @@ public static class CaseEndpoints
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             var j = await db.JiraReferences.FirstOrDefaultAsync(x => x.Id == refId && x.CaseId == id && x.RemovedAt == null, ct) ?? throw new NotFoundException("The Jira reference");
             if (j.Origin != JiraReferenceOrigin.Manual && await db.JiraCaseMappings.AnyAsync(m => m.CaseId == id && m.IssueKey == j.IssueKey, ct))
-                throw new ValidationException("reason", "This is the synchronized source issue of the case, so it stays while the case is synchronized.");
+                throw new ValidationException("reason", "This is the synchronized source issue of the ticket, so it stays while the ticket is synchronized.");
             var reason = Rules.RequireReason(input.Reason);
             var now = clock.GetUtcNow();
             j.RemovedAt = now;
@@ -649,7 +649,7 @@ public static class CaseEndpoints
         {
             access.RequireAccess();
             var c = await db.Cases.AsNoTracking().Include(x => x.Environments).Include(x => x.Assets).Include(x => x.Components)
-                .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+                .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The ticket");
             return Results.Ok(await DocumentedImpact.ForCaseAsync(db, c, ct));
         });
     }
@@ -719,13 +719,13 @@ public static class CaseEndpoints
 
     private static async Task<Case> LoadForChangeAsync(HubDbContext db, long id, CancellationToken ct) =>
         await db.Cases.Include(x => x.Environments).Include(x => x.Assets).Include(x => x.Components).Include(x => x.WaitingIntervals)
-            .AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The case");
+            .AsSplitQuery().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The ticket");
 
     /// <summary>A78: Jira is the trusted source of a synchronized case's status, so people only read it here.</summary>
     private static async Task RequireStatusFromHubAsync(HubDbContext db, Case c, CancellationToken ct)
     {
         var key = await db.JiraCaseMappings.AsNoTracking().Where(m => m.CaseId == c.Id).Select(m => m.IssueKey).FirstOrDefaultAsync(ct);
-        if (key is not null) throw new ValidationException("status", $"This case's status follows Jira {key}. Change it in Jira.");
+        if (key is not null) throw new ValidationException("status", $"This ticket's status follows Jira {key}. Change it in Jira.");
     }
 
     /// <summary>A78: true while a synchronized case's due date is its contract's resolution SLA.</summary>
@@ -734,7 +734,7 @@ public static class CaseEndpoints
     private static void RequireStatus(Case c, CaseStatus expected)
     {
         if (c.Status != expected)
-            throw new ValidationException($"This step needs status {expected}.", new Dictionary<string, string[]> { ["status"] = [$"The case is {c.Status}; this step applies only to {expected} cases."] });
+            throw new ValidationException($"This step needs status {expected}.", new Dictionary<string, string[]> { ["status"] = [$"The ticket is {c.Status}; this step applies only to {expected} tickets."] });
     }
 
     private static void ApplyProgress(Case c, ProgressInput i, DateTimeOffset now, bool required)
@@ -784,7 +784,7 @@ public static class CaseEndpoints
         var k = await db.Contracts.AsNoTracking().Where(x => x.Id == contractId).Select(x => new { x.ClientId }).FirstOrDefaultAsync(ct);
         if (k is null) check.Add("contractId", "Select a contract you can access.");
         else if (clientId is null) check.Add("contractId", "Internal work has no contract.");
-        else if (k.ClientId != clientId) check.Add("contractId", "Select a contract of the case's client.");
+        else if (k.ClientId != clientId) check.Add("contractId", "Select a contract of the ticket's client.");
     }
 
     /// <summary>A77: waiting on the customer shows as the waiting status, if one is configured; ending it returns to the stage's status.</summary>
@@ -840,9 +840,9 @@ public static class CaseEndpoints
             check.Add("affected.environmentIds", "Internal work has no client, so it cannot link client environments or infrastructure.");
         else if (c.ClientId is { } cid)
         {
-            if (await db.Environments.CountAsync(e => envIds.Contains(e.Id) && e.ClientId == cid, ct) != envIds.Count) check.Add("affected.environmentIds", "Affected environments must belong to the case's client.");
-            if (await db.Assets.CountAsync(e => assetIds.Contains(e.Id) && e.ClientId == cid, ct) != assetIds.Count) check.Add("affected.assetIds", "Affected assets must belong to the case's client.");
-            if (await db.Components.CountAsync(e => compIds.Contains(e.Id) && e.ClientId == cid, ct) != compIds.Count) check.Add("affected.componentIds", "Affected components must belong to the case's client.");
+            if (await db.Environments.CountAsync(e => envIds.Contains(e.Id) && e.ClientId == cid, ct) != envIds.Count) check.Add("affected.environmentIds", "Affected environments must belong to the ticket's client.");
+            if (await db.Assets.CountAsync(e => assetIds.Contains(e.Id) && e.ClientId == cid, ct) != assetIds.Count) check.Add("affected.assetIds", "Affected assets must belong to the ticket's client.");
+            if (await db.Components.CountAsync(e => compIds.Contains(e.Id) && e.ClientId == cid, ct) != compIds.Count) check.Add("affected.componentIds", "Affected components must belong to the ticket's client.");
         }
         if (envIds.Count > 0 && !string.IsNullOrWhiteSpace(a.UnknownEnvironmentReason)) check.Add("affected.unknownEnvironmentReason", "Clear the unknown-environment reason when an environment is selected.");
         check.ThrowIfAny();
@@ -887,7 +887,7 @@ public static class CaseEndpoints
         CheckJiraLinkReason(check, input.ReuseReason);
         check.ThrowIfAny();
         if (await db.JiraReferences.AnyAsync(j => j.CaseId == c.Id && j.JiraInstanceId == instance!.Id && j.IssueKey == key && j.RemovedAt == null, ct))
-            throw new ConflictException("This Jira reference is already linked to the case.");
+            throw new ConflictException("This Jira reference is already linked to the ticket.");
         var j = new JiraReference { CaseId = c.Id, ClientId = c.ClientId, JiraInstanceId = instance!.Id, IssueKey = key, Url = input.Url!.Trim(), ReuseReason = input.ReuseReason!.Trim() };
         db.JiraReferences.Add(j);
         AddEvent(db, c, CaseEventType.JiraAdded, null, $"{instance.Name} {key}", j.ReuseReason, access.Me, now);

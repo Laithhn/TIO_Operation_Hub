@@ -8,7 +8,7 @@ test('Roles compares saved rights across roles and opens a role in Rights', asyn
   await expect(matrix.getByRole('columnheader', { name: /TIO Manager/ })).toBeVisible();
   await page.screenshot({ path: 'test-results/role-matrix-desktop.png', fullPage: false });
 
-  await page.getByRole('combobox', { name: 'Module' }).selectOption('Cases');
+  await page.getByRole('combobox', { name: 'Module' }).selectOption('Tickets');
   await page.getByRole('searchbox', { name: 'Find a right' }).fill('Cases:View');
   await expect(matrix.getByRole('rowheader', { name: /View pages and records/ })).toBeVisible();
   await matrix.getByRole('link', { name: 'Edit the rights of Operation Engineer' }).click();
@@ -20,9 +20,9 @@ test('Features stay collapsed until opened, so the comparison stays readable', a
   await page.goto('/admin/roles');
   const matrix = page.getByRole('region', { name: 'Role and right comparison' });
   await expect(matrix.getByRole('rowheader', { name: /View pages and records/ })).toHaveCount(0);
-  await matrix.getByRole('button', { name: 'Expand Cases: Cases' }).click();
+  await matrix.getByRole('button', { name: 'Expand Tickets: Tickets' }).click();
   await expect(matrix.getByRole('rowheader', { name: /View pages and records/ })).toBeVisible();
-  await matrix.getByRole('button', { name: 'Collapse Cases: Cases' }).click();
+  await matrix.getByRole('button', { name: 'Collapse Tickets: Tickets' }).click();
   await expect(matrix.getByRole('rowheader', { name: /View pages and records/ })).toHaveCount(0);
 });
 

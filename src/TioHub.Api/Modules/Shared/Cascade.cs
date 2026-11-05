@@ -251,14 +251,14 @@ public static class Cascade
             "ClientEnvironment" => "Environments", "Asset" => "Servers", "ComponentHost" => "Server–component links", "Client" => "Sub-clients", "ClientTeamMember" => "Project team members",
             "ResponsibilityBoundary" => "Responsibility boundaries", "FirewallRule" => "Firewall rules", "SlaTarget" => "SLA targets", "ContractEnvironment" => "Contract coverage",
             "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "UserRightException" => "Individual permission exceptions", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
-            "CaseWaitingInterval" => "Case waiting periods", "InstallationVersionChange" => "Version changes", "ConditionReport" => "Condition reports", "DataQualityItem" => "Data-quality items",
-            "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Case–server links",
-            "CaseEnvironment" => "Case–environment links", "CaseComponent" => "Case–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
-            "CaseEvent" => "Case history entries", "CommitmentEvent" => "Commitment history entries", "EscalationEvent" => "Escalation timeline entries", "Review" => "Reviews",
+            "CaseWaitingInterval" => "Ticket waiting periods", "InstallationVersionChange" => "Version changes", "ConditionReport" => "Condition reports", "DataQualityItem" => "Data-quality items",
+            "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Ticket–server links",
+            "CaseEnvironment" => "Ticket–environment links", "CaseComponent" => "Ticket–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
+            "CaseEvent" => "Ticket history entries", "CommitmentEvent" => "Commitment history entries", "EscalationEvent" => "Escalation timeline entries", "Review" => "Reviews",
             "ProductDeveloper" => "Product developers", "TeamMember" => "Team members",
             _ => System.Text.RegularExpressions.Regex.Replace(t.ClrType.Name, "(?<!^)([A-Z])", " $1") + "s"
         };
-        return n.Replace("Cases", "Cases").Replace("ys", "ies");
+        return n.Replace("Cases", "Tickets").Replace("ys", "ies");
     }
 
     private sealed class Row { public long Id { get; set; } public string? Label { get; set; } }

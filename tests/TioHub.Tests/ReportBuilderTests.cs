@@ -140,11 +140,11 @@ public class ReportBuilderTests(HubFactory hub) : Scenario(hub)
         using var zip = new ZipArchive(new MemoryStream(await file.Content.ReadAsByteArrayAsync()));
         string Part(string name) { using var r = new StreamReader(zip.GetEntry(name)!.Open(), Encoding.UTF8); return r.ReadToEnd(); }
         var workbook = Part("xl/workbook.xml");
-        foreach (var sheet in new[] { "Cases Data", "Summary", "Applied Filters", "Metadata" }) Assert.Contains($"name=\"{sheet}\"", workbook);
+        foreach (var sheet in new[] { "Tickets Data", "Summary", "Applied Filters", "Metadata" }) Assert.Contains($"name=\"{sheet}\"", workbook);
         var data = Part("xl/worksheets/sheet1.xml");
         Assert.DoesNotContain("<f>", data);
         Assert.Contains("HYPERLINK", data);
-        Assert.Contains("t=\"inlineStr\"><is><t xml:space=\"preserve\">Case ID</t>", data);
+        Assert.Contains("t=\"inlineStr\"><is><t xml:space=\"preserve\">Ticket ID</t>", data);
         Assert.True(data.IndexOf(">Title<", StringComparison.Ordinal) < data.IndexOf(">Opened<", StringComparison.Ordinal));
         Assert.Contains("s=\"2\"", data);     // created: a real Excel date
         Assert.Contains("<autoFilter", data);
@@ -158,7 +158,7 @@ public class ReportBuilderTests(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var client = await NewClient();
-        await Case(client, "PDF case", "Critical");
+        await Case(client, "PDF ticket", "Critical");
         foreach (var mode in new[] { "summary", "detailed" })
         {
             var job = await m.Post("/reporting/exports", new { definition = Definition(client), format = "pdf", options = new { pdfMode = mode } });

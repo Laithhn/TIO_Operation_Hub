@@ -98,8 +98,8 @@ test.describe('VtWebGuiFramework frame on every page', () => {
     await page.goto('/cases');
     const side = page.locator('aside.side');
     await expect.poll(async () => (await side.boundingBox())?.x ?? 0).toBeLessThan(0);
-    await page.getByRole('button', { name: 'Menu, current section Cases' }).click();
+    await page.getByRole('button', { name: 'Menu, current section Tickets' }).click();
     await expect.poll(async () => (await side.boundingBox())?.x ?? -1).toBe(0);
-    await expect(side.getByRole('link', { name: 'All cases' })).toBeVisible();
+    await expect(side.getByRole('link', { name: 'All tickets' })).toBeVisible();
   });
 });

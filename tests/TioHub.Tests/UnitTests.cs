@@ -31,7 +31,7 @@ public class PermissionRegistryTests
     public void Deprecated_registry_keys_are_not_implicitly_replaced_by_display_names()
     {
         Assert.Contains(RightsCatalog.All, x => x.Key == "Cases:Delete");
-        Assert.DoesNotContain(RightsCatalog.All, x => x.Key == "Cases:Permanently delete cases");
+        Assert.DoesNotContain(RightsCatalog.All, x => x.Key == "Cases:Permanently delete tickets");
     }
 }
 
@@ -153,12 +153,12 @@ public class CsvTests
     public void Export_has_generation_time_zone_filters_and_column_definitions()
     {
         var bytes = Csv.Build("Cases", "DEV\\manager", "status=open", TimeZoneInfo.FindSystemTimeZoneById("Asia/Riyadh"), new DateTimeOffset(2026, 10, 16, 9, 0, 0, TimeSpan.Zero),
-            [new CsvColumn<string>("Title", "Case title", s => s)], ["=bad"]);
+            [new CsvColumn<string>("Title", "Ticket title", s => s)], ["=bad"]);
         var text = Encoding.UTF8.GetString(bytes);
         Assert.Contains("Generated,2026-10-16 12:00 +03:00", text);
         Assert.Contains("Time zone,Asia/Riyadh", text);
         Assert.Contains("Filters,status=open", text);
-        Assert.Contains("Column: Title,Case title", text);
+        Assert.Contains("Column: Title,Ticket title", text);
         Assert.Contains("'=bad", text);
     }
 }

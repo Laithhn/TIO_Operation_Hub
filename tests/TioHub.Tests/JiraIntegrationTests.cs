@@ -356,7 +356,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var run = await RunAsync(f.SpaceId);
         Assert.Equal(0, run.CasesCreated);
         var row = await Db(db => db.JiraIntegrationIssues.IgnoreQueryFilters().FirstAsync(i => i.JiraIssueId == "50" && i.JiraConnectionId == f.ConnectionId));
-        Assert.Contains("2 cases", row.Description);
+        Assert.Contains("2 tickets", row.Description);
     }
 
     [Fact]
@@ -386,7 +386,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     {
         var manager = await _hub.As(HubFactory.Manager);
         var site = await Db(db => db.JiraConnections.Where(c => c.Id == f.ConnectionId).Select(c => new { c.SiteUrl, c.JiraInstanceId }).FirstAsync());
-        var id = await manager.Create("/cases", new { title = "Existing case", type = await CaseTypeAsync(), scope = "Client", clientId = f.ClientId, responsibleTeamId = f.TeamId, impactSummary = "x", priority = "High", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) });
+        var id = await manager.Create("/cases", new { title = "Existing ticket", type = await CaseTypeAsync(), scope = "Client", clientId = f.ClientId, responsibleTeamId = f.TeamId, impactSummary = "x", priority = "High", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) });
         // The instance's approved host follows the site under test, so the manual reference passes its existing validation.
         await Db(async db => { var i = await db.JiraInstances.FirstAsync(x => x.Id == site.JiraInstanceId); i.ApprovedHost = new Uri(site.SiteUrl).Host; return await db.SaveChangesAsync(); });
         await manager.Create($"/cases/{id}/jira", new { jiraInstanceId = site.JiraInstanceId, issueKey = key, url = $"{site.SiteUrl}/browse/{key}", reuseReason = "Track the customer issue" });

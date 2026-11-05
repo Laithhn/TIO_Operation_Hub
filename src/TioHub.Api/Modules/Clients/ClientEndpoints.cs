@@ -451,7 +451,7 @@ public static partial class ClientEndpoints
     public sealed record ActiveWork(int OpenCases, int OpenCommitments, int ActiveEnvironments)
     {
         public int Total => OpenCases + OpenCommitments + ActiveEnvironments;
-        public string Describe() => string.Join(", ", new[] { (OpenCases, "open case(s)"), (OpenCommitments, "open commitment(s)"), (ActiveEnvironments, "active environment(s)") }.Where(x => x.Item1 > 0).Select(x => $"{x.Item1} {x.Item2}"));
+        public string Describe() => string.Join(", ", new[] { (OpenCases, "open ticket(s)"), (OpenCommitments, "open commitment(s)"), (ActiveEnvironments, "active environment(s)") }.Where(x => x.Item1 > 0).Select(x => $"{x.Item1} {x.Item2}"));
     }
 
     /// <summary>Counted without scope filters: the gate must see every active record, even ones the actor cannot open.</summary>

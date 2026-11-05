@@ -52,7 +52,7 @@ const box = (page: Page, name: string) => page.getByRole('checkbox', { name, exa
 test('the grid shows a role at a glance and stages a change until it is reviewed', async ({ page }) => {
   const { saved } = await application(page);
   await page.goto('/admin/rights?role=2');
-  const cases = page.getByRole('region', { name: 'Cases rights' });
+  const cases = page.getByRole('region', { name: 'Tickets rights' });
   await expect(cases.getByRole('columnheader', { name: 'Edit', exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/rights-grid.png' });
   await expect(page.getByRole('button', { name: 'Review and save' })).toHaveCount(0);
@@ -63,7 +63,7 @@ test('the grid shows a role at a glance and stages a change until it is reviewed
   await expect(page.getByLabel('Search rights', { exact: true })).toBeInViewport();
   await page.screenshot({ path: 'test-results/rights-scrolled.png' });
 
-  const remove = box(page, 'Cases: Permanently delete unused records for Operation Engineer');
+  const remove = box(page, 'Tickets: Permanently delete unused records for Operation Engineer');
   await expect(remove).toBeChecked();
   await remove.uncheck();
   const grant = box(page, 'Roles and rights: View for Operation Engineer');
@@ -122,15 +122,15 @@ test('moving to another role keeps the search and the comparison, and puts the r
 test('the protected role cannot be edited in the grid', async ({ page }) => {
   await application(page);
   await page.goto('/admin/rights?role=1');
-  await expect(box(page, 'Cases: Permanently delete unused records for TIO Manager')).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Grant shown rights in Cases' })).toBeDisabled();
+  await expect(box(page, 'Tickets: Permanently delete unused records for TIO Manager')).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Grant shown rights in Tickets' })).toBeDisabled();
 });
 
 test('the page stays inside a phone screen, and the choice of view is remembered', async ({ page }) => {
   await application(page);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/admin/rights?role=2');
-  await expect(page.getByRole('region', { name: 'Cases rights' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Tickets rights' })).toBeVisible();
   await page.screenshot({ path: 'test-results/rights-phone.png' });
   const widths = await page.evaluate(() => ({ page: document.documentElement.scrollWidth, viewport: innerWidth }));
   expect(widths.page).toBeLessThanOrEqual(widths.viewport + 1);

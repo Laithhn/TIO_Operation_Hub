@@ -175,7 +175,7 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
     public async Task<JiraCaseSyncResult> SyncCaseAsync(long caseId, CancellationToken ct)
     {
         if (!options.Value.Enabled) throw new ConflictException("Jira synchronization is switched off on this server (Jira:Enabled).");
-        var m = await db.JiraCaseMappings.IgnoreQueryFilters().AsNoTracking().FirstOrDefaultAsync(x => x.CaseId == caseId, ct) ?? throw new ConflictException("This case is not linked to a synchronized Jira issue.");
+        var m = await db.JiraCaseMappings.IgnoreQueryFilters().AsNoTracking().FirstOrDefaultAsync(x => x.CaseId == caseId, ct) ?? throw new ConflictException("This ticket is not linked to a synchronized Jira issue.");
         var space = await db.ClientJiraSpaces.IgnoreQueryFilters().Include(s => s.JiraConnection).FirstOrDefaultAsync(s => s.Id == m.ClientJiraSpaceId, ct);
         if (space is null || space.ReleasedAt is not null || !space.IsEnabled || space.JiraConnection is not { IsEnabled: true } conn) throw new ConflictException($"The Jira space of {m.IssueKey} is not assigned and enabled, so it cannot be synchronized.");
         var settings = await db.ClientJiraSettings.FirstOrDefaultAsync(x => x.ClientId == space.ClientId && x.IsEnabled, ct) ?? throw new ConflictException("Enable the client's Jira integration first.");
@@ -184,7 +184,7 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
             var auth = await secrets.AuthAsync(conn, ct);
             var fields = await DetailFieldsAsync(conn, auth, ct);
             await db.SaveChangesAsync(ct);
-            var issue = await jira.GetIssueAsync(auth, m.JiraIssueId, fields.Keys.ToArray(), ct) ?? throw new ConflictException($"Jira no longer shows {m.IssueKey} to this connection. The case was not changed.");
+            var issue = await jira.GetIssueAsync(auth, m.JiraIssueId, fields.Keys.ToArray(), ct) ?? throw new ConflictException($"Jira no longer shows {m.IssueKey} to this connection. The ticket was not changed.");
             var outcome = await ProcessWithRetryAsync(new JiraRunContext(conn, space, settings, auth, fields, true), issue, ct);
             return new JiraCaseSyncResult(m.IssueKey, outcome.Updated, outcome.Comments, outcome.Activities, outcome.Error);
         }
@@ -223,7 +223,7 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
         {
             ValidationException v => string.Join(" ", v.Errors.SelectMany(e => e.Value)) is { Length: > 0 } text ? text : v.Message,
             ConflictException or NotFoundException or ForbiddenException => ex.Message,
-            DbUpdateConcurrencyException => "the case was changed by someone else during the import.",
+            DbUpdateConcurrencyException => "the ticket was changed by someone else during the import.",
             DbUpdateException d when SqlErrors.IsUniqueViolation(d) => $"a record with the same unique value already exists. {d.GetBaseException().Message}",
             _ => ex.GetBaseException().Message
         };
@@ -262,8 +262,8 @@ public sealed class JiraSyncService(HubDbContext db, IJiraApiClient jira, JiraSe
             {
                 Type = issue is null ? JiraIssueType.InvalidExternalReference : JiraIssueType.IssueMovedBetweenSpaces, Fingerprint = fingerprint, JiraConnectionId = conn.Id, ClientId = space.ClientId, ProjectKey = space.ProjectKey, JiraProjectId = space.JiraProjectId,
                 JiraIssueId = m.JiraIssueId, IssueKey = m.IssueKey, CaseId = m.CaseId, LastSeenAt = now,
-                Description = issue is null ? $"{m.IssueKey} no longer exists in Jira, or the account can no longer see it. The case was not changed." : $"{m.IssueKey} left space {space.ProjectKey} and is now {issue.Key}. The case was not changed.",
-                SuggestedAction = issue is null ? "Check the issue in Jira and update or close the case by hand." : "Assign the new space to the right client; the case stays with its client until a person decides."
+                Description = issue is null ? $"{m.IssueKey} no longer exists in Jira, or the account can no longer see it. The ticket was not changed." : $"{m.IssueKey} left space {space.ProjectKey} and is now {issue.Key}. The ticket was not changed.",
+                SuggestedAction = issue is null ? "Check the issue in Jira and update or close the ticket by hand." : "Assign the new space to the right client; the ticket stays with its client until a person decides."
             });
             run.FailedRecords++;
         }

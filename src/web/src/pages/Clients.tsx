@@ -61,7 +61,7 @@ export function ClientList() {
           ...(canFilterRegionalStructure ? [{ key: 'structure', header: 'Structure', render: (r: ClientRow) => <span className="nowrap" title={r.regionCount === 0 ? 'Environments directly under the client, no regions' : undefined}>{r.regionCount === 0 ? 'Direct' : `${r.regionCount} region${r.regionCount > 1 ? 's' : ''}${r.directEnvironmentCount ? ' + direct' : ''}`}</span>,
             filter: <select className="input" aria-label="Filter by structure" value={f.structure} onChange={e => set({ structure: e.target.value })}><option value="">All</option><option value="regional">With regions</option><option value="direct">Without regions</option></select> }] : []),
           ...(canViewEnvironments ? [{ key: 'env', header: 'Environments', className: 'num', render: (r: ClientRow) => r.environmentCount }] : []),
-          ...(hasRight(me, 'Cases', 'View') ? [{ key: 'cases', header: 'Open cases', className: 'num', render: (r: ClientRow) => r.openCases }] : []),
+          ...(hasRight(me, 'Cases', 'View') ? [{ key: 'cases', header: 'Open tickets', className: 'num', render: (r: ClientRow) => r.openCases }] : []),
           ...(hasRight(me, 'Commitments', 'View') ? [{ key: 'od', header: 'Overdue commitments', className: 'num', render: (r: ClientRow) => r.overdueCommitments ? <Badge tone="bad">{r.overdueCommitments}</Badge> : 0 }] : []),
           ...(canViewStructure ? [{ key: 'owner', header: 'Project manager', render: (r: ClientRow) => <Person u={r.owner} /> }] : []),
           { key: 'del', header: '', className: 'row-actions', render: (r: ClientRow) => <DeleteAction path={`/clients/${r.id}`} what={`client ${r.code}`} /> }
@@ -296,7 +296,7 @@ const clientTabSpecs = [
   { key: 'structure', label: 'Regions & environments', permissions: ['ClientStructure:View', 'Environments:View'] },
   { key: 'organizations', label: 'Organizations', permissions: ['ClientStructure:View'] },
   { key: 'contracts', label: 'Contracts & SLAs', permissions: ['Contracts:View'] },
-  { key: 'cases', label: 'Cases', permissions: ['Cases:View'] },
+  { key: 'cases', label: 'Tickets', permissions: ['Cases:View'] },
   { key: 'commitments', label: 'Commitments', permissions: ['Commitments:View'] },
   { key: 'escalations', label: 'Escalations', permissions: ['OtherOperations:View'] },
   { key: 'infra', label: 'Infrastructure', permissions: ['Servers:View'] },
@@ -340,7 +340,7 @@ function EnvTable({ envs }: { envs: EnvCard[] }) {
       { key: 'c', header: 'Criticality', render: e => <StatusBadge value={e.criticality} /> },
       ...(showApps ? [{ key: 'a', header: 'Applications', render: (e: EnvCard) => !e.installations?.length ? <span className="muted">None recorded</span> : e.installations.map(i => <div key={i.id}><Link to={`/installations/${i.id}`}>{i.product} · {i.instanceName}</Link> <span className="chip">{i.version ?? 'Unknown version'}</span></div>) }] : []),
       ...(showAssets ? [{ key: 's', header: 'Assets', className: 'num', render: (e: EnvCard) => e.assetCount ?? 0 }] : []),
-      ...(showCases ? [{ key: 'o', header: 'Open cases', className: 'num', render: (e: EnvCard) => e.openCases ?? 0 }] : []),
+      ...(showCases ? [{ key: 'o', header: 'Open tickets', className: 'num', render: (e: EnvCard) => e.openCases ?? 0 }] : []),
       { key: 'r', header: 'Reported condition', render: e => <ConditionBadge c={e.condition} /> },
       { key: 'f', header: 'Inventory review', render: e => <FreshnessBadge f={e.inventoryFreshness} /> },
       { key: 'w', header: 'Owner / backup', render: e => <><Person u={e.owner} gap="No owner (gap)" />{!e.hasBackup && <> <Badge tone="warn">No backup</Badge></>}</> },
@@ -449,7 +449,7 @@ export function ClientDetail() {
         </>)}
         {activeTab === 'contracts' && <ClientContracts clientId={Number(id)} canCreate={canContractCreate && full} />}
         {o && activeTab === 'cases' && (
-          <Panel title={`Open cases (${o.cases.length})`} actions={<Link className="btn" to={`/cases?clientId=${id}`}>Open list</Link>}>
+          <Panel title={`Open tickets (${o.cases.length})`} actions={<Link className="btn" to={`/cases?clientId=${id}`}>Open list</Link>}>
             {o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(k => <li key={k.id}><Link to={`/cases/${k.id}`}>{k.ref}</Link> {k.title} <StatusBadge value={k.status} enumName="CaseStatus" /> {k.overdue && <Badge tone="bad">Overdue</Badge>}{k.waitingReason && <Badge tone="warn">Waiting: {label(k.waitingReason)}</Badge>}<div className="when">{k.owner} · next: {k.nextAction}</div></li>)}</ul>}
           </Panel>
         )}

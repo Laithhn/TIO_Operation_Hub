@@ -9,7 +9,7 @@ import { RecordLink, useClientOptions, useProductOptions, useTeamOptions } from 
 type Action = { category: string; recordType: string; recordId: number; reference: string; title: string; clientId?: number; owner: string; reason: string; nextAction?: string; dueAt?: string; link: string };
 
 const CATS: Record<string, string> = {
-  Unassigned: 'Unassigned', Waiting: 'Waiting / blocked', ReviewOverdue: 'Review overdue', OverdueCase: 'Overdue cases', OverdueCommitment: 'Overdue commitments',
+  Unassigned: 'Unassigned', Waiting: 'Waiting / blocked', ReviewOverdue: 'Review overdue', OverdueCase: 'Overdue tickets', OverdueCommitment: 'Overdue commitments',
   ApproachingCommitment: 'Approaching', StaleReview: 'Stale reviews', CoverageGap: 'Coverage gaps', DataQuality: 'Data quality', ContractRenewal: 'Contract renewals', PaymentDue: 'Payments due',
   CaseDueSoon: 'Due within 24 h', EscalationOverdue: 'Escalations past target', EnvironmentCondition: 'Environments down'
 };

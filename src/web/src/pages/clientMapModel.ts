@@ -22,8 +22,8 @@ export type Layer = {
 export const LAYERS: Layer[] = [
   { key: 'clients', label: 'Clients', unit: 'clients', icon: 'clients', value: d => d.clients, alert: d => d.overdueCases + d.overdueCommitments > 0, alertLabel: 'has overdue work' },
   { key: 'servers', label: 'Servers', unit: 'servers', icon: 'server', value: d => d.servers },
-  { key: 'cases', label: 'Open cases', unit: 'open cases', icon: 'case', value: d => d.openCases, alert: d => d.overdueCases > 0, alertLabel: 'has overdue cases' },
-  { key: 'overdue', label: 'Overdue', unit: 'overdue items', icon: 'warning', value: d => d.overdueCases + d.overdueCommitments, alert: d => d.overdueCases + d.overdueCommitments > 0, alertLabel: 'overdue cases or commitments' },
+  { key: 'cases', label: 'Open tickets', unit: 'open tickets', icon: 'case', value: d => d.openCases, alert: d => d.overdueCases > 0, alertLabel: 'has overdue tickets' },
+  { key: 'overdue', label: 'Overdue', unit: 'overdue items', icon: 'warning', value: d => d.overdueCases + d.overdueCommitments, alert: d => d.overdueCases + d.overdueCommitments > 0, alertLabel: 'overdue tickets or commitments' },
   { key: 'contracts', label: 'Contracts', unit: 'active contracts', icon: 'project', value: d => d.activeContracts, alert: d => d.renewalAttention > 0, alertLabel: 'renewal decision due' }
 ];
 export const layerOf = (key: string): Layer => LAYERS.find(l => l.key === key) ?? LAYERS[0];
@@ -86,6 +86,6 @@ export function clientStatus(c: MapClient): { tone: 'bad' | 'warn' | 'ok'; label
   const overdue = c.overdueCases + c.overdueCommitments;
   if (overdue > 0) return { tone: 'bad', label: `${overdue} overdue` };
   if (c.renewalAttention > 0) return { tone: 'warn', label: `${c.renewalAttention} renewal due` };
-  if (c.openCases > 0) return { tone: 'warn', label: `${c.openCases} open case${c.openCases === 1 ? '' : 's'}` };
+  if (c.openCases > 0) return { tone: 'warn', label: `${c.openCases} open ticket${c.openCases === 1 ? '' : 's'}` };
   return { tone: 'ok', label: 'Nothing overdue' };
 }

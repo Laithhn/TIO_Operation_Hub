@@ -162,7 +162,7 @@ public static class ContractEndpoints
                     .Select(e => new { e.Id, e.Name, e.Type, region = e.Region == null ? null : e.Region.Code }).ToListAsync(ct),
                 slaTargets = c.SlaTargets.OrderBy(t => t.Priority).Select(t => new { t.Id, t.Priority, t.ResponseMinutes, t.ResolutionMinutes, t.Basis, t.Notes }),
                 penaltyClauses = c.PenaltyClauses.OrderBy(t => t.Id).Select(t => new { t.Id, t.Name, t.Trigger, t.Calculation, t.FixedAmount, t.Percentage, t.ReferenceAmount, t.MonthlyCap, t.BillingTimeZone, currency = c.Currency }),
-                slaNote = "Targets as the contract states them. Cases linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects cases linked afterwards.",
+                slaNote = "Targets as the contract states them. Tickets linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects tickets linked afterwards.",
                 c.LastReviewedAt, c.CreatedAt, c.UpdatedAt,
                 permissions = new { canEdit = maintain, canArchive = archive }
             });

@@ -123,7 +123,7 @@ test.describe('UX-002 Narrow operational tables', () => {
     await page.goto('/cases');
     const scroller = page.locator('.vt-table-scroll').first();
     await expect(scroller).toHaveClass(/is-overflowing/);
-    await expect(scroller).toHaveAttribute('aria-label', 'Cases: scroll sideways for more columns');
+    await expect(scroller).toHaveAttribute('aria-label', 'Tickets: scroll sideways for more columns');
     const ref = page.locator('tbody tr.vt-row td.col-identity').first();
     const before = await ref.boundingBox();
     // Keyboard: the scroll area takes focus and the arrow keys move it.
@@ -167,7 +167,7 @@ test.describe('UX-002 Narrow operational tables', () => {
       await refHeader.click();
       await expect(table.locator('th[aria-sort]')).toHaveCount(1);
     }
-    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('region', { name: 'Cases' }).getByRole('button', { name: 'Export CSV' }).click()]);
+    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('region', { name: 'Tickets' }).getByRole('button', { name: 'Export CSV' }).click()]);
     const csv = await (await download.createReadStream()).toArray().then(c => Buffer.concat(c).toString('utf8'));
     for (const h of headers) expect(csv.split(/\r?\n/)[0], `export has ${h}`).toContain(h);
     await page.screenshot({ path: 'test-results/ux-002-360-after.png' });

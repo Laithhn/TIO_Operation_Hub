@@ -203,9 +203,9 @@ public static class CaseSla
 
         if (c.Scope == WorkScope.Internal || c.ClientId is null) { rState = xState = SlaState.NotApplicable; note = "Internal work has no contractual SLA."; }
         else if (c.ContractId is null && c.SlaNoCoveringContract) { rState = xState = SlaState.NotMeasurable; note = "No contract linked to this Jira space covers the ticket's creation date."; }
-        else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this case."; }
-        else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The case was cancelled."; }
-        else if (BeforeContract(c) && c.SlaContractStart is { } contractStart) { rState = xState = SlaState.NotApplicable; note = $"The case was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }
+        else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this ticket."; }
+        else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The ticket was cancelled."; }
+        else if (BeforeContract(c) && c.SlaContractStart is { } contractStart) { rState = xState = SlaState.NotApplicable; note = $"The ticket was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }
         else
         {
             var (cal, problem) = Calendar(c);
@@ -218,7 +218,7 @@ public static class CaseSla
                 var due = SlaClock.Deadline(start, minutes.Value, cal, pauses);
                 if (due is null) { note ??= "No support time falls within the next four years of the calendar."; return (SlaState.NotMeasurable, null, null); }
                 if (actual is { } a) return (a <= due ? SlaState.Met : SlaState.Breached, due, (int)SlaClock.Counted(start, a, cal, pauses).TotalMinutes);
-                if (untracked) { note ??= $"The case was opened before {what}s were recorded, and none was recorded since."; return (SlaState.NotMeasurable, due, null); }
+                if (untracked) { note ??= $"The ticket was opened before {what}s were recorded, and none was recorded since."; return (SlaState.NotMeasurable, due, null); }
                 // A91: a finished case stops counting, or an unanswered one would run on for ever.
                 return (now > due ? SlaState.Breached : SlaState.Pending, due, (int)SlaClock.Counted(start, c.ClosedAt ?? c.CancelledAt ?? now, cal, pauses).TotalMinutes);
             }
@@ -312,7 +312,7 @@ public static class CaseSla
     {
         if (!await db.Settings.AnyAsync(s => s.Key == SettingKeys.SlaTrackingFrom, ct))
         {
-            db.Settings.Add(new AppSetting { Key = SettingKeys.SlaTrackingFrom, Value = now.ToString("O"), Description = "When first responses to customers began to be recorded (A61). Cases opened earlier have no response measurement unless one is recorded." });
+            db.Settings.Add(new AppSetting { Key = SettingKeys.SlaTrackingFrom, Value = now.ToString("O"), Description = "When first responses to customers began to be recorded (A61). Tickets opened earlier have no response measurement unless one is recorded." });
             await db.SaveChangesAsync(ct);
         }
         var pending = await db.Cases.IgnoreQueryFilters().Where(c => c.SlaCalculatedAt == null).Select(c => c.Id).ToListAsync(ct);
@@ -339,12 +339,12 @@ public static class CaseSla
                     if (c.SlaCalculatedAt is null) c.SlaCalculatedAt = now; // marks the case as processed; SaveChanges evaluates it
                     processed++;
                 }
-                catch (Exception ex) { failed++; log.LogWarning(ex, "SLA backfill skipped case {CaseId}", c.Id); }
+                catch (Exception ex) { failed++; log.LogWarning(ex, "SLA backfill skipped ticket {CaseId}", c.Id); }
             }
             await db.SaveChangesAsync(ct);
         }
         if (pending.Count > 0)
-            log.LogInformation("SLA backfill: {Processed} case(s) processed, {Resolved} resolution time(s) taken from the status history, {Skipped} skipped, {Failed} failed",
+            log.LogInformation("SLA backfill: {Processed} ticket(s) processed, {Resolved} resolution time(s) taken from the status history, {Skipped} skipped, {Failed} failed",
                 processed, resolvedFromHistory, pending.Count - processed - failed, failed);
     }
 }
@@ -364,7 +364,7 @@ public sealed class SlaSweep(IServiceScopeFactory scopes, IConfiguration config,
                 using var scope = scopes.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
                 var n = await SweepAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow(), stop);
-                if (n > 0) log.LogInformation("SLA sweep updated {Count} case(s)", n);
+                if (n > 0) log.LogInformation("SLA sweep updated {Count} ticket(s)", n);
             }
             catch (Exception ex) when (ex is not OperationCanceledException) { log.LogError(ex, "SLA sweep failed; it is retried at the next interval"); }
             await Task.Delay(TimeSpan.FromMinutes(minutes), stop);

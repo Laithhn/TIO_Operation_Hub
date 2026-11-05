@@ -78,7 +78,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
           { key: 'ct', header: 'Contract', render: s => <>{s.contracts.length ? s.contracts.map(k => <div key={k.id} title={k.title}>{k.ref} <span className="hint">{contractPeriod(k)}</span>{k.status !== 'Active' && <> <Badge tone="warn">{label(k.status)}</Badge></>}</div>) : <span className="muted">None</span>}{canManage && <> <button className="linkbtn" aria-label={`Change the contracts of ${s.projectKey}`} onClick={() => setContractOf(s)}>Change</button></>}</> },
           { key: 'l', header: 'Last sync', render: s => s.lastSync ? fmtDateTime(s.lastSync) : <span className="muted">Never</span> },
           { key: 'h', header: 'Sync health', render: s => <span title={s.lastError}><JiraBadge value={s.health === 'Success' ? 'Healthy' : s.health} /></span> },
-          { key: 'u', header: 'Case count', className: 'num', render: s => hasRight(me, 'Cases', 'View') ? <Link to={`/cases?clientId=${clientId}&jiraSpace=${s.projectKey}&status=all`}>{s.cases}</Link> : s.cases },
+          { key: 'u', header: 'Ticket count', className: 'num', render: s => hasRight(me, 'Cases', 'View') ? <Link to={`/cases?clientId=${clientId}&jiraSpace=${s.projectKey}&status=all`}>{s.cases}</Link> : s.cases },
           { key: 'x', header: 'Actions', render: s => canManage && <><button className="linkbtn" onClick={() => syncNow(s.id)}>Sync</button> <button className="linkbtn" onClick={() => setRelease(s.id)}>Release</button></> }
         ]} />
         <div className="notice" style={{ margin: 8 }}>Each Jira space can belong to one active client only.</div>
@@ -99,8 +99,8 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
         <div className="jira-col">
           <Panel title="Imported data behavior">
             <div className="jira-behavior">
-              <div><h4>Syncs from Jira</h4><ul><li>Workflow status (through validated mappings)</li><li>Jira assignee → case owner</li><li>Jira comments and activity</li><li>Jira references (Customer Cloud)</li></ul></div>
-              <div><h4>Preserved in TIO</h4><ul><li>Priority and type after a case is created</li><li>Contractual SLA and penalties</li><li>Backup owner, responsible team, coordinator</li><li>Closing and cancelling cases</li><li>Local TIO comments</li></ul></div>
+              <div><h4>Syncs from Jira</h4><ul><li>Workflow status (through validated mappings)</li><li>Jira assignee → ticket owner</li><li>Jira comments and activity</li><li>Jira references (Customer Cloud)</li></ul></div>
+              <div><h4>Preserved in TIO</h4><ul><li>Priority and type after a ticket is created</li><li>Contractual SLA and penalties</li><li>Backup owner, responsible team, coordinator</li><li>Closing and cancelling tickets</li><li>Local TIO comments</li></ul></div>
             </div>
             <div className="notice" style={{ marginTop: 8, marginBottom: 0 }}>TIO comments are local only and are never sent back to Jira.</div>
           </Panel>
@@ -111,7 +111,7 @@ export function ClientJiraIntegration({ clientId }: { clientId: number }) {
       {dialog === 'history' && <HistoryDialog clientId={clientId} onClose={() => setDialog(null)} />}
       {contractOf && <SpaceContractsDialog clientId={clientId} space={contractOf} options={d.contracts ?? []} onClose={() => setContractOf(null)} />}
       {release && <ActionDialog title="Release Jira space" danger path={`/clients/${clientId}/jira/spaces/${release}/release`} submitLabel="Release" onClose={() => setRelease(null)}
-        intro="The space stops synchronizing and can be assigned again. Cases already imported stay with this client." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
+        intro="The space stops synchronizing and can be assigned again. Tickets already imported stay with this client." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
     </>}</QueryState>
   );
 }
@@ -125,16 +125,16 @@ function ValueMappings({ clientId, rows, canManage }: { clientId: number; rows: 
   const [message, setMessage] = useState<string | null>(null);
   const save = async (r: ValueMapping, target: string) => {
     setMessage(null);
-    try { await put(`/clients/${clientId}/jira/value-mappings/${r.id}`, { target: target || null }); toast('Mapping saved. It applies to cases created from now on.'); await refresh(); }
+    try { await put(`/clients/${clientId}/jira/value-mappings/${r.id}`, { target: target || null }); toast('Mapping saved. It applies to tickets created from now on.'); await refresh(); }
     catch (e) { setMessage(e instanceof ApiError ? e.summary : 'The request failed.'); }
   };
   return (
     <Panel title="Jira priorities and issue types to map" pad={false}>
       {message && <div className="notice warn" style={{ margin: 8 }}>{message}</div>}
-      <p className="hint" style={{ margin: '8px 10px' }}>A Jira value with the same name as a case value is used directly. The values below have no match, so new cases use the default in the settings until you map them. Existing cases keep their values.</p>
+      <p className="hint" style={{ margin: '8px 10px' }}>A Jira value with the same name as a ticket value is used directly. The values below have no match, so new tickets use the default in the settings until you map them. Existing tickets keep their values.</p>
       <DataTable<ValueMapping> caption="Jira priorities and issue types to map" tools={false} rows={rows} rowKey={r => r.id} columns={[
         { key: 'k', header: 'Kind', render: r => r.kind === 'Priority' ? 'Priority' : 'Issue type' }, { key: 'v', header: 'Jira value', render: r => r.jiraValue },
-        { key: 't', header: 'Maps to', render: r => <select className="input" aria-label={`Case value for Jira ${r.jiraValue}`} disabled={!canManage} value={r.target ?? ''} onChange={e => save(r, e.target.value)}>
+        { key: 't', header: 'Maps to', render: r => <select className="input" aria-label={`Ticket value for Jira ${r.jiraValue}`} disabled={!canManage} value={r.target ?? ''} onChange={e => save(r, e.target.value)}>
           <option value="">Use the default</option>{(r.kind === 'Priority' ? enumOptions(priorities) : T.options('CaseType', r.target ?? '')).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select> },
         { key: 's', header: 'State', render: r => <JiraBadge value={r.target ? 'Passed' : 'Warning'} /> }
       ]} />
@@ -175,17 +175,17 @@ function SettingsPanel({ clientId, d, onPreview, onSync }: { clientId: number; d
         <Checkbox label="Jira integration enabled" checked={v.isEnabled} disabled={!can} onChange={x => f.set('isEnabled', x)} hint={s?.lastPreviewAt ? `Dry run: ${fmtDateTime(s.lastPreviewAt)}` : 'Needs a dry run first (Preview import).'} />
         <Checkbox label="Sync on startup" checked={v.syncOnStartup} disabled={!can} onChange={x => f.set('syncOnStartup', x)} />
         <Checkbox label="Full reconciliation" checked={v.fullReconciliation} disabled={!can} onChange={x => f.set('fullReconciliation', x)} />
-        <Checkbox label="Import issues already done" checked={v.importDoneIssues} disabled={!can} onChange={x => f.set('importDoneIssues', x)} hint="Off: finished Jira issues do not become open cases." />
+        <Checkbox label="Import issues already done" checked={v.importDoneIssues} disabled={!can} onChange={x => f.set('importDoneIssues', x)} hint="Off: finished Jira issues do not become open tickets." />
       </div>
       {f.fieldError('isEnabled') && <div className="err">{f.fieldError('isEnabled')}</div>}
       <div className="form-grid">
         <SelectInput label="Jira connection" value={v.jiraConnectionId} disabled={!can} onChange={x => f.set('jiraConnectionId', x)} options={d.connections.map(c => ({ value: String(c.id), label: c.name }))} error={f.fieldError('jiraConnectionId')} />
-        <SelectInput label="Import mode" value="JiraToCases" disabled onChange={() => undefined} empty={null} options={[{ value: 'JiraToCases', label: 'Jira → TIO cases' }]} hint="One way only." />
+        <SelectInput label="Import mode" value="JiraToCases" disabled onChange={() => undefined} empty={null} options={[{ value: 'JiraToCases', label: 'Jira → TIO tickets' }]} hint="One way only." />
         <SelectInput label="Sync interval" value={v.syncIntervalMinutes} disabled={!can} onChange={x => f.set('syncIntervalMinutes', x)} empty={null} options={['5', '15', '30', '60', '240'].map(m => ({ value: m, label: `${m} minutes` }))} error={f.fieldError('syncIntervalMinutes')} />
         <TextInput label="Full reconciliation every (days)" value={v.fullReconciliationDays} disabled={!can} onChange={x => f.set('fullReconciliationDays', x)} error={f.fieldError('fullReconciliationDays')} />
-        <SelectInput label="Responsible team for new cases" required={v.isEnabled} value={v.defaultResponsibleTeamId} disabled={!can} onChange={x => f.set('defaultResponsibleTeamId', x)} options={teams} error={f.fieldError('defaultResponsibleTeamId')} />
-        <SelectInput label="Case type when Jira has no match" required={v.isEnabled} value={v.defaultCaseType} disabled={!can} onChange={x => f.set('defaultCaseType', x)} options={T.options('CaseType', v.defaultCaseType)} error={f.fieldError('defaultCaseType')} />
-        <SelectInput label="Priority when Jira has no match" value={v.defaultPriority} disabled={!can} onChange={x => f.set('defaultPriority', x)} empty={null} options={enumOptions(priorities)} hint="New cases take their priority and type from Jira. After that, Jira no longer changes them." />
+        <SelectInput label="Responsible team for new tickets" required={v.isEnabled} value={v.defaultResponsibleTeamId} disabled={!can} onChange={x => f.set('defaultResponsibleTeamId', x)} options={teams} error={f.fieldError('defaultResponsibleTeamId')} />
+        <SelectInput label="Ticket type when Jira has no match" required={v.isEnabled} value={v.defaultCaseType} disabled={!can} onChange={x => f.set('defaultCaseType', x)} options={T.options('CaseType', v.defaultCaseType)} error={f.fieldError('defaultCaseType')} />
+        <SelectInput label="Priority when Jira has no match" value={v.defaultPriority} disabled={!can} onChange={x => f.set('defaultPriority', x)} empty={null} options={enumOptions(priorities)} hint="New tickets take their priority and type from Jira. After that, Jira no longer changes them." />
         <TextInput label="First review after (hours)" value={v.nextReviewHours} disabled={!can} onChange={x => f.set('nextReviewHours', x)} error={f.fieldError('nextReviewHours')} />
         <TextInput label="Import issues created from (optional)" type="date" value={v.importFrom} disabled={!can} onChange={x => f.set('importFrom', x)} error={f.fieldError('importFrom')} />
       </div>
@@ -194,7 +194,7 @@ function SettingsPanel({ clientId, d, onPreview, onSync }: { clientId: number; d
         <button className="btn" disabled={!d.summary.enabled} onClick={onSync}>Sync now</button>
         <button className="btn" disabled={d.spaces.length === 0} onClick={onPreview}>Preview import</button>
       </div>}
-      <div className="notice" style={{ marginTop: 8, marginBottom: 0 }}>Imported Jira tickets become TIO cases for this client only. No contract is linked automatically, so nothing is measured against an SLA until a person links one.</div>
+      <div className="notice" style={{ marginTop: 8, marginBottom: 0 }}>Imported Jira tickets become TIO tickets for this client only. No contract is linked automatically, so nothing is measured against an SLA until a person links one.</div>
     </Panel>
   );
 }
@@ -222,7 +222,7 @@ function AddSpacePanel({ clientId, d, onClose }: { clientId: number; d: ClientJi
         <div className="toolbar">
           <SelectInput label="Connection" value={connectionId} onChange={setConnectionId} options={d.connections.map(c => ({ value: String(c.id), label: c.name }))} />
           <TextInput label="Search Jira spaces" value={text} onChange={setText} placeholder="Key or name" />
-          <SelectInput label="Contract for cases from these spaces" empty="No contract" value={contractId} onChange={setContractId} options={(d.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` }))} />
+          <SelectInput label="Contract for tickets from these spaces" empty="No contract" value={contractId} onChange={setContractId} options={(d.contracts ?? []).map(k => ({ value: String(k.id), label: `${k.ref} · ${k.title}` }))} />
         </div>
       </div>
       <DataTable<Available> caption="Spaces available to assign" tools={false} rows={q.data} loading={q.isLoading} error={q.error} rowKey={a => a.id} empty={text ? 'nomatch' : 'none'} columns={[
@@ -270,11 +270,11 @@ function SpaceContractsDialog({ clientId, space, options, onClose }: { clientId:
   const toggle = (id: number, on: boolean) => f.set('contractIds', on ? [...v.contractIds, id] : v.contractIds.filter(x => x !== id));
   const save = async () => {
     const r = await f.submit(() => put<{ changed: number }>(`/clients/${clientId}/jira/spaces/${space.id}/contracts`, { contractIds: v.contractIds, reason: v.reason || null }));
-    if (r) { toast(`Contracts of ${space.projectKey} saved; ${r.changed} case(s) changed.`); await refresh(); onClose(); }
+    if (r) { toast(`Contracts of ${space.projectKey} saved; ${r.changed} ticket(s) changed.`); await refresh(); onClose(); }
   };
   return (
     <Dialog title={`Contracts of ${space.projectKey}`} onClose={onClose}>
-      <div className="notice">Each ticket belongs to the contract valid on its Jira creation date, whether open or closed, and a renewal does not move older tickets. A ticket no contract covers is Not measurable. Saving applies this to the existing cases of this space, so their SLA results and penalties can change. Dates of these contracts must not overlap.</div>
+      <div className="notice">Each ticket belongs to the contract valid on its Jira creation date, whether open or closed, and a renewal does not move older tickets. A ticket no contract covers is Not measurable. Saving applies this to the existing tickets of this space, so their SLA results and penalties can change. Dates of these contracts must not overlap.</div>
       <FormError error={f.error} fields={['contractIds', 'reason']} />
       <fieldset className="wide" style={{ border: 0, padding: 0, margin: '8px 0' }}>
         <legend className="flabel">Contracts</legend>

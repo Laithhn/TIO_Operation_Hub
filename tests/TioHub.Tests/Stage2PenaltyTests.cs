@@ -159,7 +159,7 @@ public class Stage2PenaltyTests(HubFactory hub) : Scenario(hub)
         if (correction == "corrected")
             await m.Ok($"/cases/{id}/first-response", new { respondedAt = Opened.AddMinutes(30), channel = "Email", note = "Previously omitted timely response" }, version);
         else if (correction == "cancelled")
-            await m.Ok($"/cases/{id}/cancel", new { reason = "Case opened in error" }, version);
+            await m.Ok($"/cases/{id}/cancel", new { reason = "Ticket opened in error" }, version);
         else
             await m.Ok($"/cases/{id}/contract", new { contractId = (long?)null, reason = "Contract linked in error" }, version);
         await Recalculate(m, contract);
@@ -182,7 +182,7 @@ public class Stage2PenaltyTests(HubFactory hub) : Scenario(hub)
         await Recalculate(m, contract);
         var before = Active(await Rows(m, contract));
         await Confirm(m, contract, before);
-        await m.Ok($"/cases/{first}/cancel", new { reason = "Duplicate case" }, await m.Version($"/cases/{first}"));
+        await m.Ok($"/cases/{first}/cancel", new { reason = "Duplicate ticket" }, await m.Version($"/cases/{first}"));
         await LinkedCase(m, client, contract);
         await Recalculate(m, contract);
         var after = Active(await Rows(m, contract));

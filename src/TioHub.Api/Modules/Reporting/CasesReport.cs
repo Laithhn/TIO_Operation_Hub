@@ -145,12 +145,12 @@ public static class CasesFields
 
     public static readonly IReadOnlyList<CaseField> All =
     [
-        new() { Key = "caseId", Label = "Case ID", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Ref), Description = "Hub case reference (always included; links to the case).", Build = E((c, _) => c.Ref) },
-        new() { Key = "title", Label = "Title", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Title), Description = "Case title.", Build = E((c, _) => c.Title) },
-        new() { Key = "type", Label = "Type", Type = CaseFieldType.Text, Category = "Case", Prop = nameof(CaseReportRow.Type), Description = "Configured case type.", Build = E((c, _) => c.Type), Groupable = true },
-        new() { Key = "scope", Label = "Work scope", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Scope), Description = "Client-related or Internal.", Options = Enum.GetNames<WorkScope>(), Build = E((c, _) => c.Scope), Groupable = true },
-        new() { Key = "status", Label = "Status", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Status), Description = "Configured case status, as in the case list and the dashboard; a synchronized case follows Jira. Waiting for customer is a status; other waiting reasons are under Waiting reason.", Build = E((c, _) => c.StatusCode), Groupable = true },
-        new() { Key = "priority", Label = "Priority", Type = CaseFieldType.Enum, Category = "Case", Prop = nameof(CaseReportRow.Priority), Description = "Priority (Critical, High, Normal, Low).", Options = Enum.GetNames<Priority>(), Build = E((c, _) => c.Priority), Groupable = true },
+        new() { Key = "caseId", Label = "Ticket ID", Type = CaseFieldType.Text, Category = "Ticket", Prop = nameof(CaseReportRow.Ref), Description = "Hub ticket reference (always included; links to the ticket).", Build = E((c, _) => c.Ref) },
+        new() { Key = "title", Label = "Title", Type = CaseFieldType.Text, Category = "Ticket", Prop = nameof(CaseReportRow.Title), Description = "Ticket title.", Build = E((c, _) => c.Title) },
+        new() { Key = "type", Label = "Type", Type = CaseFieldType.Text, Category = "Ticket", Prop = nameof(CaseReportRow.Type), Description = "Configured ticket type.", Build = E((c, _) => c.Type), Groupable = true },
+        new() { Key = "scope", Label = "Work scope", Type = CaseFieldType.Enum, Category = "Ticket", Prop = nameof(CaseReportRow.Scope), Description = "Client-related or Internal.", Options = Enum.GetNames<WorkScope>(), Build = E((c, _) => c.Scope), Groupable = true },
+        new() { Key = "status", Label = "Status", Type = CaseFieldType.Enum, Category = "Ticket", Prop = nameof(CaseReportRow.Status), Description = "Configured ticket status, as in the ticket list and the dashboard; a synchronized ticket follows Jira. Waiting for customer is a status; other waiting reasons are under Waiting reason.", Build = E((c, _) => c.StatusCode), Groupable = true },
+        new() { Key = "priority", Label = "Priority", Type = CaseFieldType.Enum, Category = "Ticket", Prop = nameof(CaseReportRow.Priority), Description = "Priority (Critical, High, Normal, Low).", Options = Enum.GetNames<Priority>(), Build = E((c, _) => c.Priority), Groupable = true },
         new() { Key = "clientCode", Label = "Client", Type = CaseFieldType.Text, Category = "Client", Prop = nameof(CaseReportRow.ClientCode), Description = "Client alias; empty for internal work.", Build = E((c, _) => c.Client!.Code), Groupable = true },
         new() { Key = "clientName", Label = "Client name", Type = CaseFieldType.Text, Category = "Client", Prop = nameof(CaseReportRow.ClientName), Description = "Client name; empty for internal work.", Build = E((c, _) => c.Client!.Name) },
         new() { Key = "team", Label = "Team", Type = CaseFieldType.Text, Category = "Ownership", Prop = nameof(CaseReportRow.Team), Description = "Responsible team.", Build = E((c, _) => c.ResponsibleTeam!.Name), Groupable = true },
@@ -158,14 +158,14 @@ public static class CasesFields
         new() { Key = "waiting", Label = "Waiting", Type = CaseFieldType.Bool, Category = "Progress", Prop = nameof(CaseReportRow.Waiting), Description = "A waiting reason is recorded (the due date is not paused).", Build = E((c, _) => c.WaitingReason != null) },
         new() { Key = "waitingReason", Label = "Waiting reason", Type = CaseFieldType.Enum, Category = "Progress", Prop = nameof(CaseReportRow.WaitingReason), Description = "Recorded waiting reason.", Options = Enum.GetNames<WaitingReason>(), Build = E((c, _) => c.WaitingReason) },
         new() { Key = "nextAction", Label = "Next action", Type = CaseFieldType.Text, Category = "Progress", Prop = nameof(CaseReportRow.NextAction), Description = "Next action.", Build = E((c, _) => c.NextAction), Sortable = false },
-        new() { Key = "createdAt", Label = "Opened", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.CreatedAt), Description = "When the case was opened: the Jira creation time of a synchronized case, otherwise the hub creation time.", Build = E((c, _) => c.SlaClockStartAt ?? c.CreatedAt) },
-        new() { Key = "hubCreatedAt", Label = "Added to hub", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.HubCreatedAt), Description = "When the hub record was created; the import time of an imported case.", Build = E((c, _) => c.CreatedAt) },
-        new() { Key = "updatedAt", Label = "Updated", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.UpdatedAt), Description = "Last change to the case record.", Build = E((c, _) => c.UpdatedAt) },
+        new() { Key = "createdAt", Label = "Opened", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.CreatedAt), Description = "When the ticket was opened: the Jira creation time of a synchronized ticket, otherwise the hub creation time.", Build = E((c, _) => c.SlaClockStartAt ?? c.CreatedAt) },
+        new() { Key = "hubCreatedAt", Label = "Added to hub", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.HubCreatedAt), Description = "When the hub record was created; the import time of an imported ticket.", Build = E((c, _) => c.CreatedAt) },
+        new() { Key = "updatedAt", Label = "Updated", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.UpdatedAt), Description = "Last change to the ticket record.", Build = E((c, _) => c.UpdatedAt) },
         new() { Key = "dueAt", Label = "Due date", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.DueAt), Description = "Operational due time; empty = no deadline (never overdue).", Build = E<DateTimeOffset?>((c, _) => c.DueAt) },
         new() { Key = "nextReviewAt", Label = "Next review", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.NextReviewAt), Description = "Next review time.", Build = E((c, _) => c.NextReviewAt) },
         new() { Key = "resolvedAt", Label = "Resolved", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.ResolvedAt), Description = "Resolution time (SLA clock stop).", Build = E<DateTimeOffset?>((c, _) => c.ResolvedAt) },
         new() { Key = "closedAt", Label = "Closed", Type = CaseFieldType.Date, Category = "Dates", Prop = nameof(CaseReportRow.ClosedAt), Description = "Closing time.", Build = E<DateTimeOffset?>((c, _) => c.ClosedAt) },
-        new() { Key = "ageDays", Label = "Age (days)", Type = CaseFieldType.Number, Category = "Dates", Prop = nameof(CaseReportRow.AgeDays), Description = "Calendar days from opening to closing or cancelling, or to the evaluation time while open. A reopened case runs on.",
+        new() { Key = "ageDays", Label = "Age (days)", Type = CaseFieldType.Number, Category = "Dates", Prop = nameof(CaseReportRow.AgeDays), Description = "Calendar days from opening to closing or cancelling, or to the evaluation time while open. A reopened ticket runs on.",
             Build = E((c, k) => EF.Functions.DateDiffDay(c.SlaClockStartAt ?? c.CreatedAt, c.ClosedAt ?? c.CancelledAt ?? k.Now)) },
         new() { Key = "overdue", Label = "Overdue", Type = CaseFieldType.Bool, Category = "Dates", Prop = nameof(CaseReportRow.Overdue), Description = "Open with a due time strictly before the evaluation time.",
             Build = E((c, k) => c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled && c.DueAt != null && c.DueAt < k.Now) },
@@ -178,7 +178,7 @@ public static class CasesFields
         new() { Key = "responseDueAt", Label = "Response due", Type = CaseFieldType.Date, Category = "SLA", Prop = nameof(CaseReportRow.ResponseDueAt), Description = "Contractual first-response deadline.", Build = E<DateTimeOffset?>((c, _) => c.ResponseDueAt) },
         new() { Key = "resolutionDueAt", Label = "Resolution due", Type = CaseFieldType.Date, Category = "SLA", Prop = nameof(CaseReportRow.ResolutionDueAt), Description = "Contractual resolution deadline.", Build = E<DateTimeOffset?>((c, _) => c.ResolutionDueAt) },
         new() { Key = "contract", Label = "Contract", Type = CaseFieldType.Text, Category = "SLA", Prop = nameof(CaseReportRow.Contract), Description = "Contract whose SLA applies (A61).", Build = E((c, _) => c.Contract!.Ref) },
-        new() { Key = "reopenCount", Label = "Reopened", Type = CaseFieldType.Number, Category = "Progress", Prop = nameof(CaseReportRow.ReopenCount), Description = "Number of times the case was reopened.", Build = E((c, _) => c.ReopenCount) },
+        new() { Key = "reopenCount", Label = "Reopened", Type = CaseFieldType.Number, Category = "Progress", Prop = nameof(CaseReportRow.ReopenCount), Description = "Number of times the ticket was reopened.", Build = E((c, _) => c.ReopenCount) },
         new() { Key = "jiraKeys", Label = "Jira keys", Type = CaseFieldType.Text, Category = "Jira", Prop = nameof(CaseReportRow.JiraKeys), Description = "Manual Jira references (not synchronized).", Sortable = false, Filterable = false }
     ];
 
@@ -255,7 +255,7 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
             if (!visible.TryGetValue(key ?? "", out var f)) { check.Add("columns", $"Unknown or unavailable column '{key}'."); continue; }
             columns.Add(f);
         }
-        if (!columns.Any(c => c.Key == "caseId")) check.Add("columns", "The Case ID column is required.");
+        if (!columns.Any(c => c.Key == "caseId")) check.Add("columns", "The Ticket ID column is required.");
 
         // ---- sort and grouping ----
         var sort = new List<(CaseField, bool)>();
@@ -307,7 +307,7 @@ public sealed class CasesReportService(HubDbContext db, HubAccess access, HubSet
             else summary.Add(("Client", string.Join(", ", await db.Clients.AsNoTracking().Where(c => ids.Contains(c.Id)).OrderBy(c => c.Code).Select(c => c.Code).ToListAsync(ct))));
         }
         var statusCodes = await db.LookupValues.AsNoTracking().Where(l => l.ListName == CaseStatuses.List).Select(l => l.Code).ToListAsync(ct);
-        foreach (var s in f0.Statuses ?? []) if (s != CaseStatuses.AllOpen && !CaseStatuses.StageAliases.Contains(s) && !statusCodes.Contains(s, StringComparer.OrdinalIgnoreCase)) check.Add("filters.statuses", $"'{s}' is not a case status.");
+        foreach (var s in f0.Statuses ?? []) if (s != CaseStatuses.AllOpen && !CaseStatuses.StageAliases.Contains(s) && !statusCodes.Contains(s, StringComparer.OrdinalIgnoreCase)) check.Add("filters.statuses", $"'{s}' is not a ticket status.");
         if (f0.Statuses is { Count: > 0 }) summary.Add(("Status", string.Join(", ", f0.Statuses)));
         foreach (var s in f0.Priorities ?? []) if (!Enum.TryParse<Priority>(s, true, out _) || int.TryParse(s, out _)) check.Add("filters.priorities", $"'{s}' is not a priority.");
         if (f0.Priorities is { Count: > 0 }) summary.Add(("Priority", string.Join(", ", f0.Priorities)));

@@ -90,7 +90,7 @@ export function CommitmentForm() {
           <TimeZoneSelect label="Original time zone" required value={v.timeZone} onChange={x => f.set('timeZone', x)} error={f.fieldError('timeZone')} hint="The deadline is kept in this zone. Ambiguous DST times need an explicit offset, e.g. 2026-10-25T02:30+02:00." />
           <TextInput label={`Next review (${me.timeZone})`} type="datetime-local" value={v.nextReviewAt} onChange={x => f.set('nextReviewAt', x)} />
           {v.scope === 'Client' && <SelectInput label="Project link (optional)" value={v.projectId} onChange={x => f.set('projectId', x)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} />}
-          {v.caseId && <TextInput label="Linked case" value={`Case #${v.caseId}`} onChange={() => {}} disabled error={f.fieldError('caseId')} />}
+          {v.caseId && <TextInput label="Linked ticket" value={`Ticket #${v.caseId}`} onChange={() => {}} disabled error={f.fieldError('caseId')} />}
         </div>
         <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Record commitment</button></div>
       </Panel>
@@ -127,7 +127,7 @@ export function CommitmentDetail() {
         <Panel title="Promise">
           <DL items={[
             ['Scope', c.client ? <ClientDisplay id={c.client.id} code={c.client.code} name={c.client.name} show="both" /> : `Internal · ${c.team?.name}`], ['Owner', <Person u={c.owner} />],
-            ['Type', c.typeLabel], ['Linked case', c.case ? <Link to={`/cases/${c.case.id}`}>{c.case.ref} · {c.case.title}</Link> : 'None'], ['Project', c.project ? `${c.project.code} · ${c.project.name}` : 'None'],
+            ['Type', c.typeLabel], ['Linked ticket', c.case ? <Link to={`/cases/${c.case.id}`}>{c.case.ref} · {c.case.title}</Link> : 'None'], ['Project', c.project ? `${c.project.code} · ${c.project.name}` : 'None'],
             ['Next review', <When v={c.nextReviewAt} />], ['Last reviewed', <When v={c.lastReviewedAt} />]
           ]} />
         </Panel>

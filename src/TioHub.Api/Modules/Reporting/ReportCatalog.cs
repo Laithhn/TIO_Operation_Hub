@@ -152,27 +152,27 @@ public static class ReportCatalog
         // ---------------- Operations ----------------
         list.Add(new TableReport<CaseEndpoints.CaseRow>
         {
-            Key = "cases", Name = "Cases report", Category = Operations, Icon = "case",
-            Description = "Cases with status, priority, owner, next action, due date and Jira references — the same rows as the Cases list.",
+            Key = "cases", Name = "Tickets report", Category = Operations, Icon = "case",
+            Description = "Tickets with status, priority, owner, next action, due date and Jira references — the same rows as the Tickets list.",
             Filters = [Client, Team, Product, Owner,
-                new("status", "Status", FilterKind.Select, Options: ["open", "all", "done", .. Names<CaseStatus>()], Hint: "Empty = open cases."),
+                new("status", "Status", FilterKind.Select, Options: ["open", "all", "done", .. Names<CaseStatus>()], Hint: "Empty = open tickets."),
                 new("priority", "Priority", FilterKind.Select, Options: Names<Priority>()),
                 new("scope", "Work scope", FilterKind.Select, Options: Names<WorkScope>()),
-                .. Range("createdFrom", "createdTo", "Opened", hint: "The Jira creation time of a synchronized case, otherwise the hub creation time."),
+                .. Range("createdFrom", "createdTo", "Opened", hint: "The Jira creation time of a synchronized ticket, otherwise the hub creation time."),
                 new("due", "Deadline", FilterKind.Select, true, ["overdue", "24h", "upcoming", "none"]),
                 new("waiting", "Waiting only", FilterKind.Bool, true), new("q", "Title or reference contains", FilterKind.Text, true)],
             ListKeys = ["regionId", "environmentId", "unassigned", "reviewOverdue", "stale", "jiraKey", "coverageGap", "deactivatedOwner", "country", "contractId", "sla", "asOf", "jiraSource", "jiraSpace", "jiraConnectionId"],
             Query = async (x, ct) => (await Cases(x, CaseFilterOf(x), ct)).OrderBy(c => c.Id).Select(CaseEndpoints.Row(x.Now, (await x.Fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record)))),
             Cols = [
-                new("Reference", "Hub case reference", r => r.Ref),
-                new("Title", "Case title", r => r.Title), new("Type", "Case type", r => r.Type), new("Scope", "Client-related or Internal", r => r.Scope),
+                new("Reference", "Hub ticket reference", r => r.Ref),
+                new("Title", "Ticket title", r => r.Title), new("Type", "Ticket type", r => r.Type), new("Scope", "Client-related or Internal", r => r.Scope),
                 new("Client", "Client alias; empty for internal work", r => r.ClientCode), new("Team", "Responsible team", r => r.TeamName),
-                new("Status", "Configured case status, as in the case list; a synchronized case follows Jira", r => r.StatusCode), new("Priority", "Priority", r => r.Priority),
+                new("Status", "Configured ticket status, as in the ticket list; a synchronized ticket follows Jira", r => r.StatusCode), new("Priority", "Priority", r => r.Priority),
                 new("Owner", "Accountable owner or Unassigned", r => r.OwnerName ?? "Unassigned"), new("Owner deactivated", "Owner account deactivated", r => r.OwnerDeactivated),
                 new("Waiting", "Recorded waiting reason; the operational due date is not paused", r => r.WaitingReason), new("Next action", "Next action", r => r.NextAction),
                 new("Next review", "Next review time", r => r.NextReviewAt), new("Due", "Due time; empty = no deadline (not overdue)", r => r.DueAt),
                 new("Overdue", "Open with due time strictly before the evaluation time", r => r.Overdue), new("Stale", "Meaningful review older than policy or next review passed", r => r.Stale),
-                new("Jira keys", "Manual Jira references (instance + key)", r => string.Join(" ", r.JiraKeys)), new("Opened", "Jira creation time of a synchronized case, otherwise hub creation time", r => r.OpenedAt), new("Added to hub", "When the hub record was created; the import time of an imported case", r => r.CreatedAt),
+                new("Jira keys", "Manual Jira references (instance + key)", r => string.Join(" ", r.JiraKeys)), new("Opened", "Jira creation time of a synchronized ticket, otherwise hub creation time", r => r.OpenedAt), new("Added to hub", "When the hub record was created; the import time of an imported ticket", r => r.CreatedAt),
                 new("Contract", "Contract whose SLA applies (A61)", r => r.ContractRef), new("Response SLA", "Contractual first-response outcome", r => r.ResponseSla),
                 new("Resolution SLA", "Contractual resolution outcome", r => r.ResolutionSla)]
         });
@@ -326,7 +326,7 @@ public static class ReportCatalog
         {
             Key = "data-quality", Name = "Data quality report", Category = Governance, Icon = "quality",
             Description = "Records that fail a data-quality rule, with the accountable coordinator and next action.",
-            Filters = [Client, new("recordType", "Entity type", FilterKind.Text, Hint: "e.g. Environment, Asset, Case."), new("rule", "Validation rule", FilterKind.Text, Hint: "Rule name as listed on the Data quality page."),
+            Filters = [Client, new("recordType", "Entity type", FilterKind.Text, Hint: "e.g. Environment, Asset, Ticket."), new("rule", "Validation rule", FilterKind.Text, Hint: "Rule name as listed on the Data quality page."),
                 new("status", "Status", FilterKind.Select, Options: [.. Names<DataQualityStatus>(), "all"], Hint: "Empty = open and resolved."), new("coordinatorId", "Coordinator", FilterKind.Owner, true)],
             Query = (x, ct) => Task.FromResult(QualityEndpoints.Filter(x.Db.DataQualityItems.AsNoTracking(), x.S("rule"), x.L("clientId"), x.L("coordinatorId"), x.S("status"), x.S("recordType")).OrderBy(i => i.Rule)
                 .Select(i => new DqRow(i.Rule, i.RecordType, i.RecordLabel, i.Detail, i.Coordinator == null ? null : i.Coordinator.DisplayName, i.NextAction, i.Status.ToString(), i.OpenedAt))),
@@ -364,8 +364,8 @@ public static class ReportCatalog
         list.Add(new TableReport<SlaRow>
         {
             Key = "sla-compliance", Name = "SLA compliance report", Category = Performance, Icon = "matrix", Operational = true,
-            Description = "Contractual first-response and resolution compliance of client cases linked to a contract (A61), with breached and at-risk cases and performance by client, team and owner.",
-            Filters = [Client, Team, Owner, new("priority", "Priority", FilterKind.Select, Options: Names<Priority>()), .. Range("createdFrom", "createdTo", "Opened", hint: "Cases opened in this range.")],
+            Description = "Contractual first-response and resolution compliance of client tickets linked to a contract (A61), with breached and at-risk tickets and performance by client, team and owner.",
+            Filters = [Client, Team, Owner, new("priority", "Priority", FilterKind.Select, Options: Names<Priority>()), .. Range("createdFrom", "createdTo", "Opened", hint: "Tickets opened in this range.")],
             Load = async (x, ct) =>
             {
                 var f = new CaseFilter(ClientId: x.L("clientId"), TeamId: x.L("teamId"), OwnerId: x.L("ownerId"), Status: "all", Priority: x.E<Priority>("priority"), Scope: WorkScope.Client,
@@ -388,22 +388,22 @@ public static class ReportCatalog
                 var breached = rows.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached);
                 var metrics = new List<ReportMetric>
                 {
-                    new("Contract-linked cases", rows.Count.ToString(CultureInfo.InvariantCulture), "Client cases linked to a contract (not cancelled), including pending and not measurable obligations."),
+                    new("Contract-linked tickets", rows.Count.ToString(CultureInfo.InvariantCulture), "Client tickets linked to a contract (not cancelled), including pending and not measurable obligations."),
                     new("Response compliance", Pct(Met(rows.Select(r => r.Response)), Measured(rows.Select(r => r.Response))), $"Met ÷ (met + breached) = {Met(rows.Select(r => r.Response))} of {Measured(rows.Select(r => r.Response))}; pending and not measurable excluded."),
                     new("Resolution compliance", Pct(Met(rows.Select(r => r.Resolution)), Measured(rows.Select(r => r.Resolution))), $"Met ÷ (met + breached) = {Met(rows.Select(r => r.Resolution))} of {Measured(rows.Select(r => r.Resolution))}."),
-                    new("Breached cases", breached.ToString(CultureInfo.InvariantCulture), "Response or resolution breached (a pending obligation past its deadline counts as breached).", breached > 0 ? "bad" : null),
+                    new("Breached tickets", breached.ToString(CultureInfo.InvariantCulture), "Response or resolution breached (a pending obligation past its deadline counts as breached).", breached > 0 ? "bad" : null),
                     new("At risk", rows.Count(r => r.AtRisk).ToString(CultureInfo.InvariantCulture), "Pending with a deadline within the next 24 hours.", rows.Any(r => r.AtRisk) ? "warn" : null),
                     new("Not measurable", rows.Count(r => r.Response == SlaState.NotMeasurable || r.Resolution == SlaState.NotMeasurable).ToString(CultureInfo.InvariantCulture), "No target for the priority, incomplete support calendar, or opened before responses were recorded.")
                 };
                 List<object?[]> By(Func<SlaRow, long?> key, Func<SlaRow, string?> label) => rows.GroupBy(key).OrderByDescending(g => g.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached)).ThenBy(g => label(g.First())).ThenBy(g => g.Key)
                     .Select(g => new object?[] { label(g.First()) ?? "—", g.Count(), Pct0(Met(g.Select(r => r.Response)), Measured(g.Select(r => r.Response))), Pct0(Met(g.Select(r => r.Resolution)), Measured(g.Select(r => r.Resolution))),
                         g.Count(r => r.Response == SlaState.Breached || r.Resolution == SlaState.Breached), g.Count(r => r.AtRisk) }).ToList();
-                string[] cols = ["", "Cases", "Response", "Resolution", "Breached", "At risk"];
+                string[] cols = ["", "Tickets", "Response", "Resolution", "Breached", "At risk"];
                 return (metrics, [new("By client", ["Client", .. cols[1..]], By(r => r.ClientId, r => r.Client)), new("By team", ["Team", .. cols[1..]], By(r => r.TeamId, r => r.Team)), new("By owner", ["Owner", .. cols[1..]], By(r => r.OwnerId, r => r.Owner))]);
             },
             Cols = [
-                new("Reference", "Case reference", r => r.Ref), new("Title", "Case title", r => r.Title), new("Client", "Client alias", r => r.Client), new("Contract", "Contract whose SLA applies", r => r.Contract),
-                new("Priority", "Case priority (the target is taken for this priority)", r => r.Priority), new("Team", "Responsible team", r => r.Team), new("Owner", "Owner", r => r.Owner),
+                new("Reference", "Ticket reference", r => r.Ref), new("Title", "Ticket title", r => r.Title), new("Client", "Client alias", r => r.Client), new("Contract", "Contract whose SLA applies", r => r.Contract),
+                new("Priority", "Ticket priority (the target is taken for this priority)", r => r.Priority), new("Team", "Responsible team", r => r.Team), new("Owner", "Owner", r => r.Owner),
                 new("Opened", "Clock start", r => r.Created), new("Response deadline", "Contractual first-response deadline", r => r.ResponseDue), new("First response", "When the first response was sent", r => r.Responded),
                 new("Response status", "Met, Breached, Pending, Not measurable", r => r.Response), new("Resolution deadline", "Contractual resolution deadline", r => r.ResolutionDue),
                 new("Resolved", "First move into Pending validation or Closed", r => r.Resolved), new("Resolution status", "Met, Breached, Pending, Not measurable", r => r.Resolution),
@@ -449,8 +449,8 @@ public static class ReportCatalog
 
         list.Add(new TableReport<AgingRow>
         {
-            Key = "case-aging", Name = "Case aging & backlog report", Category = Performance, Icon = "case", Operational = true,
-            Description = "Open cases by age bucket, overdue cases, priority distribution and the backlog by owner and client.",
+            Key = "case-aging", Name = "Ticket aging & backlog report", Category = Performance, Icon = "case", Operational = true,
+            Description = "Open tickets by age bucket, overdue tickets, priority distribution and the backlog by owner and client.",
             Filters = [Client, Team, Owner, Product, new("priority", "Priority", FilterKind.Select, Options: Names<Priority>())],
             Load = async (x, ct) =>
             {
@@ -470,30 +470,30 @@ public static class ReportCatalog
             {
                 var metrics = new List<ReportMetric>
                 {
-                    new("Open cases", rows.Count.ToString(CultureInfo.InvariantCulture), "Cases not closed or cancelled."),
+                    new("Open tickets", rows.Count.ToString(CultureInfo.InvariantCulture), "Tickets not closed or cancelled."),
                     new("Overdue", rows.Count(r => r.Overdue).ToString(CultureInfo.InvariantCulture), "Due date passed.", rows.Any(r => r.Overdue) ? "bad" : null),
                     new("Unassigned", rows.Count(r => r.OwnerId == null).ToString(CultureInfo.InvariantCulture), "No accountable owner.", rows.Any(r => r.OwnerId == null) ? "warn" : null),
-                    new("Average age", rows.Count == 0 ? "Not available" : $"{Math.Round(rows.Average(r => r.AgeDays), 1).ToString(CultureInfo.InvariantCulture)} days", "Since the case was opened."),
+                    new("Average age", rows.Count == 0 ? "Not available" : $"{Math.Round(rows.Average(r => r.AgeDays), 1).ToString(CultureInfo.InvariantCulture)} days", "Since the ticket was opened."),
                     new("Older than 90 days", rows.Count(r => r.AgeDays > 90).ToString(CultureInfo.InvariantCulture), "Long-running backlog.", rows.Any(r => r.AgeDays > 90) ? "warn" : null)
                 };
                 string[] buckets = ["0–7 days", "8–30 days", "31–90 days", "Over 90 days"];
                 return (metrics, [
-                    new("Age buckets", ["Age", "Open cases", "Overdue"], buckets.Select(b => new object?[] { b, rows.Count(r => r.Bucket == b), rows.Count(r => r.Bucket == b && r.Overdue) }).ToList()),
-                    new("By priority", ["Priority", "Open cases", "Overdue", "Over 30 days"], Enum.GetNames<Priority>().Select(p => new object?[] { p, rows.Count(r => r.Priority == p), rows.Count(r => r.Priority == p && r.Overdue), rows.Count(r => r.Priority == p && r.AgeDays > 30) }).ToList()),
-                    new("By owner", ["Owner", "Open cases", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.OwnerId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Owner, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList()),
-                    new("By client", ["Client", "Open cases", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.ClientId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Client, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList())]);
+                    new("Age buckets", ["Age", "Open tickets", "Overdue"], buckets.Select(b => new object?[] { b, rows.Count(r => r.Bucket == b), rows.Count(r => r.Bucket == b && r.Overdue) }).ToList()),
+                    new("By priority", ["Priority", "Open tickets", "Overdue", "Over 30 days"], Enum.GetNames<Priority>().Select(p => new object?[] { p, rows.Count(r => r.Priority == p), rows.Count(r => r.Priority == p && r.Overdue), rows.Count(r => r.Priority == p && r.AgeDays > 30) }).ToList()),
+                    new("By owner", ["Owner", "Open tickets", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.OwnerId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Owner, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList()),
+                    new("By client", ["Client", "Open tickets", "Overdue", "Oldest (days)"], rows.GroupBy(r => r.ClientId).OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Client, g.Count(), g.Count(r => r.Overdue), g.Max(r => r.AgeDays) }).ToList())]);
             },
             Cols = [
-                new("Reference", "Case reference", r => r.Ref), new("Title", "Case title", r => r.Title), new("Client", "Client alias or Internal", r => r.Client), new("Priority", "Priority", r => r.Priority),
-                new("Status", "Configured case status, as in the case list", r => r.Status), new("Owner", "Owner or Unassigned", r => r.Owner), new("Team", "Responsible team", r => r.Team), new("Opened", "Jira creation time of a synchronized case, otherwise hub creation time", r => r.Created),
-                new("Age (days)", "Whole days since the case was opened", r => r.AgeDays), new("Age bucket", "0–7, 8–30, 31–90 or over 90 days", r => r.Bucket), new("Due", "Due time; empty = no deadline", r => r.Due),
+                new("Reference", "Ticket reference", r => r.Ref), new("Title", "Ticket title", r => r.Title), new("Client", "Client alias or Internal", r => r.Client), new("Priority", "Priority", r => r.Priority),
+                new("Status", "Configured ticket status, as in the ticket list", r => r.Status), new("Owner", "Owner or Unassigned", r => r.Owner), new("Team", "Responsible team", r => r.Team), new("Opened", "Jira creation time of a synchronized ticket, otherwise hub creation time", r => r.Created),
+                new("Age (days)", "Whole days since the ticket was opened", r => r.AgeDays), new("Age bucket", "0–7, 8–30, 31–90 or over 90 days", r => r.Bucket), new("Due", "Due time; empty = no deadline", r => r.Due),
                 new("Overdue", "Due time passed", r => r.Overdue)]
         });
 
         list.Add(new TableReport<WorkloadRow>
         {
             Key = "team-workload", Name = "Team workload report", Category = Performance, Icon = "team", Operational = true,
-            Description = "Open cases and commitments per team and owner, with overdue and critical/high work — the current workload distribution.",
+            Description = "Open tickets and commitments per team and owner, with overdue and critical/high work — the current workload distribution.",
             Filters = [Client, Team, Product],
             Load = async (x, ct) =>
             {
@@ -523,26 +523,26 @@ public static class ReportCatalog
                 var ownerCount = assigned.Select(r => r.OwnerId).Distinct().Count();
                 var metrics = new List<ReportMetric>
                 {
-                    new("Open cases", rows.Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Assigned and unassigned."),
+                    new("Open tickets", rows.Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Assigned and unassigned."),
                     new("Open commitments", rows.Sum(r => r.Commitments).ToString(CultureInfo.InvariantCulture), "Open promises."),
-                    new("Overdue work", (rows.Sum(r => r.OverdueCases) + rows.Sum(r => r.OverdueCommitments)).ToString(CultureInfo.InvariantCulture), "Overdue cases plus overdue commitments.", rows.Any(r => r.OverdueCases + r.OverdueCommitments > 0) ? "bad" : null),
-                    new("Unassigned cases", rows.Where(r => r.OwnerId == null).Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Cases without an owner.", rows.Any(r => r.OwnerId == null && r.Cases > 0) ? "warn" : null),
-                    new("Average per owner", ownerCount == 0 ? "Not available" : Math.Round((double)assigned.Sum(r => r.Cases + r.Commitments) / ownerCount, 1).ToString(CultureInfo.InvariantCulture), "Assigned open cases and commitments divided by distinct accountable owners across teams; unassigned work excluded.")
+                    new("Overdue work", (rows.Sum(r => r.OverdueCases) + rows.Sum(r => r.OverdueCommitments)).ToString(CultureInfo.InvariantCulture), "Overdue tickets plus overdue commitments.", rows.Any(r => r.OverdueCases + r.OverdueCommitments > 0) ? "bad" : null),
+                    new("Unassigned tickets", rows.Where(r => r.OwnerId == null).Sum(r => r.Cases).ToString(CultureInfo.InvariantCulture), "Tickets without an owner.", rows.Any(r => r.OwnerId == null && r.Cases > 0) ? "warn" : null),
+                    new("Average per owner", ownerCount == 0 ? "Not available" : Math.Round((double)assigned.Sum(r => r.Cases + r.Commitments) / ownerCount, 1).ToString(CultureInfo.InvariantCulture), "Assigned open tickets and commitments divided by distinct accountable owners across teams; unassigned work excluded.")
                 };
-                return (metrics, [new("By team", ["Team", "Open cases", "Overdue cases", "Critical/High", "Open commitments", "Overdue commitments"],
+                return (metrics, [new("By team", ["Team", "Open tickets", "Overdue tickets", "Critical/High", "Open commitments", "Overdue commitments"],
                     rows.GroupBy(r => r.TeamId).OrderBy(g => g.First().Team).ThenBy(g => g.Key).Select(g => new object?[] { g.First().Team, g.Sum(r => r.Cases), g.Sum(r => r.OverdueCases), g.Sum(r => r.CriticalHigh), g.Sum(r => r.Commitments), g.Sum(r => r.OverdueCommitments) }).ToList())]);
             },
             Cols = [
-                new("Team", "Responsible team", r => r.Team), new("Owner", "Owner or Unassigned", r => r.Owner), new("Open cases", "Cases not closed or cancelled", r => r.Cases),
-                new("Overdue cases", "Due date passed", r => r.OverdueCases), new("Critical/High cases", "Open cases of Critical or High priority", r => r.CriticalHigh),
+                new("Team", "Responsible team", r => r.Team), new("Owner", "Owner or Unassigned", r => r.Owner), new("Open tickets", "Tickets not closed or cancelled", r => r.Cases),
+                new("Overdue tickets", "Due date passed", r => r.OverdueCases), new("Critical/High tickets", "Open tickets of Critical or High priority", r => r.CriticalHigh),
                 new("Open commitments", "Open promises", r => r.Commitments), new("Overdue commitments", "Deadline in force passed", r => r.OverdueCommitments)]
         });
 
         list.Add(new TableReport<HealthRow>
         {
             Key = "client-health", Name = "Client health report", Category = Performance, Icon = "clients", Operational = true,
-            Description = "Per client: open and overdue cases, overdue commitments, active and overdue escalations, open data-quality items and contractual SLA compliance.",
-            Filters = [Client, .. Range("createdFrom", "createdTo", "SLA period", hint: "Cases opened in this range count for the SLA columns; empty = all.")],
+            Description = "Per client: open and overdue tickets, overdue commitments, active and overdue escalations, open data-quality items and contractual SLA compliance.",
+            Filters = [Client, .. Range("createdFrom", "createdTo", "SLA period", hint: "Tickets opened in this range count for the SLA columns; empty = all.")],
             Load = async (x, ct) =>
             {
                 var cid = x.L("clientId");
@@ -569,18 +569,18 @@ public static class ReportCatalog
                 var attention = rows.Count(r => r.OverdueCases + r.OverdueCommitments + r.OverdueEscalations + r.SlaBreaches > 0);
                 return ([
                     new("Clients", rows.Count.ToString(CultureInfo.InvariantCulture), "Clients you are authorized to see."),
-                    new("Clients needing attention", attention.ToString(CultureInfo.InvariantCulture), "Any overdue case, commitment or escalation, or an SLA breach.", attention > 0 ? "warn" : null),
-                    new("Open cases", rows.Sum(r => r.OpenCases).ToString(CultureInfo.InvariantCulture), "Client-related cases not closed or cancelled."),
+                    new("Clients needing attention", attention.ToString(CultureInfo.InvariantCulture), "Any overdue ticket, commitment or escalation, or an SLA breach.", attention > 0 ? "warn" : null),
+                    new("Open tickets", rows.Sum(r => r.OpenCases).ToString(CultureInfo.InvariantCulture), "Client-related tickets not closed or cancelled."),
                     new("Active escalations", rows.Sum(r => r.Escalations).ToString(CultureInfo.InvariantCulture), $"{rows.Sum(r => r.OverdueEscalations)} past a target.", rows.Any(r => r.OverdueEscalations > 0) ? "bad" : null),
-                    new("SLA breaches", rows.Sum(r => r.SlaBreaches).ToString(CultureInfo.InvariantCulture), "Cases with a breached response or resolution (contract linked).", rows.Any(r => r.SlaBreaches > 0) ? "bad" : null)
+                    new("SLA breaches", rows.Sum(r => r.SlaBreaches).ToString(CultureInfo.InvariantCulture), "Tickets with a breached response or resolution (contract linked).", rows.Any(r => r.SlaBreaches > 0) ? "bad" : null)
                 ], []);
             },
             Cols = [
-                new("Client", "Client alias", r => r.Code), new("Name", "Client name", r => r.Name), new("Open cases", "Client-related cases not closed or cancelled", r => r.OpenCases),
-                new("Overdue cases", "Open with the due date passed", r => r.OverdueCases), new("Overdue commitments", "Open with the deadline in force passed", r => r.OverdueCommitments),
+                new("Client", "Client alias", r => r.Code), new("Name", "Client name", r => r.Name), new("Open tickets", "Client-related tickets not closed or cancelled", r => r.OpenCases),
+                new("Overdue tickets", "Open with the due date passed", r => r.OverdueCases), new("Overdue commitments", "Open with the deadline in force passed", r => r.OverdueCommitments),
                 new("Active escalations", "Open, acknowledged or in progress", r => r.Escalations), new("Overdue escalations", "Past the response or resolution target", r => r.OverdueEscalations),
                 new("Open data-quality items", "Records failing a quality rule", r => r.DataQuality), new("Response SLA", "Met ÷ (met + breached); empty = nothing measured", r => r.ResponseRate),
-                new("Resolution SLA", "Met ÷ (met + breached); empty = nothing measured", r => r.ResolutionRate), new("SLA breaches", "Cases with a breached obligation", r => r.SlaBreaches)]
+                new("Resolution SLA", "Met ÷ (met + breached); empty = nothing measured", r => r.ResolutionRate), new("SLA breaches", "Tickets with a breached obligation", r => r.SlaBreaches)]
         });
 
         return list;

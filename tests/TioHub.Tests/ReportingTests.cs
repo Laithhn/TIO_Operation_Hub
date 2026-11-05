@@ -82,7 +82,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         // Operational reports compute their KPIs on the server.
         var aging = (await m.Post("/reports/case-aging/preview", new { filters = new { clientId = c.ToString() } })).Body!;
         Assert.Equal(2, aging["total"]!.GetValue<int>());
-        Assert.Equal("2", aging["summary"]!.AsArray().First(x => x!["label"]!.GetValue<string>() == "Open cases")!["value"]!.GetValue<string>());
+        Assert.Equal("2", aging["summary"]!.AsArray().First(x => x!["label"]!.GetValue<string>() == "Open tickets")!["value"]!.GetValue<string>());
         Assert.Contains(aging["breakdowns"]!.AsArray(), b => b!["title"]!.GetValue<string>() == "Age buckets");
         var health = (await m.Post("/reports/client-health/preview", new { filters = new { clientId = c.ToString() } })).Body!;
         Assert.Equal(1, health["total"]!.GetValue<int>());
@@ -142,7 +142,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.OK, status);
         Assert.Equal("text/csv", type);
         var text = Encoding.UTF8.GetString(bytes);
-        Assert.Contains("TIO Operations Hub export,Cases report", text);
+        Assert.Contains("TIO Operations Hub export,Tickets report", text);
         Assert.Contains("Time zone,Asia/Dubai", text);
         var lines = text.Split("\r\n", StringSplitOptions.None).Select(l => l.TrimEnd('\n')).ToList();
         var header = lines.FindIndex(l => l == "Title,Reference");
@@ -253,7 +253,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         using var cancel = new CancellationTokenSource();
         var def = new TableReport<string>
         {
-            Key = "cases", Name = "Cancelled cases", Category = "Operations", Description = "Test", Icon = "case",
+            Key = "cases", Name = "Cancelled tickets", Category = "Operations", Description = "Test", Icon = "case",
             Cols = [new("Reference", "Reference", r => r)],
             Load = (_, _) => { cancel.Cancel(); throw new OperationCanceledException(cancel.Token); }
         };
@@ -261,7 +261,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
             def, new ValidFilters(new(), ""), ExportFormat.Csv, null, TimeZoneInfo.Utc, "Test", null, -1, cancel.Token));
         var db = sp.GetRequiredService<HubDbContext>();
         db.ChangeTracker.Clear();
-        var row = await db.ExportJobs.SingleAsync(j => j.ReportName == "Cancelled cases");
+        var row = await db.ExportJobs.SingleAsync(j => j.ReportName == "Cancelled tickets");
         Assert.Equal(ExportStatus.Failed, row.Status);
         Assert.NotNull(row.CompletedAt);
         Assert.Contains("cancelled", row.Error);
@@ -289,7 +289,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/reports/presets/{preset}")).Status);
 
         // Schedule validation.
-        var body = new { name = "Weekly client cases", report = "cases", filters = new { clientId = c.ToString(), status = "all" }, format = "xlsx", frequency = "Weekly", dayOfWeek = 0, time = "07:30", timeZone = "Asia/Dubai", recipientIds = new[] { m.UserId, scoped.UserId, leaverId } };
+        var body = new { name = "Weekly client tickets", report = "cases", filters = new { clientId = c.ToString(), status = "all" }, format = "xlsx", frequency = "Weekly", dayOfWeek = 0, time = "07:30", timeZone = "Asia/Dubai", recipientIds = new[] { m.UserId, scoped.UserId, leaverId } };
         Assert.Equal(HttpStatusCode.Created, (await m.Post("/reports/schedules", body)).Status);
         var bad = await m.Post("/reports/schedules", new { name = "x", report = "cases", format = "csv", frequency = "Weekly", time = "25:00", timeZone = "Nowhere", recipientIds = new[] { 999999L } });
         Assert.NotNull(bad.Error("dayOfWeek"));
@@ -297,7 +297,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.NotNull(bad.Error("timeZone"));
         Assert.NotNull(bad.Error("recipientIds"));
         var list = (await m.Get("/reports/schedules")).Body!.AsArray();
-        var sched = list.First(s => s!["name"]!.GetValue<string>() == "Weekly client cases")!;
+        var sched = list.First(s => s!["name"]!.GetValue<string>() == "Weekly client tickets")!;
         var sid = Id(sched);
         Assert.True(sched["nextRunAt"]!.GetValue<DateTimeOffset>() > DateTimeOffset.UtcNow);
         Assert.Equal(DayOfWeek.Sunday, TimeZoneInfo.ConvertTime(sched["nextRunAt"]!.GetValue<DateTimeOffset>(), TimeZoneInfo.FindSystemTimeZoneById("Asia/Dubai")).DayOfWeek);
@@ -324,8 +324,8 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.OK, (await Download(scoped, Id(theirs))).Status);
         var refused = runs.First(r => r!["status"]!.GetValue<string>() == "Failed")!;
         Assert.Null(refused["error"]);   // masked in schedule history; see CanSeeJobDetails
-        Assert.Contains((await m.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>() == "Scheduled report ready: Weekly client cases");
-        Assert.Contains((await scoped.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>() == "Scheduled report ready: Weekly client cases");
+        Assert.Contains((await m.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>() == "Scheduled report ready: Weekly client tickets");
+        Assert.Contains((await scoped.Get("/notifications?pageSize=50")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>() == "Scheduled report ready: Weekly client tickets");
         var after = (await m.Get($"/reports/schedules/{sid}")).Body!["schedule"]!;
         Assert.Equal("2 completed, 1 failed", after["lastOutcome"]!.GetValue<string>());
         Assert.True(after["nextRunAt"]!.GetValue<DateTimeOffset>() > DateTimeOffset.UtcNow);
@@ -348,7 +348,7 @@ public class AC62_ReportingCenter(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.NoContent, (await m.Post($"/reports/schedules/{sid}/pause")).Status);
         Assert.False((await m.Get($"/reports/schedules/{sid}")).Body!["schedule"]!["isActive"]!.GetValue<bool>());
         Assert.Equal(HttpStatusCode.NoContent, (await m.Post($"/reports/schedules/{sid}/resume")).Status);
-        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/reports/schedules/{sid}", new { name = "Monthly client cases", report = "cases", filters = new { clientId = c.ToString() }, format = "csv", frequency = "Monthly", dayOfMonth = 1, time = "06:00", timeZone = "UTC", recipientIds = new[] { m.UserId } })).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/reports/schedules/{sid}", new { name = "Monthly client tickets", report = "cases", filters = new { clientId = c.ToString() }, format = "csv", frequency = "Monthly", dayOfMonth = 1, time = "06:00", timeZone = "UTC", recipientIds = new[] { m.UserId } })).Status);
         var edited = (await m.Get($"/reports/schedules/{sid}")).Body!["schedule"]!;
         Assert.Equal(1, edited["recipients"]!.AsArray().Count);
         Assert.Equal(1, edited["nextRunAt"]!.GetValue<DateTimeOffset>().UtcDateTime.Day);

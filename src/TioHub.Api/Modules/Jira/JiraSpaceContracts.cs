@@ -135,6 +135,6 @@ public static class JiraSpaceContracts
         foreach (var space in spaces) changed += await ReconcileAsync(db, space, [], now, ct);
         db.Settings.Add(new AppSetting { Key = SettingKeys.JiraContractsByDateFrom, Value = now.ToString("O"), Description = "When tickets of Jira spaces began to take their contract from their creation date (A93)." });
         await db.SaveChangesAsync(ct);
-        if (changed > 0) log.LogInformation("Jira contracts by date: {Changed} case(s) in {Spaces} space(s) changed", changed, spaces.Count);
+        if (changed > 0) log.LogInformation("Jira contracts by date: {Changed} ticket(s) in {Spaces} space(s) changed", changed, spaces.Count);
     }
 }

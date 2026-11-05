@@ -28,7 +28,7 @@ export function SearchPalette({ onClose, onNavigate }: { onClose: () => void; on
   return (
     <div className="scrim" onMouseDown={e => { if (e.target === e.currentTarget) { e.preventDefault(); onClose(); } }}>
       <div className="dialog palette" role="dialog" aria-modal="true" aria-label="Search" onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}>
-        <input ref={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, environments, contracts, cases, Jira keys, commitments…" aria-label="Search"
+        <input ref={input} value={q} onChange={e => setQ(e.target.value)} placeholder="Search clients, environments, contracts, tickets, Jira keys, commitments…" aria-label="Search"
           role="combobox" aria-autocomplete="list" aria-expanded={hits.length > 0} aria-controls={listId} aria-activedescendant={hits[sel] ? optionId(sel) : undefined}
           onKeyDown={e => {
             if (e.key === 'ArrowDown') { e.preventDefault(); setSel(s => Math.max(0, Math.min(s + 1, hits.length - 1))); }

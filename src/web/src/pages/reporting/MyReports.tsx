@@ -37,7 +37,7 @@ export function MyReports() {
         <div className="seg" role="group" aria-label="Show">
           {[['', 'All I can see'], ['mine', 'Mine'], ['shared', 'Shared with me'], ['favorites', 'Favorites']].map(([k, l]) => <button key={k} aria-pressed={scope === k} onClick={() => setScope(k)}>{l}</button>)}
         </div>
-        <Link className="btn btn-primary" to="/reporting-center/builder/cases">+ New cases report</Link>
+        <Link className="btn btn-primary" to="/reporting-center/builder/cases">+ New tickets report</Link>
       </div>
       <DataTable<Row> caption="Saved reports" rows={list.data} loading={list.isLoading} error={list.error} rowKey={r => r.id} tools={false} empty={term || scope ? 'nomatch' : 'none'}
         columns={[
@@ -55,7 +55,7 @@ export function MyReports() {
             {canDelete && r.isOwner && <button className="linkbtn err" onClick={() => setRemove(r)}>Delete</button>}
           </span> }
         ]} />
-      <p className="hint">Opening a shared report runs it with your own access: you see only the cases you may see. Only the owner can change or delete a report.</p>
+      <p className="hint">Opening a shared report runs it with your own access: you see only the tickets you may see. Only the owner can change or delete a report.</p>
       {remove && <Dialog title="Delete saved report" onClose={() => setRemove(null)}>
         <p>Delete <b>{remove.name}</b>?{remove.schedules > 0 && <> Its <b>{remove.schedules}</b> schedule(s) are deleted as well and make no further runs.</>} Files already generated stay in the export history until they expire.</p>
         <div className="form-actions"><button className="btn" onClick={() => setRemove(null)}>Cancel</button>
@@ -74,7 +74,7 @@ export function Templates() {
           <article key={t.key} className="rc-card">
             <div className="rc-card-head"><span className="rc-ic" aria-hidden="true"><Icon name="case" size={18} /></span><h3>{t.name}</h3></div>
             <p>{t.description}</p>
-            <div className="rc-card-foot"><span className="rc-formats"><span className="chip">Cases</span><span className="chip">Excel</span><span className="chip">PDF</span></span>
+            <div className="rc-card-foot"><span className="rc-formats"><span className="chip">Tickets</span><span className="chip">Excel</span><span className="chip">PDF</span></span>
               <Link className="btn btn-primary" to={`/reporting-center/builder/cases?template=${t.key}`} aria-label={`Use template ${t.name}`}>Use template</Link></div>
           </article>
         ))}

@@ -45,7 +45,7 @@ test.describe('Central Rights administration and effective module visibility', (
     await page.reload();
     await page.getByRole('combobox', { name: 'Role', exact: true }).selectOption(String(id));
     await page.getByLabel('Search rights', { exact: true }).fill('Cases:View');
-    const view = page.getByRole('checkbox', { name: `Cases: View pages and records for ${name}`, exact: true });
+    const view = page.getByRole('checkbox', { name: `Tickets: View pages and records for ${name}`, exact: true });
     await expect(view).toHaveCount(1);
     await expect(view).not.toBeChecked();
     await view.check();
@@ -67,7 +67,7 @@ test.describe('Central Rights administration and effective module visibility', (
         if (new URL(request.url()).pathname.startsWith('/api/v1/clients')) unauthorizedRequests.push(request.url());
       });
       await user.goto('/cases');
-      await expect(user.getByRole('heading', { name: 'Cases', exact: true })).toBeVisible();
+      await expect(user.getByRole('heading', { name: 'Tickets', exact: true })).toBeVisible();
       expect(unauthorizedRequests).toEqual([]);
       expect(await user.evaluate(async () => (await fetch('/api/v1/cases')).status)).toBe(200);
       expect(await user.evaluate(async () => (await fetch('/api/v1/clients')).status)).toBe(403);
@@ -80,7 +80,7 @@ test.describe('Central Rights administration and effective module visibility', (
       expect(await user.evaluate(async () => (await fetch('/api/v1/cases')).status)).toBe(403);
       await user.reload();
       await expect(user.getByText('Access denied', { exact: true }).first()).toBeVisible();
-      await expect(user.getByRole('heading', { name: 'Cases', exact: true })).toHaveCount(0);
+      await expect(user.getByRole('heading', { name: 'Tickets', exact: true })).toHaveCount(0);
     } finally {
       await userContext.close();
     }
@@ -96,7 +96,7 @@ test.describe('Central Rights administration and effective module visibility', (
     await page.getByLabel('Search rights', { exact: true }).fill('Cases:');
     await page.screenshot({ path: test.info().outputPath('rights-editor-cases.png'), fullPage: true });
     expect((await storedRole(page, id)).rights).toEqual([]);
-    await page.getByRole('button', { name: 'Grant shown rights in Cases', exact: true }).first().click();
+    await page.getByRole('button', { name: 'Grant shown rights in Tickets', exact: true }).first().click();
     const confirmation = page.getByRole('dialog', { name: 'Grant a group of rights', exact: true });
     await expect(confirmation).toBeVisible();
     expect((await storedRole(page, id)).rights).toEqual([]);

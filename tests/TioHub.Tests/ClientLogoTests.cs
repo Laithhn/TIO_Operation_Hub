@@ -284,7 +284,7 @@ public class A71_LogoExports(HubFactory hub) : Scenario(hub)
             Assert.Equal(HttpStatusCode.OK, (await m.Http.PutAsync($"/api/v1/clients/{client}/logo", form)).StatusCode);
         await m.Create("/cases", new
         {
-            title = "Logo case", type = "Incident", scope = "Client", clientId = client, responsibleTeamId = await Team(), impactSummary = "Logo export test", priority = "High",
+            title = "Logo ticket", type = "Incident", scope = "Client", clientId = client, responsibleTeamId = await Team(), impactSummary = "Logo export test", priority = "High",
             ownerUserId = m.UserId, nextAction = "Check", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1)
         });
         var definition = new { schemaVersion = 1, filters = new { clientIds = new[] { client } }, columns = new[] { "caseId", "clientCode", "title" } };

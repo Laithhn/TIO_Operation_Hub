@@ -38,7 +38,7 @@ describe('per-country figures', () => {
 describe('layers, sorting and search', () => {
   const rows = byCountry(sample);
   it('offers the five map layers with their figures and alerts', () => {
-    expect(LAYERS.map(l => l.label)).toEqual(['Clients', 'Servers', 'Open cases', 'Overdue', 'Contracts']);
+    expect(LAYERS.map(l => l.label)).toEqual(['Clients', 'Servers', 'Open tickets', 'Overdue', 'Contracts']);
     const sa = rows.find(r => r.country === 'Saudi Arabia')!;
     expect(layerOf('overdue').value(sa)).toBe(2);
     expect(layerOf('overdue').alert!(sa)).toBe(true);
@@ -67,7 +67,7 @@ describe('client status', () => {
   it('derives the state from recorded figures only', () => {
     expect(clientStatus(sample[0])).toEqual({ tone: 'bad', label: '2 overdue' });
     expect(clientStatus(sample[3])).toEqual({ tone: 'warn', label: '1 renewal due' });
-    expect(clientStatus(sample[1])).toEqual({ tone: 'warn', label: '1 open case' });
+    expect(clientStatus(sample[1])).toEqual({ tone: 'warn', label: '1 open ticket' });
     expect(clientStatus(sample[2])).toEqual({ tone: 'ok', label: 'Nothing overdue' });
   });
 });
