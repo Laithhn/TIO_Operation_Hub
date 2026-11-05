@@ -616,6 +616,23 @@ Actual runs from a copy of the working tree on the isolated `(localdb)\TioHubQAL
 
 Not run: the full backend and main Playwright suites, since only these screens changed, and no 2.53.1 package has been built. Checked by eye on one screenshot of a new user, with the fictional data.
 
+## Release 2.54.1, 5 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+| Suite | Result |
+|---|---|
+| Backend, full run inside the package build | **724 passed, 0 failed** (commit `2aae75d`) |
+| Frontend, `tsc` and `vitest`, inside the package build | No type errors; 248 passed, including the check of every page against the rights |
+| Playwright, main config (real API, Microsoft Edge) | 185 passed and 1 failed on the first run, because of a wrong locator in a new test. After correcting it, `release-2-54.spec.ts` passed 8 of 8. The full config was not run again |
+| Playwright, access-control isolated config | **13 passed, 0 failed** |
+
+The page check was tried with a dummy route: it failed on that route until the route was removed.
+
+`database/01-schema.sql` on restored copy `TioHub_UAT_A93_11051209`: the right went to the 3 roles holding `Cases:View`, including the one custom role. A second run changed nothing. The application started on that copy with no errors in the log.
+
+Not run: the screens on a restored copy with real sign-in; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.
+
 ## Release 2.54.0, 5 November 2026
 
 Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
