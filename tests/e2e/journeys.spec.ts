@@ -1538,7 +1538,7 @@ test.describe('Measured SLA compliance (A61)', () => {
     await expect(sla.locator(VT_ROW).filter({ hasText: /First response/ })).not.toContainText('Not yet recorded');
     await expect(sla.getByRole('button', { name: 'Record first response' })).toHaveCount(0);
     await page.getByRole('tab', { name: 'Timeline' }).click();
-    await expect(page.locator('.timeline').getByText('First response', { exact: true })).toBeVisible();
+    await expect(page.locator('.act-feed').getByText('First response', { exact: true })).toBeVisible();
 
     // The list filters by contract and by SLA outcome; the column shows both obligations.
     await sla.getByRole('link', { name: /^CT-/ }).click();

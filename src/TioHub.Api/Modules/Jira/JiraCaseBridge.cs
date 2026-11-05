@@ -161,6 +161,7 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
                 caseChanged |= JiraSpaceContracts.Apply(db, c, m.JiraCreatedAt ?? c.SlaClockStartAt, await JiraSpaceContracts.TermsAsync(db, m.ClientJiraSpaceId, ct), now);
                 caseChanged |= await ApplyStatusAsync(x.Connection, x.Space, c, m, now, ct);
                 caseChanged |= ApplyJiraResolutionTime(c, m, now);
+                caseChanged |= await ApplyJiraPriorityAsync(c, m, now, ct);
                 if (!outcome.Created && (caseChanged || snapshotChanged)) outcome.Updated = true;
                 if (comments is not null)
                 {
@@ -289,6 +290,33 @@ public sealed class JiraCaseBridge(HubDbContext db, HubAccess access, TimeProvid
         if (named is not null) return named;
         if (row is null) db.JiraValueMappings.Add(new JiraValueMapping { ClientId = clientId, Kind = kind, JiraValue = value });
         return null;
+    }
+
+    /// <summary>A96: Jira controls the priority of a synchronized ticket, through the client's mapping or a matching word. A name with neither leaves it as it is, and is listed for a person to map.</summary>
+    private async Task<bool> ApplyJiraPriorityAsync(Case c, JiraCaseMapping m, DateTimeOffset now, CancellationToken ct)
+    {
+        if (!Enum.TryParse<Priority>(await ValueAsync(m.ClientId, JiraValueKind.Priority, m.PriorityName, ct), out var priority) || priority == c.Priority) return false;
+        CaseEndpoints.AddEvent(db, c, CaseEventType.PriorityChanged, c.Priority.ToString(), priority.ToString(), $"From Jira {m.IssueKey}: {m.PriorityName}", db.CurrentUser, now);
+        c.Priority = priority;
+        return true;
+    }
+
+    /// <summary>A96: applies the priority already read from Jira to existing tickets, with no Jira request: once after the upgrade, and when a person changes a client's priority mapping.</summary>
+    public async Task<int> ReconcilePrioritiesAsync(long? clientId, DateTimeOffset now, CancellationToken ct)
+    {
+        var ids = await db.JiraCaseMappings.IgnoreQueryFilters().AsNoTracking().Where(m => m.CaseId != null && m.PriorityName != null && (clientId == null || m.ClientId == clientId)).Select(m => m.Id).ToListAsync(ct);
+        var changed = 0;
+        foreach (var batch in ids.Chunk(200))
+        {
+            var mappings = await db.JiraCaseMappings.IgnoreQueryFilters().Where(m => batch.Contains(m.Id)).ToListAsync(ct);
+            var caseIds = mappings.Select(m => m.CaseId!.Value).ToList();
+            var cases = await db.Cases.IgnoreQueryFilters().Where(c => caseIds.Contains(c.Id)).ToDictionaryAsync(c => c.Id, ct);
+            foreach (var m in mappings)
+                if (cases.TryGetValue(m.CaseId!.Value, out var c) && await ApplyJiraPriorityAsync(c, m, now, ct)) changed++;
+            await db.SaveChangesAsync(ct);
+            db.ChangeTracker.Clear();
+        }
+        return changed;
     }
 
     /// <summary>A90: a closed case was resolved when Jira says so, not when the hub imported it. With no resolution date in Jira, its last update is the nearest time known.</summary>

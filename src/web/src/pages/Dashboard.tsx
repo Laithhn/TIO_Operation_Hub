@@ -49,7 +49,7 @@ type EnvRow = { id: number; name: string; clientId: number; client: string; cond
 /** A60: GET /dashboard/command-center — period figures and attention lists. */
 type CC = {
   evaluatedAt: string; note: string; period: { from: string; to: string; unit: string; name: string };
-  cases: { openCount: number; criticalHigh: number; risk: { breached: number; approaching: number; withinTarget: number; noDeadline: number }; openedInPeriod: number; closedInPeriod: number;
+  cases: { openCount: number; criticalHigh: number; risk: { breached: number; approaching: number; withinTarget: number; noDeadline: number }; previous: { opened: number; closed: number }; openedInPeriod: number; closedInPeriod: number;
     adherence: { measured: number; onTime: number }; trend: Pt[] };
   escalations?: { active: number; overdue: number; highestLevel: number | null; averageAgeDays: number | null; receivedInPeriod: number; response: { measured: number; met: number };
     resolution: { measured: number; met: number }; trend: Pt[]; attention: EscRow[] } | null;
@@ -295,10 +295,54 @@ function ActionCenter({ params }: { params: Record<string, string> }) {
 }
 
 function Band({ id, icon, title, hint, children }: { id: string; icon: string; title: string; hint?: React.ReactNode; children: React.ReactNode }) {
+  const storage = 'tiohub.dash.collapsed';
+  const [closed, setClosed] = useState(() => { try { return (JSON.parse(localStorage.getItem(storage) ?? '[]') as string[]).includes(id); } catch { return false; } });
+  const toggle = () => {
+    const next = !closed;
+    setClosed(next);
+    try {
+      const list = (JSON.parse(localStorage.getItem(storage) ?? '[]') as string[]).filter(x => x !== id);
+      localStorage.setItem(storage, JSON.stringify(next ? [...list, id] : list));
+    } catch { /* private browsing: the choice lasts for this page */ }
+  };
   return (
     <section className="dash-band" id={id} aria-labelledby={`${id}-h`}>
-      <div className="band-head"><span className="band-ic" aria-hidden="true"><Icon name={icon} size={16} /></span><h2 className="band-title" id={`${id}-h`}>{title}</h2>{hint && <span className="hint">{hint}</span>}</div>
-      {children}
+      <div className="band-head"><span className="band-ic" aria-hidden="true"><Icon name={icon} size={16} /></span><h2 className="band-title" id={`${id}-h`}>{title}</h2>{hint && <span className="hint">{hint}</span>}
+        <button type="button" className="linkbtn band-toggle" aria-expanded={!closed} aria-label={`${closed ? 'Show' : 'Hide'} ${title}`} onClick={toggle}>{closed ? 'Show' : 'Hide'}</button></div>
+      {!closed && children}
+    </section>
+  );
+}
+
+/** How a figure moved against the window before it. More opened tickets is not good, more closed is; the words and arrow carry it, not only the colour. */
+function Delta({ now, before, goodWhenUp }: { now: number; before: number; goodWhenUp: boolean }) {
+  if (before === 0 && now === 0) return <span className="glance-delta">no change</span>;
+  const diff = now - before;
+  if (diff === 0) return <span className="glance-delta">no change</span>;
+  const good = diff > 0 === goodWhenUp;
+  return <span className={`glance-delta ${good ? 'good' : 'bad'}`}>{diff > 0 ? '▲' : '▼'} {Math.abs(diff)} {diff > 0 ? 'more' : 'fewer'} than the previous period</span>;
+}
+
+/** The first thing to read: what needs a decision today, and how the period compares, each opening its own list. */
+function AtAGlance({ cc, params }: { cc: CC; params: Record<string, string> }) {
+  const c = cc.cases;
+  const period = PERIOD_LABEL[cc.period.name];
+  const to = (extra: Record<string, string>) => `/cases${qs({ ...params, ...extra })}`;
+  const window = { status: 'all', createdFrom: cc.period.from, createdTo: cc.period.to };
+  const net = c.openedInPeriod - c.closedInPeriod;
+  return (
+    <section className="glance" aria-label="At a glance">
+      <h2 className="glance-title">At a glance</h2>
+      <p className="glance-sentence">
+        {c.risk.breached > 0 ? <><Link to={to({ due: 'overdue' })}><b>{c.risk.breached}</b> of {c.openCount} open tickets are past due</Link>{c.risk.approaching > 0 && <>, and <Link to={to({ due: '24h' })}><b>{c.risk.approaching}</b> more are due within 24 hours</Link></>}.</> : <>None of the {c.openCount} open tickets is past due.</>}
+        {' '}{net > 0 ? <>The backlog grew by {net} in {period}: more tickets opened than closed.</> : net < 0 ? <>The backlog shrank by {-net} in {period}: more tickets closed than opened.</> : <>As many tickets closed as opened in {period}.</>}
+      </p>
+      <div className="glance-tiles">
+        <Link className="glance-tile" to={to(window)}><span className="flabel">Opened in {period}</span><b>{c.openedInPeriod}</b><Delta now={c.openedInPeriod} before={c.previous.opened} goodWhenUp={false} /></Link>
+        <div className="glance-tile"><span className="flabel">Closed in {period}</span><b>{c.closedInPeriod}</b><Delta now={c.closedInPeriod} before={c.previous.closed} goodWhenUp /></div>
+        <Link className="glance-tile" to={to({ priority: 'Critical' })}><span className="flabel">Critical or high, open</span><b>{c.criticalHigh}</b><span className="glance-delta">of {c.openCount} open</span></Link>
+        <Link className="glance-tile" to={to({ sla: 'breached', status: 'all', createdFrom: cc.period.from, createdTo: cc.period.to })}><span className="flabel">SLA response met</span><b>{cc.sla.response.rate === null ? '—' : `${cc.sla.response.rate}%`}</b><span className="glance-delta">resolution {cc.sla.resolution.rate === null ? 'not measured' : `${cc.sla.resolution.rate}%`}</span></Link>
+      </div>
     </section>
   );
 }
@@ -762,6 +806,7 @@ export function Dashboard() {
       <DashNav />
       {(dash.isLoading || insights.isLoading || cc.isLoading) && <StateMessage kind="loading" />}
       {(dash.error || insights.error || cc.error) && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
+      {cc.data && <AtAGlance cc={cc.data} params={params} />}
       <section id="overview" aria-label="Key figures">
         {dash.data && insights.data && cc.data ? <KpiGrid dash={dash.data} d={insights.data} cc={cc.data} />
           : (dash.isLoading || insights.isLoading || cc.isLoading) && <KpiSkeleton />}

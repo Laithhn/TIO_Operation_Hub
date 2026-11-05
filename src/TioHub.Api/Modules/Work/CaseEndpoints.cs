@@ -50,7 +50,12 @@ public static class CaseEndpoints
                 ["nextReview"] = c => c.NextReviewAt, ["created"] = c => c.SlaClockStartAt ?? c.CreatedAt, ["updated"] = c => c.UpdatedAt, ["client"] = c => c.Client!.Code, ["owner"] = c => c.Owner!.DisplayName
             };
             var paged = await q.SortBy(p.Sort, keys, "-created").Select(Row(now, policy)).ToPagedAsync(PageQuery.From(p.Page, p.PageSize), ct);
-            return Results.Ok(paged);
+            // A99: how the Jira assignee is mapped, read from the mapping itself. An empty hub owner does not mean unmapped: a client contact and a closed ticket have none either.
+            var ids = paged.Items.Select(r => r.Id).ToList();
+            var kinds = await db.JiraCaseMappings.AsNoTracking().Where(m => m.CaseId != null && ids.Contains(m.CaseId.Value) && m.AssigneeAccountId != null)
+                .Select(m => new { CaseId = m.CaseId!.Value, user = db.JiraUserMappings.Where(u => u.JiraConnectionId == m.JiraConnectionId && u.JiraAccountId == m.AssigneeAccountId).Select(u => new { u.TioUserId, u.ClientContactId }).FirstOrDefault() }).ToListAsync(ct);
+            var kindOf = kinds.GroupBy(k => k.CaseId).ToDictionary(g => g.Key, g => g.First().user is { } u ? u.TioUserId != null ? "TioUser" : u.ClientContactId != null ? "ClientContact" : "Unmapped" : "Unmapped");
+            return Results.Ok(paged with { Items = paged.Items.Select(r => r with { JiraAssigneeKind = kindOf.GetValueOrDefault(r.Id) }).ToList() });
         });
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, FreshnessService fresh, CancellationToken ct) =>
@@ -237,6 +242,7 @@ public static class CaseEndpoints
                  .When(CaseQuery.IsOpen(c.Status) && input.NextReviewAt is null, "nextReviewAt", "Every open ticket needs a next review time.")
                  .Text("changeNote", input.ChangeNote, 1000, "Note").Text("responsibleOrganization", input.ResponsibleOrganization, 150, "Responsible organization");
             var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<CaseType>(check, "type", LookupLists.CaseType, input.Type, "the ticket type", c.Type, ct);
+            if (input.Priority != c.Priority && await db.JiraCaseMappings.AsNoTracking().AnyAsync(m => m.CaseId == c.Id, ct)) check.Add("priority", "The priority of this ticket comes from Jira, so change it there.");
             if (input.Priority != c.Priority && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("priority", "Ticket coordination permission is required to change the priority.");
             if (input.ResponsibleTeamId != c.ResponsibleTeamId && !access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate)) check.Add("responsibleTeamId", "Ticket coordination permission is required to change the team.");
             if (input.ResponsibleTeamId is not null && !await db.Teams.AnyAsync(t => t.Id == input.ResponsibleTeamId, ct)) check.Add("responsibleTeamId", "Select a team.");
@@ -690,7 +696,7 @@ public static class CaseEndpoints
         WaitingReason? WaitingReason, DateTimeOffset? WaitingSince, string NextAction, DateTimeOffset NextReviewAt, DateTimeOffset? DueAt, string? DueTimeZone, DateTimeOffset CreatedAt,
         bool Overdue, bool ReviewOverdue, bool Stale, List<string> JiraKeys, string? ContractRef = null, SlaState ResponseSla = SlaState.NotApplicable, SlaState ResolutionSla = SlaState.NotApplicable,
         string? JiraSourceKey = null, string? JiraConnectionName = null, string? JiraStatus = null, string StatusCode = "", string? InternalAssignee = null,
-        DateTimeOffset? UpdatedAt = null, DateTimeOffset? ResolvedAt = null, string? JiraAssignee = null, string? JiraReporter = null, string? JiraPriority = null, string? JiraIssueType = null, string? JiraResolution = null, DateTimeOffset? OpenedAt = null);
+        DateTimeOffset? UpdatedAt = null, DateTimeOffset? ResolvedAt = null, string? JiraAssignee = null, string? JiraReporter = null, string? JiraPriority = null, string? JiraIssueType = null, string? JiraResolution = null, DateTimeOffset? OpenedAt = null, string? JiraAssigneeKind = null);
 
     private static object Permissions(Case c, UserContext me, bool belongsToTeam, bool hasResolved, bool statusFromJira)
     {

@@ -239,6 +239,50 @@ public static class DashboardEndpoints
             access.RequireAccess();
             return Results.Ok(await dash.MeasuresAsync(p, ct));
         });
+        // A98: one person's own work and results, whatever else they may see.
+        g.MapGet("/me", async (HubDbContext db, HubAccess access, HubSettings settings, FreshnessService fresh, TimeProvider clock, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            var me = access.Me.UserId ?? throw new ForbiddenException("Only a signed-in person has their own dashboard.");
+            var now = clock.GetUtcNow();
+            var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
+            var days = await settings.UpcomingDaysAsync(ct);
+            var prios = await settings.CoveragePrioritiesAsync(ct);
+            IQueryable<Case> Mine(string status) => CaseQuery.Apply(db.Cases.AsNoTracking(), new CaseFilter(OwnerId: me, Status: status), now, days, policy, db, prios);
+            var rows = await Mine("open").Select(CaseEndpoints.Row(now, policy)).ToListAsync(ct);
+            var noResponse = await Mine("open").CountAsync(c => c.ContractId != null && c.FirstResponseAt == null, ct);
+            var since = now.AddDays(-30);
+            var recent = await Mine("all").Where(c => (c.ClosedAt != null && c.ClosedAt >= since) || (c.SlaClockStartAt ?? c.CreatedAt) >= since)
+                .Select(c => new { OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, c.ClosedAt, c.ResolvedAt, c.FirstResponseAt, c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt }).ToListAsync(ct);
+            int Count(IEnumerable<SlaState> s, SlaState v) => s.Count(x => x == v);
+            var response = recent.Select(c => CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now)).ToList();
+            var resolution = recent.Select(c => CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now)).ToList();
+            static double? Hours(List<double> v) => v.Count == 0 ? null : Math.Round(v.Average(), 1);
+            var seesCommitments = access.Me.HasRight(RightKeys.Commitments, RightKeys.View);
+            var commitments = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).Where(_ => seesCommitments).OrderBy(c => c.CurrentDueAt).Take(10).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
+            var openCommitments = seesCommitments ? await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).CountAsync(ct) : 0;
+            var overdueCommitments = seesCommitments ? await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me, Due: "overdue"), now, days, db).CountAsync(ct) : 0;
+            var ids = rows.Select(r => r.Id).ToList();
+            var replies = await db.JiraComments.AsNoTracking().Where(k => ids.Contains(k.CaseId) && k.DeletedInJiraAt == null && k.VisibilityValue == null).OrderByDescending(k => k.JiraCreatedAt).Take(8)
+                .Select(k => new { caseId = k.CaseId, author = k.AuthorName, at = k.JiraCreatedAt }).ToListAsync(ct);
+            return Results.Ok(new
+            {
+                evaluatedAt = now,
+                open = rows.Count, overdue = rows.Count(r => r.Overdue), dueSoon = rows.Count(r => r.DueAt >= now && r.DueAt <= now.AddHours(24)), waiting = rows.Count(r => r.WaitingReason != null),
+                criticalHigh = rows.Count(r => r.Priority is Priority.Critical or Priority.High), noResponse, reviewOverdue = rows.Count(r => r.ReviewOverdue),
+                openCommitments, overdueCommitments,
+                last30Days = new
+                {
+                    opened = recent.Count(c => c.OpenedAt >= since), closed = recent.Count(c => c.ClosedAt >= since),
+                    responseMet = Count(response, SlaState.Met), responseBreached = Count(response, SlaState.Breached), resolutionMet = Count(resolution, SlaState.Met), resolutionBreached = Count(resolution, SlaState.Breached),
+                    averageFirstResponseHours = Hours(recent.Where(c => c.FirstResponseAt != null).Select(c => (c.FirstResponseAt!.Value - c.OpenedAt).TotalHours).Where(h => h >= 0).ToList()),
+                    averageResolutionHours = Hours(recent.Where(c => c.ResolvedAt != null).Select(c => (c.ResolvedAt!.Value - c.OpenedAt).TotalHours).Where(h => h >= 0).ToList())
+                },
+                tickets = rows.OrderByDescending(r => r.Overdue).ThenBy(r => r.Priority).ThenBy(r => r.DueAt ?? DateTimeOffset.MaxValue).Take(25),
+                commitments,
+                latestComments = replies.Select(k => new { k.caseId, reference = rows.First(r => r.Id == k.caseId).Ref, title = rows.First(r => r.Id == k.caseId).Title, k.author, k.at })
+            });
+        });
         g.MapGet("/insights", async ([AsParameters] DashboardQuery p, Insights insights, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();

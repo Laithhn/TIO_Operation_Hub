@@ -49,7 +49,7 @@ test.describe('A70 Reporting Center navigation', () => {
     await expect(sectionMenu(page).getByRole('link', { name: 'Templates' })).toHaveAttribute('aria-current', 'page');
     // The thirteen catalog reports stay in the library.
     await page.goto('/reporting-center/library');
-    await expect(page.locator('.rc-card')).toHaveCount(13);
+    await expect(page.locator('.rc-card')).toHaveCount(14);
   });
 
   test('phones: the drawer lists the Reporting Center with its areas', async ({ page }) => {

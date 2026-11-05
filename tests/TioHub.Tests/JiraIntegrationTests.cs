@@ -735,7 +735,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         _jira.Add("182", "TAH-182", priority: "Blocker");
         await RunAsync(f.SpaceId);
         Assert.Equal(Priority.Critical, (await CaseOfAsync(f.ConnectionId, "182"))!.Priority);
-        Assert.Equal(Priority.Normal, (await CaseOfAsync(f.ConnectionId, "181"))!.Priority); // existing cases keep theirs
+        Assert.Equal(Priority.Critical, (await CaseOfAsync(f.ConnectionId, "181"))!.Priority); // A96: existing tickets follow the mapping too
     }
 
     [Fact]
@@ -1030,7 +1030,7 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task After_creation_jira_no_longer_changes_the_case_priority()
+    public async Task The_priority_follows_jira_and_cannot_be_changed_in_the_hub()
     {
         var f = await SetUpAsync();
         _jira.Add("110", "TAH-110", priority: "P1 - Critical");
@@ -1039,9 +1039,33 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         var manager = await _hub.As(HubFactory.Manager);
         var id = (await CaseOfAsync(f.ConnectionId, "110"))!.Id;
         Assert.Equal("P1 - Critical", (await manager.Get($"/cases/{id}")).Body!["jiraSource"]!["priority"]!.GetValue<string>());
+
         _jira.Change("110", i => i with { PriorityName = "P4 - Low" });
         await RunAsync(f.SpaceId);
-        Assert.Equal(Priority.Critical, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
+        Assert.Equal(Priority.Low, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
+        Assert.Contains(CaseEventType.PriorityChanged, await Db(db => db.CaseEvents.Where(e => e.CaseId == id).Select(e => e.Type).ToListAsync()));
+
+        // A name that matches nothing leaves the priority alone until it is mapped; mapping it applies to existing tickets at once.
+        _jira.Change("110", i => i with { PriorityName = "Blocker" });
+        await RunAsync(f.SpaceId);
+        Assert.Equal(Priority.Low, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
+        var mapping = await Db(db => db.JiraValueMappings.IgnoreQueryFilters().Where(v => v.ClientId == f.ClientId && v.JiraValue == "Blocker").Select(v => v.Id).FirstAsync());
+        Assert.Equal(HttpStatusCode.NoContent, (await manager.Put($"/clients/{f.ClientId}/jira/value-mappings/{mapping}", new { target = "High" })).Status);
+        Assert.Equal(Priority.High, (await CaseOfAsync(f.ConnectionId, "110"))!.Priority);
+    }
+
+    [Fact]
+    public async Task Tickets_imported_earlier_take_the_priority_already_read_from_jira()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("111", "TAH-111", priority: "P2 - High");
+        await RunAsync(f.SpaceId);
+        var id = (await CaseOfAsync(f.ConnectionId, "111"))!.Id;
+        await Db(db => db.Cases.IgnoreQueryFilters().Where(c => c.Id == id).ExecuteUpdateAsync(s => s.SetProperty(c => c.Priority, Priority.Normal)));
+        using var scope = _hub.Services.CreateScope();
+        var moved = await scope.ServiceProvider.GetRequiredService<JiraCaseBridge>().ReconcilePrioritiesAsync(f.ClientId, DateTimeOffset.UtcNow, CancellationToken.None);
+        Assert.Equal(1, moved);
+        Assert.Equal(Priority.High, (await CaseOfAsync(f.ConnectionId, "111"))!.Priority);
     }
 
     private async Task MapContactAsync(long connection, string account, long contact)
@@ -1239,6 +1263,42 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         if (inactive is { } id) Assert.DoesNotContain((await manager.Get($"/admin/jira-connections/{f.ConnectionId}/mappable-users")).Body!.AsArray(), u => u!["id"]!.GetValue<long>() == id);
         var viewer = await _hub.As(HubFactory.Viewer);
         Assert.Equal(HttpStatusCode.Forbidden, (await viewer.Get($"/admin/jira-connections/{f.ConnectionId}/mappable-users")).Status);
+    }
+
+    [Fact]
+    public async Task The_list_says_how_the_jira_assignee_is_mapped_whoever_the_owner_is()
+    {
+        var f = await SetUpAsync();
+        var manager = await _hub.As(HubFactory.Manager);
+        var owner = await _hub.UserId(HubFactory.Engineer);
+        var contact = await manager.Create($"/clients/{f.ClientId}/contacts", new { name = "Fictional Rep 130", email = "rep130@example.com" });
+        _jira.Add("130", "TAH-130", assigneeId: "acc-none", assigneeName: "Nobody Mapped");
+        _jira.Add("131", "TAH-131", assigneeId: "acc-client", assigneeName: "Fictional Rep 130");
+        _jira.Add("132", "TAH-132", assigneeId: "acc-staff", assigneeName: "Fictional Staff");
+        await MapStatusAsync(f.ConnectionId, "9", "Closed");
+        _jira.Change("132", i => i with { StatusId = "9", StatusName = "Done", StatusCategory = "done" });
+        await RunAsync(f.SpaceId);
+        await MapContactAsync(f.ConnectionId, "acc-client", contact);
+        await MapUserAsync(f.ConnectionId, "acc-staff", owner);
+        await RunAsync(f.SpaceId);
+
+        async Task<JsonNode> Row(string issue)
+        {
+            var id = (await CaseOfAsync(f.ConnectionId, issue))!.Id;
+            return (await manager.Get($"/cases?clientId={f.ClientId}&status=all&pageSize=50")).Body!["items"]!.AsArray().First(r => r!["id"]!.GetValue<long>() == id)!;
+        }
+        Assert.Equal("Unmapped", (await Row("130"))["jiraAssigneeKind"]!.GetValue<string>());
+        Assert.Equal("ClientContact", (await Row("131"))["jiraAssigneeKind"]!.GetValue<string>());
+        var closed = await Row("132");
+        Assert.Equal("TioUser", closed["jiraAssigneeKind"]!.GetValue<string>());
+        Assert.Null(closed["ownerName"]); // a closed ticket takes no owner, yet its assignee is mapped
+
+        // The KPI report credits the mapped person with that closed ticket, not nobody.
+        var report = (await manager.Post("/reports/team-kpis/preview", new { filters = new { clientId = f.ClientId.ToString() }, pageSize = 50 })).Body!;
+        var columns = report["columns"]!.AsArray().Select(c => c!["header"]!.GetValue<string>()).ToList();
+        var name = await Db(db => db.Users.Where(u => u.Id == owner).Select(u => u.DisplayName).FirstAsync());
+        var line = report["rows"]!.AsArray().First(r => r![columns.IndexOf("Person")]!.ToString() == name)!;
+        Assert.Equal("1", line[columns.IndexOf("Closed")]!.ToString());
     }
 
     [Fact]

@@ -92,6 +92,10 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
         var opened = await all.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) >= pf && (c.SlaClockStartAt ?? c.CreatedAt) < pt).Select(c => c.SlaClockStartAt ?? c.CreatedAt).ToListAsync(ct);
         var closed = await all.Where(c => c.ClosedAt != null && c.ClosedAt >= pf && c.ClosedAt < pt).Select(c => new { At = c.ClosedAt!.Value, c.DueAt }).ToListAsync(ct);
         var withDue = closed.Where(c => c.DueAt != null).ToList();
+        // The window before the reporting period, of the same length: opened, closed and SLA come from dates, so they can be compared.
+        var previousFrom = pf - (pt - pf);
+        var openedBefore = await all.CountAsync(c => (c.SlaClockStartAt ?? c.CreatedAt) >= previousFrom && (c.SlaClockStartAt ?? c.CreatedAt) < pf, ct);
+        var closedBefore = await all.CountAsync(c => c.ClosedAt != null && c.ClosedAt >= previousFrom && c.ClosedAt < pf, ct);
         var caseTrend = buckets.Select(b => new Point(b.Key, b.Label, opened.Count(x => x >= b.From && x < b.To), closed.Count(x => x.At >= b.From && x.At < b.To))).ToList();
 
         // ---- A61: contractual SLA compliance of client cases opened in the period ----
@@ -259,6 +263,7 @@ public sealed class CommandCenter(HubDbContext db, HubSettings settings, Freshne
                 risk,
                 openedInPeriod = opened.Count,
                 closedInPeriod = closed.Count,
+                previous = new { opened = openedBefore, closed = closedBefore },
                 // Operational due-date adherence of cases closed in the period that had a due date (the contractual SLA is in "sla").
                 adherence = new { measured = withDue.Count, onTime = withDue.Count(c => c.At <= c.DueAt) },
                 trend = caseTrend

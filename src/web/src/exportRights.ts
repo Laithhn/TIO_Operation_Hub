@@ -6,7 +6,7 @@ const businessResources = ['ClientStructure', 'Contracts', 'Environments', 'Serv
 const sources: Record<string, string[]> = {
   cases: ['Cases'], 'cases-builder': ['Cases'], 'case-aging': ['Cases'], commitments: ['Commitments'], 'commitment-performance': ['Commitments'],
   environments: ['Environments'], versions: ['Installations', 'Products'], assets: ['Servers'], contracts: ['Contracts'],
-  'sla-compliance': ['Cases', 'Contracts'], 'team-workload': ['Teams', 'Cases', 'Commitments'],
+  'sla-compliance': ['Cases', 'Contracts'], 'team-workload': ['Teams', 'Cases', 'Commitments'], 'team-kpis': ['Teams', 'Cases'],
   'data-quality': businessResources, actions: businessResources, 'client-health': businessResources
 };
 

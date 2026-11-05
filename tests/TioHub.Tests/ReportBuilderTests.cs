@@ -312,6 +312,6 @@ public class ReportBuilderTests(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.OK, o.Status);
         Assert.Equal(30, o.Body!["perDay"]!.AsArray().Count);
         Assert.True(o.Body["exports"]!["completed"]!.GetValue<int>() >= 1);
-        Assert.Equal(13, o.Body["availableReports"]!.GetValue<int>());
+        Assert.Equal(14, o.Body["availableReports"]!.GetValue<int>());
     }
 }

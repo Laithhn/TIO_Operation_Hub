@@ -140,6 +140,14 @@ using (var scope = app.Services.CreateScope())
     await TioHub.Api.Modules.Work.CaseSla.BackfillAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
     // A93: once, existing tickets of Jira spaces take their contract from their creation date.
     await TioHub.Api.Modules.Jira.JiraSpaceContracts.ReconcileOnceAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
+    // A96: once, existing tickets take the priority already read from Jira.
+    if (!await db.Settings.AnyAsync(s => s.Key == TioHub.Api.Modules.Admin.SettingKeys.JiraPrioritiesFrom))
+    {
+        var moved = await scope.ServiceProvider.GetRequiredService<TioHub.Api.Modules.Jira.JiraCaseBridge>().ReconcilePrioritiesAsync(null, DateTimeOffset.UtcNow, CancellationToken.None);
+        db.Settings.Add(new TioHub.Api.Modules.Admin.AppSetting { Key = TioHub.Api.Modules.Admin.SettingKeys.JiraPrioritiesFrom, Value = DateTimeOffset.UtcNow.ToString("O"), Description = "When synchronized tickets began to take their priority from Jira (A96)." });
+        await db.SaveChangesAsync();
+        if (moved > 0) app.Logger.LogInformation("Jira priorities: {Moved} ticket(s) changed", moved);
+    }
     attachmentStore.Prepare();
 }
 

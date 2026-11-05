@@ -286,6 +286,7 @@ test('Sync with Jira on a ticket reports what came back', async ({ page }) => {
   await page.getByRole('button', { name: 'Sync with Jira' }).click();
   await expect(page.getByText('TAH-1 could not be imported: Select an active team.')).toBeVisible();
   await shot(page, 'case-sync');
+  await page.unrouteAll({ behavior: 'ignoreErrors' }); // a background refresh may still be answering this route
 });
 
 test('the client map lists countries with a flag image', async ({ page }) => {

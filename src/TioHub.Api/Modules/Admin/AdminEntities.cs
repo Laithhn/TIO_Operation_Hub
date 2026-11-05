@@ -76,6 +76,7 @@ public static class SettingKeys
     /// <summary>A61: when first responses began to be recorded; set once by the application.</summary>
     public const string SlaTrackingFrom = "Sla.FirstResponseTrackingFrom";
     public const string JiraContractsByDateFrom = "Jira.ContractsByDateFrom";
+    public const string JiraPrioritiesFrom = "Jira.PrioritiesFollowJiraFrom";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

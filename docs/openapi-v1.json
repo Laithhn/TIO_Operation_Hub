@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost/"
+      "url": "http://127.0.0.1:5198/"
     }
   ],
   "paths": {
@@ -7377,7 +7377,7 @@
         }
       }
     },
-    "/api/v1/clients/{id}/jira/spaces/{spaceId}/contract": {
+    "/api/v1/clients/{id}/jira/spaces/{spaceId}/contracts": {
       "put": {
         "tags": [
           "Jira integration"
@@ -7408,7 +7408,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SpaceContractInput"
+                "$ref": "#/components/schemas/SpaceContractsInput"
               }
             }
           },
@@ -7909,6 +7909,30 @@
       }
     },
     "/api/v1/admin/jira-connections/{id}/users": {
+      "get": {
+        "tags": [
+          "Jira integration"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/admin/jira-connections/{id}/mappable-users": {
       "get": {
         "tags": [
           "Jira integration"
@@ -10046,6 +10070,18 @@
               "type": "string"
             }
           }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard/me": {
+      "get": {
+        "tags": [
+          "Dashboard"
         ],
         "responses": {
           "200": {
@@ -14018,6 +14054,12 @@
             "format": "date-time"
           },
           "evidence": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
             "type": [
               "null",
               "string"
@@ -18292,24 +18334,25 @@
           }
         }
       },
-      "SpaceContractInput": {
+      "SpaceContractsInput": {
         "required": [
-          "contractId"
+          "contractIds"
         ],
         "type": "object",
         "properties": {
-          "contractId": {
-            "pattern": "^-?(?:0|[1-9]\\d*)$",
+          "contractIds": {
             "type": [
               "null",
-              "integer",
-              "string"
+              "array"
             ],
-            "format": "int64"
-          },
-          "applyToOpenCases": {
-            "type": "boolean",
-            "default": false
+            "items": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int64"
+            }
           },
           "reason": {
             "type": [

@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { cloneElement, createContext, Fragment, isValidElement, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
+import { cloneElement, createContext, Fragment, isValidElement, lazy, Suspense, useCallback, useContext, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type InputHTMLAttributes, type ReactElement, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ApiError, del, get, type UserRef } from '../api';
 import { useMe, useReference } from '../hooks';
@@ -398,11 +398,13 @@ function useOverflow<E extends HTMLElement>() {
  * export). The rows are a native table (GUI-05): screen readers announce rows, column headers and cells, a sortable header is a button
  * with aria-sort, and sorting is announced. On phones the secondary columns move into a details row under each record (GUI-06).
  */
-export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey }: {
+export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey, selectable }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
   sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
   /** Remembers this person's column choice in this browser under this name. */
   columnsKey?: string;
+  /** Rows can be ticked for an action on several at once. On by default wherever the table has its toolbar. */
+  selectable?: boolean;
 }) {
   const nav = useNavigate();
   const me = useMe().data;
@@ -427,6 +429,9 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [announce, setAnnounce] = useState('');
+  const phone = usePhone();
+  const [ticked, setTicked] = useState<Record<string, boolean>>({});
+  const [bulkDelete, setBulkDelete] = useState(false);
   // A server-sorted list reloads (and briefly replaces the table): the sort button gets the focus back afterwards.
   // It waits for the new rows: the old table is still on screen right after the click.
   const refocusSort = useRef<{ key: string; rows: unknown } | null>(null);
@@ -464,12 +469,18 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   const cur = Math.min(page, pages);
   const shown = server ? sorted : sorted.slice((cur - 1) * size, cur * size);
   useEffect(() => { setPage(1); }, [needle, rows]);
-  const exportRows = () => downloadCsv(exportName ?? caption ?? document.title.split(' · ')[0] ?? 'table', textCols.map(c => headerText(c)),
-    sorted.map(x => textCols.map(c => x.text[c.key] ?? '')));
+  const exportRows = (list = sorted) => downloadCsv(exportName ?? caption ?? document.title.split(' · ')[0] ?? 'table', textCols.map(c => headerText(c)),
+    list.map(x => textCols.map(c => x.text[c.key] ?? '')));
+  const canSelect = (selectable ?? tools) && !phone;
+  const selected = canSelect ? sorted.filter(x => ticked[String(rowKey(x.r))]) : [];
+  const allShownTicked = shown.length > 0 && shown.every(x => ticked[String(rowKey(x.r))]);
+  const someShownTicked = shown.some(x => ticked[String(rowKey(x.r))]);
+  const setShownTicked = (on: boolean) => setTicked(t => { const next = { ...t }; for (const x of shown) { const k = String(rowKey(x.r)); if (on) next[k] = true; else delete next[k]; } return next; });
+  // A row can be deleted here if it offers Delete itself: the same rule, right and record.
+  const deletable = selected.map(x => { for (const c of columns) { const d = findDeleteAction(c.render(x.r)); if (d && canDeletePath(me, d.path)) return d; } return null; }).filter((d): d is DeleteTarget => !!d);
   const visibleCols = columns.filter(c => !hidden[c.key]);
   const primary = useMemo(() => primaryKeys(columns), [columns]);
   const secondaryCols = visibleCols.filter(c => !primary.has(c.key));
-  const phone = usePhone();
   const hasDetails = phone && secondaryCols.length > 0;
   const lastVisible = visibleCols.filter(c => headerText(c)).length <= 1;
 
@@ -518,7 +529,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   // On the cell's content: browsers ignore max-width on the cells of an auto-layout table.
   const cellStyle = (c: Column<T>) => (c.maxWidth ? { maxWidth: c.maxWidth } : undefined);
   const columnMatches = columns.filter(c => (headerText(c) || c.key).toLowerCase().includes(columnSearch.trim().toLowerCase()) && headerText(c));
-  const colSpan = visibleCols.length + (hasDetails ? 1 : 0);
+  const colSpan = visibleCols.length + (hasDetails ? 1 : 0) + (canSelect ? 1 : 0);
   return (
     <div className={`panel vt-table${tableWrapClassName ? ` ${tableWrapClassName}` : ''}${tableClassName ? ` ${tableClassName}` : ''}`}
       role="region" aria-label={caption ?? 'Table'} data-vt-table={tableId}>
@@ -535,11 +546,18 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
               <Button ref={filterButton as never} type="bare" icon={activeFilters ? 'FILTERACTIVE' : 'FILTER'} text={activeFilters ? `Filter (${activeFilters})` : 'Filter'}
                 onClick={() => { setShowColumns(false); setShowFilters(v => !v); }} />
               <Button ref={columnsButton as never} type="bare" icon="COLUMNSELECT" text="Columns" onClick={() => { setShowFilters(false); setColumnSearch(''); setShowColumns(v => !v); }} />
-              {canExport(me) && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={exportRows} />}
+              {canExport(me) && <Button type="bare" icon="EXPORT" text="Export CSV" onClick={() => exportRows()} />}
             </ToolbarContrItem>
           </Toolbar>
         </div>
       )}
+      {selected.length > 0 && <div className="vt-bulk" role="group" aria-label={`Action on selected rows of ${caption ?? 'this table'}`}>
+        <b>{selected.length} selected</b>
+        {canExport(me) && <button type="button" className="linkbtn" onClick={() => exportRows(selected)}>Export selected</button>}
+        {deletable.length > 0 && <button type="button" className="linkbtn danger-link" onClick={() => setBulkDelete(true)}>Delete selected{deletable.length < selected.length ? ` (${deletable.length})` : ''}</button>}
+        <button type="button" className="linkbtn" onClick={() => setTicked({})}>Clear selection</button>
+      </div>}
+      {bulkDelete && <Suspense fallback={null}><BulkDelete items={deletable} onClose={() => setBulkDelete(false)} onDone={() => setTicked({})} /></Suspense>}
       {showFilters && (
         <ToolbarCard anchor={filterButton} width={500} label={`${caption ?? 'Table'} filters`} onClose={() => setShowFilters(false)}
           actions={close => <><Button type="tinted" text="Clear" onClick={clearFilters} /><Button type="filled" text="Close" onClick={() => close(true)} /></>}>
@@ -601,6 +619,8 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
             <thead>
               <tr>
                 {hasDetails && <th scope="col" className="col-disclose"><span className="sr">Details</span></th>}
+                {canSelect && <th scope="col" className="col-select"><input type="checkbox" aria-label="Select all rows shown" checked={allShownTicked}
+                  ref={el => { if (el) el.indeterminate = someShownTicked && !allShownTicked; }} onChange={e => setShownTicked(e.target.checked)} /></th>}
                 {visibleCols.map(c => {
                   const s = sortState(c);
                   const name = headerText(c);
@@ -626,7 +646,8 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
                 const identity = x.text[visibleCols.find(c => headerText(c))?.key ?? ''] || 'this row';
                 return (
                   <Fragment key={key}>
-                    <tr className={`vt-row${open ? ' is-open' : ''}`} onClick={openRow}>
+                    <tr className={`vt-row${open ? ' is-open' : ''}${ticked[key] && canSelect ? ' is-selected' : ''}`} onClick={openRow}>
+                      {canSelect && <td className="col-select"><input type="checkbox" aria-label={`Select ${identity}`} checked={!!ticked[key]} onChange={e => setTicked(t => { const next = { ...t }; if (e.target.checked) next[key] = true; else delete next[key]; return next; })} /></td>}
                       {hasDetails && <td className="col-disclose">
                         <button type="button" className="row-disclose" aria-expanded={open} aria-controls={open ? detailsId : undefined} aria-label={`Details for ${identity}`}
                           onClick={() => setExpanded(e => ({ ...e, [key]: !open }))}><VtIcon icon={open ? 'ARROWUP' : 'ARROWDOWN'} size={16} /></button>
@@ -670,6 +691,18 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
 
 
 /** A37: a small "Delete" action for a table row or a page, with confirmation; shown only with the Delete records right. */
+export type DeleteTarget = { path: string; what: string };
+const BulkDelete = lazy(() => import('./BulkDelete').then(m => ({ default: m.BulkDelete })));
+
+/** The Delete a row offers, found in what its cell renders. */
+function findDeleteAction(node: ReactNode): DeleteTarget | null {
+  if (Array.isArray(node)) { for (const n of node) { const d = findDeleteAction(n); if (d) return d; } return null; }
+  if (!isValidElement(node)) return null;
+  const props = node.props as { path?: string; what?: string; children?: ReactNode };
+  if (node.type === DeleteAction && props.path && props.what) return { path: props.path, what: props.what };
+  return findDeleteAction(props.children);
+}
+
 export function DeleteAction({ path, what, onDone, button, afterTo }: { path: string; what: string; onDone?: () => void; button?: boolean; afterTo?: string }) {
   const me = useMe().data;
   const nav = useNavigate();
@@ -684,11 +717,11 @@ export function DeleteAction({ path, what, onDone, button, afterTo }: { path: st
 }
 
 /** A43: record kinds that can be deleted together with everything that belongs to them. */
-const CASCADE_KINDS = ['clients', 'regions', 'environments', 'projects', 'contracts', 'assets', 'installations', 'components', 'tickets', 'commitments', 'escalations', 'teams'];
+export const CASCADE_KINDS = ['clients', 'regions', 'environments', 'projects', 'contracts', 'assets', 'installations', 'components', 'cases', 'commitments', 'escalations', 'teams'];
 type DepItem = { id: number; label: string; link?: string | null; deletePath?: string | null };
 type DepGroup = { type: string; label: string; count: number; unlinked: boolean; main: boolean; items: DepItem[] };
-type DepPreview = { label: string; total: number; delete: DepGroup[]; unlink: DepGroup[] };
-const errText = (e: unknown) => (e instanceof ApiError ? [e.detail ?? e.title, ...Object.values(e.errors ?? {}).flat()].join(' ') : (e as Error).message);
+export type DeletePreview = { label: string; total: number; delete: DepGroup[]; unlink: DepGroup[] };
+export const errText = (e: unknown) => (e instanceof ApiError ? [e.detail ?? e.title, ...Object.values(e.errors ?? {}).flat()].join(' ') : (e as Error).message);
 
 export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; what: string; onClose: () => void; onDone?: () => void }) {
   const me = useMe().data;
@@ -703,7 +736,7 @@ export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; w
   const m = path.match(/^\/([a-z-]+)\/(\d+)$/);
   const cascade = !!m && CASCADE_KINDS.includes(m[1]);
   const depPath = cascade ? `/dependents/${m![1]}/${m![2]}` : null;
-  const deps = useQuery({ queryKey: ['dependents', depPath], queryFn: () => get<DepPreview>(depPath!), enabled: cascade, staleTime: 0, gcTime: 0 });
+  const deps = useQuery({ queryKey: ['dependents', depPath], queryFn: () => get<DeletePreview>(depPath!), enabled: cascade, staleTime: 0, gcTime: 0 });
   const d = deps.data;
   const hasDeps = !!d && (d.total > 0 || d.unlink.length > 0);
   const canCascade = canDeletePath(me, path) && !!d &&

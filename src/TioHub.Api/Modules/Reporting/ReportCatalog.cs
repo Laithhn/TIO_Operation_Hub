@@ -490,6 +490,88 @@ public static class ReportCatalog
                 new("Overdue", "Due time passed", r => r.Overdue)]
         });
 
+        list.Add(new TableReport<TeamKpiRow>
+        {
+            Key = "team-kpis", Name = "Team KPI report", Category = Performance, Icon = "team", Operational = true,
+            Description = "How each person works their Jira tickets: first response and resolution times, SLA breaches, replies written, reopened and overdue tickets.",
+            Filters = [Client, Team, Owner, .. Range("createdFrom", "createdTo", "Opened", hint: "Tickets opened in this range, and replies written in it. Empty = all.")],
+            Load = async (x, ct) =>
+            {
+                var filter = new CaseFilter(ClientId: x.L("clientId"), TeamId: x.L("teamId"), OwnerId: x.L("ownerId"), Status: "all", CreatedFrom: x.From("createdFrom"), CreatedTo: x.To("createdTo"));
+                var tickets = await (await Cases(x, filter, ct)).Where(c => c.Status != CaseStatus.Cancelled).Select(c => new
+                {
+                    c.Id, TeamId = c.ResponsibleTeamId, team = c.ResponsibleTeam == null ? null : c.ResponsibleTeam.Name, OwnerId = c.OwnerUserId, owner = c.Owner == null ? null : c.Owner.DisplayName,
+                    OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, c.FirstResponseAt, c.ResolvedAt, c.Status, c.ReopenCount, c.DueAt, c.WaitingReason,
+                    c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt
+                }).ToListAsync(ct);
+                // Replies are counted for the person who wrote them, on tickets this report covers, whoever owns the ticket.
+                var ids = tickets.Select(t => t.Id).ToHashSet();
+                // A99: a ticket belongs to its Jira assignee's person where one is mapped: a closed ticket never takes a hub owner, and would otherwise count as nobody's.
+                var assignees = await x.Db.JiraCaseMappings.AsNoTracking().Where(m => m.CaseId != null && m.AssigneeAccountId != null)
+                    .Join(x.Db.JiraUserMappings.AsNoTracking().Where(u => u.TioUserId != null), m => new { m.JiraConnectionId, Account = m.AssigneeAccountId! }, u => new { u.JiraConnectionId, Account = u.JiraAccountId },
+                        (m, u) => new { CaseId = m.CaseId!.Value, UserId = u.TioUserId!.Value, name = u.TioUser!.DisplayName }).ToListAsync(ct);
+                var assignee = assignees.Where(a => ids.Contains(a.CaseId)).GroupBy(a => a.CaseId).ToDictionary(g => g.Key, g => g.First());
+                var (from, to) = (x.From("createdFrom"), x.To("createdTo"));
+                var replies = await x.Db.JiraComments.AsNoTracking().Where(k => k.DeletedInJiraAt == null && k.VisibilityValue == null && (from == null || k.JiraCreatedAt >= from) && (to == null || k.JiraCreatedAt < to))
+                    .Join(x.Db.JiraUserMappings.AsNoTracking().Where(m => m.TioUserId != null), k => new { k.JiraConnectionId, Account = k.AuthorAccountId }, m => new { m.JiraConnectionId, Account = (string?)m.JiraAccountId }, (k, m) => new { k.CaseId, UserId = m.TioUserId!.Value, k.JiraCreatedAt })
+                    .ToListAsync(ct);
+                replies = replies.Where(r => ids.Contains(r.CaseId)).ToList();
+                var firstBy = replies.GroupBy(r => r.CaseId).Select(g => g.OrderBy(r => r.JiraCreatedAt).First().UserId).GroupBy(u => u).ToDictionary(g => g.Key, g => g.Count());
+                var repliesBy = replies.GroupBy(r => r.UserId).ToDictionary(g => g.Key, g => g.Count());
+                static double? Average(List<double> v) => v.Count == 0 ? null : Math.Round(v.Average(), 1);
+                static double? Median(List<double> v)
+                {
+                    if (v.Count == 0) return null;
+                    var s = v.Order().ToList();
+                    return Math.Round(s.Count % 2 == 1 ? s[s.Count / 2] : (s[s.Count / 2 - 1] + s[s.Count / 2]) / 2, 1);
+                }
+                static double? Percent(int part, int whole) => whole == 0 ? null : Math.Round(100.0 * part / whole, 1);
+                var people = tickets.Select(t => new { Ticket = t, PersonId = assignee.TryGetValue(t.Id, out var a) ? a.UserId : t.OwnerId, Name = assignee.TryGetValue(t.Id, out var b) ? b.name : t.owner });
+                return people.GroupBy(p => (p.Ticket.TeamId, p.PersonId), p => p).Select(pg =>
+                {
+                    var g = pg.Select(p => p.Ticket).ToList();
+                    var open = g.Where(t => t.Status != CaseStatus.Closed).ToList();
+                    var first = g.Where(t => t.FirstResponseAt != null).Select(t => (t.FirstResponseAt!.Value - t.OpenedAt).TotalHours).Where(h => h >= 0).ToList();
+                    var resolved = g.Where(t => t.ResolvedAt != null).Select(t => (t.ResolvedAt!.Value - t.OpenedAt).TotalHours).Where(h => h >= 0).ToList();
+                    var response = g.Select(t => CaseSla.Now(t.ResponseSlaStatus, t.ResponseDueAt, x.Now)).ToList();
+                    var resolution = g.Select(t => CaseSla.Now(t.ResolutionSlaStatus, t.ResolutionDueAt, x.Now)).ToList();
+                    int met(List<SlaState> s) => s.Count(v => v == SlaState.Met);
+                    int late(List<SlaState> s) => s.Count(v => v == SlaState.Breached);
+                    var person = pg.Key.PersonId;
+                    return new TeamKpiRow(pg.Key.TeamId, g.First().team ?? "No team", person, pg.First().Name ?? "Unassigned", g.Count(), open.Count, g.Count() - open.Count,
+                        first.Count, Average(first), Median(first), met(response), late(response), Percent(late(response), met(response) + late(response)),
+                        resolved.Count, Average(resolved), Median(resolved), met(resolution), late(resolution), Percent(late(resolution), met(resolution) + late(resolution)),
+                        open.Count(t => t.DueAt < x.Now), open.Count(t => t.WaitingReason != null), g.Count(t => t.ReopenCount > 0), Percent(g.Count(t => t.ReopenCount > 0), g.Count()),
+                        person is { } p ? repliesBy.GetValueOrDefault(p) : 0, person is { } q ? firstBy.GetValueOrDefault(q) : 0);
+                }).OrderBy(r => r.Team).ThenBy(r => r.TeamId).ThenByDescending(r => r.Tickets).ThenBy(r => r.OwnerId).ToList();
+            },
+            Summarize = (x, rows) =>
+            {
+                static string Rate(int part, int whole) => whole == 0 ? "Not available" : $"{Math.Round(100.0 * part / whole, 1).ToString(CultureInfo.InvariantCulture)}%";
+                int rMet = rows.Sum(r => r.ResponseMet), rLate = rows.Sum(r => r.ResponseBreached), xMet = rows.Sum(r => r.ResolutionMet), xLate = rows.Sum(r => r.ResolutionBreached);
+                var metrics = new List<ReportMetric>
+                {
+                    new("Tickets", rows.Sum(r => r.Tickets).ToString(CultureInfo.InvariantCulture), "Tickets opened in the range, not cancelled."),
+                    new("Response breaches", Rate(rLate, rMet + rLate), "Breached ÷ (met + breached). A ticket whose replies come only from people not mapped in Jira users has no first response, and counts as breached.", rLate > 0 ? "warn" : null),
+                    new("Resolution breaches", Rate(xLate, xMet + xLate), "Breached ÷ (met + breached).", xLate > 0 ? "warn" : null),
+                    new("Overdue now", rows.Sum(r => r.Overdue).ToString(CultureInfo.InvariantCulture), "Open tickets past their due date.", rows.Any(r => r.Overdue > 0) ? "warn" : null),
+                    new("Replies written", rows.Sum(r => r.Replies).ToString(CultureInfo.InvariantCulture), "Public Jira comments by mapped people."),
+                    new("Unassigned", rows.Where(r => r.OwnerId == null).Sum(r => r.Tickets).ToString(CultureInfo.InvariantCulture), "No person: no owner, and the Jira assignee is unmapped or a client contact.", rows.Any(r => r.OwnerId == null) ? "warn" : null)
+                };
+                return (metrics, [new("By team", ["Team", "Tickets", "Open", "Response breached", "Resolution breached", "Overdue", "Replies"],
+                    rows.GroupBy(r => r.TeamId).OrderBy(g => g.First().Team).Select(g => new object?[] { g.First().Team, g.Sum(r => r.Tickets), g.Sum(r => r.Open), g.Sum(r => r.ResponseBreached), g.Sum(r => r.ResolutionBreached), g.Sum(r => r.Overdue), g.Sum(r => r.Replies) }).ToList())]);
+            },
+            Cols = [
+                new("Team", "Responsible team", r => r.Team), new("Person", "The Jira assignee's mapped person, otherwise the ticket's owner, or Unassigned", r => r.Owner), new("Tickets", "Opened in the range, not cancelled", r => r.Tickets),
+                new("Open", "Not closed", r => r.Open), new("Closed", "Closed", r => r.Closed),
+                new("First responses", "Tickets with a first response recorded", r => r.FirstResponses), new("Average first response (h)", "Calendar hours from opening to the first response", r => r.AvgFirstResponseHours), new("Median first response (h)", "Half of the tickets were answered faster than this", r => r.MedianFirstResponseHours),
+                new("Response met", "Contractual first response met", r => r.ResponseMet), new("Response breached", "Contractual first response breached", r => r.ResponseBreached), new("Response breach %", "Breached ÷ (met + breached)", r => r.ResponseBreachPercent),
+                new("Resolved", "Tickets with a resolution time", r => r.Resolved), new("Average resolution (h)", "Calendar hours from opening to resolution", r => r.AvgResolutionHours), new("Median resolution (h)", "Half of the tickets were resolved faster than this", r => r.MedianResolutionHours),
+                new("Resolution met", "Contractual resolution met", r => r.ResolutionMet), new("Resolution breached", "Contractual resolution breached", r => r.ResolutionBreached), new("Resolution breach %", "Breached ÷ (met + breached)", r => r.ResolutionBreachPercent),
+                new("Overdue", "Open and past the due date", r => r.Overdue), new("Waiting", "Open with a waiting reason", r => r.Waiting), new("Reopened", "Tickets reopened at least once", r => r.Reopened), new("Reopened %", "Reopened ÷ tickets", r => r.ReopenedPercent),
+                new("Replies written", "Public Jira comments written by this person in the range, on any ticket here", r => r.Replies), new("First replies written", "Tickets where this person wrote the first public reply", r => r.FirstReplies)]
+        });
+
         list.Add(new TableReport<WorkloadRow>
         {
             Key = "team-workload", Name = "Team workload report", Category = Performance, Icon = "team", Operational = true,
@@ -595,6 +677,9 @@ public static class ReportCatalog
     public sealed record SlaRow(string Ref, string Title, string? Client, string? Contract, string Priority, string? Team, string Owner, DateTimeOffset Created,
         DateTimeOffset? ResponseDue, DateTimeOffset? Responded, SlaState Response, DateTimeOffset? ResolutionDue, DateTimeOffset? Resolved, SlaState Resolution, bool AtRisk, long? ClientId, long? TeamId, long? OwnerId);
     public sealed record AgingRow(string Ref, string Title, string Client, string Priority, string Status, string Owner, string? Team, DateTimeOffset Created, int AgeDays, string Bucket, DateTimeOffset? Due, bool Overdue, long? ClientId, long? OwnerId);
+    public sealed record TeamKpiRow(long? TeamId, string Team, long? OwnerId, string Owner, int Tickets, int Open, int Closed, int FirstResponses, double? AvgFirstResponseHours, double? MedianFirstResponseHours,
+        int ResponseMet, int ResponseBreached, double? ResponseBreachPercent, int Resolved, double? AvgResolutionHours, double? MedianResolutionHours, int ResolutionMet, int ResolutionBreached, double? ResolutionBreachPercent,
+        int Overdue, int Waiting, int Reopened, double? ReopenedPercent, int Replies, int FirstReplies);
     public sealed record WorkloadRow(long? TeamId, string Team, long? OwnerId, string Owner, int Cases, int OverdueCases, int CriticalHigh, int Commitments, int OverdueCommitments);
     public sealed record HealthRow(string Code, string Name, int OpenCases, int OverdueCases, int OverdueCommitments, int Escalations, int OverdueEscalations, int DataQuality, string? ResponseRate, string? ResolutionRate, int SlaBreaches);
 }

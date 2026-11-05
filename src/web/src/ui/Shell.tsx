@@ -19,13 +19,15 @@ const biz = (m: Me) => hasAccess(m);
 const action = (resource: string, operation: string) => (m: Me) => hasRight(m, resource, operation);
 const tech = (m: Me) => biz(m) && seesTechnical(m);
 // GUI-13: the search palette loads when it is first opened, which keeps the entry chunk within its budget.
+import { WhatsNewLink } from './WhatsNew';
 const SearchPalette = lazy(() => import('./SearchPalette').then(m => ({ default: m.SearchPalette })));
 const admin = (m: Me) => isAdministrator(m);
 const integrations = (m: Me) => isAdministrator(m) && hasRight(m, 'AdminIntegrations', 'View');
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
-  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|actions|notifications|data-quality)/, show: biz, side: [
+  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|my-dashboard|map|actions|notifications|data-quality)/, show: biz, side: [
+    { to: '/my-dashboard', label: 'My dashboard', icon: 'user' },
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true },
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
@@ -400,7 +402,7 @@ export function Shell({ children }: { children: ReactNode }) {
       <main className={cx(f.mainScope.mainScope, 'content')} id="main" tabIndex={-1}><SectionContext.Provider value={section?.label}>{framed && children}</SectionContext.Provider></main>
       <footer className={cx(f.footer.footer, 'status')}>
         <span>© VITRONIC</span>
-        <span className="app">TIO Operations Hub&nbsp;&nbsp;{me?.app.version}</span>
+        <span className="app">TIO Operations Hub&nbsp;&nbsp;{me?.app.version}{me && <>&nbsp;&nbsp;<WhatsNewLink version={me.app.version} /></>}</span>
         <span className="center">User : {me?.account}{me ? ` · ${me.roleLabels.join(', ')}` : ''}</span>
         <span className="right">
           {me?.app.environmentName && me.app.environmentName !== 'Production' && <span className="env-badge">{me.app.environmentName}</span>}

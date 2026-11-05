@@ -8,7 +8,7 @@ public static class RightChecks
     public static string[] BusinessResources => RightsCatalog.BusinessResources;
     public static string[] BusinessViewKeys => RightsCatalog.BusinessViewKeys;
 
-    public static readonly string[] KnownReportKeys = ["cases", "commitments", "actions", "environments", "versions", "assets", "data-quality", "contracts", "sla-compliance", "commitment-performance", "case-aging", "team-workload", "client-health"];
+    public static readonly string[] KnownReportKeys = ["cases", "commitments", "actions", "environments", "versions", "assets", "data-quality", "contracts", "sla-compliance", "commitment-performance", "case-aging", "team-workload", "team-kpis", "client-health"];
 
     public static string[] ReadableReports(UserContext me) => KnownReportKeys.Where(key =>
         me.HasRight(RightKeys.Reporting, RightKeys.View) && ReportResources(key).All(resource => me.HasRight(resource, RightKeys.View))).ToArray();
@@ -45,6 +45,7 @@ public static class RightChecks
         "contracts" => [RightKeys.Contracts],
         "sla-compliance" => [RightKeys.Cases, RightKeys.Contracts],
         "team-workload" => [RightKeys.Teams, RightKeys.Cases, RightKeys.Commitments],
+        "team-kpis" => [RightKeys.Teams, RightKeys.Cases],
         "data-quality" or "actions" or "client-health" => BusinessResources,
         _ => throw new ForbiddenException("This report has no registered data access policy.")
     };

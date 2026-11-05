@@ -836,3 +836,45 @@ table.grid th .grid-sort{white-space:nowrap}
 .scope-code{font-weight:600}
 .scope-sep{font-size:0;width:0;overflow:hidden}
 .scope-name{min-width:0;overflow-wrap:anywhere}
+
+/* Executive overview: the first thing to read, and sections that can be folded away. */
+.glance{background:var(--surface);border:1px solid var(--line);padding:12px 14px;margin:0 0 var(--gap)}
+.glance-title{font-size:var(--fs-md);font-weight:700;margin:0 0 4px}
+.glance-sentence{margin:0 0 10px;font-size:var(--fs-md);line-height:1.5}
+.glance-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.glance-tile{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border:1px solid var(--line);color:inherit;text-decoration:none}
+a.glance-tile:hover{background:var(--strip);border-color:var(--line-strong)}
+.glance-tile b{font-size:24px;line-height:1.2;color:var(--fg)}
+.glance-delta{font-size:var(--fs-xs);color:var(--muted)}
+.glance-delta.good{color:var(--good)}
+.glance-delta.bad{color:var(--bad)}
+.band-toggle{margin-left:auto}
+/* My dashboard */
+.my-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:var(--gap)}
+.my-tile{display:flex;flex-direction:column;gap:2px;padding:10px 12px;background:var(--surface);border:1px solid var(--line);color:inherit;text-decoration:none}
+a.my-tile:hover{background:var(--strip);border-color:var(--line-strong)}
+.my-tile b{font-size:24px;line-height:1.2}
+.my-tile.bad b{color:var(--bad)}
+.my-tile.warn b{color:var(--warn)}
+.my-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(280px,1fr);gap:var(--gap);align-items:start}
+@media (max-width:1100px){.my-grid{grid-template-columns:minmax(0,1fr)}}
+/* What's new */
+.whats-new-link{display:inline-flex;align-items:center;min-height:24px;background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
+.whats-new-link .dot{display:inline-block;width:7px;height:7px;margin-left:4px;border-radius:50%;background:#fab219;vertical-align:middle}
+.whats-new h3{font-size:var(--fs-md);margin:14px 0 2px}
+.whats-new h3:first-child{margin-top:0}
+.whats-new ul{margin:4px 0 0;padding-left:18px}
+.whats-new li{margin-bottom:3px}
+/* Selecting table rows */
+.vt-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 14px;background:#eef3fb;border-bottom:1px solid var(--line)}
+.vt-bulk b{font-weight:600}
+.vt-row.is-selected td{background:#eef3fb}
+.bulk-list{list-style:none;margin:8px 0;padding:0;max-height:240px;overflow-y:auto;border:1px solid var(--line)}
+.bulk-list li{display:flex;gap:10px;justify-content:space-between;padding:5px 10px;border-bottom:1px solid var(--line)}
+.bulk-list li:last-child{border-bottom:0}
+.bulk-list .err{white-space:normal}
+.my-tile b.none{font-size:var(--fs-md);font-weight:600;color:var(--muted)}
+.vt-grid th.col-select,.vt-grid td.col-select{width:34px;min-width:34px;max-width:34px;box-sizing:border-box;padding:0 4px}
+.vt-grid .col-select input{width:18px;height:18px;margin:3px;display:block;cursor:pointer}
+.vt-table-scroll.is-overflowing .vt-grid .col-select{position:sticky;left:0;z-index:2;background:var(--surface)}
+.vt-table-scroll.is-overflowing .vt-grid:has(.col-select) .col-identity{left:34px}

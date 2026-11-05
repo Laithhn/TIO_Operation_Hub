@@ -29,6 +29,7 @@ const AdminUsers = page(() => import('./pages/Admin'), 'AdminUsers');
 const AdminRoles = page(() => import('./pages/Admin'), 'AdminRoles');
 const AdminRights = page(() => import('./pages/Admin'), 'AdminRights');
 const AccessControl = page(() => import('./pages/AccessControl'), 'AccessControl');
+const MyDashboard = page(() => import('./pages/MyDashboard'), 'MyDashboard');
 const CaseDetail = page(() => import('./pages/Cases'), 'CaseDetail');
 const CaseForm = page(() => import('./pages/Cases'), 'CaseForm');
 const CaseList = page(() => import('./pages/Cases'), 'CaseList');
@@ -175,6 +176,7 @@ export const router = createBrowserRouter([
       { path: 'assets', element: <AssetList /> },
       { path: 'assets/:id', element: <AssetDetail /> },
       { path: 'firewall-rules', element: <FirewallRuleList /> },
+      { path: 'my-dashboard', element: <MyDashboard /> },
       { path: 'cases', element: <CaseList /> },
       { path: 'cases/new', element: <CaseForm /> },
       { path: 'cases/:id', element: <CaseDetail /> },

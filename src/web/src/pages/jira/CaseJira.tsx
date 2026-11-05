@@ -1,3 +1,4 @@
+import { initialsOf, toneOf } from '../../ui/ClientLogo';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ApiError, get, post } from '../../api';
@@ -86,17 +87,62 @@ export function CaseActivity({ caseId, canComment }: { caseId: number; canCommen
         <span className="spacer" />
         <label className="check"><input type="checkbox" checked={system} onChange={e => setSystem(e.target.checked)} /> Show system activity</label>
       </div>
-      <QueryState q={q}>{d && (d.items.length === 0 ? <StateMessage kind={filter === 'all' ? 'none' : 'nomatch'} /> : <ul className="timeline">
-        {d.items.map(r => <li key={r.key} className={`activity-item ${r.source === 'Jira' ? 'source-jira' : r.kind === 'Comment' ? 'source-comment' : ''}`}>
-          <b>{r.source === 'TIO' && r.kind !== 'Comment' ? label(r.kind) : r.title}</b> <Badge tone={r.source === 'Jira' ? 'info' : 'neutral'}>{r.source === 'Jira' ? 'Jira' : 'TIO'}</Badge>{r.edited && <span className="hint"> edited in Jira</span>}
-          {(r.from || r.to) && <> {r.from ?? '—'} → {r.to ?? '—'}</>}
-          {r.restricted ? <div className="activity-body muted">This Jira comment is restricted. Its text is visible to ticket coordinators only.</div> : r.body && (r.kind === 'Comment' || r.kind === 'JiraComment' ? <div className="activity-body">{r.body}</div> : <> — {r.body}</>)}
-          <div className="when">{fmtDateTime(r.at)} · {r.actor ?? 'system'}{r.reference ? ` · ${r.reference}` : ''}</div>
-        </li>)}
-      </ul>)}</QueryState>
+      <QueryState q={q}>{d && (d.items.length === 0 ? <StateMessage kind={filter === 'all' ? 'none' : 'nomatch'} /> : <div className="act-feed">
+        {groupByDay(d.items).map(day => <section key={day.key} aria-label={day.label} className="act-day">
+          <h4 className="act-day-head"><span>{day.label}</span></h4>
+          <ul>{day.items.map(r => <ActivityEntry key={r.key} r={r} />)}</ul>
+        </section>)}
+      </div>)}</QueryState>
       {d && d.totalCount > d.items.length && <div style={{ textAlign: 'center', marginTop: 8 }}><button className="btn" onClick={() => setLimit(l => l + 25)}>Show more activity ({d.totalCount - d.items.length})</button></div>}
       {canComment && <CommentComposer caseId={caseId} />}
     </Panel>
+  );
+}
+
+/** Newest first, under a heading for each day in the person's own time zone. */
+function groupByDay(items: ActivityRow[]) {
+  const key = (iso: string) => new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  const today = key(new Date().toISOString());
+  const yesterday = key(new Date(Date.now() - 86_400_000).toISOString());
+  const days: { key: string; label: string; items: ActivityRow[] }[] = [];
+  for (const r of items) {
+    const k = key(r.at);
+    const last = days[days.length - 1];
+    if (last?.key === k) last.items.push(r);
+    else days.push({ key: k, label: k === today ? `Today · ${k}` : k === yesterday ? `Yesterday · ${k}` : k, items: [r] });
+  }
+  return days;
+}
+
+/** A comment is a card with its author and text; a change is one quiet line, so the conversation stands out. */
+function ActivityEntry({ r }: { r: ActivityRow }) {
+  const comment = r.kind === 'Comment' || r.kind === 'JiraComment';
+  const who = r.actor ?? 'System';
+  const title = r.source === 'TIO' && r.kind !== 'Comment' ? label(r.kind) : r.title;
+  const change = (r.from || r.to) ? <span className="act-change">{r.from && <><span>{r.from}</span><span aria-hidden="true"> → </span><span className="sr"> to </span></>}<b>{r.to ?? '—'}</b></span> : null;
+  const source = <Badge tone={r.source === 'Jira' ? 'info' : 'neutral'}>{r.source === 'Jira' ? 'Jira' : 'TIO'}</Badge>;
+  if (!comment) return (
+    <li className="act-event">
+      <span className="act-dot" aria-hidden="true" />
+      <div className="act-event-body">
+        <span><b>{title}</b> {change}</span>
+        {r.body && <div className="act-note">{r.body}</div>}
+        <div className="when">{who} · {fmtDateTime(r.at)} {source}{r.reference ? <span className="muted"> · {r.reference}</span> : null}</div>
+      </div>
+    </li>
+  );
+  return (
+    <li className={`act-comment ${r.source === 'Jira' ? 'source-jira' : 'source-comment'}`}>
+      <span className="act-avatar" style={{ background: toneOf(who) }} aria-hidden="true">{initialsOf(who)}</span>
+      <div className="act-card">
+        <header>
+          <b>{who}</b> {source}{r.edited && <span className="hint"> edited in Jira</span>}
+          <span className="when">{fmtDateTime(r.at)}</span>
+        </header>
+        {r.restricted ? <div className="activity-body muted">This Jira comment is restricted. Its text is visible to ticket coordinators only.</div> : <div className="activity-body">{r.body}</div>}
+        <footer className="hint">{title}{r.reference ? ` · ${r.reference}` : ''}</footer>
+      </div>
+    </li>
   );
 }
 

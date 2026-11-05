@@ -17,7 +17,7 @@ import { EscalationTable } from './Escalations';
 import { CaseActivity, JiraBanner, JiraDetailsPanel, jiraOriginLabel, type JiraSource } from './jira/CaseJira';
 
 type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; internalAssignee?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
-  contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string; createdAt: string; updatedAt?: string; resolvedAt?: string; jiraAssignee?: string; jiraReporter?: string; jiraPriority?: string; jiraIssueType?: string; jiraResolution?: string; openedAt?: string };
+  contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string; createdAt: string; updatedAt?: string; resolvedAt?: string; jiraAssignee?: string; jiraReporter?: string; jiraPriority?: string; jiraIssueType?: string; jiraResolution?: string; openedAt?: string; jiraAssigneeKind?: 'TioUser' | 'ClientContact' | 'Unmapped' };
 
 /** Initials and name of a person in a case row. */
 function PersonCell({ name, badge }: { name: string; badge?: ReactNode }) {
@@ -81,7 +81,7 @@ export function CaseList() {
           { key: 'client', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span>,
             filter: <select className="input" aria-label="Filter by scope" value={f.scope} onChange={e => set({ scope: e.target.value })}><option value="">All</option><option value="Client">Client-related</option><option value="Internal">Internal</option></select> },
           { key: 'work', header: 'Work', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '26rem', filter: <input className="input" aria-label="Search all tickets by title or reference" placeholder="Search all pages" value={text} onChange={e => setText(e.target.value)} style={{ minWidth: 150 }} /> },
-          { key: 'owner', header: 'Assignee', sort: 'owner', render: r => r.ownerName ? <PersonCell name={r.ownerName} badge={r.ownerDeactivated && <Badge tone="bad">Deactivated</Badge>} /> : r.internalAssignee ? <PersonCell name={r.internalAssignee} badge={<Badge tone="info">Vitronic</Badge>} /> : r.jiraAssignee ? <PersonCell name={r.jiraAssignee} badge={<Badge tone="warn">Not mapped</Badge>} /> : <span className="muted">Unassigned</span> },
+          { key: 'owner', header: 'Assignee', sort: 'owner', render: r => r.ownerName ? <PersonCell name={r.ownerName} badge={r.ownerDeactivated && <Badge tone="bad">Deactivated</Badge>} /> : r.internalAssignee ? <PersonCell name={r.internalAssignee} badge={<Badge tone="info">Vitronic</Badge>} /> : r.jiraAssignee ? <PersonCell name={r.jiraAssignee} badge={r.jiraAssigneeKind === 'ClientContact' ? <Badge tone="info">Client contact</Badge> : r.jiraAssigneeKind === 'TioUser' ? undefined : <Badge tone="warn">Not mapped</Badge>} /> : <span className="muted">Unassigned</span> },
           { key: 'reporter', header: 'Reporter', render: r => r.jiraReporter ? <PersonCell name={r.jiraReporter} /> : <span className="muted">None</span> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} />,
             filter: <select className="input" aria-label="Filter by priority" value={f.priority} onChange={e => set({ priority: e.target.value })}><option value="">All</option>{priorities.map(s => <option key={s}>{s}</option>)}</select> },
@@ -227,7 +227,7 @@ export function CaseForm() {
           {isNew && cid && <SelectInput label="Contract (SLA)" value={v.contractId} onChange={x => f.set('contractId', x)} options={contractOptions} empty="No contract" error={f.fieldError('contractId')}
             hint={contracts.isLoading ? 'Loading contracts…' : contractOptions.length === 0 ? 'This client has no contract: the ticket is not measured against an SLA.' : 'Response and resolution targets are taken from this contract for the ticket priority.'} />}
           <SelectInput label="Responsible team" required value={v.responsibleTeamId} onChange={x => f.set('responsibleTeamId', x)} options={teams} error={f.fieldError('responsibleTeamId')} disabled={!isNew && !canLead} />
-          <SelectInput label="Priority" required value={v.priority} onChange={x => f.set('priority', x)} options={enumOptions(priorities)} empty={null} error={f.fieldError('priority')} disabled={!isNew && !canLead} />
+          <SelectInput label="Priority" required value={v.priority} onChange={x => f.set('priority', x)} options={enumOptions(priorities)} empty={null} error={f.fieldError('priority')} disabled={(!isNew && !canLead) || !!existing.data?.statusFromJira} hint={existing.data?.statusFromJira ? 'Comes from Jira.' : undefined} />
           <TextInput label="Impact summary" required wide multiline value={v.impactSummary} onChange={x => f.set('impactSummary', x)} error={f.fieldError('impactSummary')} />
           {isNew && <UserPicker label="Owner" value={v.ownerUserId} onChange={x => f.set('ownerUserId', x)} clientId={cid} teamId={v.scope === 'Internal' ? toNum(v.responsibleTeamId) : null} error={f.fieldError('ownerUserId')} hint={canLead ? undefined : 'Leave Unassigned or take it yourself.'} />}
           {isNew && <UserPicker label="Backup owner" value={v.backupOwnerUserId} onChange={x => f.set('backupOwnerUserId', x)} clientId={cid} teamId={v.scope === 'Internal' ? toNum(v.responsibleTeamId) : null} error={f.fieldError('backupOwnerUserId')} empty="None" />}
@@ -415,7 +415,7 @@ function SlaPanel({ c, canEdit, canChangeContract, onRespond, onContract }: { c:
         ...(s.pausedMinutes ? [['Paused (waiting on the customer)', minutes(s.pausedMinutes)] as [string, string]] : []),
         ['Operational due date', s.operationalDueAt ? <>{fmtDateTime(s.operationalDueAt)} <span className="hint">{s.startsAtJiraCreation ? '(the contractual resolution deadline of this synchronized ticket)' : '(agreed by the team; separate from the contractual deadlines)'}</span></> : <span className="muted">None</span>]
       ]} />
-      {c.contract && <DataTable caption="Contractual SLA measurements" rows={slaRows} rowKey={r => r.key} tableClassName="sla-table" columns={[
+      {c.contract && <DataTable caption="Contractual SLA measurements" selectable={false} rows={slaRows} rowKey={r => r.key} tableClassName="sla-table" columns={[
         { key: 'measurement', header: 'Measurement', render: r => r.name },
         { key: 'target', header: 'Target', render: r => minutes(r.target) },
         { key: 'deadline', header: 'Deadline', render: r => r.obligation.dueAt ? fmtDateTime(r.obligation.dueAt) : <span className="muted">—</span> },
@@ -425,7 +425,7 @@ function SlaPanel({ c, canEdit, canChangeContract, onRespond, onContract }: { c:
       {!!penaltyPreview.data?.items.length && <>
         <h3 style={{ marginTop: 16 }}>Indicative penalties</h3>
         <p className="hint">Calculated from the clause snapshot taken when this contract was linked. These monthly totals combine tickets sharing the recorded clause terms and apply monthly caps. The same totals can appear on multiple ticket pages; do not add them together as billing totals. Amounts need review and do not create credits or invoices.</p>
-        <DataTable caption="Indicative ticket penalties" rows={penaltyPreview.data.items.map((x, i) => ({ ...x, rowKey: `${x.id}-${x.month}-${i}` }))} rowKey={x => x.rowKey} columns={[
+        <DataTable caption="Indicative ticket penalties" selectable={false} rows={penaltyPreview.data.items.map((x, i) => ({ ...x, rowKey: `${x.id}-${x.month}-${i}` }))} rowKey={x => x.rowKey} columns={[
           { key: 'clause', header: 'Clause', render: x => x.name }, { key: 'trigger', header: 'Trigger', render: x => label(x.trigger) },
           { key: 'month', header: 'Billing month', render: x => x.month },
           { key: 'amount', header: 'Amount', className: 'num', render: x => new Intl.NumberFormat(undefined, { style: 'currency', currency: x.currency }).format(x.amount) },

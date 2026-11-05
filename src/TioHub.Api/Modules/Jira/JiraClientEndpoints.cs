@@ -174,8 +174,8 @@ public static class JiraClientEndpoints
             return Results.Ok(new { changed = await JiraSpaceContracts.ReconcileAsync(db, spaceId, unlinked, clock.GetUtcNow(), ct) });
         });
 
-        // A86: applies to cases created from now on. An empty target leaves the value waiting, and the client's default applies.
-        g.MapPut("/value-mappings/{mappingId:long}", async (long id, long mappingId, ValueMappingInput i, HubDbContext db, HubAccess access, CancellationToken ct) =>
+        // A86: an issue type applies to tickets created from now on. A96: a priority applies to existing tickets too. An empty target leaves the value waiting, and the client's default applies.
+        g.MapPut("/value-mappings/{mappingId:long}", async (long id, long mappingId, ValueMappingInput i, HubDbContext db, HubAccess access, JiraCaseBridge bridge, TimeProvider clock, CancellationToken ct) =>
         {
             await RequireClientAsync(db, access.Me, id, ct);
             RequireChange(access, id);
@@ -191,6 +191,7 @@ public static class JiraClientEndpoints
             m.TargetCode = target;
             db.AuditReason = $"Jira {m.Kind} {m.JiraValue} mapped to {target ?? "nothing"}";
             await db.SaveChangesAsync(ct);
+            if (m.Kind == JiraValueKind.Priority) await bridge.ReconcilePrioritiesAsync(id, clock.GetUtcNow(), ct);
             return Results.NoContent();
         });
 
