@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
-import { useEffect, useState } from 'react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router';
 import { ApiError, get, post, put, type Paged } from '../../api';
 import { fmtDateTime, label } from '../../format';
@@ -238,11 +238,17 @@ function AddSpacePanel({ clientId, d, onClose }: { clientId: number; d: ClientJi
   );
 }
 
+// The dry run is a POST that records LastPreviewAt and so changes the settings version. It runs once per opening:
+// as a query it ran again when closing the dialog refreshed the page, after the form had read the new version,
+// so the next Save was refused as "someone else saved this record".
 export function PreviewDialog({ clientId, onClose }: { clientId: number; onClose: () => void }) {
-  const q = useQuery({ queryKey: ['client-jira-preview', clientId], queryFn: () => post<JiraPreview>(`/clients/${clientId}/jira/preview`), gcTime: 0, retry: false });
+  const m = useMutation({ mutationFn: () => post<JiraPreview>(`/clients/${clientId}/jira/preview`), retry: false });
+  const started = useRef(false);
+  useEffect(() => { if (!started.current) { started.current = true; m.mutate(); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  const q = { isLoading: !m.data && !m.error, error: m.error };
   return (
     <Dialog title="Import preview" wide onClose={onClose}>
-      <QueryState q={q}>{q.data && <PreviewResult p={q.data} />}</QueryState>
+      <QueryState q={q}>{m.data && <PreviewResult p={m.data} />}</QueryState>
       <div className="form-actions"><button className="btn btn-primary" onClick={onClose}>Close</button></div>
     </Dialog>
   );

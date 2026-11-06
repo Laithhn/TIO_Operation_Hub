@@ -70,8 +70,9 @@ test('adding spaces shows conflicts, and the preview reports what an import woul
     { id: 1, jiraProjectId: '600', projectKey: 'CRM', projectName: 'Customer Portal', availability: 'Available' },
     { id: 2, jiraProjectId: '500', projectKey: 'OPS', projectName: 'Operations', assignedClient: 'Another client', availability: 'Conflict' },
     { id: 3, jiraProjectId: '100', projectKey: 'TAH', projectName: 'Demo Transit', assignedClient: 'DEMO-NTA', availability: 'AlreadyAssigned' }] }));
-  await page.route(`**/api/v1/clients/${id}/jira/preview`, r => r.fulfill({ json: {
-    totalIssues: 12, newCases: 7, existingMatched: 2, requiringReview: 1, skippedDone: 2, missingUserMappings: 3, missingWorkflowMappings: 4, ownershipConflicts: 1, estimatedComments: 30, truncated: false, spaces: [{ projectKey: 'TAH', issues: 12 }], samples: [] } }));
+  let previews = 0;
+  await page.route(`**/api/v1/clients/${id}/jira/preview`, r => { previews++; return r.fulfill({ json: {
+    totalIssues: 12, newCases: 7, existingMatched: 2, requiringReview: 1, skippedDone: 2, missingUserMappings: 3, missingWorkflowMappings: 4, ownershipConflicts: 1, estimatedComments: 30, truncated: false, spaces: [{ projectKey: 'TAH', issues: 12 }], samples: [] } }); });
   await page.goto(`/clients/${id}?tab=jira`);
   await page.getByRole('button', { name: '+ Add Jira space' }).click();
   await expect(page.getByRole('checkbox', { name: 'Select TAH' })).toBeDisabled();
@@ -88,6 +89,11 @@ test('adding spaces shows conflicts, and the preview reports what an import woul
     await expect(dialog.locator('.jira-card', { hasText: title }).locator('.jira-card-value')).toHaveText(value);
   }
   if (process.env.TIOHUB_JIRA_SHOTS) await page.screenshot({ path: `${process.env.TIOHUB_JIRA_SHOTS}/preview-dialog.png` });
+  // The dry run changes the settings version. Closing the dialog refreshes the page; running it again then made the next Save a false conflict.
+  await dialog.getByRole('button', { name: 'Close' }).last().click();
+  await expect(dialog).toBeHidden();
+  await page.waitForLoadState('networkidle');
+  expect(previews).toBe(1);
 });
 
 test('history status and space actions stay on screen at the mockup width', async ({ page }) => {
