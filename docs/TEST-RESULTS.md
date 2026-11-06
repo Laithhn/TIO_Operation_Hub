@@ -3,7 +3,9 @@
 Recorded on 16 October 2026 on a Windows 11 developer machine (SQL Server LocalDB 15.0, .NET SDK 10.0.401, Node 22.23.3, Microsoft Edge).
 Re-run with the commands in the README; results below are from actual runs, not expectations.
 
-**2.55.0 (5 November 2026, usability review A102):** on the isolated QA instance: 732 backend tests passed; 198 real-API browser tests with 190 passing on the last full run, and the 8 others passing after their corrections, rerun on their own; 13 intercepted browser tests and the front-end unit tests passed. The whole browser suite was not run again after those last corrections. User validation is not done: see USABILITY-VALIDATION-PLAN.md.
+**2.55.0 (5 November 2026, usability review A102):** on the isolated QA instance: 732 backend tests passed; 198 real-API browser tests with 190 passing on the last full run, and the 8 others passing after their corrections, rerun on their own; 13 intercepted browser tests and the front-end unit tests passed. User validation is not done: see USABILITY-VALIDATION-PLAN.md.
+
+**2.55.0 package (6 November 2026):** `release/TioHub-2.55.0.zip` was built from commit `a7c61ad` on a clean checkout, SHA-256 `5af5265a529ba6462ed8dc6e4ef35f17e5197c5dece99bd582cc54b8b4e2a811`. On the isolated QA instance, the 732 backend tests ran in that build and passed. The whole real-API browser suite on the same commit: 197 of 198 passed. GUI-09 failed because it read the Clients row count while it still said Loading…; the test now waits for the count. After that change, GUI-09 passed 10 times in a row and the whole `gui-fixes` spec passed (22 tests). The change is to the test only, so the package is unaffected.
 
 **Latest (2.48.0, 3 November 2026):** 660 backend, 74 frontend, 158 real-API browser and 7 intercepted browser tests passed. **After the rights screen update, 4 November:** 660 backend, 81 frontend, 158 real-API browser and 13 intercepted browser tests passed. See [RELEASE-VALIDATION-2.48.0.md](RELEASE-VALIDATION-2.48.0.md). The sections below record earlier releases.
 

@@ -213,6 +213,8 @@ test.describe('GUI-09 Filter badge', () => {
     await page.goto('/clients');
     const table = vtTable(page);
     const count = table.locator('.table-count');
+    // The count reads Loading… until the first page arrives.
+    await expect(count).toHaveText(/^\d+ rows?$/);
     const total = Number((await count.innerText()).match(/\d+/)![0]);
     const card = await openFilter(page);
     const operator = card.getByLabel('Environments filter operator');
