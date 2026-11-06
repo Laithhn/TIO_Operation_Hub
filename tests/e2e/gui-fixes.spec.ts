@@ -495,8 +495,9 @@ test.describe('GUI-11 Roles with long lists of rights', () => {
       const scroller = await box(table.locator('.vt-table-scroll'));
       for (const name of [many, few]) {
         const row = table.locator(VT_ROW).filter({ hasText: name });
-        for (const action of ['Edit', 'Delete']) {
-          const b = await box(row.getByRole('button', { name: `${action} role ${name}` }));
+        // A105: Delete is in the row menu, so its button is "Actions for role …".
+        for (const action of ['Edit role', 'Actions for role']) {
+          const b = await box(row.getByRole('button', { name: `${action} ${name}` }));
           expect(b.x + b.width, `${width}: ${action} ${name} visible`).toBeLessThanOrEqual(scroller.x + scroller.width);
           expect(b.x, `${width}: ${action} ${name} visible`).toBeGreaterThanOrEqual(scroller.x);
         }
@@ -517,7 +518,8 @@ test.describe('GUI-11 Roles with long lists of rights', () => {
     await row.getByRole('button', { name: `Edit role ${many}` }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
     await page.keyboard.press('Escape');
-    await row.getByRole('button', { name: `Delete role ${many}` }).click();
+    await row.getByRole('button', { name: `Actions for role ${many}` }).click();
+    await page.getByRole('menuitem', { name: `Delete role ${many}` }).click();
     await expect(page.getByRole('dialog', { name: `Delete role ${many}` })).toContainText('Nobody holds this role.');
     await page.getByRole('dialog').getByRole('button', { name: 'Delete role' }).click();
     await expect(vtTable(page, 'Roles').locator(VT_ROW).filter({ hasText: many })).toHaveCount(0);

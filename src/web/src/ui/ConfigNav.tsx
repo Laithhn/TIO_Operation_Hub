@@ -17,8 +17,9 @@ function Highlight({ text, words }: { text: string; words: string[] }): ReactNod
 
 /**
  * Administration → Configuration in the section menu: a search over every configuration page, then the overview and one collapsible
- * group per category (from the configuration registry). Several groups may be open; the open set is kept for the browser session,
- * and the group of the current page always opens. While a search is typed the groups give way to the results; clearing it shows
+ * group per category (from the configuration registry). A105: one group is open at a time, so the menu stays short: opening a page
+ * opens its group and closes the others, and opening a group closes the one before. The open group is kept for the browser session.
+ * The current category and page are named above the tree. While a search is typed the groups give way to the results; clearing it shows
  * the groups exactly as they were.
  */
 export function ConfigNav() {
@@ -29,18 +30,19 @@ export function ConfigNav() {
   const input = useRef<HTMLInputElement>(null);
   const groups = useMemo(() => configTree(me), [me]);
   const current = configAt(loc.pathname).category?.id;
-  const [open, setOpen] = useState<ConfigCategoryId[]>(() => [...new Set([...readOpen(), ...(current ? [current] : [])])]);
+  const [open, setOpen] = useState<ConfigCategoryId[]>(() => current ? [current] : readOpen().slice(-1));
   const [q, setQ] = useState('');
   const words = searchWords(q);
   const hits = useMemo(() => searchConfig(groups, q), [groups, q]);
   const hitCount = hits.reduce((n, g) => n + g.pages.length, 0);
   const f = frameCss.sidebarNode;
 
-  // Opening a page (link, bookmark, refresh, back or forward) opens its group; the other open groups stay open.
-  useEffect(() => { if (current) setOpen(o => o.includes(current) ? o : [...o, current]); }, [current]);
+  // Opening a page (link, bookmark, refresh, back or forward) opens its group and closes the others.
+  useEffect(() => { if (current) setOpen([current]); }, [current, loc.pathname]);
   useEffect(() => { try { sessionStorage.setItem(STORE, JSON.stringify(open)); } catch { /* storage blocked */ } }, [open]);
 
-  const toggle = (c: ConfigCategoryId) => setOpen(o => o.includes(c) ? o.filter(x => x !== c) : [...o, c]);
+  const toggle = (c: ConfigCategoryId) => setOpen(o => o.includes(c) ? [] : [c]);
+  const here = configAt(loc.pathname);
   const clear = () => { setQ(''); input.current?.focus(); };
   const leaf = (to: string, label: ReactNode, end = false, title?: string) => (
     <NavLink to={to} end={end} title={title} className={({ isActive }) => cx(f.link, f.isSubmenuNode, 'cfg-leaf', isActive && f.active)}>
@@ -62,6 +64,7 @@ export function ConfigNav() {
           }} />
         {q && <button type="button" className="cfg-search-clear" onClick={clear} aria-label="Clear configuration search" title="Clear search"><Icon name="close" size={14} /></button>}
       </div>
+      {!words.length && here.category && <p className="cfg-where" aria-label="Current configuration page"><span>{here.category.name}</span>{here.page && <> › <b>{here.page.name}</b></>}</p>}
       <div className="sr" aria-live="polite">{words.length ? `${hitCount} configuration ${hitCount === 1 ? 'page' : 'pages'} found` : ''}</div>
       {words.length ? (
         <div id={`${id}-results`} className="cfg-results" aria-label="Configuration search results" role="group">

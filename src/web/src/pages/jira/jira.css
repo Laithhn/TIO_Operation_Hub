@@ -74,3 +74,16 @@
 .act-event .when{color:var(--muted);font-size:var(--fs-xs);margin-top:1px}
 .act-change{margin-left:4px;color:var(--fg-2)}
 .act-note{color:var(--fg-2);margin-top:2px;white-space:pre-wrap;overflow-wrap:anywhere}
+/* A105: integration overview, one step per stage of the set-up. */
+.jira-flow{list-style:none;margin:0 0 var(--gap);padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);counter-reset:none}
+.jira-flow li{display:flex;flex-direction:column;gap:3px;padding:10px 14px;background:var(--surface);border-top:3px solid transparent;min-width:0}
+.jira-flow li.ok{border-top-color:var(--good)}
+.jira-flow li.todo{border-top-color:var(--warn)}
+.jira-flow li.bad{border-top-color:var(--bad)}
+.jira-flow-step{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.03em;color:var(--muted)}
+.jira-flow-links{font-size:var(--fs-xs);margin-top:auto;padding-top:4px}
+/* A105: monitoring leads with what needs attention. */
+.jira-attention{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:10px 14px;margin-bottom:var(--gap);background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--good)}
+.jira-attention.bad{border-left-color:var(--bad)}
+.jira-attention .next{flex-basis:100%;font-weight:600}
+.jira-attention .ok-line{color:var(--fg-2);font-size:var(--fs-xs)}

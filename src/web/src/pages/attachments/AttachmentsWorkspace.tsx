@@ -253,17 +253,17 @@ function AuthorizedAttachmentsWorkspace({ recordType, recordId, scopeAllowed = t
       <section className="panel att-main" aria-labelledby={titleId}>
         <div className="panel-head att-head">
           <h2 id={titleId} tabIndex={-1}>{title}{q.data ? ` (${rows.length})` : ''}</h2>
-          {canEdit && <div className="actions"><button type="button" className="btn btn-primary" onClick={() => setUploading(true)}><Icon name="IMPORT" size={16} /> Upload files</button></div>}
+          {/* A105: with no files the one Upload action is in the empty state below. */}
+          {canEdit && rows.length > 0 && <div className="actions"><button type="button" className="btn btn-primary" onClick={() => setUploading(true)}><Icon name="IMPORT" size={16} /> Upload files</button></div>}
         </div>
         {q.data && !canEdit && !rows.some(removable) && <p className="hint panel-body">Read only: your current permissions allow viewing and downloading these files.</p>}
         {q.isLoading ? <StateMessage kind="loading" /> : q.error ? <div className="panel-body"><ErrorBox error={q.error} /></div> : (
           <>
-            <Summary rows={rows} />
+            {rows.length > 0 && <Summary rows={rows} />}
             {rows.length === 0 ? (
-              <div className="att-empty">
-                <Icon name="attachment" size={32} />
-                <p><b>No files attached to this {what} yet.</b></p>
-                <p className="muted">{canEdit ? 'Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.' : 'Files appear here once someone with the Upload attachments permission uploads them.'}</p>
+              <div className="att-empty att-empty-compact">
+                <Icon name="attachment" size={20} />
+                <p><b>No files attached to this {what} yet.</b>{' '}<span className="muted">{canEdit ? 'Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.' : 'Files appear here once someone with the Upload attachments permission uploads them.'}</span></p>
                 {canEdit && <button type="button" className="btn btn-primary" onClick={() => setUploading(true)}><Icon name="IMPORT" size={16} /> Upload files</button>}
               </div>
             ) : (

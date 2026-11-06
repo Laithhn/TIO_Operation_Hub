@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 import { get } from '../api';
 import { fmtDateTime } from '../format';
 import { useMe, useRight } from '../hooks';
-import { Badge, DataTable, PageHead, Panel, QueryState, StateMessage, StatusBadge } from '../ui/kit';
+import { Badge, DataTable, PageHead, Panel, QueryState, StateMessage, StatusBadge, TitledText } from '../ui/kit';
 import { buildQueue, type QueueCommitment, type QueueItem, type QueueTicket } from './myQueue';
 import { CRITICAL_OR_HIGH } from './ticketViews';
 
@@ -51,7 +51,7 @@ export function MyDashboard() {
         <div className="my-grid">
           <Panel title="What to work on next" pad={false}>
             {queue.length === 0 ? <StateMessage kind="none">You have no open tickets or commitments.</StateMessage> : <DataTable<QueueItem> caption="What to work on next" tools={false} fit rows={queue} rowKey={i => i.key} columns={[
-              { key: 'w', header: 'Work', priority: 'primary', maxWidth: '24rem', render: i => <><span className="cc-kind">{i.kind}</span><Link to={i.to}>{i.ref}</Link> {i.title}</> },
+              { key: 'w', header: 'Work', priority: 'primary', maxWidth: '24rem', render: i => <><span className="cc-kind">{i.kind}</span><Link to={i.to}>{i.ref}</Link> <TitledText text={i.title} /></> },
               { key: 'n', header: 'Next step', priority: 'primary', maxWidth: '18rem', render: i => <span className="next-step">{i.nextStep}</span> },
               { key: 'c', header: 'Client', render: i => i.clientCode ?? <span className="muted">Internal</span> },
               { key: 'p', header: 'Priority', render: i => i.priority ? <StatusBadge value={i.priority} /> : <span className="muted">—</span> },

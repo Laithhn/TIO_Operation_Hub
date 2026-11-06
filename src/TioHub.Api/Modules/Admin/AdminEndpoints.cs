@@ -399,7 +399,7 @@ public static class AdminEndpoints
         });
 
         // ---- audit (NFR-03): read-only, grant- and scope-filtered, technical values masked without the grant ----
-        g.MapGet("/audit", async (string? entityType, long? entityId, long? clientId, string? action, string? category, DateTimeOffset? from, DateTimeOffset? to, int? page, int? pageSize,
+        g.MapGet("/audit", async (string? entityType, long? entityId, long? clientId, string? action, string? category, DateTimeOffset? from, DateTimeOffset? to, string? actor, string? user, int? page, int? pageSize,
             HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var canBusiness = me.HasRight(RightKeys.Audit);
@@ -423,6 +423,10 @@ public static class AdminEndpoints
             if (!string.IsNullOrWhiteSpace(category)) q = q.Where(a => a.Category == category);
             if (from is not null) q = q.Where(a => a.At >= from);
             if (to is not null) q = q.Where(a => a.At < to);
+            // A105: people's changes apart from background work (Jira synchronization, scans), which is recorded without a user.
+            if (string.Equals(actor, "people", StringComparison.OrdinalIgnoreCase)) q = q.Where(a => a.UserId != null);
+            else if (string.Equals(actor, "system", StringComparison.OrdinalIgnoreCase)) q = q.Where(a => a.UserId == null);
+            if (!string.IsNullOrWhiteSpace(user)) { var who = user.Trim(); q = q.Where(a => a.UserName != null && a.UserName.Contains(who)); }
             var paged = await q.OrderByDescending(a => a.Id).ToPagedAsync(PageQuery.From(page, pageSize), ct);
             var tech = me.SeesTechnical;
             return Results.Ok(new Paged<object>(paged.Items.Select(a => (object)new

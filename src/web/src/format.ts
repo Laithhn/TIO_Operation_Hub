@@ -74,3 +74,17 @@ export function qty(v?: number | null, unit?: string | null): string {
   if (v === null || v === undefined) return 'Unknown';
   return `${v}${unit ? ' ' + label(unit) : ''}`;
 }
+
+/**
+ * A105: a long description as a short title and the rest, for lists where one long text would make a row very tall.
+ * The title is the first line or first sentence, cut at a word near `max` characters; the rest follows it.
+ */
+export function splitTitle(text: string, max = 90): { title: string; rest: string } {
+  const t = (text ?? '').trim();
+  const line = t.split(/\r?\n/)[0].trim();
+  const sentence = line.match(/^(.{20,}?[.!?])\s/)?.[1] ?? line;
+  if (sentence.length <= max) return { title: sentence, rest: t.slice(sentence.length).trim() };
+  const cut = sentence.slice(0, max);
+  const at = cut.lastIndexOf(' ') > max * 0.6 ? cut.lastIndexOf(' ') : max;
+  return { title: cut.slice(0, at).replace(/[\s,;:.-]+$/, '') + '…', rest: '…' + t.slice(at).trim() };
+}

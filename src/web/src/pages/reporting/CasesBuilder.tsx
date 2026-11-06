@@ -26,6 +26,7 @@ type Meta = { fields: FieldMeta[]; dateFields: { key: string; label: string }[];
 type Opt = { id: number | string; label: string; sub?: string; clientId?: number; active?: boolean; retired?: boolean };
 type FilterOptions = { clients: Opt[]; teams: Opt[]; products: Opt[]; environments: Opt[]; owners: Opt[]; types: Opt[]; myTeams: number[] };
 type SortSpec = { field: string; direction: 'asc' | 'desc' };
+type BuilderStep = 'filters' | 'columns' | 'sort';
 export type Rule = { field: string; operator: string; value?: unknown };
 export type Group = { op: 'and' | 'or'; rules: (Rule | Group)[] };
 export type Filters = {
@@ -430,6 +431,7 @@ export function CasesBuilder() {
   const meta = useMeta();
   const opts = useFilterOptions();
   const [zone, setZone] = useReportZone();
+  const [step, setStep] = useState<BuilderStep | null>('filters');
   // A template applies before the first preview; a saved report is loaded first (no preview of a default configuration meanwhile).
   const [def, setDef] = useState<Definition>(() => TEMPLATES.find(t => t.key === params.get('template'))?.definition() ?? emptyDefinition());
   const [ready, setReady] = useState(() => !params.get('report'));
@@ -542,6 +544,10 @@ export function CasesBuilder() {
   const fromIdx = p ? (p.page - 1) * p.pageSize + 1 : 0;
   const toIdx = p ? Math.min(p.total, p.page * p.pageSize) : 0;
   const lastPage = p ? Math.max(1, Math.ceil(p.total / p.pageSize)) : 1;
+  // A105: a guided flow. One step of the configuration is open at a time; each ends with the way to the next, and Preview is a step too.
+  const openStep = (s: BuilderStep) => setStep(s);
+  const toggleStep = (s: BuilderStep) => (e: React.SyntheticEvent<HTMLDetailsElement>) => { const open = e.currentTarget.open; setStep(cur => open ? s : cur === s ? null : cur); };
+  const showPreview = () => { const h = document.getElementById('rb-preview-title'); h?.closest('section')?.scrollIntoView({ block: 'start' }); h?.focus({ preventScroll: true }); };
 
   return (
     <div className="rb">
@@ -557,8 +563,14 @@ export function CasesBuilder() {
           </div>
         </div>
         {loadWarnings.length > 0 && <div className="notice warn" role="status">{loadWarnings.map(w => <div key={w}>{w}</div>)}</div>}
+        <ol className="rb-steps" aria-label="Report steps">
+          <li><button type="button" aria-current={step === 'filters' ? 'step' : undefined} onClick={() => openStep('filters')}>1 · Filters <span className="rb-count">{chips.length || 'none'}</span></button></li>
+          <li><button type="button" aria-current={step === 'columns' ? 'step' : undefined} onClick={() => openStep('columns')}>2 · Columns <span className="rb-count">{def.columns.length}</span></button></li>
+          <li><button type="button" aria-current={step === 'sort' ? 'step' : undefined} onClick={() => openStep('sort')}>3 · Sort and group</button></li>
+          <li><button type="button" className="rb-step-preview" onClick={showPreview}>Preview <span className="rb-count">{p ? p.total.toLocaleString() : '…'}</span></button></li>
+        </ol>
 
-        <details className="rb-sec" open>
+        <details className="rb-sec" open={step === 'filters'} onToggle={toggleStep('filters')}>
           <summary>1 · Filters {chips.length > 0 && <span className="rb-count">{chips.length}</span>}</summary>
           <div className="rb-sec-body">
             <MultiPick label="Client" options={o.clients.map(c => ({ value: String(c.id), label: c.label, sub: c.sub, icon: <ClientLogo clientId={Number(c.id)} code={c.label} name={c.sub} size="xs" decorative /> }))} value={ids(f.clientIds)} all="All authorized clients"
@@ -605,15 +617,17 @@ export function CasesBuilder() {
               <GroupEditor group={f.conditions ?? { op: 'and', rules: [] }} fields={condFields} depth={1} maxDepth={m.limits.maxDepth} statusLabel={statusLabel}
                 onChange={g => setF({ conditions: g })} />
             </details>
+            <div className="rb-next"><button type="button" className="btn btn-sm" onClick={() => openStep('columns')}>Next: columns</button></div>
           </div>
         </details>
 
-        <details className="rb-sec" open>
+        <details className="rb-sec" open={step === 'columns'} onToggle={toggleStep('columns')}>
           <summary>2 · Columns <span className="rb-count">{def.columns.length}</span></summary>
-          <div className="rb-sec-body"><ColumnPicker fields={fields} value={def.columns} max={m.limits.maxColumns} onChange={columns => setDef(d => ({ ...d, columns }))} /></div>
+          <div className="rb-sec-body"><ColumnPicker fields={fields} value={def.columns} max={m.limits.maxColumns} onChange={columns => setDef(d => ({ ...d, columns }))} />
+            <div className="rb-next"><button type="button" className="btn btn-sm" onClick={() => openStep('sort')}>Next: sort and group</button></div></div>
         </details>
 
-        <details className="rb-sec" open>
+        <details className="rb-sec" open={step === 'sort'} onToggle={toggleStep('sort')}>
           <summary>3 · Sort and group</summary>
           <div className="rb-sec-body">
             <ol className="rb-sorts" aria-label="Sort order">
@@ -633,14 +647,17 @@ export function CasesBuilder() {
             <p className="hint">Rows with equal values keep a stable order by Ticket ID, so pages never overlap.</p>
             <SelectInput label="Group by" value={def.groupBy ?? ''} onChange={v => setDef(d => ({ ...d, groupBy: v || null }))} options={fields.filter(x => x.groupable).map(x => ({ value: x.key, label: x.label }))} empty="No grouping" />
             <TimeZoneSelect label="Time zone for dates" value={zone} onChange={setZone} hint="Presets and days are calendar days in this zone; times are shown in it." />
+            <div className="rb-next"><button type="button" className="btn btn-sm btn-primary" onClick={showPreview}>Show the preview</button></div>
           </div>
         </details>
+        {/* A105: on narrow screens the preview sits below; this keeps the way to it next to the controls. */}
+        <button type="button" className="btn rb-jump-preview" onClick={showPreview}>Show preview · {p ? `${p.total.toLocaleString()} ticket(s)` : 'loading'}</button>
       </div>
 
       <section className="rb-preview" aria-labelledby="rb-preview-title">
         <div className="rb-preview-head">
           <div>
-            <h2 id="rb-preview-title">Preview</h2>
+            <h2 id="rb-preview-title" tabIndex={-1}>Preview</h2>
             <p className="hint" aria-live="polite">{p ? <>Showing {p.total === 0 ? 0 : `${fromIdx.toLocaleString()}–${toIdx.toLocaleString()}`} of <b>{p.total.toLocaleString()}</b> matching ticket(s) · exact count · server-side query · data as of {fmtDateTime(p.cutoff, zone)} · {p.durationMs} ms</> : 'Loading…'}</p>
           </div>
           <div className="rb-preview-tools">

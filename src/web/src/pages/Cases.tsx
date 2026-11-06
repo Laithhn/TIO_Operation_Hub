@@ -34,10 +34,10 @@ export const SLA_FILTERS = [
   { value: 'resolutionMet', label: 'Resolution met' }, { value: 'resolutionBreached', label: 'Resolution breached' }, { value: 'resolutionPending', label: 'Resolution pending' }, { value: 'resolutionNotMeasurable', label: 'Resolution not measurable' }
 ];
 
-/** Compact response / resolution outcome for tables. */
+/** Response / resolution outcome for tables, named in words (A105: was "R" and "X"). */
 export function SlaPair({ response, resolution }: { response: string; resolution: string }) {
   if (response === 'NotApplicable' && resolution === 'NotApplicable') return <span className="muted">—</span>;
-  return <span className="sla-pair"><span title="Response">R <StatusBadge value={response} /></span> <span title="Resolution">X <StatusBadge value={resolution} /></span></span>;
+  return <span className="sla-pair"><span title="First response" className="sla-part"><span className="sla-label">First response</span> <StatusBadge value={response} /></span> <span title="Resolution" className="sla-part"><span className="sla-label">Resolution</span> <StatusBadge value={resolution} /></span></span>;
 }
 
 export function CaseList() {

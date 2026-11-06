@@ -121,8 +121,9 @@ export function EnvironmentForm() {
         <div className="form-grid">
           <SelectInput label="Client" required value={f.values.clientId} onChange={v => { f.set('clientId', v); f.set('regionId', ''); f.set('projectId', ''); }} options={clients} error={f.fieldError('clientId')} disabled={!isNew} />
           <SelectInput label="Region" required={hasRegions} value={f.values.regionId} onChange={v => f.set('regionId', v)} options={(regions.data ?? []).map(r => ({ value: String(r.id), label: `${r.code} · ${r.name}` }))}
-            empty={hasRegions ? '— Select the region —' : 'This client has no regions (valid)'} error={f.fieldError('regionId')}
-            hint={hasRegions ? 'This client has regions, so every environment belongs to one of them.' : 'Environments of a client without regions sit directly under the client.'} />
+            disabled={!f.values.clientId}
+            empty={!f.values.clientId ? 'Select a client first' : regions.isLoading ? 'Loading regions…' : hasRegions ? '— Select the region —' : 'This client has no regions (valid)'} error={f.fieldError('regionId')}
+            hint={!f.values.clientId ? 'The region choices depend on the client.' : regions.isLoading ? undefined : hasRegions ? 'This client has regions, so every environment belongs to one of them.' : 'Environments of a client without regions sit directly under the client.'} />
           {regionChanged && <TextInput label="Reason for region change" required wide value={f.values.regionChangeReason} onChange={v => f.set('regionChangeReason', v)} error={f.fieldError('regionChangeReason')} hint="Region reassignment is audited." />}
           {canViewProjects && <SelectInput label="Project" value={f.values.projectId} onChange={v => f.set('projectId', v)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} disabled={!canCoordinateProjects}
             hint={canCoordinateProjects ? 'Optional: link this environment to the client project it supports.' : 'You can view the project link; changing it needs the Projects:Coordinate right.'} />}

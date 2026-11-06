@@ -8,7 +8,7 @@ import { renewalPeriod, shiftDay } from './contractRenewal';
 import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
 import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
-import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, ExpandableText, SectionNav, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
@@ -151,7 +151,18 @@ export function ContractDetail() {
             {canRenew && <Link className="btn" to={`/contracts/new?renewFrom=${c.id}`}>Renew contract</Link>}
             {c.permissions.canArchive && c.status !== 'Active' && <button className="btn" onClick={() => setArchive(true)}>Archive</button>}
           <DeleteAction button path={`/contracts/${c.id}`} what={`contract ${c.ref}`} afterTo={'/contracts'} /></>} />
-        <div className="cols">
+        <ContractSummary c={c} />
+        <SectionNav label="Contract sections" items={[
+          { id: 'contract-details', label: 'Details' },
+          { id: 'contract-sla', label: 'SLA targets', count: c.slaTargets.length },
+          { id: 'contract-delivery', label: 'Delivery', count: c.milestones.length },
+          { id: 'contract-payments', label: 'Fees and payments', count: c.payments.length },
+          { id: 'contract-penalties', label: 'Penalties', count: c.penaltyClauses.length },
+          { id: 'contract-coverage', label: 'Coverage' },
+          { id: 'contract-documents', label: 'Documents' },
+          { id: 'contract-history', label: 'History' }
+        ]} />
+        <div className="cols" id="contract-details">
           <Panel title="Contract">
             <DL items={[
               ['Client', <ClientDisplay id={c.client.id} code={c.client.code} name={c.client.name} show="both" />],
@@ -171,12 +182,13 @@ export function ContractDetail() {
               ['Support hours', c.supportSummary ?? <Unknown />],
               ...(c.supportHours ? [['Support notes', c.supportHours] as [string, string]] : []),
               ['On-site engineers required', c.onSiteEngineersRequired ?? <Unknown />],
-              ['Coverage', c.coverage ?? <Unknown />],
-              ['Obligations', c.obligations ? <span style={{ whiteSpace: 'pre-wrap' }}>{c.obligations}</span> : <Unknown />]
+              // A105: long service text shows a few lines; the rest opens on request, so the SLA targets stay near the top.
+              ['Coverage', c.coverage ? <ExpandableText text={c.coverage} /> : <Unknown />],
+              ['Obligations', c.obligations ? <ExpandableText text={c.obligations} /> : <Unknown />]
             ]} />
           </Panel>
         </div>
-        <Panel title="SLA targets (recorded)" pad={false}>
+        <Panel id="contract-sla" title="SLA targets (recorded)" pad={false}>
           <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote} {c.slaPauseWhileWaitingOnCustomer ? 'The clock pauses while a ticket waits on the customer.' : 'The clock does not pause while a ticket waits on the customer.'} <Link to={`/cases?contractId=${c.id}&status=all`}>Tickets measured against this contract</Link></p>
           <DataTable<Target> rowKey={t => t.priority} rows={c.slaTargets} caption="SLA targets"
             columns={[
@@ -188,8 +200,8 @@ export function ContractDetail() {
             ]} />
         </Panel>
         <ContractTermsView c={c} />
-        <PenaltyAssessments contractId={c.id} clauses={c.penaltyClauses} />
-        <div className="cols">
+        <div id="contract-penalties" className="section-anchor"><PenaltyAssessments contractId={c.id} clauses={c.penaltyClauses} /></div>
+        <div className="cols" id="contract-coverage">
           <Panel title="Covered products (from the project)">
             {!canViewProducts ? <span className="muted">Products are unavailable with your current access.</span> : c.products.length === 0 ? <StateMessage kind="none">The project has no products recorded.</StateMessage> : <ul className="plain">{c.products.map(p => <li key={p.id}>{p.code} · {p.name}</li>)}</ul>}
           </Panel>
@@ -197,11 +209,38 @@ export function ContractDetail() {
             {!canViewEnvironments ? <span className="muted">Environments are unavailable with your current access.</span> : c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
           </Panel>
         </div>
-        <AttachmentsWorkspace recordType="Contract" recordId={c.id} title="Contract and SLA documents" />
-        <HistoryPanel entityType="Contract" entityId={c.id} />
+        <div id="contract-documents" className="section-anchor"><AttachmentsWorkspace recordType="Contract" recordId={c.id} title="Contract and SLA documents" /></div>
+        <div id="contract-history" className="section-anchor"><HistoryPanel entityType="Contract" entityId={c.id} /></div>
         {archive && <ArchiveDialog what="contract" path={`/contracts/${c.id}/archive`} version={c.version} onClose={() => setArchive(false)} onDone={() => nav(`/projects/${c.project.id}`)} />}
       </>)}
     </QueryState>
+  );
+}
+
+/** A105: term, renewal, SLA and payments at a glance, each linked to its section. */
+function ContractSummary({ c }: { c: Detail }) {
+  const open = c.payments.filter(p => p.status === 'Pending' || p.status === 'Invoiced');
+  const next = open.filter(p => p.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))[0];
+  const overdue = c.payments.filter(p => p.overdue).length;
+  const top = c.slaTargets[0];
+  const Item = ({ to, name, children, hint }: { to: string; name: string; children: React.ReactNode; hint?: React.ReactNode }) => (
+    <a className="summary-item" href={`#${to}`} onClick={e => { const el = document.getElementById(to); if (el) { e.preventDefault(); el.scrollIntoView({ block: 'start' }); } }}>
+      <span className="summary-label">{name}</span><span className="summary-value">{children}</span>{hint && <span className="summary-hint">{hint}</span>}
+    </a>
+  );
+  return (
+    <section className="contract-summary" aria-label="Contract summary">
+      <Item to="contract-details" name="Term" hint={c.noticeDeadline ? `Give notice by ${fmtDate(c.noticeDeadline)}` : label(c.renewalTerms)}>
+        {c.startDate ? fmtDate(c.startDate) : '?'} – {c.endDate ? fmtDate(c.endDate) : 'end unknown'}
+      </Item>
+      <Item to="contract-details" name="Renewal" hint={c.renewalNote}><RenewalBadge state={c.renewalState} /></Item>
+      <Item to="contract-sla" name="SLA targets" hint={top ? `${top.priority}: ${fmtMinutes(top.responseMinutes)} first response / ${fmtMinutes(top.resolutionMinutes)} resolution` : 'Tickets are not measured'}>
+        {c.slaTargets.length ? `${c.slaTargets.length} ${c.slaTargets.length === 1 ? 'priority' : 'priorities'}` : 'None recorded'}
+      </Item>
+      <Item to="contract-payments" name="Payments" hint={overdue ? <span className="err">{overdue} overdue</span> : next ? `${next.condition}${next.amount ? ` · ${money(next.amount, c.currency)}` : ''}` : undefined}>
+        {next ? <>Next due {fmtDate(next.dueDate!)}</> : open.length ? `${open.length} open, no due date` : c.payments.length ? 'All settled' : 'None recorded'}
+      </Item>
+    </section>
   );
 }
 
@@ -636,7 +675,7 @@ function ContractTermsView({ c }: { c: Detail }) {
   const next = open.filter(p => p.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))[0];
   return (
     <>
-      <Panel title={`Delivery schedule${done !== null ? ` · ${done} % complete on average` : ''}`} pad={false}>
+      <Panel id="contract-delivery" title={`Delivery schedule${done !== null ? ` · ${done} % complete on average` : ''}`} pad={false}>
         {c.milestones.length === 0 ? <div className="panel-body"><StateMessage kind="none">No delivery phases recorded.</StateMessage></div> : (
           <DataTable caption="Contract delivery schedule" rows={c.milestones} rowKey={m => m.id} columns={[
             { key: 'phase', header: 'Phase', render: m => <b>{m.phase}</b> }, { key: 'description', header: 'Description', render: m => m.description },
@@ -646,7 +685,7 @@ function ContractTermsView({ c }: { c: Detail }) {
           ]} />
         )}
       </Panel>
-      <div className="cols">
+      <div className="cols" id="contract-payments">
         <Panel title={`Fees and costs${c.currency ? ` (${c.currency})` : ''}`} pad={false}>
           {c.fees.length === 0 ? <div className="panel-body"><StateMessage kind="none">No fees recorded.</StateMessage></div> : (<>
           <DataTable caption="Contract fees and costs" rows={c.fees} rowKey={f => f.id} columns={[

@@ -741,6 +741,25 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
+    public async Task Change_history_separates_people_from_background_work_and_finds_a_person()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var people = (await m.Get("/admin/audit?actor=people&pageSize=100")).Body!["items"]!.AsArray();
+        Assert.All(people, a => Assert.NotEqual("system", a!["userName"]?.GetValue<string>()));
+        var system = (await m.Get("/admin/audit?actor=system&pageSize=100")).Body!["items"]!.AsArray();
+        Assert.All(system, a => Assert.True(a!["userName"] is null || a["userName"]!.GetValue<string>() == "system"));
+        var all = (await m.Get("/admin/audit?pageSize=1")).Total;
+        Assert.Equal(all, (await m.Get("/admin/audit?actor=people&pageSize=1")).Total + (await m.Get("/admin/audit?actor=system&pageSize=1")).Total);
+        var someone = people.Select(a => a!["userName"]?.GetValue<string>()).FirstOrDefault(n => !string.IsNullOrEmpty(n));
+        if (someone is not null)
+        {
+            var found = (await m.Get($"/admin/audit?user={Uri.EscapeDataString(someone[..Math.Min(4, someone.Length)])}&pageSize=100")).Body!["items"]!.AsArray();
+            Assert.NotEmpty(found);
+            Assert.All(found, a => Assert.Contains(someone[..Math.Min(4, someone.Length)], a!["userName"]!.GetValue<string>(), StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
     public async Task An_unused_user_can_be_deleted_with_a_reason()
     {
         var m = await Hub.As(HubFactory.Manager);

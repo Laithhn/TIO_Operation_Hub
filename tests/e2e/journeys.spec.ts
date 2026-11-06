@@ -573,7 +573,7 @@ test.describe('Access (roles and rights)', () => {
     await page.goto('/admin/roles');
     const row = page.locator(VT_ROW).filter({ hasText: new RegExp(name) });
     await expect(row).toContainText('Tickets');
-    await row.getByRole('button', { name: 'Delete' }).click();
+    await startDelete(row, `role ${name}`);
     await page.getByRole('dialog').getByRole('button', { name: 'Delete role' }).click();
     await expect(page.locator(VT_ROW).filter({ hasText: new RegExp(name) })).toHaveCount(0);
   });
@@ -604,6 +604,8 @@ test.describe('Access (roles and rights)', () => {
     await page.getByRole('button', { name: '+ Developer' }).click();
     await page.getByLabel('Developer 1 name').fill('E2E Lead Developer');
     await page.getByRole('button', { name: 'Save product' }).click();
+    // A105: the developers are under the overview's "Technology and application developers".
+    await page.getByText('Technology and application developers').click();
     await expect(page.getByText('E2E Lead Developer')).toBeVisible();
     await expect(page).toHaveURL(/\/products\/\d+$/);
     await page.getByRole('button', { name: '+ Module' }).click();
@@ -764,7 +766,7 @@ test.describe('Dashboard visualizations', () => {
     await page.getByRole('link', { name: 'Operations Command Center', exact: true }).click();
     await page.getByRole('link', { name: 'Action list' }).first().click();
     await expect(page.getByRole('heading', { level: 1, name: 'Action list' })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /Unassigned/ })).toBeVisible();
+    await expect(page.getByRole('group', { name: 'Action categories' }).getByRole('button', { name: /Unassigned/ })).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('modern overview: section tabs, needs-attention strip and the Leaflet map with layers, full screen and client markers (A51)', async ({ page }) => {
@@ -1395,9 +1397,10 @@ test.describe('Product parts edit and delete (A56)', () => {
     await dlg.getByRole('button', { name: 'Save version' }).click();
     await expect(page.getByRole('button', { name: 'Edit version 1.0' })).toBeVisible();
     for (const name of ['feature Bulk import', `microservice ${code}.Api`, 'module CORE', 'version 1.0']) {
-      await page.getByRole('button', { name: `Delete ${name}`, exact: true }).click();
+      await page.getByRole('button', { name: `Actions for ${name}`, exact: true }).click();
+      await page.getByRole('menuitem', { name: `Delete ${name}`, exact: true }).click();
       await page.getByRole('dialog').getByRole('button', { name: /^Delete/ }).click();
-      await expect(page.getByRole('button', { name: `Delete ${name}`, exact: true })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: `Actions for ${name}`, exact: true })).toHaveCount(0);
     }
     await expect(page.getByRole('heading', { name: 'Modules (0)' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Versions (0)' })).toBeVisible();
@@ -1410,8 +1413,9 @@ test.describe('Product parts edit and delete (A56)', () => {
       return r.find((p: { code: string }) => p.code === 'PSOP').id as number;
     });
     await page.goto(`/products/${id}`);
-    const row = page.locator(VT_ROW).filter({ has: page.getByRole('button', { name: /^Delete version / }) }).filter({ hasNot: page.locator(VT_CELL).filter({ hasText: exactText('0') }) }).first();
-    await row.getByRole('button', { name: /^Delete version / }).click();
+    // A105: Delete is in the row's menu.
+    const row = page.locator(VT_ROW).filter({ has: page.getByRole('button', { name: /^Actions for version / }) }).filter({ hasNot: page.locator(VT_CELL).filter({ hasText: exactText('0') }) }).first();
+    await startDelete(row, /version /);
     const dlg = page.getByRole('dialog');
     await dlg.getByRole('button', { name: /^Delete/ }).click();
     await expect(dlg).toContainText('referenced by existing records');
@@ -1555,7 +1559,7 @@ test.describe('Measured SLA compliance (A61)', () => {
     const row = page.locator(VT_ROW).filter({ hasText: title });
     await expect(row).toBeVisible();
     await row.locator('.row-disclose').click();
-    await expect(page.locator('.row-details').getByTitle('Response')).toBeVisible();
+    await expect(page.locator('.row-details').getByTitle('First response')).toBeVisible();
     await page.getByRole('button', { name: /^Advanced filters/ }).click();
     await page.getByLabel('Contractual SLA', { exact: true }).selectOption('noContract');
     await expect(row).toHaveCount(0);

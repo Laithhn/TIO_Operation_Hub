@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { del, get, post, put } from '../api';
 import { fmtDate, label } from '../format';
 import { useRight, useForm, useLeaveGuard, useLookup, useRefresh, useUrlState } from '../hooks';
-import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, ExpandableText, Field, FormError, Menu, PageHead, Panel, QueryState, RowMenu, SectionNav, SelectInput, StateMessage, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 
@@ -75,40 +75,60 @@ export function ProductDetail() {
           sub={<>{p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge>} {p.category && <span className="muted">· {p.category}</span>}</>}
           actions={<>
             {can && <Link className="btn btn-primary" to={`/products/${p.id}/edit`}>Edit</Link>}
-            {p.permissions.canDelete && <button className="btn btn-danger" onClick={() => setDeleting(true)}>Delete product</button>}
+            {/* A105: Delete sits under More, as on the other record pages; its confirmation is unchanged. */}
+            <Menu label="More" items={[{ label: 'Delete product…', ariaLabel: 'Delete product', danger: true, hidden: !p.permissions.canDelete, onClick: () => setDeleting(true) }]} />
           </>} />
         {deleting && <DeleteProductDialog id={p.id} code={p.code} version={p.etag} onClose={() => setDeleting(false)} />}
-        <div className="cols">
-          <Panel title="About this product">
-            {p.description ? <p style={{ whiteSpace: 'pre-wrap', marginTop: 0 }}>{p.description}</p> : <p className="muted" style={{ marginTop: 0 }}>No description yet.</p>}
+        <SectionNav label="Product sections" items={[
+          { id: 'product-overview', label: 'Overview' },
+          { id: 'product-versions', label: 'Versions', count: p.versions.length },
+          { id: 'product-microservices', label: 'Microservices', count: p.microservices.length },
+          { id: 'product-installations', label: 'Installations', count: p.usage.reduce((n, c) => n + c.installations.length, 0) },
+          { id: 'product-modules', label: 'Modules', count: p.modules.length },
+          { id: 'product-features', label: 'Features', count: p.features.length },
+          { id: 'product-documents', label: 'Documents' }
+        ]} />
+        {/* A105: a compact overview first (what it is and where it is used); the team behind it is one click away. */}
+        <Panel id="product-overview" title="Overview">
+          <div className="product-overview">
+            <div>
+              {p.description ? <ExpandableText text={p.description} /> : <p className="muted" style={{ marginTop: 0 }}>No description yet.</p>}
+              <DL items={[
+                ['Also known as', p.aliases ?? <span className="muted">—</span>],
+                ['Category', p.category ?? <Unknown />],
+                ['Product owner', p.productOwner ?? <Unknown />]
+              ]} />
+            </div>
+            <div>
+              <DL items={[
+                ['Clients', p.usage.length], ['Installations', p.usage.reduce((n, c) => n + c.installations.length, 0)],
+                ['Projects', p.projects.length], ['Contracts', p.contracts.length]
+              ]} />
+              <p className="hint">{p.usageNote}</p>
+            </div>
+          </div>
+          <details className="product-more">
+            <summary>Technology and application developers</summary>
             <DL items={[
-              ['Also known as', p.aliases ?? <span className="muted">—</span>],
-              ['Category', p.category ?? <Unknown />],
               ['Technology', p.technology ? <span style={{ whiteSpace: 'pre-wrap' }}>{p.technology}</span> : <Unknown />],
-              ['Application developers', p.developers.length ? <ul className="plain">{p.developers.map(d => <li key={d.name}>{d.name} <span className="muted">· {d.role === 'Lead' ? 'Lead developer' : 'Developer'}{d.email ? ` · ${d.email}` : ''}</span></li>)}</ul> : <Unknown />],
-              ['Product owner', p.productOwner ?? <Unknown />]
+              ['Application developers', p.developers.length ? <ul className="plain">{p.developers.map(d => <li key={d.name}>{d.name} <span className="muted">· {d.role === 'Lead' ? 'Lead developer' : 'Developer'}{d.email ? ` · ${d.email}` : ''}</span></li>)}</ul> : <Unknown />]
             ]} />
-          </Panel>
-          <Panel title="Where it is used">
-            <p className="hint" style={{ marginTop: 0 }}>{p.usageNote}</p>
-            <DL items={[
-              ['Clients', p.usage.length], ['Installations', p.usage.reduce((n, c) => n + c.installations.length, 0)],
-              ['Projects', p.projects.length], ['Contracts', p.contracts.length]
-            ]} />
-          </Panel>
-        </div>
-        <Panel title={`Modules (${p.modules.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'module' })}>+ Module</button>}>
-          <DataTable<Module> rowKey={m => m.id} rows={p.modules} caption="Modules" columns={[
-            { key: 'c', header: 'Module', render: m => <><b>{m.code}</b> · {m.name}</> },
-            { key: 'd', header: 'Description', render: m => m.description ?? <span className="muted">—</span> },
-            { key: 'f', header: 'Features', className: 'num', render: m => m.features },
-            { key: 'i', header: 'Installations', className: 'num', render: m => m.installations },
-            { key: 's', header: 'Status', render: m => m.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
-            { key: 'e', header: '', className: 'nowrap', render: m => <RowActions name={`module ${m.code}`} onEdit={can ? () => setDialog({ kind: 'module', item: m }) : undefined}
-              onDelete={canDelete ? () => setRemoving({ path: `/products/modules/${m.id}`, what: `Module ${m.code}` }) : undefined} /> }
+          </details>
+        </Panel>
+        <Panel id="product-versions" title={`Versions (${p.versions.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'version' })}>+ Version</button>}>
+          <DataTable rowKey={v => v.id} rows={p.versions} caption="Versions" columns={[
+            { key: 'v', header: 'Version', render: v => <b>{v.version}</b> },
+            { key: 'r', header: 'Released', render: v => v.releasedOn ? fmtDate(v.releasedOn) : <span className="muted">—</span> },
+            { key: 'f', header: 'New features', render: v => v.features.length ? v.features.map(x => x.name).join(', ') : <span className="muted">—</span> },
+            { key: 'n', header: 'Release notes', render: v => v.releaseNotes || v.features.length
+              ? <button className="linkbtn" onClick={() => setDialog({ kind: 'notes', item: v })} aria-label={`Release notes of ${v.version}`}>View</button> : <span className="muted">—</span> },
+            { key: 'i', header: 'Installations', className: 'num', render: v => v.installations },
+            { key: 's', header: 'Status', render: v => v.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
+            { key: 'e', header: '', className: 'nowrap', render: v => <RowActions name={`version ${v.version}`} onEdit={can ? () => setDialog({ kind: 'version', item: v }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/versions/${v.id}`, what: `Version ${v.version}` }) : undefined} /> }
           ]} />
         </Panel>
-        <Panel title={`Microservices (${p.microservices.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'microservice' })}>+ Microservice</button>}>
+        <Panel id="product-microservices" title={`Microservices (${p.microservices.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'microservice' })}>+ Microservice</button>}>
           <p className="hint" style={{ padding: '8px 12px 0', margin: 0 }}>The deployable services this product is built from. Each installation records which microservice runs on which server.</p>
           <DataTable<Microservice> rowKey={x => x.id} rows={p.microservices} caption="Microservices" columns={[
             { key: 'n', header: 'Microservice', render: x => <Link to={`/microservices/${x.id}`}><b className="mono">{x.name}</b></Link> },
@@ -122,31 +142,7 @@ export function ProductDetail() {
               onDelete={canDelete ? () => setRemoving({ path: `/products/microservices/${x.id}`, what: `Microservice ${x.name}` }) : undefined} /> }
           ]} />
         </Panel>
-        <Panel title={`Features (${p.features.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'feature' })}>+ Feature</button>}>
-          <DataTable<Feature> rowKey={x => x.id} rows={p.features} caption="Features" columns={[
-            { key: 'n', header: 'Feature', render: x => <b>{x.name}</b> },
-            { key: 'm', header: 'Module', render: x => x.module ?? <span className="muted">Whole product</span> },
-            { key: 'iv', header: 'Introduced in', render: x => x.introducedIn ?? <span className="muted">—</span> },
-            { key: 'd', header: 'Description', render: x => x.description ?? <span className="muted">—</span> },
-            { key: 's', header: 'Status', render: x => x.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
-            { key: 'e', header: '', className: 'nowrap', render: x => <RowActions name={`feature ${x.name}`} onEdit={can ? () => setDialog({ kind: 'feature', item: x }) : undefined}
-              onDelete={canDelete ? () => setRemoving({ path: `/products/features/${x.id}`, what: `Feature ${x.name}` }) : undefined} /> }
-          ]} />
-        </Panel>
-        <Panel title={`Versions (${p.versions.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'version' })}>+ Version</button>}>
-          <DataTable rowKey={v => v.id} rows={p.versions} caption="Versions" columns={[
-            { key: 'v', header: 'Version', render: v => <b>{v.version}</b> },
-            { key: 'r', header: 'Released', render: v => v.releasedOn ? fmtDate(v.releasedOn) : <span className="muted">—</span> },
-            { key: 'f', header: 'New features', render: v => v.features.length ? v.features.map(x => x.name).join(', ') : <span className="muted">—</span> },
-            { key: 'n', header: 'Release notes', render: v => v.releaseNotes || v.features.length
-              ? <button className="linkbtn" onClick={() => setDialog({ kind: 'notes', item: v })} aria-label={`Release notes of ${v.version}`}>View</button> : <span className="muted">—</span> },
-            { key: 'i', header: 'Installations', className: 'num', render: v => v.installations },
-            { key: 's', header: 'Status', render: v => v.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
-            { key: 'e', header: '', className: 'nowrap', render: v => <RowActions name={`version ${v.version}`} onEdit={can ? () => setDialog({ kind: 'version', item: v }) : undefined}
-              onDelete={canDelete ? () => setRemoving({ path: `/products/versions/${v.id}`, what: `Version ${v.version}` }) : undefined} /> }
-          ]} />
-        </Panel>
-        <Panel title="Installations by client" pad={false}>
+        <Panel id="product-installations" title="Installations by client" pad={false}>
           {p.usage.length === 0 ? <StateMessage kind="none">Not installed at any client you can access.</StateMessage> : (
             <DataTable caption="Installations by client" rows={p.usage.flatMap(c => c.installations.map(i => ({ ...i, c })))} rowKey={i => i.id} columns={[
               { key: 'c', header: 'Client', render: i => <ClientDisplay id={i.c.clientId} code={i.c.clientCode} name={i.c.clientName} show="both" /> },
@@ -157,6 +153,28 @@ export function ProductDetail() {
             ]} />
           )}
         </Panel>
+        <Panel id="product-modules" title={`Modules (${p.modules.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'module' })}>+ Module</button>}>
+          <DataTable<Module> rowKey={m => m.id} rows={p.modules} caption="Modules" columns={[
+            { key: 'c', header: 'Module', render: m => <><b>{m.code}</b> · {m.name}</> },
+            { key: 'd', header: 'Description', render: m => m.description ?? <span className="muted">—</span> },
+            { key: 'f', header: 'Features', className: 'num', render: m => m.features },
+            { key: 'i', header: 'Installations', className: 'num', render: m => m.installations },
+            { key: 's', header: 'Status', render: m => m.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
+            { key: 'e', header: '', className: 'nowrap', render: m => <RowActions name={`module ${m.code}`} onEdit={can ? () => setDialog({ kind: 'module', item: m }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/modules/${m.id}`, what: `Module ${m.code}` }) : undefined} /> }
+          ]} />
+        </Panel>
+        <Panel id="product-features" title={`Features (${p.features.length})`} pad={false} actions={can && <button className="btn" onClick={() => setDialog({ kind: 'feature' })}>+ Feature</button>}>
+          <DataTable<Feature> rowKey={x => x.id} rows={p.features} caption="Features" columns={[
+            { key: 'n', header: 'Feature', render: x => <b>{x.name}</b> },
+            { key: 'm', header: 'Module', render: x => x.module ?? <span className="muted">Whole product</span> },
+            { key: 'iv', header: 'Introduced in', render: x => x.introducedIn ?? <span className="muted">—</span> },
+            { key: 'd', header: 'Description', render: x => x.description ?? <span className="muted">—</span> },
+            { key: 's', header: 'Status', render: x => x.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge> },
+            { key: 'e', header: '', className: 'nowrap', render: x => <RowActions name={`feature ${x.name}`} onEdit={can ? () => setDialog({ kind: 'feature', item: x }) : undefined}
+              onDelete={canDelete ? () => setRemoving({ path: `/products/features/${x.id}`, what: `Feature ${x.name}` }) : undefined} /> }
+          ]} />
+        </Panel>
         <div className="cols">
           <Panel title="Projects" pad={false}>
             {p.projects.length === 0 ? <StateMessage kind="none" /> : <ul className="plain" style={{ padding: 12 }}>{p.projects.map(x => <li key={x.id}><ClientDisplay id={x.clientId} code={x.clientCode} size="xs" /> · {x.code} · {x.name} <span className="muted">({label(x.status)})</span></li>)}</ul>}
@@ -165,7 +183,9 @@ export function ProductDetail() {
             {p.contracts.length === 0 ? <StateMessage kind="none" /> : <ul className="plain" style={{ padding: 12 }}>{p.contracts.map(x => <li key={x.id}><Link to={`/contracts/${x.id}`}>{x.ref} · {x.title}</Link> <span className="muted">({x.clientCode}, {label(x.status)})</span></li>)}</ul>}
           </Panel>
         </div>
+        <div id="product-documents" className="section-anchor">
         <AttachmentsWorkspace recordType="Product" recordId={p.id} title="Product documents" />
+        </div>
         {dialog?.kind === 'module' && <ModuleDialog productId={p.id} item={dialog.item} onClose={() => setDialog(null)} />}
         {dialog?.kind === 'feature' && <FeatureDialog productId={p.id} modules={p.modules} versions={p.versions} item={dialog.item} onClose={() => setDialog(null)} />}
         {dialog?.kind === 'notes' && <ReleaseNotesDialog item={dialog.item} productCode={p.code} onClose={() => setDialog(null)} />}
@@ -252,13 +272,13 @@ function MicroserviceDialog({ productId, productCode, modules, item, onClose }: 
   );
 }
 
-/** Edit and Delete links for a row; each appears only with its right. */
+/** Edit link for a row and, A105, Delete in its small menu as on every other list; each appears only with its right. */
 function RowActions({ name, onEdit, onDelete }: { name: string; onEdit?: () => void; onDelete?: () => void }) {
   if (!onEdit && !onDelete) return null;
   return (
     <span className="row-actions">
       {onEdit && <button className="linkbtn" onClick={onEdit} aria-label={`Edit ${name}`}>Edit</button>}
-      {onDelete && <button className="linkbtn danger-link" onClick={onDelete} aria-label={`Delete ${name}`}>Delete</button>}
+      {onDelete && <RowMenu what={name} items={[{ label: 'Delete', danger: true, ariaLabel: `Delete ${name}`, onClick: onDelete }]} />}
     </span>
   );
 }
@@ -419,8 +439,9 @@ export function MicroserviceDetail() {
           sub={<>{m.isActive ? <Badge tone="good">Active</Badge> : <Badge>Retired</Badge>} <span className="muted">· microservice of {m.product.code} · {m.product.name}</span></>}
           actions={<>
             {can && <button className="btn" onClick={() => setDialog({ kind: 'edit' })}>Edit</button>}
-            {canDelete && <button className="btn btn-danger-outline" onClick={() => setRemoving({ path: `/products/microservices/${m.id}`, what: `Microservice ${m.name}`, after: `/products/${m.product.id}` })}>Delete</button>}
             {can && <button className="btn btn-primary" onClick={() => setDialog({ kind: 'version' })}>+ Version</button>}
+            <Menu label="More" items={[{ label: 'Delete microservice…', ariaLabel: `Delete microservice ${m.name}`, danger: true, hidden: !canDelete,
+              onClick: () => setRemoving({ path: `/products/microservices/${m.id}`, what: `Microservice ${m.name}`, after: `/products/${m.product.id}` }) }]} />
           </>} />
         <Panel title="Microservice">
           <DL items={[

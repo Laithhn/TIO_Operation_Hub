@@ -3,11 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { del, get, post, put, qs, type Paged } from '../api';
-import { fmtDateTime, label } from '../format';
+import { fmtDateTime, fromLocalInput, label } from '../format';
 import { useForm, useMe, useRight, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, computerZone, TimeZoneSelect, timeZoneOptions } from '../ui/pickers';
 import { configCrumbs } from '../configRegistry';
-import { Badge, Checkbox, DataTable, Dialog, ErrorBox, FormError, PageHead, Pager, Panel, Restricted, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { Badge, Checkbox, DataTable, Dialog, ErrorBox, FormError, PageHead, Pager, Panel, Restricted, RowMenu, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Changes, RecordLink } from './common';
 import type { RightDefinition, RoleDef } from './adminRightsModel';
 import { RoleAccessMatrix } from './RoleAccessMatrix';
@@ -30,6 +30,16 @@ const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<
 
 type SignInState = { userId: number; state: 'Active' | 'TemporaryPassword' | 'Locked'; lockedUntil?: string; changedAt: string };
 
+/** A105: what a user sees, in a few words ("All clients", "3 clients · 1 team"). */
+function scopeSummary(u: UserRow): string {
+  if (u.allClients && u.allInternal) return 'All clients and teams';
+  const n = (kind: string) => u.scopes.filter(x => x.kind === kind).length;
+  const parts = [u.allClients ? 'All clients' : n('Client') ? `${n('Client')} client${n('Client') > 1 ? 's' : ''}` : '',
+    n('Project') ? `${n('Project')} project${n('Project') > 1 ? 's' : ''}` : '',
+    u.allInternal ? 'All teams' : n('InternalTeam') ? `${n('InternalTeam')} team${n('InternalTeam') > 1 ? 's' : ''}` : ''].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'No data scope';
+}
+
 export function AdminUsers() {
   const canCreate = useRight('AdminUsers', 'Create');
   const canMaintain = useRight('AdminUsers', 'Maintain');
@@ -49,26 +59,41 @@ export function AdminUsers() {
     <AdminOnly>
       <PageHead title="Users" sub="Create and edit accounts, assign roles and data scope. Rights come from roles; set them on the Rights page."
         actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New User</button>} />
-      <DataTable<UserRow> rowKey={u => u.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Name', render: u => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button> }, { key: 'a', header: 'Account', render: u => <span className="mono">{u.accountName}</span> },
-        { key: 'r', header: 'Roles', render: u => u.roles.length + u.directoryRoles.length === 0 ? <Badge tone="warn">No role</Badge> : <>
+      <DataTable<UserRow> rowKey={u => u.id} rows={q.data} loading={q.isLoading} error={q.error} columnsKey="admin-users"
+        details={u => <dl className="row-details-list">
+          <div><dt>Account</dt><dd className="mono wrap-anywhere">{u.accountName}</dd></div>
+          {u.email && <div><dt>Email</dt><dd>{u.email}</dd></div>}
+          <div><dt>Mapped groups</dt><dd>{u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : 'Unavailable — refresh required'}</dd></div>
+          {u.deactivatedAt && <div><dt>Deactivated</dt><dd>{fmtDateTime(u.deactivatedAt)}{u.deactivationReason ? ` · ${u.deactivationReason}` : ''}</dd></div>}
+        </dl>}
+        columns={[
+        // A105: who the person is, their role, whether they can sign in and what they see come first. Technical identifiers sit under
+        // the name (shortened) and in the expanded row; account actions are in the row menu.
+        { key: 'n', header: 'Name', render: u => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button>
+          <div className="hint mono ellipsis" title={u.accountName}>{u.accountName}</div></> },
+        { key: 'r', header: 'Role', render: u => u.roles.length + u.directoryRoles.length === 0 ? <Badge tone="warn">No role</Badge> : <>
           {u.roles.map(r => <span key={r.id} className="chip">{r.name}{!r.isActive && ' (inactive)'}</span>)}
           {u.directoryRoles.map(r => <span key={`${r.group}/${r.id}`} className="chip" title={`Inherited from the directory group ${r.group}`}>{r.name} · from directory</span>)}</> },
-        { key: 'm', header: 'Mapped groups', render: (u: UserRow) => u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : <span title="An authenticated sign-in must refresh the directory group snapshot.">Unavailable — refresh required</span> },
-        { key: 'st', header: 'Status', render: u => u.isActive ? <Badge tone="good">Active</Badge> : <Badge tone="bad">Deactivated</Badge> },
-        { key: 'cl', header: 'Sign-in', render: u => <>{u.classification === 'VitronicTeamMember' && <span className="chip">Vitronic team member</span>}{u.loginEnabled === false ? <Badge tone="warn">No sign-in</Badge> : <Badge tone="good">Allowed</Badge>}</> },
-        ...(forms ? [{ key: 'pw', header: 'Password', render: (u: UserRow) => {
-          const st = stateOf(u.id);
-          return !st ? <Badge tone="warn">Not set</Badge> : st.state === 'Locked' ? <Badge tone="bad">Locked until {fmtDateTime(st.lockedUntil)}</Badge>
-            : st.state === 'TemporaryPassword' ? <Badge tone="info">Temporary</Badge> : <Badge tone="good">Set</Badge>;
-        } }] : []),
-        { key: 'l', header: 'Last sign-in', render: u => fmtDateTime(u.lastSignInAt) },
-        { key: 'x', header: '', render: u => <span className="nowrap">
-          {canMaintain && u.classification === 'VitronicTeamMember' && u.id !== me.id && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setLogin(u)}>{u.loginEnabled ? 'Remove sign-in' : 'Grant sign-in'}</button>}
-          {canMaintain && forms && u.id !== me.id && u.isActive && u.loginEnabled !== false && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>Password options</button>}
-          <button disabled={!canMaintain} className="linkbtn" onClick={() => setDeact(u)}>{u.isActive ? 'Deactivate' : 'Reactivate'}</button>
-          {canDelete && u.id !== me.id && <> · <button className="linkbtn danger-link" onClick={() => setRemove(u)}>Delete</button></>}
-        </span> }
+        { key: 'cl', header: 'Sign-in', render: u => {
+          const st = forms ? stateOf(u.id) : undefined;
+          if (!u.isActive) return <Badge tone="bad">Deactivated</Badge>;
+          if (u.loginEnabled === false) return <><Badge tone="warn">No sign-in</Badge>{u.classification === 'VitronicTeamMember' && <div className="hint">Vitronic team member</div>}</>;
+          if (forms && !st) return <Badge tone="warn">Password not set</Badge>;
+          if (st?.state === 'Locked') return <Badge tone="bad">Locked until {fmtDateTime(st.lockedUntil)}</Badge>;
+          if (st?.state === 'TemporaryPassword') return <Badge tone="info">Temporary password</Badge>;
+          return <Badge tone="good">Can sign in</Badge>;
+        } },
+        { key: 'sc', header: 'Scope', render: u => <span className="nowrap">{scopeSummary(u)}</span> },
+        { key: 'l', header: 'Last sign-in', render: u => u.lastSignInAt ? <span className="nowrap">{fmtDateTime(u.lastSignInAt)}</span> : <span className="muted">Never</span> },
+        { key: 'a', header: 'Account', defaultHidden: true, render: u => <span className="mono">{u.accountName}</span> },
+        { key: 'm', header: 'Mapped groups', defaultHidden: true, render: (u: UserRow) => u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : <span title="An authenticated sign-in must refresh the directory group snapshot.">Unavailable — refresh required</span> },
+        { key: 'x', header: '', className: 'row-actions', render: u => <RowMenu what={u.displayName} items={[
+          { label: 'Edit user', hidden: !canMaintain, onClick: () => setEdit(u) },
+          { label: u.loginEnabled ? 'Remove sign-in' : 'Grant sign-in', hidden: !(canMaintain && u.classification === 'VitronicTeamMember' && u.id !== me.id), onClick: () => setLogin(u) },
+          { label: 'Password options', hidden: !(canMaintain && forms && u.id !== me.id && u.isActive && u.loginEnabled !== false), onClick: () => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) }) },
+          { label: u.isActive ? 'Deactivate' : 'Reactivate', hidden: !canMaintain, danger: u.isActive, onClick: () => setDeact(u) },
+          { label: 'Delete', ariaLabel: `Delete ${u.displayName}`, hidden: !(canDelete && u.id !== me.id), danger: true, onClick: () => setRemove(u) }
+        ]} /> }
       ]} />
       {edit && targets.data && <UserDialog user={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)}
         onCreated={forms ? (u => setPw({ ...u, first: true })) : undefined} />}
@@ -294,7 +319,7 @@ export function AdminRoles() {
         // GUI-11: a count with the full list on request, so a long list of rights never widens the table past its actions.
         { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">No rights</span>
           : <RightsSummary role={r.name} items={r.rights.map(k => { const p = d?.catalog.find(x => x.key === k); return p ? `${p.featureLabel}: ${p.label}` : k; })} /> },
-        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button> {canMaintain && <Link className="linkbtn" to={`/admin/rights?role=${r.id}`} aria-label={`Rights of ${r.name}`}>Rights</Link>} {canDelete && !r.key && <button className="linkbtn danger-link" onClick={() => setRemove(r)} aria-label={`Delete role ${r.name}`}>Delete</button>}</> }
+        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button> {canMaintain && <Link className="linkbtn" to={`/admin/rights?role=${r.id}`} aria-label={`Rights of ${r.name}`}>Rights</Link>} {canDelete && !r.key && <RowMenu what={`role ${r.name}`} items={[{ label: 'Delete', danger: true, ariaLabel: `Delete role ${r.name}`, onClick: () => setRemove(r) }]} />}</> }
       ]} />
       {d && <RoleAccessMatrix roles={d.roles} catalog={d.catalog} editable={canMaintain} />}
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
@@ -453,13 +478,13 @@ export function AdminPolicies() {
       <PageHead title="Review policies" crumbs={configCrumbs('review-policies')} sub="Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments."
         actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New Policy</button>} />
       <DataTable<Policy> rowKey={p => p.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 't', header: 'Record type', render: p => p.recordType }, { key: 's', header: 'Scope', render: p => label(p.scope) }, { key: 'm', header: 'Max age (days)', className: 'num', render: p => p.maxAgeDays ?? '—' },
+        { key: 't', header: 'Record type', render: p => p.recordType === 'Asset' ? 'Server' : label(p.recordType) }, { key: 's', header: 'Scope', render: p => label(p.scope) }, { key: 'm', header: 'Max age (days)', className: 'num', render: p => p.maxAgeDays ?? '—' },
         { key: 'n', header: 'Uses next-review date', render: p => p.usesNextReviewDate ? 'Yes' : 'No' }, { key: 'e', header: 'Effective from', render: p => p.effectiveFrom }, { key: 'no', header: 'Notes', render: p => p.notes },
         { key: 'a', header: 'Status', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Inactive</Badge> }, { key: 'x', header: '', render: p => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(p)}>Edit</button> }
       ]} />
-      {edit && <ActionDialog title={edit === 'new' ? 'New review policy' : `Edit ${edit.recordType} / ${edit.scope}`} path={edit === 'new' ? '/review-policies' : `/review-policies/${edit.id}`} method={edit === 'new' ? 'POST' : 'PUT'} version={edit === 'new' ? undefined : edit.version} onClose={() => setEdit(null)} submitLabel="Save"
+      {edit && <ActionDialog title={edit === 'new' ? 'New review policy' : `Edit ${edit.recordType === 'Asset' ? 'Server' : label(edit.recordType)} / ${label(edit.scope)}`} path={edit === 'new' ? '/review-policies' : `/review-policies/${edit.id}`} method={edit === 'new' ? 'POST' : 'PUT'} version={edit === 'new' ? undefined : edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={edit === 'new' ? {} : { recordType: edit.recordType, scope: edit.scope, maxAgeDays: edit.maxAgeDays?.toString() ?? '', usesNextReviewDate: edit.usesNextReviewDate ? 'yes' : '', notes: edit.notes ?? '' }}
-        fields={[{ name: 'recordType', label: 'Record type', kind: 'select', required: true, options: ['Client', 'Contact', 'Region', 'Project', 'Environment', 'Installation', 'Asset', 'Case', 'Commitment'].map(x => ({ value: x, label: x })) },
+        fields={[{ name: 'recordType', label: 'Record type', kind: 'select', required: true, options: ['Client', 'Contact', 'Region', 'Project', 'Environment', 'Installation', 'Asset', 'Case', 'Commitment'].map(x => ({ value: x, label: x === 'Asset' ? 'Server' : label(x) })) },
           { name: 'scope', label: 'Scope', kind: 'select', required: true, options: ['Record', 'Inventory', 'Condition', 'Dependencies', 'Contacts'].map(x => ({ value: x, label: x })) },
           { name: 'maxAgeDays', label: 'Maximum age (days)' }, { name: 'usesNextReviewDate', label: 'Also use explicit next-review date', kind: 'select', options: [{ value: 'yes', label: 'Yes' }] }, { name: 'notes', label: 'Notes' }]}
         transform={v => ({ recordType: v.recordType, scope: v.scope, maxAgeDays: v.maxAgeDays ? Number(v.maxAgeDays) : null, usesNextReviewDate: v.usesNextReviewDate === 'yes', notes: v.notes, isActive: true })} />}
@@ -485,44 +510,101 @@ export function AdminJira() {
   );
 }
 
+/** A105: settings under readable names and groups; the stored key stays visible as secondary information. */
+type SettingRow = { id: number; key: string; value: string; description?: string; version: string };
+const SETTING_INFO: Record<string, { label: string; group: string; dateValue?: boolean; readOnly?: boolean }> = {
+  DefaultTimeZone: { label: 'Default time zone for new users', group: 'General' },
+  'Dashboard.UpcomingDays': { label: 'Upcoming window for commitments (days)', group: 'General' },
+  ApprovedLinkHosts: { label: 'Approved document link hosts', group: 'Links and security' },
+  VaultReferencePrefix: { label: 'Vault reference prefix', group: 'Links and security' },
+  'Coverage.EnvironmentCriticalities': { label: 'Environment criticalities that need a backup owner', group: 'Backup coverage' },
+  'Coverage.CasePriorities': { label: 'Ticket priorities that need a backup owner', group: 'Backup coverage' },
+  'Contracts.PaymentReminderDays': { label: 'Payment reminder (days before due)', group: 'Contracts' },
+  'Jira.ContractsByDateFrom': { label: 'Jira tickets take their contract by creation date since', group: 'Jira', dateValue: true },
+  'Jira.PrioritiesFollowJiraFrom': { label: 'Jira tickets take their priority from Jira since', group: 'Jira', dateValue: true }
+};
+const SETTING_GROUPS = ['General', 'Links and security', 'Backup coverage', 'Contracts', 'Jira', 'Other'];
+const settingInfo = (s: SettingRow) => SETTING_INFO[s.key] ?? { label: label(s.key.split('.').pop() ?? s.key), group: 'Other' };
+const isInstant = (v: string) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v);
+
+function SettingValue({ s }: { s: SettingRow }) {
+  if (!s.value) return <span className="muted">Empty (open decision)</span>;
+  if (s.key === 'DefaultTimeZone') return <>{timeZoneOptions().find(o => o.value === s.value)?.label ?? s.value}</>;
+  if (isInstant(s.value)) return <span className="nowrap" title={s.value}>{fmtDateTime(s.value)}</span>;
+  if (s.value.includes(',')) return <>{s.value.split(',').map(v => v.trim()).filter(Boolean).map(v => <span key={v} className="chip">{label(v)}</span>)}</>;
+  return <>{s.value}</>;
+}
+
+function SettingDescription({ text }: { text?: string }) {
+  if (!text) return null;
+  if (text.length <= 110) return <span>{text}</span>;
+  return <details className="setting-desc"><summary>{text.slice(0, 100).replace(/\s+\S*$/, '')}… <span className="linkbtn">More</span></summary>{text}</details>;
+}
+
 export function AdminSettings() {
   const canMaintain = useRight('AdminSettings', 'Maintain');
-  const q = useQuery({ queryKey: ['admin-settings'], queryFn: () => get<{ id: number; key: string; value: string; description?: string; version: string }[]>('/admin/settings') });
-  const [edit, setEdit] = useState<{ id: number; key: string; value: string; version: string } | null>(null);
+  const q = useQuery({ queryKey: ['admin-settings'], queryFn: () => get<SettingRow[]>('/admin/settings') });
+  const [edit, setEdit] = useState<SettingRow | null>(null);
+  const groups = SETTING_GROUPS.map(g => ({ g, rows: (q.data ?? []).filter(s => settingInfo(s).group === g) })).filter(x => x.rows.length > 0);
   return (
     <AdminOnly>
       <PageHead title="Settings" crumbs={configCrumbs('settings')} sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
-      <DataTable rowKey={s => s.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'k', header: 'Setting', render: s => <span className="mono">{s.key}</span> }, { key: 'v', header: 'Value', render: s => s.key === 'DefaultTimeZone' && s.value ? timeZoneOptions().find(o => o.value === s.value)?.label ?? s.value : s.value || <span className="muted">Empty (open decision)</span> },
-        { key: 'd', header: 'Description', render: s => s.description }, { key: 'x', header: '', render: s => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(s)}>Edit</button> }
-      ]} />
+      {q.isLoading || q.error ? <DataTable rowKey={(s: SettingRow) => s.id} rows={undefined} loading={q.isLoading} error={q.error} columns={[]} />
+        : groups.map(({ g, rows }) => <Panel key={g} title={g} pad={false}>
+          <DataTable<SettingRow> caption={`${g} settings`} tools={false} rowKey={s => s.id} rows={rows} fit columns={[
+            { key: 'k', header: 'Setting', render: s => <><b>{settingInfo(s).label}</b><div className="hint mono" title="Stored key">{s.key}</div></> },
+            { key: 'v', header: 'Value', render: s => <SettingValue s={s} /> },
+            { key: 'd', header: 'What it does', render: s => <SettingDescription text={s.description} /> },
+            { key: 'x', header: '', className: 'row-actions', render: s => !settingInfo(s).dateValue && <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(s)} aria-label={`Edit ${settingInfo(s).label}`}>Edit</button> }
+          ]} />
+        </Panel>)}
       <AttachmentStorage />
       {edit && edit.key === 'DefaultTimeZone' && <ZoneSettingDialog setting={edit} onClose={() => setEdit(null)} />}
-      {edit && edit.key !== 'DefaultTimeZone' && <ActionDialog title={`Edit ${edit.key}`} path={`/admin/settings/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save" initial={{ value: edit.value }} fields={[{ name: 'value', label: 'Value', required: true }]} />}
+      {edit && edit.key !== 'DefaultTimeZone' && <ActionDialog title={`Edit ${settingInfo(edit).label}`} path={`/admin/settings/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save"
+        intro={edit.description} initial={{ value: edit.value }} fields={[{ name: 'value', label: 'Value', required: true, hint: `Stored as ${edit.key}.` }]} />}
     </AdminOnly>
   );
 }
 
 type Audit = { id: number; at: string; userName?: string; action: string; category: string; entityType: string; entityId?: number; entityLabel?: string; clientId?: number; reason?: string; changes?: string };
 
+/** A105: record types under the names the screens use; a typed "Ticket" or "Server" finds the stored "Case" or "Asset". */
+const AUDIT_TYPES = ['Client', 'Region', 'Project', 'Contract', 'Contact', 'Environment', 'Installation', 'Asset', 'Component', 'Volume', 'Case', 'Commitment', 'Escalation', 'Handover', 'Product', 'Team', 'AppUser', 'AppRole'];
+const auditTypeCode = (v: string) => { const t = v.trim().toLowerCase(); return AUDIT_TYPES.find(c => c.toLowerCase() === t || label(c).toLowerCase() === t) ?? v.trim(); };
+
 export function AdminAudit() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ entityType: '', action: '', category: '', page: '1', pageSize: '25' });
+  // A105: people's changes first; background work (Jira synchronization, scans) is one choice away instead of filling the list.
+  const [f, set] = useUrlState({ entityType: '', action: '', category: '', actor: 'people', user: '', fromDate: '', toDate: '', page: '1', pageSize: '25' });
   const allowed = canAudit(me) || isAdministrator(me);
-  const q = useQuery({ queryKey: ['audit', f], queryFn: () => get<Paged<Audit>>(`/admin/audit${qs(f)}`), enabled: allowed, retry: false });
+  const params = {
+    entityType: f.entityType ? auditTypeCode(f.entityType) : '', action: f.action, category: f.category, actor: f.actor === 'all' ? '' : f.actor, user: f.user.trim(),
+    from: f.fromDate ? fromLocalInput(`${f.fromDate}T00:00`) ?? '' : '', to: f.toDate ? new Date(Date.parse(fromLocalInput(`${f.toDate}T00:00`) ?? '') + 86400000).toISOString() : '',
+    page: f.page, pageSize: f.pageSize
+  };
+  const q = useQuery({ queryKey: ['audit', params], queryFn: () => get<Paged<Audit>>(`/admin/audit${qs(params)}`), enabled: allowed, retry: false });
   const ex = useQuery({ queryKey: ['exports-log'], queryFn: () => get<Paged<{ id: number; at: string; report: string; filters: string; rowCount: number; user?: string }>>('/admin/exports?pageSize=10'), enabled: allowed, retry: false });
+  const filtered = !!(f.entityType || f.action || f.category || f.user || f.fromDate || f.toDate);
+  const page1 = (v: Record<string, string>) => set({ ...v, page: '1' });
   return (
     <>
       <PageHead title="Change history" sub="Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed." />
       <div className="toolbar">
-        <TextInput label="Record type" value={f.entityType} onChange={v => set({ entityType: v })} placeholder="Client, Ticket…" />
-        <SelectInput label="Action" value={f.action} onChange={v => set({ action: v })} options={['Create', 'Update', 'StatusChange', 'OwnerChange', 'Archive', 'Restore', 'AccessChange', 'AccessGranted', 'AccessRevoked', 'Export', 'Remove'].map(a => ({ value: a, label: label(a) }))} empty="Any" />
-        <SelectInput label="Category" value={f.category} onChange={v => set({ category: v })} options={[{ value: 'Business', label: 'Business records' }, { value: 'Access', label: 'Access administration' }]} empty="Any" />
+        <SelectInput label="Activity" value={f.actor} onChange={v => page1({ actor: v })} empty={null}
+          options={[{ value: 'people', label: 'Changes by people' }, { value: 'system', label: 'Background work (Jira sync, scans)' }, { value: 'all', label: 'All activity' }]} />
+        <TextInput label="Person" value={f.user} onChange={v => page1({ user: v })} placeholder="Account name" />
+        <TextInput label="Record type" value={f.entityType} onChange={v => page1({ entityType: v })} placeholder="Client, Ticket…" list="audit-record-types" />
+        <datalist id="audit-record-types">{AUDIT_TYPES.map(t => <option key={t} value={label(t)} />)}</datalist>
+        <SelectInput label="Action" value={f.action} onChange={v => page1({ action: v })} options={['Create', 'Update', 'StatusChange', 'OwnerChange', 'Archive', 'Restore', 'AccessChange', 'AccessGranted', 'AccessRevoked', 'Export', 'Remove'].map(a => ({ value: a, label: label(a) }))} empty="Any" />
+        <SelectInput label="Category" value={f.category} onChange={v => page1({ category: v })} options={[{ value: 'Business', label: 'Business records' }, { value: 'Access', label: 'Access administration' }]} empty="Any" />
+        <TextInput label="From" type="date" value={f.fromDate} onChange={v => page1({ fromDate: v })} />
+        <TextInput label="To" type="date" value={f.toDate} onChange={v => page1({ toDate: v })} />
       </div>
-      <DataTable<Audit> rowKey={a => a.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={f.entityType || f.action ? 'nomatch' : 'none'} columns={[
-        { key: 'at', header: 'When', render: a => <span className="nowrap">{fmtDateTime(a.at)}</span> }, { key: 'u', header: 'By', render: a => a.userName },
-        { key: 'ac', header: 'Action', render: a => label(a.action) }, { key: 'r', header: 'Record', render: a => a.entityId ? <RecordLink type={a.entityType} id={a.entityId}>{a.entityType} · {a.entityLabel ?? a.entityId}</RecordLink> : `${a.entityType} · ${a.entityLabel ?? ''}` },
-        { key: 'rs', header: 'Reason', render: a => a.reason }, { key: 'c', header: 'Changes', render: a => <Changes json={a.changes} /> }
+      <DataTable<Audit> rowKey={a => a.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'}
+        emptyMessage={!filtered && f.actor === 'people' ? <>No changes by people yet. <button type="button" className="linkbtn" onClick={() => page1({ actor: 'all' })}>Show all activity</button></> : undefined} columns={[
+        { key: 'at', header: 'When', render: a => <span className="nowrap">{fmtDateTime(a.at)}</span> }, { key: 'u', header: 'By', render: a => a.userName && a.userName !== 'system' ? a.userName : <span className="muted">System</span> },
+        { key: 'ac', header: 'Action', render: a => label(a.action) }, { key: 'r', header: 'Record', render: a => a.entityId ? <RecordLink type={a.entityType} id={a.entityId}>{label(a.entityType)} · {a.entityLabel ?? a.entityId}</RecordLink> : `${label(a.entityType)} · ${a.entityLabel ?? ''}` },
+        { key: 'rs', header: 'Reason', render: a => a.reason }, { key: 'c', header: 'Changes (before → after)', render: a => <Changes json={a.changes} /> }
       ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
       {ex.data && <Panel title="Recent exports" pad={false}><DataTable rowKey={e => e.id} rows={ex.data.items} columns={[

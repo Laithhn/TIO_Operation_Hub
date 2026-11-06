@@ -3,7 +3,7 @@ import { cloneElement, createContext, Fragment, isValidElement, lazy, Suspense, 
 import { Link, useNavigate } from 'react-router';
 import { ApiError, type UserRef } from '../api';
 import { useMe, useReference } from '../hooks';
-import { fmtDateTime, label } from '../format';
+import { fmtDateTime, label, splitTitle } from '../format';
 import { Icon } from './Icon';
 import { canDeletePath, canExport } from '../rights';
 import { createPortal } from 'react-dom';
@@ -48,12 +48,57 @@ export function PageHead({ title, sub, crumbs, actions }: { title: ReactNode; su
   return slot ? createPortal(head, slot) : head;
 }
 
-export function Panel({ title, actions, children, pad = true }: { title?: ReactNode; actions?: ReactNode; children: ReactNode; pad?: boolean }) {
+export function Panel({ title, actions, children, pad = true, id }: { title?: ReactNode; actions?: ReactNode; children: ReactNode; pad?: boolean; id?: string }) {
   return (
-    <section className="panel">
+    <section className="panel" id={id}>
       {(title || actions) && <div className="panel-head">{title && <h2>{title}</h2>}{actions && <div className="actions">{actions}</div>}</div>}
       {pad ? <div className="panel-body">{children}</div> : children}
     </section>
+  );
+}
+
+/** A105: long text shows a few lines with "Show more"; short text shows in full. */
+export function ExpandableText({ text, lines = 3 }: { text: string; lines?: 2 | 3 }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > (lines === 2 ? 160 : 260) || text.split(/\r?\n/).length > lines;
+  return (
+    <div className="expandable-text">
+      <p className={!open && long ? `clamp-${lines}` : undefined} style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{text}</p>
+      {long && <button type="button" className="linkbtn" aria-expanded={open} onClick={() => setOpen(o => !o)}>{open ? 'Show less' : 'Show more'}</button>}
+    </div>
+  );
+}
+
+/**
+ * A105: the sections of a long record page as a row of links with counts ("Versions 4"). A link scrolls to its section and keeps the page
+ * otherwise as it is, so every section stays where tests, bookmarks and habits expect it.
+ */
+export function SectionNav({ items, label = 'Sections of this page' }: { items: { id: string; label: ReactNode; count?: number; hidden?: boolean }[]; label?: string }) {
+  const shown = items.filter(i => !i.hidden);
+  if (shown.length < 2) return null;
+  const go = (e: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    el.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    el.querySelector<HTMLElement>('h2')?.setAttribute('tabindex', '-1');
+    el.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true });
+  };
+  return (
+    <nav className="section-nav" aria-label={label}>
+      {shown.map(i => <a key={i.id} href={`#${i.id}`} onClick={e => go(e, i.id)}>{i.label}{i.count !== undefined && <span className="section-nav-count">{i.count}</span>}</a>)}
+    </nav>
+  );
+}
+
+/** A105: a long description as a short title (a link when `to` is given) and a two-line preview; the full text is in the tooltip. */
+export function TitledText({ text, to }: { text: string; to?: string }) {
+  const { title, rest } = splitTitle(text);
+  return (
+    <div className="titled-text" title={rest ? text : undefined}>
+      {to ? <Link to={to}>{title}</Link> : <b>{title}</b>}
+      {rest && <div className="hint clamp-2">{rest}</div>}
+    </div>
   );
 }
 
@@ -398,7 +443,7 @@ function useOverflow<E extends HTMLElement>() {
  * export). The rows are a native table (GUI-05): screen readers announce rows, column headers and cells, a sortable header is a button
  * with aria-sort, and sorting is announced. On phones the secondary columns move into a details row under each record (GUI-06).
  */
-export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey, selectable, search, totalCount, columnFilters: offerColumnFilters = true, details, fit }: {
+export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'none', sort, onSort, caption, tools = true, exportName, pageSize: initialSize = 25, tableClassName, tableWrapClassName, columnsKey, selectable, search, totalCount, columnFilters: offerColumnFilters = true, details, fit, emptyMessage }: {
   columns: Column<T>[]; rows?: T[]; rowKey: (r: T) => string | number; loading?: boolean; error?: unknown; empty?: EmptyKind;
   sort?: string; onSort?: (s: string) => void; caption?: string; tools?: boolean; exportName?: string; pageSize?: number; tableClassName?: string; tableWrapClassName?: string;
   /** Remembers this person's column choice in this browser under this name. */
@@ -415,6 +460,8 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
   details?: (r: T) => ReactNode;
   /** The table takes the panel's width and wraps its text, instead of scrolling sideways. */
   fit?: boolean;
+  /** A105: what an empty list says in place of the standard text, for example "No active escalations" with a View all action. */
+  emptyMessage?: ReactNode;
 }) {
   const nav = useNavigate();
   const me = useMe().data;
@@ -684,7 +731,7 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
         </div>
       )}
       <div className="sr" role="status" aria-live="polite">{announce}</div>
-      {!loading && !error && rows?.length === 0 && <div className="vt-table-state"><StateMessage kind={empty} /></div>}
+      {!loading && !error && rows?.length === 0 && <div className="vt-table-state"><StateMessage kind={empty}>{emptyMessage}</StateMessage></div>}
       {hasRows && shown.length === 0 && <div className="vt-table-state"><StateMessage kind="nomatch" />{server && <p className="hint">Only this page was filtered. Other pages may have matching rows.</p>}</div>}
       {showTools && !server && sorted.length > Math.min(size, 25) && (
         <nav className="pager table-pager" aria-label={`${caption ?? 'Table'} pages`}>
@@ -716,26 +763,37 @@ function findDeleteAction(node: ReactNode): DeleteTarget | null {
 }
 
 /** A102: a row's actions behind one small button. The list is fixed to the window, so a scrolling table cannot cut it off. */
-function RowMenu({ what, items }: { what: string; items: MenuItem[] }) {
+/** The small ⋯ menu of a table row. Hidden items are left out; with none left it shows nothing. */
+export function RowMenu({ what, items: given }: { what: string; items: MenuItem[] }) {
+  const items = given.filter(i => !i.hidden);
   const [at, setAt] = useState<CSSProperties | null>(null);
   const button = useRef<HTMLButtonElement>(null);
   const list = useRef<HTMLDivElement>(null);
+  const open = !!at;
+  // The list sits next to its button. A105: when the page scrolls or re-renders under it, the list follows the button and closes only
+  // when the button leaves the screen (it used to close on any scroll, so a list refreshing after a delete shut the menu at once).
+  const place = (r: DOMRect): CSSProperties => {
+    const up = r.bottom + 90 > window.innerHeight;
+    return { position: 'fixed', right: window.innerWidth - r.right, left: 'auto', ...(up ? { top: 'auto', bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) };
+  };
   useEffect(() => {
-    if (!at) return;
-    list.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    if (!open) return;
+    list.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus({ preventScroll: true });
     const away = (e: Event) => { if (!list.current?.contains(e.target as Node) && !button.current?.contains(e.target as Node)) setAt(null); };
-    const moved = () => setAt(null);
+    const moved = () => {
+      const b = button.current;
+      const r = b?.isConnected ? b.getBoundingClientRect() : null;
+      setAt(!r || r.bottom < 0 || r.top > window.innerHeight ? null : place(r));
+    };
     document.addEventListener('mousedown', away);
     window.addEventListener('scroll', moved, true);
     window.addEventListener('resize', moved);
     return () => { document.removeEventListener('mousedown', away); window.removeEventListener('scroll', moved, true); window.removeEventListener('resize', moved); };
-  }, [at]);
+  }, [open]);
   const toggle = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (at) { setAt(null); return; }
-    const r = button.current!.getBoundingClientRect();
-    const up = r.bottom + 90 > window.innerHeight;
-    setAt({ position: 'fixed', right: window.innerWidth - r.right, left: 'auto', ...(up ? { top: 'auto', bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+    setAt(place(button.current!.getBoundingClientRect()));
   };
   const keys = (e: React.KeyboardEvent) => {
     const all = Array.from(list.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []);
@@ -744,6 +802,7 @@ function RowMenu({ what, items }: { what: string; items: MenuItem[] }) {
     if (e.key === 'ArrowDown') { e.preventDefault(); all[(n + 1) % all.length]?.focus(); }
     if (e.key === 'ArrowUp') { e.preventDefault(); all[(n - 1 + all.length) % all.length]?.focus(); }
   };
+  if (items.length === 0) return null;
   return (
     <>
       <button ref={button} type="button" className="row-menu-btn" aria-haspopup="menu" aria-expanded={!!at} aria-label={`Actions for ${what}`} onClick={toggle}><span aria-hidden="true">⋯</span></button>
@@ -788,9 +847,11 @@ export function Pager({ page, pageSize, total, onPage, onSize }: { page: number;
   const from = total === 0 ? 0 : (page - 1) * pageSize + 1;
   const to = Math.min(total, page * pageSize);
   const last = Math.max(1, Math.ceil(total / pageSize));
+  // A105: an empty list says so, without page controls that have nothing to page through ("Records :- 1 OF 0" before).
+  if (total === 0) return <nav className="pager pager-empty" aria-label="Pagination"><span>0 records</span></nav>;
   return (
     <nav className="pager" aria-label="Pagination">
-      <span>Records :- {to - from + 1 > 0 ? to - from + 1 : 0} OF {total}</span>
+      <span>Records :- {to - from + 1} OF {total}</span>
       <span className="right">
         <label>Items per page: <select value={pageSize} onChange={e => onSize(Number(e.target.value))}>{[15, 25, 50, 100].map(n => <option key={n}>{n}</option>)}</select></label>
         <button onClick={() => onPage(page - 1)} disabled={page <= 1}>Prev</button>

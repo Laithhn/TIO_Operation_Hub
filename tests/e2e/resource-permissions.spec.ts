@@ -62,7 +62,9 @@ test.describe('Resource permissions in application actions', () => {
     await expect(page.getByRole('button', { name: /^Delete client / })).toHaveCount(0);
     await expect(page.locator('aside').getByRole('link', { name: 'New client', exact: true })).toHaveCount(0);
     await page.goto(`/products/${products[0].id}`);
-    await expect(page.getByRole('button', { name: 'Delete product', exact: true })).toBeVisible();
+    // A105: Delete product is under More.
+    await page.getByRole('button', { name: 'More', exact: true }).click();
+    await expect(page.getByRole('menuitem', { name: 'Delete product', exact: true })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Edit', exact: true })).toHaveCount(0);
   });
 

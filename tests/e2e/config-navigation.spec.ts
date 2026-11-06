@@ -71,7 +71,7 @@ test.describe('Configuration navigation', () => {
     }
   });
 
-  test('categories expand and collapse, several stay open, and the state survives navigation, refresh, back and forward', async ({ page }) => {
+  test('categories expand and collapse one at a time, and the state survives navigation, refresh, back and forward', async ({ page }) => {
     const servers = category(page, 'Servers');
     await expect(servers).toHaveAttribute('aria-expanded', 'false');
     await expect(side(page).getByRole('link', { name: 'Network zones', exact: true })).toHaveCount(0);
@@ -80,22 +80,24 @@ test.describe('Configuration navigation', () => {
     await page.keyboard.press('Enter');
     await expect(servers).toHaveAttribute('aria-expanded', 'true');
     await expect(side(page).getByRole('link', { name: 'Network zones', exact: true })).toBeVisible();
+    // A105: opening another group closes the one before, so the menu stays short.
     await category(page, 'Teams').click();
-    expect(await expandedCategories(page)).toEqual(['Servers', 'Teams']);
-    // Opening a page keeps the other groups open and opens the page's group.
+    expect(await expandedCategories(page)).toEqual(['Teams']);
+    // Opening a page opens its group and closes the others; the current place is named above the tree.
     await page.goto('/admin/jira');
     await expect(page.getByRole('heading', { level: 1, name: 'Jira instances' })).toBeVisible();
-    expect(await expandedCategories(page)).toEqual(['Servers', 'Teams', 'System']);
+    expect(await expandedCategories(page)).toEqual(['System']);
+    await expect(side(page).getByLabel('Current configuration page')).toHaveText('System › Jira instances');
     await expect(side(page).getByRole('link', { name: 'Jira instances', exact: true })).toHaveAttribute('aria-current', 'page');
     // Configuration stays the current Administration entry for its System pages.
     await expect(side(page).getByRole('link', { name: 'Configuration', exact: true })).toHaveClass(/active/);
-    await category(page, 'Teams').click();
-    await expect(category(page, 'Teams')).toHaveAttribute('aria-expanded', 'false');
+    await category(page, 'Servers').click();
+    await expect(category(page, 'System')).toHaveAttribute('aria-expanded', 'false');
     await side(page).getByRole('link', { name: 'Server roles', exact: true }).click();
     await expect(page).toHaveURL(/\/admin\/config\/server-roles$/);
     await page.reload();
     await expect(page.getByRole('heading', { level: 1, name: 'Server roles' })).toBeVisible();
-    expect(await expandedCategories(page)).toEqual(['Servers', 'System']);
+    expect(await expandedCategories(page)).toEqual(['Servers']);
     await page.goBack();
     await expect(page).toHaveURL(/\/admin\/jira$/);
     await expect(side(page).getByRole('link', { name: 'Jira instances', exact: true })).toHaveAttribute('aria-current', 'page');
@@ -141,6 +143,7 @@ test.describe('Configuration navigation', () => {
     await category(page, 'Servers').click();
     await category(page, 'Products & Installations').click();
     const before = await expandedCategories(page);
+    expect(before).toEqual(['Products & Installations']);
     await search(page).fill('roles');
     const results = side(page).getByRole('group', { name: 'Configuration search results' });
     await expect(results.getByRole('link')).toHaveCount(5);
@@ -168,7 +171,7 @@ test.describe('Configuration navigation', () => {
     await results.getByRole('link', { name: /^Escalation channels/ }).click();
     await expect(page).toHaveURL(/\/admin\/config\/escalation-channels$/);
     await expect(search(page)).toHaveValue('');
-    expect(await expandedCategories(page)).toEqual([...before, 'Contracts & Tickets']);
+    expect(await expandedCategories(page)).toEqual(['Contracts & Tickets']);
     // Enter opens the first result.
     await search(page).fill('operating');
     await search(page).press('Enter');

@@ -10,7 +10,7 @@ import { ActionDialog } from '../../ui/pickers';
 import { DataTable, Dialog, PageHead, Pager, Panel, QueryState, SelectInput, StateMessage, Tabs, useToast, When } from '../../ui/kit';
 import { Changes, useClientOptions } from '../common';
 import type { Health } from './JiraConnections';
-import { JiraBadge, JiraCard, PreviewResult, SyncOffNotice, type JiraPreview, type SyncRun } from './shared';
+import { JiraBadge, PreviewResult, SyncOffNotice, type JiraPreview, type SyncRun } from './shared';
 import './jira.css';
 
 const crumbs = [{ to: '/admin', label: 'Administration' }, { to: '/admin/integrations/jira', label: 'Jira Connections' }];
@@ -257,29 +257,40 @@ export function JiraMonitoring() {
     <PageHead title="Jira synchronization monitoring" crumbs={crumbs} sub="Status, history and error details of every run." actions={<Link className="btn" to="/admin/integrations/jira/conflicts">Open conflicts</Link>} />
     <QueryState q={health}>{h && <>
       <SyncOffNotice on={h.syncEnabled} />
-      <div className="jira-cards">
-        <JiraCard icon="ok" title="Issue sync" value={<JiraBadge value={h.issueSync} />} />
-        <JiraCard icon="note" title="Comment sync" value={<JiraBadge value={h.commentSync} />} />
-        <JiraCard icon="history" title="Activity sync" value={<JiraBadge value={h.activitySync} />} />
-        <JiraCard icon="calendar" title="Last full reconciliation" value={h.lastFullReconciliation ? fmtDateTime(h.lastFullReconciliation) : 'Never'} />
-        <JiraCard icon="plus" title="Created tickets (24h)" value={h.last24h.created} />
-        <JiraCard icon="edit" title="Updated tickets (24h)" value={h.last24h.updated} />
-        <JiraCard icon="error" title="Failed records (24h)" value={h.last24h.failed} />
-        <JiraCard icon="history" title="Average duration" value={h.averageDurationSeconds != null ? `${h.averageDurationSeconds} s` : '—'} />
-        <JiraCard icon="warning" title="Pending conflicts" value={<Link to="/admin/integrations/jira/conflicts">{h.pendingConflicts}</Link>} />
-      </div>
+      {/* A105: what needs attention first; healthy indicators on one quiet line. */}
+      <section className={`jira-attention${h.pendingConflicts || h.last24h.failed ? ' bad' : ''}`} aria-label="Synchronization status">
+        <span className="next">{h.pendingConflicts ? <>Next: <Link to="/admin/integrations/jira/conflicts">review {h.pendingConflicts} pending conflict{h.pendingConflicts === 1 ? '' : 's'}</Link></>
+          : h.last24h.failed ? <>Next: <button type="button" className="linkbtn" onClick={() => set({ status: 'Failed' })}>look at the failed runs</button></> : 'Nothing needs attention.'}</span>
+        <span>Failed records (24 h): <b className={h.last24h.failed ? 'err' : undefined}>{h.last24h.failed}</b></span>
+        <span>Pending conflicts: <b className={h.pendingConflicts ? 'err' : undefined}><Link to="/admin/integrations/jira/conflicts">{h.pendingConflicts}</Link></b></span>
+        <span>Last success: <b>{h.lastSuccess ? fmtDateTime(h.lastSuccess) : 'Never'}</b></span>
+        <span className="ok-line">Issues <JiraBadge value={h.issueSync} /> · Comments <JiraBadge value={h.commentSync} /> · Activity <JiraBadge value={h.activitySync} /> · 24 h: {h.last24h.created} created, {h.last24h.updated} updated
+          · Full reconciliation {h.lastFullReconciliation ? fmtDateTime(h.lastFullReconciliation) : 'never'}{h.averageDurationSeconds != null ? ` · ${h.averageDurationSeconds} s per run` : ''}</span>
+      </section>
     </>}</QueryState>
     <div className="toolbar">
       <SelectInput label="Connection" value={connectionId} onChange={v => set({ connectionId: v })} options={(conn.data?.connections ?? []).map(c => ({ value: String(c.id), label: c.name }))} empty="All connections" />
       <SelectInput label="Client" value={clientId} onChange={v => set({ clientId: v })} options={clients} empty="All clients" />
       <SelectInput label="Status" value={status} onChange={v => set({ status: v })} options={['Running', 'Success', 'Warning', 'Failed'].map(s => ({ value: s, label: s }))} empty="Any" />
     </div>
-    <DataTable<SyncRun> caption="Jira synchronization runs" exportName="jira-sync-runs" rows={runs.data?.items} loading={runs.isLoading} error={runs.error} rowKey={r => r.id} columns={[
-      { key: 't', header: 'Started', render: r => <When v={r.startedAt} /> }, { key: 'd', header: 'Duration', className: 'num', render: r => r.endedAt ? `${Math.round((new Date(r.endedAt).getTime() - new Date(r.startedAt).getTime()) / 100) / 10} s` : '—' },
-      { key: 's', header: 'Space', render: r => <span className="mono">{r.projectKey}</span> }, { key: 'y', header: 'Type', render: r => label(r.type) }, { key: 'g', header: 'Trigger', render: r => label(r.trigger) },
-      { key: 'r', header: 'Retrieved', className: 'num', render: r => r.issuesRetrieved }, { key: 'c', header: 'Created', className: 'num', render: r => r.casesCreated }, { key: 'u', header: 'Updated', className: 'num', render: r => r.casesUpdated },
-      { key: 'm', header: 'Comments', className: 'num', render: r => r.commentsImported }, { key: 'a', header: 'Activity', className: 'num', render: r => r.activitiesImported }, { key: 'f', header: 'Failed', className: 'num', render: r => r.failedRecords },
-      { key: 'x', header: 'Status', render: r => <JiraBadge value={r.status} /> }, { key: 'e', header: 'Error', render: r => r.error && <span className="err">{r.error}</span> }
+    {/* A105: the table fits the screen: status, space, outcome and error; the detailed counts are in the expanded row or under Columns. */}
+    <DataTable<SyncRun> caption="Jira synchronization runs" exportName="jira-sync-runs" rows={runs.data?.items} loading={runs.isLoading} error={runs.error} rowKey={r => r.id} fit columnsKey="jira-sync-runs"
+      details={r => <dl className="row-details-list">
+        <div><dt>Type</dt><dd>{label(r.type)}</dd></div><div><dt>Trigger</dt><dd>{label(r.trigger)}</dd></div>
+        <div><dt>Retrieved</dt><dd>{r.issuesRetrieved}</dd></div><div><dt>Comments</dt><dd>{r.commentsImported}</dd></div><div><dt>Activity</dt><dd>{r.activitiesImported}</dd></div>
+        {r.error && <div><dt>Error</dt><dd className="err wrap-anywhere">{r.error}</dd></div>}
+      </dl>}
+      columns={[
+      { key: 'x', header: 'Status', render: r => <JiraBadge value={r.status} /> },
+      { key: 't', header: 'Started', render: r => <When v={r.startedAt} /> },
+      { key: 's', header: 'Space', render: r => <span className="mono">{r.projectKey}</span> },
+      { key: 'o', header: 'Outcome', render: r => <span className="nowrap">{r.casesCreated} created · {r.casesUpdated} updated{r.failedRecords ? <> · <b className="err">{r.failedRecords} failed</b></> : ''}</span> },
+      { key: 'e', header: 'Error', maxWidth: '28rem', render: r => r.error ? <span className="err clamp-2" title={r.error}>{r.error}</span> : <span className="muted">—</span> },
+      { key: 'd', header: 'Duration', className: 'num', render: r => r.endedAt ? `${Math.round((new Date(r.endedAt).getTime() - new Date(r.startedAt).getTime()) / 100) / 10} s` : '—' },
+      { key: 'y', header: 'Type', defaultHidden: true, render: r => label(r.type) }, { key: 'g', header: 'Trigger', defaultHidden: true, render: r => label(r.trigger) },
+      { key: 'r', header: 'Retrieved', className: 'num', defaultHidden: true, render: r => r.issuesRetrieved }, { key: 'c', header: 'Created', className: 'num', defaultHidden: true, render: r => r.casesCreated },
+      { key: 'u', header: 'Updated', className: 'num', defaultHidden: true, render: r => r.casesUpdated }, { key: 'm', header: 'Comments', className: 'num', defaultHidden: true, render: r => r.commentsImported },
+      { key: 'a', header: 'Activity', className: 'num', defaultHidden: true, render: r => r.activitiesImported }, { key: 'f', header: 'Failed', className: 'num', defaultHidden: true, render: r => r.failedRecords }
     ]} />
     {runs.data && <Pager page={runs.data.page} pageSize={runs.data.pageSize} total={runs.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
   </>;

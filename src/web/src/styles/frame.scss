@@ -152,6 +152,9 @@ body .hub-app.hub-app {
     font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, weak); text-transform: uppercase; letter-spacing: .02em; }
   .cfg-result-desc { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: normal; }
   mark { background: vt.colorA(attentionHigh, 0.45); color: inherit; padding: 0; }
+  // A105: where you are in the configuration, above the tree.
+  .cfg-where { margin: 0; padding: 2px vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); line-height: 1.35; }
+  .cfg-where b { color: vt.typo(color, dark, normal); font-weight: 600; }
   .cfg-empty { margin: 0; padding: vt.spacePx(xs) vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
 }
 @media (min-width: 901px) {

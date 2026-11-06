@@ -80,6 +80,10 @@
 .att-empty p { margin: 0; }
 .att-empty .btn { margin-top: 8px; }
 .att-empty.small { padding: 20px 16px; }
+/* A105: an empty record takes one line and one Upload action, not a page of zero figures. */
+.att-empty.att-empty-compact { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; text-align: left; gap: 8px 12px; padding: 12px 16px; }
+.att-empty.att-empty-compact p { flex: 1 1 320px; }
+.att-empty.att-empty-compact .btn { margin-top: 0; }
 
 /* upload dialog */
 .att-drop { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; border: 1.5px dashed var(--line-strong); padding: 22px 16px; background: var(--surface-2); color: var(--fg-2); }

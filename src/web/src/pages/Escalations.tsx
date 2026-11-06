@@ -52,6 +52,8 @@ export function EscalationTable({ clientId, caseId, compact }: { clientId?: numb
         <TextInput label="Search" value={f.q} onChange={v => set({ q: v, page: '1' })} placeholder="Ref, title, channel reference or contact" />
       </div>
       <DataTable<Row> caption="Escalations" rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })}
+        emptyMessage={!filtered && params.status !== 'all' ? <>{params.status === 'active' ? 'No active escalations.' : `No ${label(params.status).toLowerCase()} escalations.`}{' '}
+          <button type="button" className="linkbtn" onClick={() => set({ status: 'all', page: '1' })}>View all</button></> : undefined}
         columns={[
           { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/escalations/${r.id}`}>{r.ref}</Link> },
           { key: 't', header: 'Escalation', render: r => <><Link to={`/escalations/${r.id}`}>{r.title}</Link>{r.counterpartName && <div className="hint">{r.direction === 'Raised' ? 'To' : 'From'} {r.counterpartName}{r.counterpartOrganization ? ` · ${r.counterpartOrganization}` : ''}</div>}</> },

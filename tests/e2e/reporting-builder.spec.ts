@@ -91,7 +91,8 @@ test.describe('A70 Tickets Report Builder', () => {
     });
     expect(body.definition.filters.conditions).toMatchObject({ op: 'and', rules: [{ field: 'title', operator: 'contains', value: 'e' }] });
 
-    // Keyboard reordering of the selected columns: Client moves below Title.
+    // Keyboard reordering of the selected columns: Client moves below Title. A105: the Columns step opens from the step bar.
+    await page.getByRole('list', { name: 'Report steps' }).getByRole('button', { name: /^2 · Columns/ }).click();
     const list = page.getByRole('list', { name: 'Selected columns in export order' });
     body = await nextPreview(page, async () => {
       await list.getByRole('listitem', { name: /^Client, position 2/ }).focus();

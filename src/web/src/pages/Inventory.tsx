@@ -37,7 +37,7 @@ export function InstallationDialog({ environmentId, clientId, onClose }: { envir
         <SelectInput label="Version" value={f.values.productVersionId} onChange={v => f.set('productVersionId', v)} options={(product?.versions ?? []).filter(x => x.isActive).map(x => ({ value: String(x.id), label: x.version }))} empty="Unknown" error={f.fieldError('productVersionId')} hint="Unknown is recorded explicitly and listed as a data-quality gap." />
         {f.values.productVersionId && <TextInput label="Version evidence (optional)" value={f.values.versionEvidence} onChange={v => f.set('versionEvidence', v)} error={f.fieldError('versionEvidence')} />}
         <TextInput label="Deployed on" type="date" value={f.values.deployedOn} onChange={v => f.set('deployedOn', v)} />
-        <UserPicker label="Owner" value={f.values.ownerUserId} onChange={v => f.set('ownerUserId', v)} clientId={clientId} empty="Environment owner" />
+        <UserPicker label="Owner" value={f.values.ownerUserId} onChange={v => f.set('ownerUserId', v)} clientId={clientId} empty="Inherited from the environment owner" />
         <TextInput label="Support notes" wide multiline value={f.values.supportNotes} onChange={v => f.set('supportNotes', v)} error={f.fieldError('supportNotes')} />
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Add installation</button></div>
@@ -342,7 +342,7 @@ export function InstallationDetail() {
       <div className="cols">
         <Panel title="Installation"><DL items={[
           ['Product', `${i.product.code} · ${i.product.name}`], ['Module', i.module?.code ?? 'None'], ['Installed version', i.version?.version ?? <Badge tone="warn">Unknown</Badge>],
-          ['Deployed on', i.deployedOn ? fmtDate(i.deployedOn) : null], ['Owner', <Person u={i.owner} gap="Environment owner" />], ['Last confirmed', <When v={i.lastReviewedAt} />], ['Support notes', i.supportNotes],
+          ['Deployed on', i.deployedOn ? fmtDate(i.deployedOn) : null], ['Owner', <Person u={i.owner} gap="Inherited from the environment owner" />], ['Last confirmed', <When v={i.lastReviewedAt} />], ['Support notes', i.supportNotes],
         ]} /></Panel>
         <Panel title="Version history (explicit confirmations)">
           {i.versionHistory.length === 0 ? <StateMessage kind="none">No version confirmations recorded.</StateMessage> :
@@ -390,7 +390,7 @@ function ComponentDialog({ installationId, environmentId, clientId, component, o
         <TextInput label="Component name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} />
         <SelectInput label="Role" required value={f.values.role} onChange={v => f.set('role', v)} options={roles.map(r => ({ value: r.code, label: r.label }))} error={f.fieldError('role')} />
         <TextInput label="Component version" value={f.values.componentVersion} onChange={v => f.set('componentVersion', v)} hint="Optional; the product version is not copied automatically." />
-        <UserPicker label="Owner" value={f.values.ownerUserId} onChange={v => f.set('ownerUserId', v)} clientId={clientId} empty="Environment owner" />
+        <UserPicker label="Owner" value={f.values.ownerUserId} onChange={v => f.set('ownerUserId', v)} clientId={clientId} empty="Not assigned" hint="Without an owner the component is listed under Data quality as missing an owner; the environment owner coordinates it until one is assigned." />
         <fieldset className="wide" style={{ border: 0, padding: 0 }}><legend className="flabel">Hosting assets (one or more; same environment)</legend>
           {(assets.data?.items ?? []).length === 0 && <span className="muted">No assets recorded in this environment yet.</span>}
           {(assets.data?.items ?? []).map(a => <label key={a.id} className="check" style={{ marginRight: 14 }}><input type="checkbox" checked={f.values.hostAssetIds.includes(a.id)}
@@ -416,7 +416,7 @@ export function ComponentDetail() {
     <QueryState q={q}>{c && (<>
       <PageHead title={c.name} crumbs={[{ to: `/environments/${c.environmentId}`, label: 'Environment' }, { to: `/installations/${c.installationId}`, label: `${c.productCode} · ${c.installationName}` }, { label: c.name }]}
         sub={`Component · ${c.role}`} actions={<>{canEng && <button className="btn" onClick={() => setEdit(true)}>Edit</button>}<DeleteAction button path={`/components/${c.id}`} what={`component ${c.name}`} afterTo={`/installations/${c.installationId}`} /></>} />
-      <Panel title="Component"><DL items={[['Role', c.role], ['Component version', c.componentVersion ?? 'Not recorded'], ['Owner', <Person u={c.owner} gap="Environment owner" />],
+      <Panel title="Component"><DL items={[['Role', c.role], ['Component version', c.componentVersion ?? 'Not recorded'], ['Owner', c.owner ? <Person u={c.owner} /> : <><Badge tone="warn">Not assigned</Badge> <span className="hint">The environment owner coordinates it until one is assigned; Data quality lists it as missing an owner.</span></>],
         ['Supporting servers', c.hosts.length ? c.hosts.map(h => <div key={h.assetId}><Link to={`/assets/${h.assetId}`}>{h.name}</Link> ({T.name('AssetType', h.type)})</div>) : <Badge tone="warn">Hosting unresolved</Badge>]]} /></Panel>
       <AttachmentsWorkspace recordType="Component" recordId={c.id} />
       <HistoryPanel entityType="Component" entityId={c.id} />

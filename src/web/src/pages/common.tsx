@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { get, qs, type Paged } from '../api';
-import { fmtDateTime } from '../format';
+import { fmtDate, fmtDateTime, label } from '../format';
 import { useMe, useReference } from '../hooks';
 import { hasRight, resourceForRecord, canAudit } from '../rights';
 import { DataTable, Panel, Restricted, TextInput, type Option } from '../ui/kit';
@@ -57,7 +57,22 @@ export function Changes({ json }: { json?: string | null }) {
   if (!json) return null;
   let d: Record<string, [unknown, unknown]> = {};
   try { d = JSON.parse(json); } catch { return <span className="mono">{json}</span>; }
-  return <span style={{ fontSize: 11.5 }}>{Object.entries(d).map(([k, v]) => <div key={k}><b>{k}</b>: {String(v?.[0] ?? '∅')} → {String(v?.[1] ?? '∅')}</div>)}</span>;
+  const lines = Object.entries(d).map(([k, v]) => <div key={k}><b>{label(k)}</b>: {changeValue(v?.[0])} → {changeValue(v?.[1])}</div>);
+  // A105: two changes on show, the rest one click away, so one record with many fields does not fill the page.
+  if (lines.length <= 2) return <span className="audit-changes">{lines}</span>;
+  return (
+    <details className="audit-changes">
+      <summary>{lines.slice(0, 2)}<span className="linkbtn">Show all {lines.length} changes</span></summary>
+      {lines.slice(2)}
+    </details>
+  );
+}
+
+/** A changed value as people read it: dates in the display time zone, empty as a dash. */
+function changeValue(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—';
+  const t = String(v);
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(t) ? fmtDateTime(t) : /^\d{4}-\d{2}-\d{2}$/.test(t) ? fmtDate(t) : t;
 }
 
 export function RecordLink({ type, id, children }: { type: string; id: number; children: React.ReactNode }) {

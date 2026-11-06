@@ -1,6 +1,20 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.57.0', date: '6 November 2026', changes: [
+      'An empty list says so ("No active escalations", "0 records") instead of "Records: 1 OF 0", with a View all action where it helps.',
+      'Commitments and My dashboard show a short title and a two-line preview of long descriptions.',
+      'A contract opens with its term, renewal, SLA targets and payments at a glance, with links to every section. A product has the same section links.',
+      'The Action list shows its categories in four groups with counts, and keeps the reason, deadline and next action in view.',
+      'Users list name, role, sign-in and scope first; account actions are in the row menu. Settings have readable names, groups and dates.',
+      'Change history shows changes by people first, and can be searched by person and date. Long changes open on request.',
+      'Jira Connections starts with an overview of the set-up, from connection to health; monitoring leads with what needs attention.',
+      'The report builder is a guided flow: Filters, Columns, Sort and group, then Preview.',
+      'The configuration menu keeps one category open and says where you are. SLA states read First response and Resolution.',
+      'Delete is under More or the row menu on product, microservice, role and user pages too.'
+    ]
+  },
+  {
     version: '2.56.0', date: '6 November 2026', changes: [
       'A server now records its IP address, VLAN and notes. People without the Technical detail right do not see them.',
       'Server lists show the IP address next to the network zone.'

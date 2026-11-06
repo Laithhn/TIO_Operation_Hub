@@ -75,20 +75,26 @@ async function application(page: Page, initialExceptions: RightException[] = [])
 test('password options follow the server authority check and fail closed when it fails', async ({ page }) => {
   const state = await application(page);
   await page.goto('/admin/users');
-  await page.getByRole('button', { name: 'Password options' }).click();
+  await openPasswordOptions(page);
   await expect(page.getByText('Administrator passwords cannot be reset through this endpoint.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save password' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Cancel' }).click();
   state.setPasswordAvailability('allowed');
-  await page.getByRole('button', { name: 'Password options' }).click();
+  await openPasswordOptions(page);
   await expect(page.getByRole('button', { name: 'Generate' })).toBeVisible();
   await page.getByRole('button', { name: 'Cancel' }).click();
   state.setPasswordAvailability('error');
-  await page.getByRole('button', { name: 'Password options' }).click();
+  await openPasswordOptions(page);
   await expect(page.getByText('Password options could not be checked. Close this dialog and try again.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save password' })).toHaveCount(0);
   expect(state.passwordSubmitted()).toBe(false);
 });
+
+/** A105: account actions are in the user's row menu. */
+async function openPasswordOptions(page: Page) {
+  await page.getByRole('button', { name: /^Actions for / }).first().click();
+  await page.getByRole('menuitem', { name: 'Password options' }).click();
+}
 
 async function selectUser(page: Page) {
   await page.goto('/admin/access');
@@ -198,7 +204,7 @@ test('simulation sends the selected client scope and presents a conditional resu
 test('user editor submits selected client, project and team scope', async ({ page }) => {
   const state = await application(page);
   await page.goto('/admin/users');
-  await page.getByRole('button', { name: 'Alex Example' }).click();
+  await page.getByRole('button', { name: 'Alex Example', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'User Alex Example' });
   const scope = dialog.getByRole('group', { name: 'Direct data scope' });
   await scope.getByText('Clients (0 selected)').click();

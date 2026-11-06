@@ -8,7 +8,7 @@ import { ActionDialog } from '../../ui/pickers';
 import { Badge, DataTable, Dialog, FormError, PageHead, Panel, QueryState, SelectInput, StateMessage, TextInput, useToast, When } from '../../ui/kit';
 import { Icon } from '../../ui/Icon';
 import { useClientOptions } from '../common';
-import { JiraBadge, JiraCard, KV, SyncOffNotice } from './shared';
+import { JiraBadge, KV, SyncOffNotice } from './shared';
 import './jira.css';
 
 type TestStep = { name: string; passed: boolean; detail: string };
@@ -24,6 +24,47 @@ export type Health = { syncEnabled: boolean; issueSync: string; commentSync: str
 
 const authLabel = (m: string) => m === 'ScopedApiToken' ? 'Scoped API token (gateway)' : 'API token (Basic / unscoped)';
 const siteHost = (u: string) => u.replace(/^https:\/\//, '');
+
+/**
+ * A105: the whole integration on one line, in the order it is set up: connection → client spaces → mappings → health and errors.
+ * Each step says where it stands and links straight to the place where it is changed.
+ */
+function IntegrationOverview({ d }: { d: Overview }) {
+  const health = useQuery({ queryKey: ['jira-health', ''], queryFn: () => get<Health>('/admin/jira-sync/health') });
+  const assigned = d.connections.reduce((n, c) => n + c.assignedSpaces, 0);
+  const clients = d.connections.reduce((n, c) => n + c.connectedClients, 0);
+  const h = health.data;
+  const problems = h ? h.pendingConflicts + h.last24h.failed : 0;
+  const scroll = (id: string) => (e: React.MouseEvent) => { const el = document.getElementById(id); if (el) { e.preventDefault(); el.scrollIntoView({ block: 'start' }); } };
+  return (
+    <ol className="jira-flow" aria-label="Jira integration overview">
+      <li className={d.summary.active ? 'ok' : 'todo'}>
+        <span className="jira-flow-step">1 · Connection</span>
+        <b>{d.summary.active} of {d.summary.total} active</b>
+        <span className="hint">Site, credentials and test.{d.summary.lastGlobalSync ? ` Last sync ${fmtDateTime(d.summary.lastGlobalSync)}.` : ' Never synchronized.'}</span>
+        <span className="jira-flow-links"><a href="#jira-connections" onClick={scroll('jira-connections')}>Connections</a> · <Link to="/admin/jira">Jira instances list</Link></span>
+      </li>
+      <li className={assigned ? 'ok' : 'todo'}>
+        <span className="jira-flow-step">2 · Clients and spaces</span>
+        <b>{assigned} of {d.summary.spacesDiscovered} spaces assigned</b>
+        <span className="hint">{clients} client{clients === 1 ? '' : 's'} connected. A space is assigned on its client's Jira tab.</span>
+        <span className="jira-flow-links"><a href="#jira-spaces" onClick={scroll('jira-spaces')}>Discovered spaces</a> · <Link to="/clients">Clients</Link></span>
+      </li>
+      <li>
+        <span className="jira-flow-step">3 · Mappings</span>
+        <b>People and statuses</b>
+        <span className="hint">Jira users to hub people, Jira statuses to ticket statuses.</span>
+        <span className="jira-flow-links"><Link to="/admin/integrations/jira/conflicts?tab=users">Jira users</Link> · <Link to="/admin/integrations/jira/conflicts?tab=workflow">Workflow mappings</Link></span>
+      </li>
+      <li className={!h ? undefined : problems ? 'bad' : 'ok'}>
+        <span className="jira-flow-step">4 · Health and errors</span>
+        <b>{!h ? 'Checking…' : problems ? `${h.pendingConflicts} to review · ${h.last24h.failed} failed (24 h)` : 'Healthy'}</b>
+        <span className="hint">{h?.lastSuccess ? `Last success ${fmtDateTime(h.lastSuccess)}.` : 'No successful run yet.'}</span>
+        <span className="jira-flow-links"><Link to="/admin/integrations/jira/conflicts">Conflicts</Link> · <Link to="/admin/integrations/jira/monitoring">Monitoring</Link></span>
+      </li>
+    </ol>
+  );
+}
 
 /** Administration → Integrations → Jira Connections (approved mockup 1). */
 export function JiraConnections() {
@@ -65,13 +106,8 @@ export function JiraConnections() {
         </>} />
       <SyncOffNotice on={d.syncEnabled} />
       {message && <div className="notice warn">{message}</div>}
-      <div className="jira-cards">
-            <JiraCard icon="online" title="Total connections" value={d.summary.total} hint="Configured Jira connections" />
-            <JiraCard icon="ok" title="Active" value={d.summary.active} hint="Connections in use" />
-            <JiraCard icon="list" title="Spaces discovered" value={d.summary.spacesDiscovered} hint="Across all connections" />
-            <JiraCard icon="calendar" title="Last global sync" value={d.summary.lastGlobalSync ? fmtDateTime(d.summary.lastGlobalSync) : 'Never'} hint="Last completed synchronization" />
-          </div>
-          <Panel title="Configured connections" pad={false}>
+      <IntegrationOverview d={d} />
+          <Panel id="jira-connections" title="Configured connections" pad={false}>
             <div className="toolbar" style={{ margin: 8 }}><TextInput label="Filter connections" value={filter} onChange={setFilter} placeholder="Name or site" /></div>
             <DataTable<Connection> caption="Configured Jira connections" tools={false} rows={rows} rowKey={x => x.id} empty={filter ? 'nomatch' : 'none'} columns={[
               { key: 'n', header: 'Connection name', render: x => <button className={`linkbtn ${x.id === c?.id ? 'jira-row-selected' : ''}`} aria-pressed={x.id === c?.id} onClick={() => setSelectedId(x.id)}>{x.name}</button> },
@@ -140,7 +176,7 @@ export function JiraConnections() {
           </Panel>
         </div>}
       </div>
-      {c && <Panel title="Discovered spaces and sync health" pad={false} actions={<>
+      {c && <Panel id="jira-spaces" title="Discovered spaces and sync health" pad={false} actions={<>
         {canMaintain && <button className="btn" disabled={busy === 'discover'} onClick={discover}>{busy === 'discover' ? 'Discovering…' : 'Discover spaces'}</button>}
         <Link className="btn" to={`/admin/integrations/jira/monitoring?connectionId=${c.id}`}>View sync history</Link></>}>
         <div className="hint" style={{ margin: '8px 10px 0' }}>Connection: <b>{c.name}</b>. Discovery never assigns a space; assign spaces from the client's Jira integration tab.</div>

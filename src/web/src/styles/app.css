@@ -562,7 +562,7 @@ table.grid th .grid-sort{white-space:nowrap}
 .sla-tiles .cc-tile.good{border-left-color:var(--good)}
 .sla-def{margin:0 0 var(--gap);max-width:110ch}
 .sla-filters{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:flex-end;margin:0 0 var(--gap)}
-.sla-pair{display:inline-flex;gap:6px;white-space:nowrap}
+.sla-pair{display:inline-flex;flex-wrap:wrap;gap:4px 10px}.sla-pair .sla-part{white-space:nowrap}.sla-pair .sla-label{color:var(--fg-2);font-size:.92em}
 .sla-table th[scope=row]{text-align:left;font-weight:600}
 @media (max-width:1100px){.sla-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:620px){.sla-tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -937,3 +937,47 @@ a.stat:hover{background:var(--strip)}
 .vt-grid.fit{width:100%;min-width:0}
 .dash .dash-filters .field{flex:0 1 240px}
 .vt-grid.fit th.col-actions,.vt-grid.fit td.col-actions{width:44px;min-width:44px;padding:0 6px;text-align:center}
+
+/* A105: before/after values in change history; more than two changes open on demand. */
+.audit-changes{font-size:11.5px;display:block}.audit-changes summary{list-style:none;cursor:pointer}.audit-changes summary::-webkit-details-marker{display:none}.audit-changes summary .linkbtn{display:inline-block;margin-top:2px}.audit-changes[open] summary .linkbtn{display:none}
+.ellipsis{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wrap-anywhere{overflow-wrap:anywhere}
+/* A105: section links of long record pages (products, contracts). */
+.section-nav{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:2px 4px;margin:0 0 var(--gap);padding:4px 8px;background:var(--surface);border:1px solid var(--line)}
+.section-nav a{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;color:var(--fg-2);text-decoration:none;font-size:12.5px}
+.section-nav a:hover,.section-nav a:focus-visible{background:var(--surface-2);color:var(--fg)}
+.section-nav-count{min-width:18px;padding:0 5px;border-radius:9px;background:var(--surface-2);color:var(--fg-2);font-size:11px;text-align:center}
+.panel[id]{scroll-margin-top:48px}
+.clamp-3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.clamp-2{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.titled-text{min-width:0}.titled-text .hint{margin-top:2px}.full-text{margin:0;white-space:pre-wrap;max-width:72ch}
+.section-anchor,.cols[id]{scroll-margin-top:48px}
+/* A105: contract summary: term, renewal, SLA and payments in one row. */
+.contract-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:var(--gap)}
+.contract-summary .summary-item{display:flex;flex-direction:column;gap:2px;padding:8px 12px;background:var(--surface);color:var(--fg);text-decoration:none;min-width:0}
+.contract-summary .summary-item:hover{background:var(--surface-2)}
+.summary-label{font-size:var(--fs-xs);color:var(--muted);text-transform:uppercase;letter-spacing:.03em}
+.summary-value{font-weight:600}
+.summary-hint{font-size:var(--fs-xs);color:var(--fg-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.product-overview{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:var(--gap)}
+@media (max-width:900px){.product-overview{grid-template-columns:1fr}}
+.product-more{margin-top:8px}.product-more summary{cursor:pointer;color:var(--fg-2)}
+.expandable-text .linkbtn{margin-top:2px}
+/* A105: action list categories in groups, each with its count. */
+.action-groups{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:var(--gap);padding:10px 12px}
+.action-group{display:flex;flex-direction:column;gap:2px}
+.action-group-head{font-size:var(--fs-xs);font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--fg-2);padding:0 8px 4px}
+.action-cat{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:30px;padding:2px 8px;border:1px solid transparent;background:none;color:var(--fg);text-align:left;cursor:pointer;font:inherit}
+.action-cat:hover{background:var(--surface-2)}
+.action-cat.active{border-color:var(--line-strong);background:var(--surface-2);font-weight:600;box-shadow:inset 3px 0 0 var(--navy,#001e46)}
+.action-cat.zero{color:var(--muted)}
+.action-count{min-width:24px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.action-cat.zero .action-count{font-weight:400}
+/* A105: report builder steps; one configuration step open at a time, Preview as the last step. */
+.rb-steps{list-style:none;margin:0;padding:8px 10px;display:flex;flex-wrap:wrap;gap:4px;border-bottom:1px solid var(--line)}
+.rb-steps button{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:0 10px;border:1px solid var(--line);background:var(--surface);color:var(--fg-2);font:inherit;cursor:pointer}
+.rb-steps button:hover{background:var(--surface-2)}
+.rb-steps button[aria-current="step"]{border-color:var(--navy);color:var(--navy);font-weight:700;box-shadow:inset 0 -3px 0 var(--navy)}
+.rb-steps .rb-step-preview{color:var(--navy);font-weight:600}
+.rb-next{display:flex;justify-content:flex-end}
+.rb-jump-preview{display:none;margin:8px 10px 10px}
+@media (max-width:1100px){.rb-jump-preview{display:block;position:sticky;bottom:8px;z-index:2;width:calc(100% - 20px)}}
