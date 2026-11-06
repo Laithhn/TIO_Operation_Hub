@@ -10378,3 +10378,40 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105142434_AssetNetworkDetails'
+)
+BEGIN
+    ALTER TABLE [inventory].[Asset] ADD [IpAddress] nvarchar(64) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105142434_AssetNetworkDetails'
+)
+BEGIN
+    ALTER TABLE [inventory].[Asset] ADD [Notes] nvarchar(2000) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105142434_AssetNetworkDetails'
+)
+BEGIN
+    ALTER TABLE [inventory].[Asset] ADD [Vlan] nvarchar(40) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261105142434_AssetNetworkDetails'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261105142434_AssetNetworkDetails', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

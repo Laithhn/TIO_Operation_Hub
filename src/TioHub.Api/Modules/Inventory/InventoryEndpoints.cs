@@ -14,7 +14,8 @@ public static class InventoryEndpoints
     public sealed record AssetInput(long? EnvironmentId, string? Name, string? Type, string? Role, string? NetworkZone, string? ProjectPhase, AssetLifecycle? Lifecycle,
         long? OwnerUserId, ResponsibleParty? ResponsibleParty, string? ResponsibleOrganization, long? ResponsibleTeamId, long? CoordinatorUserId,
         decimal? CpuQuantity, CpuUnit? CpuUnit, decimal? RamQuantity, MemoryUnit? RamUnit, string? OsFamily, string? OsVersion,
-        List<Deployment.Selection>? Microservices = null, string? OwnerName = null, string? OwnerContact = null, ContactDetailsInput? Owner = null);
+        List<Deployment.Selection>? Microservices = null, string? OwnerName = null, string? OwnerContact = null, ContactDetailsInput? Owner = null,
+        string? IpAddress = null, string? Vlan = null, string? Notes = null);
     public sealed record HostedMicroservicesInput(List<Deployment.Selection>? Microservices);
     public sealed record VolumeInput(string? Label, decimal? Capacity, StorageUnit? Unit, string? Purpose, long? SharedStorageId);
     public sealed record ComponentInput(long? InstallationId, string? Name, string? Role, string? ComponentVersion, long? OwnerUserId,
@@ -33,7 +34,7 @@ public static class InventoryEndpoints
             var query = FilterAssets(db, clientId, regionId, environmentId, productId, type, lifecycle, role, phase, tech ? zone : null, q, country);
             return Results.Ok(await query.OrderBy(a => a.Environment!.Client!.Code).ThenBy(a => a.Environment!.Name).ThenBy(a => a.Name).Select(a => new
             {
-                a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle, networkZone = tech ? a.NetworkZone : null, networkZoneRestricted = !tech && a.NetworkZone != null,
+                a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle, networkZone = tech ? a.NetworkZone : null, networkZoneRestricted = !tech && a.NetworkZone != null, ipAddress = tech ? a.IpAddress : null,
                 a.EnvironmentId, environmentName = a.Environment!.Name, a.ClientId, clientCode = a.Environment.Client!.Code, regionCode = a.Environment.Region == null ? null : a.Environment.Region.Code,
                 a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
                 owner = a.Owner == null ? null : new UserRef(a.Owner.Id, a.Owner.DisplayName, a.Owner.IsActive),
@@ -58,7 +59,7 @@ public static class InventoryEndpoints
             return ctx.WithETag(a, new
             {
                 a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle,
-                networkZone = tech ? a.NetworkZone : null, technicalRestricted = !tech,
+                networkZone = tech ? a.NetworkZone : null, ipAddress = tech ? a.IpAddress : null, vlan = tech ? a.Vlan : null, notes = tech ? a.Notes : null, technicalRestricted = !tech,
                 environment = new { a.Environment!.Id, a.Environment.Name, clientId = a.ClientId, clientCode = a.Environment.Client!.Code, regionId = a.Environment.RegionId,
                     regionCode = a.Environment.Region == null ? null : a.Environment.Region.Code },
                 owner = a.Owner == null ? null : new UserRef(a.Owner.Id, a.Owner.DisplayName, a.Owner.IsActive),
@@ -380,6 +381,17 @@ public static class InventoryEndpoints
         string? zone = a.NetworkZone;
         if (access.Me.SeesTechnical) zone = await lookups.CheckAsync(check, "networkZone", LookupLists.NetworkZone, i.NetworkZone, "the network zone", a.NetworkZone, ct);
         else if (Text.Clean(i.NetworkZone) is { } z && z != a.NetworkZone) check.Add("networkZone", "Changing the network zone needs the Technical detail right.");
+        // A104: as for the zone, a person without the right sees these blank, so a blank value from them keeps what is recorded.
+        var (ip, vlan, notes) = (a.IpAddress, a.Vlan, a.Notes);
+        if (access.Me.SeesTechnical)
+        {
+            (ip, vlan, notes) = (Text.Clean(i.IpAddress), Text.Clean(i.Vlan), Text.Clean(i.Notes));
+            check.Text("vlan", i.Vlan, 40, "VLAN").Text("notes", i.Notes, 2000, "Notes");
+            // TryParse alone reads "10.50.13" as 10.50.0.13, so an IPv4 address must be written in full; IPv6 has a colon, which TryParse needs.
+            if (ip is not null && (!System.Net.IPAddress.TryParse(ip, out var parsed) || !(ip.Contains(':') || parsed.ToString() == ip))) check.Add("ipAddress", "Enter a valid IP address, for example 10.50.13.60.");
+        }
+        else if (Text.Clean(i.IpAddress) is not null || Text.Clean(i.Vlan) is not null || Text.Clean(i.Notes) is not null)
+            check.Add("ipAddress", "Changing the IP address, VLAN or notes needs the Technical detail right.");
         CheckQuantity(check, "cpuQuantity", i.CpuQuantity, i.CpuUnit, "cpuUnit");
         CheckQuantity(check, "ramQuantity", i.RamQuantity, i.RamUnit, "ramUnit");
         if (typeCode != "" && typeCategory == AssetType.LogicalEndpoint && (i.CpuQuantity is not null || i.RamQuantity is not null))
@@ -408,6 +420,9 @@ public static class InventoryEndpoints
         a.Role = role;
         a.ProjectPhase = phase;
         a.NetworkZone = zone;
+        a.IpAddress = ip;
+        a.Vlan = vlan;
+        a.Notes = notes;
         a.Lifecycle = i.Lifecycle ?? AssetLifecycle.Unknown;
         a.OwnerUserId = i.OwnerUserId;
         a.TechnicalOwnerName = ownerName;

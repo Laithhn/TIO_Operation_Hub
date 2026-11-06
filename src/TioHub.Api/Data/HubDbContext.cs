@@ -518,6 +518,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.EnvironmentId, x.NormalizedName }).IsUnique().HasFilter("[ArchivedAt] IS NULL");
             e.Property(x => x.Role).HasMaxLength(100);
             e.Property(x => x.NetworkZone).HasMaxLength(100);
+            e.Property(x => x.IpAddress).HasMaxLength(64);
+            e.Property(x => x.Vlan).HasMaxLength(40);
+            e.Property(x => x.Notes).HasMaxLength(2000);
             e.Property(x => x.TechnicalOwnerName).HasMaxLength(150);
             e.Property(x => x.TechnicalOwnerContact).HasMaxLength(300);
             e.Property(x => x.TechnicalOwnerTitle).HasMaxLength(100);

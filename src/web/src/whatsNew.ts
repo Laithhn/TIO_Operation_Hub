@@ -1,6 +1,12 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.56.0', date: '6 November 2026', changes: [
+      'A server now records its IP address, VLAN and notes. People without the Technical detail right do not see them.',
+      'Server lists show the IP address next to the network zone.'
+    ]
+  },
+  {
     version: '2.55.0', date: '5 November 2026', changes: [
       'Critical or high on the overview now opens both priorities, with the same number of tickets.',
       'Tickets and Clients have one search that covers every page, and it stays when you change pages. It also finds a ticket by its client or Jira key.',

@@ -140,7 +140,7 @@ public static class OverviewEndpoints
             var assets = await db.Assets.AsNoTracking().Where(a => a.EnvironmentId == id).OrderBy(a => a.Name)
                 .Select(a => new
                 {
-                    a.Id, a.Name, a.Type, a.Role, a.Lifecycle, a.ProjectPhase, networkZone = tech ? a.NetworkZone : null, a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
+                    a.Id, a.Name, a.Type, a.Role, a.Lifecycle, a.ProjectPhase, networkZone = tech ? a.NetworkZone : null, ipAddress = tech ? a.IpAddress : null, a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
                     owner = a.Owner == null ? null : a.Owner.DisplayName,
                     volumes = a.Volumes.Where(v => v.ArchivedAt == null).Select(v => new { v.Id, v.Label, v.Capacity, v.Unit, v.Purpose, shared = v.SharedStorage == null ? null : v.SharedStorage.Name }),
                     components = a.Hosts.Select(h => new { h.ComponentId, h.Component!.Name, h.Component.Role })

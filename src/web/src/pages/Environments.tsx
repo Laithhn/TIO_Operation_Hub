@@ -147,7 +147,7 @@ export function EnvironmentForm() {
 
 type EnvOverview = {
   installations: { id: number; instanceName: string; product: string; module?: string; version?: string; deployedOn?: string; lastReviewedAt?: string; components: { id: number; name: string; role: string; componentVersion?: string; hosts: { assetId: number; name: string; type: string }[] }[] }[];
-  assets: { id: number; name: string; type: string; role?: string; lifecycle: string; projectPhase?: string; networkZone?: string; cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; osVersion?: string; verifiedAt?: string; owner?: string; volumes: { id: number; label: string; capacity?: number; unit?: string; purpose?: string; shared?: string; sourceNotation?: string }[]; components: { componentId: number; name: string; role: string }[]; sourceDocument?: string; sourceSheet?: string; sourceRange?: string; sourceNotation?: string }[];
+  assets: { id: number; name: string; type: string; role?: string; lifecycle: string; projectPhase?: string; networkZone?: string; ipAddress?: string; cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; osVersion?: string; verifiedAt?: string; owner?: string; volumes: { id: number; label: string; capacity?: number; unit?: string; purpose?: string; shared?: string; sourceNotation?: string }[]; components: { componentId: number; name: string; role: string }[]; sourceDocument?: string; sourceSheet?: string; sourceRange?: string; sourceNotation?: string }[];
   cases: { id: number; ref: string; title: string; status: string; priority: string; owner: string; dueAt?: string; nextAction: string }[];
   commitments: { id: number; ref: string; description: string; currentDueAt: string; timeZone: string }[];
   boundaries: { id: number; area: string; party: string; organization?: string; environmentSpecific: boolean; coordinator?: string; responsibleUser?: string; person?: BoundaryRow['person'] }[];
@@ -223,6 +223,7 @@ export function EnvironmentDetail() {
           <DataTable rowKey={a => a.id} rows={o.assets} columns={[
             { key: 'n', header: 'Asset', render: a => <Link to={`/assets/${a.id}`}>{a.name}</Link> }, { key: 't', header: 'Type', render: a => T.name('AssetType', a.type) }, { key: 'r', header: 'Role', render: a => a.role },
             { key: 'l', header: 'Lifecycle', render: a => <StatusBadge value={a.lifecycle} /> }, { key: 'z', header: 'Zone', render: a => o.technicalRestricted ? <span className="muted">Restricted</span> : a.networkZone },
+            { key: 'ip', header: 'IP address', render: a => o.technicalRestricted ? <span className="muted">Restricted</span> : a.ipAddress },
             { key: 'c', header: 'CPU', render: a => T.category('AssetType', a.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : qty(a.cpuQuantity, a.cpuUnit) },
             { key: 'm', header: 'RAM', render: a => T.category('AssetType', a.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : qty(a.ramQuantity, a.ramUnit) },
             { key: 'v', header: 'Volumes', render: a => a.volumes.map(v => <div key={v.id}>{v.label} {qty(v.capacity, v.unit)}{v.shared && <span className="chip"> shared: {v.shared}</span>}</div>) },

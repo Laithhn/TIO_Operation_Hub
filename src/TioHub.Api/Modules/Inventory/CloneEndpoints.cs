@@ -193,7 +193,7 @@ public static class CloneEndpoints
                 var copy = new Asset
                 {
                     EnvironmentId = target.Id, ClientId = target.ClientId, Name = assetNames[a.Id], NormalizedName = Text.Norm(assetNames[a.Id]), Type = a.Type, TypeCategory = a.TypeCategory, Role = a.Role,
-                    NetworkZone = access.Me.SeesTechnical ? a.NetworkZone : null, ProjectPhase = a.ProjectPhase, Lifecycle = lifecycle,
+                    NetworkZone = access.Me.SeesTechnical ? a.NetworkZone : null, Notes = access.Me.SeesTechnical ? a.Notes : null, ProjectPhase = a.ProjectPhase, Lifecycle = lifecycle,
                     OwnerUserId = a.OwnerUserId, TechnicalOwnerName = a.TechnicalOwnerName, TechnicalOwnerContact = a.TechnicalOwnerContact, TechnicalOwnerTitle = a.TechnicalOwnerTitle,
                     TechnicalOwnerOrganization = a.TechnicalOwnerOrganization, TechnicalOwnerPhone = a.TechnicalOwnerPhone, TechnicalOwnerMobile = a.TechnicalOwnerMobile, TechnicalOwnerEmail = a.TechnicalOwnerEmail, ResponsibleParty = a.ResponsibleParty, ResponsibleOrganization = a.ResponsibleOrganization, ResponsibleTeamId = a.ResponsibleTeamId,
                     CoordinatorUserId = a.CoordinatorUserId, CpuQuantity = a.CpuQuantity, CpuUnit = a.CpuUnit, RamQuantity = a.RamQuantity, RamUnit = a.RamUnit,

@@ -46,7 +46,7 @@ export function InstallationDialog({ environmentId, clientId, onClose }: { envir
 }
 
 type AssetDto = {
-  id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; technicalRestricted: boolean;
+  id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; ipAddress?: string; vlan?: string; notes?: string; technicalRestricted: boolean;
   environment: { id: number; name: string; clientId: number; clientCode: string; regionId?: number; regionCode?: string }; owner?: UserRef; ownerName?: string; ownerContact?: string; ownerDetails?: { name: string; title?: string; organization?: string; phone?: string; mobile?: string; email?: string }; responsibleParty: string; responsibleOrganization?: string; coordinatorUserId?: number;
   cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; osVersion?: string; verifiedAt?: string;
   volumes: { id: number; label: string; capacity?: number; unit?: string; purpose?: string; sharedStorageId?: number; sharedStorageName?: string; version: string }[];
@@ -173,7 +173,8 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
     ownerUserId: asset?.owner?.id ?? null as number | null, responsibleParty: asset?.responsibleParty ?? 'TIO', coordinatorUserId: asset?.coordinatorUserId ?? null as number | null,
     // Owner request (20 Oct 2026): the technical owner can be a team member or any named person with contact details.
     ownerKind: (asset?.ownerName ? 'person' : 'member') as 'member' | 'person', ownerPerson: contactFrom(asset?.ownerDetails ?? (asset?.ownerName ? { name: asset.ownerName } : null)), ownerContact: asset?.ownerContact ?? '',
-    cpuQuantity: asset?.cpuQuantity?.toString() ?? '', cpuUnit: asset?.cpuUnit ?? '', ramQuantity: asset?.ramQuantity?.toString() ?? '', ramUnit: asset?.ramUnit ?? '', osFamily: asset?.osFamily ?? '', osVersion: asset?.osVersion ?? ''
+    cpuQuantity: asset?.cpuQuantity?.toString() ?? '', cpuUnit: asset?.cpuUnit ?? '', ramQuantity: asset?.ramQuantity?.toString() ?? '', ramUnit: asset?.ramUnit ?? '', osFamily: asset?.osFamily ?? '', osVersion: asset?.osVersion ?? '',
+    ipAddress: asset?.ipAddress ?? '', vlan: asset?.vlan ?? '', notes: asset?.notes ?? ''
   });
   const person = f.values.ownerKind === 'person';
   const hasOwner = person ? !!f.values.ownerPerson.name.trim() : !!f.values.ownerUserId;
@@ -184,7 +185,7 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
   const refresh = useRefresh();
   const save = async () => {
     const v = f.values;
-    const body = { environmentId, name: v.name, type: v.type, role: v.role || null, networkZone: v.networkZone || null, projectPhase: v.projectPhase || null, lifecycle: v.lifecycle,
+    const body = { environmentId, name: v.name, type: v.type, role: v.role || null, networkZone: v.networkZone || null, ipAddress: v.ipAddress || null, vlan: v.vlan || null, notes: v.notes || null, projectPhase: v.projectPhase || null, lifecycle: v.lifecycle,
       ownerUserId: person ? null : v.ownerUserId, owner: person ? contactOut(v.ownerPerson) : null, ownerContact: person ? v.ownerContact || null : null,
       responsibleParty: v.responsibleParty, coordinatorUserId: hasOwner ? null : v.coordinatorUserId, cpuQuantity: v.cpuQuantity === '' ? null : Number(v.cpuQuantity), cpuUnit: v.cpuUnit || null,
       ramQuantity: v.ramQuantity === '' ? null : Number(v.ramQuantity), ramUnit: v.ramUnit || null, osFamily: v.osFamily || null, osVersion: v.osVersion || null,
@@ -205,6 +206,11 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
           ? <SelectInput label="Network zone" value={f.values.networkZone} onChange={v => f.set('networkZone', v)} options={zones.map(r => ({ value: r.code, label: r.label }))} empty="Unknown" error={f.fieldError('networkZone')}
               hint={isAdministrator(me) ? <>Zones are managed under <Link to="/admin/network-zones" target="_blank">Administration → Network zones</Link>.</> : 'Zones are managed by the TIO Manager under Administration → Network zones.'} />
           : <TextInput label="Network zone" value="Restricted (Technical detail)" onChange={() => {}} disabled />}
+        {seesTechnical(me) && <>
+          <TextInput label="IP address" value={f.values.ipAddress} onChange={v => f.set('ipAddress', v)} error={f.fieldError('ipAddress')} maxLength={64} placeholder="e.g. 10.50.13.60" />
+          <TextInput label="VLAN" value={f.values.vlan} onChange={v => f.set('vlan', v)} error={f.fieldError('vlan')} maxLength={40} placeholder="e.g. 13" />
+          <TextInput label="Notes" wide multiline value={f.values.notes} onChange={v => f.set('notes', v)} error={f.fieldError('notes')} maxLength={2000} placeholder="e.g. purpose, network speed, GPU memory, software prerequisites" />
+        </>}
         <SelectInput label="Project phase" value={f.values.projectPhase} onChange={v => f.set('projectPhase', v)} options={phases.map(r => ({ value: r.code, label: r.label }))} empty="Unknown" />
       </FormSection>
       {!logical && (
@@ -439,8 +445,10 @@ export function AssetDetail() {
           <DL items={[
             ['CPU', T.category('AssetType', a.type) === 'LogicalEndpoint' ? 'Not applicable (logical endpoint)' : qty(a.cpuQuantity, a.cpuUnit)], ['RAM', T.category('AssetType', a.type) === 'LogicalEndpoint' ? 'Not applicable' : qty(a.ramQuantity, a.ramUnit)],
             ['OS', a.osFamily ? `${a.osFamily} ${a.osVersion ?? ''}` : null], ['Network zone', a.technicalRestricted ? <span className="muted">Restricted (Technical detail)</span> : a.networkZone ?? 'Unknown'],
+            ...(a.technicalRestricted ? [] : [['IP address', a.ipAddress ?? 'Unknown'], ['VLAN', a.vlan ?? 'Unknown']] as [string, string][]),
             ['Project phase', a.projectPhase], ['Technical owner', a.ownerName ? a.ownerName : <Person u={a.owner} gap="No owner (gap)" />], ['Last verified', <When v={a.verifiedAt} />]
           ]} />
+          {a.notes && <p style={{ marginTop: 8, whiteSpace: 'pre-line' }}>{a.notes}</p>}
           <p className="hint" style={{ marginTop: 8 }}>Recorded provisioning, not measured utilization.</p>
         </Panel>
         <Panel title="Technical owner">
@@ -499,7 +507,7 @@ function VolumeDialog({ assetId, clientId, onClose }: { assetId: number; clientI
   );
 }
 
-type AssetRow = { ownerName?: string; id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; networkZoneRestricted: boolean; environmentId: number; environmentName: string; clientId: number; clientCode: string; regionCode?: string; cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; verifiedAt?: string; owner?: UserRef; componentCount: number; volumeCount: number; placeholderFlag: boolean };
+type AssetRow = { ownerName?: string; id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; networkZoneRestricted: boolean; ipAddress?: string; environmentId: number; environmentName: string; clientId: number; clientCode: string; regionCode?: string; cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; verifiedAt?: string; owner?: UserRef; componentCount: number; volumeCount: number; placeholderFlag: boolean };
 
 export function AssetList() {
   const T = useTypes();
@@ -534,6 +542,7 @@ export function AssetList() {
           { key: 'role', header: 'Role', render: r => r.role },
           { key: 'life', header: 'Lifecycle', render: r => <StatusBadge value={r.lifecycle} />, filter: <select className="input" aria-label="Filter by lifecycle" value={f.lifecycle} onChange={e => set({ lifecycle: e.target.value })}><option value="">All</option>{lifecycles.map(t => <option key={t}>{t}</option>)}</select> },
           { key: 'zone', header: 'Zone', render: r => r.networkZoneRestricted ? <span className="muted">Restricted</span> : r.networkZone },
+          { key: 'ip', header: 'IP address', render: r => r.ipAddress },
           { key: 'cpu', header: 'CPU', render: r => T.category('AssetType', r.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : qty(r.cpuQuantity, r.cpuUnit) },
           { key: 'ram', header: 'RAM', render: r => T.category('AssetType', r.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : qty(r.ramQuantity, r.ramUnit) },
           { key: 'comp', header: 'Components', className: 'num', render: r => r.componentCount },

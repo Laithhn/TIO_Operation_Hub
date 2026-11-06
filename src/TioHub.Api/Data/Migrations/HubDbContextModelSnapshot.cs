@@ -3338,6 +3338,10 @@ namespace TioHub.Api.Data.Migrations
                     b.Property<long>("EnvironmentId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("Lifecycle")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -3356,6 +3360,10 @@ namespace TioHub.Api.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("OsFamily")
                         .HasMaxLength(100)
@@ -3448,6 +3456,10 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<DateTimeOffset?>("VerifiedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Vlan")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
                     b.HasKey("Id");
 
