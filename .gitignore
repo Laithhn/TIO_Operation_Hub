@@ -26,3 +26,7 @@ TestResults/
 
 # One-time maintenance scripts: local only, never committed or packaged
 database/maintenance/
+
+# Raw production test runs (Playwright traces can hold session cookies) and local scratch
+outputs/TIO-PROD-TEST-*/
+tmp/
