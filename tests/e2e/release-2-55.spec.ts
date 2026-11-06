@@ -97,14 +97,15 @@ test.describe('Usability improvements (A102)', () => {
     await page.keyboard.press('Escape');
   });
 
-  test('a ticket leads with activity, next action, owner and SLA; supporting details expand', async ({ page }) => {
+  test('a ticket leads with activity, next action, owner and SLA; supporting details sit in the details panel', async ({ page }) => {
     await page.goto('/cases');
     await vtRows(page).first().locator('a[href^="/cases/"]').first().click();
     const focus = page.getByRole('region', { name: 'What matters now' });
     for (const heading of ['Latest activity', 'Next action', 'Owner', 'SLA and deadline']) await expect(focus.getByText(heading, { exact: true })).toBeVisible();
-    await expect(page.getByText('Management summary')).toBeHidden();
-    await page.locator('summary', { hasText: 'Supporting details' }).click();
-    await expect(page.getByText('Management summary')).toBeVisible();
+    // A106: the details panel replaces the collapsed "Supporting details".
+    const details = page.getByRole('complementary', { name: 'Ticket details' });
+    await expect(details.getByRole('heading', { name: 'Management summary' })).toBeVisible();
+    await expect(details.getByText('Responsible team', { exact: true })).toBeVisible();
     await page.getByRole('button', { name: 'More', exact: true }).click();
     await expect(page.getByRole('menuitem', { name: /^Delete ticket/ })).toBeVisible();
   });

@@ -208,7 +208,7 @@ test.describe('Business journeys', () => {
     });
     expect(started.code).toBe('InProgress');
     await expect(page.locator('.page-head .sub')).toContainText(started.label);
-    await page.getByRole('tab', { name: 'Timeline' }).click();
+    await page.getByRole('tab', { name: 'Activity' }).click();
     await expect(page.getByText('Owner changed')).toBeVisible();
   });
 
@@ -1532,22 +1532,22 @@ test.describe('Measured SLA compliance (A61)', () => {
     await page.getByRole('button', { name: 'Create ticket' }).click();
     await expect(page).toHaveURL(/\/cases\/\d+$/);
 
-    // The case shows its contractual SLA: contract link, applied target, deadlines and outcomes.
-    await page.locator('summary', { hasText: 'Supporting details' }).click();
+    // The case shows its contractual SLA in the details panel: contract link, applied target, deadlines and outcomes (A106).
     const sla = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Contractual SLA', exact: true }) });
     await expect(sla.getByRole('link', { name: /^CT-/ })).toBeVisible();
     await expect(sla).toContainText('High priority');
     await expect(sla).toContainText('later contract edits do not change it');
-    await expect(sla.locator(VT_ROW).filter({ hasText: /First response/ })).toContainText(/Pending|Not measurable/);
-    await expect(sla.locator(VT_ROW).filter({ hasText: /Resolution/ })).toContainText(/Pending|Not measurable/);
+    const measure = (name: string) => page.getByRole('group', { name: 'Contractual SLA measurements' }).getByRole('region', { name, exact: true });
+    await expect(measure('First response')).toContainText(/Pending|Not measurable/);
+    await expect(measure('Resolution')).toContainText(/Pending|Not measurable/);
 
     // The first response is recorded once.
     await sla.getByRole('button', { name: 'Record first response' }).click();
     await page.getByRole('dialog').getByLabel('Channel').selectOption('Email');
     await confirmDialog(page, 'Record response');
-    await expect(sla.locator(VT_ROW).filter({ hasText: /First response/ })).not.toContainText('Not yet recorded');
+    await expect(measure('First response')).not.toContainText('Not yet recorded');
     await expect(sla.getByRole('button', { name: 'Record first response' })).toHaveCount(0);
-    await page.getByRole('tab', { name: 'Timeline' }).click();
+    await page.getByRole('tab', { name: 'Activity' }).click();
     await expect(page.locator('.act-feed').getByText('First response', { exact: true })).toBeVisible();
 
     // The list filters by contract and by SLA outcome; the column shows both obligations.

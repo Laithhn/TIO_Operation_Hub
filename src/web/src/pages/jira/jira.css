@@ -32,47 +32,25 @@
 @media (max-width:700px){.jira-behavior{grid-template-columns:minmax(0,1fr)}}
 .jira-switches{display:flex;flex-wrap:wrap;gap:8px 18px;margin:6px 0}
 
-/* Case page */
-.jira-banner{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--link);padding:10px 14px;margin-bottom:var(--gap);display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center;justify-content:space-between}
-.jira-banner-main{display:flex;flex-wrap:wrap;gap:6px 22px;align-items:center}
-.jira-banner-title{font-weight:600}
-.jira-banner-times{font-size:var(--fs-xs);color:var(--muted);text-align:right}
-.jira-case-grid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1.1fr);gap:var(--gap);margin-bottom:var(--gap);align-items:start}
-.jira-case-grid .panel{margin-bottom:0}
-@media (max-width:1200px){.jira-case-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
-@media (max-width:800px){.jira-case-grid{grid-template-columns:minmax(0,1fr)}}
+/* Case page (A106: the Jira section of the ticket details panel and the activity timeline) */
+.jira-sync{border-left:3px solid var(--link);background:var(--info-soft);padding:6px 10px;margin-bottom:8px}
+.jira-sync-line{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
 .jira-desc{white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;border:1px solid var(--line);padding:6px 8px;background:var(--surface-2)}
 
-/* Activity */
-.activity-filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
-.activity-filters .spacer{flex:1}
-.activity-chip{border:1px solid var(--line-strong);background:var(--surface);padding:3px 10px;cursor:pointer;font:inherit;color:var(--fg)}
-.activity-chip[aria-pressed="true"]{background:var(--navy);color:var(--on-navy);border-color:var(--navy)}
-.timeline li.activity-item{list-style:none;border-left:3px solid var(--line-strong);padding-left:10px;margin-bottom:6px}
-.timeline li.activity-item.source-jira{border-left-color:var(--link)}
-.timeline li.activity-item.source-comment{border-left-color:var(--good)}
+/* Activity: comments are cards, changes are quiet lines with before → after, grouped by day on one timeline. */
 .activity-body{white-space:pre-wrap;overflow-wrap:anywhere;margin-top:2px}
-.activity-composer{margin-top:12px;border-top:1px solid var(--line);padding-top:10px}
-
-/* Ticket activity: comments are cards, changes are quiet lines, grouped by day. */
-.act-feed{display:flex;flex-direction:column;gap:14px}
-.act-day ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.activity-composer{display:flex;gap:10px;align-items:flex-start;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.activity-composer-body{flex:1;min-width:0}
+.activity-composer textarea{width:100%;min-height:56px;resize:vertical}
+.activity-composer-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.act-feed{display:flex;flex-direction:column;gap:10px}
 .act-day-head{display:flex;align-items:center;gap:10px;margin:0 0 8px;font-size:var(--fs-xs);font-weight:600;color:var(--muted);text-transform:none}
 .act-day-head::after{content:"";flex:1;height:1px;background:var(--line)}
-.act-comment{display:flex;gap:10px;align-items:flex-start}
-.act-avatar{flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:var(--fs-xs);font-weight:700}
-.act-card{flex:1;min-width:0;border:1px solid var(--line);border-left:3px solid var(--line-strong);background:var(--surface);padding:8px 12px}
+.act-card{margin-top:4px;border:1px solid var(--line);border-left:3px solid var(--line-strong);background:var(--surface);padding:8px 12px}
 .act-comment.source-jira .act-card{border-left-color:var(--link)}
 .act-comment.source-comment .act-card{border-left-color:var(--good)}
-.act-card header{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:4px}
-.act-card header .when{margin-left:auto;color:var(--muted);font-size:var(--fs-xs)}
 .act-card .activity-body{line-height:1.5}
 .act-card footer{margin-top:6px}
-.act-event{display:flex;gap:10px;align-items:flex-start;padding-left:12px}
-.act-dot{flex:none;width:8px;height:8px;margin-top:6px;border-radius:50%;background:var(--line-strong)}
-.act-event-body{min-width:0;flex:1}
-.act-event .when{color:var(--muted);font-size:var(--fs-xs);margin-top:1px}
-.act-change{margin-left:4px;color:var(--fg-2)}
 .act-note{color:var(--fg-2);margin-top:2px;white-space:pre-wrap;overflow-wrap:anywhere}
 /* A105: integration overview, one step per stage of the set-up. */
 .jira-flow{list-style:none;margin:0 0 var(--gap);padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);counter-reset:none}

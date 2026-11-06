@@ -318,7 +318,6 @@ test('ticket detail and dashboard explain their dates and statuses', async ({ pa
   await expect(page.getByRole('heading', { name: 'Tickets', exact: true })).toBeVisible();
   const rows = await api<{ items: { id: number; ref: string }[] }>(page, '/cases?pageSize=1');
   await page.goto(`/cases/${rows.items[0].id}`);
-  await page.locator('summary', { hasText: 'Supporting details' }).click();
   const age = page.locator('section.panel', { has: page.getByRole('heading', { name: 'Age and waiting' }) });
   await expect(age.getByText('Age since opening')).toBeVisible();
   await expect(age.getByText('(hub creation time)')).toBeVisible();

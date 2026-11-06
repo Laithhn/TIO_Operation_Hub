@@ -1,6 +1,16 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.58.0', date: '6 November 2026', changes: [
+      'A ticket opens with its latest activity, next action, owner and SLA in one band, with the tabs below and a details panel on the right.',
+      'The details panel holds the management summary, age and waiting, contractual SLA, measurements, penalties and Jira details. Fold the sections you do not need; the page remembers.',
+      'Activity shows comments as cards and changes as before → after on one timeline, each marked Jira or TIO. The comment box is at the top; Ctrl+Enter adds the comment.',
+      'Affected records can be filtered by type and searched. Jira references show whether each issue is imported or a manual link, and its sync state.',
+      'Documented impact shows the recorded impact statement beside the inferred dependencies. Commitments can be filtered by status.',
+      'Field history is a timeline of who changed which field, from what to what. It can be searched and loads older changes on request.'
+    ]
+  },
+  {
     version: '2.57.0', date: '6 November 2026', changes: [
       'An empty list says so ("No active escalations", "0 records") instead of "Records: 1 OF 0", with a View all action where it helps.',
       'Commitments and My dashboard show a short title and a two-line preview of long descriptions.',

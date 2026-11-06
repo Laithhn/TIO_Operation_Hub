@@ -1,11 +1,11 @@
-import { initialsOf, toneOf } from '../../ui/ClientLogo';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ApiError, get, post } from '../../api';
 import { fmtDateTime, label } from '../../format';
-import { useRefresh } from '../../hooks';
-import { Badge, FormError, Panel, QueryState, StateMessage, useToast } from '../../ui/kit';
-import { JiraBadge, KV } from './shared';
+import { useMe, useRefresh } from '../../hooks';
+import { Badge, FormError, QueryState, StateMessage, useToast } from '../../ui/kit';
+import { Avatar, ChangePair, FactList, FilterChips, IconMarker, SideSection, SourceTag, TabSection, Timeline, TimelineItem, type Fact } from '../../ui/recordView';
+import { JiraBadge } from './shared';
 import './jira.css';
 
 export type JiraSource = {
@@ -15,28 +15,14 @@ export type JiraSource = {
 
 export const jiraOriginLabel = (o: string) => o === 'ImportedSource' ? 'Imported source' : o === 'AdoptedSource' ? 'Source (adopted ticket)' : 'Manual reference';
 
-/** Connection status, key, Jira status, assignee and sync times above the management summary (approved mockups 3 and 4). */
-export function JiraBanner({ s }: { s: JiraSource }) {
-  return (
-    <section className="jira-banner" aria-label="Jira integration">
-      <div className="jira-banner-main">
-        <span className="jira-banner-title">Jira integration{s.connection ? ` (${s.connection})` : ''}</span>
-        <JiraBadge value={s.connectionStatus} />
-        <span>Jira issue: <a className="mono" href={s.url} target="_blank" rel="noopener noreferrer">{s.issueKey}</a></span>
-        <span>Jira status: <Badge tone="info">{s.status ?? 'Unknown'}</Badge></span>
-        <span>Jira assignee: {s.assignee ?? <span className="muted">Unassigned</span>}</span>
-      </div>
-      <div className="jira-banner-times">
-        <div>Last sync: {fmtDateTime(s.lastSync)}</div>
-        <div>Next sync: {s.nextSync ? fmtDateTime(s.nextSync) : 'Not scheduled'}</div>
-      </div>
-    </section>
-  );
-}
-
-/** External Jira values, shown beside the case and never copied into its business fields. */
-export function JiraDetailsPanel({ s, caseId, canSync }: { s: JiraSource; caseId: number; canSync: boolean }) {
-  const details: [string, React.ReactNode][] = (s.details ?? []).map(d => [d.name, d.value]);
+/**
+ * A106: the Jira side of a synchronized ticket in one section of the details panel: connection, issue, status and sync times
+ * (was the banner above the management summary), then the imported values (was "Jira details (imported)"). They are shown
+ * beside the ticket and never copied into its business fields; each is marked as coming from Jira.
+ */
+export function JiraSideSection({ s, caseId, canSync }: { s: JiraSource; caseId: number; canSync: boolean }) {
+  const dash = (v?: React.ReactNode) => (v === null || v === undefined || v === '' ? <span className="muted">—</span> : v);
+  const details: Fact[] = (s.details ?? []).map(d => [d.name, dash(d.value)]);
   const refresh = useRefresh();
   const toast = useToast();
   const [busy, setBusy] = useState(false);
@@ -54,14 +40,22 @@ export function JiraDetailsPanel({ s, caseId, canSync }: { s: JiraSource; caseId
     finally { setBusy(false); }
   };
   return (
-    <Panel title="Jira details (imported)" actions={canSync && <button className="btn" disabled={busy} onClick={sync}>{busy ? 'Synchronizing…' : 'Sync with Jira'}</button>}>
+    <SideSection id="ticket-jira" title="Jira details (imported)" note={s.issueKey}
+      actions={canSync && <button className="btn" disabled={busy} onClick={sync}>{busy ? 'Synchronizing…' : 'Sync with Jira'}</button>}>
       {problem && <div className="notice warn" style={{ marginBottom: 8 }}>{problem}</div>}
-      <KV items={[
-        ...details, ['Jira issue type', s.issueType], ['Jira component', s.components], ['Jira priority', s.priority], ['Jira due date', s.jiraDueDate], ['Jira resolution', s.resolution], ['Reporter', s.reporter],
-        ['Jira created', s.jiraCreatedAt ? fmtDateTime(s.jiraCreatedAt) : null], ['Jira URL', <a href={s.url} target="_blank" rel="noopener noreferrer">{s.url}</a>]
+      <section className="jira-sync" aria-label="Jira integration">
+        <div className="jira-sync-line"><b>Jira integration{s.connection ? ` (${s.connection})` : ''}</b> <JiraBadge value={s.connectionStatus} /></div>
+        <div className="hint">Last sync: {fmtDateTime(s.lastSync)} · Next sync: {s.nextSync ? fmtDateTime(s.nextSync) : 'Not scheduled'}</div>
+      </section>
+      <FactList items={[
+        ['Jira issue', <a className="mono" href={s.url} target="_blank" rel="noopener noreferrer">{s.issueKey}</a>],
+        ['Jira status', <Badge tone="info">{s.status ?? 'Unknown'}</Badge>],
+        ['Jira assignee', s.assignee ?? <span className="muted">Unassigned</span>],
+        ...details, ['Jira issue type', dash(s.issueType)], ['Jira component', dash(s.components)], ['Jira priority', dash(s.priority)], ['Jira due date', dash(s.jiraDueDate)], ['Jira resolution', dash(s.resolution)], ['Reporter', dash(s.reporter)],
+        ['Jira created', dash(s.jiraCreatedAt ? fmtDateTime(s.jiraCreatedAt) : null)], ['Jira URL', <a href={s.url} target="_blank" rel="noopener noreferrer">{s.url}</a>]
       ]} />
-      {s.description && <><div className="hint" style={{ marginTop: 8 }}>Description (Jira)</div><div className="jira-desc">{s.description}</div></>}
-    </Panel>
+      {s.description && <><h3 className="rv-sub">Description (Jira)</h3><div className="jira-desc">{s.description}</div></>}
+    </SideSection>
   );
 }
 
@@ -75,27 +69,26 @@ const FILTERS = [
 
 /** One timeline for hub events, local comments and Jira comments and activity, each clearly labelled with its source. */
 export function CaseActivity({ caseId, canComment }: { caseId: number; canComment: boolean }) {
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState<(typeof FILTERS)[number]['key']>('all');
   const [system, setSystem] = useState(true);
   const [limit, setLimit] = useState(25);
-  const q = useQuery({ queryKey: ['case-activity', caseId, filter, system, limit], queryFn: () => get<ActivityPage>(`/cases/${caseId}/activity?filter=${filter}&system=${system}&pageSize=${limit}`) });
+  const q = useQuery({ queryKey: ['case-activity', caseId, filter, system, limit], queryFn: () => get<ActivityPage>(`/cases/${caseId}/activity?filter=${filter}&system=${system}&pageSize=${limit}`), placeholderData: p => p });
   const d = q.data;
   return (
-    <Panel title="Activity & comments">
-      <div className="activity-filters">
-        {FILTERS.map(f => <button key={f.key} className="activity-chip" aria-pressed={filter === f.key} onClick={() => setFilter(f.key)}>{f.label} ({d?.counts[f.count] ?? 0})</button>)}
-        <span className="spacer" />
-        <label className="check"><input type="checkbox" checked={system} onChange={e => setSystem(e.target.checked)} /> Show system activity</label>
-      </div>
+    <TabSection title="Activity & comments" toolbar={<>
+      <FilterChips label="Show activity" value={filter} onChange={setFilter} options={FILTERS.map(f => ({ key: f.key, label: f.label, count: d?.counts[f.count] ?? 0 }))} />
+      <span className="spacer" />
+      <label className="check"><input type="checkbox" checked={system} onChange={e => setSystem(e.target.checked)} /> Show system activity</label>
+    </>}>
+      {canComment && <CommentComposer caseId={caseId} />}
       <QueryState q={q}>{d && (d.items.length === 0 ? <StateMessage kind={filter === 'all' ? 'none' : 'nomatch'} /> : <div className="act-feed">
         {groupByDay(d.items).map(day => <section key={day.key} aria-label={day.label} className="act-day">
           <h4 className="act-day-head"><span>{day.label}</span></h4>
-          <ul>{day.items.map(r => <ActivityEntry key={r.key} r={r} />)}</ul>
+          <Timeline>{day.items.map(r => <ActivityEntry key={r.key} r={r} />)}</Timeline>
         </section>)}
       </div>)}</QueryState>
-      {d && d.totalCount > d.items.length && <div style={{ textAlign: 'center', marginTop: 8 }}><button className="btn" onClick={() => setLimit(l => l + 25)}>Show more activity ({d.totalCount - d.items.length})</button></div>}
-      {canComment && <CommentComposer caseId={caseId} />}
-    </Panel>
+      {d && d.totalCount > d.items.length && <div className="rv-more"><button className="btn" disabled={q.isFetching} onClick={() => setLimit(l => l + 25)}>{q.isFetching ? 'Loading…' : `Show more activity (${d.totalCount - d.items.length})`}</button></div>}
+    </TabSection>
   );
 }
 
@@ -114,39 +107,35 @@ function groupByDay(items: ActivityRow[]) {
   return days;
 }
 
-/** A comment is a card with its author and text; a change is one quiet line, so the conversation stands out. */
+const CATEGORY_ICON: Record<string, string> = { workflow: 'history', assignments: 'user', system: 'info' };
+
+/** A comment is a card with its author and text; a change is one quiet line with before → after, so the conversation stands out. */
 function ActivityEntry({ r }: { r: ActivityRow }) {
   const comment = r.kind === 'Comment' || r.kind === 'JiraComment';
   const who = r.actor ?? 'System';
   const title = r.source === 'TIO' && r.kind !== 'Comment' ? label(r.kind) : r.title;
-  const change = (r.from || r.to) ? <span className="act-change">{r.from && <><span>{r.from}</span><span aria-hidden="true"> → </span><span className="sr"> to </span></>}<b>{r.to ?? '—'}</b></span> : null;
-  const source = <Badge tone={r.source === 'Jira' ? 'info' : 'neutral'}>{r.source === 'Jira' ? 'Jira' : 'TIO'}</Badge>;
+  const source = <SourceTag source={r.source} />;
   if (!comment) return (
-    <li className="act-event">
-      <span className="act-dot" aria-hidden="true" />
-      <div className="act-event-body">
-        <span><b>{title}</b> {change}</span>
-        {r.body && <div className="act-note">{r.body}</div>}
-        <div className="when">{who} · {fmtDateTime(r.at)} {source}{r.reference ? <span className="muted"> · {r.reference}</span> : null}</div>
-      </div>
-    </li>
+    <TimelineItem className="act-event" marker={<IconMarker icon={CATEGORY_ICON[r.category] ?? 'edit'} tone={r.source === 'Jira' ? 'jira' : undefined} />}
+      title={<><b>{title}</b>{(r.from || r.to) && <> <ChangePair from={r.from} to={r.to} /></>}</>}
+      meta={<>{who} · {fmtDateTime(r.at)} {source}{r.reference ? <span>· {r.reference}</span> : null}</>}>
+      {r.body && <div className="act-note">{r.body}</div>}
+    </TimelineItem>
   );
   return (
-    <li className={`act-comment ${r.source === 'Jira' ? 'source-jira' : 'source-comment'}`}>
-      <span className="act-avatar" style={{ background: toneOf(who) }} aria-hidden="true">{initialsOf(who)}</span>
+    <TimelineItem className={`act-comment ${r.source === 'Jira' ? 'source-jira' : 'source-comment'}`} marker={<Avatar name={r.actor} size={30} />}
+      title={<><b>{who}</b> {source}{r.edited && <span className="hint"> edited in Jira</span>}</>}
+      meta={fmtDateTime(r.at)}>
       <div className="act-card">
-        <header>
-          <b>{who}</b> {source}{r.edited && <span className="hint"> edited in Jira</span>}
-          <span className="when">{fmtDateTime(r.at)}</span>
-        </header>
         {r.restricted ? <div className="activity-body muted">This Jira comment is restricted. Its text is visible to ticket coordinators only.</div> : <div className="activity-body">{r.body}</div>}
         <footer className="hint">{title}{r.reference ? ` · ${r.reference}` : ''}</footer>
       </div>
-    </li>
+    </TimelineItem>
   );
 }
 
 function CommentComposer({ caseId }: { caseId: number }) {
+  const me = useMe().data;
   const [body, setBody] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
@@ -160,13 +149,17 @@ function CommentComposer({ caseId }: { caseId: number }) {
   };
   return (
     <div className="activity-composer">
-      <FormError error={error} />
-      <label className="flabel" htmlFor="case-comment">Add a comment to this ticket (TIO only)</label>
-      <textarea id="case-comment" className="input" rows={2} style={{ width: '100%' }} value={body} maxLength={8000} onChange={e => setBody(e.target.value)} />
-      {error?.field('body') && <div className="err">{error.field('body')}</div>}
-      <div className="form-actions" style={{ justifyContent: 'space-between' }}>
-        <span className="hint">This comment is saved in TIO Operations Hub only and will not be sent to Jira.</span>
-        <button className="btn btn-primary" disabled={busy || !body.trim()} onClick={add}>Add comment</button>
+      <Avatar name={me?.displayName} size={30} />
+      <div className="activity-composer-body">
+        <FormError error={error} />
+        <label className="flabel" htmlFor="case-comment">Add a comment to this ticket (TIO only)</label>
+        <textarea id="case-comment" className="input" rows={2} value={body} maxLength={8000} placeholder="Write a comment for the team…" onChange={e => setBody(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && body.trim() && !busy) { e.preventDefault(); add(); } }} />
+        {error?.field('body') && <div className="err">{error.field('body')}</div>}
+        <div className="activity-composer-actions">
+          <span className="hint">This comment is saved in TIO Operations Hub only and will not be sent to Jira.</span>
+          <button className="btn btn-primary" disabled={busy || !body.trim()} onClick={add} title="Ctrl+Enter">Add comment</button>
+        </div>
       </div>
     </div>
   );

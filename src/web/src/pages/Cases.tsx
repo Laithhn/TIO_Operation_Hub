@@ -4,19 +4,23 @@ import { useQuery } from '@tanstack/react-query';
 import { canExportReport } from '../exportRights';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
-import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
+import { exportCsv, get, post, put, qs, type Paged } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
 import { useDebounced, useEnum, useEnumLabel, useForm, useLeaveGuard, useLookup, useMe, useRight, useReference, useRefresh, useUrlSearch, useUrlState, useTypes } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
-import { Badge, DataTable, Dialog, DL, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, Tabs, TextInput, useToast, When, type FreshnessT, DeleteAction } from '../ui/kit';
+import { Badge, DataTable, Dialog, enumOptions, FormError, FreshnessBadge, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, Tabs, TextInput, useToast, When, DeleteAction } from '../ui/kit';
 import { FilterBar, type FilterChip } from '../ui/FilterBar';
 import { ClientDisplay, initialsOf, toneOf } from '../ui/ClientLogo';
 import { caseTypeGuidance } from '../caseTypeGuidance';
-import { HistoryPanel, toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
+import { toNum, useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
 import { activeQuickView, CRITICAL_OR_HIGH, quickViews, TICKET_FILTER_DEFAULTS, type QuickViewCounts, type TicketFilters } from './ticketViews';
-import { CaseActivity, JiraBanner, JiraDetailsPanel, jiraOriginLabel, type JiraSource } from './jira/CaseJira';
+import { CaseActivity, JiraSideSection } from './jira/CaseJira';
+import { FactList, KeyFacts, RecordLayout, SideSection, TabSection } from '../ui/recordView';
+import { AffectedRecordsTab, CommitmentsTab, ImpactTab, JiraReferencesTab, TicketHistory } from './ticket/TicketTabs';
+import { SlaSections } from './ticket/TicketSla';
+import type { CaseDto, CaseImpact } from './ticket/model';
 
 type CaseRow = { id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; priority: string; clientId?: number; clientCode?: string; teamName?: string; ownerName?: string; internalAssignee?: string; ownerDeactivated: boolean; waitingReason?: string; nextAction: string; nextReviewAt: string; dueAt?: string; overdue: boolean; reviewOverdue: boolean; stale: boolean; jiraKeys: string[];
   contractRef?: string; responseSla: string; resolutionSla: string; jiraSourceKey?: string; jiraConnectionName?: string; jiraStatus?: string; createdAt: string; updatedAt?: string; resolvedAt?: string; jiraAssignee?: string; jiraReporter?: string; jiraPriority?: string; jiraIssueType?: string; jiraResolution?: string; openedAt?: string; jiraAssigneeKind?: 'TioUser' | 'ClientContact' | 'Unmapped' };
@@ -182,37 +186,12 @@ function AffectedPicker({ clientId, value, onChange, error }: { clientId: number
   );
 }
 
-type SlaObligation = { status: string; dueAt?: string; actualAt?: string; elapsedMinutes?: number; breachMinutes?: number };
-type CaseSlaT = {
-  applied?: { contractRef: string; priority?: string; responseMinutes?: number; resolutionMinutes?: number; basis: string; support24x7: boolean; supportDays: string; supportFrom?: string; supportTo?: string; timeZone?: string; pausesWhileWaitingOnCustomer: boolean; at: string };
-  startAt: string; startsAtJiraCreation: boolean; response: SlaObligation; resolution: SlaObligation; pausedMinutes?: number; note?: string; calculatedAt?: string; operationalDueAt?: string;
-};
 type ContractOption = { id: number; ref: string; title: string; status: string };
-
-const minutes = (m?: number | null) => m === undefined || m === null ? '—' : m < 60 ? `${m} min` : m % 60 === 0 ? `${m / 60} h` : `${Math.floor(m / 60)} h ${m % 60} min`;
 
 /** Contracts of one client for the case contract choice. */
 function useClientContracts(clientId: number | null) {
   return useQuery({ queryKey: ['contracts-of', clientId], queryFn: () => get<Paged<ContractOption>>(`/contracts?clientId=${clientId}&pageSize=100`), enabled: !!clientId });
 }
-
-type CaseDto = {
-  id: number; ref: string; title: string; type: string; scope: string; status: string; statusCode: string; statusFromJira: boolean; clientRepresentative?: string; internalAssignee?: string; statusOptions: string[]; priority: string; impactSummary: string; progressSummary?: string; nextAction: string; nextReviewAt: string;
-  dueAt?: string; dueTimeZone?: string; dueLocal?: string; client?: { id: number; code: string; name: string }; team?: { id: number; code: string; name: string };
-  owner?: UserRef; backupOwner?: UserRef; unassigned: boolean; ownerDeactivated: boolean; coordinator?: UserRef; responsibleParty: string; responsibleOrganization?: string;
-  waiting?: { reason: string; since: string }; waitingIntervals: { reason: string; note?: string; startedAt: string; endedAt?: string }[]; waitingHours: number; openedAt: string; openedFromJira: boolean; ageDays: number; currentCycleAgeDays?: number; reopenCount: number;
-  unknownEnvironmentReason?: string; validationRequest?: string; outcome?: string; validationEvidence?: string;
-  evidenceException?: { reason: string; approvedBy?: UserRef; followUpOwner?: UserRef; followUpDate?: string }; cancelReason?: string; closedAt?: string; cancelledAt?: string; createdAt: string; lastReviewedAt?: string;
-  freshness: FreshnessT; reviewOverdue: boolean; overdue: boolean;
-  environments: { id: number; name: string; type: string; regionCode?: string }[]; assets: { id: number; name: string; type: string }[]; components: { id: number; name: string; role: string; installation: string }[];
-  jiraReferences: { id: number; instance: string; kind: string; jiraInstanceId: number; issueKey: string; url: string; reuseReason?: string; origin: string }[]; jiraSource?: JiraSource; removedJiraReferences: { id: number; instance: string; issueKey: string; removedAt: string }[];
-  commitments: { id: number; ref: string; description: string; status: string; currentDueAt: string; timeZone: string }[];
-  events: { id: number; type: string; fromValue?: string; toValue?: string; note?: string; at: string; by?: string }[];
-  contract?: { id: number; ref: string; title: string; status: string }; contractFromJiraSpace: boolean;
-  sla: CaseSlaT;
-  permissions: { canEdit: boolean; canTriage: boolean; canAssign: boolean; canStart: boolean; canClose: boolean; canRequestValidation: boolean; canReturnToWork: boolean; canChangeStatus: boolean; canSetWaiting: boolean; canChangeDue: boolean; canAuthorizeEvidenceException: boolean; canReopen: boolean; canCancel: boolean };
-  version: string;
-};
 
 export function CaseForm() {
   const T = useTypes();
@@ -306,7 +285,7 @@ export function CaseDetail() {
   const T = useTypes();
   const { id } = useParams();
   const q = useQuery({ queryKey: ['case', id], queryFn: () => get<CaseDto>(`/cases/${id}`) });
-  const impact = useQuery({ queryKey: ['impact', id], queryFn: () => get<{ label: string; installations: { id: number; instanceName: string; product: string; environment: string; client: string }[]; clients: { id: number; code: string }[]; components: { id: number; name: string; role: string }[]; firewallRules: { id: number; purpose: string; source: string; destination: string; ports?: string; protocol: string }[] }>(`/cases/${id}/impact`), enabled: allowedTabs.includes('impact') });
+  const impact = useQuery({ queryKey: ['impact', id], queryFn: () => get<CaseImpact>(`/cases/${id}/impact`), enabled: allowedTabs.includes('impact') });
   const me = useMe().data!;
   const canCoordinate = useRight('Cases', 'Coordinate');
   const canCreateEscalation = useRight('OtherOperations', 'Create');
@@ -323,6 +302,9 @@ export function CaseDetail() {
   // A61: a progress update can be the first response to the customer, until one is recorded.
   const activity = useQuery({ queryKey: ['case-activity', Number(id), 'latest'], queryFn: () => get<{ items: { kind: string; source: string; title: string; actor?: string; at: string }[] }>(`/cases/${id}/activity?filter=all&system=true&pageSize=1`), enabled: allowedTabs.includes('timeline') });
   const latest = activity.data?.items[0];
+  const measured = !!c?.contract && c.sla.resolution.status !== 'NotApplicable';
+  const breached = measured && [c!.sla.response.status, c!.sla.resolution.status].includes('Breached');
+  const affectedCount = c ? c.environments.length + c.assets.length + c.components.length : 0;
   const responseField = c?.contract && !c.sla.response.actualAt && !c.statusFromJira ? [{ name: 'customerResponse', label: 'This update was sent to the customer (first response)', kind: 'checkbox' as const, hint: 'Records the first response for the contractual SLA at this time.' }] : [];
   return (
     <QueryState q={q}>{c && p && (<>
@@ -347,78 +329,59 @@ export function CaseDetail() {
       {c.statusFromJira && <div className="notice">This ticket's status follows Jira, so change it there. {!c.contract ? (c.contractFromJiraSpace ? "No contract linked to this Jira space covers the ticket's creation date, so it is not measured." : 'Link an SLA contract to calculate the due dates from the Jira creation time.') : c.sla.resolution.status === 'NotApplicable' ? 'This ticket is not measured against the linked contract, so it has no contractual due dates; the reason is under Contractual SLA.' : 'The due dates come from the Jira creation time and the contract SLA.'}</div>}
       {c.clientRepresentative && open && <div className="notice">Assigned in Jira to {c.clientRepresentative}, representing the client. The ticket waits on the customer until Jira reassigns it.</div>}
       {!c.statusFromJira && c.status === 'Triaged' && c.unassigned && <div className="notice warn">Unassigned: an active owner is required before work can start.</div>}
-      <section className="focus-grid" aria-label="What matters now">
-        <div className="focus-cell"><span className="flabel">Latest activity</span>{latest ? <><span className="focus-text">{latest.source === 'TIO' && latest.kind !== 'Comment' ? label(latest.kind) : latest.title}</span><span className="when">{latest.actor ?? 'System'} · {fmtDateTime(latest.at)}</span></> : <span className="muted">{activity.isLoading ? 'Loading…' : 'No activity yet'}</span>}</div>
-        <div className="focus-cell"><span className="flabel">Next action</span><span className="focus-text">{c.nextAction?.trim() || <span className="muted">None recorded</span>}</span><span className="when">Next review <When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</span></div>
-        <div className="focus-cell"><span className="flabel">Owner</span><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}<span className="when">{c.team?.name ?? 'No team'}{c.backupOwner ? ` · backup ${c.backupOwner.name}` : ''}</span></div>
-        <div className="focus-cell"><span className="flabel">SLA and deadline</span>{c.contract && c.sla.resolution.status !== 'NotApplicable' ? <SlaPair response={c.sla.response.status} resolution={c.sla.resolution.status} /> : <span className="muted">Not measured against a contract</span>}<span className="when">{c.dueAt ? <>Due {c.dueLocal} ({c.dueTimeZone})</> : 'No deadline'}{c.scope === 'Client' && p.canEdit && open && !c.statusFromJira && c.contract && !c.sla.response.actualAt && <> · <button className="linkbtn" onClick={() => setDialog('respond')}>Record first response</button></>}</span></div>
-      </section>
-      <Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Timeline' }, { key: 'affected', label: 'Affected records' }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} />
-      {tab === 'escalations' && <Panel title="Escalations about this ticket" pad={false} actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></Panel>}
-      {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
-      {tab === 'affected' && <Panel title="Affected records">
-        {c.environments.length === 0 && c.unknownEnvironmentReason && <div className="notice warn">Environment not yet identified: {c.unknownEnvironmentReason}</div>}
-        <DL items={[
-          ['Environments', c.environments.length ? c.environments.map(e => <div key={e.id}><Link to={`/environments/${e.id}`}>{e.regionCode ? `${e.regionCode} / ` : ''}{e.name}</Link></div>) : <span className="muted">{c.scope === 'Internal' ? 'Not applicable (internal work)' : 'None'}</span>],
-          ['Assets', c.assets.length ? c.assets.map(a => <div key={a.id}><Link to={`/assets/${a.id}`}>{a.name}</Link></div>) : <span className="muted">None</span>],
-          ['Components', c.components.length ? c.components.map(x => <div key={x.id}>{x.name} ({x.installation})</div>) : <span className="muted">None</span>],
+      <RecordLayout asideLabel="Ticket details" main={<>
+        <KeyFacts label="What matters now" items={[
+          { label: 'Latest activity', value: latest ? <span className="focus-text">{latest.source === 'TIO' && latest.kind !== 'Comment' ? label(latest.kind) : latest.title}</span> : <span className="muted">{activity.isLoading ? 'Loading…' : 'No activity yet'}</span>,
+            meta: latest && <>{latest.actor ?? 'System'} · {fmtDateTime(latest.at)}</> },
+          { label: 'Next action', value: c.nextAction?.trim() || <span className="muted">None recorded</span>, tone: c.reviewOverdue ? 'bad' : undefined,
+            meta: <>Next review <When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</> },
+          { label: 'Owner', value: <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>,
+            meta: <>{c.team?.name ?? 'No team'}{c.backupOwner ? ` · backup ${c.backupOwner.name}` : ''}</> },
+          { label: 'SLA and deadline', value: measured ? <SlaPair response={c.sla.response.status} resolution={c.sla.resolution.status} /> : <span className="muted">Not measured against a contract</span>,
+            tone: breached || c.overdue ? 'bad' : undefined,
+            meta: <>{c.dueAt ? <>Due {c.dueLocal} ({c.dueTimeZone})</> : 'No deadline'}{c.scope === 'Client' && p.canEdit && open && !c.statusFromJira && c.contract && !c.sla.response.actualAt && <> · <button className="linkbtn" onClick={() => setDialog('respond')}>Record first response</button></>}</> }
         ]} />
-      </Panel>}
-      {tab === 'jira' && <Panel title="Jira references" actions={p.canEdit && hasRight(me, 'tab.Cases.jira', 'Create') && <button className="btn" onClick={() => setDialog('jira')}>+ Reference</button>}>
-        <p className="hint" style={{ marginBottom: 8 }}>Customer Cloud Jira and Internal On-prem Jira are separate systems. Internal On-prem references are manual links only. A synchronized source issue appears here automatically and manual references stay.</p>
-        {c.jiraReferences.length === 0 ? <StateMessage kind="none" /> : <DataTable caption="Jira references" rows={c.jiraReferences} rowKey={j => j.id} columns={[
-          { key: 'instance', header: 'Instance', render: j => j.instance }, { key: 'origin', header: 'Type', render: j => jiraOriginLabel(j.origin) }, { key: 'key', header: 'Key', render: j => <span className="mono">{j.issueKey}</span> },
-          { key: 'link', header: 'Link', render: j => <a href={j.url} target="_blank" rel="noopener noreferrer">{j.url}</a> },
-          { key: 'reason', header: 'Link reason', render: j => j.reuseReason },
-          { key: 'actions', header: '', render: j => p.canEdit && j.origin === 'Manual' && hasRight(me, 'tab.Cases.jira', 'Delete') && <button className="linkbtn" onClick={() => setDialog(`unjira-${j.id}`)}>Remove</button> }
-        ]} />}
-        {c.removedJiraReferences.length > 0 && <p className="hint" style={{ marginTop: 8 }}>Removed (kept in history): {c.removedJiraReferences.map(j => `${j.instance} ${j.issueKey}`).join(', ')}</p>}
-      </Panel>}
-      {tab === 'impact' && <Panel title="Documented dependency impact">
-        <div className="notice">{impact.data?.label ?? 'Inferred from recorded relationships, not live outage detection.'}</div>
-        {impact.data && <DL items={[
-          ['Potentially affected installations', impact.data.installations.length ? impact.data.installations.map(i => <div key={i.id}><Link to={`/installations/${i.id}`}>{i.product} · {i.instanceName}</Link> <span className="muted">({i.client} / {i.environment})</span></div>) : <span className="muted">None documented</span>],
-          ['Components', impact.data.components.map(x => x.name).join(', ') || <span className="muted">None</span>],
-          ['Clients', impact.data.clients.map(x => x.code).join(', ') || <span className="muted">None</span>],
-          ['Firewall rules of affected servers', impact.data.firewallRules.length ? impact.data.firewallRules.map(r => <div key={r.id}>{r.source} → {r.destination} <span className="mono">{r.protocol}{r.ports ? ` ${r.ports}` : ''}</span> · {r.purpose}</div>) : <span className="muted">None recorded</span>]
-        ]} />}
-      </Panel>}
-      {tab === 'commitments' && <Panel title="Linked commitments" actions={canCreateCommitment && <Link className="btn" to={`/commitments/new?caseId=${id}${c.client ? `&clientId=${c.client.id}` : `&teamId=${c.team?.id ?? ''}`}`}>+ Commitment</Link>}>
-        {c.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{c.commitments.map(m => <li key={m.id}><Link to={`/commitments/${m.id}`}>{m.ref}</Link> {m.description} <StatusBadge value={m.status} /><div className="when">due {fmtDateTime(m.currentDueAt)}</div></li>)}</ul>}
-      </Panel>}
-      {tab === 'files' && <AttachmentsWorkspace recordType="Case" recordId={c.id} />}
-      {tab === 'history' && <HistoryPanel entityType="Case" entityId={c.id} />}
-      <details className="more-details">
-        <summary>Supporting details<span className="hint">Ownership, impact, age and waiting{c.scope === 'Client' ? ', contractual SLA and penalties' : ''}{c.jiraSource ? ', Jira' : ''}</span></summary>
-        <div className="more-details-body">
-      {c.jiraSource && <JiraBanner s={c.jiraSource} />}
-      <div className={c.jiraSource ? 'jira-case-grid' : 'cols'}>
-        <Panel title="Management summary">
-          <DL items={[
-            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], ...(c.internalAssignee ? [['Assigned in Jira to', <>{c.internalAssignee} <Badge tone="info">Vitronic team member</Badge></>] as [string, ReactNode]] : []), ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
+        <div className="rv-tabs"><Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Activity' }, { key: 'affected', label: `Affected records (${affectedCount})` }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} /></div>
+        {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
+        {tab === 'affected' && <AffectedRecordsTab c={c} />}
+        {tab === 'jira' && <JiraReferencesTab c={c} canAdd={p.canEdit && hasRight(me, 'tab.Cases.jira', 'Create')} canRemove={p.canEdit && hasRight(me, 'tab.Cases.jira', 'Delete')} onAdd={() => setDialog('jira')} onRemove={j => setDialog(`unjira-${j}`)} />}
+        {tab === 'impact' && <ImpactTab c={c} q={impact} />}
+        {tab === 'commitments' && <CommitmentsTab c={c} createTo={canCreateCommitment ? `/commitments/new?caseId=${id}${c.client ? `&clientId=${c.client.id}` : `&teamId=${c.team?.id ?? ''}`}` : undefined} />}
+        {tab === 'escalations' && <TabSection title="Escalations about this ticket" actions={c.client && canCreateEscalation && <Link className="btn" to={`/escalations/new?clientId=${c.client.id}&caseId=${c.id}`}>+ Escalation</Link>}><EscalationTable clientId={c.client?.id} caseId={c.id} compact /></TabSection>}
+        {tab === 'files' && <AttachmentsWorkspace recordType="Case" recordId={c.id} />}
+        {tab === 'history' && <TicketHistory caseId={c.id} />}
+      </>} aside={<>
+        <SideSection id="ticket-summary" title="Management summary">
+          <FactList items={[
+            ['Owner', <><Person u={c.owner} />{c.jiraSource?.ownerFromJira && <> <Badge tone="info">from Jira</Badge></>}</>], !!c.internalAssignee && ['Assigned in Jira to', <>{c.internalAssignee} <Badge tone="info">Vitronic team member</Badge></>],
+            ['Backup owner', <Person u={c.backupOwner} gap="None" />], ['Responsible team', c.team?.name], ['Coordinator', c.coordinator ? <Person u={c.coordinator} /> : <span className="muted">—</span>],
             ['Responsible party', `${label(c.responsibleParty)}${c.responsibleOrganization ? ` · ${c.responsibleOrganization}` : ''}`],
             ['Impact', c.impactSummary], ['Progress', c.progressSummary ?? <span className="muted">No progress recorded</span>],
             ['Next action', c.nextAction], ['Next review', <><When v={c.nextReviewAt} />{c.reviewOverdue && <> <Badge tone="bad">Review passed</Badge></>}</>],
             ['Due', c.dueAt ? <>{c.dueLocal} <span className="muted">({c.dueTimeZone})</span></> : <span className="muted">No deadline</span>],
             ['Last progress update', <><When v={c.lastReviewedAt} /> <FreshnessBadge f={c.freshness} /></>]
           ]} />
-        </Panel>
-        <Panel title="Age and waiting">
-          <DL items={[
-            ['Opened', <>{fmtDateTime(c.openedAt)} <span className="hint">({c.openedFromJira ? 'Jira creation time' : 'hub creation time'})</span></>],
-            ...(c.openedFromJira ? [['Added to the hub', <>{fmtDateTime(c.createdAt)} <span className="hint">(import time; not used for age, deadlines or opened reporting)</span></>] as [string, ReactNode]] : []),
-            [open ? 'Age since opening' : 'Age from opening to closing', `${c.ageDays} days`], ...(c.currentCycleAgeDays !== undefined && c.currentCycleAgeDays !== null ? [['Current cycle age (after reopen)', `${c.currentCycleAgeDays} days`] as [string, string]] : []),
-            ['Reopened', `${c.reopenCount} time(s)`], ['Recorded waiting', `${c.waitingHours} h (the operational due date is not paused${c.sla.applied?.pausesWhileWaitingOnCustomer ? '; the contractual SLA pauses while waiting on the customer' : ''})`],
+        </SideSection>
+        <SideSection id="ticket-age" title="Age and waiting" note={`${c.ageDays} days`}>
+          <FactList items={[
+            ['Opened', fmtDateTime(c.openedAt), { hint: `(${c.openedFromJira ? 'Jira creation time' : 'hub creation time'})` }],
+            c.openedFromJira && ['Added to the hub', fmtDateTime(c.createdAt), { hint: '(import time; not used for age, deadlines or opened reporting)' }],
+            [open ? 'Age since opening' : 'Age from opening to closing', `${c.ageDays} days`], c.currentCycleAgeDays !== undefined && c.currentCycleAgeDays !== null && ['Current cycle age (after reopen)', `${c.currentCycleAgeDays} days`],
+            ['Reopened', `${c.reopenCount} time(s)`],
+            ['Recorded waiting', `${c.waitingHours} h`, { hint: `(the operational due date is not paused${c.sla.applied?.pausesWhileWaitingOnCustomer ? '; the contractual SLA pauses while waiting on the customer' : ''})` }],
+            !!c.waiting && ['Waiting now', <Badge tone="warn">On {label(c.waiting.reason)}</Badge>, { hint: <>since {fmtDateTime(c.waiting.since)}</> }],
             ['Validation request', c.validationRequest], ['Outcome', c.outcome], ['Validation evidence', c.validationEvidence],
-            ...(c.evidenceException ? [['Evidence exception', <>{c.evidenceException.reason}<div className="hint">Authorized by {c.evidenceException.approvedBy?.name} · follow-up {c.evidenceException.followUpOwner?.name} by {c.evidenceException.followUpDate}</div></>] as [string, React.ReactNode]] : []),
-            ...(c.cancelReason ? [['Cancellation reason', c.cancelReason] as [string, string]] : [])
+            !!c.evidenceException && ['Evidence exception', c.evidenceException.reason, { hint: <>Authorized by {c.evidenceException.approvedBy?.name} · follow-up {c.evidenceException.followUpOwner?.name} by {c.evidenceException.followUpDate}</> }],
+            !!c.cancelReason && ['Cancellation reason', c.cancelReason]
           ]} />
-        </Panel>
-        {c.jiraSource && <JiraDetailsPanel s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
-      </div>
-      {c.scope === 'Client' && <SlaPanel c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
-        </div>
-      </details>
+          {c.waitingIntervals.length > 0 && <details className="rv-details">
+            <summary>Waiting periods ({c.waitingIntervals.length})</summary>
+            <ul className="rv-penalties">{c.waitingIntervals.map((w, i) => <li key={i}><span><b>{label(w.reason)}</b>{w.note && <div className="hint">{w.note}</div>}</span><span className="hint" style={{ textAlign: 'right' }}>{fmtDateTime(w.startedAt)} –<br />{w.endedAt ? fmtDateTime(w.endedAt) : 'ongoing'}</span></li>)}</ul>
+          </details>}
+        </SideSection>
+        {c.scope === 'Client' && <SlaSections c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
+        {c.jiraSource && <JiraSideSection s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
+      </>} />
 
       {dialog === 'triage' && <ActionDialog {...common} title="Triage ticket" path={`/cases/${id}/triage`} submitLabel="Confirm triage" intro="Confirm scope, team, impact, priority and next-review time. Next action is optional."
         initial={{ responsibleTeamId: c.team ? String(c.team.id) : '', impactSummary: c.impactSummary, priority: c.priority, nextAction: c.nextAction, nextReviewAt: toLocalInput(c.nextReviewAt) }}
@@ -458,49 +421,6 @@ export function CaseDetail() {
       {dialog === 'jira' && <JiraDialog caseId={c.id} onClose={close} />}
       {dialog?.startsWith('unjira-') && <ActionDialog {...common} title="Remove Jira reference" danger path={`/cases/${id}/jira/${dialog.slice(7)}/remove`} submitLabel="Remove" intro="The reference stays in the audit history." fields={[{ name: 'reason', label: 'Reason', required: true }]} />}
     </>)}</QueryState>
-  );
-}
-
-/** A61: the contractual SLA of a case — the contract, the snapshot of its target, deadlines, actual times and outcomes. */
-function SlaPanel({ c, canEdit, canChangeContract, onRespond, onContract }: { c: CaseDto; canEdit: boolean; canChangeContract: boolean; onRespond: () => void; onContract: () => void }) {
-  const s = c.sla;
-  const a = s.applied;
-  const penaltyPreview = useQuery({ queryKey: ['case-penalty-preview', c.id], queryFn: () => get<{ items: { id: number; name: string; trigger: string; month: string; amount: number; currency: string; reviewState: string }[] }>(`/cases/${c.id}/penalty-preview`), enabled: !!c.contract });
-  const slaRows = [
-    { key: 'response', name: 'First response', target: a?.responseMinutes, obligation: s.response, actualLabel: 'Not yet recorded' },
-    { key: 'resolution', name: 'Resolution', target: a?.resolutionMinutes, obligation: s.resolution, actualLabel: 'Not yet resolved' }
-  ];
-  return (
-    <Panel title="Contractual SLA" actions={<>
-      {canEdit && c.contract && !s.response.actualAt && <button className="btn" onClick={onRespond}>Record first response</button>}
-      {canChangeContract && <button className="btn" onClick={onContract}>{c.contract ? 'Change contract' : 'Link contract'}</button>}</>}>
-      <DL items={[
-        ['Contract', c.contract ? <><Link to={`/contracts/${c.contract.id}`}>{c.contract.ref}</Link> · {c.contract.title} {c.contract.status !== 'Active' && <Badge tone="warn">{label(c.contract.status)}</Badge>}</> : <span className="muted">{c.contractFromJiraSpace ? 'No contract covers the creation date — not measurable' : 'No contract linked — not measured'}</span>],
-        ...(a ? [['Applied target', <>{a.priority} priority · {a.basis === 'CalendarHours' ? 'calendar hours' : a.basis === 'SupportHours' ? (a.support24x7 ? 'support hours (24×7)' : `support hours ${a.supportDays.replace(/, /g, ' ')} ${a.supportFrom ?? ''}–${a.supportTo ?? ''} ${a.timeZone ?? ''}`) : 'basis not set'}
-          {a.pausesWhileWaitingOnCustomer && ' · paused while waiting on the customer'}<div className="hint">Taken from {a.contractRef} on {fmtDateTime(a.at)}; later contract edits do not change it.{c.contractFromJiraSpace && ' This contract was valid when the ticket was created.'}</div></>] as [string, React.ReactNode]] : []),
-        ['Clock start', <>{fmtDateTime(s.startAt)} <span className="hint">({s.startsAtJiraCreation ? 'Jira creation time' : 'hub creation time'}; deadlines and elapsed time count from here)</span></>],
-        ...(s.pausedMinutes ? [['Paused (waiting on the customer)', minutes(s.pausedMinutes)] as [string, string]] : []),
-        ['Operational due date', s.operationalDueAt ? <>{fmtDateTime(s.operationalDueAt)} <span className="hint">{s.startsAtJiraCreation ? '(the contractual resolution deadline of this synchronized ticket)' : '(agreed by the team; separate from the contractual deadlines)'}</span></> : <span className="muted">None</span>]
-      ]} />
-      {c.contract && <DataTable caption="Contractual SLA measurements" selectable={false} rows={slaRows} rowKey={r => r.key} tableClassName="sla-table" columns={[
-        { key: 'measurement', header: 'Measurement', render: r => r.name },
-        { key: 'target', header: 'Target', render: r => minutes(r.target) },
-        { key: 'deadline', header: 'Deadline', render: r => r.obligation.dueAt ? fmtDateTime(r.obligation.dueAt) : <span className="muted">—</span> },
-        { key: 'actual', header: 'Actual', render: r => <>{r.obligation.actualAt ? fmtDateTime(r.obligation.actualAt) : <span className="muted">{r.actualLabel}</span>}{r.obligation.elapsedMinutes !== undefined && r.obligation.elapsedMinutes !== null && <div className="hint">{minutes(r.obligation.elapsedMinutes)} counted</div>}</> },
-        { key: 'status', header: 'Status', render: r => <><StatusBadge value={r.obligation.status} />{r.obligation.breachMinutes ? <div className="hint err">{minutes(r.obligation.breachMinutes)} over</div> : null}</> }
-      ]} />}
-      {!!penaltyPreview.data?.items.length && <>
-        <h3 style={{ marginTop: 16 }}>Indicative penalties</h3>
-        <p className="hint">Calculated from the clause snapshot taken when this contract was linked. These monthly totals combine tickets sharing the recorded clause terms and apply monthly caps. The same totals can appear on multiple ticket pages; do not add them together as billing totals. Amounts need review and do not create credits or invoices.</p>
-        <DataTable caption="Indicative ticket penalties" selectable={false} rows={penaltyPreview.data.items.map((x, i) => ({ ...x, rowKey: `${x.id}-${x.month}-${i}` }))} rowKey={x => x.rowKey} columns={[
-          { key: 'clause', header: 'Clause', render: x => x.name }, { key: 'trigger', header: 'Trigger', render: x => label(x.trigger) },
-          { key: 'month', header: 'Billing month', render: x => x.month },
-          { key: 'amount', header: 'Amount', className: 'num', render: x => new Intl.NumberFormat(undefined, { style: 'currency', currency: x.currency }).format(x.amount) },
-          { key: 'review', header: 'Review', render: x => label(x.reviewState) }
-        ]} />
-      </>}
-      {s.note && <p className="hint" style={{ marginTop: 8 }}>{s.note}</p>}
-    </Panel>
   );
 }
 

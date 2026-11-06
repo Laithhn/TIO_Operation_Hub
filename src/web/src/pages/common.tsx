@@ -53,11 +53,19 @@ export function HistoryPanel({ entityType, entityId }: { entityType: string; ent
   );
 }
 
-export function Changes({ json }: { json?: string | null }) {
-  if (!json) return null;
+/** The field changes of one audit entry as [field, before, after], values as people read them; null when the text is not JSON. */
+export function parseChanges(json?: string | null): { field: string; from: string; to: string }[] | null {
+  if (!json) return [];
   let d: Record<string, [unknown, unknown]> = {};
-  try { d = JSON.parse(json); } catch { return <span className="mono">{json}</span>; }
-  const lines = Object.entries(d).map(([k, v]) => <div key={k}><b>{label(k)}</b>: {changeValue(v?.[0])} → {changeValue(v?.[1])}</div>);
+  try { d = JSON.parse(json); } catch { return null; }
+  return Object.entries(d).map(([k, v]) => ({ field: label(k), from: changeValue(v?.[0]), to: changeValue(v?.[1]) }));
+}
+
+export function Changes({ json }: { json?: string | null }) {
+  const parsed = parseChanges(json);
+  if (!json) return null;
+  if (!parsed) return <span className="mono">{json}</span>;
+  const lines = parsed.map(x => <div key={x.field}><b>{x.field}</b>: {x.from} → {x.to}</div>);
   // A105: two changes on show, the rest one click away, so one record with many fields does not fill the page.
   if (lines.length <= 2) return <span className="audit-changes">{lines}</span>;
   return (
