@@ -16,7 +16,7 @@ import { toNum, useClientOptions, useProductOptions, useTeamOptions } from './co
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { EscalationTable } from './Escalations';
 import { activeQuickView, CRITICAL_OR_HIGH, quickViews, TICKET_FILTER_DEFAULTS, type QuickViewCounts, type TicketFilters } from './ticketViews';
-import { CaseActivity, JiraSideSection } from './jira/CaseJira';
+import { CaseActivity, JiraSection } from './jira/CaseJira';
 import { FactList, KeyFacts, RecordLayout, SideSection, TabSection } from '../ui/recordView';
 import { AffectedRecordsTab, CommitmentsTab, ImpactTab, JiraReferencesTab, TicketHistory } from './ticket/TicketTabs';
 import { SlaSections } from './ticket/TicketSla';
@@ -341,6 +341,7 @@ export function CaseDetail() {
             tone: breached || c.overdue ? 'bad' : undefined,
             meta: <>{c.dueAt ? <>Due {c.dueLocal} ({c.dueTimeZone})</> : 'No deadline'}{c.scope === 'Client' && p.canEdit && open && !c.statusFromJira && c.contract && !c.sla.response.actualAt && <> · <button className="linkbtn" onClick={() => setDialog('respond')}>Record first response</button></>}</> }
         ]} />
+        {c.jiraSource && <JiraSection s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
         <div className="rv-tabs"><Tabs value={tab} onChange={setTab} tabs={[{ key: 'timeline', label: 'Activity' }, { key: 'affected', label: `Affected records (${affectedCount})` }, { key: 'jira', label: `Jira references (${c.jiraReferences.length})` }, { key: 'impact', label: 'Documented impact' }, { key: 'commitments', label: `Commitments (${c.commitments.length})` }, { key: 'escalations', label: 'Escalations' }, { key: 'files', label: 'Attachments' }, { key: 'history', label: 'Field history' }].filter(t => allowedTabs.includes(t.key))} /></div>
         {tab === 'timeline' && <CaseActivity caseId={c.id} canComment={p.canEdit} />}
         {tab === 'affected' && <AffectedRecordsTab c={c} />}
@@ -380,7 +381,6 @@ export function CaseDetail() {
           </details>}
         </SideSection>
         {c.scope === 'Client' && <SlaSections c={c} canEdit={p.canEdit && !!open && !c.statusFromJira} canChangeContract={canCoordinate && !c.contractFromJiraSpace} onRespond={() => setDialog('respond')} onContract={() => setDialog('contract')} />}
-        {c.jiraSource && <JiraSideSection s={c.jiraSource} caseId={c.id} canSync={p.canEdit} />}
       </>} />
 
       {dialog === 'triage' && <ActionDialog {...common} title="Triage ticket" path={`/cases/${id}/triage`} submitLabel="Confirm triage" intro="Confirm scope, team, impact, priority and next-review time. Next action is optional."

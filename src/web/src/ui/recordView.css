@@ -34,6 +34,7 @@
 .rv-fact dt{color:var(--fg-2);padding-right:10px;font-weight:600}
 .rv-fact dd{overflow-wrap:anywhere}
 .rv-fact dd .hint{margin-top:1px}
+.rv-fact-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:0 24px}
 .rv-src{display:inline-block;margin-left:6px;padding:0 4px;font-size:10px;font-weight:600;line-height:15px;color:var(--link);border:1px solid currentColor;vertical-align:1px}
 
 /* ---------- key facts band ---------- */

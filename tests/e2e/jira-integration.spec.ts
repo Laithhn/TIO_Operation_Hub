@@ -288,6 +288,12 @@ test('Sync with Jira on a ticket reports what came back', async ({ page }) => {
   let calls = 0;
   await page.route(`**/api/v1/cases/${caseId}/jira-source/sync`, r => { calls++; return r.fulfill({ json: calls === 1 ? { issueKey: 'TAH-1', updated: false, comments: 2, activities: 1 } : { issueKey: 'TAH-1', updated: false, comments: 0, activities: 0, error: 'Select an active team.' } }); });
   await page.goto(href!);
+  // The imported Jira details are a section of the work area, between the key facts and the tabs (not in the details panel).
+  const jiraHead = page.locator('.rv-main').getByRole('heading', { name: 'Jira details (imported)' });
+  await expect(jiraHead).toBeVisible();
+  expect((await jiraHead.boundingBox())!.y).toBeGreaterThan((await page.getByRole('region', { name: 'What matters now' }).boundingBox())!.y);
+  expect((await jiraHead.boundingBox())!.y).toBeLessThan((await page.locator('.rv-tabs').boundingBox())!.y);
+  await expect(page.getByRole('complementary', { name: 'Ticket details' }).getByRole('heading', { name: 'Jira details (imported)' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Sync with Jira' }).click();
   await expect(page.getByText('TAH-1 synchronized: 2 new comment(s), 1 new activity item(s).')).toBeVisible();
   await page.getByRole('button', { name: 'Sync with Jira' }).click();

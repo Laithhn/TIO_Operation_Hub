@@ -1,6 +1,11 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.58.1', date: '9 November 2026', changes: [
+      'On a ticket synchronized from Jira, the Jira details are a main section under the overview and above the tabs, instead of the last section of the details panel. Fold it when you do not need it; the page remembers.'
+    ]
+  },
+  {
     version: '2.58.0', date: '6 November 2026', changes: [
       'A ticket opens with its latest activity, next action, owner and SLA in one band, with the tabs below and a details panel on the right.',
       'The details panel holds the management summary, age and waiting, contractual SLA, measurements, penalties and Jira details. Fold the sections you do not need; the page remembers.',

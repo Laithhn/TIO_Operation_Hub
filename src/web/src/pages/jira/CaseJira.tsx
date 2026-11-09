@@ -4,7 +4,7 @@ import { ApiError, get, post } from '../../api';
 import { fmtDateTime, label } from '../../format';
 import { useMe, useRefresh } from '../../hooks';
 import { Badge, FormError, QueryState, StateMessage, useToast } from '../../ui/kit';
-import { Avatar, ChangePair, FactList, FilterChips, IconMarker, SideSection, SourceTag, TabSection, Timeline, TimelineItem, type Fact } from '../../ui/recordView';
+import { Avatar, ChangePair, FactColumns, FilterChips, IconMarker, SideSection, SourceTag, TabSection, Timeline, TimelineItem, type Fact } from '../../ui/recordView';
 import { JiraBadge } from './shared';
 import './jira.css';
 
@@ -16,11 +16,11 @@ export type JiraSource = {
 export const jiraOriginLabel = (o: string) => o === 'ImportedSource' ? 'Imported source' : o === 'AdoptedSource' ? 'Source (adopted ticket)' : 'Manual reference';
 
 /**
- * A106: the Jira side of a synchronized ticket in one section of the details panel: connection, issue, status and sync times
- * (was the banner above the management summary), then the imported values (was "Jira details (imported)"). They are shown
- * beside the ticket and never copied into its business fields; each is marked as coming from Jira.
+ * A106: the Jira side of a synchronized ticket in one collapsible section of the work area, between the key facts and the tabs
+ * (owner request, 9 Nov 2026): connection, state and sync times, then the imported values in columns and the description.
+ * They are shown beside the ticket and never copied into its business fields.
  */
-export function JiraSideSection({ s, caseId, canSync }: { s: JiraSource; caseId: number; canSync: boolean }) {
+export function JiraSection({ s, caseId, canSync }: { s: JiraSource; caseId: number; canSync: boolean }) {
   const dash = (v?: React.ReactNode) => (v === null || v === undefined || v === '' ? <span className="muted">—</span> : v);
   const details: Fact[] = (s.details ?? []).map(d => [d.name, dash(d.value)]);
   const refresh = useRefresh();
@@ -40,14 +40,14 @@ export function JiraSideSection({ s, caseId, canSync }: { s: JiraSource; caseId:
     finally { setBusy(false); }
   };
   return (
-    <SideSection id="ticket-jira" title="Jira details (imported)" note={s.issueKey}
+    <SideSection id="ticket-jira-main" title="Jira details (imported)" note={<>{s.issueKey} · {s.status ?? 'Unknown'}</>}
       actions={canSync && <button className="btn" disabled={busy} onClick={sync}>{busy ? 'Synchronizing…' : 'Sync with Jira'}</button>}>
       {problem && <div className="notice warn" style={{ marginBottom: 8 }}>{problem}</div>}
       <section className="jira-sync" aria-label="Jira integration">
         <div className="jira-sync-line"><b>Jira integration{s.connection ? ` (${s.connection})` : ''}</b> <JiraBadge value={s.connectionStatus} /></div>
         <div className="hint">Last sync: {fmtDateTime(s.lastSync)} · Next sync: {s.nextSync ? fmtDateTime(s.nextSync) : 'Not scheduled'}</div>
       </section>
-      <FactList items={[
+      <FactColumns items={[
         ['Jira issue', <a className="mono" href={s.url} target="_blank" rel="noopener noreferrer">{s.issueKey}</a>],
         ['Jira status', <Badge tone="info">{s.status ?? 'Unknown'}</Badge>],
         ['Jira assignee', s.assignee ?? <span className="muted">Unassigned</span>],

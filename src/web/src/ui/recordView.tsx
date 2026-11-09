@@ -58,6 +58,14 @@ export function FactList({ items }: { items: (Fact | false | null | undefined)[]
   );
 }
 
+/** Label / value pairs spread over up to three columns, filled top to bottom, for the wide work area. */
+export function FactColumns({ items, columns = 3 }: { items: (Fact | false | null | undefined)[]; columns?: number }) {
+  const shown = items.filter((x): x is Fact => !!x);
+  const per = Math.ceil(shown.length / columns);
+  const groups = Array.from({ length: columns }, (_, i) => shown.slice(i * per, (i + 1) * per)).filter(g => g.length > 0);
+  return <div className="rv-fact-cols">{groups.map((g, i) => <FactList key={i} items={g} />)}</div>;
+}
+
 /** The few facts that matter first, in one band under the title. */
 export function KeyFacts({ label, items }: { label: string; items: { label: string; value: ReactNode; meta?: ReactNode; tone?: 'bad' | 'warn' }[] }) {
   return (
