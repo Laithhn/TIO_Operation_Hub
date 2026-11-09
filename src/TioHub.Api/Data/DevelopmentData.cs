@@ -28,6 +28,9 @@ public static class DevelopmentData
 {
     public static async Task SeedAsync(HubDbContext db, TimeProvider clock, CancellationToken ct = default)
     {
+        // A77: the demonstration data shows the optional validation step, which production lists do not start with.
+        if (!await db.LookupValues.AnyAsync(l => l.ListName == LookupLists.CaseStatusLabel && l.Code == Modules.Work.CaseStatuses.PendingValidationCode, ct))
+            db.LookupValues.Add(new LookupValue { ListName = LookupLists.CaseStatusLabel, Code = Modules.Work.CaseStatuses.PendingValidationCode, Label = "Pending validation", Category = nameof(CaseStatusBehavior.Resolved), SortOrder = 35 });
         var now = clock.GetUtcNow();
         if (await db.Clients.IgnoreQueryFilters().AnyAsync(c => c.Code == "DEMO-NTA", ct))
         {
@@ -43,21 +46,20 @@ public static class DevelopmentData
 
         var builtInRoles = await BuiltInRoles.EnsureAsync(db, ct);
 
-        User U(string account, string name, string tz, Grant grants, bool allClients, bool allInternal, params Role[] roles)
+        User U(string account, string name, string tz, bool allClients, bool allInternal, params string[] roles)
         {
-            var u = new User { AccountName = account, DisplayName = name, WorkingTimeZone = tz, Grants = grants, AllClients = allClients, AllInternal = allInternal, IsActive = true };
+            var u = new User { AccountName = account, DisplayName = name, WorkingTimeZone = tz, AllClients = allClients, AllInternal = allInternal, IsActive = true };
             foreach (var r in roles) u.Roles.Add(new UserRole { AppRoleId = builtInRoles[r] });
             db.Users.Add(u);
             return u;
         }
-        var all = Grant.Export | Grant.TechnicalDetail | Grant.Audit;
-        var manager = U("DEV\\manager", "Mara Okafor (demo manager)", "Asia/Riyadh", all, true, true, Role.Manager);
-        var lead = U("DEV\\lead", "Leon Brandt (demo lead)", "Asia/Dubai", Grant.Export | Grant.TechnicalDetail, true, true, Role.Manager);
-        var eng1 = U("DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Riyadh", Grant.TechnicalDetail, false, false, Role.Engineer);
-        var eng2 = U("DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Dubai", Grant.TechnicalDetail, false, false, Role.Engineer);
-        var viewer = U("DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", Grant.None, false, false, Role.Engineer);
-        var admin = U("DEV\\admin", "Adam Reyes (demo administrator)", "UTC", Grant.Audit, false, false, Role.Manager);
-        var former = U("DEV\\former", "Farid Haddad (demo, deactivated)", "Asia/Riyadh", Grant.None, false, false, Role.Engineer);
+        var manager = U("DEV\\manager", "Mara Okafor (demo manager)", "Asia/Riyadh", true, true, BuiltInRoles.ManagerKey);
+        var lead = U("DEV\\lead", "Leon Brandt (demo lead)", "Asia/Dubai", true, true, BuiltInRoles.ManagerKey);
+        var eng1 = U("DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Riyadh", true, true, BuiltInRoles.EngineerKey);
+        var eng2 = U("DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Dubai", true, true, BuiltInRoles.EngineerKey);
+        var viewer = U("DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", true, true, BuiltInRoles.EngineerKey);
+        var admin = U("DEV\\admin", "Adam Reyes (demo administrator)", "UTC", true, true, BuiltInRoles.ManagerKey);
+        var former = U("DEV\\former", "Farid Haddad (demo, deactivated)", "Asia/Riyadh", true, true, BuiltInRoles.EngineerKey);
         await db.SaveChangesAsync(ct);
 
         var ops = new Team { Code = "OPS", Name = "TIO Operations", LeadUserId = lead.Id, ManagerUserId = manager.Id, Description = "Fictional demo team" };

@@ -23,7 +23,6 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
     public sealed record CountryRow(string Country, int Clients, int Environments, int OpenCases, int OverdueCases, int OpenCommitments, int OverdueCommitments, List<string> ClientCodes);
     public sealed record WeekPoint(DateOnly WeekStart, int Opened, int Closed);
 
-    private static readonly CaseStatus[] OpenStatuses = [CaseStatus.New, CaseStatus.Triaged, CaseStatus.InProgress, CaseStatus.PendingValidation];
 
     public async Task<object> BuildAsync(DashboardQuery p, CancellationToken ct)
     {
@@ -37,16 +36,21 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
         string L(string path, string extra) => Link(p, now, path, extra);
 
         // ---- cases ----
-        var open = await Cases(baseCase).Select(c => new { c.Status, c.Priority, c.CreatedAt }).ToListAsync(ct);
-        var byStatus = OpenStatuses.Select(s => new Bar(s.ToString(), Label(s.ToString()), open.Count(c => c.Status == s), L("/cases", $"status={s}"))).ToList();
+        var open = await Cases(baseCase).Select(c => new { c.StatusCode, c.Priority, OpenedAt = c.SlaClockStartAt ?? c.CreatedAt }).ToListAsync(ct);
+        // A91: the configured status shown on each case, as in the case list and the report builder. Waiting for customer is one of them; stages stay internal (A77).
+        var statuses = await db.LookupValues.AsNoTracking().Where(l => l.ListName == CaseStatuses.List).OrderBy(l => l.SortOrder).ThenBy(l => l.Label).Select(l => new { l.Code, l.Label, l.IsRetired, l.Category }).ToListAsync(ct);
+        var inUse = open.Select(c => c.StatusCode).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var statusBars = statuses.Where(l => inUse.Contains(l.Code) || (!l.IsRetired && l.Category != nameof(CaseStatusBehavior.Closed))).Select(l => (l.Code, l.Label))
+            .Concat(inUse.Where(code => !statuses.Any(l => string.Equals(l.Code, code, StringComparison.OrdinalIgnoreCase))).OrderBy(code => code).Select(code => (Code: code, Label: Label(code))));
+        var byStatus = statusBars.Select(s => new Bar(s.Code, s.Label, open.Count(c => string.Equals(c.StatusCode, s.Code, StringComparison.OrdinalIgnoreCase)), L("/cases", $"status=code:{Uri.EscapeDataString(s.Code)}"))).ToList();
         var byPriority = Enum.GetValues<Priority>().Select(pr => new Bar(pr.ToString(), pr.ToString(), open.Count(c => c.Priority == pr), L("/cases", $"priority={pr}"))).ToList();
-        // Age buckets by creation time; links use the same created-at window so the list matches the bar.
+        // Age buckets by opening time (A91); links use the same window so the list matches the bar.
         (string Key, string Label, int From, int? To)[] buckets = [("0-2", "0–2 days", 0, 3), ("3-7", "3–7 days", 3, 8), ("8-30", "8–30 days", 8, 31), ("31+", "Over 30 days", 31, null)];
         var age = buckets.Select(b =>
         {
             var newest = now.AddDays(-b.From);
             DateTimeOffset? oldest = b.To is { } t ? now.AddDays(-t) : null;
-            var n = open.Count(c => c.CreatedAt <= newest && (oldest == null || c.CreatedAt > oldest));
+            var n = open.Count(c => c.OpenedAt <= newest && (oldest == null || c.OpenedAt > oldest));
             var link = L("/cases", $"createdTo={Uri.EscapeDataString(newest.AddTicks(1).ToString("O"))}" + (oldest is null ? "" : $"&createdFrom={Uri.EscapeDataString(oldest.Value.AddTicks(1).ToString("O"))}"));
             return new Bar(b.Key, b.Label, n, link);
         }).ToList();
@@ -55,7 +59,7 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
         var weekStart = now.UtcDateTime.Date.AddDays(-(((int)now.UtcDateTime.DayOfWeek + 6) % 7));
         var from = new DateTimeOffset(weekStart.AddDays(-7 * 7), TimeSpan.Zero);
         var all = CaseQuery.Apply(db.Cases.AsNoTracking(), baseCase with { Status = "all" }, now, days, policy, db, prios);
-        var opened = await all.Where(c => c.CreatedAt >= from && c.CreatedAt <= now).Select(c => c.CreatedAt).ToListAsync(ct);
+        var opened = await all.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) >= from && (c.SlaClockStartAt ?? c.CreatedAt) <= now).Select(c => c.SlaClockStartAt ?? c.CreatedAt).ToListAsync(ct);
         var closed = await all.Where(c => c.ClosedAt != null && c.ClosedAt >= from && c.ClosedAt <= now).Select(c => c.ClosedAt!.Value).ToListAsync(ct);
         var trend = Enumerable.Range(0, 8).Select(i =>
         {
@@ -226,7 +230,7 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
             escalations = escalationMore,
             payments = paymentMore,
             countries = await CountriesAsync(p, now, ct),
-            cases = new { byStatus, byPriority, age, trend, trendNote = "Weeks start Monday (UTC). Opened = created in the week; closed = closed in the week, regardless of current status." },
+            cases = new { byStatus, byPriority, age, trend, trendNote = "Weeks start Monday (UTC). Opened = opened in the week (the Jira creation time of a synchronized ticket, otherwise the hub creation time); closed = closed in the week, regardless of current status." },
             commitments,
             environments = new { condition, needsVerification, note = "Manually reported condition, not live monitoring. Needs verification = last report older than the condition review period." },
             dataQuality = dq,
@@ -253,6 +257,9 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
             overdueCommitments = db.Commitments.Count(x => x.ClientId == c.Id && x.Status == CommitmentStatus.Open && x.CurrentDueAt < now),
             // A39: per-client figures for the interactive map.
             c.Id, c.Name, c.ParentClientId,
+            // A73: what the client map's country panel lists per client (product codes from installations; the project manager).
+            products = db.Installations.Where(i => i.ClientId == c.Id).Select(i => i.Product!.Code).Distinct().OrderBy(x => x).ToList(),
+            projectManager = c.Owner == null ? null : c.Owner.DisplayName,
             servers = db.Assets.Count(a => a.ClientId == c.Id && a.TypeCategory != AssetType.LogicalEndpoint),
             activeContracts = db.Contracts.Count(k => k.ClientId == c.Id && k.Status == ContractStatus.Active),
             renewalAttention = db.Contracts.Count(k => k.ClientId == c.Id && k.Status == ContractStatus.Active && (k.EndDate == null || k.EndDate.Value.AddDays(-(k.NoticeDays ?? 0)) <= DateOnly.FromDateTime(now.UtcDateTime).AddDays(ContractQuery.RenewalWindowDays)))
@@ -264,7 +271,7 @@ public sealed class Insights(HubDbContext db, HubSettings settings, FreshnessSer
         var clientRows = rows.OrderBy(r => r.Code).Select(r => new
         {
             r.Id, r.Code, r.Name, country = r.CountryUnknown ? null : r.Country, r.ParentClientId, r.environments, r.servers, r.openCases, r.overdueCases,
-            r.openCommitments, r.overdueCommitments, r.activeContracts, r.renewalAttention
+            r.openCommitments, r.overdueCommitments, r.activeContracts, r.renewalAttention, r.products, r.projectManager
         }).ToList();
         return new { rows = byCountry, unknownCountryClients = unknown.Count, unknownCountryCodes = unknown.Select(u => u.Code).Order().ToList(), clients = clientRows };
     }

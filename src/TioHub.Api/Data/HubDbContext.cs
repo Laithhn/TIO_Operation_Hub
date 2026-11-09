@@ -36,9 +36,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public bool AllInternal => user.AllInternal;
     public List<long> TeamIds => user.TeamIds;
     public long Me => user.UserId ?? -1;
-    public bool IsLead => user.IsLead;
+    public bool CoordinatesTeams => user.HasRight(RightKeys.Teams, RightKeys.Coordinate);
     public bool AnyInternal => user.AllInternal || user.TeamIds.Count > 0;
-    public bool Biz => user.HasBusinessRole;
+    public bool Biz => user.HasAccess;
 
     public UserContext CurrentUser => user;
 
@@ -49,10 +49,17 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<UserCredential> UserCredentials => Set<UserCredential>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<AppRole> AppRoles => Set<AppRole>();
+    public DbSet<RoleRight> RoleRights => Set<RoleRight>();
+    public DbSet<UserRightException> UserRightExceptions => Set<UserRightException>();
+    public DbSet<RightDefinition> RightDefinitions => Set<RightDefinition>();
+    public DbSet<AuthorizationVersion> AuthorizationVersions => Set<AuthorizationVersion>();
     public DbSet<UserScope> UserScopes => Set<UserScope>();
     public DbSet<GroupMapping> GroupMappings => Set<GroupMapping>();
+    public DbSet<GroupMappingRole> GroupMappingRoles => Set<GroupMappingRole>();
     public DbSet<GroupMappingScope> GroupMappingScopes => Set<GroupMappingScope>();
     public DbSet<Client> Clients => Set<Client>();
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<OrganizationRelationship> OrganizationRelationships => Set<OrganizationRelationship>();
     public DbSet<Region> Regions => Set<Region>();
     public DbSet<ClientTeamMember> ClientTeamMembers => Set<ClientTeamMember>();
     public DbSet<Project> Projects => Set<Project>();
@@ -85,9 +92,27 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<CaseEvent> CaseEvents => Set<CaseEvent>();
     public DbSet<JiraInstance> JiraInstances => Set<JiraInstance>();
     public DbSet<JiraReference> JiraReferences => Set<JiraReference>();
+    public DbSet<Modules.Jira.JiraConnection> JiraConnections => Set<Modules.Jira.JiraConnection>();
+    public DbSet<Modules.Jira.JiraCredential> JiraCredentials => Set<Modules.Jira.JiraCredential>();
+    public DbSet<Modules.Jira.JiraDiscoveredSpace> JiraDiscoveredSpaces => Set<Modules.Jira.JiraDiscoveredSpace>();
+    public DbSet<Modules.Jira.ClientJiraSettings> ClientJiraSettings => Set<Modules.Jira.ClientJiraSettings>();
+    public DbSet<Modules.Jira.ClientJiraSpace> ClientJiraSpaces => Set<Modules.Jira.ClientJiraSpace>();
+    public DbSet<Modules.Jira.ClientJiraSpaceContract> ClientJiraSpaceContracts => Set<Modules.Jira.ClientJiraSpaceContract>();
+    public DbSet<Modules.Jira.JiraSpaceSyncState> JiraSpaceSyncStates => Set<Modules.Jira.JiraSpaceSyncState>();
+    public DbSet<Modules.Jira.JiraCaseMapping> JiraCaseMappings => Set<Modules.Jira.JiraCaseMapping>();
+    public DbSet<Modules.Jira.JiraUserMapping> JiraUserMappings => Set<Modules.Jira.JiraUserMapping>();
+    public DbSet<Modules.Jira.JiraWorkflowStatusMapping> JiraWorkflowStatusMappings => Set<Modules.Jira.JiraWorkflowStatusMapping>();
+    public DbSet<Modules.Jira.JiraValueMapping> JiraValueMappings => Set<Modules.Jira.JiraValueMapping>();
+    public DbSet<Modules.Jira.JiraComment> JiraComments => Set<Modules.Jira.JiraComment>();
+    public DbSet<Modules.Jira.JiraActivity> JiraActivities => Set<Modules.Jira.JiraActivity>();
+    public DbSet<Modules.Jira.CaseComment> CaseComments => Set<Modules.Jira.CaseComment>();
+    public DbSet<Modules.Jira.JiraSyncRun> JiraSyncRuns => Set<Modules.Jira.JiraSyncRun>();
+    public DbSet<Modules.Jira.JiraIntegrationIssue> JiraIntegrationIssues => Set<Modules.Jira.JiraIntegrationIssue>();
     public DbSet<Contract> Contracts => Set<Contract>();
     public DbSet<ContractEnvironment> ContractEnvironments => Set<ContractEnvironment>();
     public DbSet<SlaTarget> SlaTargets => Set<SlaTarget>();
+    public DbSet<ContractPenaltyClause> ContractPenaltyClauses => Set<ContractPenaltyClause>();
+    public DbSet<PenaltyAssessment> PenaltyAssessments => Set<PenaltyAssessment>();
     public DbSet<Commitment> Commitments => Set<Commitment>();
     public DbSet<CommitmentEvent> CommitmentEvents => Set<CommitmentEvent>();
     public DbSet<Escalation> Escalations => Set<Escalation>();
@@ -114,10 +139,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<Modules.Reporting.ReportSchedule> ReportSchedules => Set<Modules.Reporting.ReportSchedule>();
     public DbSet<Modules.Reporting.ReportScheduleRecipient> ReportScheduleRecipients => Set<Modules.Reporting.ReportScheduleRecipient>();
     public DbSet<Modules.Reporting.ReportPreset> ReportPresets => Set<Modules.Reporting.ReportPreset>();
+    public DbSet<Modules.Reporting.SavedReport> SavedReports => Set<Modules.Reporting.SavedReport>();
+    public DbSet<Modules.Reporting.SavedReportShare> SavedReportShares => Set<Modules.Reporting.SavedReportShare>();
+    public DbSet<Modules.Reporting.SavedReportFavorite> SavedReportFavorites => Set<Modules.Reporting.SavedReportFavorite>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder b)
     {
-        foreach (var enumType in typeof(Role).Assembly.GetTypes().Where(t => t.IsEnum && t.Namespace?.StartsWith("TioHub.Api") == true && t != typeof(Grant)))
+        foreach (var enumType in typeof(HubDbContext).Assembly.GetTypes().Where(t => t.IsEnum && t.Namespace?.StartsWith("TioHub.Api") == true))
             b.Properties(enumType).HaveConversion<string>().HaveMaxLength(40);
         b.Properties<string>().HaveMaxLength(400);
         b.Properties<decimal>().HavePrecision(12, 2);
@@ -125,6 +153,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     protected override void OnModelCreating(ModelBuilder m)
     {
+        m.ConfigureOrganizations(this);
         m.HasSequence<int>("CaseNumbers", "work").StartsAt(1001);
         m.HasSequence<int>("CommitmentNumbers", "work").StartsAt(1001);
         m.HasSequence<int>("EscalationNumbers", "work").StartsAt(1001);
@@ -141,7 +170,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Email).HasMaxLength(254);
             e.Property(x => x.WorkingTimeZone).HasMaxLength(64);
             e.Property(x => x.DeactivationReason).HasMaxLength(1000);
-            e.Property(x => x.Grants).HasConversion<int>();
+            e.Property(x => x.Classification).HasConversion<string>().HasMaxLength(30);
             e.HasMany(x => x.Roles).WithOne().HasForeignKey(x => x.UserId);
             e.HasMany(x => x.Scopes).WithOne().HasForeignKey(x => x.UserId);
         });
@@ -157,10 +186,62 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Name).HasMaxLength(60);
             e.HasIndex(x => x.Name).IsUnique();
             e.Property(x => x.Description).HasMaxLength(300);
+            e.Property(x => x.IsActive).HasDefaultValue(true);
             e.Property(x => x.Key).HasMaxLength(20);
             e.HasIndex(x => x.Key).IsUnique().HasFilter("[Key] IS NOT NULL");
-            e.Property(x => x.Rights).HasConversion<int>();
+            e.HasMany(x => x.Rights).WithOne(x => x.AppRole).HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Cascade);
             e.Ignore(x => x.IsLocked);
+        });
+        m.Entity<AuthorizationVersion>(e =>
+        {
+            e.ToTable("AuthorizationVersion", "iam", t => t.HasCheckConstraint("CK_AuthorizationVersion_Singleton", "[Id] = 1"));
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.HasData(new AuthorizationVersion { Id = 1, Version = 0 });
+        });
+        m.Entity<RoleRight>(e =>
+        {
+            e.ToTable("RoleRight", "iam");
+            e.HasKey(x => new { x.AppRoleId, x.RightKey });
+            e.Property(x => x.RightKey).HasMaxLength(120);
+            e.HasOne<RightDefinition>().WithMany().HasForeignKey(x => x.RightKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
+        });
+        m.Entity<UserRightException>(e =>
+        {
+            e.ToTable("UserRightException", "iam", t =>
+            {
+                t.HasCheckConstraint("CK_UserRightException_Effect", "[Effect] IN ('Allow','Deny')");
+                t.HasCheckConstraint("CK_UserRightException_SingleScope",
+                    "(CASE WHEN [ClientId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [ProjectId] IS NULL THEN 0 ELSE 1 END + CASE WHEN [TeamId] IS NULL THEN 0 ELSE 1 END) <= 1");
+            });
+            e.HasKey(x => x.Id);
+            e.Property(x => x.RightKey).HasMaxLength(120);
+            e.Property(x => x.Effect).HasMaxLength(5);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<RightDefinition>().WithMany().HasForeignKey(x => x.RightKey).HasPrincipalKey(x => x.Key).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Team>().WithMany().HasForeignKey(x => x.TeamId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.ExpiresAt);
+            // One exception per user, right and scope; different scopes can carry different effects.
+            e.HasIndex(x => new { x.UserId, x.RightKey }).IsUnique().HasDatabaseName("UX_UserRightException_Global").HasFilter("[ClientId] IS NULL AND [ProjectId] IS NULL AND [TeamId] IS NULL");
+            e.HasIndex(x => new { x.UserId, x.RightKey, x.ClientId }).IsUnique().HasDatabaseName("UX_UserRightException_Client").HasFilter("[ClientId] IS NOT NULL");
+            e.HasIndex(x => new { x.UserId, x.RightKey, x.ProjectId }).IsUnique().HasDatabaseName("UX_UserRightException_Project").HasFilter("[ProjectId] IS NOT NULL");
+            e.HasIndex(x => new { x.UserId, x.RightKey, x.TeamId }).IsUnique().HasDatabaseName("UX_UserRightException_Team").HasFilter("[TeamId] IS NOT NULL");
+        });
+        m.Entity<RightDefinition>(e =>
+        {
+            e.ToTable("RightDefinition", "iam", t => t.HasCheckConstraint("CK_RightDefinition_Kind", "[Kind] IN ('Access','Action')"));
+            e.HasAlternateKey(x => x.Key);
+            e.Property(x => x.Key).HasMaxLength(120);
+            e.Property(x => x.Label).HasMaxLength(100);
+            e.Property(x => x.Description).HasMaxLength(500);
+            e.Property(x => x.Module).HasMaxLength(60);
+            e.Property(x => x.Feature).HasMaxLength(60);
+            e.Property(x => x.Kind).HasMaxLength(20);
+            e.Property(x => x.RiskLevel).HasMaxLength(20);
+            e.HasIndex(x => x.Key).IsUnique();
+            e.HasIndex(x => new { x.Module, x.Feature });
         });
         // Forms sign-in only: one credential per user, never audited automatically and never projected by any endpoint.
         m.Entity<UserCredential>(e =>
@@ -184,8 +265,14 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.ToTable("GroupMapping", "iam");
             e.Property(x => x.GroupName).HasMaxLength(256);
             e.HasIndex(x => x.GroupName).IsUnique();
-            e.Property(x => x.Grants).HasConversion<int>();
+            e.HasMany(x => x.Roles).WithOne().HasForeignKey(x => x.GroupMappingId).OnDelete(DeleteBehavior.Cascade);
             e.HasMany(x => x.Scopes).WithOne().HasForeignKey(x => x.GroupMappingId);
+        });
+        m.Entity<GroupMappingRole>(e =>
+        {
+            e.ToTable("GroupMappingRole", "iam");
+            e.HasKey(x => new { x.GroupMappingId, x.AppRoleId });
+            e.HasOne(x => x.AppRole).WithMany().HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Restrict);
         });
         m.Entity<GroupMappingScope>(e =>
         {
@@ -206,6 +293,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.ParentOrganization).HasMaxLength(150);
             e.Property(x => x.Partner).HasMaxLength(150);
             e.Property(x => x.ResponsibleOrganization).HasMaxLength(150);
+            e.Property(x => x.LogoPath).HasMaxLength(200);
+            e.Property(x => x.LogoContentType).HasMaxLength(50);
+            e.Property(x => x.LogoVersion).HasMaxLength(32);
             e.Ignore(x => x.ScopeClientId);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
             e.HasOne(x => x.CountryFollowUpOwner).WithMany().HasForeignKey(x => x.CountryFollowUpOwnerId);
@@ -232,7 +322,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.ClientId, x.Code }).IsUnique();
             e.Ignore(x => x.ScopeClientId);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
-            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || ProjectClientIds.Contains(x.ClientId));
+            // A project grant permits the client summary, not client-wide region details.
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
         });
         m.Entity<Project>(e =>
         {
@@ -427,6 +518,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.EnvironmentId, x.NormalizedName }).IsUnique().HasFilter("[ArchivedAt] IS NULL");
             e.Property(x => x.Role).HasMaxLength(100);
             e.Property(x => x.NetworkZone).HasMaxLength(100);
+            e.Property(x => x.IpAddress).HasMaxLength(64);
+            e.Property(x => x.Vlan).HasMaxLength(40);
+            e.Property(x => x.Notes).HasMaxLength(2000);
             e.Property(x => x.TechnicalOwnerName).HasMaxLength(150);
             e.Property(x => x.TechnicalOwnerContact).HasMaxLength(300);
             e.Property(x => x.TechnicalOwnerTitle).HasMaxLength(100);
@@ -531,6 +625,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<Case>(e =>
         {
             e.ToTable("Case", "work");
+            e.Property(x => x.StatusCode).HasMaxLength(100);
+            e.Property(x => x.ClientRepresentative).HasMaxLength(200);
+            e.Property(x => x.InternalAssignee).HasMaxLength(200);
             e.Property(x => x.Ref).HasMaxLength(20).HasDefaultValueSql("CONCAT('CS-', NEXT VALUE FOR [work].[CaseNumbers])").ValueGeneratedOnAdd();
             e.Property(x => x.Ref).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);
             e.HasIndex(x => x.Ref).IsUnique();
@@ -548,6 +645,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.ResponsibleOrganization).HasMaxLength(150);
             e.Ignore(x => x.ScopeClientId);
             e.HasIndex(x => new { x.Status, x.DueAt });
+            // A70: the Report Builder's default date filter.
+            e.HasIndex(x => x.CreatedAt);
             e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
             // A61: contractual SLA
             e.HasOne(x => x.Contract).WithMany().HasForeignKey(x => x.ContractId);
@@ -555,6 +654,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.ResponseSlaStatus, x.ResponseDueAt });
             e.HasIndex(x => new { x.ResolutionSlaStatus, x.ResolutionDueAt });
             e.Property(x => x.SlaTimeZone).HasMaxLength(64);
+            e.Property(x => x.PenaltyTermsSnapshotJson).HasMaxLength(8000);
             e.Property(x => x.SlaContractRef).HasMaxLength(20);
             e.Property(x => x.SlaNote).HasMaxLength(300);
             e.Property(x => x.SlaSupportDays).HasConversion<int>();
@@ -569,8 +669,16 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasMany(x => x.Components).WithOne().HasForeignKey(x => x.CaseId);
             e.HasMany(x => x.JiraReferences).WithOne().HasForeignKey(x => x.CaseId);
             e.HasMany(x => x.WaitingIntervals).WithOne().HasForeignKey(x => x.CaseId);
+            // A case contains shared narrative, history and status. Seeing one affected
+            // environment does not authorize disclosing that shared content when any
+            // linked infrastructure or contract belongs to another project.
             e.HasQueryFilter(ScopeFilter, x => Sys
-                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || x.Environments.Any(ce => PEnv.Contains(ce.EnvironmentId))))
+                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value)
+                    || (x.Environments.Any() && x.Environments.All(ce => ce.ClientId == x.ClientId && PEnv.Contains(ce.EnvironmentId)
+                            && Environments.IgnoreQueryFilters().Any(e => e.Id == ce.EnvironmentId && e.ClientId == x.ClientId))
+                        && x.Assets.All(ca => ca.ClientId == x.ClientId && Assets.IgnoreQueryFilters().Any(a => a.Id == ca.AssetId && a.ClientId == x.ClientId && PEnv.Contains(a.EnvironmentId)))
+                        && x.Components.All(cc => cc.ClientId == x.ClientId && Components.IgnoreQueryFilters().Any(c => c.Id == cc.ComponentId && c.ClientId == x.ClientId && PEnv.Contains(c.EnvironmentId)))
+                        && (x.ContractId == null || Contracts.IgnoreQueryFilters().Any(k => k.Id == x.ContractId && k.ClientId == x.ClientId && ProjectIds.Contains(k.ProjectId))))))
                 || (x.ClientId == null && (AllInternal || (x.ResponsibleTeamId != null && TeamIds.Contains(x.ResponsibleTeamId.Value)))));
         });
         m.Entity<CaseEnvironment>(e => { e.ToTable("CaseEnvironment", "work"); e.HasKey(x => new { x.CaseId, x.EnvironmentId }); e.HasOne<ClientEnvironment>().WithMany().HasForeignKey(x => x.EnvironmentId); });
@@ -602,6 +710,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         {
             e.ToTable("JiraReference", "work");
             e.Property(x => x.IssueKey).HasMaxLength(40);
+            // A76: every reference that existed before the Jira integration is manual.
+            e.Property(x => x.Origin).HasDefaultValue(JiraReferenceOrigin.Manual);
             e.Property(x => x.Url).HasMaxLength(500);
             e.Property(x => x.ReuseReason).HasMaxLength(1000);
             e.HasIndex(x => new { x.CaseId, x.JiraInstanceId, x.IssueKey }).IsUnique().HasFilter("[RemovedAt] IS NULL");
@@ -670,6 +780,32 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Notes).HasMaxLength(500);
             e.HasIndex(x => new { x.ContractId, x.Priority }).IsUnique();
         });
+        m.Entity<ContractPenaltyClause>(e =>
+        {
+            e.ToTable("ContractPenaltyClause", "contracts");
+            e.Property(x => x.Name).HasMaxLength(150);
+            e.Property(x => x.Trigger).HasConversion<string>().HasMaxLength(40);
+            e.Property(x => x.Calculation).HasConversion<string>().HasMaxLength(30);
+            e.Property(x => x.FixedAmount).HasPrecision(18, 4);
+            e.Property(x => x.Percentage).HasPrecision(5, 2);
+            e.Property(x => x.ReferenceAmount).HasPrecision(18, 4);
+            e.Property(x => x.MonthlyCap).HasPrecision(18, 4);
+            e.Property(x => x.BillingTimeZone).HasMaxLength(64);
+            e.HasIndex(x => x.ContractId);
+        });
+        m.Entity<PenaltyAssessment>(e =>
+        {
+            e.ToTable("PenaltyAssessment", "contracts");
+            e.Property(x => x.TermsKey).HasMaxLength(64);
+            e.Property(x => x.TermsSnapshotJson).HasMaxLength(2000);
+            e.Property(x => x.UncappedAmount).HasPrecision(18, 4);
+            e.Property(x => x.Amount).HasPrecision(18, 4);
+            e.Property(x => x.BreachIdentitiesJson).HasMaxLength(4000);
+            e.Property(x => x.Currency).HasMaxLength(3);
+            e.Property(x => x.ReviewReason).HasMaxLength(1000);
+            e.Ignore(x => x.ReviewState);
+            e.HasIndex(x => new { x.ContractId, x.ClauseId, x.BillingMonth, x.TermsKey }).IsUnique();
+        });
 
         // ---- commitments ----
         m.Entity<Commitment>(e =>
@@ -692,8 +828,12 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
             e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.CommitmentId);
+            // A project-linked commitment can contain narrative about a case spanning
+            // other projects. Project scope alone does not make that case visible.
             e.HasQueryFilter(ScopeFilter, x => Sys
-                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value))))
+                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value)
+                    || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value)
+                        && (x.CaseId == null || Cases.Any(c => c.Id == x.CaseId && c.ClientId == x.ClientId)))))
                 || (x.ClientId == null && (AllInternal || (x.ResponsibleTeamId != null && TeamIds.Contains(x.ResponsibleTeamId.Value)))));
         });
         m.Entity<CommitmentEvent>(e =>
@@ -730,7 +870,12 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<Contract>().WithMany().HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId).OnDelete(DeleteBehavior.Restrict);
             e.HasMany(x => x.Events).WithOne().HasForeignKey(x => x.EscalationId);
-            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value)));
+            // Escalation text and history can describe its linked case or contract.
+            // Both links must be visible when the caller has only project scope.
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId)
+                || (x.ProjectId != null && ProjectIds.Contains(x.ProjectId.Value)
+                    && (x.CaseId == null || Cases.Any(c => c.Id == x.CaseId && c.ClientId == x.ClientId))
+                    && (x.ContractId == null || Contracts.Any(c => c.Id == x.ContractId && c.ClientId == x.ClientId))));
         });
         m.Entity<EscalationEvent>(e =>
         {
@@ -780,8 +925,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ExceptionApprovedById);
             e.HasOne<User>().WithMany().HasForeignKey(x => x.ExceptionFollowUpOwnerId);
             e.HasMany(x => x.Items).WithOne().HasForeignKey(x => x.HandoverId);
-            e.HasQueryFilter(ScopeFilter, x => Sys || x.OutgoingOwnerId == Me || x.ReceivingOwnerId == Me
-                || (IsLead && ((x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value))) || (x.ClientId == null && AnyInternal))));
+            // A handover can contain records from multiple clients. Ownership alone must not bypass
+            // data scope, and a null ClientId can mean a mixed handover rather than an internal one.
+            e.HasQueryFilter(ScopeFilter, x => Sys ||
+                ((x.OutgoingOwnerId == Me || x.ReceivingOwnerId == Me || CoordinatesTeams)
+                 && (x.ClientId == null || All || ClientIds.Contains(x.ClientId.Value))
+                 && x.Items.Any()
+                 && x.Items.All(i => i.ClientId != null ? (All || ClientIds.Contains(i.ClientId.Value)) : AllInternal)));
         });
         m.Entity<HandoverItem>(e =>
         {
@@ -892,10 +1042,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => new { x.Rule, x.RecordType, x.RecordId }).IsUnique().HasFilter("[Status] = 'Open'");
             e.HasIndex(x => new { x.Status, x.ClientId });
             e.HasOne(x => x.Coordinator).WithMany().HasForeignKey(x => x.CoordinatorUserId);
-            e.HasQueryFilter(ScopeFilter, x => Sys
-                || (x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || (x.EnvironmentId != null && PEnv.Contains(x.EnvironmentId.Value))))
-                || (x.ClientId == null && x.TeamId == null && Biz)
-                || (x.ClientId == null && x.TeamId != null && (AllInternal || TeamIds.Contains(x.TeamId.Value))));
+            // A finding can outlive a change in its source's scope until the next scan.
+            // Never expose a case finding unless the current case is also visible.
+            e.HasQueryFilter(ScopeFilter, x => Sys ||
+                ((x.RecordType != RecordTypes.Case || Cases.Any(c => c.Id == x.RecordId))
+                 && ((x.ClientId != null && (All || ClientIds.Contains(x.ClientId.Value) || (x.EnvironmentId != null && PEnv.Contains(x.EnvironmentId.Value))))
+                     || (x.ClientId == null && x.TeamId == null && Biz)
+                     || (x.ClientId == null && x.TeamId != null && (AllInternal || TeamIds.Contains(x.TeamId.Value))))));
         });
         m.Entity<DocumentReference>(e =>
         {
@@ -975,9 +1128,17 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.TimeZone).HasMaxLength(64);
             e.Property(x => x.FileName).HasMaxLength(200);
             e.Property(x => x.StoredPath).HasMaxLength(300);
+            e.Property(x => x.AccessFingerprint).HasMaxLength(64);
             e.Property(x => x.Error).HasMaxLength(1000);
             e.Property(x => x.Source).HasMaxLength(40);
             e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+            // A70: asynchronous builder exports.
+            e.Property(x => x.OptionsJson).HasMaxLength(2000);
+            e.Property(x => x.DefinitionJson).HasMaxLength(32000);
+            e.Property(x => x.IdempotencyKey).HasMaxLength(80);
+            e.HasIndex(x => new { x.UserId, x.IdempotencyKey }).IsUnique().HasFilter("[IdempotencyKey] IS NOT NULL");
+            e.HasIndex(x => new { x.Status, x.NotBefore });
+            e.HasOne<Modules.Reporting.SavedReport>().WithMany().HasForeignKey(x => x.SavedReportId);
         });
         m.Entity<Modules.Reporting.ReportSchedule>(e =>
         {
@@ -992,6 +1153,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.LastOutcome).HasMaxLength(200);
             e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
             e.HasMany(x => x.Recipients).WithOne().HasForeignKey(r => r.ScheduleId);
+            // A70: deleting a saved report deletes its schedules explicitly (the UI asks first); their past exports stay in the history.
+            e.HasOne(x => x.SavedReport).WithMany().HasForeignKey(x => x.SavedReportId);
+            e.Property(x => x.OptionsJson).HasMaxLength(2000);
         });
         m.Entity<Modules.Reporting.ReportScheduleRecipient>(e =>
         {
@@ -1006,6 +1170,33 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Report).HasMaxLength(60);
             e.Property(x => x.Name).HasMaxLength(80);
             e.Property(x => x.FiltersJson).HasMaxLength(4000);
+        });
+        // ---- A70: saved builder reports ----
+        m.Entity<Modules.Reporting.SavedReport>(e =>
+        {
+            e.ToTable("SavedReport", "reporting");
+            e.HasIndex(x => new { x.OwnerUserId, x.Name }).IsUnique();
+            e.HasIndex(x => new { x.Visibility, x.TeamId });
+            e.Property(x => x.ReportType).HasMaxLength(40);
+            e.Property(x => x.Name).HasMaxLength(120);
+            e.Property(x => x.Description).HasMaxLength(1000);
+            e.Property(x => x.DefinitionJson).HasMaxLength(32000);
+            e.HasOne(x => x.Owner).WithMany().HasForeignKey(x => x.OwnerUserId);
+            e.HasOne<Modules.Teams.Team>().WithMany().HasForeignKey(x => x.TeamId);
+            e.HasMany(x => x.Shares).WithOne().HasForeignKey(x => x.SavedReportId);
+        });
+        m.Entity<Modules.Reporting.SavedReportShare>(e =>
+        {
+            e.ToTable("SavedReportShare", "reporting");
+            e.HasIndex(x => new { x.SavedReportId, x.UserId }).IsUnique();
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId);
+        });
+        m.Entity<Modules.Reporting.SavedReportFavorite>(e =>
+        {
+            e.ToTable("SavedReportFavorite", "reporting");
+            e.HasIndex(x => new { x.UserId, x.SavedReportId }).IsUnique();
+            e.HasOne<Modules.Reporting.SavedReport>().WithMany().HasForeignKey(x => x.SavedReportId);
+            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId);
         });
 
         // ---- shared conventions ----
@@ -1039,6 +1230,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<Team>().HasQueryFilter(ArchiveFilter, x => x.ArchivedAt == null);
         m.Entity<DocumentReference>().HasQueryFilter(ArchiveFilter, x => x.ArchivedAt == null);
 
+        ConfigureJira(m);
+
         // Nothing is deleted through cascades except link rows owned by their parent.
         foreach (var fk in m.Model.GetEntityTypes().SelectMany(t => t.GetForeignKeys()))
             fk.DeleteBehavior = DeleteBehavior.NoAction;
@@ -1053,6 +1246,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         foreach (var fk in m.Model.FindEntityType(typeof(Modules.Notes.NotePage))!.GetForeignKeys().Where(f => f.PrincipalEntityType.ClrType == typeof(Client) || f.PrincipalEntityType.ClrType == typeof(Project)))
             fk.DeleteBehavior = DeleteBehavior.SetNull;
         m.Entity<ContractEnvironment>().HasOne<Contract>().WithMany(c => c.Environments).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
+        m.Entity<ContractPenaltyClause>().HasOne<Contract>().WithMany(c => c.PenaltyClauses).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
+        m.Entity<PenaltyAssessment>().HasOne<Contract>().WithMany().HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.Restrict);
         m.Entity<SlaTarget>().HasOne<Contract>().WithMany(c => c.SlaTargets).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
         m.Entity<ContractMilestone>().HasOne<Contract>().WithMany(c => c.Milestones).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
         m.Entity<ContractFee>().HasOne<Contract>().WithMany(c => c.Fees).HasForeignKey(x => x.ContractId).OnDelete(DeleteBehavior.ClientCascade);
@@ -1064,13 +1259,221 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     }
 
 
+    /// <summary>A76: schema "jira". Tables holding client data carry the same client scope filter as the case module.</summary>
+    private void ConfigureJira(ModelBuilder m)
+    {
+        const string S = "jira";
+        m.Entity<Modules.Jira.JiraConnection>(e =>
+        {
+            e.ToTable("JiraConnection", S);
+            e.Property(x => x.Name).HasMaxLength(100);
+            e.HasIndex(x => x.Name).IsUnique();
+            e.Property(x => x.SiteUrl).HasMaxLength(300);
+            e.HasIndex(x => x.SiteUrl).IsUnique();
+            e.Property(x => x.AccountEmail).HasMaxLength(254);
+            e.Property(x => x.CloudId).HasMaxLength(64);
+            e.Property(x => x.SecretReference).HasMaxLength(200);
+            e.Property(x => x.AccountTimeZone).HasMaxLength(64);
+            e.Property(x => x.LastTestJson).HasMaxLength(4000);
+            e.Property(x => x.LastDiscoveryError).HasMaxLength(1000);
+            e.Property(x => x.DetailFieldNames).HasMaxLength(500);
+            e.HasOne(x => x.JiraInstance).WithMany().HasForeignKey(x => x.JiraInstanceId);
+        });
+        m.Entity<Modules.Jira.JiraCredential>(e =>
+        {
+            e.ToTable("JiraCredential", S);
+            e.HasKey(x => x.JiraConnectionId);
+            e.HasOne<Modules.Jira.JiraConnection>().WithOne().HasForeignKey<Modules.Jira.JiraCredential>(x => x.JiraConnectionId);
+        });
+        m.Entity<Modules.Jira.JiraDiscoveredSpace>(e =>
+        {
+            e.ToTable("JiraDiscoveredSpace", S);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.ProjectName).HasMaxLength(255);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraProjectId }).IsUnique();
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+        });
+        m.Entity<Modules.Jira.ClientJiraSettings>(e =>
+        {
+            e.ToTable("ClientJiraSettings", S);
+            e.HasIndex(x => x.ClientId).IsUnique();
+            e.Property(x => x.DefaultCaseType).HasMaxLength(40);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Team>().WithMany().HasForeignKey(x => x.DefaultResponsibleTeamId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.ClientJiraSpaceContract>(e =>
+        {
+            e.ToTable("ClientJiraSpaceContract", S);
+            e.HasIndex(x => new { x.ClientJiraSpaceId, x.ContractId }).IsUnique();
+            e.HasIndex(x => x.ContractId);
+            e.HasOne<Modules.Jira.ClientJiraSpace>().WithMany(x => x.Contracts).HasForeignKey(x => x.ClientJiraSpaceId);
+        });
+        m.Entity<Modules.Jira.ClientJiraSpace>(e =>
+        {
+            e.ToTable("ClientJiraSpace", S);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.ProjectName).HasMaxLength(255);
+            e.Property(x => x.ReleaseReason).HasMaxLength(1000);
+            // One space belongs to one active client per connection, whatever the application does.
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraProjectId }).IsUnique().HasFilter("[ReleasedAt] IS NULL");
+            e.HasIndex(x => x.ClientId);
+            e.HasOne(x => x.Client).WithMany().HasForeignKey(x => x.ClientId);
+            e.HasOne(x => x.JiraConnection).WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.JiraSpaceSyncState>(e =>
+        {
+            e.ToTable("JiraSpaceSyncState", S);
+            e.HasKey(x => x.ClientJiraSpaceId);
+            e.Property(x => x.LastError).HasMaxLength(1000);
+            e.Property(x => x.LeaseOwner).HasMaxLength(120);
+            e.HasOne<Modules.Jira.ClientJiraSpace>().WithOne().HasForeignKey<Modules.Jira.JiraSpaceSyncState>(x => x.ClientJiraSpaceId);
+        });
+        m.Entity<Modules.Jira.JiraCaseMapping>(e =>
+        {
+            e.ToTable("JiraCaseMapping", S);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.IssueKey).HasMaxLength(60);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.Url).HasMaxLength(500);
+            e.Property(x => x.Summary).HasMaxLength(400);
+            e.Property(x => x.StatusId).HasMaxLength(40);
+            e.Property(x => x.StatusName).HasMaxLength(120);
+            e.Property(x => x.StatusCategory).HasMaxLength(40);
+            e.Property(x => x.PriorityName).HasMaxLength(120);
+            e.Property(x => x.IssueTypeName).HasMaxLength(120);
+            e.Property(x => x.AssigneeAccountId).HasMaxLength(128);
+            e.Property(x => x.AssigneeName).HasMaxLength(255);
+            e.Property(x => x.ReporterName).HasMaxLength(255);
+            e.Property(x => x.Resolution).HasMaxLength(120);
+            e.Property(x => x.Labels).HasColumnType("nvarchar(max)");
+            e.Property(x => x.Components).HasColumnType("nvarchar(max)");
+            e.Property(x => x.DetailsJson).HasColumnType("nvarchar(max)");
+            e.Property(x => x.DescriptionText).HasColumnType("nvarchar(max)"); // A87: Jira sets the length of what it stores, so these have no limit here
+            e.Property(x => x.AppliedAssigneeAccountId).HasMaxLength(128);
+            e.Property(x => x.AppliedStatusId).HasMaxLength(40);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId }).IsUnique();
+            e.HasIndex(x => new { x.JiraConnectionId, x.IssueKey });
+            e.HasIndex(x => x.ClientJiraSpaceId);
+            e.HasOne(x => x.JiraConnection).WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Modules.Jira.ClientJiraSpace>().WithMany().HasForeignKey(x => x.ClientJiraSpaceId);
+            e.HasOne(x => x.Case).WithOne(c => c.JiraSource).HasForeignKey<Modules.Jira.JiraCaseMapping>(x => x.CaseId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId));
+        });
+        m.Entity<Modules.Jira.JiraUserMapping>(e =>
+        {
+            e.ToTable("JiraUserMapping", S);
+            e.Property(x => x.JiraAccountId).HasMaxLength(128);
+            e.Property(x => x.JiraDisplayName).HasMaxLength(255);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraAccountId }).IsUnique();
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne(x => x.TioUser).WithMany().HasForeignKey(x => x.TioUserId);
+        });
+        m.Entity<Modules.Jira.JiraValueMapping>(e =>
+        {
+            e.ToTable("JiraValueMapping", S);
+            e.Property(x => x.Kind).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.JiraValue).HasMaxLength(200);
+            e.Property(x => x.TargetCode).HasMaxLength(100);
+            e.HasIndex(x => new { x.ClientId, x.Kind, x.JiraValue }).IsUnique();
+        });
+        m.Entity<Modules.Jira.JiraWorkflowStatusMapping>(e =>
+        {
+            e.ToTable("JiraWorkflowStatusMapping", S);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.JiraStatusId).HasMaxLength(40);
+            e.Property(x => x.JiraStatusName).HasMaxLength(120);
+            e.Property(x => x.JiraStatusCategory).HasMaxLength(40);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraProjectId, x.JiraStatusId }).IsUnique();
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+        });
+        m.Entity<Modules.Jira.JiraComment>(e =>
+        {
+            e.ToTable("JiraComment", S);
+            e.Property(x => x.BodyText).HasColumnType("nvarchar(max)");
+            e.Property(x => x.JiraCommentId).HasMaxLength(40);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.AuthorAccountId).HasMaxLength(128);
+            e.Property(x => x.AuthorName).HasMaxLength(255);
+            e.Property(x => x.VisibilityType).HasMaxLength(40);
+            e.Property(x => x.VisibilityValue).HasMaxLength(255);
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraCommentId }).IsUnique();
+            e.HasIndex(x => new { x.CaseId, x.JiraCreatedAt });
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId });
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
+        });
+        m.Entity<Modules.Jira.JiraActivity>(e =>
+        {
+            e.ToTable("JiraActivity", S);
+            e.Property(x => x.ExternalEventId).HasMaxLength(60);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.Field).HasMaxLength(120);
+            e.Property(x => x.ActorName).HasMaxLength(255);
+            e.Property(x => x.FromValue).HasColumnType("nvarchar(max)");
+            e.Property(x => x.ToValue).HasColumnType("nvarchar(max)");
+            e.HasIndex(x => new { x.JiraConnectionId, x.ExternalEventId }).IsUnique();
+            e.HasIndex(x => new { x.CaseId, x.At });
+            e.HasIndex(x => new { x.JiraConnectionId, x.JiraIssueId });
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
+        });
+        m.Entity<Modules.Jira.CaseComment>(e =>
+        {
+            e.ToTable("CaseComment", "work");
+            e.Property(x => x.Body).HasMaxLength(8000);
+            e.HasIndex(x => new { x.CaseId, x.At });
+            e.HasOne<Case>().WithMany().HasForeignKey(x => x.CaseId);
+            e.HasOne(x => x.Author).WithMany().HasForeignKey(x => x.AuthorId);
+        });
+        m.Entity<Modules.Jira.JiraSyncRun>(e =>
+        {
+            e.ToTable("JiraSyncRun", S);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.Error).HasMaxLength(1000);
+            e.HasIndex(x => new { x.ClientJiraSpaceId, x.StartedAt });
+            e.HasIndex(x => new { x.ClientId, x.StartedAt });
+            e.HasIndex(x => x.StartedAt);
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || (x.ClientId != null && ClientIds.Contains(x.ClientId.Value)));
+        });
+        m.Entity<Modules.Jira.JiraIntegrationIssue>(e =>
+        {
+            e.ToTable("JiraIntegrationIssue", S);
+            e.Property(x => x.Fingerprint).HasMaxLength(200);
+            e.Property(x => x.ProjectKey).HasMaxLength(40);
+            e.Property(x => x.JiraProjectId).HasMaxLength(40);
+            e.Property(x => x.JiraIssueId).HasMaxLength(40);
+            e.Property(x => x.IssueKey).HasMaxLength(60);
+            e.Property(x => x.Subject).HasMaxLength(128);
+            e.Property(x => x.Description).HasMaxLength(1000);
+            e.Property(x => x.SuggestedAction).HasMaxLength(500);
+            e.Property(x => x.Resolution).HasMaxLength(40);
+            e.Property(x => x.ResolutionNote).HasMaxLength(1000);
+            e.HasIndex(x => x.Fingerprint).IsUnique().HasFilter("[Status] = N'Open'");
+            e.HasIndex(x => new { x.Status, x.Type });
+            e.HasOne<Modules.Jira.JiraConnection>().WithMany().HasForeignKey(x => x.JiraConnectionId);
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || (x.ClientId != null && ClientIds.Contains(x.ClientId.Value)));
+        });
+    }
+
     // ---------- Save: stamps and audit in the same transaction (NFR-03, atomic business changes) ----------
 
     private static readonly HashSet<Type> NotAudited =
-        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
-    private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
+        [typeof(AuditEntry), typeof(UserCredential), typeof(Modules.Jira.JiraCredential), typeof(Modules.Jira.JiraCaseMapping), typeof(Modules.Jira.JiraComment), typeof(Modules.Jira.JiraActivity), typeof(Modules.Jira.JiraSpaceSyncState), typeof(Modules.Jira.JiraSyncRun), typeof(Modules.Jira.JiraDiscoveredSpace), typeof(Modules.Jira.CaseComment), typeof(Modules.Notes.Notebook), typeof(Modules.Notes.NoteSection), typeof(Modules.Notes.NotePage), typeof(Modules.Notes.NoteFile), typeof(Modules.Notifications.Notification), typeof(CaseEvent), typeof(CommitmentEvent), typeof(ExportLog), typeof(Modules.Reporting.ExportJob), typeof(Modules.Reporting.SavedReportFavorite), typeof(DataQualityItem), typeof(Review), typeof(ConditionReport), typeof(InstallationVersionChange), typeof(CaseWaitingInterval)];
+    private static readonly HashSet<Type> AccessTypes = [typeof(User), typeof(UserRole), typeof(AppRole), typeof(RoleRight), typeof(UserRightException), typeof(RightDefinition), typeof(UserScope), typeof(GroupMapping), typeof(GroupMappingRole), typeof(GroupMappingScope), typeof(AppSetting), typeof(LookupValue), typeof(ReviewPolicy), typeof(JiraInstance)];
+    // Scope snapshots also contain the client and environment IDs derived from assigned projects.
+    // Changes to either relationship must invalidate cached snapshots across application instances.
+    private static readonly HashSet<Type> ScopeDependencies = [typeof(Project), typeof(ClientEnvironment)];
+    public static bool AffectsAuthorizationSnapshot(Type type) => AccessTypes.Contains(type) || ScopeDependencies.Contains(type);
     private static readonly HashSet<string> QuietProperties =
-        [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope"];
+        [nameof(Entity.RowVersion), nameof(Entity.UpdatedAt), nameof(Entity.UpdatedById), nameof(Entity.CreatedAt), nameof(Entity.CreatedById), nameof(User.LastSignInAt), "NormalizedName", "NormalizedInstanceName", "RegionScope",
+         // A71: the logo's storage path and type are technical; its history shows as a LogoVersion change with the reason "Client logo …".
+         "LogoPath", "LogoContentType"];
     private static readonly JsonSerializerOptions AuditJson = new(JsonSerializerDefaults.Web);
 
     /// <summary>"Entity.Property" names whose values are restricted technical detail (IAM-04); masked when audit is read without the grant.</summary>
@@ -1118,6 +1521,12 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     public override async Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken ct = default)
     {
+        // Every client has one canonical organization identity, including clients created by demo seeders.
+        foreach (var client in ChangeTracker.Entries<Client>().Where(e => e.State == EntityState.Added).Select(e => e.Entity).ToList())
+            if (!ChangeTracker.Entries<Organization>().Any(o => ReferenceEquals(o.Entity.Client, client)))
+                Organizations.Add(new Organization { Client = client });
+        foreach (var added in ChangeTracker.Entries<Modules.Work.Case>().Where(e => e.State == EntityState.Added && e.Entity.StatusCode.Length == 0))
+            added.Entity.StatusCode = Modules.Work.CaseStatuses.BuiltInCode(added.Entity.Status);
         var now = clock.GetUtcNow();
         var userId = user.UserId;
         // A38: new assignments become notifications for the people concerned (written once the records have their ids).
@@ -1153,6 +1562,10 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         var ownTx = Database.CurrentTransaction is null && Database.IsRelational() ? await Database.BeginTransactionAsync(ct) : null;
         try
         {
+            // Serialize authorization commits before writing their rows. Every instance observes the same generation;
+            // a grant/revocation and its version are committed or rolled back together with the audit entries.
+            if (pending.Any(p => AffectsAuthorizationSnapshot(p.Entry.Entity.GetType())))
+                await AdvanceAuthorizationVersionAsync(ct);
             var n = await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
             var correlation = Activity.Current?.TraceId.ToString();
             foreach (var p in pending)
@@ -1176,7 +1589,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
                 });
             }
             foreach (var notice in notices.Select(i => Modules.Notifications.AssignmentNotices.Build(i, now)).OfType<Modules.Notifications.Notification>())
-                Notifications.Add(notice);
+                // Assigned, moved away and assigned back within a minute: the first notice stands, and the save must not fail on it.
+                if (!await Notifications.IgnoreQueryFilters().AnyAsync(x => x.UserId == notice.UserId && x.Key == notice.Key, ct)) Notifications.Add(notice);
             await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
             if (ownTx is not null) await ownTx.CommitAsync(ct);
             AuditReason = null;
@@ -1186,6 +1600,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         {
             if (ownTx is not null) await ownTx.DisposeAsync();
         }
+    }
+
+    /// <summary>Invalidate access snapshots in the current transaction, including for raw SQL graph changes.</summary>
+    public async Task AdvanceAuthorizationVersionAsync(CancellationToken ct)
+    {
+        var changed = await Database.ExecuteSqlRawAsync("UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1", ct);
+        if (changed != 1) throw new InvalidOperationException("Authorization state is not initialized. Apply the deployment schema script.");
     }
 
     /// <summary>Writes an explicit audit entry for actions that change no row (exports, sign-in refusals) in its own save.</summary>
@@ -1239,11 +1660,11 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static string ActionFor(PendingAudit p)
     {
-        if (p.State == EntityState.Added) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope ? "AccessGranted" : "Create";
-        if (p.State == EntityState.Deleted) return p.Entry.Entity is UserRole or UserScope or GroupMappingScope ? "AccessRevoked" : "Remove";
+        if (p.State == EntityState.Added) return p.Entry.Entity is UserRole or UserScope or GroupMappingRole or GroupMappingScope or UserRightException ? "AccessGranted" : "Create";
+        if (p.State == EntityState.Deleted) return p.Entry.Entity is UserRole or UserScope or GroupMappingRole or GroupMappingScope or UserRightException ? "AccessRevoked" : "Remove";
         var c = p.Changes!;
         if (c.TryGetValue(nameof(IArchivable.ArchivedAt), out var a)) return a[1] is null ? "Restore" : "Archive";
-        if (p.Entry.Entity is User && (c.ContainsKey(nameof(User.IsActive)) || c.ContainsKey(nameof(User.Grants)) || c.ContainsKey(nameof(User.AllClients)) || c.ContainsKey(nameof(User.AllInternal)))) return "AccessChange";
+        if (p.Entry.Entity is User && (c.ContainsKey(nameof(User.IsActive)) || c.ContainsKey(nameof(User.AllClients)) || c.ContainsKey(nameof(User.AllInternal)))) return "AccessChange";
         if (c.ContainsKey("OwnerUserId")) return "OwnerChange";
         if (c.ContainsKey("Status")) return "StatusChange";
         return "Update";
@@ -1251,6 +1672,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
 
     private static long? KeyOf(EntityEntry e)
     {
+        if (e.Entity is UserRightException exception) return exception.UserId;
         var key = e.Metadata.FindPrimaryKey();
         if (key is null) return null;
         // Link rows: use the first key part (the parent) so their history appears with the parent.
@@ -1283,6 +1705,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     private static string? LabelOf(object entity) => entity switch
     {
         Client c => $"{c.Code} · {c.Name}",
+        Organization o => o.Client?.Name ?? o.Name,
+        OrganizationRelationship r => $"{r.ParentOrganizationId} → {r.ChildOrganizationId}",
         Region r => $"{r.Code} · {r.Name}",
         Project p => $"{p.Code} · {p.Name}",
         Contact c => c.Name,

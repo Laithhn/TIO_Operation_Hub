@@ -1,0 +1,6 @@
+.resizeHandle {
+  position: absolute;
+  // The handle is dragged: a touch on it must not become a pan the browser claims, which would
+  // cancel the drag.
+  touch-action: none;
+}

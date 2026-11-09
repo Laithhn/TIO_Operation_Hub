@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Modules.Catalogue;
+using TioHub.Api.Modules.Firewall;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Shared;
@@ -13,7 +14,8 @@ public static class InventoryEndpoints
     public sealed record AssetInput(long? EnvironmentId, string? Name, string? Type, string? Role, string? NetworkZone, string? ProjectPhase, AssetLifecycle? Lifecycle,
         long? OwnerUserId, ResponsibleParty? ResponsibleParty, string? ResponsibleOrganization, long? ResponsibleTeamId, long? CoordinatorUserId,
         decimal? CpuQuantity, CpuUnit? CpuUnit, decimal? RamQuantity, MemoryUnit? RamUnit, string? OsFamily, string? OsVersion,
-        List<Deployment.Selection>? Microservices = null, string? OwnerName = null, string? OwnerContact = null, ContactDetailsInput? Owner = null);
+        List<Deployment.Selection>? Microservices = null, string? OwnerName = null, string? OwnerContact = null, ContactDetailsInput? Owner = null,
+        string? IpAddress = null, string? Vlan = null, string? Notes = null);
     public sealed record HostedMicroservicesInput(List<Deployment.Selection>? Microservices);
     public sealed record VolumeInput(string? Label, decimal? Capacity, StorageUnit? Unit, string? Purpose, long? SharedStorageId);
     public sealed record ComponentInput(long? InstallationId, string? Name, string? Role, string? ComponentVersion, long? OwnerUserId,
@@ -25,14 +27,14 @@ public static class InventoryEndpoints
         var ag = api.MapGroup("/assets").WithTags("Assets");
 
         ag.MapGet("", async (long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone, string? q, int? page, int? pageSize,
-            HubDbContext db, HubAccess access, CancellationToken ct) =>
+            HubDbContext db, HubAccess access, CancellationToken ct, string? country = null) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var tech = access.Me.SeesTechnical;
-            var query = FilterAssets(db, clientId, regionId, environmentId, productId, type, lifecycle, role, phase, tech ? zone : null, q);
+            var query = FilterAssets(db, clientId, regionId, environmentId, productId, type, lifecycle, role, phase, tech ? zone : null, q, country);
             return Results.Ok(await query.OrderBy(a => a.Environment!.Client!.Code).ThenBy(a => a.Environment!.Name).ThenBy(a => a.Name).Select(a => new
             {
-                a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle, networkZone = tech ? a.NetworkZone : null, networkZoneRestricted = !tech && a.NetworkZone != null,
+                a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle, networkZone = tech ? a.NetworkZone : null, networkZoneRestricted = !tech && a.NetworkZone != null, ipAddress = tech ? a.IpAddress : null,
                 a.EnvironmentId, environmentName = a.Environment!.Name, a.ClientId, clientCode = a.Environment.Client!.Code, regionCode = a.Environment.Region == null ? null : a.Environment.Region.Code,
                 a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
                 owner = a.Owner == null ? null : new UserRef(a.Owner.Id, a.Owner.DisplayName, a.Owner.IsActive),
@@ -43,7 +45,7 @@ public static class InventoryEndpoints
 
         ag.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var a = await db.Assets.AsNoTracking().Include(x => x.Environment).ThenInclude(e => e!.Client).Include(x => x.Environment).ThenInclude(e => e!.Region).Include(x => x.Owner)
                 .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The asset");
             var tech = access.Me.SeesTechnical;
@@ -52,12 +54,12 @@ public static class InventoryEndpoints
             var components = await db.ComponentHosts.AsNoTracking().Where(h => h.AssetId == id)
                 .Select(h => new { h.ComponentId, h.Component!.Name, h.Component.Role, h.Component.InstallationId, installationName = h.Component.Installation!.InstanceName, productCode = h.Component.Installation.Product!.Code }).ToListAsync(ct);
             // A35: the firewall rules from and to this server (technical detail).
-            var firewallRules = tech ? await db.FirewallRules.AsNoTracking().Where(r => r.SourceAssetId == id || r.DestinationAssetId == id)
+            var firewallRules = tech && access.Me.HasRight(RightKeys.Other, RightKeys.View) ? await FirewallEndpoints.VisibleRules(db).AsNoTracking().Where(r => r.SourceAssetId == id || r.DestinationAssetId == id)
                 .Select(r => new { r.Id, r.SourceAssetId, source = r.SourceAsset!.Name, r.DestinationAssetId, destination = r.DestinationAsset!.Name, r.Ports, r.Protocol, r.Direction, r.Purpose }).ToListAsync(ct) : null;
             return ctx.WithETag(a, new
             {
                 a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle,
-                networkZone = tech ? a.NetworkZone : null, technicalRestricted = !tech,
+                networkZone = tech ? a.NetworkZone : null, ipAddress = tech ? a.IpAddress : null, vlan = tech ? a.Vlan : null, notes = tech ? a.Notes : null, technicalRestricted = !tech,
                 environment = new { a.Environment!.Id, a.Environment.Name, clientId = a.ClientId, clientCode = a.Environment.Client!.Code, regionId = a.Environment.RegionId,
                     regionCode = a.Environment.Region == null ? null : a.Environment.Region.Code },
                 owner = a.Owner == null ? null : new UserRef(a.Owner.Id, a.Owner.DisplayName, a.Owner.IsActive),
@@ -73,7 +75,7 @@ public static class InventoryEndpoints
         // Server form: the installations of an environment with their product's microservices, and which run on a given server.
         api.MapGet("/environments/{environmentId:long}/microservice-options", async (long environmentId, long? assetId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (!await db.Environments.AnyAsync(e => e.Id == environmentId, ct)) throw new NotFoundException("The environment");
             var installations = await db.Installations.AsNoTracking().Where(i => i.EnvironmentId == environmentId).OrderBy(i => i.Product!.Code).ThenBy(i => i.InstanceName)
                 .Select(i => new { i.Id, i.InstanceName, i.ProductId, productCode = i.Product!.Code, productName = i.Product.Name }).ToListAsync(ct);
@@ -110,7 +112,7 @@ public static class InventoryEndpoints
         ag.MapPut("/{id:long}/microservices", async (long id, HostedMicroservicesInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var a = await db.Assets.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The asset");
-            access.RequireMaintain(a.ClientId, null);
+            access.RequireMaintain(RightKeys.Servers, a.ClientId, null);
             await Deployment.ApplySelectionsAsync(db, a, input.Microservices ?? [], ct);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
@@ -119,7 +121,7 @@ public static class InventoryEndpoints
         ag.MapPost("", async (AssetInput input, HubDbContext db, HubAccess access, LookupService lookups, CancellationToken ct) =>
         {
             var env = await db.Environments.FirstOrDefaultAsync(e => e.Id == input.EnvironmentId, ct) ?? throw new ValidationException("environmentId", "Select an environment you can access.");
-            access.RequireMaintain(env.ClientId, null, env.OwnerUserId, env.BackupOwnerUserId, env.CoordinatorUserId);
+            access.RequireCreateFor(RightKeys.Servers, env.ClientId);
             var a = new Asset { EnvironmentId = env.Id, ClientId = env.ClientId };
             await ApplyAssetAsync(a, input, db, access, lookups, true, ct);
             db.Assets.Add(a);
@@ -133,7 +135,7 @@ public static class InventoryEndpoints
         {
             var a = await db.Assets.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The asset");
             var env = await db.Environments.FirstAsync(e => e.Id == a.EnvironmentId, ct);
-            access.RequireMaintain(a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId, a.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Servers, a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId, a.CoordinatorUserId);
             db.ExpectVersion(ctx, a);
             await ApplyAssetAsync(a, input, db, access, lookups, false, ct);
             if (input.Microservices is { Count: > 0 }) await Deployment.ApplySelectionsAsync(db, a, input.Microservices, ct);
@@ -144,7 +146,7 @@ public static class InventoryEndpoints
         ag.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var a = await db.Assets.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The asset");
-            access.RequireArchiveFor(a.ClientId);
+            access.RequireArchiveFor(a.ClientId, resource: RightKeys.Servers);
             db.ExpectVersion(ctx, a);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(a, access.Me, DateTimeOffset.UtcNow, reason);
@@ -158,7 +160,7 @@ public static class InventoryEndpoints
         {
             var a = await db.Assets.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The asset");
             var env = await db.Environments.FirstAsync(e => e.Id == a.EnvironmentId, ct);
-            access.RequireMaintain(a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
+            access.RequireMaintain(RightKeys.Servers, a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
             var v = new Volume { AssetId = id, EnvironmentId = a.EnvironmentId, ClientId = a.ClientId };
             await ApplyVolumeAsync(v, input, db, ct);
             db.Volumes.Add(v);
@@ -171,7 +173,7 @@ public static class InventoryEndpoints
             var v = await db.Volumes.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The volume");
             var a = await db.Assets.FirstAsync(x => x.Id == v.AssetId, ct);
             var env = await db.Environments.FirstAsync(e => e.Id == a.EnvironmentId, ct);
-            access.RequireMaintain(a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
+            access.RequireMaintain(RightKeys.Servers, a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
             db.ExpectVersion(ctx, v);
             await ApplyVolumeAsync(v, input, db, ct);
             await db.SaveChangesAsync(ct);
@@ -182,7 +184,7 @@ public static class InventoryEndpoints
             var v = await db.Volumes.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The volume");
             var a = await db.Assets.FirstAsync(x => x.Id == v.AssetId, ct);
             var env = await db.Environments.FirstAsync(e => e.Id == a.EnvironmentId, ct);
-            access.RequireMaintain(a.ClientId, null, a.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId);
+            access.RequireArchiveFor(a.ClientId, resource: RightKeys.Servers);
             db.ExpectVersion(ctx, v);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(v, access.Me, DateTimeOffset.UtcNow, reason);
@@ -195,14 +197,14 @@ public static class InventoryEndpoints
         var sg = api.MapGroup("/shared-storage").WithTags("Assets");
         sg.MapGet("", async (long clientId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             return Results.Ok(await db.SharedStorages.AsNoTracking().Where(s => s.ClientId == clientId).OrderBy(s => s.Name)
                 .Select(s => new { s.Id, s.Name, s.Capacity, s.Unit, s.Description, s.EnvironmentId, volumeCount = db.Volumes.Count(v => v.SharedStorageId == s.Id), version = Convert.ToBase64String(s.RowVersion) }).ToListAsync(ct));
         });
         sg.MapPost("", async (SharedStorageInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             if (input.ClientId is null || !await db.Clients.AnyAsync(c => c.Id == input.ClientId, ct)) throw new ValidationException("clientId", "Select the client.");
-            access.RequireMaintain(input.ClientId, null);
+            access.RequireCreateFor(RightKeys.Servers, input.ClientId);
             var check = new Check().Text("name", input.Name, 150, "the name", true).Text("description", input.Description, 2000, "Description");
             CheckQuantity(check, "capacity", input.Capacity, input.Unit, "unit");
             if (input.EnvironmentId is not null && !await db.Environments.AnyAsync(e => e.Id == input.EnvironmentId && e.ClientId == input.ClientId, ct)) check.Add("environmentId", "Select an environment of this client.");
@@ -220,7 +222,7 @@ public static class InventoryEndpoints
         {
             var inst = await db.Installations.FirstOrDefaultAsync(i => i.Id == input.InstallationId, ct) ?? throw new ValidationException("installationId", "Select an installation you can access.");
             var env = await db.Environments.FirstAsync(e => e.Id == inst.EnvironmentId, ct);
-            access.RequireMaintain(inst.ClientId, null, inst.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId, env.CoordinatorUserId);
+            access.RequireCreateFor(RightKeys.Servers, inst.ClientId);
             var c = new Component { InstallationId = inst.Id, EnvironmentId = inst.EnvironmentId, ClientId = inst.ClientId };
             await ApplyComponentAsync(c, input, db, access, lookups, true, ct);
             db.Components.Add(c);
@@ -229,7 +231,7 @@ public static class InventoryEndpoints
         });
         cg.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var c = await db.Components.AsNoTracking().Include(x => x.Owner).Include(x => x.Hosts).ThenInclude(h => h.Asset).Include(x => x.Installation).ThenInclude(i => i!.Product)
                 .FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The component");
             return ctx.WithETag(c, new
@@ -243,7 +245,7 @@ public static class InventoryEndpoints
         {
             var c = await db.Components.Include(x => x.Hosts).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The component");
             var env = await db.Environments.FirstAsync(e => e.Id == c.EnvironmentId, ct);
-            access.RequireMaintain(c.ClientId, null, c.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId, c.CoordinatorUserId);
+            access.RequireMaintain(RightKeys.Servers, c.ClientId, null, c.OwnerUserId, env.OwnerUserId, env.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
             await ApplyComponentAsync(c, input, db, access, lookups, false, ct);
             await db.SaveChangesAsync(ct);
@@ -252,7 +254,7 @@ public static class InventoryEndpoints
         cg.MapPost("/{id:long}/archive", async (long id, ArchiveInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var c = await db.Components.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The component");
-            access.RequireArchiveFor(c.ClientId);
+            access.RequireArchiveFor(c.ClientId, resource: RightKeys.Servers);
             db.ExpectVersion(ctx, c);
             var reason = Rules.RequireReason(input.Reason);
             Rules.Archive(c, access.Me, DateTimeOffset.UtcNow, reason);
@@ -265,7 +267,7 @@ public static class InventoryEndpoints
         api.MapGet("/infrastructure/summary", async (long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone,
             HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var assets = await FilterAssets(db, clientId, regionId, environmentId, productId, type, lifecycle, role, phase, access.Me.SeesTechnical ? zone : null, null)
                 .AsNoTracking().Select(a => new { a.Id, a.TypeCategory, a.Lifecycle, a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.VerifiedAt }).ToListAsync(ct);
             var ids = assets.Select(a => a.Id).ToList();
@@ -340,9 +342,11 @@ public static class InventoryEndpoints
         };
     }
 
-    public static IQueryable<Asset> FilterAssets(HubDbContext db, long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone, string? q)
+    public static IQueryable<Asset> FilterAssets(HubDbContext db, long? clientId, long? regionId, long? environmentId, long? productId, string? type, AssetLifecycle? lifecycle, string? role, string? phase, string? zone, string? q, string? country = null)
     {
         var query = db.Assets.AsQueryable();
+        // A73: the client map's servers of one country (the client's country, like the other lists' country filter).
+        if (!string.IsNullOrWhiteSpace(country)) query = query.Where(a => a.Environment!.Client!.Country == country);
         if (clientId is not null) query = query.Where(a => a.ClientId == clientId);
         if (regionId is not null) query = query.Where(a => a.Environment!.RegionId == regionId);
         if (environmentId is not null) query = query.Where(a => a.EnvironmentId == environmentId);
@@ -376,7 +380,18 @@ public static class InventoryEndpoints
         var phase = await lookups.CheckAsync(check, "projectPhase", LookupLists.ProjectPhase, i.ProjectPhase, "the project phase", a.ProjectPhase, ct);
         string? zone = a.NetworkZone;
         if (access.Me.SeesTechnical) zone = await lookups.CheckAsync(check, "networkZone", LookupLists.NetworkZone, i.NetworkZone, "the network zone", a.NetworkZone, ct);
-        else if (Text.Clean(i.NetworkZone) is { } z && z != a.NetworkZone) check.Add("networkZone", "Changing the network zone needs the Technical detail permission.");
+        else if (Text.Clean(i.NetworkZone) is { } z && z != a.NetworkZone) check.Add("networkZone", "Changing the network zone needs the Technical detail right.");
+        // A104: as for the zone, a person without the right sees these blank, so a blank value from them keeps what is recorded.
+        var (ip, vlan, notes) = (a.IpAddress, a.Vlan, a.Notes);
+        if (access.Me.SeesTechnical)
+        {
+            (ip, vlan, notes) = (Text.Clean(i.IpAddress), Text.Clean(i.Vlan), Text.Clean(i.Notes));
+            check.Text("vlan", i.Vlan, 40, "VLAN").Text("notes", i.Notes, 2000, "Notes");
+            // TryParse alone reads "10.50.13" as 10.50.0.13, so an IPv4 address must be written in full; IPv6 has a colon, which TryParse needs.
+            if (ip is not null && (!System.Net.IPAddress.TryParse(ip, out var parsed) || !(ip.Contains(':') || parsed.ToString() == ip))) check.Add("ipAddress", "Enter a valid IP address, for example 10.50.13.60.");
+        }
+        else if (Text.Clean(i.IpAddress) is not null || Text.Clean(i.Vlan) is not null || Text.Clean(i.Notes) is not null)
+            check.Add("ipAddress", "Changing the IP address, VLAN or notes needs the Technical detail right.");
         CheckQuantity(check, "cpuQuantity", i.CpuQuantity, i.CpuUnit, "cpuUnit");
         CheckQuantity(check, "ramQuantity", i.RamQuantity, i.RamUnit, "ramUnit");
         if (typeCode != "" && typeCategory == AssetType.LogicalEndpoint && (i.CpuQuantity is not null || i.RamQuantity is not null))
@@ -391,7 +406,7 @@ public static class InventoryEndpoints
              .When(i.OwnerUserId is not null && ownerName is not null, "ownerName", "Choose a team member or type a name, not both.")
              .When(ownerName is null && !string.IsNullOrWhiteSpace(i.OwnerContact), "ownerName", "Type the technical owner's name for these contact details.");
         Rules.CheckAccountability(check, party, i.OwnerUserId ?? (ownerName is null ? null : 0L), i.CoordinatorUserId, ownerRequired: false);
-        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : a.OwnerUserId, i.OwnerUserId);
+        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : a.OwnerUserId, i.OwnerUserId, resource: RightKeys.Servers);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, a.ClientId, null, "the owner", ct);
         await access.CheckAssignableAsync(check, "coordinatorUserId", i.CoordinatorUserId, a.ClientId, null, "the coordinator", ct);
         check.ThrowIfAny();
@@ -405,6 +420,9 @@ public static class InventoryEndpoints
         a.Role = role;
         a.ProjectPhase = phase;
         a.NetworkZone = zone;
+        a.IpAddress = ip;
+        a.Vlan = vlan;
+        a.Notes = notes;
         a.Lifecycle = i.Lifecycle ?? AssetLifecycle.Unknown;
         a.OwnerUserId = i.OwnerUserId;
         a.TechnicalOwnerName = ownerName;
@@ -458,7 +476,7 @@ public static class InventoryEndpoints
             if (valid.Count != hostIds.Count) check.Add("hostAssetIds", "Hosts must be assets of the same environment. Other clients' or environments' servers cannot host this component.");
         }
         var party = i.ResponsibleParty ?? ResponsibleParty.TIO;
-        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId);
+        access.CheckOwnerChange(check, "ownerUserId", isNew ? i.OwnerUserId : c.OwnerUserId, i.OwnerUserId, resource: RightKeys.Servers);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, c.ClientId, null, "the owner", ct);
         await access.CheckAssignableAsync(check, "coordinatorUserId", i.CoordinatorUserId, c.ClientId, null, "the coordinator", ct);
         if (party != ResponsibleParty.TIO && i.OwnerUserId is null && i.CoordinatorUserId is null) check.Add("coordinatorUserId", "Responsibility is external or unknown: select an internal coordinator.");

@@ -18,6 +18,10 @@ public class Asset : Entity, IArchivable, IAccountable, IClientOwned
     public AssetType TypeCategory { get; set; }
     public string? Role { get; set; }
     [TechnicalDetail] public string? NetworkZone { get; set; }
+    /// <summary>A104: the recorded address and VLAN, and free notes on the server. Recorded configuration, not discovered. Copying a server to another environment keeps only the notes.</summary>
+    [TechnicalDetail] public string? IpAddress { get; set; }
+    [TechnicalDetail] public string? Vlan { get; set; }
+    [TechnicalDetail] public string? Notes { get; set; }
     public string? ProjectPhase { get; set; }
     public AssetLifecycle Lifecycle { get; set; } = AssetLifecycle.Unknown;
     public long? OwnerUserId { get; set; }

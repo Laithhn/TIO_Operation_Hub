@@ -11,6 +11,47 @@ namespace TioHub.Api.Modules.Teams;
 
 public static class TeamEndpoints
 {
+    /// <summary>Teams are internal data: list and object operations share the same scope boundary.</summary>
+    public static IQueryable<Team> VisibleTeams(IQueryable<Team> teams, UserContext me)
+    {
+        if (me.IsSystem || me.AllInternal) return teams;
+        var ids = me.TeamIds.ToArray();
+        return teams.Where(team => ids.Contains(team.Id));
+    }
+
+    // Mixed-resource workflows must never turn Teams access into permission to
+    // inspect or change another module's records.
+    public static bool CanReadOwnedRecord(UserContext me, string recordType)
+    {
+        string resource;
+        try { resource = RightKeys.ForRecord(recordType); }
+        catch (NotFoundException) { return false; }
+        return me.HasRight(resource, RightKeys.View)
+            && (recordType != RecordTypes.Region || me.HasRight(RightKeys.Tab("ClientStructure", "structure", "View")));
+    }
+
+    public static bool CanTransferOwnedRecord(UserContext me, string recordType, long? clientId, long? teamId) =>
+        CanReadOwnedRecord(me, recordType)
+        && me.SeesScope(clientId, teamId)
+        && me.HasRight(RightKeys.ForRecord(recordType), RightKeys.Coordinate)
+        && (recordType != RecordTypes.Region || me.HasRight(RightKeys.Tab("ClientStructure", "structure", "Maintain")));
+
+    /// <summary>Team assignment counts combine case and commitment information.</summary>
+    public static void RequireAssignmentSources(UserContext me) =>
+        RightChecks.RequireViews(me, RightKeys.Cases, RightKeys.Commitments);
+
+    public sealed record HandoverTextView(string? Summary, string? OutstandingActions, string? DocumentationNotes,
+        string? AcknowledgmentNote, string? CancelReason, string? ExceptionReason);
+
+    /// <summary>Free text can describe any item, so every source type must be readable before it is disclosed.</summary>
+    public static HandoverTextView VisibleHandoverText(UserContext me, Handover handover)
+    {
+        if (handover.Items.Count == 0 || handover.Items.Any(item => !CanReadOwnedRecord(me, item.RecordType)))
+            return new(null, null, null, null, null, null);
+        return new(handover.Summary, handover.OutstandingActions, handover.DocumentationNotes,
+            handover.AcknowledgmentNote, handover.CancelReason, handover.ExceptionReason);
+    }
+
     public sealed record TeamInput(string? Code, string? Name, long? LeadUserId, long? ManagerUserId, string? Description, bool IsActive = true);
     public sealed record MemberInput(long? UserId, string? TeamRole, string? Skills, string? ProductFamiliarity, bool IsActive = true);
     public sealed record HandoverItemInput(string? RecordType, long? RecordId);
@@ -25,8 +66,8 @@ public static class TeamEndpoints
 
         g.MapGet("", async (HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            return Results.Ok(await db.Teams.AsNoTracking().OrderBy(t => t.Name).Select(t => new
+            access.RequireAccess();
+            return Results.Ok(await VisibleTeams(db.Teams.AsNoTracking(), access.Me).OrderBy(t => t.Name).Select(t => new
             {
                 t.Id, t.Code, t.Name, t.Description, t.IsActive,
                 lead = t.Lead == null ? null : new UserRef(t.Lead.Id, t.Lead.DisplayName, t.Lead.IsActive),
@@ -37,8 +78,8 @@ public static class TeamEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            var t = await db.Teams.AsNoTracking().Include(x => x.Lead).Include(x => x.Manager).Include(x => x.Members).ThenInclude(m => m.User).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
+            access.RequireAccess();
+            var t = await VisibleTeams(db.Teams.AsNoTracking(), access.Me).Include(x => x.Lead).Include(x => x.Manager).Include(x => x.Members).ThenInclude(m => m.User).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
             return ctx.WithETag(t, new
             {
                 t.Id, t.Code, t.Name, t.Description, t.IsActive, t.LeadUserId, t.ManagerUserId,
@@ -54,7 +95,8 @@ public static class TeamEndpoints
 
         g.MapPost("", async (TeamInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            me.Require(Role.Manager);
+            me.RequireRight(RightKeys.Teams, RightKeys.Create);
+            if (!me.IsSystem && !me.AllInternal) throw new ForbiddenException("Creating a team requires access to all internal teams.");
             var t = new Team();
             await ApplyTeamAsync(t, input, db, ct);
             db.Teams.Add(t);
@@ -63,9 +105,10 @@ public static class TeamEndpoints
         });
         g.MapPut("/{id:long}", async (long id, TeamInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            var t = await db.Teams.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change the team.");
-            if (!me.IsManager && (input.LeadUserId != t.LeadUserId || input.ManagerUserId != t.ManagerUserId)) throw new ForbiddenException("Only the TIO Manager can change a team's lead or manager.");
+            var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
+            me.RequireRight(RightKeys.Teams, RightKeys.Maintain);
+            if (input.LeadUserId != t.LeadUserId || input.ManagerUserId != t.ManagerUserId)
+                me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             db.ExpectVersion(ctx, t);
             await ApplyTeamAsync(t, input, db, ct);
             await db.SaveChangesAsync(ct);
@@ -73,8 +116,8 @@ public static class TeamEndpoints
         });
         g.MapPost("/{id:long}/members", async (long id, MemberInput input, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            var t = await db.Teams.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change members.");
+            var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
+            me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var check = new Check();
             if (input.UserId is null || !await db.Users.AnyAsync(u => u.Id == input.UserId && u.IsActive, ct)) check.Add("userId", "Select an active person.");
             var m = new TeamMember { TeamId = id };
@@ -87,8 +130,8 @@ public static class TeamEndpoints
         });
         g.MapPut("/{id:long}/members/{memberId:long}", async (long id, long memberId, MemberInput input, HttpContext ctx, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            var t = await db.Teams.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change members.");
+            var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
+            me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var m = await db.TeamMembers.FirstOrDefaultAsync(x => x.Id == memberId && x.TeamId == id, ct) ?? throw new NotFoundException("The membership");
             db.ExpectVersion(ctx, m);
             await ApplyMemberAsync(m, input, new Check(), db, ct);
@@ -98,8 +141,8 @@ public static class TeamEndpoints
         // A53: a membership can be removed (the person and their work are untouched).
         g.MapDelete("/{id:long}/members/{memberId:long}", async (long id, long memberId, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            var t = await db.Teams.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
-            if (!me.IsManager && !(me.IsLead && t.LeadUserId == me.UserId)) throw new ForbiddenException("Only the TIO Manager can change members.");
+            var t = await VisibleTeams(db.Teams, me).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The team");
+            me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var m = await db.TeamMembers.FirstOrDefaultAsync(x => x.Id == memberId && x.TeamId == id, ct) ?? throw new NotFoundException("The membership");
             db.TeamMembers.Remove(m);
             await db.SaveChangesAsync(ct);
@@ -109,15 +152,15 @@ public static class TeamEndpoints
         // TEAM-03: assignments, waiting/blockers, due dates and coverage per team and engineer.
         g.MapGet("/{id:long}/assignments", async (long id, HubDbContext db, HubAccess access, HubSettings settings, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            var team = await db.Teams.AsNoTracking().Include(t => t.Members).ThenInclude(m => m.User).FirstOrDefaultAsync(t => t.Id == id, ct) ?? throw new NotFoundException("The team");
+            access.RequireAccess();
+            RequireAssignmentSources(access.Me);
+            var team = await VisibleTeams(db.Teams.AsNoTracking(), access.Me).Include(t => t.Members).ThenInclude(m => m.User).FirstOrDefaultAsync(t => t.Id == id, ct) ?? throw new NotFoundException("The team");
             var now = DateTimeOffset.UtcNow;
             var prios = await settings.CoveragePrioritiesAsync(ct);
             var cases = await db.Cases.AsNoTracking().Where(c => c.ResponsibleTeamId == id && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled)
                 .Select(c => new { c.Id, c.Ref, c.Title, c.Status, c.Priority, c.OwnerUserId, c.BackupOwnerUserId, backupActive = c.BackupOwner == null || c.BackupOwner.IsActive, c.WaitingReason, c.DueAt, c.NextReviewAt, c.NextAction })
                 .ToListAsync(ct);
-            var memberIds = team.Members.Where(m => m.IsActive).Select(m => m.UserId).ToList();
-            var commitments = await db.Commitments.AsNoTracking().Where(c => c.Status == CommitmentStatus.Open && c.OwnerUserId != null && memberIds.Contains(c.OwnerUserId.Value))
+            var commitments = await db.Commitments.AsNoTracking().Where(c => c.Status == CommitmentStatus.Open && c.ResponsibleTeamId == id)
                 .Select(c => new { c.Id, c.Ref, c.Description, c.OwnerUserId, c.CurrentDueAt, c.TimeZone }).ToListAsync(ct);
             var people = team.Members.Where(m => m.IsActive).OrderBy(m => m.User!.DisplayName).Select(m => new
             {
@@ -142,7 +185,7 @@ public static class TeamEndpoints
         // ACC-04 / TEAM-03: active records of deactivated owners. Nothing is reassigned automatically.
         api.MapGet("/reassignment-queue", async (HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             return Results.Ok(await ReassignmentQueueAsync(db, ct));
         }).WithTags("Teams");
 
@@ -150,48 +193,60 @@ public static class TeamEndpoints
         var h = api.MapGroup("/handovers").WithTags("Handovers");
         h.MapGet("", async (string? status, bool? mine, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var q = db.Handovers.AsNoTracking().AsQueryable();
             if (status == "pending") q = q.Where(x => x.Status == HandoverStatus.PendingAcknowledgment);
             if (mine == true) q = q.Where(x => x.ReceivingOwnerId == access.Me.UserId || x.OutgoingOwnerId == access.Me.UserId);
-            return Results.Ok(await q.OrderByDescending(x => x.CreatedAt).Select(x => new
+            var rows = await q.Include(x => x.Items).Include(x => x.OutgoingOwner).Include(x => x.ReceivingOwner)
+                .OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+            return Results.Ok(rows.Select(x => new
             {
-                x.Id, x.Ref, x.Status, x.EffectiveAt, x.Summary, x.ClientId,
+                x.Id, x.Ref, x.Status, x.EffectiveAt, summary = VisibleHandoverText(access.Me, x).Summary ?? "Restricted", x.ClientId,
                 outgoing = new UserRef(x.OutgoingOwner!.Id, x.OutgoingOwner.DisplayName, x.OutgoingOwner.IsActive),
                 receiving = new UserRef(x.ReceivingOwner!.Id, x.ReceivingOwner.DisplayName, x.ReceivingOwner.IsActive),
                 itemCount = x.Items.Count, x.AcknowledgedAt, x.CompletedAt
-            }).ToListAsync(ct));
+            }));
         });
         h.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var x = await db.Handovers.AsNoTracking().Include(z => z.Items).Include(z => z.OutgoingOwner).Include(z => z.ReceivingOwner).FirstOrDefaultAsync(z => z.Id == id, ct) ?? throw new NotFoundException("The handover");
             var users = await access.UserRefsAsync([x.ExceptionApprovedById, x.ExceptionFollowUpOwnerId], ct);
+            var text = VisibleHandoverText(access.Me, x);
             return ctx.WithETag(x, new
             {
-                x.Id, x.Ref, x.Status, x.EffectiveAt, x.Summary, x.OutstandingActions, x.DocumentationNotes, x.ClientId,
+                x.Id, x.Ref, x.Status, x.EffectiveAt, summary = text.Summary ?? "Restricted", text.OutstandingActions, text.DocumentationNotes, x.ClientId,
                 outgoing = new UserRef(x.OutgoingOwner!.Id, x.OutgoingOwner.DisplayName, x.OutgoingOwner.IsActive),
                 receiving = new UserRef(x.ReceivingOwner!.Id, x.ReceivingOwner.DisplayName, x.ReceivingOwner.IsActive),
-                x.AcknowledgedAt, x.AcknowledgmentNote, x.CompletedAt, x.CancelReason,
-                exception = x.ExceptionReason == null ? null : new { reason = x.ExceptionReason, approvedBy = x.ExceptionApprovedById is { } a ? users.GetValueOrDefault(a) : null, followUpOwner = x.ExceptionFollowUpOwnerId is { } f ? users.GetValueOrDefault(f) : null, followUpDate = x.ExceptionFollowUpDate },
-                // Items outside the viewer's scope are shown as restricted, without their label.
-                items = x.Items.Select(i => new { i.Id, i.RecordType, i.RecordId, label = access.Me.SeesScope(i.ClientId, null) || i.ClientId is null ? i.Label : null, restricted = i.ClientId is { } c && !access.Me.HasClient(c), i.PreviousOwnerId, i.Applied, i.NotAppliedReason }),
+                x.AcknowledgedAt, text.AcknowledgmentNote, x.CompletedAt, text.CancelReason,
+                exception = x.ExceptionReason == null ? null : new { reason = text.ExceptionReason, approvedBy = x.ExceptionApprovedById is { } a ? users.GetValueOrDefault(a) : null, followUpOwner = x.ExceptionFollowUpOwnerId is { } f ? users.GetValueOrDefault(f) : null, followUpDate = x.ExceptionFollowUpDate },
+                // A handover viewer may lack View in the source module. Do not expose
+                // the source record identity, label, or processing notes in that case.
+                items = x.Items.Select(i => new
+                {
+                    i.Id, recordType = CanReadOwnedRecord(access.Me, i.RecordType) ? i.RecordType : null,
+                    recordId = CanReadOwnedRecord(access.Me, i.RecordType) ? (long?)i.RecordId : null,
+                    label = CanReadOwnedRecord(access.Me, i.RecordType) ? i.Label : null,
+                    restricted = !CanReadOwnedRecord(access.Me, i.RecordType),
+                    previousOwnerId = CanReadOwnedRecord(access.Me, i.RecordType) ? i.PreviousOwnerId : null,
+                    i.Applied, notAppliedReason = CanReadOwnedRecord(access.Me, i.RecordType) ? i.NotAppliedReason : null
+                }),
                 permissions = new
                 {
-                    canAcknowledge = x.Status == HandoverStatus.PendingAcknowledgment && x.ReceivingOwnerId == access.Me.UserId,
-                    canAuthorizeException = x.Status == HandoverStatus.PendingAcknowledgment && access.Me.IsManager,
-                    canCancel = x.Status == HandoverStatus.PendingAcknowledgment && access.Me.IsLead
+                    canAcknowledge = access.Me.HasRight("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && x.ReceivingOwnerId == access.Me.UserId,
+                    canAuthorizeException = access.Me.HasRight("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && access.Me.HasRight(RightKeys.Teams, RightKeys.Coordinate),
+                    canCancel = access.Me.HasRight("Handovers:Maintain") && x.Status == HandoverStatus.PendingAcknowledgment && access.Me.HasRight(RightKeys.Teams, RightKeys.Coordinate)
                 }
             });
         });
         h.MapGet("/candidates", async (long ownerId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Manager);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             return Results.Ok(await OwnedRecordsAsync(db, ownerId, ct));
         });
         h.MapPost("", async (HandoverInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Manager);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var check = new Check();
             check.When(input.OutgoingOwnerId is null, "outgoingOwnerId", "Select the outgoing owner.")
                  .When(input.ReceivingOwnerId is null, "receivingOwnerId", "Select the receiving owner.")
@@ -208,7 +263,7 @@ public static class TeamEndpoints
             {
                 var rec = await OwnedRecord.LoadAsync(db, it.RecordType, it.RecordId, ct);
                 if (rec is null) { check.Add($"items[{n}]", "This record was not found or you cannot access it."); continue; }
-                if (!access.Me.SeesScope(rec.ClientId, rec.TeamId)) { check.Add($"items[{n}]", "You cannot hand over records outside your scope."); continue; }
+                if (!CanTransferOwnedRecord(access.Me, rec.Type, rec.ClientId, rec.TeamId)) { check.Add($"items[{n}]", "This record was not found or you cannot transfer its ownership."); continue; }
                 if (rec.OwnerId != input.OutgoingOwnerId) { check.Add($"items[{n}]", $"{rec.Label} is not owned by the outgoing owner."); continue; }
                 await access.CheckAssignableAsync(check, $"items[{n}]", input.ReceivingOwnerId, rec.ClientId, rec.TeamId, $"the new owner of {rec.Label}", ct);
                 items.Add(new HandoverItem { RecordType = rec.Type, RecordId = rec.Id, ClientId = rec.ClientId, Label = rec.Label, PreviousOwnerId = rec.OwnerId });
@@ -224,8 +279,10 @@ public static class TeamEndpoints
             await db.SaveChangesAsync(ct);
             return Results.Created($"/api/v1/handovers/{ho.Id}", new { ho.Id, ho.Ref });
         });
-        h.MapPost("/{id:long}/acknowledge", async (long id, AckInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        h.MapPost("/{id:long}/acknowledge", async (long id, AckInput input, HttpContext ctx, HubDbContext db, HubAccess access, UserResolver resolver, TimeProvider clock, CancellationToken ct) =>
         {
+            // Keep recipient eligibility stable until all ownership changes are saved together.
+            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
             var ho = await db.Handovers.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The handover");
             db.ExpectVersion(ctx, ho);
             if (ho.Status != HandoverStatus.PendingAcknowledgment) throw new ValidationException("status", "This handover is no longer pending.");
@@ -234,13 +291,15 @@ public static class TeamEndpoints
             var now = clock.GetUtcNow();
             ho.AcknowledgedAt = now;
             ho.AcknowledgmentNote = Text.Clean(input.Note);
-            await ApplyAsync(db, access.Me, ho, HandoverStatus.Completed, now, ct);
+            await ApplyAsync(db, access, resolver, ho, HandoverStatus.Completed, now, ct);
             await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
             return Results.NoContent();
         });
-        h.MapPost("/{id:long}/exception", async (long id, ExceptionInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        h.MapPost("/{id:long}/exception", async (long id, ExceptionInput input, HttpContext ctx, HubDbContext db, HubAccess access, UserResolver resolver, TimeProvider clock, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Manager);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
+            await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
             var ho = await db.Handovers.Include(x => x.Items).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The handover");
             db.ExpectVersion(ctx, ho);
             if (ho.Status != HandoverStatus.PendingAcknowledgment) throw new ValidationException("status", "This handover is no longer pending.");
@@ -254,13 +313,14 @@ public static class TeamEndpoints
             ho.ExceptionFollowUpOwnerId = input.FollowUpOwnerId;
             ho.ExceptionFollowUpDate = input.FollowUpDate;
             db.AuditReason = "Manager acknowledgment exception: " + ho.ExceptionReason;
-            await ApplyAsync(db, access.Me, ho, HandoverStatus.CompletedByException, now, ct);
+            await ApplyAsync(db, access, resolver, ho, HandoverStatus.CompletedByException, now, ct);
             await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
             return Results.NoContent();
         });
         h.MapPost("/{id:long}/cancel", async (long id, CancelInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Manager);
+            access.Me.RequireRight(RightKeys.Teams, RightKeys.Coordinate);
             var ho = await db.Handovers.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The handover");
             db.ExpectVersion(ctx, ho);
             if (ho.Status != HandoverStatus.PendingAcknowledgment) throw new ValidationException("status", "This handover is no longer pending.");
@@ -273,48 +333,104 @@ public static class TeamEndpoints
     }
 
     /// <summary>Applies ownership on completion, keeping the previous owner per item. Items changed since creation are skipped with a reason.</summary>
-    private static async Task ApplyAsync(HubDbContext db, UserContext me, Handover ho, HandoverStatus status, DateTimeOffset now, CancellationToken ct)
+    private static async Task ApplyAsync(HubDbContext db, HubAccess access, UserResolver resolver, Handover ho, HandoverStatus status, DateTimeOffset now, CancellationToken ct)
     {
-        foreach (var item in ho.Items)
+        var check = new Check();
+        var receiver = await resolver.ForUserAsync(ho.ReceivingOwnerId, ct, directWhenGroupsUnknown: true);
+        if (receiver is null || !receiver.IsActive)
+            check.Add("receivingOwnerId", "The receiving owner is no longer active. Cancel this handover and select an active owner.");
+        else if (!receiver.HasAccess)
+            check.Add("receivingOwnerId", "The receiving owner no longer has business access. Cancel this handover and select an eligible owner.");
+        // An old pending handover is not a perpetual grant: the person who authorized it
+        // must still have authority over each source record when it is applied.
+        var authorizer = ho.CreatedById is { } creatorId ? await resolver.ForUserAsync(creatorId, ct) : null;
+        var authorizerContext = new UserContext();
+        if (authorizer is null || !authorizer.IsActive)
+            check.Add("handover", "The handover authorizer is no longer active. Create a new handover.");
+        else authorizerContext.Set(authorizer);
+        var applicable = new List<(HandoverItem Item, OwnedRecord Record)>();
+        foreach (var (item, index) in ho.Items.Select((item, index) => (item, index)))
         {
             var rec = await OwnedRecord.LoadTrackedAsync(db, item.RecordType, item.RecordId, ct);
             if (rec is null) { item.NotAppliedReason = "Record no longer available."; continue; }
             if (rec.OwnerId != item.PreviousOwnerId) { item.NotAppliedReason = "The owner changed after the handover was created."; continue; }
+            if (authorizer is null || !CanTransferOwnedRecord(authorizerContext, rec.Type, rec.ClientId, rec.TeamId))
+            {
+                check.Add($"items[{index}]", "The handover authorizer no longer has permission to transfer this record.");
+                continue;
+            }
+            if (status == HandoverStatus.CompletedByException && !CanTransferOwnedRecord(access.Me, rec.Type, rec.ClientId, rec.TeamId))
+            {
+                check.Add($"items[{index}]", "You do not have permission to transfer this record by exception.");
+                continue;
+            }
+            await access.CheckAssignableAsync(check, $"items[{index}]", ho.ReceivingOwnerId, rec.ClientId, rec.TeamId, $"the new owner of {rec.Label}", ct);
+            applicable.Add((item, rec));
+        }
+        // A manager exception waives acknowledgement, never active business access. Reject before applying any item.
+        check.ThrowIfAny();
+        foreach (var (item, rec) in applicable)
+        {
             rec.SetOwner(ho.ReceivingOwnerId);
             item.Applied = true;
-            if (rec.Entity is Case c) CaseEndpoints.AddEvent(db, c, CaseEventType.OwnerChanged, item.PreviousOwnerId?.ToString(), ho.ReceivingOwnerId.ToString(), $"Handover {ho.Ref}", me, now);
-            if (rec.Entity is Commitment m) db.CommitmentEvents.Add(new CommitmentEvent { CommitmentId = m.Id, Type = CommitmentEventType.OwnerChanged, Reason = $"Handover {ho.Ref}", ById = me.UserId, At = now });
+            if (rec.Entity is Case c) CaseEndpoints.AddEvent(db, c, CaseEventType.OwnerChanged, item.PreviousOwnerId?.ToString(), ho.ReceivingOwnerId.ToString(), $"Handover {ho.Ref}", access.Me, now);
+            if (rec.Entity is Commitment m) db.CommitmentEvents.Add(new CommitmentEvent { CommitmentId = m.Id, Type = CommitmentEventType.OwnerChanged, Reason = $"Handover {ho.Ref}", ById = access.Me.UserId, At = now });
         }
         ho.Status = status;
         ho.CompletedAt = now;
     }
 
-    public static async Task<object> OwnedRecordsAsync(HubDbContext db, long ownerId, CancellationToken ct) => new
+    public static async Task<object> OwnedRecordsAsync(HubDbContext db, long ownerId, CancellationToken ct)
     {
-        clients = await db.Clients.AsNoTracking().Where(x => x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Client, x.Id, label = x.Code + " · " + x.Name }).ToListAsync(ct),
-        regions = await db.Regions.AsNoTracking().Where(x => x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Region, x.Id, label = x.Code + " · " + x.Name }).ToListAsync(ct),
-        projects = await db.Projects.AsNoTracking().Where(x => x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Project, x.Id, label = x.Code + " · " + x.Name }).ToListAsync(ct),
-        environments = await db.Environments.AsNoTracking().Where(x => x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Environment, x.Id, label = x.Client!.Code + " · " + x.Name }).ToListAsync(ct),
-        assets = await db.Assets.AsNoTracking().Where(x => x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Asset, x.Id, label = x.Name }).ToListAsync(ct),
-        components = await db.Components.AsNoTracking().Where(x => x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Component, x.Id, label = x.Name }).ToListAsync(ct),
-        cases = await db.Cases.AsNoTracking().Where(x => x.OwnerUserId == ownerId && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled).Select(x => new { recordType = RecordTypes.Case, x.Id, label = x.Ref + " · " + x.Title }).ToListAsync(ct),
-        commitments = await db.Commitments.AsNoTracking().Where(x => x.OwnerUserId == ownerId && x.Status == CommitmentStatus.Open).Select(x => new { recordType = RecordTypes.Commitment, x.Id, label = x.Ref + " · " + x.Description }).ToListAsync(ct)
+        var me = db.CurrentUser;
+        var canSeeClient = CanReadOwnedRecord(me, RecordTypes.Client);
+        var canSeeRegion = CanReadOwnedRecord(me, RecordTypes.Region);
+        var canSeeProject = CanReadOwnedRecord(me, RecordTypes.Project);
+        var canSeeEnvironment = CanReadOwnedRecord(me, RecordTypes.Environment);
+        var canSeeAsset = CanReadOwnedRecord(me, RecordTypes.Asset);
+        var canSeeComponent = CanReadOwnedRecord(me, RecordTypes.Component);
+        var canSeeCase = CanReadOwnedRecord(me, RecordTypes.Case);
+        var canSeeCommitment = CanReadOwnedRecord(me, RecordTypes.Commitment);
+        var allClients = me.IsSystem || me.AllClients;
+        var clientIds = me.ClientIds.ToArray();
+        return new
+    {
+        clients = await db.Clients.AsNoTracking().Where(x => canSeeClient && (allClients || clientIds.Contains(x.Id)) && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Client, x.Id, label = x.Code + " · " + x.Name }).ToListAsync(ct),
+        regions = await db.Regions.AsNoTracking().Where(x => canSeeRegion && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Region, x.Id, label = x.Code + " · " + x.Name }).ToListAsync(ct),
+        projects = await db.Projects.AsNoTracking().Where(x => canSeeProject && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Project, x.Id, label = x.Code + " · " + x.Name }).ToListAsync(ct),
+        environments = await db.Environments.AsNoTracking().Where(x => canSeeEnvironment && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Environment, x.Id, label = x.Client!.Code + " · " + x.Name }).ToListAsync(ct),
+        assets = await db.Assets.AsNoTracking().Where(x => canSeeAsset && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Asset, x.Id, label = x.Name }).ToListAsync(ct),
+        components = await db.Components.AsNoTracking().Where(x => canSeeComponent && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Component, x.Id, label = x.Name }).ToListAsync(ct),
+        cases = await db.Cases.AsNoTracking().Where(x => canSeeCase && x.OwnerUserId == ownerId && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled).Select(x => new { recordType = RecordTypes.Case, x.Id, label = x.Ref + " · " + x.Title }).ToListAsync(ct),
+        commitments = await db.Commitments.AsNoTracking().Where(x => canSeeCommitment && x.OwnerUserId == ownerId && x.Status == CommitmentStatus.Open).Select(x => new { recordType = RecordTypes.Commitment, x.Id, label = x.Ref + " · " + x.Description }).ToListAsync(ct)
     };
+    }
 
     public sealed record QueueItem(string RecordType, long Id, string Label, long? ClientId, string OwnerName, long OwnerId, string Reason);
 
     public static async Task<List<QueueItem>> ReassignmentQueueAsync(HubDbContext db, CancellationToken ct)
     {
         var list = new List<QueueItem>();
-        list.AddRange(await db.Clients.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Client, x.Id, x.Code + " · " + x.Name, x.Id, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Regions.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Region, x.Id, x.Code + " · " + x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Projects.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Project, x.Id, x.Code + " · " + x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Environments.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Environment, x.Id, x.Client!.Code + " · " + x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Technical owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Environments.AsNoTracking().Where(x => x.BackupOwner != null && !x.BackupOwner.IsActive).Select(x => new QueueItem(RecordTypes.Environment, x.Id, x.Client!.Code + " · " + x.Name, x.ClientId, x.BackupOwner!.DisplayName, x.BackupOwner.Id, "Backup owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Assets.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Asset, x.Id, x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Components.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Component, x.Id, x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Cases.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled).Select(x => new QueueItem(RecordTypes.Case, x.Id, x.Ref + " · " + x.Title, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Commitments.AsNoTracking().Where(x => x.Owner != null && !x.Owner.IsActive && x.Status == CommitmentStatus.Open).Select(x => new QueueItem(RecordTypes.Commitment, x.Id, x.Ref + " · " + x.Description, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        var me = db.CurrentUser;
+        var canSeeClient = CanReadOwnedRecord(me, RecordTypes.Client);
+        var canSeeRegion = CanReadOwnedRecord(me, RecordTypes.Region);
+        var canSeeProject = CanReadOwnedRecord(me, RecordTypes.Project);
+        var canSeeEnvironment = CanReadOwnedRecord(me, RecordTypes.Environment);
+        var canSeeAsset = CanReadOwnedRecord(me, RecordTypes.Asset);
+        var canSeeComponent = CanReadOwnedRecord(me, RecordTypes.Component);
+        var canSeeCase = CanReadOwnedRecord(me, RecordTypes.Case);
+        var canSeeCommitment = CanReadOwnedRecord(me, RecordTypes.Commitment);
+        var allClients = me.IsSystem || me.AllClients;
+        var clientIds = me.ClientIds.ToArray();
+        list.AddRange(await db.Clients.AsNoTracking().Where(x => canSeeClient && (allClients || clientIds.Contains(x.Id)) && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Client, x.Id, x.Code + " · " + x.Name, x.Id, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Regions.AsNoTracking().Where(x => canSeeRegion && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Region, x.Id, x.Code + " · " + x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Projects.AsNoTracking().Where(x => canSeeProject && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Project, x.Id, x.Code + " · " + x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Environments.AsNoTracking().Where(x => canSeeEnvironment && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Environment, x.Id, x.Client!.Code + " · " + x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Technical owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Environments.AsNoTracking().Where(x => canSeeEnvironment && x.BackupOwner != null && !x.BackupOwner.IsActive).Select(x => new QueueItem(RecordTypes.Environment, x.Id, x.Client!.Code + " · " + x.Name, x.ClientId, x.BackupOwner!.DisplayName, x.BackupOwner.Id, "Backup owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Assets.AsNoTracking().Where(x => canSeeAsset && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Asset, x.Id, x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Components.AsNoTracking().Where(x => canSeeComponent && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Component, x.Id, x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Cases.AsNoTracking().Where(x => canSeeCase && x.Owner != null && !x.Owner.IsActive && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled).Select(x => new QueueItem(RecordTypes.Case, x.Id, x.Ref + " · " + x.Title, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Commitments.AsNoTracking().Where(x => canSeeCommitment && x.Owner != null && !x.Owner.IsActive && x.Status == CommitmentStatus.Open).Select(x => new QueueItem(RecordTypes.Commitment, x.Id, x.Ref + " · " + x.Description, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
         return list;
     }
 

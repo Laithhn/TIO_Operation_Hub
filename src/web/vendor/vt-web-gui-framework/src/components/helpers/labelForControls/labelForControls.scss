@@ -1,0 +1,24 @@
+@use "assets/styles";
+
+
+.labelForControls {
+  text-align: start;
+
+  // The two lettering sets a control's label is written in, and the value set is the default: a
+  // check box states its own value in words, which is a value rather than a name for one. Both
+  // includes bring the colour for the ground and the class "typoDisabled" with them, so no status
+  // needs a colour rule of its own here.
+  &:not(.asLabel) {
+    @include styles.typoSet(valueSmall);
+  }
+
+  &.asLabel {
+    @include styles.typoSet(label);
+  }
+
+  &.noWrap {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+}

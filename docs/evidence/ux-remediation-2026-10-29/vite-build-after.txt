@@ -1,0 +1,46 @@
+../TioHub.Api/wwwroot/index.html                                       0.61 kB │ gzip:   0.38 kB
+../TioHub.Api/wwwroot/assets/layers-BWBAp2CZ.png                       0.70 kB
+../TioHub.Api/wwwroot/assets/layers-2x-Bpkbi35X.png                    1.26 kB
+../TioHub.Api/wwwroot/assets/marker-icon-hN30_KVU.png                  1.47 kB
+../TioHub.Api/wwwroot/assets/SourceCodePro-SemiBold-PvdDlFQO.woff2    12.12 kB
+../TioHub.Api/wwwroot/assets/SourceCodePro-Regular-DVU8_9LW.woff2     12.36 kB
+../TioHub.Api/wwwroot/assets/OpenSans-Italic-BSE8JA2e.woff2           18.07 kB
+../TioHub.Api/wwwroot/assets/OpenSans-SemiBoldItalic-CiS46d8x.woff2   18.41 kB
+../TioHub.Api/wwwroot/assets/OpenSans-Regular-p3YTou6l.woff2          18.88 kB
+../TioHub.Api/wwwroot/assets/OpenSans-Bold-KGIX5wQO.woff2             19.50 kB
+../TioHub.Api/wwwroot/assets/OpenSans-SemiBold-BPkKgrJ5.woff2         19.64 kB
+../TioHub.Api/wwwroot/assets/NotoSansArabic-Regular-BQZq7CHK.woff2    27.16 kB
+../TioHub.Api/wwwroot/assets/NotoSansArabic-700-CKvYBChn.woff2        27.96 kB
+../TioHub.Api/wwwroot/assets/NotoSansArabic-600-BnsJZAor.woff2        29.40 kB
+../TioHub.Api/wwwroot/assets/Clients-BfHzBgFy.css                      1.85 kB │ gzip:   0.70 kB
+../TioHub.Api/wwwroot/assets/Notifications-DGRAOKX9.css                5.60 kB │ gzip:   1.58 kB
+../TioHub.Api/wwwroot/assets/LeafletMap-WVuN2HsW.css                  11.07 kB │ gzip:   2.72 kB
+../TioHub.Api/wwwroot/assets/ClientMap-bGdUnCJ_.css                   12.50 kB │ gzip:   2.86 kB
+../TioHub.Api/wwwroot/assets/index-Cg0aZHpo.css                      165.39 kB │ gzip:  28.23 kB
+../TioHub.Api/wwwroot/assets/Actions-lS_gmVY4.js                       3.14 kB │ gzip:   1.39 kB
+../TioHub.Api/wwwroot/assets/common-CC6UU7aH.js                        3.87 kB │ gzip:   1.63 kB
+../TioHub.Api/wwwroot/assets/Quality-3t6Aszxs.js                       4.08 kB │ gzip:   1.72 kB
+../TioHub.Api/wwwroot/assets/Attachments-CTBuz2-f.js                   4.56 kB │ gzip:   2.06 kB
+../TioHub.Api/wwwroot/assets/pickers-DZNeJrj-.js                       4.78 kB │ gzip:   2.16 kB
+../TioHub.Api/wwwroot/assets/SignIn-BwKtBUXB.js                        6.99 kB │ gzip:   2.45 kB
+../TioHub.Api/wwwroot/assets/Configuration-DEGfycnW.js                 7.82 kB │ gzip:   2.95 kB
+../TioHub.Api/wwwroot/assets/Firewall-B8L_wFdw.js                      8.28 kB │ gzip:   2.83 kB
+../TioHub.Api/wwwroot/assets/Commitments-Bxoslxr2.js                  13.00 kB │ gzip:   4.26 kB
+../TioHub.Api/wwwroot/assets/charts-Cl37RJFG.js                       15.04 kB │ gzip:   5.24 kB
+../TioHub.Api/wwwroot/assets/Escalations-Ch7og5Fi.js                  16.94 kB │ gzip:   5.36 kB
+../TioHub.Api/wwwroot/assets/Teams-CcWUspQk.js                        17.28 kB │ gzip:   5.15 kB
+../TioHub.Api/wwwroot/assets/Notifications-DdAGr7ng.js                18.58 kB │ gzip:   6.13 kB
+../TioHub.Api/wwwroot/assets/Environments-Cn1U7FmI.js                 21.26 kB │ gzip:   6.40 kB
+../TioHub.Api/wwwroot/assets/ClientMap-DukBrFJV.js                    25.08 kB │ gzip:   8.13 kB
+../TioHub.Api/wwwroot/assets/Notes-Bw7XbNwi.js                        25.14 kB │ gzip:   8.02 kB
+../TioHub.Api/wwwroot/assets/Admin-CHVSebFj.js                        33.00 kB │ gzip:   9.63 kB
+../TioHub.Api/wwwroot/assets/Products-fN3dBXcE.js                     33.08 kB │ gzip:   8.01 kB
+../TioHub.Api/wwwroot/assets/Cases-D-j8wy76.js                        42.59 kB │ gzip:  11.96 kB
+../TioHub.Api/wwwroot/assets/Dashboard-CCJ14cWh.js                    44.72 kB │ gzip:  12.78 kB
+../TioHub.Api/wwwroot/assets/Inventory-ByJo-EAq.js                    52.35 kB │ gzip:  14.00 kB
+../TioHub.Api/wwwroot/assets/Reports-CCWu0J2u.js                     101.42 kB │ gzip:  28.91 kB
+../TioHub.Api/wwwroot/assets/Clients-CL_RH_v4.js                     115.73 kB │ gzip:  29.53 kB
+../TioHub.Api/wwwroot/assets/LeafletMap-DfHaEr75.js                  165.81 kB │ gzip:  49.74 kB
+../TioHub.Api/wwwroot/assets/countries-50m-DgYPl3oJ.js               756.54 kB │ gzip: 233.04 kB
+../TioHub.Api/wwwroot/assets/index-Coo_ht7h.js                       881.99 kB │ gzip: 293.29 kB
+✓ built in 6.28s

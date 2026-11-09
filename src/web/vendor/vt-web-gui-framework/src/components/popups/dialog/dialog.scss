@@ -1,0 +1,37 @@
+@use "assets/styles";
+
+
+.screen {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: 100%;
+  display: grid;
+  place-content: center;
+
+  &:not(.exclusive) {
+    pointer-events: none;
+  }
+
+  &.visible {
+    background: styles.layout(dimmedBackground);
+  }
+}
+
+
+// A dialog lies above everything else, and like every surface over the page it is glass and
+// light whatever it covers; a different colour comes from a section placed inside. Its height is the
+// highest of the floating shadows, which reaches the glass through its slot.
+.dialog {
+  --glassShadow: #{styles.layout(boxShadow, modal)};
+
+  min-height: 0;
+  display: grid;
+  // A dialog always has round corners, of a fixed radius rather than one the call site chooses as it
+  // does for a card.
+  border-radius: styles.spacePx(normal);
+  pointer-events: all;
+  @include styles.glassmorphism($strength: opaque);
+  @include styles.ground(light);
+}

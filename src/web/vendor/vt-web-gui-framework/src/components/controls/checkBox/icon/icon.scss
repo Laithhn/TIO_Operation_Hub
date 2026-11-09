@@ -1,0 +1,126 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+$iconSize: styles.layout(controls, iconDimDefault);
+$iconSizeLarge: styles.layout(controls, iconDimLarge);
+$dim: styles.layout(controls, heightDefault);
+$dimLarge: styles.layout(controls, heightLarge);
+$iconJustificationMargin: math.div(($iconSize - $dim), 2);
+$iconJustificationMarginLarge: math.div(($iconSizeLarge - $dimLarge), 2);
+
+
+:export {
+  iconSize: $iconSize;
+  iconSizeLarge: $iconSizeLarge;
+}
+
+
+.icon {
+  display: inline-grid;
+  grid-auto-flow: column;
+  place-content: center;
+  align-items: center;
+  // The interaction veil of the whole check box, drawn here: the slot sits on the check box, where
+  // the status belongs, and inherits down to this element, where it is seen. It takes its shape
+  // from the border-radius the two size branches below set - a circle on the square box.
+  box-shadow: var(--statusVeil);
+  // The ease-out of the status, in one place. The check box switches the duration to the ease-in
+  // while a status is arriving, so the veil appears instantly and only its end is animated.
+  transition: box-shadow var(--statusEaseMs) ease-out;
+
+  // The element that carries the icon's baseline (see Icon.tsx). Its line box is as tall as the
+  // control, and it has to ask for the row's baseline because the glyph stands before it: a grid
+  // container takes its baseline from its first item in document order, and that item is an SVG
+  // with no text baseline to give - so without this the check box would align its label to the
+  // icon's box edge. A control whose value comes first needs no such declaration, which is why the
+  // input group carries none.
+  span {
+    align-self: baseline;
+  }
+
+  path {
+    transition: fill styles.layoutMs(animationTime, fastMs) ease;
+  }
+
+  // An icon carries nothing but the color of its status: what used to lie over it in the color of
+  // the surface is a hole in its path now, so the control's background shows through. Each colour
+  // is followed by its form for a dark ground, which wins by position alone - a query adds no
+  // specificity.
+  &:not(.disabled) {
+    path {
+      fill: styles.color(primary);
+    }
+
+    @include styles.onDarkGround {
+      path {
+        fill: styles.color(offWhite);
+      }
+    }
+  }
+
+  &.disabled {
+    path {
+      fill: styles.layout(controls, color, dark, disabled);
+    }
+
+    @include styles.onDarkGround {
+      path {
+        fill: styles.layout(controls, color, light, disabled);
+      }
+    }
+  }
+
+  &.labelFirst:not(.withoutLabel) {
+    grid-column-start: 2;
+  }
+
+  // The spacing is stated in logical properties, so a right-to-left document mirrors it by itself:
+  // "start" is the side the label is read away from, whichever that is. The negative start margin
+  // takes the icon box's overhang back out - the box is as wide as the control while the glyph is
+  // only as wide as an icon - so the glyph lines up with whatever stands above or below it.
+
+  // normal icon size
+  &:not(.large) {
+    width: #{$dim}px;
+    height: #{$dim}px;
+    border-radius: #{math.div($dim, 2)}px;
+    margin-inline: #{$iconJustificationMargin}px styles.spacePx(xs);
+
+    span {
+      width: #{math.div($dim, 2)}px;
+      margin-inline-start: -#{math.div($dim, 2)}px;
+      line-height: #{$dim}px;
+    }
+
+    &.withoutLabel {
+      margin-inline: #{$iconJustificationMargin}px;
+    }
+
+    &.labelFirst:not(.withoutLabel) {
+      margin-inline: styles.spacePx(xs) #{$iconJustificationMargin}px;
+    }
+  }
+
+  // large icon size
+  &.large {
+    width: #{$dimLarge}px;
+    height: #{$dimLarge}px;
+    border-radius: #{math.div($dimLarge, 2)}px;
+    margin-inline: #{$iconJustificationMarginLarge}px styles.spacePx(xs);
+
+    span {
+      width: #{math.div($dimLarge, 2)}px;
+      margin-inline-start: -#{math.div($dimLarge, 2)}px;
+      line-height: #{$dimLarge}px;
+    }
+
+    &.withoutLabel {
+      margin-inline: #{$iconJustificationMarginLarge}px;
+    }
+
+    &.labelFirst:not(.withoutLabel) {
+      margin-inline: styles.spacePx(xs) #{$iconJustificationMarginLarge}px;
+    }
+  }
+}

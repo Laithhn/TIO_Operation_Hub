@@ -1,0 +1,26 @@
+// The strip of thumbnails below the shown image. It is the container its two scroll buttons lie
+// in: they overlay its two ends with a shader, the way every scrolling container of v4 carries
+// them, so the strip itself keeps the whole width.
+.preview {
+  position: relative;
+  overflow: hidden;
+}
+
+// The wrapper fills the row of the strip, or the room that row reserves above the thumbnails ends
+// up below them: the wrapper would then be as high as a thumbnail, and its own overflow would cut
+// the lift it exists to leave space for.
+.previewContrWrapper {
+  height: 100%;
+  overflow: hidden;
+}
+
+.previewContr {
+  height: 100%;
+  display: inline-flex;
+  align-items: flex-end;
+
+  &.center {
+    display: flex;
+    justify-content: center;
+  }
+}

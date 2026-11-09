@@ -1,0 +1,69 @@
+@use "assets/styles";
+
+
+$height: styles.layout(controls, heightDefault);
+
+
+.inputContr {
+  @include styles.inputControlContainer();
+}
+
+
+// The pane the field rests on, holding the field, its icons and its inc/dec controls - the field's
+// whole face, which is what the interaction veil covers and what states the status.
+.input {
+  @include styles.inputControlPane();
+
+  // The field takes whatever is left beside the icons, which is what makes a field wider than its
+  // content stay one field rather than a text with space behind it.
+  grid-template-columns: 1fr;
+}
+
+
+.inputElem {
+  // Safari on iOS draws a text field of its own, with an inner shadow and rounded corners, unless
+  // the native appearance is reset.
+  appearance: none;
+  background: none;
+  outline: none;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  // The floor of the container and the pane a third time, on the value itself - and the hidden
+  // overflow above does not stand in for it. To Firefox an <input> is a replaced element, so its
+  // overflow makes it no scroll container and leaves its automatic minimum size at its intrinsic
+  // width, the HTML default of 20 characters. In a pane narrower than that the value's track then
+  // refuses to shrink and pushes the trailing icon out of the pane: the search box of the multi
+  // select box's menu stood like that until 2026-09-03, its pane the first one narrow enough to
+  // show it.
+  min-width: 0;
+
+  // The line box takes the height of the pane, which centres the value and keeps the caret where
+  // the field's own edge leads the eye. It is also what carries the control's baseline out to the
+  // label the layout sets beside it: a grid container takes its baseline from its first item in
+  // document order, the value is that item, and a line box of the pane's height puts the baseline
+  // in the middle of the pane. No "align-self: baseline" is needed for it - that is a flexbox rule,
+  // and it is why the button's label does need one: an icon stands before it.
+  @include styles.typoSet(valueSmall, $lineHeight: #{$height}px);
+
+  // The characters the user has selected take the neutral highlight of the controls map: the
+  // selection belongs to the value rather than to an interaction with the field, see the map.
+  &::selection {
+    background-color: styles.layout(controls, color, dark, textSelection);
+  }
+
+  @include styles.onDarkGround {
+    &::selection {
+      background-color: styles.layout(controls, color, light, textSelection);
+    }
+  }
+
+  &::placeholder {
+    font-style: italic;
+    @include styles.typoSet(hint, $lineHeight: #{$height}px);
+  }
+
+  &.typoDisabled {
+    cursor: default;
+  }
+}

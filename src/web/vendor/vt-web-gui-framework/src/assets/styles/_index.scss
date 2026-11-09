@@ -1,0 +1,9 @@
+// For the use in SCSS files, only forward the functions and mixins, not the maps.
+@forward "color" hide $color, $ground;
+@forward "ground";
+@forward "inputControl";
+@forward "layout" hide $layout;
+@forward "menuEntry";
+@forward "selection";
+@forward "space" hide $space, $spacePx;
+@forward "typo" hide $typo;

@@ -1,0 +1,245 @@
+@use "../color";
+@use "../ground";
+@use "../layout";
+
+
+// The measures of an input control that carries a pane: the height and the radius every control of
+// the framework shares, and the padding the pane needs where the bottom line faked one with a
+// padding of 3px against a margin of -3px.
+$height: layout.layout(controls, heightDefault);
+$borderRadius: layout.layout(controls, borderRadiusDefault);
+$paddingLeftRight: layout.layout(controls, inputControlPaddingLeftRight);
+$columnGap: layout.layout(controls, inputControlColumnGap);
+
+// The pane itself, in the half strength the button calls "tinted", plus the slots and the
+// interaction layer of the base design. All of it lives in the controls map, where the button reads
+// it as well; the map states what its two theme keys mean.
+$paneFill: layout.layout(controls, surfaceTinted, fill, dark);
+$paneFillOnDark: layout.layout(controls, surfaceTinted, fill, light);
+$paneBorder: layout.layout(controls, surfaceTinted, border, dark);
+$paneBorderOnDark: layout.layout(controls, surfaceTinted, border, light);
+$paneContact: layout.layout(controls, surfaceTinted, contact, dark);
+$paneContactOnDark: layout.layout(controls, surfaceTinted, contact, light);
+$paneRim: layout.layout(controls, surfaceTinted, rim);
+$paneGlow: layout.layout(controls, surfaceTinted, glow);
+// The pane of a locked control, the tinted one halved once more - see the controls map.
+$paneFillLocked: layout.layout(controls, surfaceLocked, fill, dark);
+$paneFillLockedOnDark: layout.layout(controls, surfaceLocked, fill, light);
+$paneBorderLocked: layout.layout(controls, surfaceLocked, border, dark);
+$paneBorderLockedOnDark: layout.layout(controls, surfaceLocked, border, light);
+$slotEmpty: layout.layout(controls, slotEmpty);
+$slotEmptyInset: layout.layout(controls, slotEmptyInset);
+// The empty value of the veil slot, which carries two layers where the others carry one - see the
+// controls map.
+$slotEmptyVeil: layout.layout(controls, slotEmptyVeil);
+$veilInteraction: layout.layout(controls, interactionVeil);
+$veilInteractionOnDark: layout.layout(controls, interactionVeilOnDark);
+$borderInteraction: layout.layout(controls, interactionBorder);
+$borderInteractionOnDark: layout.layout(controls, interactionBorderOnDark);
+$easeInMs: layout.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: layout.layoutMs(controls, interactionEaseOutMs);
+
+
+// Mixin for the outer element of an input control - the pane, and standing under it the notice.
+// It places the two and does nothing else: an input control is named from outside, so its pane is
+// its whole face and carries the status itself. What the surrounding layout gives this element in
+// width, the pane takes over - which is what lets a column of fields stand on one edge whatever
+// their labels are.
+@mixin inputControlContainer() {
+  position: relative;
+  display: inline-grid;
+  // The inset the notice below the pane takes, so it starts where the value starts instead of at
+  // the pane's edge. It travels as a custom property because the notice is a helper with a CSS
+  // module of its own; it reads this and defaults to zero where nothing sets it.
+  --noticeInset: #{$paddingLeftRight}px;
+  // A control takes the width its column gives it and never pushes that column wider. Without this,
+  // it does: a grid item's automatic minimum size is its min-content size, and a grid container
+  // measured intrinsically sizes an "fr" track inside it to its content's **max-content** even
+  // under a min-content constraint (CSS Grid 12.7.1). The pane holds such a track, and the value in
+  // it is an <input>, whose max-content is the HTML default of 20 characters - so every control
+  // claimed some 185px as a floor, and two of them side by side in one track claimed 370px. A
+  // column of 290px then stretched to 370px and took every control in it along.
+  min-width: 0;
+}
+
+
+// Mixin for the body of an input control - the pane its value rests on, which is the control's
+// whole face: it holds the value, it answers the pointer, and it states the status. An input
+// control carries that pane always and gives it up with the class ".bare", where the surrounding
+// layout does the bounding instead. The pane is the tinted one of the button, measured at the
+// height and radius every control of the framework shares.
+//
+// The layers it is composed of ride in custom properties, one slot each, assembled by a single
+// box-shadow: a status sets its own slot and touches no other, which is what lets the statuses add
+// up instead of replacing each other. An unused slot holds a shadow of zero size in a transparent
+// color rather than being left out, so the whole list stays transitionable.
+//
+// **Nothing here aligns anything vertically, on purpose.** Every part of the pane places itself:
+// the icons set "align-self: center", the inc/dec pair centres its own content, and the value fills
+// the row through a line box as tall as the pane. That value is also the pane's first item in
+// document order, which is where a grid container takes its baseline from - so the baseline the
+// layout aligns the label against travels out without a single "align-self: baseline" on the way.
+// (Flexbox is the layout that would need one; grid is not, and the button's label needs one only
+// because an icon may stand before it.)
+//
+// The mixin uses the following classes and pseudo classes: ".bare", ".flushStart", ".flushEnd",
+// ".disabled", ".busy", ".error", ":hover" and ":focus-within". The pane takes its dark
+// form from the ground it sits on (see the ground module), not from a class.
+//
+// The statuses are one enum, so no two of them ever meet on one control and none of them needs to
+// outrank another. What does need care is the cascade. Every rule that has to overwrite the resting
+// pane carries a ":not(.bare)" of its own and stands after it, which makes them equal in weight
+// and lets their position decide. A dark-ground branch adds no weight to its rule - a query carries
+// no specificity - so it stands directly after the light declarations it replaces and wins over
+// them by position alone, and every later status rule overwrites it as it overwrites the light
+// one.
+@mixin inputControlPane() {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: auto;
+  // The same floor one level down: the pane has to be able to shrink inside the container for the
+  // container's own "min-width: 0" to reach the value. Where the value is an <input>, it needs the
+  // floor a third time on itself - see input.scss for why its hidden overflow is not enough.
+  min-width: 0;
+  column-gap: #{$columnGap}px;
+  height: #{$height}px;
+  // The edge is drawn in both forms and is transparent in the bare one, so the two measure the same
+  // and a bare control lines up with a paned one in the same column.
+  border: 1px solid var(--paneBorderColor);
+  border-radius: #{$borderRadius}px;
+  // The padding the pane needs where "withBackground" faked one with a padding of 3px against a
+  // margin of -3px. A bare control keeps it: the interaction veil takes the pane's shape whether
+  // the pane is drawn or not, so a value sitting on that shape's edge would look glued to it.
+  padding-inline: #{$paddingLeftRight}px;
+  background: var(--paneFill);
+  box-shadow: var(--paneShadow), var(--paneRim), var(--paneGlow), var(--statusVeil);
+  transition:
+    box-shadow var(--paneEaseMs) ease-out,
+    border-color var(--paneEaseMs) ease-out;
+  // What the pane draws, at rest: three empty layers, an empty interaction veil, no fill, no edge,
+  // and the ease-out every status leaves over. One slot per layer, and a status sets its own.
+  --paneShadow: #{$slotEmpty};
+  --paneRim: #{$slotEmptyInset};
+  --paneGlow: #{$slotEmptyInset};
+  --statusVeil: #{$slotEmptyVeil};
+  --paneFill: none;
+  --paneBorderColor: transparent;
+  --paneEaseMs: #{$easeOutMs};
+
+  &:not(.bare) {
+    --paneShadow: #{$paneContact};
+    --paneRim: #{$paneRim};
+    --paneGlow: #{$paneGlow};
+    --paneFill: #{$paneFill};
+    --paneBorderColor: #{$paneBorder};
+
+    @include ground.onDarkGround {
+      --paneShadow: #{$paneContactOnDark};
+      --paneFill: #{$paneFillOnDark};
+      --paneBorderColor: #{$paneBorderOnDark};
+    }
+  }
+
+  // A control that ends without an edge of its own on one side, which is the same statement the
+  // button carries as "flush" - and the mechanism differs by form exactly as it does there. A paned
+  // control squares its corners on that side and drops its border along it, so several of them
+  // strung together meet in a seam of nothing but their contact shadows. A bare one pulls its
+  // padding back out with a negative margin, so its value lines up with whatever stands above or
+  // below it instead of appearing indented; the veil moves with it, being the pane's own shape.
+  &:not(.bare) {
+    &.flushStart {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+      border-inline-start: none;
+    }
+
+    &.flushEnd {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+      border-inline-end: none;
+    }
+  }
+
+  &.bare {
+    &.flushStart {
+      margin-inline-start: -#{$paddingLeftRight}px;
+    }
+
+    &.flushEnd {
+      margin-inline-end: -#{$paddingLeftRight}px;
+    }
+  }
+
+  // FOCUS and HOVER are two statuses with one appearance, and neither needs more than the other: a
+  // control that answers the pointer and a control that holds the caret are both saying "you are
+  // here", and the caret says the rest by itself. Focus follows ":focus-within" rather than the
+  // ":focus-visible" the button and the check box take: the element that receives the focus lies
+  // inside the control - the <input> of a text field - and a field with a caret in it shows its
+  // focus whether the pointer or the tab key put it there.
+  //
+  // **Both forms take the same veil; only the edge follows the form.** A control with a pane has a
+  // line already and colours it, a bare one grows none - a line around something that carries none
+  // at rest was tried on 2026-08-28 and judged too loud. What the veil says, it says on both.
+  //
+  // The edge speaks only where no status is speaking through it: a field marked as faulty keeps its
+  // edge under the pointer, and what answers there is the veil alone. The two statuses add up
+  // instead of ranking each other, where the model before this one had the pointer erase the error
+  // line.
+  &:hover, &:focus-within {
+    &:not(.disabled):not(.busy) {
+      --statusVeil: #{$veilInteraction};
+      --paneEaseMs: #{$easeInMs};
+
+      @include ground.onDarkGround {
+        --statusVeil: #{$veilInteractionOnDark};
+      }
+
+      &:not(.bare):not(.error) {
+        --paneBorderColor: #{$borderInteraction};
+
+        @include ground.onDarkGround {
+          --paneBorderColor: #{$borderInteractionOnDark};
+        }
+      }
+    }
+  }
+
+  // A locked control - disabled or waiting for something - lies in the surface rather than on it:
+  // it gives up its contact shadow, its lit rim and its glow, which are what make a body look
+  // raised, and its pane thins to the locked values. That last step is what the button does by
+  // dropping from its full pane to the tinted one; an input control carries the tinted pane at
+  // rest, so it needs the third strength or its lock reads as no change at all.
+  &.disabled:not(.bare), &.busy:not(.bare) {
+    --paneShadow: #{$slotEmpty};
+    --paneRim: #{$slotEmptyInset};
+    --paneGlow: #{$slotEmptyInset};
+    --paneFill: #{$paneFillLocked};
+    --paneBorderColor: #{$paneBorderLocked};
+
+    @include ground.onDarkGround {
+      --paneFill: #{$paneFillLockedOnDark};
+      --paneBorderColor: #{$paneBorderLockedOnDark};
+    }
+  }
+
+  // A status the user has to attend to speaks through the edge - the pane's one ingredient that
+  // already draws a line, and the control's only voice now that the label comes from outside. A
+  // faulty entry is not as it should be, which is what attentionHigh says. It is no signal color:
+  // those describe the status of a thing the page shows, not the status of the interface showing
+  // it. The error is the one status that colours the edge: a changed value is no status of the
+  // control (see the decisions), so the edge speaks with one colour or not at all.
+  //
+  // The bare form colours its edge along with the paned one, where every other appearance of the
+  // pane is its alone: the edge is drawn in both forms and merely transparent here, and a status
+  // that showed on one form and vanished on the other would leave a faulty bare field stating
+  // nothing at all.
+  &.error {
+    --paneBorderColor: #{color.color(attentionHigh)};
+  }
+
+  // A locked control takes no click, so it promises none: the select boxes give their pane a pointer
+  // cursor at rest, and both locks take it back.
+  &.disabled, &.busy {
+    cursor: default;
+  }
+}

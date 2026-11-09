@@ -1,0 +1,19 @@
+@use "assets/styles";
+
+
+.selectBoxContr {
+  @include styles.inputControlContainer();
+}
+
+
+// The pane the select box rests on, holding the selected option and the icons beside it - the
+// control's whole face, which is what the interaction veil covers and what states the status. The
+// room a wider column gives it goes between the option and the icons: the option's own column is
+// measured to the widest of them, so the selection never reflows on a change.
+.selectBox {
+  outline: none;
+  cursor: pointer;
+  justify-content: space-between;
+
+  @include styles.inputControlPane();
+}

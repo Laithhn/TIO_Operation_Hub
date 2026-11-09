@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { get, qs, type Paged } from '../api';
-import { fmtDateTime } from '../format';
-import { useCan, useMe, useReference } from '../hooks';
-import { DataTable, Panel, StateMessage, TextInput, type Option } from '../ui/kit';
+import { fmtDate, fmtDateTime, label } from '../format';
+import { useMe, useReference } from '../hooks';
+import { hasRight, resourceForRecord, canAudit } from '../rights';
+import { DataTable, Panel, Restricted, TextInput, type Option } from '../ui/kit';
 import { Icon } from '../ui/Icon';
 
 export type ClientLite = { id: number; code: string; name: string };
 
 export function useClients() {
-  return useQuery({ queryKey: ['clients-lite'], queryFn: () => get<Paged<ClientLite>>('/clients?pageSize=200&sort=code'), staleTime: 60_000 });
+  const allowed = hasRight(useMe().data, 'ClientStructure', 'View');
+  const q = useQuery({ queryKey: ['clients-lite'], queryFn: () => get<Paged<ClientLite>>('/clients?pageSize=200&sort=code'), staleTime: 60_000, enabled: allowed });
+  return { ...q, data: allowed ? q.data : undefined };
 }
 
 export function useClientOptions(): Option[] {
@@ -17,11 +20,15 @@ export function useClientOptions(): Option[] {
 }
 
 export function useTeamOptions(): Option[] {
-  return (useReference().data?.teams ?? []).filter(t => t.isActive).map(t => ({ value: String(t.id), label: t.name }));
+  const allowed = hasRight(useMe().data, 'Teams', 'View');
+  const q = useReference(allowed);
+  return (allowed ? q.data?.teams ?? [] : []).filter(t => t.isActive).map(t => ({ value: String(t.id), label: t.name }));
 }
 
 export function useProductOptions(): Option[] {
-  return (useReference().data?.products ?? []).map(p => ({ value: String(p.id), label: p.code }));
+  const allowed = hasRight(useMe().data, 'Products', 'View');
+  const q = useReference(allowed);
+  return (allowed ? q.data?.products ?? [] : []).map(p => ({ value: String(p.id), label: p.code }));
 }
 
 export const toNum = (v: string) => (v ? Number(v) : null);
@@ -29,9 +36,10 @@ export const toNum = (v: string) => (v ? Number(v) : null);
 /** Field-change history for one record (Audit grant). */
 export function HistoryPanel({ entityType, entityId }: { entityType: string; entityId: number }) {
   const me = useMe().data;
-  const allowed = !!me?.grants.audit;
+  const resource = resourceForRecord(entityType);
+  const allowed = !!canAudit(me) && hasRight(me, resource, 'View') && hasRight(me, resource, 'DetailsView') && hasRight(me, resource, 'HistoryView');
   const q = useQuery({ queryKey: ['audit', entityType, entityId], queryFn: () => get<Paged<{ id: number; at: string; userName: string; action: string; reason?: string; changes?: string }>>(`/admin/audit${qs({ entityType, entityId, pageSize: 50 })}`), enabled: allowed });
-  if (!allowed) return <Panel title="Change history"><StateMessage kind="restricted">Change history needs the Audit permission.</StateMessage></Panel>;
+  if (!allowed) return <Panel title="Change history"><Restricted need="Change history needs the record details, View history and Change history rights." /></Panel>;
   return (
     <Panel title="Change history" pad={false}>
       <DataTable rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} columns={[
@@ -45,15 +53,34 @@ export function HistoryPanel({ entityType, entityId }: { entityType: string; ent
   );
 }
 
-export function Changes({ json }: { json?: string | null }) {
-  if (!json) return null;
+/** The field changes of one audit entry as [field, before, after], values as people read them; null when the text is not JSON. */
+export function parseChanges(json?: string | null): { field: string; from: string; to: string }[] | null {
+  if (!json) return [];
   let d: Record<string, [unknown, unknown]> = {};
-  try { d = JSON.parse(json); } catch { return <span className="mono">{json}</span>; }
-  return <span style={{ fontSize: 11.5 }}>{Object.entries(d).map(([k, v]) => <div key={k}><b>{k}</b>: {String(v?.[0] ?? '∅')} → {String(v?.[1] ?? '∅')}</div>)}</span>;
+  try { d = JSON.parse(json); } catch { return null; }
+  return Object.entries(d).map(([k, v]) => ({ field: label(k), from: changeValue(v?.[0]), to: changeValue(v?.[1]) }));
 }
 
-export function CanEdit({ children }: { children: React.ReactNode }) {
-  return useCan('Engineer') ? <>{children}</> : null;
+export function Changes({ json }: { json?: string | null }) {
+  const parsed = parseChanges(json);
+  if (!json) return null;
+  if (!parsed) return <span className="mono">{json}</span>;
+  const lines = parsed.map(x => <div key={x.field}><b>{x.field}</b>: {x.from} → {x.to}</div>);
+  // A105: two changes on show, the rest one click away, so one record with many fields does not fill the page.
+  if (lines.length <= 2) return <span className="audit-changes">{lines}</span>;
+  return (
+    <details className="audit-changes">
+      <summary>{lines.slice(0, 2)}<span className="linkbtn">Show all {lines.length} changes</span></summary>
+      {lines.slice(2)}
+    </details>
+  );
+}
+
+/** A changed value as people read it: dates in the display time zone, empty as a dash. */
+function changeValue(v: unknown): string {
+  if (v === null || v === undefined || v === '') return '—';
+  const t = String(v);
+  return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(t) ? fmtDateTime(t) : /^\d{4}-\d{2}-\d{2}$/.test(t) ? fmtDate(t) : t;
 }
 
 export function RecordLink({ type, id, children }: { type: string; id: number; children: React.ReactNode }) {

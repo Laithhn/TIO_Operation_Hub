@@ -1,0 +1,647 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+$height: styles.layout(controls, heightDefault);
+$heightLarge: styles.layout(controls, heightLarge);
+$iconSize: styles.layout(controls, iconDimDefault);
+$iconSizeLarge: styles.layout(controls, iconDimLarge);
+// The width of the edge every form draws (see the border below). The two heights above are the
+// button's outside, and with border-box its inside is smaller by this width twice - which is what
+// the line boxes further down are measured against.
+$edgeWidth: 1;
+
+// The pane of the button, in both its strengths, and the edge the interaction statuses take. All
+// of it belongs to the base design and lives in the controls map, where the input group reads it
+// as well - the button is one reader of two. What the map's two theme keys mean is stated there:
+// the button's "OnDark" is the map's "light".
+$surfaceFill: styles.layout(controls, surface, fill, dark);
+$surfaceFillOnDark: styles.layout(controls, surface, fill, light);
+$surfaceRim: styles.layout(controls, surface, rim);
+$surfaceGlow: styles.layout(controls, surface, glow);
+$surfaceContact: styles.layout(controls, surface, contact, dark);
+$surfaceContactOnDark: styles.layout(controls, surface, contact, light);
+$surfaceBorder: styles.layout(controls, surface, border, dark);
+$surfaceBorderOnDark: styles.layout(controls, surface, border, light);
+$surfaceTintedFill: styles.layout(controls, surfaceTinted, fill, dark);
+$surfaceTintedFillOnDark: styles.layout(controls, surfaceTinted, fill, light);
+$surfaceTintedRim: styles.layout(controls, surfaceTinted, rim);
+$surfaceTintedGlow: styles.layout(controls, surfaceTinted, glow);
+$surfaceTintedContact: styles.layout(controls, surfaceTinted, contact, dark);
+$surfaceTintedContactOnDark: styles.layout(controls, surfaceTinted, contact, light);
+$surfaceTintedBorder: styles.layout(controls, surfaceTinted, border, dark);
+$surfaceTintedBorderOnDark: styles.layout(controls, surfaceTinted, border, light);
+// The third strength, which a locked button reaches only from the tinted form - see the locked rule
+// and the controls map.
+$surfaceLockedFill: styles.layout(controls, surfaceLocked, fill, dark);
+$surfaceLockedFillOnDark: styles.layout(controls, surfaceLocked, fill, light);
+$surfaceLockedBorder: styles.layout(controls, surfaceLocked, border, dark);
+$surfaceLockedBorderOnDark: styles.layout(controls, surfaceLocked, border, light);
+// The glass of a plate that carries a highlight colour while it can be clicked - see the coloured
+// rule and the controls map, which states why the surface's own ingredients vanish on an opaque
+// colour. One set for both grounds.
+$surfaceColoredBorder: styles.layout(controls, surfaceColored, border);
+$surfaceColoredRim: styles.layout(controls, surfaceColored, rim);
+$surfaceColoredGlow: styles.layout(controls, surfaceColored, glow);
+// The overlaid button carries the pane of the filled button, but floating instead of resting: it
+// lies over content with air in between, which is what a floating shadow describes, and it hangs
+// from what it lies over, which is "anchored" of the layout map. Unlike every other floating shadow
+// it takes a form for a dark ground as well - the content below it is often dark, the image of the
+// image viewer above all, where a shadow drawn for a light ground is invisible. That form lives
+// here, being the one component that needs it: the same three layers in black, as the controls'
+// contact shadow turns black over a dark ground.
+$surfaceFloat: styles.layout(boxShadow, anchored);
+$surfaceFloatOnDark: 0 1px 2px 0 rgba(0, 0, 0, 0.4), 0 3px 6px 0 rgba(0, 0, 0, 0.34), 0 5px 12px 4px rgba(0, 0, 0, 0.26);
+// Pressed, a body lies closer to the surface it rests on: the contact shadow pulls together and
+// gains density instead of disappearing, and the lit rim goes out - a sunken edge catches no light.
+// The floating pane of the overlaid button sinks rather than lands, so it keeps all three of its
+// layers, each one nearer and tighter. All three have to stay, or the shadow list changes its length
+// and the ease-out of the press becomes a jump.
+$surfaceContactPressed: styles.layout(controls, surface, contactPressed, dark);
+$surfaceContactPressedOnDark: styles.layout(controls, surface, contactPressed, light);
+$surfaceTintedContactPressed: styles.layout(controls, surfaceTinted, contactPressed, dark);
+$surfaceTintedContactPressedOnDark: styles.layout(controls, surfaceTinted, contactPressed, light);
+$surfaceFloatPressed: 0 0 1px 0 styles.colorA(structureSilver, 0.24), 0 1px 3px 0 styles.colorA(structureSilver, 0.21), 0 2px 6px 1px styles.colorA(structureSilver, 0.16);
+$surfaceFloatPressedOnDark: 0 0 1px 0 rgba(0, 0, 0, 0.45), 0 1px 3px 0 rgba(0, 0, 0, 0.38), 0 2px 6px 1px rgba(0, 0, 0, 0.28);
+
+// The empty slots and the interaction layer of FOCUS and HOVER belong to the base design and live
+// in the controls map, where the check box reads them as well.
+$slotEmpty: styles.layout(controls, slotEmpty);
+$slotEmptyInset: styles.layout(controls, slotEmptyInset);
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+$veilInteraction: styles.layout(controls, interactionVeil);
+$veilInteractionOnDark: styles.layout(controls, interactionVeilOnDark);
+// PRESSED adds a layer of its own on top of that one instead of replacing it, so a pressed button
+// shows the sum of the two: two traces of the same veil compose to twice its strength, which is
+// where the published ladders put a press - eBay states 4 % for hover against 8 % for press. It is
+// the same veil once more, which is why it is no value of its own, and the press therefore deepens
+// exactly what the pointer already showed.
+$veilPress: $veilInteraction;
+$veilPressOnDark: $veilInteractionOnDark;
+$borderInteraction: styles.layout(controls, interactionBorder);
+$borderInteractionOnDark: styles.layout(controls, interactionBorderOnDark);
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
+// The light band of a button that waits, the idiom of a modern loading bar. It travels on a pseudo
+// element of its own, which is what lets it lie over whatever background the status gives the
+// button instead of replacing it. Its light is offWhite on both grounds: the pane is built from that
+// color over a dark background, and over a light one a white band still reads as a passing light.
+$shimmerBand: linear-gradient(100deg, transparent 15%, styles.colorA(offWhite, 0.55) 50%, transparent 85%);
+$shimmerStill: styles.colorA(offWhite, 0.3);
+// The band's period: slow enough to read as a wait rather than as a flicker, fast enough to answer
+// a click within one pass.
+$shimmerMs: 1400ms;
+
+
+// The travel of that band, one pass per period: it enters at the left edge and leaves at the right.
+@keyframes shimmer {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(100%);
+  }
+}
+
+:export {
+  buttonDim: $height;
+  buttonDimLarge: $heightLarge;
+}
+
+
+// Every dark-ground branch below is written through onDarkGroundOrClass(): it follows the ground
+// the button sits on, and the overlaid type alone lets the call site state that ground instead (the
+// prop "darkTheme"), through the classes "groundDark" and "groundLight". Each branch carries one
+// class more than the light rule it belongs to, so the rules keep the weights their order is built
+// on.
+.button {
+  display: inline-grid;
+  grid-auto-flow: column;
+  column-gap: styles.spacePx(xs);
+  place-content: center;
+  align-items: center;
+  outline: none;
+  // The edge every form draws, transparent until a type or a status gives it a colour - which the
+  // bare form never does (see the hover rule). It is declared here all the same, because the four
+  // forms have to measure the same inside: until 2026-08-28 three of them carried a 1px border and
+  // the bare one none, so with border-box that form had two pixels more room for its lettering than
+  // its siblings.
+  border: #{$edgeWidth}px solid transparent;
+  font-size: styles.typo(fontSize, small);
+  font-weight: styles.typo(fontWeight, semibold);
+  color: styles.typo(color, dark, normal);
+  fill: styles.typo(color, dark, normal);
+  text-transform: uppercase;
+  cursor: pointer;
+  @include styles.noTextSelection;
+  // The five layers any appearance of a button is made of, each one a slot: three for the resting
+  // pane, which the type fills in below, and two for the interaction statuses. Every status sets
+  // its own slot and leaves the others alone - that is what makes the statuses add up instead of
+  // overwriting one another, and it is why the pressed appearance is the sum of press and hover.
+  --paneShadow: #{$slotEmpty};
+  --paneRim: #{$slotEmptyInset};
+  --paneGlow: #{$slotEmptyInset};
+  // The two status slots take the empty value with two layers, the veils that fill them carrying
+  // two each - see the controls map.
+  --statusVeil: #{$slotEmptyVeil};
+  --statusPress: #{$slotEmptyVeil};
+  box-shadow: var(--paneShadow), var(--paneRim), var(--paneGlow), var(--statusVeil), var(--statusPress);
+  // The ease-out of every status change, in one place. The rules of the statuses themselves switch
+  // the duration to the ease-in, so a status arrives instantly and only its end is animated.
+  transition:
+    box-shadow $easeOutMs ease-out,
+    border-color $easeOutMs ease-out,
+    color $easeOutMs ease-out,
+    fill $easeOutMs ease-out;
+
+  &:not(.large) {
+    min-width: #{$height}px;
+    height: #{$height}px;
+    border-radius: styles.layoutPx(controls, borderRadiusDefault);
+    // What lies between the button's edge and its content on one side, which is what the flush rule
+    // below takes back again. With an icon and no text there is no padding to speak of, and the
+    // spacing comes from the minimum width the button holds against the icon's dimension.
+    --flushInset: #{math.div($height - $iconSize, 2)}px;
+
+    &.withText {
+      padding: 0 #{math.div($height, 2)}px;
+      --flushInset: #{math.div($height, 2)}px;
+    }
+
+    svg {
+      width: #{$iconSize}px;
+      height: #{$iconSize}px;
+    }
+
+    .text,
+    .baselineCarrier {
+      line-height: #{$height - (2 * $edgeWidth)}px;
+    }
+  }
+
+  &.large {
+    min-width: #{$heightLarge}px;
+    height: #{$heightLarge}px;
+    border-radius: styles.layoutPx(controls, borderRadiusLarge);
+    --flushInset: #{math.div($heightLarge - $iconSizeLarge, 2)}px;
+
+    &.withText {
+      padding: 0 #{math.div($heightLarge, 2)}px;
+      --flushInset: #{math.div($heightLarge, 2)}px;
+    }
+
+    svg {
+      width: #{$iconSizeLarge}px;
+      height: #{$iconSizeLarge}px;
+    }
+
+    .text,
+    .baselineCarrier {
+      line-height: #{$heightLarge - (2 * $edgeWidth)}px;
+    }
+  }
+
+  // A button without lettering carries the baseline carrier instead of a label (see Button.tsx).
+  // The two share one cell rather than standing in two columns, which would put the column gap
+  // above between them and widen a button that has nothing to separate.
+  &:not(.withText) {
+    svg,
+    .baselineCarrier {
+      grid-area: 1 / 1;
+    }
+  }
+
+  @include styles.onDarkGroundOrClass {
+    color: styles.typo(color, light, normal);
+    fill: styles.typo(color, light, normal);
+  }
+
+  // Whichever of the three statuses locks the button, the cursor says the same thing, so the one
+  // class that marks the lock carries it rather than each status separately.
+  &.locked {
+    cursor: default;
+  }
+
+  &.disabled {
+    color: styles.typo(color, dark, extraWeak);
+    fill: styles.typo(color, dark, extraWeak);
+
+    @include styles.onDarkGroundOrClass {
+      color: styles.typo(color, light, extraWeak);
+      fill: styles.typo(color, light, extraWeak);
+    }
+  }
+
+  // A button waiting for something: the pane it shows is the locked one below, and over it travels
+  // a light band, one pass per period. The band rides on a pseudo element, which is what makes it a
+  // layer over the background rather than a replacement of it - the status keeps its color. The
+  // element clips the band at the rounded corners, and it positions it: an overlaid button that was
+  // given a place of its own is absolute already, and the rule below that does it carries one class
+  // more than this one, so it wins whatever the order of the two.
+  &.busy {
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: $shimmerBand;
+      animation: shimmer $shimmerMs linear infinite;
+      pointer-events: none;
+
+      // Standing still, the band would leave a waiting button indistinguishable from
+      // an active one - both carry the attention color. So it stops travelling and
+      // stays as an even light instead.
+      @media (prefers-reduced-motion: reduce) {
+        background: $shimmerStill;
+        animation: none;
+      }
+    }
+  }
+
+  // A plate filled with a highlight colour carries the glass of a coloured pane instead of the
+  // surface's own: on an opaque, saturated colour the surface's rim and glow all but vanish and its
+  // edge is no contour, so the plate read as flat paint beside the switch that is on (2026-09-04).
+  // The set is one for both grounds, the fill being the same on both. It is drawn only while nothing
+  // locks the button: a locked plate keeps its colour but lies in the surface, and the rule below
+  // thins its glass like any other pane's - the flatness is what says that it cannot be clicked.
+  // The solid highlight is the one colour the set's edge cannot darken and stays with the
+  // surface's.
+  //
+  // The place of this rule is part of it. It has to beat the dark-ground branches of the two types,
+  // which carry three classes against these four, and it has to lose to the press, which puts the rim
+  // out, and to the hover, which colours the edge - both carry four classes as well and win only by
+  // standing later.
+  &.filled, &.overlaid {
+    &.highlightAttention, &.highlightAttentionHigh, &.highlightSignalOk,
+    &.highlightSignalWarning, &.highlightSignalError {
+      &:not(.locked) {
+        --paneRim: #{$surfaceColoredRim};
+        --paneGlow: #{$surfaceColoredGlow};
+        border-color: $surfaceColoredBorder;
+      }
+    }
+  }
+
+  // FOCUS and HOVER are two statuses with one appearance: the edge in the interaction color plus a
+  // neutral trace over the face. Focus follows :focus-visible rather than :focus, which is the
+  // browser's own judgement of a focus worth showing: a button focused by a click drops the
+  // appearance together with the pointer, a button reached by the tab key keeps it until the focus
+  // moves on. A status that locks the button suppresses both.
+  //
+  // **All four forms take the same veil; only the edge follows the form.** The three paned ones
+  // have a line already and colour it, the bare one grows none - a green line around a form that
+  // carries none at rest was tried on 2026-08-28 and judged too loud.
+  &:hover, &:focus-visible {
+    &:not(.locked) {
+      --statusVeil: #{$veilInteraction};
+      transition-duration: $easeInMs;
+
+      @include styles.onDarkGroundOrClass {
+        --statusVeil: #{$veilInteractionOnDark};
+      }
+
+      &:not(.bare) {
+        border-color: $borderInteraction;
+
+        @include styles.onDarkGroundOrClass {
+          border-color: $borderInteractionOnDark;
+        }
+      }
+    }
+  }
+
+  // The press adds to whatever is already there - its own layer over the interaction veil, and the
+  // pane of the type below sinks under it. It takes the veil of the form it presses, so the press
+  // deepens what the hover started rather than laying a second colour over it.
+  &.pressed:not(.locked) {
+    --statusPress: #{$veilPress};
+    transition-duration: $easeInMs;
+
+    @include styles.onDarkGroundOrClass {
+      --statusPress: #{$veilPressOnDark};
+    }
+  }
+
+  &.filled {
+    --paneShadow: #{$surfaceContact};
+    --paneRim: #{$surfaceRim};
+    --paneGlow: #{$surfaceGlow};
+    border-color: $surfaceBorder;
+    background: $surfaceFill;
+
+    @include styles.onDarkGroundOrClass {
+      --paneShadow: #{$surfaceContactOnDark};
+      border-color: $surfaceBorderOnDark;
+      background: $surfaceFillOnDark;
+    }
+
+    &.pressed:not(.locked) {
+      --paneShadow: #{$surfaceContactPressed};
+      --paneRim: #{$slotEmptyInset};
+
+      @include styles.onDarkGroundOrClass {
+        --paneShadow: #{$surfaceContactPressedOnDark};
+      }
+    }
+  }
+
+  &.tinted {
+    --paneShadow: #{$surfaceTintedContact};
+    --paneRim: #{$surfaceTintedRim};
+    --paneGlow: #{$surfaceTintedGlow};
+    border-color: $surfaceTintedBorder;
+    background: $surfaceTintedFill;
+
+    @include styles.onDarkGroundOrClass {
+      --paneShadow: #{$surfaceTintedContactOnDark};
+      border-color: $surfaceTintedBorderOnDark;
+      background: $surfaceTintedFillOnDark;
+    }
+
+    &.pressed:not(.locked) {
+      --paneShadow: #{$surfaceTintedContactPressed};
+      --paneRim: #{$slotEmptyInset};
+
+      @include styles.onDarkGroundOrClass {
+        --paneShadow: #{$surfaceTintedContactPressedOnDark};
+      }
+    }
+  }
+
+  // The two types that carry little or no surface take a highlight in their lettering and their
+  // icon instead of in their background: there is not enough plate to fill with a color, and a bare
+  // button has none at all. What they do not take is "solid" - that value is a filled plate by
+  // definition, and the two rules for it sit with the types that have one.
+  &.tinted, &.bare {
+    &.highlightAttention {
+      color: styles.typo(color, dark, attention);
+      fill: styles.typo(color, dark, attention);
+
+      @include styles.onDarkGroundOrClass {
+        color: styles.typo(color, light, attention);
+        fill: styles.typo(color, light, attention);
+      }
+    }
+
+    &.highlightAttentionHigh {
+      color: styles.typo(color, dark, attentionHigh);
+      fill: styles.typo(color, dark, attentionHigh);
+
+      @include styles.onDarkGroundOrClass {
+        color: styles.typo(color, light, attentionHigh);
+        fill: styles.typo(color, light, attentionHigh);
+      }
+    }
+
+    &.highlightSignalOk {
+      color: styles.typo(color, dark, signalOk);
+      fill: styles.typo(color, dark, signalOk);
+
+      @include styles.onDarkGroundOrClass {
+        color: styles.typo(color, light, signalOk);
+        fill: styles.typo(color, light, signalOk);
+      }
+    }
+
+    &.highlightSignalWarning {
+      color: styles.typo(color, dark, signalWarning);
+      fill: styles.typo(color, dark, signalWarning);
+
+      @include styles.onDarkGroundOrClass {
+        color: styles.typo(color, light, signalWarning);
+        fill: styles.typo(color, light, signalWarning);
+      }
+    }
+
+    &.highlightSignalError {
+      color: styles.typo(color, dark, signalError);
+      fill: styles.typo(color, dark, signalError);
+
+      @include styles.onDarkGroundOrClass {
+        color: styles.typo(color, light, signalError);
+        fill: styles.typo(color, light, signalError);
+      }
+    }
+  }
+
+  // A button that is to sit inside a line carries no surface at all: nothing but its lettering or
+  // icon, and it leaves every pane slot empty. What gives it a shape is the interaction veil alone,
+  // so it grows a plate under the pointer and none before - which is what the declaration states.
+  &.bare {
+    background: transparent;
+  }
+
+  &.overlaid {
+    --paneShadow: #{$surfaceFloat};
+    --paneRim: #{$surfaceRim};
+    --paneGlow: #{$surfaceGlow};
+    border-color: $surfaceBorder;
+    background: $surfaceFill;
+    // The only type that floats over content of its own, and rare enough on a page to afford the
+    // compositing layer this costs. Two deliberate differences to mixin glassmorphism(), which is
+    // dimensioned for a surface: the radius is smaller, because on a button of 30px the filter
+    // samples more than the button itself and frays at its edges - and there is no saturate. That
+    // one corrects the chroma a blur cancels between neighboring pixels of different hues, which
+    // needs structure in the backdrop. A control usually sits on one single color, where the blur
+    // changes nothing and the correction would only oversaturate that color, button-shaped.
+    backdrop-filter: blur(8px);
+
+    // Absolute only where the component was given a place to put the button: one of the props
+    // "left", "right", "top" and "bottom" carrying a number, which is when Button.tsx writes the
+    // inset values inline and sets this class with them. Without them the button stays in the flow
+    // and is placed like every other one, so an overlaid button can be aligned by the grid it sits
+    // in - which is what the scroll button does with it.
+    &.positioned {
+      position: absolute;
+    }
+
+    // The one deviation from the radius per size: an overlaid button carries an icon and nothing
+    // else in almost every case, and at the large size a circle reads better on top of foreign
+    // content than a square with rounded corners. The radius is the half of the large height, which
+    // turns the button into a circle as long as it is as wide as it is high.
+    &.large:not(.withText) {
+      border-radius: #{math.div($heightLarge, 2)}px;
+    }
+
+    @include styles.onDarkGroundOrClass {
+      --paneShadow: #{$surfaceFloatOnDark};
+      border-color: $surfaceBorderOnDark;
+      background: $surfaceFillOnDark;
+    }
+
+    // A floating pane sinks under the press instead of landing, so it keeps both parts of its
+    // shadow - each of them nearer and tighter.
+    &.pressed:not(.locked) {
+      --paneShadow: #{$surfaceFloatPressed};
+      --paneRim: #{$slotEmptyInset};
+
+      @include styles.onDarkGroundOrClass {
+        --paneShadow: #{$surfaceFloatPressedOnDark};
+      }
+    }
+  }
+
+  // A locked button - disabled, active or waiting - cannot be clicked, and that has to read before
+  // its lettering does: whatever pane the type carries thins out to the one of the tinted form and
+  // gives up its contact shadow, so the button lies flush in the surface instead of as a body on
+  // it. The bare form has no pane to thin.
+  //
+  // The place of this rule in the file is part of it, and moving it up breaks the appearance: it
+  // has to overwrite the pane of the four types above, and their dark-ground branches carry as
+  // many classes as this rule does - so against those, only standing later decides. Its own dark
+  // branch is one class ahead and would win anywhere, which is how the two grounds came apart
+  // before.
+  &.locked:not(.bare) {
+    --paneShadow: #{$slotEmpty};
+    --paneRim: #{$surfaceTintedRim};
+    --paneGlow: #{$surfaceTintedGlow};
+    border-color: $surfaceTintedBorder;
+
+    @include styles.onDarkGroundOrClass {
+      border-color: $surfaceTintedBorderOnDark;
+    }
+
+    // Two of the three locking statuses carry a background color of their own, and the thinned pane
+    // must not take it away. Excluding them here is what keeps the two grounds equal, because the
+    // rules of those colors follow below: against this rule they would win by standing later, but
+    // against its dark branch they would lose the extra class.
+    &:not(.active):not(.busy) {
+      background: $surfaceTintedFill;
+
+      @include styles.onDarkGroundOrClass {
+        background: $surfaceTintedFillOnDark;
+      }
+    }
+  }
+
+  // The tinted form thins one step further, because the rule above thins *to* the pane it already
+  // carries: without this it would state its lock through its lettering and its missing contact
+  // shadow alone, which reads as no change at all beside a tinted button that can be clicked. The
+  // step it takes is the one the input group takes, that group carrying the tinted pane at rest for
+  // the same reason. It gives up the lit rim and the glow with it - both are what make a body look
+  // raised, and this one lies in the surface.
+  //
+  // The place of this rule is part of it for the same reason as the one above: it has to overwrite
+  // that rule, and against its dark branch only standing later decides. No guard against the two
+  // colored statuses is needed here - D11 leaves ACTIVE and BUSY to the filled form, and the
+  // component normalizes them away before anything reads them.
+  &.locked.tinted {
+    --paneRim: #{$slotEmptyInset};
+    --paneGlow: #{$slotEmptyInset};
+    border-color: $surfaceLockedBorder;
+    background: $surfaceLockedFill;
+
+    @include styles.onDarkGroundOrClass {
+      border-color: $surfaceLockedBorderOnDark;
+      background: $surfaceLockedFillOnDark;
+    }
+  }
+
+  // A button flush on one side ends there without an edge of its own, and the two forms of that
+  // statement are as far apart as the types are. Where there is a plate, the corners on that side
+  // go square, which is what strings several buttons together into one control. Where there is
+  // none, there is nothing to square - so instead the inner spacing is pulled back out, and the
+  // lettering that would otherwise sit indented lines up with whatever stands above or below it.
+  // The overlaid form floats on its own and is reached by neither rule.
+  //
+  // The properties are the logical ones, because the prop says "start" and "end" rather than left
+  // and right. In a left-to-right layout they do exactly what their physical counterparts do.
+  // Every flush edge gives up its border as well, so what is left of the seam between two strung-
+  // together buttons is the contact shadow the two of them cast into it. A drawn line is more than
+  // the seam needs: the gap between the two labels or icons separates them by itself, and the
+  // shadow keeps the pair reading as two bodies rather than one wide plate.
+  &.filled, &.tinted {
+    &.flushStart {
+      border-start-start-radius: 0;
+      border-end-start-radius: 0;
+      border-inline-start: none;
+    }
+
+    &.flushEnd {
+      border-start-end-radius: 0;
+      border-end-end-radius: 0;
+      border-inline-end: none;
+    }
+  }
+
+  &.bare {
+    &.flushStart {
+      margin-inline-start: calc(-1 * var(--flushInset));
+    }
+
+    &.flushEnd {
+      margin-inline-end: calc(-1 * var(--flushInset));
+    }
+  }
+
+  &.filled, &.overlaid {
+    &.highlightAttention, &.active, &.busy {
+      background: styles.color(attention);
+      color: styles.typo(color, dark, normal);
+      fill: styles.typo(color, dark, normal);
+    }
+
+    &.highlightAttentionHigh {
+      background: styles.color(attentionHigh);
+      color: styles.typo(color, dark, normal);
+      fill: styles.typo(color, dark, normal);
+    }
+
+    &.highlightSignalOk {
+      background: styles.color(signalOk);
+      color: styles.typo(color, dark, normal);
+      fill: styles.typo(color, dark, normal);
+    }
+
+    &.highlightSignalWarning {
+      background: styles.color(signalWarning);
+      color: styles.typo(color, dark, normal);
+      fill: styles.typo(color, dark, normal);
+    }
+
+    &.highlightSignalError {
+      background: styles.color(signalError);
+      color: styles.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
+    }
+
+    &.highlightSolid {
+      background: styles.color(primary);
+      color: styles.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
+    }
+  }
+}
+
+
+.text {
+  // The label asks for the row's baseline, and that is what makes the button hand a text baseline
+  // out to whatever stands beside it: a grid container takes its baseline from its first item in
+  // document order, and where an icon precedes the label that item is an SVG with no baseline to
+  // give. The declaration is needed without an icon as well, because it decides nothing about the
+  // label's own position: a lone baseline item is placed at the start of its row, and the line box
+  // set above fills the button's inside exactly, so that start is also its centre.
+  align-self: baseline;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+
+// The button's baseline, and nothing else: a button without lettering has no text baseline to hand
+// out, so its grid synthesizes one from the icon's lower box edge - which lifts such a button 2.6 px
+// above a text button beside it, and 8.6 px at the large size. This element carries a line box as
+// tall as the button's inside, exactly as the label does, and asking for the row's baseline is what
+// makes the grid export it. Its non-breaking space paints nothing, and being narrower than the icon
+// it shares a cell with it leaves the button's size alone. The check box carries the same element
+// for the same reason, see checkBox/icon/Icon.tsx.
+.baselineCarrier {
+  align-self: baseline;
+}

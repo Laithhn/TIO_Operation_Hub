@@ -5,6 +5,7 @@ using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Inventory;
 using TioHub.Api.Modules.Shared;
+using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Firewall;
 
@@ -57,6 +58,13 @@ public static partial class FirewallEndpoints
         return string.Join(", ", parts);
     }
 
+    /// <summary>Both endpoints must remain visible. A rule is a shared relationship,
+    /// so visibility of its source alone cannot authorize disclosure or mutation.</summary>
+    public static IQueryable<FirewallRule> VisibleRules(HubDbContext db) =>
+        db.FirewallRules.Where(rule =>
+            db.Assets.Any(source => source.Id == rule.SourceAssetId && source.ClientId == rule.ClientId && source.EnvironmentId == rule.EnvironmentId)
+            && db.Assets.Any(destination => destination.Id == rule.DestinationAssetId && destination.ClientId == rule.ClientId));
+
     public static IQueryable<FirewallRule> Filter(IQueryable<FirewallRule> q, long? clientId, long? environmentId, long? assetId, FirewallProtocol? protocol, string? text)
     {
         if (clientId is not null) q = q.Where(r => r.ClientId == clientId);
@@ -75,9 +83,10 @@ public static partial class FirewallEndpoints
         g.MapGet("", async (long? clientId, long? environmentId, long? assetId, FirewallProtocol? protocol, string? q, string? sort, int? page, int? pageSize,
             HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            access.Me.RequireGrant(Grant.TechnicalDetail);
-            var query = Filter(db.FirewallRules.AsNoTracking(), clientId, environmentId, assetId, protocol, q);
+            access.RequireAccess();
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
+            access.Me.RequireRight(RightKeys.TechnicalDetail);
+            var query = Filter(VisibleRules(db).AsNoTracking(), clientId, environmentId, assetId, protocol, q);
             var keys = new Dictionary<string, Expression<Func<FirewallRule, object?>>>
             {
                 ["source"] = r => r.SourceAsset!.Name, ["destination"] = r => r.DestinationAsset!.Name, ["protocol"] = r => r.Protocol,
@@ -94,6 +103,7 @@ public static partial class FirewallEndpoints
 
         g.MapPost("", async (RuleInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
             var r = new FirewallRule();
             await ApplyAsync(r, input, db, access, ct);
             db.FirewallRules.Add(r);
@@ -103,7 +113,8 @@ public static partial class FirewallEndpoints
 
         g.MapPut("/{id:long}", async (long id, RuleInput input, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            var r = await db.FirewallRules.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
+            var r = await VisibleRules(db).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
             db.ExpectVersion(ctx, r);
             await ApplyAsync(r, input, db, access, ct);
             await db.SaveChangesAsync(ct);
@@ -112,9 +123,10 @@ public static partial class FirewallEndpoints
 
         g.MapDelete("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            var r = await db.FirewallRules.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
-            access.Me.RequireGrant(Grant.TechnicalDetail);
-            access.RequireMaintain(r.ClientId, null);
+            access.Me.RequireRight(RightKeys.Servers, RightKeys.View);
+            var r = await VisibleRules(db).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The firewall rule");
+            access.Me.RequireRight(RightKeys.TechnicalDetail);
+            access.RequireMaintain(RightKeys.Other, r.ClientId, null);
             // Deleted straight from the table: no version check (nothing else changes on a rule while it is removed).
             db.FirewallRules.Remove(r);
             await db.SaveChangesAsync(ct);
@@ -124,7 +136,7 @@ public static partial class FirewallEndpoints
 
     private static async Task ApplyAsync(FirewallRule r, RuleInput i, HubDbContext db, HubAccess access, CancellationToken ct)
     {
-        access.Me.RequireGrant(Grant.TechnicalDetail);
+        access.Me.RequireRight(RightKeys.TechnicalDetail);
         var check = new Check()
             .When(i.SourceAssetId is null, "sourceAssetId", "Select the source server.")
             .When(i.DestinationAssetId is null, "destinationAssetId", "Select the destination server.")
@@ -142,7 +154,7 @@ public static partial class FirewallEndpoints
         if (i.DestinationAssetId is not null && dst is null) check.Add("destinationAssetId", "Select a server you can access.");
         if (src is not null && dst is not null && src.ClientId != dst.ClientId) check.Add("destinationAssetId", "Both servers must belong to the same client.");
         check.ThrowIfAny();
-        access.RequireMaintain(src!.ClientId, null);
+        access.RequireMaintain(RightKeys.Other, src!.ClientId, null);
         r.ClientId = src.ClientId;
         r.EnvironmentId = src.EnvironmentId;
         r.SourceAssetId = src.Id;
@@ -154,3 +166,4 @@ public static partial class FirewallEndpoints
         r.Notes = Text.Clean(i.Notes);
     }
 }
+

@@ -1,0 +1,7 @@
+@use "assets/styles";
+
+
+// The lettering of the tag "color", in the form for the ground the text sits on.
+.color {
+  @include styles.typoColorClasses;
+}

@@ -1,0 +1,37 @@
+@use "assets/styles";
+
+
+$height: styles.layout(controls, heightDefault);
+
+
+.dateTimePickerOuterContr {
+  @include styles.inputControlContainer();
+}
+
+
+// The pane the picker rests on, holding the date and time fields and the icons beside them - the
+// control's whole face, which is what the interaction veil covers and what states the status. The
+// fields take whatever is left beside the icons, and "justifyValues" says where inside that room
+// they stand.
+.dateTimePicker {
+  grid-template-columns: 1fr;
+
+  @include styles.inputControlPane();
+}
+
+
+.dateTimePickerContr {
+  display: inline-grid;
+  grid-auto-flow: column;
+  column-gap: #{styles.layout(controls, inputControlColumnGap)}px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+
+  // The line box takes the height of the pane, as every line of lettering inside it does - that is
+  // what holds the fields in the middle of the pane, and what carries the control's baseline out to
+  // the label the layout sets beside it: a grid container takes its baseline from its first item in
+  // document order, and this container is that item. The parts inside the fields inherit the line
+  // height, an <input> taking its height from it.
+  @include styles.typoSet(valueSmall, $lineHeight: #{$height}px);
+}

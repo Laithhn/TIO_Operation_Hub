@@ -1,0 +1,69 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+// The height of the marker that lies behind the active node, which the interaction veil takes as
+// its own - see the rule below and marker.scss.
+$markerHeight: styles.layout(controls, heightDefault);
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
+
+.menuNode, .disabledMenuNode {
+  position: relative;
+  padding: 0 styles.layoutPx(controls, borderRadiusDefault);
+  font-size: styles.typo(fontSize, normal);
+  font-weight: styles.typo(fontWeight, normal);
+  line-height: styles.layoutPx(header, height);
+  white-space: nowrap;
+}
+
+.menuNode {
+  outline: none;
+  color: styles.typo(color, light, normal);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color styles.layoutMs(animationTime, contentFadeOutMs) ease;
+  // What the node draws at rest, and the ease-out every status leaves over. The empty value carries
+  // two layers, as the veil that fills the slot does - a shadow list interpolates only while both
+  // sides hold the same number of layers.
+  --statusVeil: #{$slotEmptyVeil};
+  --statusEaseMs: #{$easeOutMs};
+
+  // FOCUS and HOVER show the **veil** of the base design rather than the underline, because this
+  // menu marks its selection with a face: the glass marker grows to the width of the active node
+  // and lies behind it (marker.scss). The veil takes that marker's geometry and not the node's own
+  // box, which is as tall as the header - so it rides on a layer of its own, placed and rounded
+  // like the marker, and the marker shows through it where the two meet. The header is a dark area,
+  // so the veil is the one for a dark ground (documentation/design/dark-areas.md).
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: #{math.div(styles.layout(header, height) - $markerHeight, 2)}px;
+    height: #{$markerHeight}px;
+    border-radius: styles.layoutPx(controls, borderRadiusDefault);
+    box-shadow: var(--statusVeil);
+    transition: box-shadow var(--statusEaseMs) ease-out;
+    pointer-events: none;
+  }
+
+  // **The active node shows no veil**: the marker is the statement, and a veil over it would lay a
+  // second translucent layer on one node - seen at the click that sends the marker travelling onto
+  // the node under the pointer, where the two overlap for the length of the journey (ADR
+  // `general-marker-carrier-shows-no-interaction-veil.md`).
+  // The focus keeps its veil on the active node: it is the only mark a focused node carries, the
+  // browser's outline being suppressed above. A pointer click leaves no :focus-visible behind, so
+  // the overlap cannot arise from it.
+  &:hover:not(.active), &:focus-visible {
+    --statusVeil: #{styles.layout(controls, interactionVeilOnDark)};
+    --statusEaseMs: #{$easeInMs};
+  }
+}
+
+.disabledMenuNode {
+  color: styles.typo(color, light, extraWeak);
+  cursor: default;
+}

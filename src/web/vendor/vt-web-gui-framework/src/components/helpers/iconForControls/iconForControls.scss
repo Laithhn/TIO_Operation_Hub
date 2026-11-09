@@ -1,0 +1,11 @@
+@use "assets/styles";
+
+
+.iconForControls {
+  align-self: center;
+  @include styles.typoSet(valueSmall);
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

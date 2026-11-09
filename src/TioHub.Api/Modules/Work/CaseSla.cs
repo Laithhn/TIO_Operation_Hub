@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
@@ -10,7 +11,7 @@ namespace TioHub.Api.Modules.Work;
 public sealed record SlaCalendar(bool RoundTheClock, SupportDays Days, TimeOnly? From, TimeOnly? To, TimeZoneInfo Zone)
 {
     public static readonly SlaCalendar AllDay = new(true, SupportDays.None, null, null, TimeZoneInfo.Utc);
-    public bool Complete => RoundTheClock || (Days != SupportDays.None && From is not null && To is not null && From < To);
+    public bool Complete => RoundTheClock || (Days != SupportDays.None && From is not null && To is not null && From != To);
 }
 
 /// <summary>
@@ -25,11 +26,24 @@ public static class SlaClock
 
     private static SupportDays Flag(DayOfWeek d) => (SupportDays)(1 << (int)d);
 
-    private static DateTimeOffset Utc(DateTime local, TimeZoneInfo zone)
+    private static DateTimeOffset Utc(DateTime local, TimeZoneInfo zone, bool end)
     {
-        // A local time skipped by a daylight-saving change starts at the first valid instant after it.
-        while (zone.IsInvalidTime(local)) local = local.AddMinutes(30);
-        return new DateTimeOffset(DateTime.SpecifyKind(local, DateTimeKind.Unspecified), zone.GetUtcOffset(local)).ToUniversalTime();
+        // A skipped boundary moves to the first valid instant, rather than retaining minutes into the gap.
+        if (zone.IsInvalidTime(local))
+        {
+            var invalid = local;
+            do { local = local.AddMinutes(1); } while (zone.IsInvalidTime(local));
+            while (local.Ticks - invalid.Ticks > 1)
+            {
+                var middle = new DateTime(invalid.Ticks + (local.Ticks - invalid.Ticks) / 2, DateTimeKind.Unspecified);
+                if (zone.IsInvalidTime(middle)) invalid = middle; else local = middle;
+            }
+        }
+        // Include both occurrences of a repeated boundary: earliest start and latest end.
+        var offset = zone.IsAmbiguousTime(local)
+            ? (end ? zone.GetAmbiguousTimeOffsets(local).Min() : zone.GetAmbiguousTimeOffsets(local).Max())
+            : zone.GetUtcOffset(local);
+        return new DateTimeOffset(DateTime.SpecifyKind(local, DateTimeKind.Unspecified), offset).ToUniversalTime();
     }
 
     /// <summary>Support windows from <paramref name="from"/> onwards, in order.</summary>
@@ -38,15 +52,27 @@ public static class SlaClock
         if (cal.RoundTheClock) { yield return new Span(from, DateTimeOffset.MaxValue); yield break; }
         if (!cal.Complete) yield break;
         var day = TimeZoneInfo.ConvertTime(from, cal.Zone).Date;
+        Span? pending = null;
         for (var i = -1; i < MaxDays; i++)
         {
             var d = day.AddDays(i);
             if ((cal.Days & Flag(d.DayOfWeek)) == 0) continue;
-            var s = Utc(d + cal.From!.Value.ToTimeSpan(), cal.Zone);
-            var e = Utc(d + cal.To!.Value.ToTimeSpan(), cal.Zone);
-            if (e <= from) continue;
-            yield return new Span(s < from ? from : s, e);
+            // A selected support day owns the whole window, including its next-day overnight tail.
+            var s = Utc(d + cal.From!.Value.ToTimeSpan(), cal.Zone, end: false);
+            var endDay = cal.To < cal.From ? d.AddDays(1) : d;
+            var e = Utc(endDay + cal.To!.Value.ToTimeSpan(), cal.Zone, end: true);
+            if (e <= from || e <= s) continue;
+            var next = new Span(s < from ? from : s, e);
+            // DST overlap can make neighboring support windows overlap in UTC. Count their union once.
+            if (pending is not null && next.Start <= pending.End)
+                pending = pending with { End = next.End > pending.End ? next.End : pending.End };
+            else
+            {
+                if (pending is not null) yield return pending;
+                pending = next;
+            }
         }
+        if (pending is not null) yield return pending;
     }
 
     /// <summary>Pauses sorted and merged (overlapping waiting periods count once).</summary>
@@ -106,7 +132,7 @@ public static class SlaClock
 
 /// <summary>
 /// A61: contractual SLA measurement of a case.
-/// Start = case creation. Response = first qualifying response to the customer (recorded explicitly, never derived from internal notes
+/// Start = when the case was opened (A78, A91: the Jira creation time of a synchronized case). Response = first qualifying response to the customer (recorded explicitly, never derived from internal notes
 /// or system events). Resolution = the first move into Pending validation or Closed; a rejected validation (resume) clears it, a later
 /// reopen does not (first-resolution policy). Targets, basis and calendar are copied from the contract when the contract is set or the
 /// priority changes, so later contract edits never rewrite earlier results. Met = at or before the deadline.
@@ -116,13 +142,13 @@ public static class CaseSla
     public static TimeZoneInfo? Zone(string? id) => Zones.Find(id);
 
     /// <summary>Copies the contract's target for the case priority, the basis and the support calendar onto the case.</summary>
-    public static void Snapshot(Case c, Contract? k, IEnumerable<SlaTarget> targets, DateTimeOffset now)
+    public static void Snapshot(Case c, Contract? k, IEnumerable<SlaTarget> targets, DateTimeOffset now, bool refreshPenaltyTerms = true)
     {
         if (k is null)
         {
             c.SlaPriority = null; c.SlaResponseMinutes = null; c.SlaResolutionMinutes = null; c.SlaBasis = SlaBasis.Unknown; c.SlaSupport24x7 = false;
             c.SlaSupportDays = SupportDays.None; c.SlaSupportFrom = null; c.SlaSupportTo = null; c.SlaTimeZone = null; c.SlaPauseOnCustomerWaiting = false;
-            c.SlaContractRef = null; c.SlaAppliedAt = null;
+            c.SlaContractRef = null; c.SlaAppliedAt = null; c.PenaltyTermsSnapshotJson = null; c.SlaContractStart = null;
             return;
         }
         var t = targets.FirstOrDefault(x => x.Priority == c.Priority);
@@ -137,7 +163,11 @@ public static class CaseSla
         c.SlaTimeZone = k.SupportTimeZone;
         c.SlaPauseOnCustomerWaiting = k.SlaPauseWhileWaitingOnCustomer;
         c.SlaContractRef = k.Ref;
+        c.SlaContractStart = k.StartDate;
         c.SlaAppliedAt = now;
+        if (refreshPenaltyTerms)
+            c.PenaltyTermsSnapshotJson = JsonSerializer.Serialize(k.PenaltyClauses.OrderBy(x => x.Id)
+                .Select(x => new PenaltyClauseSnapshot(x.Id, x.Name, x.Trigger, x.Calculation, x.FixedAmount, x.Percentage, x.ReferenceAmount, x.MonthlyCap, x.BillingTimeZone, k.Currency ?? "")));
     }
 
     /// <summary>The calendar of the snapshot, or the reason it cannot be used.</summary>
@@ -165,20 +195,22 @@ public static class CaseSla
     /// <summary>Recomputes the deadlines, counted times and states. Returns true when anything changed.</summary>
     public static bool Evaluate(Case c, IEnumerable<CaseWaitingInterval> waits, DateTimeOffset now, DateTimeOffset? trackingFrom)
     {
-        var before = (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote);
+        var before = (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote, c.DueAt);
         DateTimeOffset? rDue = null, xDue = null;
         int? rElapsed = null, xElapsed = null, paused = null;
         SlaState rState, xState;
         string? note = null;
 
         if (c.Scope == WorkScope.Internal || c.ClientId is null) { rState = xState = SlaState.NotApplicable; note = "Internal work has no contractual SLA."; }
-        else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this case."; }
-        else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The case was cancelled."; }
+        else if (c.ContractId is null && c.SlaNoCoveringContract) { rState = xState = SlaState.NotMeasurable; note = "No contract linked to this Jira space covers the ticket's creation date."; }
+        else if (c.ContractId is null) { rState = xState = SlaState.NotApplicable; note = "No contract is linked to this ticket."; }
+        else if (c.Status == CaseStatus.Cancelled) { rState = xState = SlaState.NotApplicable; note = "The ticket was cancelled."; }
+        else if (BeforeContract(c) && c.SlaContractStart is { } contractStart) { rState = xState = SlaState.NotApplicable; note = $"The ticket was opened before {c.SlaContractRef} started on {contractStart:yyyy-MM-dd}."; }
         else
         {
             var (cal, problem) = Calendar(c);
             var pauses = Pauses(c, waits, now);
-            var start = c.CreatedAt;
+            var start = c.OpenedAt;
             (SlaState, DateTimeOffset?, int?) Measure(int? minutes, DateTimeOffset? actual, string what, bool untracked)
             {
                 if (minutes is null) { note ??= $"{c.SlaContractRef} has no {what} target for {c.SlaPriority} priority."; return (SlaState.NotMeasurable, null, null); }
@@ -186,8 +218,9 @@ public static class CaseSla
                 var due = SlaClock.Deadline(start, minutes.Value, cal, pauses);
                 if (due is null) { note ??= "No support time falls within the next four years of the calendar."; return (SlaState.NotMeasurable, null, null); }
                 if (actual is { } a) return (a <= due ? SlaState.Met : SlaState.Breached, due, (int)SlaClock.Counted(start, a, cal, pauses).TotalMinutes);
-                if (untracked) { note ??= $"The case was opened before {what}s were recorded, and none was recorded since."; return (SlaState.NotMeasurable, due, null); }
-                return (now > due ? SlaState.Breached : SlaState.Pending, due, (int)SlaClock.Counted(start, now, cal, pauses).TotalMinutes);
+                if (untracked) { note ??= $"The ticket was opened before {what}s were recorded, and none was recorded since."; return (SlaState.NotMeasurable, due, null); }
+                // A91: a finished case stops counting, or an unanswered one would run on for ever.
+                return (now > due ? SlaState.Breached : SlaState.Pending, due, (int)SlaClock.Counted(start, c.ClosedAt ?? c.CancelledAt ?? now, cal, pauses).TotalMinutes);
             }
             (rState, rDue, rElapsed) = Measure(c.SlaResponseMinutes, c.FirstResponseAt, "response", trackingFrom is { } tf && c.CreatedAt < tf);
             // A case closed before resolution times were recorded has no reliable resolution instant.
@@ -200,10 +233,22 @@ public static class CaseSla
         c.ResponseSlaStatus = rState; c.ResolutionSlaStatus = xState;
         c.ResponseElapsedMinutes = rElapsed; c.ResolutionElapsedMinutes = xElapsed;
         c.SlaPausedMinutes = paused; c.SlaNote = note;
-        var changed = before != (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote);
+        // A78: a synchronized case under a contract is due when its resolution SLA is.
+        if (c.SlaClockStartAt is not null && xDue is not null) { c.DueAt = xDue; c.DueTimeZone = c.SlaTimeZone ?? "UTC"; }
+        // A91: when it stops being measured, a due date taken from the earlier resolution deadline goes with it; it would still count as overdue.
+        // Work opened before its contract has no deadline at all: 2.51.1 cleared the deadline and left its due date, so the deadline cannot be compared there.
+        else if (c.SlaClockStartAt is not null && (rState == SlaState.NotApplicable && c.Scope == WorkScope.Client && c.ClientId is not null && c.ContractId is not null && c.Status != CaseStatus.Cancelled && BeforeContract(c)
+            || (before.ResolutionDueAt is not null && c.DueAt == before.ResolutionDueAt))) { c.DueAt = null; c.DueTimeZone = null; }
+        var changed = before != (c.ResponseDueAt, c.ResolutionDueAt, c.ResponseSlaStatus, c.ResolutionSlaStatus, c.ResponseElapsedMinutes, c.ResolutionElapsedMinutes, c.SlaPausedMinutes, c.SlaNote, c.DueAt);
         if (changed || c.SlaCalculatedAt is null) c.SlaCalculatedAt = now;
         return changed;
     }
+
+    /// <summary>A91: the calendar day the case was opened, in the contract's support time zone, to compare with the contract's start date.</summary>
+    private static DateOnly OpenedDay(Case c) => DateOnly.FromDateTime(TimeZoneInfo.ConvertTime(c.OpenedAt, Zone(c.SlaTimeZone) ?? TimeZoneInfo.Utc).DateTime);
+
+    /// <summary>A90: the case was opened before the contract's start date, so it is not measured against that contract.</summary>
+    private static bool BeforeContract(Case c) => c.SlaContractStart is { } start && OpenedDay(c) < start;
 
     /// <summary>The state a stored result has now: a pending obligation whose deadline passed counts as breached even before the next sweep.</summary>
     public static SlaState Now(SlaState stored, DateTimeOffset? due, DateTimeOffset now) => stored == SlaState.Pending && due < now ? SlaState.Breached : stored;
@@ -229,11 +274,13 @@ public static class CaseSla
         if (resnap.Count > 0)
         {
             var ids = resnap.Where(c => c.ContractId is not null).Select(c => c.ContractId!.Value).Distinct().ToList();
-            var contracts = await db.Contracts.IgnoreQueryFilters().AsNoTracking().Include(k => k.SlaTargets).Where(k => ids.Contains(k.Id)).ToListAsync(ct);
+            var contracts = await db.Contracts.IgnoreQueryFilters().AsNoTracking().Include(k => k.SlaTargets).Include(k => k.PenaltyClauses).Where(k => ids.Contains(k.Id)).ToListAsync(ct);
             foreach (var c in resnap)
             {
                 var k = contracts.FirstOrDefault(x => x.Id == c.ContractId);
-                Snapshot(c, k, k?.SlaTargets ?? [], now);
+                var entry = db.Entry(c);
+                // A61 refreshes SLA targets on priority changes; A63 retains the original penalty terms until a link changes.
+                Snapshot(c, k, k?.SlaTargets ?? [], now, refreshPenaltyTerms: entry.State == EntityState.Added || entry.Property(nameof(Case.ContractId)).IsModified);
             }
         }
         var caseIds = entries.Select(e => e.Entity.Id).Where(id => id != 0).ToList();
@@ -265,7 +312,7 @@ public static class CaseSla
     {
         if (!await db.Settings.AnyAsync(s => s.Key == SettingKeys.SlaTrackingFrom, ct))
         {
-            db.Settings.Add(new AppSetting { Key = SettingKeys.SlaTrackingFrom, Value = now.ToString("O"), Description = "When first responses to customers began to be recorded (A61). Cases opened earlier have no response measurement unless one is recorded." });
+            db.Settings.Add(new AppSetting { Key = SettingKeys.SlaTrackingFrom, Value = now.ToString("O"), Description = "When first responses to customers began to be recorded (A61). Tickets opened earlier have no response measurement unless one is recorded." });
             await db.SaveChangesAsync(ct);
         }
         var pending = await db.Cases.IgnoreQueryFilters().Where(c => c.SlaCalculatedAt == null).Select(c => c.Id).ToListAsync(ct);
@@ -292,12 +339,12 @@ public static class CaseSla
                     if (c.SlaCalculatedAt is null) c.SlaCalculatedAt = now; // marks the case as processed; SaveChanges evaluates it
                     processed++;
                 }
-                catch (Exception ex) { failed++; log.LogWarning(ex, "SLA backfill skipped case {CaseId}", c.Id); }
+                catch (Exception ex) { failed++; log.LogWarning(ex, "SLA backfill skipped ticket {CaseId}", c.Id); }
             }
             await db.SaveChangesAsync(ct);
         }
         if (pending.Count > 0)
-            log.LogInformation("SLA backfill: {Processed} case(s) processed, {Resolved} resolution time(s) taken from the status history, {Skipped} skipped, {Failed} failed",
+            log.LogInformation("SLA backfill: {Processed} ticket(s) processed, {Resolved} resolution time(s) taken from the status history, {Skipped} skipped, {Failed} failed",
                 processed, resolvedFromHistory, pending.Count - processed - failed, failed);
     }
 }
@@ -317,7 +364,7 @@ public sealed class SlaSweep(IServiceScopeFactory scopes, IConfiguration config,
                 using var scope = scopes.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
                 var n = await SweepAsync(db, scope.ServiceProvider.GetRequiredService<TimeProvider>().GetUtcNow(), stop);
-                if (n > 0) log.LogInformation("SLA sweep updated {Count} case(s)", n);
+                if (n > 0) log.LogInformation("SLA sweep updated {Count} ticket(s)", n);
             }
             catch (Exception ex) when (ex is not OperationCanceledException) { log.LogError(ex, "SLA sweep failed; it is retried at the next interval"); }
             await Task.Delay(TimeSpan.FromMinutes(minutes), stop);
@@ -327,16 +374,54 @@ public sealed class SlaSweep(IServiceScopeFactory scopes, IConfiguration config,
     public static async Task<int> SweepAsync(HubDbContext db, DateTimeOffset now, CancellationToken ct)
     {
         var cleared = await CaseSla.ClearUnlinkedAsync(db, now, ct);
+        // Older releases marked otherwise valid overnight snapshots NotMeasurable. Repair their missing deadlines
+        // from the recorded snapshot, including historical cases, without importing today's contract or penalty terms.
+        var repairQuery = db.Cases.IgnoreQueryFilters().Where(c => c.ContractId != null && c.Scope == WorkScope.Client && c.Status != CaseStatus.Cancelled
+            && c.SlaBasis == SlaBasis.SupportHours && !c.SlaSupport24x7 && c.SlaSupportDays != SupportDays.None
+            && c.SlaSupportFrom != null && c.SlaSupportTo != null && c.SlaSupportFrom > c.SlaSupportTo && c.SlaTimeZone != null
+            && ((c.ResponseSlaStatus == SlaState.NotMeasurable && c.ResponseDueAt == null && c.SlaResponseMinutes != null)
+                || (c.ResolutionSlaStatus == SlaState.NotMeasurable && c.ResolutionDueAt == null && c.SlaResolutionMinutes != null)))
+            .OrderBy(c => c.Id);
+        var repairs = new List<Case>();
+        var trackingFrom = await CaseSla.TrackingFromAsync(db, ct);
+        long after = 0;
+        while (repairs.Count < 500)
+        {
+            var batch = await repairQuery.Where(c => c.Id > after).Take(500).ToListAsync(ct);
+            if (batch.Count == 0) break;
+            after = batch[^1].Id;
+            var batchIds = batch.Select(c => c.Id).ToArray();
+            var batchWaits = await db.CaseWaitingIntervals.AsNoTracking().Where(w => batchIds.Contains(w.CaseId)).ToListAsync(ct);
+            foreach (var c in batch)
+            {
+                var responseMissing = c.ResponseSlaStatus == SlaState.NotMeasurable && c.ResponseDueAt == null && c.SlaResponseMinutes != null;
+                var resolutionMissing = c.ResolutionSlaStatus == SlaState.NotMeasurable && c.ResolutionDueAt == null && c.SlaResolutionMinutes != null;
+                if (repairs.Count < 500 && CaseSla.Calendar(c).Calendar is not null)
+                {
+                    CaseSla.Evaluate(c, batchWaits.Where(w => w.CaseId == c.Id), now, trackingFrom);
+                    if ((responseMissing && c.ResponseDueAt != null) || (resolutionMissing && c.ResolutionDueAt != null))
+                    {
+                        repairs.Add(c);
+                        continue;
+                    }
+                }
+                // Invalid zones or targets beyond the clock's horizon cannot fill a repair batch forever.
+                db.Entry(c).State = EntityState.Detached;
+            }
+        }
         var cases = await db.Cases.IgnoreQueryFilters()
             .Where(c => (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now) || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now)
-                || ((c.ResponseSlaStatus == SlaState.Pending || c.ResolutionSlaStatus == SlaState.Pending) && c.SlaPauseOnCustomerWaiting && c.WaitingReason == WaitingReason.Customer))
+                || ((c.ResponseSlaStatus == SlaState.Pending || c.ResolutionSlaStatus == SlaState.Pending) && c.SlaPauseOnCustomerWaiting && c.WaitingReason == WaitingReason.Customer)
+                // A91: synchronized work not measured, still holding a due date from an earlier deadline (left by 2.51.1).
+                || (c.SlaClockStartAt != null && c.DueAt != null && c.ContractId != null && c.SlaContractStart != null && c.Scope == WorkScope.Client && c.Status != CaseStatus.Cancelled && c.ResolutionSlaStatus == SlaState.NotApplicable))
             .Take(500).ToListAsync(ct);
+        cases = cases.Concat(repairs).DistinctBy(c => c.Id).ToList();
         if (cases.Count == 0) return cleared;
         var ids = cases.Select(c => c.Id).ToList();
         var waits = await db.CaseWaitingIntervals.AsNoTracking().Where(w => ids.Contains(w.CaseId)).ToListAsync(ct);
-        var trackingFrom = await CaseSla.TrackingFromAsync(db, ct);
-        var changed = cases.Count(c => CaseSla.Evaluate(c, waits.Where(w => w.CaseId == c.Id), now, trackingFrom));
+        var repairedIds = repairs.Select(c => c.Id).ToHashSet();
+        var changed = cases.Count(c => CaseSla.Evaluate(c, waits.Where(w => w.CaseId == c.Id), now, trackingFrom) && !repairedIds.Contains(c.Id));
         await db.SaveChangesAsync(ct);
-        return changed + cleared;
+        return changed + repairs.Count + cleared;
     }
 }

@@ -1,0 +1,55 @@
+@use "assets/styles";
+
+
+.mainSection {
+  min-width: 100%;
+  display: grid;
+
+  &:not(.inModwin):not(.inSecondSidebar) {
+    min-height: 100%;
+    padding: styles.spacePx(normal) styles.spacePx(large) styles.spacePx(small);
+  }
+
+  &.inModwin {
+    flex-grow: 1;
+    padding: styles.spacePx(normal) styles.spacePx(small) styles.spacePx(small);
+  }
+
+  &.inSecondSidebar {
+    min-height: 100%;
+    padding: styles.spacePx(normal) styles.layoutPx(mostLeftRightPadding) styles.spacePx(small);
+  }
+
+  &.scrollBarH:not(.noPaddingBottom) {
+    padding-bottom: styles.layoutPx(scrolling, scrollBarThickness);
+  }
+
+  &.noPaddingStart {
+    padding-left: 0 !important;
+  }
+
+  &.noPaddingEnd {
+    padding-right: 0 !important;
+  }
+
+  &.noPaddingTop {
+    padding-top: 0 !important;
+  }
+
+  &.noPaddingBottom {
+    padding-bottom: 0 !important;
+  }
+}
+
+
+body[dir="rtl"] {
+  .mainSection {
+    &.noPaddingStart {
+      padding-right: 0 !important;
+    }
+
+    &.noPaddingEnd {
+      padding-left: 0 !important;
+    }
+  }
+}

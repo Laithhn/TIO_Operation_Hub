@@ -1,19 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { get, post, put, qs, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label } from '../format';
-import { useCan, useForm, useLookup, useMe, useReference, useRefresh } from '../hooks';
+import { useRight, useForm, useLookup, useReference, useRefresh } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, Checkbox, ConfirmDelete, DataTable, Dialog, DL, Field, FormError, PageHead, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { RecordLink } from './common';
 
 type TeamRow = { id: number; code: string; name: string; description?: string; isActive: boolean; lead?: UserRef; manager?: UserRef; memberCount: number };
 
 export function TeamList() {
   const q = useQuery({ queryKey: ['teams'], queryFn: () => get<TeamRow[]>('/teams') });
-  const canManage = useCan('Manager');
+  const canManage = useRight('Teams', 'Create');
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -101,10 +101,9 @@ function MemberDialog({ teamId, member, onClose }: { teamId: string; member?: Me
 
 export function TeamDetail() {
   const { id } = useParams();
-  const me = useMe().data!;
   const t = useQuery({ queryKey: ['team', id], queryFn: () => get<TeamDto>(`/teams/${id}`) });
   const a = useQuery({ queryKey: ['assignments', id], queryFn: () => get<Assign>(`/teams/${id}/assignments`) });
-  const canManage = me.businessRole === 'Manager';
+  const canManage = useRight('Teams', 'Coordinate');
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [removing, setRemoving] = useState<Member | null>(null);
@@ -126,17 +125,17 @@ export function TeamDetail() {
       {a.data && (<>
         <Panel title="Assignments and coverage" pad={false}>
           <DataTable rowKey={p => p.userId} rows={a.data.people} columns={[
-            { key: 'n', header: 'Engineer', render: p => <Link to={`/cases?ownerId=${p.userId}`}>{p.name}</Link> }, { key: 'c', header: 'Open cases', className: 'num', render: p => p.openCases },
+            { key: 'n', header: 'Engineer', render: p => <Link to={`/cases?ownerId=${p.userId}`}>{p.name}</Link> }, { key: 'c', header: 'Open tickets', className: 'num', render: p => p.openCases },
             { key: 'w', header: 'Waiting', className: 'num', render: p => p.waiting }, { key: 'o', header: 'Overdue items', className: 'num', render: p => p.overdue ? <Badge tone="bad">{p.overdue}</Badge> : 0 },
             { key: 'b', header: 'Backup for', className: 'num', render: p => p.backupFor }, { key: 'm', header: 'Open commitments', className: 'num', render: p => p.openCommitments }
           ]} />
           <p className="hint" style={{ padding: 10 }}>{a.data.note}</p>
         </Panel>
         <div className="cols">
-          <Panel title={`Unassigned team cases (${a.data.unassigned.length})`}>{a.data.unassigned.length === 0 ? <StateMessage kind="none">No unassigned cases.</StateMessage> : <ul className="timeline">{a.data.unassigned.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /><div className="when">{c.nextAction}</div></li>)}</ul>}</Panel>
+          <Panel title={`Unassigned team tickets (${a.data.unassigned.length})`}>{a.data.unassigned.length === 0 ? <StateMessage kind="none">No unassigned tickets.</StateMessage> : <ul className="timeline">{a.data.unassigned.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /><div className="when">{c.nextAction}</div></li>)}</ul>}</Panel>
           <Panel title={`Coverage gaps (${a.data.coverageGaps.length})`}>{a.data.coverageGaps.length === 0 ? <StateMessage kind="none">No coverage gaps under the configured policy.</StateMessage> : <ul className="timeline">{a.data.coverageGaps.map(c => <li key={c.id}><Link to={`/cases/${c.id}`}>{c.ref}</Link> {c.title} <StatusBadge value={c.priority} /> — no active backup owner</li>)}</ul>}</Panel>
         </div>
-        <AttachmentsPanel recordType="Team" recordId={Number(id)} canEdit={canManage} />
+        <AttachmentsWorkspace recordType="Team" recordId={Number(id)} />
       </>)}
       {open && <MemberDialog teamId={id!} onClose={() => setOpen(false)} />}
       {editing && <MemberDialog teamId={id!} member={editing} onClose={() => setEditing(null)} />}
@@ -150,7 +149,8 @@ type HandoverRow = { id: number; ref: string; status: string; effectiveAt: strin
 export function HandoverList() {
   const [status, setStatus] = useState('');
   const q = useQuery({ queryKey: ['handovers', status], queryFn: () => get<HandoverRow[]>(`/handovers${qs({ status })}`) });
-  const canLead = useCan('Manager');
+  const canCreate = useRight('Handovers', 'Create');
+  const canLead = useRight('Teams', 'Coordinate') && canCreate;
   const [open, setOpen] = useState(false);
   return (
     <>

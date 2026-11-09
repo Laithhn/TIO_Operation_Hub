@@ -103,7 +103,7 @@ public static class PaymentQuery
         api.MapGet("/payments", async (long? clientId, long? ownerId, long? productId, string? country, string? q, string? state, bool? mine, DateTimeOffset? asOf,
             string? sort, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (state is not null && !States.Contains(state)) throw new ValidationException("state", "Unknown payment state.");
             var now = asOf ?? DateTimeOffset.UtcNow;
             var today = DateOnly.FromDateTime(now.UtcDateTime);

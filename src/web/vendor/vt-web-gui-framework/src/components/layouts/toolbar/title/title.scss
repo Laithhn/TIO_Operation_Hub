@@ -1,0 +1,37 @@
+@use "assets/styles";
+
+
+.title {
+  display: flex;
+  align-items: baseline;
+
+  &.centerTitle {
+    justify-self: center;
+  }
+
+  .titleText {
+    &:not(.titleTypeIsTitle):not(.titleTypeIsLabel) {
+      @include styles.typoSet(headline, $disabled: false);
+    }
+    &.titleTypeIsTitle {
+      @include styles.typoSet(title, $disabled: false);
+    }
+    &.titleTypeIsLabel {
+      @include styles.typoSet(label, $disabled: false);
+    }
+  }
+
+  .subTitleText {
+    margin: 0 0 0 styles.spacePx(small);
+    @include styles.typoSet(hint, $disabled: false);
+  }
+}
+
+
+body[dir='rtl'] {
+  .title {
+    .subTitleText {
+      margin: 0 styles.spacePx(small) 0 0;
+    }
+  }
+}

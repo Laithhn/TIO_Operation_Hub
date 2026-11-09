@@ -1,0 +1,18 @@
+@use "assets/styles";
+
+
+// The space above and below the line. LongMenu.tsx gives the row of a divider its height from it,
+// so it leaves through the export below.
+$space: styles.space(xs);
+
+:export {
+  dividerSpace: $space;
+}
+
+
+.divider {
+  width: 100%;
+  height: #{$space + 1}px;
+  border-bottom: 1px solid styles.layout(dividerColor, dark);
+  margin-bottom: #{$space}px;
+}

@@ -1,0 +1,81 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+.menuNode {
+  width: 100%;
+  overflow: hidden;
+  transition: height styles.layoutMs(animationTime, contentFadeOutMs) ease;
+
+  &.addPaddingBottom {
+    padding-bottom: styles.layoutPx(firstSidebar, menuNodeAddPaddingBottom);
+  }
+}
+
+
+.link {
+  display: grid;
+  align-items: center;
+  // The end padding is the half of the sidebar's marker that lies inside the sidebar, so that the
+  // caption ends where the marker of the active node begins. It is the sidebar's marker, not the
+  // top-level "markerWidth" of the section's marker: that one gave 3.5 pixels until 2026-10-20,
+  // and the marker covered the end of the caption.
+  padding: 0 #{math.div(styles.layout(firstSidebar, markerWidth), 2)}px 0 styles.layoutPx(mostLeftRightPadding);
+  @include styles.menuEntry($activeFontWeight: semibold);
+
+  .line {
+    height: 100%;
+    border-left: 1px solid styles.layout(dividerColor, soft);
+    margin-left: #{math.div((styles.layout(firstSidebar, menuIconDim) - 1), 2)}px; // the line is exactly below the center of the icons
+  }
+
+  .sign {
+    white-space: pre-wrap;
+    overflow: hidden;
+  }
+
+  .caption {
+    white-space: pre-wrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+
+  &:not(.isSubmenuNode) {
+    grid-template-rows: minmax(50px, max-content);
+
+    &:not(.hasIcon) {
+      grid-template-columns: auto;
+    }
+
+    &.hasIcon {
+      grid-template-columns: 32px auto;
+    }
+
+    .caption {
+      padding: styles.spacePx(small) 0;
+    }
+  }
+
+  &.isSubmenuNode {
+    grid-template-rows: minmax(38px, max-content);
+
+    &:not(.hasSign) {
+      grid-template-columns: 32px auto;
+    }
+
+    &.hasSign {
+      grid-template-columns: 25px 32px auto; // width for the sign: 32 pixels; place the sign closer to the line to have more space for the caption
+    }
+
+    .caption {
+      padding: styles.spacePx(xs) 0;
+    }
+  }
+}
+
+
+body[dir="rtl"] {
+  .link {
+    padding: 0 styles.layoutPx(mostLeftRightPadding) 0 #{math.div(styles.layout(firstSidebar, markerWidth), 2)}px;
+  }
+}

@@ -1,13 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { get, post, put, qs, type Paged, type UserRef } from '../api';
 import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useCan, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
+import { useRight, useForm, useLeaveGuard, useMe, useReference, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, UserPicker } from '../ui/pickers';
 import { Badge, DataTable, DeleteAction, DL, FormError, FormSection, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, useToast, When } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { ContactCard, ContactFields, contactFrom, contactOut, HistoryPanel, toNum, useClientOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 
 /** A41: escalation management. Channels (e-mail, formal letter, verbal, Jira…) are a configuration list. */
 type Row = {
@@ -51,10 +52,12 @@ export function EscalationTable({ clientId, caseId, compact }: { clientId?: numb
         <TextInput label="Search" value={f.q} onChange={v => set({ q: v, page: '1' })} placeholder="Ref, title, channel reference or contact" />
       </div>
       <DataTable<Row> caption="Escalations" rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })}
+        emptyMessage={!filtered && params.status !== 'all' ? <>{params.status === 'active' ? 'No active escalations.' : `No ${label(params.status).toLowerCase()} escalations.`}{' '}
+          <button type="button" className="linkbtn" onClick={() => set({ status: 'all', page: '1' })}>View all</button></> : undefined}
         columns={[
           { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/escalations/${r.id}`}>{r.ref}</Link> },
           { key: 't', header: 'Escalation', render: r => <><Link to={`/escalations/${r.id}`}>{r.title}</Link>{r.counterpartName && <div className="hint">{r.direction === 'Raised' ? 'To' : 'From'} {r.counterpartName}{r.counterpartOrganization ? ` · ${r.counterpartOrganization}` : ''}</div>}</> },
-          ...(clientId || compact ? [] : [{ key: 'client', header: 'Client', sort: 'client', render: (r: Row) => <Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link> }]),
+          ...(clientId || compact ? [] : [{ key: 'client', header: 'Client', sort: 'client', render: (r: Row) => <ClientDisplay id={r.clientId} code={r.clientCode} /> }]),
           { key: 'channel', header: 'Channel', sort: 'channel', render: r => <><span className="chip">{ch.name(r.channel)}</span>{r.channelReference && <div className="hint mono">{r.channelReference}</div>}</> },
           { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} /> },
           { key: 'level', header: 'Level', sort: 'level', render: r => <LevelBadge level={r.level} /> },
@@ -70,7 +73,7 @@ export function EscalationTable({ clientId, caseId, compact }: { clientId?: numb
 }
 
 export function EscalationList() {
-  const canEng = useCan('Engineer');
+  const canEng = useRight('OtherOperations', 'Create');
   return (
     <>
       <PageHead title="Escalations" sub="Client matters raised above normal handling, by e-mail, formal letter, verbally, through Jira or any other configured channel. Each has an accountable owner, a level and response and resolution targets."
@@ -100,7 +103,7 @@ export function EscalationForm() {
   const refresh = useRefresh();
   const clients = useClientOptions();
   const ch = useChannels();
-  const canLead = useCan('Manager');
+  const canLead = useRight('OtherOperations', 'Coordinate');
   const existing = useQuery({ queryKey: ['escalation', id], queryFn: () => get<Dto>(`/escalations/${id}`), enabled: !isNew });
   const f = useForm({
     clientId: sp.get('clientId') ?? '', title: '', description: '', direction: 'Received', channel: '', channelReference: '', priority: 'High', level: '1',
@@ -162,7 +165,7 @@ export function EscalationForm() {
         <FormSection title="Related records (optional)">
           <SelectInput label="Project" value={v.projectId} onChange={x => f.set('projectId', x)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} />
           <SelectInput label="Contract" value={v.contractId} onChange={x => f.set('contractId', x)} options={(contracts.data?.items ?? []).filter(c => String(c.clientId) === v.clientId).map(c => ({ value: String(c.id), label: `${c.ref} · ${c.title}` }))} empty="None" error={f.fieldError('contractId')} />
-          <SelectInput label="Case" value={v.caseId} onChange={x => f.set('caseId', x)} options={(cases.data?.items ?? []).map(c => ({ value: String(c.id), label: `${c.ref} · ${c.title}` }))} empty="None" error={f.fieldError('caseId')} />
+          <SelectInput label="Ticket" value={v.caseId} onChange={x => f.set('caseId', x)} options={(cases.data?.items ?? []).map(c => ({ value: String(c.id), label: `${c.ref} · ${c.title}` }))} empty="None" error={f.fieldError('caseId')} />
         </FormSection>
         <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>{isNew ? 'Record escalation' : 'Save escalation'}</button></div>
       </Panel>
@@ -195,7 +198,7 @@ export function EscalationDetail() {
       <div className="cols">
         <Panel title="Escalation">
           <DL items={([
-            ['Client', <Link to={`/clients/${e.client.id}`}>{e.client.code} · {e.client.name}</Link>], ['Channel', <>{ch.name(e.channel)}{e.channelReference && <> · <span className="mono">{e.channelReference}</span></>}</>],
+            ['Client', <ClientDisplay id={e.client.id} code={e.client.code} name={e.client.name} show="both" />], ['Channel', <>{ch.name(e.channel)}{e.channelReference && <> · <span className="mono">{e.channelReference}</span></>}</>],
             ['Description', e.description ? <span style={{ whiteSpace: 'pre-wrap' }}>{e.description}</span> : null], ['Owner', <Person u={e.owner} />],
             ['Received / raised', fmtDateTime(e.receivedAt)], ['Acknowledged', e.acknowledgedAt ? <When v={e.acknowledgedAt} /> : <span className="muted">Not yet</span>],
             ['Respond by', e.responseDueAt ? <span className={e.responseOverdue ? 'err' : ''}>{fmtDateTime(e.responseDueAt)}</span> : null],
@@ -203,7 +206,7 @@ export function EscalationDetail() {
             ['Resolved', e.resolvedAt ? <When v={e.resolvedAt} /> : null], ['Resolution', e.resolutionSummary], ['Closed', e.closedAt ? <When v={e.closedAt} /> : null],
             ['Project', e.project ? <Link to={`/projects/${e.project.id}`}>{e.project.code} · {e.project.name}</Link> : null],
             ['Contract', e.contract ? <Link to={`/contracts/${e.contract.id}`}>{e.contract.ref} · {e.contract.title}</Link> : null],
-            ['Case', e.case ? <Link to={`/cases/${e.case.id}`}>{e.case.ref} · {e.case.title}</Link> : null]
+            ['Ticket', e.case ? <Link to={`/cases/${e.case.id}`}>{e.case.ref} · {e.case.title}</Link> : null]
           ] as [string, React.ReactNode][]).filter(([, v]) => v !== null && v !== undefined && v !== '')} />
         </Panel>
         <Panel title={e.direction === 'Raised' ? 'Escalated to' : 'Escalated by'}>
@@ -223,7 +226,7 @@ export function EscalationDetail() {
           </li>))}
         </ul>
       </Panel>
-      <AttachmentsPanel recordType="Escalation" recordId={e.id} canEdit={e.permissions.canEdit} title="Letters, e-mails and other files" />
+      <AttachmentsWorkspace recordType="Escalation" recordId={e.id} title="Letters, e-mails and other files" />
       <HistoryPanel entityType="Escalation" entityId={e.id} />
       {dialog === 'log' && <ActionDialog title="Log communication" path={`/escalations/${id}/communications`} onClose={close} submitLabel="Log"
         intro="Record what was sent or received and through which channel. A reply to an open escalation acknowledges it. The hub does not send anything."

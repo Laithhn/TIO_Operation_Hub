@@ -46,14 +46,16 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
     {
         var now = p.AsOf ?? DateTimeOffset.UtcNow;
         var days = await settings.UpcomingDaysAsync(ct);
+        const int commitmentWindowDays = 14;
         var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
         var prios = await settings.CoveragePrioritiesAsync(ct);
         var baseCase = new CaseFilter(ClientId: p.ClientId, TeamId: p.TeamId, OwnerId: p.OwnerId, ProductId: p.ProductId, Country: p.Country);
         IQueryable<Case> Cases(CaseFilter f) => CaseQuery.Apply(db.Cases.AsNoTracking(), f, now, days, policy, db, prios);
         var baseCom = new CommitmentFilter(ClientId: p.ClientId, TeamId: p.TeamId, OwnerId: p.OwnerId, ProductId: p.ProductId, Country: p.Country);
         IQueryable<Commitment> Coms(CommitmentFilter f) => CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, days, db);
+        IQueryable<Commitment> UpcomingComs(CommitmentFilter f) => CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, commitmentWindowDays, db);
 
-        var open = await Cases(baseCase).Select(c => new { c.CreatedAt, waiting = c.WaitingIntervals.Select(w => new { w.StartedAt, w.EndedAt }).ToList() }).ToListAsync(ct);
+        var open = await Cases(baseCase).Select(c => new { OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, waiting = c.WaitingIntervals.Select(w => new { w.StartedAt, w.EndedAt }).ToList() }).ToListAsync(ct);
         var waitingHours = open.SelectMany(c => c.waiting).Sum(w => ((w.EndedAt ?? now) - w.StartedAt).TotalHours);
         var link = Link(p, now);
         object M(string key, string label, int value, string definition, string drill) => new { key, label, value, definition, drilldown = drill };
@@ -61,30 +63,30 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         return new
         {
             evaluatedAt = now,
-            upcomingDays = days,
+            upcomingDays = commitmentWindowDays,
             filters = p,
             cases = new object[]
             {
-                M("openCases", "Open cases", open.Count, "All cases except Closed and Cancelled. Waiting cases stay open.", link("/cases", "status=open")),
-                M("overdueCases", "Overdue cases", await Cases(baseCase with { Due = "overdue" }).CountAsync(ct), "Open cases with a due time strictly before the evaluation time.", link("/cases", "due=overdue")),
-                M("noDeadlineCases", "Open cases without a deadline", await Cases(baseCase with { Due = "none" }).CountAsync(ct), "Open cases with no due time; not counted as overdue or on time.", link("/cases", "due=none")),
-                M("unassignedCases", "Unassigned cases", await Cases(baseCase with { Unassigned = true }).CountAsync(ct), "Open cases with no owner (an ownership condition, not a status).", link("/cases", "unassigned=true")),
-                M("waitingCases", "Waiting cases", await Cases(baseCase with { Waiting = true }).CountAsync(ct), "Open cases with a recorded waiting reason. Deadlines are not paused.", link("/cases", "waiting=true")),
-                M("reviewOverdueCases", "Next review passed", await Cases(baseCase with { ReviewOverdue = true }).CountAsync(ct), "Open cases whose next-review time is in the past.", link("/cases", "reviewOverdue=true")),
-                M("staleCases", "Stale cases", await Cases(baseCase with { Stale = true }).CountAsync(ct), "Open cases whose last meaningful review is older than the policy or whose next-review date passed.", link("/cases", "stale=true"))
+                M("openCases", "Open tickets", open.Count, "All tickets except Closed and Cancelled. Waiting tickets stay open.", link("/cases", "status=open")),
+                M("overdueCases", "Overdue tickets", await Cases(baseCase with { Due = "overdue" }).CountAsync(ct), "Open tickets with a due time strictly before the evaluation time.", link("/cases", "due=overdue")),
+                M("noDeadlineCases", "Open tickets without a deadline", await Cases(baseCase with { Due = "none" }).CountAsync(ct), "Open tickets with no due time; not counted as overdue or on time.", link("/cases", "due=none")),
+                M("unassignedCases", "Unassigned tickets", await Cases(baseCase with { Unassigned = true }).CountAsync(ct), "Open tickets with no owner (an ownership condition, not a status).", link("/cases", "unassigned=true")),
+                M("waitingCases", "Waiting tickets", await Cases(baseCase with { Waiting = true }).CountAsync(ct), "Open tickets with a recorded waiting reason. Deadlines are not paused.", link("/cases", "waiting=true")),
+                M("reviewOverdueCases", "Next review passed", await Cases(baseCase with { ReviewOverdue = true }).CountAsync(ct), "Open tickets whose next-review time is in the past.", link("/cases", "reviewOverdue=true")),
+                M("staleCases", "Stale tickets", await Cases(baseCase with { Stale = true }).CountAsync(ct), "Open tickets whose last meaningful review is older than the policy or whose next-review date passed.", link("/cases", "stale=true"))
             },
             caseAge = new
             {
-                averageDays = open.Count == 0 ? (double?)null : Math.Round(open.Average(c => (now - c.CreatedAt).TotalDays), 1),
-                oldestDays = open.Count == 0 ? (double?)null : Math.Round(open.Max(c => (now - c.CreatedAt).TotalDays), 1),
+                averageDays = open.Count == 0 ? (double?)null : Math.Round(open.Average(c => (now - c.OpenedAt).TotalDays), 1),
+                oldestDays = open.Count == 0 ? (double?)null : Math.Round(open.Max(c => (now - c.OpenedAt).TotalDays), 1),
                 totalWaitingHours = Math.Round(waitingHours, 1),
-                definition = "Age is calendar time since creation for open cases. Waiting time sums recorded waiting intervals and does not pause any deadline."
+                definition = "Age is calendar time since the ticket was opened: the Jira creation time of a synchronized ticket, otherwise the hub creation time. Waiting time sums recorded waiting intervals and does not pause any deadline."
             },
             commitments = new object[]
             {
                 M("openCommitments", "Open commitments", await Coms(baseCom).CountAsync(ct), "Commitments with status Open.", link("/commitments", "status=open")),
                 M("overdueCommitments", "Overdue commitments", await Coms(baseCom with { Due = "overdue" }).CountAsync(ct), "Open commitments whose current deadline is strictly before the evaluation time.", link("/commitments", "due=overdue")),
-                M("upcomingCommitments", $"Due in the next {days} days", await Coms(baseCom with { Due = "upcoming" }).CountAsync(ct), $"Open commitments due between now and {days} calendar days ahead.", link("/commitments", "due=upcoming"))
+                M("upcomingCommitments", $"Due in the next {commitmentWindowDays} days", await UpcomingComs(baseCom with { Due = "upcoming" }).CountAsync(ct), $"Open commitments due between now and {commitmentWindowDays} calendar days ahead.", link("/commitments", $"due=upcoming&upcomingDays={commitmentWindowDays}"))
             },
             actionCounts = (await ActionsAsync(p, ct)).GroupBy(a => a.Category).ToDictionary(g => g.Key, g => g.Count()),
             deferred = "Tasks, changes, capacity and on-time delivery rates are delivered in the Next release and are not shown."
@@ -107,6 +109,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
     {
         var now = p.AsOf ?? DateTimeOffset.UtcNow;
         var days = await settings.UpcomingDaysAsync(ct);
+        const int commitmentWindowDays = 14;
         var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
         var prios = await settings.CoveragePrioritiesAsync(ct);
         var crit = (await settings.CoverageCriticalitiesAsync(ct)).ToList();
@@ -121,10 +124,10 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
             var rows = await CaseQuery.Apply(db.Cases.AsNoTracking(), f, now, days, policy, db, prios).Select(CaseEndpoints.Row(now, policy)).ToListAsync(ct);
             list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Case, r.Id, r.Ref, r.Title, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), r.NextAction, r.DueAt, $"/cases/{r.Id}", Priority: r.Priority.ToString())));
         }
-        async Task AddCommitments(string category, CommitmentFilter f, Func<CommitmentEndpoints.CommitmentRow, string> reason)
+        async Task AddCommitments(string category, CommitmentFilter f, Func<CommitmentEndpoints.CommitmentRow, string> reason, int? windowDays = null)
         {
             if (!Want(category)) return;
-            var rows = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, days, db).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
+            var rows = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, windowDays ?? days, db).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
             list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Commitment, r.Id, r.Ref, r.Description, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), null, r.CurrentDueAt, $"/commitments/{r.Id}")));
         }
 
@@ -134,13 +137,13 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         await AddCases("OverdueCase", baseCase with { Due = "overdue" }, r => $"Due {r.DueAt:yyyy-MM-dd HH:mm} UTC");
         await AddCases("CaseDueSoon", baseCase with { Due = "24h" }, r => $"Due within 24 hours ({r.DueAt:yyyy-MM-dd HH:mm} UTC)");
         await AddCommitments("OverdueCommitment", baseCom with { Due = "overdue" }, r => $"Due {r.CurrentDueAt:yyyy-MM-dd HH:mm} UTC ({r.TimeZone})");
-        await AddCommitments("ApproachingCommitment", baseCom with { Due = "upcoming" }, r => $"Due within {days} days");
+        await AddCommitments("ApproachingCommitment", baseCom with { Due = "upcoming" }, r => $"Due within {commitmentWindowDays} days", commitmentWindowDays);
         await AddCases("StaleReview", baseCase with { Stale = true }, _ => "No meaningful review within the policy period");
         await AddCommitments("StaleReview", baseCom with { Stale = true }, r => $"Next review {r.NextReviewAt:yyyy-MM-dd} passed");
 
         if (Want("CoverageGap"))
         {
-            await AddCases("CoverageGap", baseCase with { CoverageGap = true }, r => $"{r.Priority} priority case without an active backup owner");
+            await AddCases("CoverageGap", baseCase with { CoverageGap = true }, r => $"{r.Priority} priority ticket without an active backup owner");
             if (p.TeamId is null && p.OwnerId is null)
             {
                 var envQ = db.Environments.AsNoTracking().Where(e => crit.Contains(e.Criticality) && (e.BackupOwnerUserId == null || !e.BackupOwner!.IsActive));
@@ -233,18 +236,62 @@ public static class DashboardEndpoints
         var g = api.MapGroup("/dashboard").WithTags("Dashboard");
         g.MapGet("", async ([AsParameters] DashboardQuery p, Dashboard dash, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             return Results.Ok(await dash.MeasuresAsync(p, ct));
+        });
+        // A98: one person's own work and results, whatever else they may see.
+        g.MapGet("/me", async (HubDbContext db, HubAccess access, HubSettings settings, FreshnessService fresh, TimeProvider clock, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            var me = access.Me.UserId ?? throw new ForbiddenException("Only a signed-in person has their own dashboard.");
+            var now = clock.GetUtcNow();
+            var policy = (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Case, ReviewScope.Record));
+            var days = await settings.UpcomingDaysAsync(ct);
+            var prios = await settings.CoveragePrioritiesAsync(ct);
+            IQueryable<Case> Mine(string status) => CaseQuery.Apply(db.Cases.AsNoTracking(), new CaseFilter(OwnerId: me, Status: status), now, days, policy, db, prios);
+            var rows = await Mine("open").Select(CaseEndpoints.Row(now, policy)).ToListAsync(ct);
+            var noResponse = await Mine("open").CountAsync(c => c.ContractId != null && c.FirstResponseAt == null, ct);
+            var since = now.AddDays(-30);
+            var recent = await Mine("all").Where(c => (c.ClosedAt != null && c.ClosedAt >= since) || (c.SlaClockStartAt ?? c.CreatedAt) >= since)
+                .Select(c => new { OpenedAt = c.SlaClockStartAt ?? c.CreatedAt, c.ClosedAt, c.ResolvedAt, c.FirstResponseAt, c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt }).ToListAsync(ct);
+            int Count(IEnumerable<SlaState> s, SlaState v) => s.Count(x => x == v);
+            var response = recent.Select(c => CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now)).ToList();
+            var resolution = recent.Select(c => CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now)).ToList();
+            static double? Hours(List<double> v) => v.Count == 0 ? null : Math.Round(v.Average(), 1);
+            var seesCommitments = access.Me.HasRight(RightKeys.Commitments, RightKeys.View);
+            var commitments = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).Where(_ => seesCommitments).OrderBy(c => c.CurrentDueAt).Take(25).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
+            var openCommitments = seesCommitments ? await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me), now, days, db).CountAsync(ct) : 0;
+            var overdueCommitments = seesCommitments ? await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(OwnerId: me, Due: "overdue"), now, days, db).CountAsync(ct) : 0;
+            var ids = rows.Select(r => r.Id).ToList();
+            var replies = await db.JiraComments.AsNoTracking().Where(k => ids.Contains(k.CaseId) && k.DeletedInJiraAt == null && k.VisibilityValue == null).OrderByDescending(k => k.JiraCreatedAt).Take(8)
+                .Select(k => new { caseId = k.CaseId, author = k.AuthorName, at = k.JiraCreatedAt }).ToListAsync(ct);
+            return Results.Ok(new
+            {
+                evaluatedAt = now,
+                open = rows.Count, overdue = rows.Count(r => r.Overdue), dueSoon = rows.Count(r => r.DueAt >= now && r.DueAt <= now.AddHours(24)), waiting = rows.Count(r => r.WaitingReason != null),
+                criticalHigh = rows.Count(r => r.Priority is Priority.Critical or Priority.High), noResponse, reviewOverdue = rows.Count(r => r.ReviewOverdue),
+                openCommitments, overdueCommitments,
+                last30Days = new
+                {
+                    opened = recent.Count(c => c.OpenedAt >= since), closed = recent.Count(c => c.ClosedAt >= since),
+                    responseMet = Count(response, SlaState.Met), responseBreached = Count(response, SlaState.Breached), resolutionMet = Count(resolution, SlaState.Met), resolutionBreached = Count(resolution, SlaState.Breached),
+                    averageFirstResponseHours = Hours(recent.Where(c => c.FirstResponseAt != null).Select(c => (c.FirstResponseAt!.Value - c.OpenedAt).TotalHours).Where(h => h >= 0).ToList()),
+                    averageResolutionHours = Hours(recent.Where(c => c.ResolvedAt != null).Select(c => (c.ResolvedAt!.Value - c.OpenedAt).TotalHours).Where(h => h >= 0).ToList())
+                },
+                tickets = rows.OrderByDescending(r => r.Overdue).ThenBy(r => r.Priority).ThenBy(r => r.DueAt ?? DateTimeOffset.MaxValue).Take(25),
+                commitments,
+                latestComments = replies.Select(k => new { k.caseId, reference = rows.First(r => r.Id == k.caseId).Ref, title = rows.First(r => r.Id == k.caseId).Title, k.author, k.at })
+            });
         });
         g.MapGet("/insights", async ([AsParameters] DashboardQuery p, Insights insights, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             return Results.Ok(await insights.BuildAsync(p, ct));
         });
         // A60: the Operations Command Center's period and attention figures (period = today, 7d, 30d, quarter or custom with from/to).
         g.MapGet("/command-center", async ([AsParameters] DashboardQuery p, string? period, DateTimeOffset? from, DateTimeOffset? to, long? slaContractId, Priority? slaPriority, CommandCenter cc, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (period is not null && !CommandCenter.Periods.Contains(period)) throw new ValidationException("period", "Unknown reporting period.");
             if (period == "custom" && (from is null || to is null || from >= to)) throw new ValidationException("from", "Give a start before the end for a custom period.");
             if (period == "custom" && to - from > TimeSpan.FromDays(731)) throw new ValidationException("to", "A custom period can cover at most two years.");
@@ -252,7 +299,7 @@ public static class DashboardEndpoints
         });
         g.MapGet("/actions", async ([AsParameters] DashboardQuery p, Dashboard dash, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (p.Category is not null && !Dashboard.Categories.Contains(p.Category)) throw new ValidationException("category", "Unknown action-list category.");
             var items = await dash.ActionsAsync(p, ct);
             return Results.Ok(new { evaluatedAt = p.AsOf ?? DateTimeOffset.UtcNow, categories = Dashboard.Categories.ToDictionary(c => c, c => items.Count(i => i.Category == c)), items });

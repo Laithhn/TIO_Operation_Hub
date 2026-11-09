@@ -1,0 +1,9 @@
+@use "assets/styles";
+
+.menuNodes {
+  position: relative;
+  flex-grow: 1;
+  display: flex;
+  column-gap: styles.spacePx(small);
+  justify-content: center;
+}

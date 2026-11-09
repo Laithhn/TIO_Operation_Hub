@@ -40,14 +40,18 @@ public static class LookupLists
 
     /// <summary>A53: roles of the members of an internal team (Teams), separate from the client project team roles.</summary>
     public const string TeamMemberRole = "TeamMemberRole";
+    public const string ConditionLabel = "ConditionLabel";
+    public const string CaseStatusLabel = "CaseStatusLabel";
+    public const string OrganizationRelationshipType = "OrganizationRelationshipType";
+    public static bool IsFixedWorkflowLabel(string? list) => list is ConditionLabel;
 
-    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole];
+    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole, ConditionLabel, CaseStatusLabel, OrganizationRelationshipType];
 
     /// <summary>The category enum of each type list.</summary>
     public static readonly Dictionary<string, Type> Categories = new()
     {
         [EnvironmentType] = typeof(Common.EnvironmentType), [AssetType] = typeof(Common.AssetType),
-        [ContractType] = typeof(Common.ContractType), [CaseType] = typeof(Common.CaseType)
+        [ContractType] = typeof(Common.ContractType), [CaseType] = typeof(Common.CaseType), [CaseStatusLabel] = typeof(Common.CaseStatusBehavior)
     };
 }
 
@@ -71,6 +75,8 @@ public static class SettingKeys
     public const string PaymentReminderDays = "Contracts.PaymentReminderDays";
     /// <summary>A61: when first responses began to be recorded; set once by the application.</summary>
     public const string SlaTrackingFrom = "Sla.FirstResponseTrackingFrom";
+    public const string JiraContractsByDateFrom = "Jira.ContractsByDateFrom";
+    public const string JiraPrioritiesFrom = "Jira.PrioritiesFollowJiraFrom";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

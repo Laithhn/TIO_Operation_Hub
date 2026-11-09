@@ -1,6 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Text.Json.Nodes;
+using TioHub.Api.Common;
+using TioHub.Api.Security;
 
 namespace TioHub.Tests;
 
@@ -29,13 +32,13 @@ public abstract class Scenario(HubFactory hub)
         return (await m.Get("/teams")).Body!.AsArray().First(t => t!["code"]!.GetValue<string>() == code)!["id"]!.GetValue<long>();
     }
 
-    protected async Task<long> NewCase(long? clientId, long? envId = null, long? owner = null, string scope = "Client", string? dueLocal = null, string asUser = HubFactory.Manager)
+    protected async Task<long> NewCase(long? clientId, long? envId = null, long? owner = null, string scope = "Client", string? dueLocal = null, string asUser = HubFactory.Manager, string? nextAction = "Investigate")
     {
         var a = await Hub.As(asUser);
         return await a.Create("/cases", new
         {
             title = "Import stopped " + Guid.NewGuid().ToString("N")[..4], type = "Incident", scope, clientId, responsibleTeamId = await Team(), impactSummary = "Degraded imports", priority = "High",
-            ownerUserId = owner, nextAction = "Investigate", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1), dueLocal, dueTimeZone = dueLocal is null ? null : "Asia/Riyadh",
+            ownerUserId = owner, nextAction, nextReviewAt = DateTimeOffset.UtcNow.AddDays(1), dueLocal, dueTimeZone = dueLocal is null ? null : "Asia/Riyadh",
             affected = new { environmentIds = envId is null ? Array.Empty<long>() : new[] { envId.Value } }
         });
     }
@@ -150,14 +153,12 @@ public class AC02_Onboarding(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
-    public async Task Duplicate_alias_is_reported_to_every_user()
+    public async Task Duplicate_alias_is_available_to_users_authorized_for_client_onboarding()
     {
-        foreach (var account in new[] { HubFactory.Lead, HubFactory.Engineer2 })
-        {
-            var dup = await (await Hub.As(account)).Get("/clients/duplicates?code=DEMO-NTA");
-            Assert.Single(dup.Body!["visible"]!.AsArray());
-            Assert.Equal(0, dup.Body!["hiddenCount"]!.GetValue<int>());
-        }
+        var dup = await (await Hub.As(HubFactory.Lead)).Get("/clients/duplicates?code=DEMO-NTA");
+        Assert.Single(dup.Body!["visible"]!.AsArray());
+        Assert.Equal(0, dup.Body!["hiddenCount"]!.GetValue<int>());
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await Hub.As(HubFactory.Engineer2)).Get("/clients/duplicates?code=DEMO-NTA")).Status);
     }
 }
 
@@ -462,7 +463,7 @@ public class AC06_CaseLifecycle(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await eng.Post($"/cases/{id}/reopen", new { reason = "Again", nextAction = "x", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) }, V())).Status);
         await lead.Ok($"/cases/{id}/reopen", new { reason = "Recurred", nextAction = "Re-check", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) }, V());
         Assert.NotNull((await lead.Post($"/cases/{id}/cancel", new { }, V())).Error("reason"));
-        await lead.Ok($"/cases/{id}/cancel", new { reason = "Duplicate of another case" }, V());
+        await lead.Ok($"/cases/{id}/cancel", new { reason = "Duplicate of another ticket" }, V());
         var events = (await m.Get($"/cases/{id}")).Body!["events"]!.AsArray().Select(e => e!["type"]!.GetValue<string>()).ToList();
         foreach (var t in new[] { "Created", "Triaged", "OwnerChanged", "Started", "WaitingStarted", "WaitingEnded", "ValidationRequested", "EvidenceException", "Closed", "Reopened", "Cancelled" })
             Assert.Contains(t, events);
@@ -474,9 +475,11 @@ public class AC06_CaseLifecycle(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var e2 = await Hub.As(HubFactory.Engineer2);
-        var id = await NewCase(null, scope: "Internal");
+        var id = await NewCase(null, scope: "Internal", nextAction: null);
         Assert.Equal(HttpStatusCode.OK, (await e2.Get($"/cases/{id}")).Status);
-        Assert.True((await m.Get($"/cases/{id}")).Body!["client"] is null);
+        var created = (await m.Get($"/cases/{id}")).Body!;
+        Assert.True(created["client"] is null);
+        Assert.Equal("", created["nextAction"]!.GetValue<string>());
         Assert.NotNull((await m.Post("/cases", new { title = "x", type = "Request", scope = "Client", responsibleTeamId = await Team(), impactSummary = "x", priority = "Low", nextAction = "x", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1) })).Error("clientId"));
     }
 }
@@ -497,9 +500,9 @@ public class AC07_JiraReferences(HubFactory hub) : Scenario(hub)
         var hcp = await Hub.ClientId("DEMO-HCP");
         var c1 = await NewCase(nta);
         var c2 = await NewCase(nta);
-        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(customer), issueKey = key.ToLowerInvariant(), url = Url(customer, key) });
+        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(customer), issueKey = key.ToLowerInvariant(), url = Url(customer, key), reuseReason = "Track this issue" });
         // Same key in the other instance is a different reference.
-        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = Url(internalJ, key) });
+        await m.Create($"/cases/{c1}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = Url(internalJ, key), reuseReason = "Track this issue internally" });
         // Same instance + key on another case: reason required.
         Assert.NotNull((await m.Post($"/cases/{c2}/jira", new { jiraInstanceId = Id(customer), issueKey = key, url = Url(customer, key) })).Error("reuseReason"));
         await m.Create($"/cases/{c2}/jira", new { jiraInstanceId = Id(customer), issueKey = key, url = Url(customer, key), reuseReason = "Same customer ticket covers two issues" });
@@ -508,13 +511,13 @@ public class AC07_JiraReferences(HubFactory hub) : Scenario(hub)
         Assert.NotNull((await m.Post($"/cases/{c2}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = $"https://user:pw@{internalJ["approvedHost"]}/browse/{key}" })).Error("url"));
         Assert.NotNull((await m.Post($"/cases/{c2}/jira", new { jiraInstanceId = Id(internalJ), issueKey = key, url = Url(internalJ, "ZZZ-1") })).Error("url"));
 
-        // A user without NTA scope sees only a neutral count of the reuse.
+        // Matching cases within the user's scope remain visible, without counts of inaccessible cases.
         var e2 = await Hub.As(HubFactory.Engineer2);
         var c3 = await NewCase(hcp, asUser: HubFactory.Engineer2);
         var reuse = (await e2.Get($"/jira/reuse?instanceId={Id(customer)}&key={key}&exceptCaseId={c3}")).Body!;
         Assert.True(reuse["reused"]!.GetValue<bool>());
         Assert.Equal(2, reuse["visible"]!.AsArray().Count);
-        Assert.Equal(0, reuse["hiddenCount"]!.GetValue<int>());
+        Assert.Null(reuse["hiddenCount"]);
         // Search by key finds both in scope for the manager.
         Assert.Equal(2, (await m.Get($"/cases?jiraKey={key}")).Total);
     }
@@ -543,14 +546,16 @@ public class AC08_Commitments(HubFactory hub) : Scenario(hub)
         string V() => m.Version($"/commitments/{id}").GetAwaiter().GetResult();
         Assert.NotNull((await m.Post($"/commitments/{id}/revise", new { dueLocal = Future(8) }, V())).Error("reason"));
         await m.Ok($"/commitments/{id}/revise", new { dueLocal = Future(-2), reason = "Customer agreed earlier date" }, V());
-        // Completion in the future refused; late completion stays Completed with a derived late result.
+        // Completion in the future is refused; late completion stays Completed with a derived late result.
         Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddHours(2), evidence = "mail" }, V())).Error("completedAt"));
-        Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow }, V())).Error("evidence"));
-        Assert.NotNull((await m.Post($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow.AddDays(-30), evidence = "x" }, V())).Error("completedAt"));
-        await m.Ok($"/commitments/{id}/complete", new { completedAt = DateTimeOffset.UtcNow, evidence = "Email ref 55" }, V());
+        // Evidence is optional.
+        var backfilled = DateTimeOffset.UtcNow;
+        await m.Ok($"/commitments/{id}/complete", new { completedAt = backfilled }, V());
         c = (await m.Get($"/commitments/{id}")).Body!;
         Assert.Equal("Completed", c["status"]!.GetValue<string>());
         Assert.Equal("Completed late", c["timeliness"]!.GetValue<string>());
+        Assert.Null(c["completionEvidence"]);
+        Assert.Equal(backfilled, c["completedAt"]!.GetValue<DateTimeOffset>());
         Assert.Equal(expectedUtc, c["originalDueAt"]!.GetValue<DateTimeOffset>());
         Assert.Equal(1, c["revisionCount"]!.GetValue<int>());
 
@@ -625,10 +630,10 @@ public class AC10_Verification(HubFactory hub) : Scenario(hub)
         var env = await NewEnv(c, "Production");
         var e0 = (await m.Get($"/environments/{env}")).Body!;
         Assert.Equal("Unknown", e0["condition"]!["display"]!.GetValue<string>());
-        // Non-Unknown condition needs reason and evidence; observation cannot be in the future.
-        Assert.NotNull((await m.Post($"/environments/{env}/conditions", new { condition = "Healthy", observedAt = DateTimeOffset.UtcNow })).Error("evidence"));
+        // Non-Unknown condition needs a reason; comments are optional and observation cannot be in the future.
+        Assert.NotNull((await m.Post($"/environments/{env}/conditions", new { condition = "Healthy", observedAt = DateTimeOffset.UtcNow })).Error("reason"));
         Assert.NotNull((await m.Post($"/environments/{env}/conditions", new { condition = "Healthy", reason = "ok", evidence = "chk", observedAt = DateTimeOffset.UtcNow.AddHours(3) })).Error("observedAt"));
-        await m.Create($"/environments/{env}/conditions", new { condition = "Healthy", reason = "Morning check", evidence = "Checklist 1", observedAt = DateTimeOffset.UtcNow.AddMinutes(-5) });
+        await m.Create($"/environments/{env}/conditions", new { condition = "Healthy", reason = "Morning check", observedAt = DateTimeOffset.UtcNow.AddMinutes(-5) });
         var e1 = (await m.Get($"/environments/{env}")).Body!;
         Assert.Equal("Healthy", e1["condition"]!["reported"]!.GetValue<string>());
         Assert.Null(e1["inventoryReviewedAt"]?.GetValue<DateTimeOffset?>());
@@ -666,6 +671,7 @@ public class AC11_DashboardReconciliation(HubFactory hub) : Scenario(hub)
         var a = await Hub.As(account);
         var asOf = DateTimeOffset.UtcNow.AddHours(1).ToString("O");
         var d = (await a.Get($"/dashboard?asOf={Uri.EscapeDataString(asOf)}")).Body!;
+        Assert.Equal(14, d["upcomingDays"]!.GetValue<int>());
         foreach (var measure in d["cases"]!.AsArray().Concat(d["commitments"]!.AsArray()))
         {
             var drill = measure!["drilldown"]!.GetValue<string>();
@@ -716,11 +722,12 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var e = await Hub.As(HubFactory.Engineer2);
-        Assert.Equal(["Engineer", "Manager"], (await m.Get("/reference")).Body!["enums"]!["Role"]!.AsArray().Select(x => x!.GetValue<string>()));
         Assert.Equal((await m.Get("/clients?pageSize=1")).Total, (await e.Get("/clients?pageSize=1")).Total);
         var me = (await e.Get("/me")).Body!;
-        Assert.Equal("Engineer", me["businessRole"]!.GetValue<string>());
-        Assert.True(me["grants"]!["export"]!.GetValue<bool>() && me["grants"]!["technicalDetail"]!.GetValue<bool>() && me["grants"]!["audit"]!.GetValue<bool>());
+        var held = me["rights"]!.AsArray().Select(x => x!.GetValue<string>()).ToArray();
+        Assert.Contains(RightKeys.PlatformExport, held);
+        Assert.Contains(RightKeys.TechnicalDetail, held);
+        Assert.Contains(RightKeys.Audit, held);
         Assert.Contains((await e.Get("/assets?pageSize=200")).Body!["items"]!.AsArray(), a => a!["networkZone"]?.GetValue<string>() is not null);
         Assert.Equal(HttpStatusCode.OK, (await e.Get("/firewall-rules")).Status);
         Assert.Equal(HttpStatusCode.OK, (await e.Get("/admin/audit?pageSize=5")).Status);
@@ -731,6 +738,35 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
         Assert.Contains("Generated", text);
         Assert.Contains("Column: Reference", text);
         Assert.NotEmpty((await m.Get("/admin/audit?action=Export&pageSize=5")).Body!["items"]!.AsArray());
+    }
+
+    [Fact]
+    public async Task Change_history_separates_people_from_background_work_and_finds_a_person()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var people = (await m.Get("/admin/audit?actor=people&pageSize=100")).Body!["items"]!.AsArray();
+        Assert.All(people, a => Assert.NotEqual("system", a!["userName"]?.GetValue<string>()));
+        var system = (await m.Get("/admin/audit?actor=system&pageSize=100")).Body!["items"]!.AsArray();
+        Assert.All(system, a => Assert.True(a!["userName"] is null || a["userName"]!.GetValue<string>() == "system"));
+        var all = (await m.Get("/admin/audit?pageSize=1")).Total;
+        Assert.Equal(all, (await m.Get("/admin/audit?actor=people&pageSize=1")).Total + (await m.Get("/admin/audit?actor=system&pageSize=1")).Total);
+        var someone = people.Select(a => a!["userName"]?.GetValue<string>()).FirstOrDefault(n => !string.IsNullOrEmpty(n));
+        if (someone is not null)
+        {
+            var found = (await m.Get($"/admin/audit?user={Uri.EscapeDataString(someone[..Math.Min(4, someone.Length)])}&pageSize=100")).Body!["items"]!.AsArray();
+            Assert.NotEmpty(found);
+            Assert.All(found, a => Assert.Contains(someone[..Math.Min(4, someone.Length)], a!["userName"]!.GetValue<string>(), StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    [Fact]
+    public async Task An_unused_user_can_be_deleted_with_a_reason()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var id = await m.Create("/admin/users", new { accountName = U("DELETE"), displayName = "Unused user", workingTimeZone = "UTC", roles = new[] { "Engineer" } });
+        var deleted = await m.Send(HttpMethod.Delete, $"/admin/users/{id}", new { reason = "Account was provisioned in error" }, await m.Version($"/admin/users/{id}"));
+        Assert.Equal(HttpStatusCode.NoContent, deleted.Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/admin/users/{id}")).Status);
     }
 
     [Fact]
@@ -773,7 +809,7 @@ public class AC12_AccessAndExport(HubFactory hub) : Scenario(hub)
     {
         var m = await Hub.As(HubFactory.Manager);
         var acct = $@"DEV\rev{Guid.NewGuid().ToString("N")[..5]}";
-        var uid = await m.Create("/admin/users", new { accountName = acct, displayName = "Revocable", workingTimeZone = "UTC", roles = new[] { "Engineer" } });
+        var uid = await m.Create("/admin/users", new { accountName = acct, displayName = "Revocable", workingTimeZone = "UTC", allClients = true, allInternal = true, roles = new[] { "Engineer" } });
         var user = await Hub.As(acct);
         Assert.Equal(HttpStatusCode.OK, (await user.Get("/clients")).Status);
         var u = await m.Get($"/admin/users/{uid}");
@@ -809,7 +845,7 @@ public class AC13_HistoryAndConflict(HubFactory hub) : Scenario(hub)
         Assert.NotNull((await lead.Post($"/clients/{c}/archive", new { reason = "Contract ended" }, await lead.Version($"/clients/{c}"))).Error("exceptionReason"));
         var eng = await Hub.As(HubFactory.Engineer);
         Assert.Equal(HttpStatusCode.Forbidden, (await eng.Post($"/clients/{c}/archive", new { reason = "Contract ended", exceptionReason = "x" }, await eng.Version($"/clients/{c}"))).Status);
-        await m.Ok($"/clients/{c}/archive", new { reason = "Contract ended", exceptionReason = "Open case handled under internal follow-up" }, await m.Version($"/clients/{c}"));
+        await m.Ok($"/clients/{c}/archive", new { reason = "Contract ended", exceptionReason = "Open ticket handled under internal follow-up" }, await m.Version($"/clients/{c}"));
         Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/clients/{c}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/cases/{caseId}")).Status);
         Assert.Contains((await m.Get("/admin/archived?recordType=Client")).Body!.AsArray(), a => Id(a) == c);
@@ -1028,37 +1064,69 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         var m = await Hub.As(HubFactory.Manager);
         var e = await Hub.As(HubFactory.Engineer);
         var roles = (await m.Get("/admin/roles")).Body!;
-        Assert.Equal(8, roles["rights"]!.AsArray().Count);
+        Assert.Equal(RightsCatalog.AllKeys.Order(), roles["catalog"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()).Order());
         var manager = roles["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == "Manager")!;
         Assert.True(manager["isLocked"]!.GetValue<bool>());
-        Assert.Equal(8, manager["rights"]!.AsArray().Count);
+        Assert.Equal(RightsCatalog.AllKeys.Order(), manager["rights"]!.AsArray().Select(r => r!.GetValue<string>()).Order());
         Assert.Equal(HttpStatusCode.Forbidden, (await e.Get("/admin/roles")).Status);
 
-        // A new role "Viewer" with no rights: sees records, changes nothing.
-        var viewerRole = await m.Create("/admin/roles", new { name = U("Viewer"), description = "Read only", rights = Array.Empty<string>() });
+        // Read-only roles explicitly select page visibility and receive no business action permissions.
+        var readPermissions = RightsCatalog.All.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal) && p.Action != RightKeys.HistoryView).Select(p => p.Key).ToArray();
+        var viewerRole = await m.Create("/admin/roles", new { name = U("Viewer"), description = "Read only", rights = Fixture.Rights(readPermissions, Flag.None) });
         Assert.Equal(HttpStatusCode.Conflict, (await m.Post("/admin/roles", new { name = manager["name"]!.GetValue<string>(), rights = Array.Empty<string>() })).Status);
         Assert.NotNull((await m.Post("/admin/roles", new { name = U("Bad"), rights = new[] { "Fly" } })).Error("rights"));
         var acct = $@"DEV\{U("viewer")}";
-        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", roleId = viewerRole });
+        await m.Create("/admin/users", new { accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId = viewerRole });
         var v = await Hub.As(acct);
         var me = v.Me;
-        Assert.Empty(me["rights"]!.AsArray());
+        Assert.DoesNotContain("Cases:Maintain", me["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.DoesNotContain(RightKeys.Audit, me["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
         var c = await NewClient();
         Assert.Equal(HttpStatusCode.OK, (await v.Get($"/clients/{c}")).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await v.Get("/export/contracts")).Status);
 
+        // Multi-role grants combine, and the user access inspector reports their source roles.
+        var auditRole = await m.Create("/admin/roles", new { name = U("Auditor"), description = "Audit access", rights = new[] { RightKeys.Audit } });
+        var userRow = (await m.Get("/admin/users")).Body!.AsArray().Single(x => x!["accountName"]!.GetValue<string>() == acct)!;
+        var userId = Id(userRow);
+        var userDetail = (await m.Get($"/admin/users/{userId}")).Body!;
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/users/{userId}", new
+        {
+            accountName = acct, displayName = "Fictional Viewer", workingTimeZone = "UTC", roleIds = new[] { viewerRole, auditRole },
+            allClients = true, allInternal = true, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>()
+        }, userDetail["version"]!.GetValue<string>())).Status);
+        var updatedUser = (await m.Get($"/admin/users/{userId}")).Body!;
+        Assert.Equal(new[] { viewerRole, auditRole }, updatedUser["roleIds"]!.AsArray().Select(x => x!.GetValue<long>()).Order());
+        v = await Hub.As(acct);
+        var updatedMe = (await v.Get("/me")).Body!;
+        Assert.Contains(RightKeys.Audit, updatedMe["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        var inspector = (await m.Get($"/admin/users/{userId}/access")).Body!;
+        Assert.Contains(inspector["effectiveRights"]!.AsArray(), x => x!["key"]!.GetValue<string>() == RightKeys.Audit
+            && x["sources"]!.AsArray().Any(s => s!.GetValue<string>().StartsWith("Auditor", StringComparison.Ordinal)));
+
+        var clonedRole = await m.Create($"/admin/roles/{auditRole}/clone", new { name = U("AuditorCopy"), description = "Cloned audit access" });
+        var cloneView = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(x => Id(x) == clonedRole)!;
+        Assert.Contains(RightKeys.Audit, cloneView["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+        var auditRoleView = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(x => Id(x) == auditRole)!;
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{auditRole}", new
+        {
+            name = auditRoleView["name"]!.GetValue<string>(), description = "Inactive audit access", rights = Fixture.With([], "Audit"), isActive = false
+        }, auditRoleView["version"]!.GetValue<string>())).Status);
+        var afterDeactivation = (await v.Get("/me")).Body!;
+        Assert.DoesNotContain(RightKeys.Audit, afterDeactivation["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
+
         // Giving the role Edit lets its holders work at once; the TIO Manager role cannot lose a right; built-in roles cannot be deleted.
         var rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
-        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = new[] { "Edit", "Export" } }, rv["version"]!.GetValue<string>())).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = Fixture.Rights(readPermissions.Concat(Fixture.Engineer), Flag.Edit | Flag.Export) }, rv["version"]!.GetValue<string>())).Status);
         Assert.Equal(HttpStatusCode.Created, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.OK, (await v.Get("/export/contracts")).Status);
-        Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Edit" } }, manager["version"]!.GetValue<string>())).Error("rights"));
+        Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Cases:View" } }, manager["version"]!.GetValue<string>())).Error("rights"));
         Assert.NotNull((await m.Send(HttpMethod.Delete, $"/admin/roles/{Id(manager)}", null, manager["version"]!.GetValue<string>())).Error("role"));
         rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
         Assert.Equal(1, rv["userCount"]!.GetValue<int>());
         Assert.NotNull((await m.Send(HttpMethod.Delete, $"/admin/roles/{viewerRole}", null, rv["version"]!.GetValue<string>())).Error("role"));
-        var spare = await m.Create("/admin/roles", new { name = U("Spare"), rights = new[] { "Audit" } });
+        var spare = await m.Create("/admin/roles", new { name = U("Spare"), rights = new[] { RightKeys.Audit } });
         var sv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == spare)!["version"]!.GetValue<string>();
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/admin/roles/{spare}", null, sv)).Status);
 
@@ -1157,7 +1225,7 @@ public class AC12_NoSelfGrantThroughGroups(HubFactory hub) : Scenario(hub)
         var managers = $@"DEV\{U("Hub-Managers")}";
         var unmappedOwn = $@"DEV\{U("Hub-Ops")}";
         // A second administrator gets the role through a group mapping created by someone else.
-        await admin.Create("/admin/group-mappings", new { groupName = admins, role = "Manager", allClients = false, allInternal = false, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>() });
+        await admin.Create("/admin/group-mappings", new { groupName = admins, role = "Manager", allClients = true, allInternal = true, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>() });
         var second = await Hub.As($@"DEV\{U("second-admin")}", groups: $"{admins};{unmappedOwn}");
         Assert.Equal(HttpStatusCode.OK, second.SignInStatus);
         Assert.Contains("TIO Manager", second.Me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
@@ -1598,7 +1666,7 @@ public class AC43_DeleteWithDependents(HubFactory hub) : Scenario(hub)
         Assert.Equal(1, Count("Firewall rules"));
         Assert.Equal(1, Count("Projects"));
         Assert.Equal(1, Count("Contracts"));
-        Assert.Equal(1, Count("Cases"));
+        Assert.Equal(1, Count("Tickets"));
         Assert.Equal(1, Count("Commitments"));
         Assert.Equal(1, Count("Escalations"));
         Assert.Equal(1, Count("Responsibility boundaries"));
@@ -1767,6 +1835,35 @@ public class AC46_Attachments(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/clients/{c}")).Status);
         Assert.DoesNotContain(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories), f => File.ReadAllBytes(f).SequenceEqual(letter));
         Assert.True(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories).Length <= before - 3);
+    }
+
+    /// <summary>Attachments tab: PDFs and images are previewed inline, framed only by the hub's own pages; other types are never rendered inline.</summary>
+    [Fact]
+    public async Task Pdf_and_image_previews_are_inline_and_other_types_are_refused()
+    {
+        var e = await Hub.As(HubFactory.Engineer);
+        var c = await NewClient();
+        var pdf = "%PDF-1.4 fictional"u8.ToArray();
+        Assert.Equal(HttpStatusCode.OK, (await Upload(e, "Client", c, ("annex.pdf", pdf), ("notes.txt", "Fictional"u8.ToArray()))).Status);
+        var list = (await e.Get($"/attachments?recordType=Client&recordId={c}")).Body!.AsArray();
+        var pdfRow = list.First(x => x!["fileName"]!.GetValue<string>() == "annex.pdf")!;
+        var txtRow = list.First(x => x!["fileName"]!.GetValue<string>() == "notes.txt")!;
+
+        var shown = await e.Http.GetAsync($"/api/v1/attachments/{Id(pdfRow)}/preview");
+        Assert.Equal(HttpStatusCode.OK, shown.StatusCode);
+        Assert.Equal(pdf, await shown.Content.ReadAsByteArrayAsync());
+        Assert.Equal("application/pdf", shown.Content.Headers.ContentType!.MediaType);
+        Assert.Equal("inline", shown.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Equal("SAMEORIGIN", shown.Headers.GetValues("X-Frame-Options").Single());
+        Assert.Contains("frame-ancestors 'self'", shown.Headers.GetValues("Content-Security-Policy").Single());
+        Assert.Contains("default-src 'none'", shown.Headers.GetValues("Content-Security-Policy").Single());
+
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await e.Http.GetAsync($"/api/v1/attachments/{Id(txtRow)}/preview")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, (await e.Http.GetAsync("/api/v1/attachments/999999999/preview")).StatusCode);
+        // The download keeps its own headers: still a file, never framed.
+        var dl = await e.Http.GetAsync($"/api/v1/attachments/{Id(pdfRow)}/download");
+        Assert.Equal("attachment", dl.Content.Headers.ContentDisposition!.DispositionType);
+        Assert.Equal("DENY", dl.Headers.GetValues("X-Frame-Options").Single());
     }
 }
 
@@ -2082,6 +2179,24 @@ public class AC50_PaymentsOnDashboardAndNotifications(HubFactory hub) : Scenario
         Assert.All(notes["items"]!.AsArray(), n => Assert.StartsWith("Payment", n!["title"]!.GetValue<string>()));
         Assert.True(notes["unreadPayments"]!.GetValue<int>() >= 2);
         Assert.NotNull((await e.Get("/notifications?category=other")).Error("category"));
+
+        var paymentNotice = mine.First(n => n!["title"]!.GetValue<string>().StartsWith("Payment due"))!;
+        var noticeId = Id(paymentNotice);
+        await e.Post($"/notifications/{noticeId}/read");
+        using (var scope = Hub.Services.CreateScope())
+            await TioHub.Api.Modules.Notifications.NotificationScanner.ScanAsync(scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>(), DateTimeOffset.UtcNow, CancellationToken.None);
+        Assert.Contains((await e.Get("/notifications?unread=true&category=payments&pageSize=100")).Body!["items"]!.AsArray(), n => Id(n) == noticeId);
+
+        using (var scope = Hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
+            var contract = await db.Contracts.Include(x => x.Payments).SingleAsync(x => x.Id == id);
+            foreach (var payment in contract.Payments.Where(x => x.Status is TioHub.Api.Modules.Contracts.PaymentStatus.Pending or TioHub.Api.Modules.Contracts.PaymentStatus.Invoiced))
+                payment.Status = TioHub.Api.Modules.Contracts.PaymentStatus.Paid;
+            await db.SaveChangesAsync();
+            await TioHub.Api.Modules.Notifications.NotificationScanner.ScanAsync(db, DateTimeOffset.UtcNow, CancellationToken.None);
+        }
+        Assert.DoesNotContain((await e.Get("/notifications?unread=true&category=payments&pageSize=100")).Body!["items"]!.AsArray(), n => n!["link"]!.GetValue<string>() == $"/contracts/{id}");
     }
 }
 
@@ -2174,7 +2289,7 @@ public class AC56_ProductPartsEditAndDelete(HubFactory hub) : Scenario(hub)
         Assert.NotNull((await m.Put($"/products/versions/{used}", new { version = "1.0.1", isActive = true }, Rv(used))).Error("version"));
         var refused = await m.Send(HttpMethod.Delete, $"/products/versions/{used}");
         Assert.Equal(HttpStatusCode.Conflict, refused.Status);
-        Assert.Contains("used by installations", refused.Text);
+        Assert.Contains("referenced by existing records", refused.Text);
         Assert.Equal(HttpStatusCode.NoContent, (await m.Send(HttpMethod.Delete, $"/products/versions/{spare}")).Status);
         Assert.Equal(new[] { "1.0" }, (await m.Get($"/products/{pid}")).Body!["versions"]!.AsArray().Select(v => v!["version"]!.GetValue<string>()));
 

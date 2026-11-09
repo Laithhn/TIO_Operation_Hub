@@ -1,12 +1,16 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
+import { DataTable, nodeText } from './kit';
+import { ValueField } from '../vt';
 
 // Chart kit for the dashboard. Rules (validated, see docs/DESIGN-RULES.md):
 // magnitude = one blue ramp; trend = categorical slots 1–2 with a legend + direct end labels;
 // reported condition = reserved status colours, always with a text label; text never wears the series colour.
-export const SERIES = { blue: '#2a78d6', orange: '#eb6834' };
-export const RAMP = ['#86b6ef', '#3987e5', '#256abf', '#184f95', '#0d366b'];
-export const STATUS = { good: '#0ca30c', warning: '#fab219', critical: '#d03b3b', neutral: '#a3a7b0' };
+// VtWebGuiFramework palette: series = attention (dark-text variant, >= 3:1 on offWhite) and attentionHigh; status = the framework
+// signal colours (calmingGreen, attentionHigh, signalError) used by StatusMarker; magnitude ramp = attention towards primary.
+export const SERIES = { blue: '#007db3', orange: '#e6932b' };
+export const RAMP = ['#80d9ff', '#1abbff', '#007db3', '#00507a', '#001e46'];
+export const STATUS = { good: '#5dae95', warning: '#e6932b', critical: '#b00020', neutral: '#a4abb0' };
 
 export type Bar = { key: string; label: string; value: number; link?: string | null };
 
@@ -174,8 +178,8 @@ export function VizPanel({ title, sub, table, children, actions }: { title: stri
       <div className="panel-body">
         {sub && <p className="hint" style={{ marginBottom: 8 }}>{sub}</p>}
         {asTable ? (
-          <table className="grid"><thead><tr>{table.columns.map(c => <th key={c}>{c}</th>)}</tr></thead>
-            <tbody>{table.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={typeof c === 'number' ? 'num' : undefined}>{c}</td>)}</tr>)}</tbody></table>
+          <DataTable<{ id: number; values: (string | number)[] }> caption={title} rows={table.rows.map((values, id) => ({ id, values }))} rowKey={r => r.id} tools={false}
+            columns={table.columns.map((header, index) => ({ key: `c${index}`, header, className: table.rows.some(r => typeof r[index] === 'number') ? 'num' : undefined, render: r => r.values[index] }))} />
         ) : children}
       </div>
     </section>
@@ -198,26 +202,65 @@ const ALIASES: Record<string, string> = {
 };
 export const normalizeCountry = (c: string) => ALIASES[c.trim().toLowerCase()] ?? c.trim();
 
-// ---------- executive KPI tile ----------
-// A headline number with an optional meter (part of a whole, same blue track) and a context line.
-// The whole tile is a link to the list whose total equals the number.
-export function Kpi({ value, label, context, part, of, partLabel, tone, to, hero, icon }: {
-  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode;
+// ---------- KPI card (dashboards: Operations Command Center, Reporting Center) ----------
+/** The operational state of a figure. It comes from the figure's existing business rules (overdue, past a target, due soon, degraded…),
+ *  never from new thresholds. The card shows it as a text badge as well as a colour. */
+export type KpiStatus = 'critical' | 'warning' | 'healthy' | 'info' | 'neutral';
+/** A supporting line; its dot repeats the state of what the line counts. */
+export type KpiLine = { text: ReactNode; status?: KpiStatus };
+/** A real distribution of the figure: disjoint parts of `total` (the rest of the track stays empty). No decorative charts. */
+export type KpiBar = { total: number; segments: { value: number; status: KpiStatus; label: string }[] };
+
+const STATUS_TEXT: Partial<Record<KpiStatus, string>> = { critical: 'Critical', warning: 'Attention', healthy: 'OK' };
+const STATUS_GLYPH: Partial<Record<KpiStatus, string>> = { critical: '▲', warning: '●', healthy: '✓' };
+
+/**
+ * A KPI card. size "main" for the headline figures, "small" for supporting ones (the first supporting line shows, all of them are in the
+ * tooltip and the accessible name). With `to` the whole card is a link (click, Enter). `loading` keeps the card's size with placeholders;
+ * `unavailable` shows the value as not available (for example a rate with nothing measured in the period).
+ */
+export function Kpi({ label, value, icon, status = 'neutral', lines = [], bar, to, size = 'main', loading, unavailable, tooltip }: {
+  label: string; value?: number | string; icon?: ReactNode; status?: KpiStatus; lines?: KpiLine[]; bar?: KpiBar; to?: string; size?: 'main' | 'small';
+  loading?: boolean; unavailable?: boolean; tooltip?: string;
 }) {
   const nav = useNavigate();
-  const pct = part !== undefined && of ? Math.min(100, (part / of) * 100) : null;
-  const fill = tone === 'critical' ? STATUS.critical : tone === 'warning' ? STATUS.warning : SERIES.blue;
+  const statusText = loading ? undefined : STATUS_TEXT[status];
+  const texts = lines.map(l => nodeText(l.text)).filter(Boolean);
+  const shown = size === 'small' ? lines.slice(0, 1) : lines;
+  const name = [`${label}: ${loading ? 'loading' : unavailable ? 'not available' : value}`, statusText && `status ${statusText}`, ...texts, to && 'open the list'].filter(Boolean).join('. ');
+  const open = () => { if (to && !loading) nav(to); };
+  const sum = bar ? bar.segments.reduce((a, x) => a + x.value, 0) : 0;
   return (
-    <div className={`kpi${hero ? ' hero' : ''}${to ? ' link' : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
-      onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
-      aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${to ? '. Open list' : ''}`}>
-      <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}<span className="kpi-name">{label}</span>{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
-      <span className="kpi-v">{value}</span>
-      {pct !== null && (
-        <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>
+    <div className={['kpi', size, `st-${status}`, to && 'link', loading && 'is-loading', unavailable && 'is-unavailable'].filter(Boolean).join(' ')}
+      role={to ? 'link' : 'group'} tabIndex={to ? 0 : undefined} aria-label={name} aria-busy={loading || undefined}
+      title={tooltip ?? (size === 'small' && texts.length > 1 ? texts.join(' · ') : undefined)}
+      onClick={open} onKeyDown={e => { if (e.key === 'Enter') open(); }}>
+      <div className="kpi-head">
+        {icon && <span className="kpi-ic" aria-hidden="true">{icon}</span>}
+        <span className="kpi-title">{label}</span>
+        {to && <span className="kpi-go" aria-hidden="true">›</span>}
+      </div>
+      <div className="kpi-body">
+        <span className="kpi-v">
+          {loading ? <span className="kpi-skel kpi-skel-v" /> : <ValueField value={unavailable ? 'Not available' : value} valueSize={size === 'small' ? 'large' : 'xl'} />}
+        </span>
+        {statusText && <span className="kpi-status" aria-hidden="true"><span className="kpi-glyph">{STATUS_GLYPH[status]}</span>{statusText}</span>}
+      </div>
+      {loading && size === 'main' && <span className="kpi-bar" aria-hidden="true" />}
+      {!loading && bar && bar.total > 0 && (
+        <span className="kpi-bar" aria-hidden="true" title={bar.segments.map(x => `${x.label}: ${x.value}`).join(' · ')}>
+          {bar.segments.filter(x => x.value > 0).map(x => <span key={x.label} className={`st-${x.status}`} style={{ width: `max(${(x.value / Math.max(bar.total, sum)) * 100}%, 4px)` }} />)}
+        </span>
       )}
-      {partLabel && <span className="kpi-p">{partLabel}</span>}
-      {context && <span className="kpi-c">{context}</span>}
+      {(loading || shown.length > 0) && (
+        <ul className="kpi-lines">
+          {loading
+            ? Array.from({ length: size === 'small' ? 1 : 2 }, (_, i) => <li key={i}><span className="kpi-skel kpi-skel-line" /></li>)
+            : shown.map((l, i) => (
+              <li key={i}><span className={`kpi-dot st-${l.status ?? 'neutral'}`} aria-hidden="true" /><span className="kpi-line">{l.text}</span></li>
+            ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -253,7 +296,7 @@ export function PartBar({ data, colorOf, unit }: { data: (Bar & { glyph?: string
 }
 
 // ---------- A39: categorical slots (fixed order, never cycled) ----------
-export const CAT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+export const CAT = ['#007db3', '#e6932b', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
 // ---------- A39: donut (part-to-whole, at most ~6 slices) ----------
 export function Donut({ data, colorOf, unit, centerLabel, size = 148 }: {
@@ -317,26 +360,17 @@ export type SlaRow = { priority: string; contracts: number; responseMedian?: num
 export function SlaMatrix({ rows, activeContracts }: { rows: SlaRow[]; activeContracts: number }) {
   const maxR = Math.max(1, ...rows.map(r => r.responseMedian ?? 0)), maxS = Math.max(1, ...rows.map(r => r.resolutionMedian ?? 0));
   if (rows.every(r => r.contracts === 0)) return <div className="viz-empty">No SLA targets recorded on active contracts.</div>;
-  const cell = (v: number | null | undefined, fast: number | null | undefined, max: number, color: string) => (
-    <td>
-      <div className="sla-cell">
-        <span className="sla-track"><span style={{ width: v ? `max(${(v / max) * 100}%, 3px)` : 0, background: color }} /></span>
-        <span className="sla-v">{fmtMinutes(v)}</span>
-      </div>
-      {fast !== null && fast !== undefined && fast !== v && <div className="hint">fastest {fmtMinutes(fast)}</div>}
-    </td>
-  );
-  return (
-    <table className="grid sla-matrix">
-      <thead><tr><th>Priority</th><th className="num">Contracts with a target</th><th>Response (median)</th><th>Resolution (median)</th></tr></thead>
-      <tbody>{rows.map(r => (
-        <tr key={r.priority}>
-          <td><b>{r.priority}</b></td>
-          <td className="num">{r.contracts} <span className="muted">of {activeContracts}</span></td>
-          {cell(r.responseMedian, r.responseFastest, maxR, RAMP[2])}
-          {cell(r.resolutionMedian, r.resolutionFastest, maxS, CAT[1])}
-        </tr>
-      ))}</tbody>
-    </table>
-  );
+  const cell = (v: number | null | undefined, fast: number | null | undefined, max: number, color: string) => <>
+    <div className="sla-cell">
+      <span className="sla-track"><span style={{ width: v ? `max(${(v / max) * 100}%, 3px)` : 0, background: color }} /></span>
+      <span className="sla-v">{fmtMinutes(v)}</span>
+    </div>
+    {fast !== null && fast !== undefined && fast !== v && <div className="hint">fastest {fmtMinutes(fast)}</div>}
+  </>;
+  return <DataTable<SlaRow> caption="SLA targets per priority" rows={rows} rowKey={r => r.priority} tableClassName="sla-matrix" columns={[
+    { key: 'priority', header: 'Priority', render: r => <b>{r.priority}</b> },
+    { key: 'contracts', header: 'Contracts with a target', className: 'num', render: r => <>{r.contracts} <span className="muted">of {activeContracts}</span></> },
+    { key: 'response', header: 'Response (median)', render: r => cell(r.responseMedian, r.responseFastest, maxR, RAMP[2]) },
+    { key: 'resolution', header: 'Resolution (median)', render: r => cell(r.resolutionMedian, r.resolutionFastest, maxS, CAT[1]) }
+  ]} />;
 }

@@ -1,0 +1,15 @@
+@use "assets/styles";
+
+.notifications {
+  grid-area: styles.layout(notifications, gridArea);
+  display: flex;
+  flex-direction: column-reverse;
+  padding: styles.layoutPx(notifications, space);
+  // A stack taller than the row is cut off below the header, without scrolling (ADR
+  // general-notification-stack-clips-instead-of-scrolling.md). The oldest notifications leave at
+  // the top and come back down as the newer ones below go. The clip reaches a viewport width to
+  // either side, because a notification is shifted into view from outside this box. "overflow"
+  // cannot clip one axis alone except with "clip", and that one hid part of the first
+  // notification of an empty stack in Firefox while it slid in (Developer Edition 157.0b4).
+  clip-path: inset(0 -100vw);
+}

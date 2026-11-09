@@ -1,0 +1,17 @@
+@use "assets/styles";
+
+.secondaryHeader {
+  display: flex;
+  align-items: center;
+  margin: 0 0 0 styles.layoutPx(mostLeftRightPadding);
+}
+
+.secondaryHeaderContr {
+  padding: 0 styles.layoutPx(mostLeftRightPadding);
+}
+
+body[dir="rtl"] {
+  .secondaryHeader {
+    margin: 0 styles.layoutPx(mostLeftRightPadding) 0 0;
+  }
+}

@@ -1,0 +1,23 @@
+@use "assets/styles";
+
+
+.innerContrComplex {
+  display: grid;
+}
+
+
+.innerContrSimple {
+  @include styles.typoSet(value);
+  // the colour of the value, in the form for the ground the cell sits on
+  @include styles.typoColorClasses;
+}
+
+
+.outerContr {
+  place-self: stretch;
+  display: grid;
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

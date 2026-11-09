@@ -1,0 +1,351 @@
+@use "sass:map";
+@use "sass:string";
+@use "../ground";
+
+
+// Global definitions of the typographical settings.
+// To be able to export this map into TypeScript by NodeJS script scssToTypeScript.js, it must have
+// prefix "/* export */" and all values inside the map have to be valid CSS (no SCSS). The map can
+// contain further nested maps.
+
+/* export */ $typo: (
+  fontSize: (
+    xs:        0.75rem,
+    small:     0.85rem,
+    normal:    1rem,
+    semilarge: 1.15rem,
+    large:     1.4rem,
+    xl:        1.9rem,
+    xxl:       3.1rem,
+  ),
+  fontWeight: (
+    // thin: 100,
+    // extralight: 200,
+    // light: 300,
+    normal: 400,
+    // medium: 500,
+    semibold: 600,
+    bold: 700,
+    // extrabold: 800,
+    // black: 900,
+  ),
+  lineHeight: (
+    small:  1.3,
+    normal: 1.5,
+  ),
+  // The reading measure: the widest column of running text, about 70 characters of Open Sans at the
+  // size the column is measured in. The styling prop maxWidth="textColumn" caps a column at it, and
+  // Confirm, Alert and the error screen cap one column for all of their text at it, measured at the
+  // body size (ADR general-running-text-capped-at-the-reading-measure.md).
+  measure: 65ch,
+  color: (
+    dark: (
+      normal:        #001e46,               // color primary
+      weak:          rgba(0, 30, 70, 0.65), // color primary with transparency
+      extraWeak:     rgba(0, 30, 70, 0.3),  // color primary with transparency
+      attention:     #007db3,               // color attention, 30% darker
+      attentionHigh: #c77917,               // color attentionHigh, 20% darker
+      calmingGreen:  #5dae95,               // color calmingGreen
+      signalOk:      #5dae95,               // same as calmingGreen above
+      signalWarning: #c77917,               // same as attentionHigh above
+      signalError:   #b00020,               // color signalError
+    ),
+    light: (
+      normal:        #fafbfc,                   // color offWhite
+      weak:          rgba(250, 251, 252, 0.55), // color offWhite with transparency
+      extraWeak:     rgba(250, 251, 252, 0.35), // color offWhite with transparency
+      attention:     #1abbff,                   // color attention, 10% lighter
+      attentionHigh: #e6932b,                   // color attentionHigh
+      calmingGreen:  #5dae95,                   // color calmingGreen
+      signalOk:      #5dae95,                   // same as calmingGreen above
+      signalWarning: #e6932b,                   // same as attentionHigh above
+      signalError:   #fc002e,                   // color signalError, 22% lighter
+    ),
+  ),
+  typoSet: (
+    headline: (
+      fontSize:   1.9rem, // fontSize xl
+      fontWeight: 700,    // fontWeight bold
+      lineHeight: 1.3,    // lineHeight small
+      color: (
+        dark:  #001e46, // color dark normal
+        light: #fafbfc, // color light normal
+      ),
+      disabledColor: (
+        dark:  rgba(0, 30, 70, 0.3),      // color dark extraWeak
+        light: rgba(250, 251, 252, 0.35), // color light extraWeak
+      ),
+    ),
+    title: (
+      fontSize:   1.15rem, // fontSize semilarge,
+      fontWeight: 700,     // fontWeight bold
+      lineHeight: 1.3,     // lineHeight small
+      color: (
+        dark:  #001e46, // color dark normal
+        light: #fafbfc, // color light normal
+      ),
+      disabledColor: (
+        dark:  rgba(0, 30, 70, 0.3),      // color dark extraWeak
+        light: rgba(250, 251, 252, 0.35), // color light extraWeak
+      ),
+    ),
+    label: (
+      fontSize:   0.85rem, // fontSize small
+      fontWeight: 600,     // fontWeight semibold
+      lineHeight: 1.5,     // lineHeight normal
+      color: (
+        dark:  #001e46, // color dark normal
+        light: #fafbfc, // color light normal
+      ),
+      disabledColor: (
+        dark:  rgba(0, 30, 70, 0.3),      // color dark extraWeak
+        light: rgba(250, 251, 252, 0.35), // color light extraWeak
+      ),
+    ),
+    hint: (
+      fontSize:   0.85rem, // fontSize small
+      fontWeight: 400,     // fontWeight normal
+      lineHeight: 1.5,     // lineHeight normal
+      color: (
+        dark:  rgba(0, 30, 70, 0.65),     // color dark weak
+        light: rgba(250, 251, 252, 0.55), // color light weak
+      ),
+      disabledColor: (
+        dark:  rgba(0, 30, 70, 0.3),      // color dark extraWeak
+        light: rgba(250, 251, 252, 0.35), // color light extraWeak
+      ),
+    ),
+    value: (
+      small: (
+        fontSize:   0.85rem, // fontSize small
+        fontWeight: 400,     // fontWeight normal
+      ),
+      normal: (
+        fontSize:   1rem, // fontSize normal
+        fontWeight: 400,  // fontWeight normal
+      ),
+      large: (
+        fontSize:   1.4rem, // fontSize large
+        fontWeight: 400,    // fontWeight normal
+      ),
+      xl: (
+        fontSize:   1.9rem, // fontSize xl
+        fontWeight: 400,    // fontWeight normal
+      ),
+      xxl: (
+        fontSize:   3.1rem, // fontSize xxl
+        fontWeight: 400,    // fontWeight normal
+      ),
+      lineHeight: 1.5, // lineHeight normal
+      color: (
+        dark:  #001e46, // color dark normal
+        light: #fafbfc, // color light normal
+      ),
+      disabledColor: (
+        dark:  rgba(0, 30, 70, 0.3),      // color dark extraWeak
+        light: rgba(250, 251, 252, 0.35), // color light extraWeak
+      ),
+    ),
+  ),
+);
+
+
+// Function to get a typographical setting from map "$typo". For example: typo(fontSize, normal).
+@function typo($keys...) {
+  @return map.get($typo, $keys...);
+}
+
+
+// Mixin to use typographical sets at dashboards. The lettering takes the colour for the ground it
+// sits on (see the ground module): the dark colour on a light ground, the light one on a dark
+// ground. You can set the following arguments:
+//
+// $name (string, mandatory): "headline", "title", "label", "hint", "value", "valueSmall",
+//   "valueNormal", "valueLarge", "valueXL" or "valueXXL". If you choose "value", there are the
+//   following additional CSS classes to select the value size: ".typoValueSmall",
+//   ".typoValueLarge", ".typoValueXL" and ".typoValueXXL". The default value size is "normal".
+// $disabled (true, false or null (default)): if not set or null is given, there is the additional
+//   CSS class "&.typoDisabled" to set the disabled property.
+// $lineHeight (any value or null (default)): if set, take the given value as line-height instead
+// of the default value (depends on $name).
+@mixin typoSet(
+  $name, $disabled: null, $lineHeight: null,
+) {
+  @if (
+    $name != headline and $name != title and $name != label and $name != hint and $name != value
+    and $name != valueSmall and $name != valueNormal and $name != valueLarge and $name != valueXL
+    and $name != valueXXL
+  ) {
+    @error "_typo.scss, typoSet: argument $name is not set or invalid: #{$name}.";
+  }
+
+  // build a simple name, where "valueSmall", "valueNormal" etc. are just "value"
+  $simpleName: $name;
+  @if ($simpleName == valueSmall or $simpleName == valueNormal or $simpleName == valueLarge or $simpleName == valueXL or $simpleName == valueXXL) {
+    $simpleName: value;
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // At first, set all direct declarations without any nestings.
+  // -----------------------------------------------------------------------------------------------
+
+  @if ($name == headline or $name == title or $name == label or $name == hint) {
+    font-size: typo(typoSet, $name, fontSize);
+    font-weight: typo(typoSet, $name, fontWeight);
+  } @else if ($name == valueSmall) {
+    font-size: typo(typoSet, value, small, fontSize);
+    font-weight: typo(typoSet, value, small, fontWeight);
+  } @else if ($name == valueNormal) {
+    font-size: typo(typoSet, value, normal, fontSize);
+    font-weight: typo(typoSet, value, normal, fontWeight);
+  } @else if ($name == valueLarge) {
+    font-size: typo(typoSet, value, large, fontSize);
+    font-weight: typo(typoSet, value, large, fontWeight);
+  } @else if ($name == valueXL) {
+    font-size: typo(typoSet, value, xl, fontSize);
+    font-weight: typo(typoSet, value, xl, fontWeight);
+  } @else if ($name == valueXXL) {
+    font-size: typo(typoSet, value, xxl, fontSize);
+    font-weight: typo(typoSet, value, xxl, fontWeight);
+  } @else if ($name == value) {
+    font-size: typo(typoSet, value, normal, fontSize);
+    font-weight: typo(typoSet, value, normal, fontWeight);
+  }
+
+  @if ($lineHeight != null) {
+    line-height: $lineHeight;
+  } @else {
+    line-height: typo(typoSet, $simpleName, lineHeight);
+  }
+
+  text-decoration-line: none;
+
+  // A fixed status takes its colour right here; its dark-ground form is a nested rule, so it
+  // follows the plain declarations above.
+  @if ($disabled != null) {
+    $colorKey: color;
+    @if ($disabled == true) {
+      $colorKey: disabledColor;
+    }
+
+    color: typo(typoSet, $simpleName, $colorKey, dark);
+    fill: typo(typoSet, $simpleName, $colorKey, dark);
+
+    @include ground.onDarkGround {
+      color: typo(typoSet, $simpleName, $colorKey, light);
+      fill: typo(typoSet, $simpleName, $colorKey, light);
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Set additional nesting classes "typoValueSmall", "typoValueLarge", "typoValueXL" and
+  // "typoValueXXL". A class "typoValueNormal" ist not nesseccary, these values are set by default
+  // (see above).
+  // -----------------------------------------------------------------------------------------------
+
+  @if ($name == value) {
+    &.typoValueSmall {
+      font-size: typo(typoSet, value, small, fontSize);
+      font-weight: typo(typoSet, value, small, fontWeight);
+    }
+
+    &.typoValueLarge {
+      font-size: typo(typoSet, value, large, fontSize);
+      font-weight: typo(typoSet, value, large, fontWeight);
+    }
+
+    &.typoValueXL {
+      font-size: typo(typoSet, value, xl, fontSize);
+      font-weight: typo(typoSet, value, xl, fontWeight);
+    }
+
+    &.typoValueXXL {
+      font-size: typo(typoSet, value, xxl, fontSize);
+      font-weight: typo(typoSet, value, xxl, fontWeight);
+    }
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Set the additional nesting class "typoDisabled". Each colour is followed by its dark-ground
+  // form, which wins by position alone: a query adds no specificity.
+  // -----------------------------------------------------------------------------------------------
+
+  @if ($disabled == null) {
+    &:not(.typoDisabled) {
+      color: typo(typoSet, $simpleName, color, dark);
+      fill: typo(typoSet, $simpleName, color, dark);
+
+      @include ground.onDarkGround {
+        color: typo(typoSet, $simpleName, color, light);
+        fill: typo(typoSet, $simpleName, color, light);
+      }
+    }
+
+    &.typoDisabled {
+      color: typo(typoSet, $simpleName, disabledColor, dark);
+      fill: typo(typoSet, $simpleName, disabledColor, dark);
+
+      @include ground.onDarkGround {
+        color: typo(typoSet, $simpleName, disabledColor, light);
+        fill: typo(typoSet, $simpleName, disabledColor, light);
+      }
+    }
+  }
+}
+
+
+// Mixin to use all available typographical sets at dashboards. For that, the following CSS classes
+// are included: ".typoSetHeadline", ".typoSetTitle", ".typoSetLabel", ".typoSetHint" and
+// ".typoSetValue". The class ".typoSetValue" has the additional CSS classes ".typoValueSmall",
+// ".typoValueLarge", ".typoValueXL" and ".typoValueXXL" to select the value size (the default value
+// size is "normal").
+//
+// $disabled (true, false or null (default)): if not set or null is given, each CSS class gets the
+//   additional CSS class "&.typoDisabled" to set the disabled property.
+@mixin allTypoSets($disabled: null) {
+  .typoSetHeadline {
+    @include typoSet(headline, $disabled);
+  }
+
+  .typoSetTitle {
+    @include typoSet(title, $disabled);
+  }
+
+  .typoSetLabel {
+    @include typoSet(label, $disabled);
+  }
+
+  .typoSetHint {
+    @include typoSet(hint, $disabled);
+  }
+
+  .typoSetValue {
+    @include typoSet(value, $disabled);
+  }
+}
+
+
+// Mixin to colour a lettering by a key of the typo colours, each class in the form for the ground
+// the lettering sits on: ".typoColorNormal", ".typoColorWeak", ".typoColorExtraWeak",
+// ".typoColorAttention", ".typoColorAttentionHigh", ".typoColorCalmingGreen", ".typoColorSignalOk",
+// ".typoColorSignalWarning" and ".typoColorSignalError". A component whose colour prop picks the
+// lettering maps the prop to a key and sets that key's class - the mapping does not depend on the
+// ground, so it may stay in TypeScript, and the ground stays in CSS.
+//
+// Include it inside the rule of the lettering and after its typoSet(): the classes carry the same
+// weight as the typo set's colour and win over it by coming later.
+@mixin typoColorClasses() {
+  @each $key, $darkColor in typo(color, dark) {
+    $className: string.to-upper-case(string.slice($key, 1, 1)) + string.slice($key, 2);
+
+    &.typoColor#{$className} {
+      color: $darkColor;
+      fill: $darkColor;
+
+      @include ground.onDarkGround {
+        color: typo(color, light, $key);
+        fill: typo(color, light, $key);
+      }
+    }
+  }
+}

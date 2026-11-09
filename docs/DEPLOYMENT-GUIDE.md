@@ -151,6 +151,13 @@ database, run the backup and `01-schema.sql` first and add `-SkipDatabase`.
 additive, so the previous version runs on the upgraded database; if a database rollback is ever needed, restore the backup taken by the
 upgrade into an isolated database first (OPERATIONS.md section 7).
 
+**Upgrading to 2.48.0 changes how access is stored.** On a restored copy first, run `database\05-rights-model-upgrade-review.sql` and review section 2. To roll back, restore the 2.47.0 files and leave the database as it is: access returns to its state at upgrade time, and role, right and exception changes made since then are not in the tables 2.47.0 reads. See [RIGHTS-MODEL-UPGRADE.md](RIGHTS-MODEL-UPGRADE.md).
+
+**Rolling back from 2.45.0 or later has one precondition.** Earlier applications ignore the scope of an individual permission exception and
+would apply it everywhere, so a client-limited allow becomes a global grant. Run `database\04-access-control-upgrade-review.sql` first. If
+section 5 reports any scoped exceptions, restore the backup, or review and remove those rows through your approved change process, before
+starting the earlier application. The migration's `Down` refuses for the same reason.
+
 ## 9. Troubleshooting
 
 | Symptom | Cause and fix |
@@ -163,6 +170,7 @@ upgrade into an isolated database first (OPERATIONS.md section 7).
 | Sign-in page loops on HTTP | Forms sign-in needs HTTPS for its secure cookie |
 | Uploads fail | The pool identity needs modify rights on the attachment folder; large files need `maxAllowedContentLength` in `web.config` |
 | Map without background | Browsers cannot reach the tile server — allow it, set an internal tile server, or set `MapTileUrl` to empty |
+| "Error - Report Manager" / `/Reports/Pages/Folder.aspx` instead of a hub page | SQL Server Reporting Services on the same server reserves `http(s)://+:<port>/Reports/` with http.sys, and that reservation wins over the IIS site for every path under `/Reports`. From 2.36.0 (decision A69) the Reporting Center is at `/reporting-center` (old `/reports` links are redirected inside the hub). If the error still appears, check `netsh http show urlacl` and open the Reporting Center from the hub's menu; do not remove the SSRS reservation without its owner's approval |
 
 ## 10. Security checklist
 

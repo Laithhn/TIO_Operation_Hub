@@ -199,6 +199,10 @@ if ($PSCmdlet.ShouldProcess($InstallRoot, "grant $poolIdentity read on the appli
   }
   # App_Data holds the one-time setup code: only the pool identity, SYSTEM and administrators.
   & icacls (Join-Path $appDir 'App_Data') /inheritance:r /grant "$($poolIdentity):(OI)(CI)M" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /Q | Out-Null
+  # A85: the keys that protect stored Jira tokens and sign-in sessions stay outside the application folder.
+  $keysFolder = Join-Path $env:ProgramData 'TioHub\DataProtection-Keys'
+  New-Item -ItemType Directory -Force $keysFolder | Out-Null
+  & icacls $keysFolder /inheritance:r /grant "$(poolIdentity):(OI)(CI)M" '*S-1-5-18:(OI)(CI)F' '*S-1-5-32-544:(OI)(CI)F' /Q | Out-Null
   Ok 'Permissions set'
 }
 
@@ -212,7 +216,7 @@ if ($PSCmdlet.ShouldProcess($SiteName, 'start and check /api/health/ready')) {
   for ($i = 0; $i -lt 12 -and -not $ready; $i++) {
     try { $r = Invoke-RestMethod $url -UseBasicParsing -TimeoutSec 10; $ready = $r.status -eq 'ready' } catch { Start-Sleep -Seconds 5 }
   }
-  if ($ready) { Ok "$url -> ready" } else { Warn "$url did not answer 'ready' yet. Check $appDir\logs and the Windows event log (IIS AspNetCore Module)." }
+  if ($ready) { Ok "$url -> ready" } else { throw "Installation verification failed: $url did not answer 'ready'. Check $appDir\logs for database availability or missing migrations, and the Windows event log (IIS AspNetCore Module)." }
 }
 
 Write-Host @"

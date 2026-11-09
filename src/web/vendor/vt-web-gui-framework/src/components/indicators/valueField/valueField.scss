@@ -1,0 +1,61 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+.valueField {
+  display: grid;
+  text-align: center;
+  transition:
+    background 0.1s ease, color 0.1s ease,
+    transform #{math.div(styles.layout(animationTime, fastMs), 2)}ms linear;
+
+  &.clickable {
+    cursor: pointer;
+
+    &:active {
+      transform: translateY(2px);
+    }
+  }
+
+  .title {
+    padding: 0 0 styles.spacePx(xs) 0;
+
+    &:not(.titleAsLabel) {
+      @include styles.typoSet(title);
+    }
+
+    &.titleAsLabel {
+      @include styles.typoSet(label);
+    }
+  }
+
+  .valueContr {
+    display: grid;
+    grid-auto-flow: column;
+    gap: styles.spacePx(xs);
+    align-items: last baseline;
+    justify-content: center;
+  }
+
+  // The colour of the value and its unit, in the form for the ground the field sits on. It follows
+  // the typo set, whose colour it overwrites by coming later.
+  .value {
+    @include styles.typoSet(value);
+    @include styles.typoColorClasses;
+  }
+
+  .unit {
+    @include styles.typoSet(value);
+    @include styles.typoColorClasses;
+  }
+
+  .hint {
+    @include styles.typoSet(value);
+  }
+}
+
+
+// The pane of the styling prop boxShadow="contact", drawn for the ground the value field sits on.
+.contactPane {
+  @include styles.contactPane;
+}

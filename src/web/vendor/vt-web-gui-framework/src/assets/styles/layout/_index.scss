@@ -1,0 +1,521 @@
+@use "sass:map";
+@use "sass:meta";
+@use "sass:string";
+
+
+// Global definitions of the layout settings.
+// To be able to export this map into TypeScript by NodeJS script scssToTypeScript.js, it must have
+// prefix "/* export */" and all values inside the map have to be valid CSS (no SCSS). The map can
+// contain further nested maps.
+
+/* export */ $layout: (
+  // padding on the most left and / or right outer side of the header, sidebar and footer
+  mostLeftRightPadding: 12, // space small
+  dimmedBackground: rgba(55,  70,  80, .7), // base color: structureSilver
+  markerWidth: 7, // space xs
+  resizableSnapDim: 5, // space xs
+  header: (
+    gridArea: viAreaHeader,
+    // the total height of the header of the framework in pixels
+    height: 50,
+    // the width of the company logo in the header in pixels
+    logoWidth: 120,
+    // the width and height of the icons of the links in the header in pixels
+    iconSize: 24,
+  ),
+  burgerMenu: (
+    gridArea: viAreaBurgerMenu,
+  ),
+  firstSidebar: (
+    gridArea: viAreaFirstSidebar,
+    // the total width of the first sidebar of the framework in pixels
+    width: 180,
+    // The ground of an area is a key of the palette, so the area paints it through the mixin
+    // background() and sets the ground that colour makes with it. It is quoted because some keys
+    // are CSS colour names as well, which Sass would otherwise read as a colour.
+    background: "offWhite",
+    menuIconDim: 20, // space normal
+    menuNodeAddPaddingBottom: 12, // space small
+    // the total width of the marker SVG element; the half of it is placed outside the sidebar
+    markerWidth: 24,
+    // the total height of the marker SVG element
+    markerHeight: 50,
+  ),
+  secondSidebar: (
+    gridArea: viAreaSecondSidebar,
+    // the default width of the second sidebar of the framework in pixels
+    defaultWidth: 320,
+    background: "offWhite",
+  ),
+  footer: (
+    gridArea: viAreaFooter,
+  ),
+  mainScope: (
+    gridArea: viAreaMainScope,
+  ),
+  content: (
+    // maximum width of articls in pixels, for approximately 85 characters per line
+    articleMaxWidth: 700,
+    // the background color of articles is also the background color of iframe contents in the main
+    // scope and of the error screen
+    articleBackground: "paleGray",
+    dashboardBackground: "lightGray",
+  ),
+  mainToolbar: (
+    // the total height of the main toolbar of dashboards in the main scope and also in the second
+    // sidebar in pixels
+    heightInMainScope: 60,
+    // the total height of the main toolbar of dashboards in modal windows in pixels
+    heightInModwin: 50,
+  ),
+  modwins: (
+    spaceLeftRight: 12, // space small
+    spaceTop: 12, // space small
+    spaceBottom: 12, // space small
+    borderRadius: 12, // space small
+    minimizedModwinWidth: 250,
+    minimizedModwinHeight: 32, // space large
+    minimizedModwinBorderRadius: 12, // space small
+  ),
+  notifications: (
+    gridArea: viAreaNotifications,
+    // the space for the notifications below the header, above the footer and from the left and
+    // right side of the browser
+    space: 12, // space small
+  ),
+  animationTime: (
+    contentFadeOutMs: 250,
+    slowMs: 250,
+    mediumMs: 150,
+    fastMs: 50,
+  ),
+  // colors of borders to devide inner elements with a solid 1 pixel line
+  dividerColor: (
+    dark: #001e46, // color primary
+    soft: #ccd2da, // a transparent version of color primary with 20% transparency
+    light: #fafbfc, // color offWhite
+  ),
+  // The line that separates the entries of one surface from each other - the rows of a tabular, the
+  // edge below a toolbar. It is the translucent counterpart of dividerColor above, and translucency
+  // is what it is for: such a line lies on a surface whose colour the call site chooses, so it
+  // deepens or lightens that ground instead of stating a colour of its own. Solid primary was what
+  // the tabular drew until 2026-08-31, and on an offWhite row it read as a rule drawn across the
+  // surface rather than as a seam between two entries.
+  //
+  // The two keys are the pairing of controls.surface above: "dark" is the line on a light ground,
+  // "light" the line on a dark one. The light one carries a few points more, offWhite on a dark
+  // ground separating less than structureSilver does on a light one.
+  dividerLine: (
+    dark:  rgba(55, 70, 80, .18),     // color structureSilver with transparency
+    light: rgba(250, 251, 252, .22),  // color offWhite with transparency
+  ),
+  scrolling: (
+    scrollBarThickness: 20, // space normal
+  ),
+  controls: (
+    // the default height and default border radius of control elements
+    heightDefault: 30,
+    borderRadiusDefault: 15,
+    // special large height of control elements
+    heightLarge: 50, // space xl
+    // The border radius of control elements of the large height, raised from 12 to the default
+    // height's own radius on 2026-09-07: one rounding across the two heights, and a control of the
+    // large height still reads as a pane with rounded corners rather than as a pill, the radius
+    // being far from the half of its height. The key stays beside borderRadiusDefault although the
+    // two now hold the same number, so that the large form can part from it again.
+    borderRadiusLarge: 15, // = controls.borderRadiusDefault
+    // The two durations of an interaction status, and they are a pair on purpose: the status takes
+    // effect instantly (interactionEaseInMs), so a press held for a single rendered frame reaches
+    // its full appearance, and it eases out over interactionEaseOutMs once it ends. Do not
+    // consolidate them into one value - this asymmetry is what makes a minimum press duration in
+    // JavaScript unnecessary, and one duration for both directions brings it back.
+    interactionEaseInMs: 0,
+    interactionEaseOutMs: 150,
+    // An empty layer of a control's box-shadow, once for an outer and once for an inset slot: a
+    // shadow of zero size in a transparent color. A control composes its appearance from such slots,
+    // one per layer, and an unused slot is filled with this instead of being left out - two shadow
+    // lists interpolate only while both hold the same number of layers and every layer agrees on
+    // "inset", so a list that grows or shrinks jumps instead of fading. The two belong together: a
+    // slot is either outer or inset, and which one a layer needs is the layer's business.
+    slotEmpty: "0 0 0 0 transparent",
+    slotEmptyInset: "inset 0 0 0 0 transparent",
+    // The empty value of a slot filled from "interactionVeil", which carries two layers - see the
+    // veil for why. Such a slot rests on this value and never on "slotEmptyInset": the layer counts
+    // have to match on both sides of a transition.
+    slotEmptyVeil: "inset 0 0 0 0 transparent, inset 0 0 0 0 transparent",
+    // The veil of FOCUS and HOVER, and **every control takes this one**, whether it carries a
+    // surface of its own or not. It is an inset shadow spread wide enough to meet itself in the
+    // middle of any control, so it covers the whole face and lays over whatever is behind it
+    // instead of replacing it: a resting pane and a saturated highlight color alike.
+    //
+    // **It is two layers, and each says something different.** The neutral one darkens - a tint of
+    // the darkest color of the palette on a light background and of the lightest on a dark one,
+    // which is where every published status layer takes its color from rather than from an accent
+    // (eBay's is black on light and white on dark, Material's follows the content color). It also
+    // gives the veil its weight on a small face. The green one names what the darkening is: an
+    // interaction, and impulseGreen is the color for that and for nothing else.
+    //
+    // The strengths, all found at the running controls on 2026-08-28: the neutral half at the
+    // published values, eBay stating 4 % for hover and Material 8 %, where this veil once stood at
+    // 25 %; and the green half at the point where it reads on the largest face it covers, a bare
+    // field's, without repainting it. Neither half works alone - the neutral one alone says only
+    // "this got darker", and the green one alone came out too pale on a check box's box and on an
+    // icon-only bare button while reading well on a field.
+    //
+    // The two layers are also why the slot has an empty value of its own: a shadow list
+    // interpolates only while both sides hold the same number of layers, so a slot filled from here
+    // rests on "slotEmptyVeil" and never on "slotEmptyInset".
+    //
+    // **The green half stands at .08/.10 since 2026-09-09**, down from .12/.15. Those were found
+    // against a bare field alone, the largest face the veil covers; beside the tab bar's lens and
+    // on the small faces the value read as a colour of its own rather than as a cast over what is
+    // there. The lower pair keeps the press readable, the press being the same veil laid twice.
+    interactionVeil: "inset 0 0 0 999px rgba(0, 30, 70, .05), inset 0 0 0 999px rgba(47, 243, 224, .08)",           // color primary, color impulseGreen
+    interactionVeilOnDark: "inset 0 0 0 999px rgba(250, 251, 252, .07), inset 0 0 0 999px rgba(47, 243, 224, .1)",  // color offWhite, color impulseGreen
+    // The edge of a control under the pointer, and **the one part of the interaction appearance
+    // that does depend on the form**: a control with a surface has a line already and colours it,
+    // a control without one grows none. A line around something that carries none the rest of the
+    // time was tried on 2026-08-28 at the bare button, the bare field and the check box, and judged
+    // too loud at all three - what those three answer with is the veil alone.
+    interactionBorder: rgba(47, 243, 224, .7),         // color impulseGreen
+    interactionBorderOnDark: rgba(47, 243, 224, .8),   // color impulseGreen
+    // **The second interaction appearance, and what chooses it is the form the component shows its
+    // selection in.** The veil above covers a face: a pane, a check box's box, a calendar day's
+    // circle, a tab whose selection is a lens. Where a component marks its selection on the
+    // lettering instead, the entries have no bounded area of their own, and a veil spread over a
+    // text row invents a ground the row never has at rest - on the width of a menu entry that reads
+    // as a wide green field rather than as a status (judged on 2026-09-08 against the running
+    // sidebar, the popup menu and a tab bar with a background marker).
+    //
+    // It is the veil's two layers translated to text, and each half does the same work it does
+    // there. The lettering reaches full opacity from this resting value, which carries the
+    // visibility the way the veil's neutral layer does; and impulseGreen underlines it, naming the
+    // change as an interaction the way the veil's green layer does. Neither half works alone: the
+    // opacity alone says only "this got stronger", and the line alone rests on a colour that
+    // reaches 1.36:1 against offWhite - the measurement that ruled out a focus ring of its own.
+    //
+    // The resting opacity is the value the menuEntry mixin has carried since v3, where it is the
+    // whole hover. It costs little: at .8 the lettering still stands at 8.4:1 against offWhite,
+    // where full primary stands at 15.6:1.
+    //
+    // **The underline takes no theme pair**, unlike the neutral layer and the interaction edge
+    // above: a line of a saturated colour separates itself from a light and a dark ground alike,
+    // where a neutral layer has to know which way to move. Its offset is the one the active menu
+    // entry's line carries, so a list whose selection is already underlined shows one line in two
+    // colours rather than two lines - and its width is that line's as well, 1.9 since v3. Two whole
+    // pixels were tried on 2026-09-09 and judged too thick beside the lettering; the classic text
+    // link reads this value too, so every green line of the framework is drawn alike.
+    interactionTextOpacity: 0.8,
+    interactionUnderline: #2ff3e0, // color impulseGreen
+    interactionUnderlineWidth: 1.9,
+    interactionUnderlineOffset: 3,
+    // The pane a control lays onto the background, in two strengths. It veils whatever is behind it
+    // instead of carrying a color of its own, so one appearance serves every light background and
+    // one every dark one - a gray of its own would collide with the grays of the palette. The two
+    // strengths are one calculation: "surfaceTinted" is "surface" at about half of every
+    // ingredient, with a contact shadow that sits tighter because a thinner body lies closer to the
+    // surface it rests on. A button carries the full pane and thins to the tinted one when it is
+    // locked; an input control carries the tinted one and gives it up with the prop "bare".
+    //
+    // Read the two theme keys as everywhere else in this file: "dark" is the value for a light
+    // background, "light" the one for a dark background.
+    //
+    // The four ingredients: "fill" is the veil itself, "border" its edge - only just denser than
+    // the veil, so it separates the pane from the background without reading as a line drawn around
+    // it. "contact" is the shadow of a body lying on the surface rather than hovering above it,
+    // tight and far weaker than the floating shadows of "boxShadow", which carry the surfaces over
+    // the page; over a dark background it is black, because structureSilver would lighten such a
+    // background instead of deepening it. Its dark-ground values are a compromise: on primary, the
+    // darkest ground of the palette, the shadow reads faintly, and denser values tried on
+    // 2026-09-24 made it too heavy on every other dark ground. "rim" and "glow" are the inner light
+    // that makes the pane read as tinted glass lying on the background instead of a stain in it - a
+    // polished edge along the top catching the light, plus a soft inner glow. Both are offWhite in
+    // either theme.
+    surface: (
+      fill: (
+        dark:  rgba(55, 70, 80, .12),      // color structureSilver with transparency
+        light: rgba(250, 251, 252, .18),   // color offWhite with transparency
+      ),
+      border: (
+        dark:  rgba(55, 70, 80, .16),      // color structureSilver with transparency
+        light: rgba(250, 251, 252, .22),   // color offWhite with transparency
+      ),
+      contact: (
+        dark:  "0 1px 3px 0 rgba(55, 70, 80, .12)", // color structureSilver with transparency
+        light: "0 1px 3px 0 rgba(0, 0, 0, .25)",
+      ),
+      // Pressed, a body lies closer to the surface it rests on: the contact shadow pulls together
+      // and gains density instead of disappearing. Every element that is clicked takes it - the
+      // filled button and the clickable section.
+      contactPressed: (
+        dark:  "0 0 2px 0 rgba(55, 70, 80, .2)", // color structureSilver with transparency
+        light: "0 0 2px 0 rgba(0, 0, 0, .35)",
+      ),
+      rim:  "inset 0 1px 0 rgba(250, 251, 252, .45)",     // color offWhite with transparency
+      glow: "inset 0 0 4px 1px rgba(250, 251, 252, .1)",  // color offWhite with transparency
+    ),
+    surfaceTinted: (
+      fill: (
+        dark:  rgba(55, 70, 80, .05),      // color structureSilver with transparency
+        light: rgba(250, 251, 252, .08),   // color offWhite with transparency
+      ),
+      border: (
+        dark:  rgba(55, 70, 80, .08),      // color structureSilver with transparency
+        light: rgba(250, 251, 252, .11),   // color offWhite with transparency
+      ),
+      contact: (
+        dark:  "0 1px 2px 0 rgba(55, 70, 80, .07)", // color structureSilver with transparency
+        light: "0 1px 2px 0 rgba(0, 0, 0, .14)",
+      ),
+      // the pressed form of the tinted strength - see "surface" above
+      contactPressed: (
+        dark:  "0 0 1px 0 rgba(55, 70, 80, .12)", // color structureSilver with transparency
+        light: "0 0 1px 0 rgba(0, 0, 0, .2)",
+      ),
+      rim:  "inset 0 1px 0 rgba(250, 251, 252, .21)",     // color offWhite with transparency
+      glow: "inset 0 0 4px 1px rgba(250, 251, 252, .05)", // color offWhite with transparency
+    ),
+    // The pane of a control that cannot be used - DISABLED and BUSY - and it is the tinted one
+    // halved once more, the same calculation that produced the tinted pane from the full one. A
+    // button reaches this status by thinning from "surface" to "surfaceTinted", which says it
+    // plainly; an input control carries the tinted pane already, so without a third step it would
+    // state its lock only through its lettering and its missing contact shadow - too close to the
+    // resting pane to tell apart (seen at the running control on 2026-08-28).
+    //
+    // There is no rim and no glow to go with it: both are what make a body look raised, and a
+    // control that cannot be used lies in the surface rather than on it. The mixins empty those
+    // slots rather than reading a value here.
+    surfaceLocked: (
+      fill: (
+        dark:  rgba(55, 70, 80, .025),     // color structureSilver with transparency
+        light: rgba(250, 251, 252, .04),   // color offWhite with transparency
+      ),
+      border: (
+        dark:  rgba(55, 70, 80, .04),      // color structureSilver with transparency
+        light: rgba(250, 251, 252, .055),  // color offWhite with transparency
+      ),
+    ),
+    // The glass of a pane whose fill is a colour of the palette and which can be used: the switch
+    // that is on, and the filled or overlaid button with a highlight while nothing locks it. Such a
+    // fill is opaque and saturated, and that cancels what the three strengths above are dimensioned
+    // for - a veil that lets the background through. Their light ingredients vanish into the
+    // colour, and an edge only a notch denser than a translucent veil is no contour on an opaque
+    // one: the track of a switch that was on read as flat paint at the running control on
+    // 2026-09-04. This set has no fill, the colour being the fill, and no contact shadow, which is
+    // the body's shadow onto the background and follows the theme as before. It is one set for both
+    // themes, because the fill is the same in both: whatever the background, the colour is what the
+    // glass lies on.
+    //
+    // A locked coloured pane - the active and the busy button - takes none of this and stays as
+    // flat as every locked pane: it keeps its colour and lies in the surface, and the flatness is
+    // what says that it cannot be used (confirmed at the running controls on 2026-09-04, the
+    // difference between the two being wanted).
+    //
+    // The edge darkens the colour instead of lightening it - a light line all around would be a
+    // second rim, and the edge's job is a contour - and it darkens with primary, the palette's
+    // darkest colour, the way the veil's neutral layer does. The one colour it cannot darken is
+    // primary itself, so the solid highlight keeps the theme's edge and stays outside this set. Rim
+    // and glow are the surface's own ingredients, denser: the rim a notch above the surface's, the
+    // glow at almost twice, because on a saturated colour the same offWhite carries less than on
+    // the grey of a veil.
+    surfaceColored: (
+      border: rgba(0, 30, 70, .2),                          // color primary with transparency
+      rim:  "inset 0 1px 0 rgba(250, 251, 252, .55)",       // color offWhite with transparency
+      glow: "inset 0 0 4px 1px rgba(250, 251, 252, .18)",   // color offWhite with transparency
+    ),
+    // What lies between an input control's edge and its content on either side. The pane needs a
+    // real padding where the bottom line faked one with a padding of 3px and a margin of -3px.
+    inputControlPaddingLeftRight: 12, // space small
+    // gap between text and icons inside input control elements
+    inputControlColumnGap: 7, // space xs
+    // the default dimension of icons, used inside control elements, must not exceed the value of
+    // controls.heightDefault
+    iconDimDefault: 18,
+    // the dimension of large icons like in icon buttons. The binding limit is not controls.heightLarge
+    // but the round control of that height: an overlaid icon button is a circle, and the corners of an
+    // icon drawn out to its own edges sit farther from the centre than its sides do - which leaves
+    // 35 px, not 50. At 30 px those corners keep about 4 px of air to the circle's edge.
+    iconDimLarge: 30,
+    // Two colours of a control's lettering that no typo set carries: the lettering of a locked
+    // control, and the highlight behind the characters a user has selected in a field. The
+    // selection stays neutral - which characters are selected belongs to the value, not to an
+    // interaction with the control, so it takes no interaction colour - and it is a flat colour
+    // rather than the veil because "::selection" knows nothing but a background. Read the two
+    // theme keys as everywhere else in this file: "dark" is the value for a light background,
+    // "light" the one for a dark background.
+    color: (
+      dark: (
+        disabled:      rgba(55, 70, 80, .33), // color structureSilver with transparency
+        textSelection: rgba(55, 70, 80, .18), // color structureSilver with transparency
+      ),
+      light: (
+        disabled:      rgba(250, 251, 252, .33), // color offWhite with transparency
+        textSelection: rgba(250, 251, 252, .28), // color offWhite with transparency
+      ),
+    ),
+  ),
+  controlMenus: (
+    // minimum space of menus to the border of the document
+    spaceToDocument: 5, // space xxs
+    // The rounding of every popup world a control opens - the menus of the select boxes, the menu
+    // component and the input's proposal list. It is the radius the framework gives a surface, the
+    // same one the modal windows and the tabulars inside a card carry.
+    borderRadius: 12, // space small
+    paddingTop: 7, // space xs
+    paddingBottom: 7, // space xs
+    // An option is as tall as the control it opens from, so the selected one covers it exactly.
+    // The comment here read "= controls.heightDefault + 2" until 2026-09-02, from the time that
+    // height was 28; it is 30 now and the option follows it, not a value two above it. What does
+    // carry the two extra pixels is an option's line height, which answers the pane's two borders.
+    optionHeight: 30, // = controls.heightDefault
+    optionPaddingLeft: 12, // space small
+    optionPaddingRight: 12, // space small
+  ),
+  // The shadows of a surface floating over the page, three of them, named after where the surface
+  // sits - a scale of height, not of strength: from "anchored" to "modal" the offsets and blurs
+  // grow while the opacities fall, so a higher one reads as floating further above the background
+  // rather than as a darker shadow. "anchored" carries what hangs from its reference - a menu, a
+  // card on its anchor, the mega menu -, "floating" what stands free - a card, a notification, a
+  // minimized modwin -, and "modal" what lies above everything else - the modwin, the dialog. A
+  // component placed on a surface casts none of them: its shadow is the contact shadow of the
+  // controls map.
+  //
+  // Each of them is three layers: a tight one drawing the contact edge, a middle one carrying the
+  // body of the shadow, and a wide faint one for the ambient falloff.
+  //
+  // **The first layer's spread has to stay near zero, or the layer disappears.** A blur of b
+  // reaches about b/2 beyond the shadow's own edge, and that edge is the element shrunk by the
+  // spread and moved down by the offset - so a spread more negative than the offset plus half the
+  // blur pulls the whole layer behind the element. That is what these shadows carried until
+  // 2026-08-31: -2px against 1px + 1px left the anchored shadow's contact layer without a single
+  // visible pixel,
+  // and the other two with a few pixels below the element and nothing at its sides. Two layers were
+  // doing the work of three, and what was missing was exactly the sharp edge that makes a shadow
+  // read as a body rather than as a haze.
+  //
+  // **The colour is structureSilver rather than black.** Black desaturates whatever lies under it,
+  // where the palette's own dark reads as the same room the surface stands in - which is what the
+  // controls' contact shadow above already does over a light background. structureSilver carries
+  // about 5.8% luminance against black's zero, so the opacities hold some 7% more to keep the
+  // density they had.
+  //
+  // All nine opacities were raised by half on 2026-08-31: the shadows were barely readable on this
+  // framework's own backgrounds, which are not the white page such a scale is dimensioned for. The
+  // three heights stayed untouched through both passes.
+  //
+  // **None of them has a form for a dark ground.** A floating surface stands too high above what
+  // lies below to read it, and what lies below can be anything - so the shadows are drawn as over a
+  // light ground, the framework's own. The one floating component that follows the ground all the
+  // same, the overlaid button, states its dark form in its own stylesheet.
+  boxShadow: (
+    anchored: "0 1px  2px  0   rgba(55, 70, 80, 0.21), 0 3px  6px 0 rgba(55, 70, 80, 0.19), 0  5px 12px  4px rgba(55, 70, 80, 0.15)",
+    floating: "0 2px  4px -1px rgba(55, 70, 80, 0.17), 0 6px 16px 0 rgba(55, 70, 80, 0.13), 0  9px 28px  8px rgba(55, 70, 80, 0.09)",
+    modal: "0 4px  8px -2px rgba(55, 70, 80, 0.13), 0 9px 28px 0 rgba(55, 70, 80, 0.09), 0 12px 48px 16px rgba(55, 70, 80, 0.05)",
+  ),
+  // The glass a floating surface is made of - a card, the mega menu, the header's marker. Its
+  // ingredients are the same idea as the controls' "surface" above, at the scale of a surface
+  // rather than of a control: a translucent fill, an edge denser than it, an inner glow, and the
+  // blur that makes what lies behind read as out of focus. The mixin glassmorphism() below
+  // assembles them.
+  //
+  // **Two strengths, and what decides between them is what the glass has to carry.** "translucent"
+  // at 25% is a marker or a decoration, where the background may read straight through.
+  // "opaque" at 85% is a surface with content on it, where the lettering needs a ground to be read
+  // against - a card, the mega menu.
+  //
+  // **The edge is 10 points denser than the fill**, which separates the pane from the background
+  // without reading as a line drawn around it - the relation the controls' surface uses as well.
+  // Until 2026-08-31 fill and edge shared one value, and the edge was invisible in both strengths.
+  //
+  // **The glow belongs to the translucent strength alone.** At 25% fill it reads as light caught
+  // inside the glass; over an 85% fill it would put 10% offWhite onto nearly-white, taking the
+  // resulting opacity from .85 to .865 - three units per channel against a dark background, under
+  // the threshold at which a difference is seen at all. There is nothing to brighten inside a
+  // surface that is already almost opaque, so the opaque strength holds an empty layer instead of a
+  // fainter one. It stays a layer rather than being left out: two shadow lists interpolate only
+  // while both hold the same number of layers and every layer agrees on "inset", and the mega menu
+  // transitions its box-shadow.
+  //
+  // **backdropFilter keeps its saturate.** Blurring averages neighbouring pixels, and averaging
+  // opposite hues cancels part of their chroma; the correction puts it back. It needs structure
+  // behind the glass, which a surface covering content has - the overlaid button drops the saturate
+  // for the opposite reason, a control usually sitting on one single colour. Its blur is 12px where
+  // the button uses 8: at a control's height the filter samples more than the control itself and
+  // frays at its edges, which a surface is too large for.
+  glass: (
+    fill: (
+      translucent: rgba(250, 251, 252, .25),  // color offWhite with transparency
+      opaque:      rgba(250, 251, 252, .85),  // color offWhite with transparency
+    ),
+    border: (
+      translucent: rgba(250, 251, 252, .35),  // color offWhite with transparency
+      opaque:      rgba(250, 251, 252, .95),  // color offWhite with transparency
+    ),
+    glow: (
+      translucent: "inset 0 0 4px 1px rgba(250, 251, 252, .1)", // color offWhite with transparency
+      opaque:      "inset 0 0 0 0 transparent",
+    ),
+    backdropFilter: "blur(12px) saturate(120%)",
+  ),
+);
+
+
+// Function to get a layout setting from map "$layout". For example: layout(header, height).
+// Whatever the map holds as a string leaves this function unquoted: a shadow is a comma separated
+// list, and a list written plainly inside the map would be read as further entries of it - so every
+// shadow is quoted in the map and turns back into CSS here. Values of any other type pass through
+// untouched, and an unquoted string like a grid area name is unaffected by the unquoting.
+@function layout($keys...) {
+  $value: map.get($layout, $keys...);
+
+  @if meta.type-of($value) == string {
+    @return string.unquote($value);
+  }
+
+  @return $value;
+}
+
+
+// Function to get a value from map "$layout", adding string "px" behind the numerical value.
+@function layoutPx($keys...) {
+  @return #{layout($keys...)}px;
+}
+
+
+// Function to get a value from map "$layout", adding string "ms" behind the numerical value.
+@function layoutMs($keys...) {
+  @return #{layout($keys...)}ms;
+}
+
+
+// Mixin for the glass a floating surface is made of. What its ingredients are and why stands at the
+// "glass" entry of $layout above; this assembles them and holds no value of its own.
+//
+// **The shadow around the glass is not part of the glass.** It says how high the surface floats,
+// which is the component's own statement - the same component often says it per status, as a card
+// does with "floating" standing free and "anchored" on its anchor. So it arrives through the custom
+// property "--glassShadow" and this mixin only assembles it with the glass's own inner glow, which
+// shares the box-shadow property with it. A component that sets no slot gets the glass with no
+// shadow but the glow. The slot is the idiom of ADR general-css-custom-property-status-layers.md,
+// and it is what keeps a component from restating the glow in every status rule.
+//
+// **The strength is named rather than flagged**, so the call says which glass it wants and a third
+// strength would cost no signature change. And the radius is not the glass's business: it is the
+// shape of the element, which every component already states for itself - a card through its
+// styling prop, the marker in one declaration of its own.
+//
+// Until 2026-08-31 this mixin took the level as a parameter and wrote the whole box-shadow itself,
+// in four branches identical but for the level's name - which left a component that carries its own
+// shadow no way to use the mixin at all.
+@mixin glassmorphism($strength: translucent) {
+  @if not map.has-key($layout, glass, fill, $strength) {
+    @error "glassmorphism(): unknown strength \"#{$strength}\" - use translucent or opaque.";
+  }
+
+  border: 1px solid layout(glass, border, $strength);
+  background: layout(glass, fill, $strength);
+  // The empty slot holds a shadow of zero size in a transparent colour rather than being left out,
+  // so the layer count stays constant wherever the box-shadow transitions.
+  box-shadow: var(--glassShadow, 0 0 0 0 transparent), #{layout(glass, glow, $strength)};
+  backdrop-filter: layout(glass, backdropFilter);
+}

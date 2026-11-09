@@ -1,0 +1,58 @@
+@use "assets/styles";
+
+
+$animationTimeMs: styles.layout(animationTime, slowMs);
+
+:export {
+  animationTimeMs: $animationTimeMs;
+}
+
+
+.outerContr {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: styles.layoutPx(header, height);
+  bottom: 0;
+  overflow: hidden;
+}
+
+
+.megaMenu {
+  position: relative;
+  width: 100%;
+  max-height: 90%;
+  transform: translateY(-100%);
+  transition:
+    height #{$animationTimeMs}ms ease,
+    box-shadow #{$animationTimeMs}ms ease,
+    transform #{$animationTimeMs}ms ease;
+
+  // The mega menu hangs off the header, so it floats at the height of anything sitting on its
+  // trigger. The mixin assembles this slot with the glass's own glow.
+  --glassShadow: #{styles.layout(boxShadow, anchored)};
+
+  @include styles.glassmorphism($strength: opaque);
+  // what floats over the page is light, whatever it covers
+  @include styles.ground(light);
+
+  &:not(.show) {
+    box-shadow: none !important;
+  }
+
+  &.show {
+//    box-shadow: #{styles.layout(boxShadow, anchored)}, inset 0 0 10px 5px rgba(styles.color(offWhite), 0.4);
+    transform: translateY(0);
+  }
+}
+
+
+.innerContr {
+  max-height: 100%;
+  display: flex;
+  overflow: hidden;
+  flex-wrap: wrap;
+  gap: styles.spacePx(xl);
+  justify-content: space-around;
+  padding: styles.spacePx(normal) styles.spacePx(large);
+}

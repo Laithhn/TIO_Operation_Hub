@@ -3,6 +3,22 @@
 Recorded on 16 October 2026 on a Windows 11 developer machine (SQL Server LocalDB 15.0, .NET SDK 10.0.401, Node 22.23.3, Microsoft Edge).
 Re-run with the commands in the README; results below are from actual runs, not expectations.
 
+**2.58.0 package (6 November 2026, ticket page redesign A106):** `release/TioHub-2.58.0.zip` was built from commit `9771b39` on a clean checkout (BUILD-INFO: no uncommitted changes, SQL-backed tests run), SHA-256 `9645cd9f8f58d13a21633a9bf56649c37d99b3f1616ae3bcab7434ca5d60c89a`. In that build, on the isolated QA instance: 739 backend tests and 264 front-end unit tests passed. No database change: from 2.56.0 or 2.57.0, deploy the application only.
+
+**2.58.0 (6 November 2026, ticket page redesign A106):** on the isolated QA instance, in a scratch copy of the tree holding only the release commit's files: type-check and front-end build passed, 266 front-end unit tests passed, and 205 of 208 real-API browser tests passed on the full run. Two failures were in tests written for this change (the SLA measurements selector, and the new spec reading the record version from the body instead of the ETag); both were corrected and passed on rerun. `client-logos.spec.ts` failed only in the full run, directly after the attachments test; it passes on its own and touches no changed file. The 13 intercepted access-control tests passed. The page was also checked by eye at 1920, 1440, 1366 and 1100 px; the Jira and contractual SLA sections with sample data injected in the browser, since the development data has none. No backend code changed; the backend suite runs in the package build below.
+
+**2.57.0 package (6 November 2026):** `release/TioHub-2.57.0.zip` was built from commit `9a602ab` on a clean checkout, SHA-256 `a5586cdfe2136964feb7559fb67ad7be36df1c202e20aecc0e02e072ecf86a09`. On the isolated QA instance, in that build: 739 backend tests and 260 front-end unit tests passed. On the same checkout 207 of 208 real-API browser tests passed and the 13 intercepted ones passed. The one failure, `stage3-reporting.spec.ts:47`, was Edge closing while a new window opened about 16 minutes into the run, the same in both full runs of the day; the test passes on its own and after `stage3-configuration.spec.ts`. A first browser run on port 5197 was discarded, because another session started a test server on the same port during it.
+
+**2.57.0 (6 November 2026, second usability review A105):** on the isolated QA instance, in a scratch copy of the tree: 739 backend tests and 260 front-end unit tests passed; all 208 real-API browser tests passed (the last full run had one browser crash in `stage3-reporting.spec.ts`, which passed when re-run) and the 13 intercepted access-control tests passed. The first full run found 6 failures: 4 tests still expected the old layout and were updated, and 2 were fixed in the code (the Action list group headings, and the row menu, which closed when the list re-rendered under it). Not yet packaged; no user has tried the changes.
+
+**2.56.0 package (6 November 2026, server IP address, VLAN and notes A104):** `release/TioHub-2.56.0.zip` was built from commit `d977483` on a clean checkout, SHA-256 `7d4a0793ca9dfbb2d5d16fb6a4be375a3e869a53da766717ac6e1b0a651fe37a`. On the isolated QA instance, in that build: 738 backend tests and 255 front-end unit tests passed, then all 199 real-API browser tests passed on the same checkout. The Sewar load script was run separately on a restored copy (`TioHub_UAT_SEW_11051830`): report-only, apply, refusal without confirmation and a second run that added nothing.
+
+**2.55.0 (5 November 2026, usability review A102):** on the isolated QA instance: 732 backend tests passed; 198 real-API browser tests with 190 passing on the last full run, and the 8 others passing after their corrections, rerun on their own; 13 intercepted browser tests and the front-end unit tests passed. User validation is not done: see USABILITY-VALIDATION-PLAN.md.
+
+**2.55.0 package (6 November 2026):** `release/TioHub-2.55.0.zip` was built from commit `a7c61ad` on a clean checkout, SHA-256 `5af5265a529ba6462ed8dc6e4ef35f17e5197c5dece99bd582cc54b8b4e2a811`. On the isolated QA instance, the 732 backend tests ran in that build and passed. The whole real-API browser suite on the same commit: 197 of 198 passed. GUI-09 failed because it read the Clients row count while it still said Loading…; the test now waits for the count. After that change, GUI-09 passed 10 times in a row and the whole `gui-fixes` spec passed (22 tests). The change is to the test only, so the package is unaffected.
+
+**Latest (2.48.0, 3 November 2026):** 660 backend, 74 frontend, 158 real-API browser and 7 intercepted browser tests passed. **After the rights screen update, 4 November:** 660 backend, 81 frontend, 158 real-API browser and 13 intercepted browser tests passed. See [RELEASE-VALIDATION-2.48.0.md](RELEASE-VALIDATION-2.48.0.md). The sections below record earlier releases.
+
 ## Automated .NET tests — `dotnet test tests/TioHub.Tests`
 
 **77 passed, 0 failed** (about 20 s). Each test class gets a throwaway SQL Server database, migrated and seeded with the fictional data.
@@ -128,6 +144,61 @@ AC-16 (scope independence) is covered by the structural no-integration test and 
 
 - `dotnet test tests/TioHub.Tests`: **97 passed, 0 failed**. `AC03b_MicroserviceDeployment` extended: three versions with release notes (newest first with numeric ordering — 1.10.0 above 1.2.0), duplicate number refused, secrets in release notes refused, notes editable, renaming a version refused, latest version shown on the product; application developers saved in order with Lead/Developer roles, an unknown role refused, developers listed on the product list.
 - `tests/e2e`: **13 passed, 0 failed**. Products journey extended: no Owning team field, add a lead developer, add a microservice, add version 1.0.0 with two lines of release notes and see them on the microservice page.
+
+## Release 2.41.0 — 29 Oct 2026 (attachments workspace, A74)
+
+- Release script `build/Build-Release.ps1` on the clean commit `d5eaeb4` (`TIOHUB_TEST_SQL=(localdb)\TioHubQALocalDB`): front-end build, `dotnet test` (Release) **269 passed, 0 failed**, publish. The first attempt of the script stopped on one failure of `AC15_RestoreDrill.Backup_restores_into_an_isolated_database_with_sign_in_scope_records_and_audit`; the test then passed alone and in two further full runs (269/269 each). Its failure message was not captured, so the cause is not known (intermittent; not related to attachments). Repackaged with `-SkipTests` after this entry was added (documentation only; `BUILD-INFO.txt` names the final commit); the SHA-256 is in `release/TioHub-2.41.0.zip.sha256`. No migration: `database/01-schema.sql` is byte-identical to 2.40.1.
+- Package checks: assembly version `2.41.0+<commit>`, entry chunk 882,787 bytes, attachments workspace in its own chunk, no `appsettings.Development.json`, connection string placeholder with Windows authentication (no secrets).
+- Before packaging: typecheck clean; Vitest **47/47**; .NET **269/269** (Debug, 1 new test for `GET /attachments/{id}/preview`); Playwright **142/142**: 141 in the full run plus `attachments-tab.spec.ts`, which failed there on its first request to a just-started server (HTTP 412 on `GET /api/v1/clients` while the page's own start-up requests were running). The test now waits for the page to finish loading first, and passed on two fresh servers. The 412 on a GET looks like an existing race when a session's first requests run in parallel; not investigated further.
+- Browser checks against the API with the production security headers: PDF, image and text previews inline; upload with a refused `.exe`; filters, sorting and pages together; single and bulk delete with confirmation; drawer at 1000 px; no horizontal scrolling at 375 px; delete hidden for a user without the Delete right.
+- Not covered: the acceptance suite against the running package, IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, PDF preview outside Edge/Chromium, and the actual UAT environment and its database.
+
+## Release 2.40.1 — 29 Oct 2026 (UX audit remediation UX-001 … UX-005)
+
+- Release script `build/Build-Release.ps1` on the clean commit `a0f3eb1` (`TIOHUB_TEST_SQL=(localdb)\TioHubQALocalDB`): front-end build, `dotnet test` (Release) **268 passed, 0 failed**, publish. Repackaged with `-SkipTests` after this entry was added (documentation only; `BUILD-INFO.txt` names the final commit); the SHA-256 is in `release/TioHub-2.40.1.zip.sha256`. No migration: `database/01-schema.sql` is byte-identical to 2.40.0.
+- Package checks: assembly version `2.40.1+<commit>`, entry chunk 881,993 bytes, notifications and sign-in chunks separate, no `appsettings.Development.json`, no secrets in the configuration or deploy scripts.
+- Before packaging: .NET **268/268** in three consecutive full runs after the order-dependent `A73_ClientMap` test was fixed (`751febd`); typecheck clean. Vitest 42/42 and Playwright 141/141 are from the remediation commit `68d85f4` (entry below); the front end is unchanged since then.
+- Not covered: the acceptance suite against the running package, IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, and the actual UAT environment and its database.
+
+## UX audit remediation — 29 Oct 2026 (UX-001 … UX-005, branch claude/ux-audit-remediation)
+
+Isolated `(localdb)\TioHubQALocalDB`, Playwright port 5196, Edge. Details: [UX-AUDIT-REMEDIATION-2026-10-27.md](UX-AUDIT-REMEDIATION-2026-10-27.md).
+
+- `dotnet test tests/TioHub.Tests`: **268 passed, 0 failed** (one earlier run: 267/268, the intermittent `A73_ClientMap` test; it passed alone and in the next full run).
+- `src/web`: typecheck passed; Vitest **42 passed** (+2 `LoadBoundary`); build passed, entry chunk 881.99 kB (was 907.43 kB, over the 900 kB limit); `npm audit --omit=dev` 0 vulnerabilities.
+- `tests/e2e`: **141 passed, 0 failed** (125 existing + 16 in `ux-remediation.spec.ts`). The GUI-13 budget assertion now uses Vite's kB (1000 bytes).
+
+## Release 2.40.0 — 29 Oct 2026 (Client Map redesign; local UAT of the package)
+
+- Release script `build/Build-Release.ps1`: front-end build, `dotnet test` (Release) **268 passed, 0 failed**, publish, `release/TioHub-2.40.0.zip` (SHA-256 `9863fcbea780dec5ee334df40b8473d048a844e5f5f6d8b216448733779e44ce`, after the release notes and test results were added to the package). Built from uncommitted changes on top of `930643a` (`BUILD-INFO.txt` says so). No migration: `database/01-schema.sql` is byte-identical to 2.39.0.
+- Before packaging: typecheck and production build clean; Vitest **40/40** (new `clientMapModel.test.ts`: per-country sums, region filter, sorting, search, layers, client status, and an ISO code and region for every country in `Common/Countries.cs`); .NET **268/268** (new `A73_ClientMap`: products and project manager on map clients, `/assets?country=`); Playwright on the source build **125/125** (new `client-map.spec.ts` 6 tests; `frame-smoke`, `journeys` and `client-logos` adapted to the full-width map).
+- Local UAT of the package (throwaway LocalDB database created with the 2.39.0 schema script, dropped afterwards; Development sign-in, fictional data):
+  - **Package on the 2.39.0 schema** with `Database:ApplyMigrationsOnStartup=false`: the readiness gate accepted it, the API answered ready, no errors in the log.
+  - **Acceptance suite against the running package** (`tests/e2e/playwright.uat.config.ts`): first package build **125/125**. After a CSS-only fix (the chevron of the details panel's bottom links wrapped), the rebuilt package ran **122 passed, 1 failed, 2 not run**: on the reused database the logo test's client sat below the fold of the details table and its lazily loaded logo had not loaded. The test now scrolls the row into view. The logo and map specs (10 tests) then passed against the package.
+- Screenshots compared with the target design at 1600, 1280 and 820 px (dark toolbar and layers, country explorer, dark map with blue shading and numbered badges, country details tabs, drawers on tablets).
+- Not covered: IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, a screen-reader session, and the actual UAT environment and its database.
+
+## Release 2.39.0 — 28 Oct 2026 (client logos, notification redesign, Configuration navigation; local UAT of the package)
+
+- Release script `build/Build-Release.ps1`: front-end build, `dotnet test` (Release) **267 passed, 0 failed**, publish, `release/TioHub-2.39.0.zip` (SHA-256 `9d82ea668be2cc22dac91bcdd4893ac54b9e5e20691eb8f37d34a87d2a12a96c`, after the release notes and test results were added to the package). Built from uncommitted changes on top of `a09cc3f` (`BUILD-INFO.txt` says so).
+- Before packaging: Vitest **33/33**; typecheck and production build clean; Playwright on the source build **118/118** (new: `client-logos.spec.ts` 4, `notifications-redesign.spec.ts` 7).
+- Local UAT of the package (throwaway LocalDB databases, dropped afterwards; Development sign-in, fictional data; no shared or UAT database was used):
+  - **Schema script, empty database:** `database/01-schema.sql` applied twice without errors; 27 migrations, last `20261028130133_NotificationResolution`; the three logo columns and `ResolvedAt` exist.
+  - **Upgrade with data:** a database created with the 2.38.0 script and filled by the 2.38.0 package (3 clients, 6 cases, 37 notifications); the 2.39.0 script applied twice without errors; every row kept, new columns empty.
+  - **Package on the upgraded database** with `Database:ApplyMigrationsOnStartup=false`: the readiness gate accepted the schema, the API answered ready, no errors in the log.
+  - **Acceptance suite against the running package** (`tests/e2e/playwright.uat.config.ts`): **117 of 118 passed** (7.4 min). The one failure (*a project holds its contracts*) was a timing race in the test — it checked the *Project* field before the click on *+ Contract* had opened the form (2 of 3 repeats passed). The test now waits for the contract form; afterwards it passed 5 of 5 against the package. No product change was needed.
+- Not covered: IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, a screen-reader session, and the actual UAT environment and its database.
+
+## Release 2.38.0 — 28 Oct 2026 (Reporting Center redesign, Cases Report Builder; local UAT of the package)
+
+- Release script `build/Build-Release.ps1`: front-end build, `dotnet test` (Release) **256 passed, 0 failed**, publish, `release/TioHub-2.38.0.zip` (SHA-256 `f4ae667b0571e381a0a18d928fef22536a8338777ea664cb27c67075349054b6`). Built from uncommitted changes on top of `a09cc3f` (`BUILD-INFO.txt` says so).
+- Before packaging: Vitest **9/9**; Playwright on the source build **96/99** in the full run, the 3 failures (an ambiguous "More" button selector once the header got its own *More* list) fixed and re-run with the builder and GUI specs (27/27).
+- Local UAT of the package (scratch LocalDB databases, Development sign-in, fictional data; no shared or UAT database was used):
+  - **Schema script, empty database:** `database/01-schema.sql` applied twice without errors; 25 migrations, last `20261028080005_ReportBuilder`; the `reporting` schema holds the three new tables.
+  - **Upgrade with data:** a database created with the 2.37.0 script and filled by the 2.37.0 package (6 cases, a catalog Excel export, a weekly schedule); the 2.38.0 script applied twice without errors; the rows were kept (the export and the schedule stay catalog items), and `IX_Case_CreatedAt` exists.
+  - **Package on the upgraded database** with `Database:ApplyMigrationsOnStartup=false`: the readiness gate accepted the schema, the API answered ready, and the 2.37.0 schedule and export appear in the new Scheduled reports and Export history areas.
+  - **Acceptance suite against the running package** (`tests/e2e/playwright.uat.config.ts`, new): **99 passed, 0 failed** (7.2 min), including the A70 navigation, builder, saved report, background Excel/PDF export, schedule and template journeys, and every earlier journey.
+- Not covered: IIS installation and `Upgrade-TioHub.ps1` on a real server, Windows (Negotiate) and forms sign-in against the package, a screen-reader session, and the actual UAT environment and its database.
 
 ## Release 2.28.0 — 22 Oct 2026 (Measured SLA compliance)
 
@@ -292,3 +363,304 @@ AC-16 (scope independence) is covered by the structural no-integration test and 
 
 - `dotnet test tests/TioHub.Tests`: **97 passed, 0 failed**. `AC03b_MicroserviceDeployment` extended: a server created with two hosted microservices in one request appears with them on the installation's deployment view and in the server's options (pre-ticked); editing the server replaces its microservices; a selection for an installation of another environment refuses the whole request and no server is created.
 - `tests/e2e`: **13 passed, 0 failed**. Microservices journey extended: from the environment page, add a server, tick a microservice of "PSOP Main" (installations are labelled groups, so two PSOP installations are unambiguous), save, and see it on the installation's deployment view.
+
+## Release 2.46.0: Jira integration (A76), 3 November 2026
+
+Actual runs on the final working tree, on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval for this run.
+
+| Suite | Result |
+|---|---|
+| Backend, `dotnet test tests/TioHub.Tests` (real SQL Server) | **589 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | **163 passed, 0 failed** |
+| Playwright, access-control isolated | 9 passed |
+| Playwright, access-roles isolated | 5 passed |
+| Frontend, `vitest` | 82 passed |
+| `tsc -b --noEmit` | Clean |
+
+The Jira tests use a **fake Jira**. They are not evidence that a real site works: no run has reached a real Jira site.
+
+Changes to existing tests:
+
+- `Api_has_no_outbound_http_client_dependencies` became `Only_the_read_only_jira_client_makes_outbound_http_calls`, because A76 reverses the no-integration rule of AC-16. The Jira client is the only exception.
+- `No_entity_has_a_password_secret_or_token_field` exempts `JiraAuth.Token`, an in-memory value whose `ToString` omits it.
+- The schema readiness test lists the new migration.
+- The case lifecycle journey clicks **Assign** with an exact name, because the new **Assignments** filter also matched.
+- `gui-fixes.spec.ts`: the `api` helper now fetches `/me` when the antiforgery cookie is missing. **GUI-02 failed the same way on untouched commit 2ddbc77**, so this was an existing race in the test, not a regression.
+
+The entry chunk grew past the 900 kB budget by 817 bytes. The budget is unchanged: the search palette now loads on first use, and the chunk is 896,571 bytes.
+
+Not run: a real Jira site; scoped tokens through the real gateway; the upgrade script on a restored UAT backup; `Install`/`Upgrade` on IIS.
+
+## Release 2.47.0: case statuses and Jira control (A77 to A80), 3 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval for this run.
+
+| Suite | Result |
+|---|---|
+| Backend, `dotnet test tests/TioHub.Tests` (real SQL Server) | **624 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | 161 of 163 passed on the first run. The 2 failures expected old screen text; the specs were updated |
+| Playwright, the affected specs after those updates, with 3 new tests | 17 passed |
+| Playwright, access-control isolated | 9 passed |
+| Playwright, access-roles isolated | 5 passed |
+| Frontend, `vitest` | 82 passed |
+| `tsc -b --noEmit` | Clean |
+
+The whole main Playwright config was not run again after the spec updates; no application code changed between those runs.
+
+Defects these runs found, both fixed:
+
+- `01-schema.sql` failed on upgrade with `Invalid column name 'StatusCode'`, because the migration used a column added in the same batch.
+- Assigning someone to a case, moving it away and assigning them back within a minute failed on a duplicate notification.
+
+The Jira tests use a **fake Jira**, and browser checks of the mapping and synced-case screens use intercepted, fictional data. They are not evidence that a real site works.
+
+Not run: a real Jira site; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS; `DataProtection:KeysFolder` on IIS or a network share.
+
+## Release 2.49.0: Jira users, classification and space contracts (A82 to A84), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval.
+
+| Suite | Result |
+|---|---|
+| Backend, first full run (real SQL Server) | 662 of 664 passed. One real defect and one out-of-date migration list, both fixed |
+| Backend, Jira and schema tests after the fixes | 62 passed |
+| Backend, full run inside the package build | **664 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | 156 of 158 passed. One selector in an updated test; one browser closed mid-test |
+| Playwright, those two spec files after the fixes | `stage3-reporting` passed; all 9 of `jira-integration` passed |
+| Playwright, new contract test | 1 passed |
+| Frontend, `vitest` | 81 passed |
+| `tsc -b --noEmit` | Clean |
+
+The whole main Playwright config was not run again after those test updates. No application code changed between that run and the build except what the runs above cover.
+
+Defect these runs found, fixed:
+
+- Linking a contract to a space's open cases recorded the event but did not save the contract on the cases, because a no-tracking subquery made the whole query untracked.
+
+The Jira tests use a **fake Jira**, and browser checks of the Jira users and space contract screens use intercepted, fictional data. They are not evidence that a real site works.
+
+The conversion of existing Vitronic team members in `JiraUserClassification` found no such rows in these runs, so it has not been exercised with data.
+
+Not run: a real Jira site; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS; Jira Service Management internal notes on a real site.
+
+## Release 2.49.1: data-protection keys and reassigning a space (A84, A85), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance, with the owner's approval.
+
+| Suite | Result |
+|---|---|
+| Playwright, main config (real API, Microsoft Edge) | **160 passed, 0 failed** |
+| Backend, full run inside the package build | **668 passed, 0 failed** |
+| Frontend, `vitest` | 81 passed |
+| `tsc -b --noEmit` | Clean |
+
+The browser check of the Reassign dialog uses intercepted, fictional data.
+
+Not run: the key folder and the changed `Install-TioHub.ps1` and `Upgrade-TioHub.ps1` on IIS; a real Jira site; the upgrade on a restored UAT backup.
+
+## Release 2.50.0: Jira priority and type, case sync, timeline (A86), 4 November 2026
+
+Actual runs on the isolated `(localdb)\\TioHubQALocalDB` instance, with the owner's approval.
+
+| Suite | Result |
+|---|---|
+| Backend, first full run (real SQL Server) | 671 of 672 passed. The failure was a wrong test: its "viewer" account holds the Operation Engineer role, and Jira was off |
+| Backend, the corrected tests | 3 passed |
+| Backend, full run inside the package build | **673 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | 162 of 163 passed |
+| Playwright, `reporting-builder` rerun | 5 passed |
+| Frontend, `vitest` | 81 passed |
+| `tsc -b --noEmit` | Clean |
+
+The Playwright failure, in `reporting-builder.spec.ts`, expected a PDF download and received the Excel one. It is in report exports, which this release did not change, and it passed when rerun, so it is recorded as an unstable test. It was not investigated further. The whole main config was not run again.
+
+The Jira tests use a **fake Jira**, and browser checks of the mapping and Sync screens use intercepted, fictional data.
+
+Not run: a real Jira site, including its priority and issue type names; the upgrade on a restored UAT backup; `Install`/`Upgrade` on IIS.
+
+## Release 2.50.1: notification scan and upgrade trial, 4 November 2026
+
+The 2.50.0 script was applied to restored copies of two real backups on a new database each, with no errors and unchanged case, contract and first response counts. Two existing Vitronic team members converted to users with no sign-in. The package then started against one copy, with Jira off, and answered ready. That trial found the defect below, also present in the deployed 2.49.1.
+
+Defect, fixed: a commitment description longer than 500 characters overflowed `notify.Notification.Body`, so each notification scan failed as a whole.
+
+| Suite | Result |
+|---|---|
+| Backend, notification tests with the new test (real SQL Server) | 4 passed |
+| Backend, full run inside the package build | **674 passed, 0 failed** |
+
+Playwright was not run for this release: the change is in the backend only.
+
+Not run: `Install`/`Upgrade` on IIS; signing in and using the screens on a restored copy; Jira synchronization on a restored copy.
+
+## Release 2.50.2: long Jira text (A87), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+| Check | Result |
+|---|---|
+| Backend, long-text, schema and failure-reason tests (real SQL Server) | 5 passed |
+| `01-schema.sql` on the restored copy | No errors; seven columns unlimited; case and comment counts unchanged |
+| 2.50.1 package on the restored copy, about a minute | Ready, no errors in the log; the long notification text is saved shortened |
+| Backend, full run inside the package build | **675 passed, 0 failed** |
+
+Playwright was not run for this release: the change is in the backend and the database only.
+
+The 2.50.0 and 2.50.1 packages name source commits `1366d88` and `3b4bdda`. Those were rebuilt before being pushed, to leave out another agent's file, and are `798ba26` and `90e797e` on `main`, with otherwise identical content. Local tags `package-2.50.0` and `package-2.50.1` keep the original commits.
+
+Not run: `Install`/`Upgrade` on IIS; a synchronization with the long-text fix against a real Jira site.
+
+## Release 2.51.0: Jira default, case columns, simpler contacts (A88, A89), 4 November 2026
+
+Actual runs on the isolated `(localdb)\\TioHubQALocalDB` instance, with the owner's standing approval.
+
+| Suite | Result |
+|---|---|
+| Playwright, main config (real API, Microsoft Edge) | 161 of 164 passed; the 3 failures expected the old table layout, and the specs were updated |
+| Playwright, `jira-integration` and `ux-remediation` after the updates, with one new test | 32 passed |
+| Backend, full run before the contact change | 676 passed, 0 failed |
+| Backend, full run inside the package build | **677 passed, 0 failed** |
+| Frontend, `vitest` | 81 passed |
+
+The whole main Playwright config was not run again after those updates.
+
+Not run: `Install`/`Upgrade` on IIS.
+
+## Release 2.51.1: SLA results of Jira cases and open items (A90), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+Resolution SLA of the 302 contract-linked cases on the restored copy, after `JiraResolutionTime`:
+
+| State | Before | After |
+|---|---|---|
+| Breached | 302 | 40 |
+| Met | 0 | 6 |
+| Not applicable, opened before the contract | 0 | 256 |
+
+| Suite | Result |
+|---|---|
+| Playwright, main config (real API, Microsoft Edge) | **165 passed, 0 failed** |
+| Backend, full run inside the package build | **683 passed, 0 failed** |
+
+The earlier unstable PDF download check in `reporting-builder.spec.ts` read the previous export row before the new one appeared; it now waits for the new row.
+
+All 5,144 comments on the restored copy have no visibility value, so that data does not show whether Jira Service Management internal notes are detected on the real site.
+
+Not run: `Install`/`Upgrade` on IIS; a synchronization against the real Jira site with these changes.
+
+## Release 2.51.2: corrections from testing 2.51.0 (A91), 4 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance with the owner's standing approval, from a copy of the working tree, because another session's browser run was using this checkout's build output. Every database was a throwaway one.
+
+| Suite | Result |
+|---|---|
+| Backend, full run | **706 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge) | 171 of 173 passed. One failure was Edge not starting and one a test pinned to the old row-count wording. After updating that test, both spec files were run again: `stage3-reporting` passed in full and `gui-fixes` 22 of 22 |
+| Playwright, `usability-corrections` (new) | 8 passed, inside the main run |
+| Playwright, access-control isolated config | 13 passed |
+| Frontend, `tsc` and `vitest` | No type errors; 85 passed |
+| `has-pending-model-changes` | None |
+| OpenAPI document | Compared with a fresh one from the API: no difference, so not regenerated |
+
+The whole main Playwright config was not run again after that test update; the application code did not change in between, except the SLA sweep, which the backend run covers. The outline bell icon came last: `notifications-redesign` passed with its final size and `usability-corrections` and `frame-smoke` with the icon before its size change; `tsc` and `vitest` were not run again after the size change.
+
+Not run: the deployed site or its data, so CS-1016 itself was not rechecked; a restored copy with 2.51.2; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.
+
+## Release 2.51.3: commitments recorded after the fact (A91), 4 November 2026
+
+Actual runs with the owner's standing approval, on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data on `NB01994\MSSQLSERVER22`. Package built from a clean worktree of commit `800838b`.
+
+| Suite | Result |
+|---|---|
+| Backend, full run inside the package build | **707 passed, 0 failed** |
+| Playwright, main config (real API, Microsoft Edge), final code | **174 passed, 0 failed** |
+| Frontend, `tsc` and `vitest` | No type errors; 85 passed |
+| `01-schema.sql` on the restored copy | No errors |
+| Package on the restored copy, Production mode, Jira off, about 7 minutes | Ready; home page answers; no errors in the log; backfill processed 280 cases, 0 failed |
+
+Restored copy `TioHub_UAT_From2510_A91`, from `TioHub_before_2.51.0_20261104-1730.bak`, 295 cases, all from Jira. It is left in place.
+
+| Figure | Before | After |
+|---|---|---|
+| Open cases, dashboard status | New 34 (31 New, 3 Waiting for customer in the report builder) | New 31, Waiting for customer 3, the same in every view |
+| Open-case age, average and oldest, days | 0 and 0 by hub creation | 97 and 296 by opening |
+| Cases opened in November | 295 by hub creation | 2 by opening; the rest in January to October |
+| Cases closed in November | 228 | 1; the rest in the months Jira closed them |
+| Cases closed before their hub creation | 0 | 228, which would have given negative ages on the hub basis |
+| Resolution SLA of the 262 contract-linked cases | Breached 260, pending 2 | Met 37, breached 223, pending 2 |
+| Overdue open cases | 50 | 50 |
+| Unmeasured cases holding a due date | 0 | 0, so clearing old due dates was not exercised on this data |
+
+The resolution change comes from A90, not A91. CS-1016 opened on 18 January 2026 under CT-1001, which started on 15 October 2025. It is measured, and its January deadlines and breaches are correct.
+
+No contract-linked case has a first response, so all 262 show response breached. The 4 hub-user mappings were made after the comments were imported, and under A83 that needs an administrator's recalculation. On this data it would give 52 cases a first response: 7 met and 45 still breached. The other 210 have no reply from a mapped person; 30 unmapped authors wrote 2,030 of the 2,117 comments.
+
+Not run: signing in and using the screens on the restored copy, because that needs real credentials; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site; the deployed site.
+
+## Releases 2.51.4 to 2.53.0, 5 November 2026
+
+Actual runs with the owner's standing approval, on the isolated `(localdb)\TioHubQALocalDB` instance and restored copies on `NB01994\MSSQLSERVER22`. Packages were built from clean worktrees.
+
+| Suite | Result |
+|---|---|
+| 2.51.4 package build, backend | **711 passed, 0 failed** (commit `6c458da`) |
+| 2.51.4 Playwright, main config | **176 passed, 0 failed** |
+| 2.52.0 backend, full run | **715 passed, 0 failed** |
+| 2.52.0 Playwright, main config | 174 of 176 passed; 2 failures were test data missing the new `contracts` field, corrected and passing in the 2.53.0 runs |
+| 2.53.0 package build, backend | **715 passed, 0 failed** (commit `00ac35e`) |
+| 2.53.0 Playwright, main config | 168 of 177 passed before test updates; all 9 failures expected the old word. After the updates, the 6 affected spec files passed in full (96 tests) |
+| 2.53.0 Playwright, access-control isolated config | 13 passed, after the rights catalog was regenerated |
+| 2.53.0 Playwright, `role-matrix`, `granular-rights`, `resource-permissions`, `access-control-real-api`, regenerated catalog | 13 passed |
+| Frontend, `tsc` and `vitest` | No type errors; 91 passed |
+
+`01-schema.sql` of 2.52.0 ran on restored copy `TioHub_UAT_A93_11051209` from `TioHub_before_2.51.3_20261105-0927.bak`, twice, with no errors. The application then started in Production mode with Jira off, with no errors in its log. Of 295 tickets, 262 stayed on CT-1001, because its dates cover them all, and both spaces kept it as their link. So moving a ticket to or from a contract by date was exercised by the tests, not by this data. Resolution SLA changed from 260 breached and 2 pending to 224 breached, 37 met and 1 pending, the effect of 2.51.1's correction reaching this copy. The 2.53.0 package then started on the same copy with no errors, and its bundle holds the new text.
+
+Not run: the whole main Playwright config again after the test updates, as only test text changed; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site; signing in on a restored copy.
+
+## Release 2.53.1: clearer user dialog, 5 November 2026
+
+Actual runs from a copy of the working tree on the isolated `(localdb)\TioHubQALocalDB` instance. Only the user dialog, the data scope list and their styles changed.
+
+| Suite | Result |
+|---|---|
+| Playwright, `usability-corrections` (with a new test of the dialog) and `access-control-real-api` | **14 passed, 0 failed** |
+| Playwright, access-control isolated config | **13 passed, 0 failed** |
+| Frontend, `tsc` and `vitest` | No type errors; 91 passed |
+
+Not run: the full backend and main Playwright suites, since only these screens changed, and no 2.53.1 package has been built. Checked by eye on one screenshot of a new user, with the fictional data.
+
+## Release 2.54.1, 5 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+| Suite | Result |
+|---|---|
+| Backend, full run inside the package build | **724 passed, 0 failed** (commit `2aae75d`) |
+| Frontend, `tsc` and `vitest`, inside the package build | No type errors; 248 passed, including the check of every page against the rights |
+| Playwright, main config (real API, Microsoft Edge) | 185 passed and 1 failed on the first run, because of a wrong locator in a new test. After correcting it, `release-2-54.spec.ts` passed 8 of 8. The full config was not run again |
+| Playwright, access-control isolated config | **13 passed, 0 failed** |
+
+The page check was tried with a dummy route: it failed on that route until the route was removed.
+
+`database/01-schema.sql` on restored copy `TioHub_UAT_A93_11051209`: the right went to the 3 roles holding `Cases:View`, including the one custom role. A second run changed nothing. The application started on that copy with no errors in the log.
+
+Not run: the screens on a restored copy with real sign-in; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.
+
+## Release 2.54.0, 5 November 2026
+
+Actual runs on the isolated `(localdb)\TioHubQALocalDB` instance and a restored copy of real data, with the owner's standing approval.
+
+| Suite | Result |
+|---|---|
+| Backend, full run inside the package build | **722 passed, 0 failed** (commit `30aefc7`) |
+| Playwright, main config (real API, Microsoft Edge) | **185 passed, 0 failed** |
+| Playwright, access-control isolated config | **13 passed, 0 failed** |
+| Frontend, `tsc` and `vitest` | No type errors; 93 passed |
+
+The application on restored copy `TioHub_UAT_A93_11051209`, Production mode with Jira off: 26 tickets took the priority already read from Jira, leaving every ticket's priority matching Jira (2 Critical, 21 High, 269 Normal, 3 Low), with no errors in the log. Resolution SLA totals of the 262 contract-linked tickets stayed at 224 breached, 37 met and 1 pending; individual tickets were not compared. Overdue open tickets stayed at 51.
+
+The rename in 2.53.0 changed the value that switches on the list of related records when deleting a ticket. An audit of every change in that commit found no other code value affected; a browser test now covers it.
+
+Not run: the screens on a restored copy with real sign-in; `Install`/`Upgrade` on IIS; a synchronization against the real Jira site.
+

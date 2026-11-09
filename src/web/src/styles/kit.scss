@@ -1,0 +1,501 @@
+// Shared component styles of the hub kit (ui/kit.tsx, ui/pickers.tsx and the plain class names used by pages),
+// specified after the VtWebGuiFramework 3.6.1 controls and native-element styles. Each block names its framework source.
+// Native elements (<button>, <input>, <select>, <table>, <dialog>-like popups) are kept for keyboard, form and
+// assistive-technology semantics; their look follows the framework components listed.
+@use "sass:math";
+@use "assets/styles" as vt;
+
+$control: vt.layout(controls, heightDefault);
+
+// ---------- base (framework assets/styles/index.scss sets the reset, html 17px and Open Sans) ----------
+html, body { height: 100%; }
+body { background: vt.color("lightGray"); color: vt.typo(color, dark, normal); font-size: vt.typo(fontSize, small); line-height: vt.typo(lineHeight, normal); -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { color: vt.typo(color, dark, normal); }
+a { color: vt.typo(color, dark, attention); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; }
+:focus-visible { outline: 2px solid vt.typo(color, dark, attention); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.mono { font-family: 'Source Code Pro', ui-monospace, Consolas, monospace; font-size: .95em; }
+.muted { color: vt.typo(color, dark, weak); }
+.num { font-variant-numeric: tabular-nums; text-align: right; }
+.nowrap { white-space: nowrap; }
+.ic { flex: none; display: block; }
+strong, b { font-weight: vt.typo(fontWeight, bold); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+// ---------- main toolbar (components/layouts/mainToolbar + title): page title, sub title, actions ----------
+.page-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: vt.spacePx(xs) vt.spacePx(normal);
+  width: 100%; min-height: vt.layoutPx(mainToolbar, heightInMainScope); padding: vt.spacePx(xs) vt.spacePx(large);
+  background: vt.color(offWhite); border-bottom: 1px solid vt.layout(dividerColor, soft);
+  h1 { font-size: vt.typo(fontSize, large); font-weight: vt.typo(fontWeight, bold); line-height: vt.typo(lineHeight, small); color: vt.typo(color, dark, normal); }
+  .sub { @include vt.typoSet(hint, $disabled: false); }
+  .actions { margin-left: auto; display: flex; gap: vt.spacePx(small); flex-wrap: wrap; align-items: center; }
+  .crumbs { width: 100%; }
+}
+// UX-001: on phones the header's menu button keeps only its icon on pages that show the section here, above the page title (frame.scss).
+.page-section { display: none; width: 100%; @include vt.typoSet(label, $disabled: false); text-transform: uppercase; letter-spacing: .04em; }
+@media (max-width: 600px) { .page-section { display: block; } }
+.crumbs { display: flex; gap: vt.spacePx(xs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); flex-wrap: wrap;
+  a { color: vt.typo(color, dark, weak); }
+  span[aria-hidden] { color: vt.typo(color, dark, extraWeak); }
+}
+
+// ---------- buttons (components/controls/button: RaisedButton = .btn-primary, FlatButton = .btn / .linkbtn) ----------
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: vt.spacePx(xs);
+  height: #{$control}px; padding: 0 #{vt.space(small) - 2}px;
+  border: 2px solid vt.layout(controls, color, dark, disabled); background: transparent;
+  font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, normal); fill: currentColor;
+  text-transform: uppercase; white-space: nowrap; user-select: none;
+  transition: border-color vt.layoutMs(animationTime, fastMs) ease, background vt.layoutMs(animationTime, fastMs) ease;
+  &:hover:not(:disabled), &:focus-visible { border-color: vt.color(impulseGreen); text-decoration: none; }
+  &:disabled { color: vt.typo(color, dark, extraWeak); cursor: not-allowed; }
+  svg { width: vt.layoutPx(controls, iconDimDefault); height: vt.layoutPx(controls, iconDimDefault); }
+}
+.btn-primary {
+  min-width: 88px; padding: 0 vt.spacePx(small); border: 0;
+  background: vt.color(primary); color: vt.typo(color, light, normal);
+  &:hover:not(:disabled), &:focus-visible { background: vt.color(impulseGreen); color: vt.typo(color, dark, normal); }
+  &:disabled { border: 2px solid vt.layout(controls, color, dark, disabled); background: none; color: vt.typo(color, dark, extraWeak); padding: 0 #{vt.space(small) - 2}px; }
+}
+.btn-danger { border: 0; background: vt.color(signalError); color: vt.typo(color, light, normal);
+  &:hover:not(:disabled), &:focus-visible { background: vt.color(signalError); color: vt.typo(color, light, normal); filter: brightness(1.15); }
+}
+.btn-danger-outline { border-color: vt.color(signalError); color: vt.color(signalError); }
+.btn-ghost { border-color: transparent; }
+.btn-sm { height: 24px; padding: 0 vt.spacePx(xs); font-size: vt.typo(fontSize, xs); }
+.linkbtn {
+  border: 0; padding: 0; color: vt.typo(color, dark, attention); font-weight: vt.typo(fontWeight, semibold); font-size: vt.typo(fontSize, small);
+  &:hover { text-decoration: underline; }
+  &:disabled { color: vt.typo(color, dark, extraWeak); cursor: not-allowed; text-decoration: none; }
+}
+.danger-link { color: vt.color(signalError); }
+
+// ---------- inputs (components/controls/input, selectBox: underline control, notice line below) ----------
+.input {
+  width: 100%; height: #{$control}px; padding: 0 vt.spacePx(xs);
+  border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)};
+  background: vt.layout(controls, surfaceTinted, fill, dark);
+  font-size: vt.typo(fontSize, small); color: vt.typo(color, dark, normal);
+  &::placeholder { color: vt.typo(color, dark, extraWeak); }
+  &:hover:not(:disabled), &:focus { outline: none; border-bottom-color: vt.color(impulseGreen); background: vt.colorA(structureSilver, 0.08); }
+  &:disabled { color: vt.typo(color, dark, extraWeak); border-bottom-color: vt.layout(controls, color, dark, disabled); }
+}
+select.input { padding-right: vt.spacePx(normal); }
+textarea.input { height: auto; min-height: 76px; padding: vt.spacePx(xs); resize: vertical; line-height: vt.typo(lineHeight, normal); }
+.field { display: flex; flex-direction: column; gap: vt.spacePx(xxs); min-width: 0; }
+.field > label, .flabel { @include vt.typoSet(label, $disabled: false); }
+.req::after { content: " *"; color: vt.color(signalError); }
+.hint { @include vt.typoSet(hint, $disabled: false); font-size: vt.typo(fontSize, xs); }
+.err { font-size: vt.typo(fontSize, xs); color: vt.color(signalError); font-weight: vt.typo(fontWeight, semibold); }
+.field.invalid .input { border-bottom: 2px solid vt.color(attentionHigh); }
+.check { display: inline-flex; align-items: center; gap: vt.spacePx(xs); font-size: vt.typo(fontSize, small); cursor: pointer;
+  input[type=checkbox], input[type=radio] { width: 18px; height: 18px; accent-color: vt.color(primary); }
+}
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: vt.spacePx(small) vt.spacePx(normal);
+  .wide { grid-column: 1 / -1; }
+}
+.form-actions { display: flex; gap: vt.spacePx(small); justify-content: flex-end; margin-top: vt.spacePx(normal); flex-wrap: wrap; }
+
+// ---------- sections (components/layouts/section + toolbar title "title" set) ----------
+.panel { background: vt.color(offWhite); margin-bottom: vt.spacePx(normal); box-shadow: vt.layout(controls, surface, contact, dark); }
+.panel-head { display: flex; align-items: center; gap: vt.spacePx(small); min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(normal); border-bottom: 1px solid vt.color("lightGray"); flex-wrap: wrap;
+  h2 { @include vt.typoSet(title, $disabled: false); }
+  .actions { margin-left: auto; display: flex; gap: vt.spacePx(xs); flex-wrap: wrap; align-items: center; }
+}
+.panel-body { padding: vt.spacePx(small) vt.spacePx(normal) vt.spacePx(normal); }
+.table-wrap { overflow-x: auto; }
+
+// ---------- tables (assets/styles/_nativeElements table + layouts/dataTable header cells) ----------
+table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize, small); }
+.grid th { text-align: left; font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, normal); padding: 0; white-space: nowrap; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; background: vt.color(offWhite); position: relative; }
+.grid-head-cell { min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(small); display: flex; align-items: center; gap: vt.spacePx(xs); }
+.grid-sort, .grid-heading-label { min-width: 0; display: inline-flex; align-items: center; gap: vt.spacePx(xxs); color: inherit; font: inherit; }
+.grid-sort { border: 0; padding: 0; text-align: left; &:hover, &:focus-visible { color: vt.typo(color, dark, attention); } }
+.grid-sort-indicator { line-height: 1; color: vt.typo(color, dark, attention); font-weight: vt.typo(fontWeight, bold); }
+.grid-sort-muted { color: vt.typo(color, dark, extraWeak); }
+.grid-filter-trigger { width: 24px; height: 24px; display: inline-grid; place-items: center; margin-left: auto; padding: 3px; border: 0; color: vt.typo(color, dark, weak); flex: 0 0 auto;
+  svg { width: 18px; height: 18px; fill: currentColor; stroke: none; }
+  &:hover, &:focus-visible, &.active { color: vt.typo(color, dark, attention); background: vt.colorA(structureSilver, 0.08); }
+}
+.grid-filter-popover { position: absolute; z-index: 55; top: calc(100% + 2px); left: 0; width: 240px; padding: vt.spacePx(small); background: vt.color(offWhite); box-shadow: vt.layout(boxShadow, anchored); white-space: normal; font-weight: vt.typo(fontWeight, normal); }
+.grid-filter-value { margin-top: vt.spacePx(xs); }
+.grid-custom-filter > * { width: 100%; min-width: 0; }
+.grid-filter-actions { display: flex; justify-content: flex-end; gap: vt.spacePx(xs); margin-top: vt.spacePx(small); }
+.grid td { padding: vt.spacePx(xxs) vt.spacePx(small); height: #{$control + 4}px; border-bottom: 1px solid vt.color("lightGray"); vertical-align: middle; }
+.grid tbody tr:hover td { background: vt.colorA(structureSilver, 0.08); }
+.grid td.num, .grid th.num { text-align: right; }
+.grid .state td { text-align: center; color: vt.typo(color, dark, weak); padding: vt.spacePx(normal) vt.spacePx(xs); }
+.pager { display: flex; align-items: center; gap: vt.spacePx(normal); background: vt.color(offWhite); padding: vt.spacePx(xs) vt.spacePx(normal); border-top: 1px solid vt.color("lightGray"); color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); flex-wrap: wrap;
+  .right { margin-left: auto; display: flex; align-items: center; gap: vt.spacePx(small); }
+  select { height: 24px; border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; background: transparent; padding: 0 vt.spacePx(xxs); }
+  button { border: 0; color: vt.typo(color, dark, normal); font-weight: vt.typo(fontWeight, semibold); text-transform: uppercase; font-size: vt.typo(fontSize, xs);
+    &:disabled { color: vt.typo(color, dark, extraWeak); cursor: default; }
+  }
+}
+
+// ---------- status markers (indicators/statusMarker colours: calmingGreen OK, attentionHigh warning, signalError error) ----------
+.badge { display: inline-flex; align-items: center; gap: vt.spacePx(xxs); padding: 0 vt.spacePx(xs); font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); line-height: 1.8; white-space: nowrap; color: vt.typo(color, dark, normal); background: vt.color(paleGray);
+  &::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: vt.color("gray"); flex: none; }
+  &.good { background: vt.colorA(calmingGreen, 0.16); &::before { background: vt.color(calmingGreen); } }
+  &.warn { background: vt.colorA(attentionHigh, 0.16); &::before { background: vt.color(attentionHigh); } }
+  &.bad { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); &::before { background: vt.color(signalError); } }
+  &.info { background: vt.colorA(attention, 0.14); &::before { background: vt.color(attention); } }
+  &.neutral { color: vt.typo(color, dark, weak); }
+  &.marked::before { display: none; }
+  .badge-marker { display: inline-flex; line-height: 0; > span { display: inline-flex; } }
+}
+.vt-spinner { display: inline-flex; line-height: 0; }
+.chip { display: inline-block; padding: 0 vt.spacePx(xs); background: vt.color("lightGray"); font-size: vt.typo(fontSize, xs); white-space: nowrap; color: vt.typo(color, dark, normal); }
+.state-msg { display: flex; gap: vt.spacePx(xs); align-items: flex-start; padding: vt.spacePx(small); font-size: vt.typo(fontSize, small); background: vt.color(paleGray); color: vt.typo(color, dark, weak);
+  &.restricted { background: vt.colorA(attentionHigh, 0.16); color: vt.typo(color, dark, normal); }
+  &.error { background: vt.colorA(signalError, 0.1); color: vt.color(signalError); }
+  // UX-003: a page or pop-up chunk that could not load (ui/LoadBoundary.tsx).
+  &.load-error { flex-wrap: wrap; align-items: center; justify-content: space-between; background: vt.colorA(signalError, 0.08); color: vt.typo(color, dark, normal); }
+  .load-error-actions { display: inline-flex; gap: vt.spacePx(small); align-items: center; }
+}
+.notice { padding: vt.spacePx(xs) vt.spacePx(small); background: vt.colorA(attention, 0.12); border-left: 4px solid vt.color(attention); font-size: vt.typo(fontSize, small); margin-bottom: vt.spacePx(small);
+  &.warn { background: vt.colorA(attentionHigh, 0.14); border-left-color: vt.color(attentionHigh); }
+  &.bad { background: vt.colorA(signalError, 0.08); border-left-color: vt.color(signalError); color: vt.color(signalError); }
+}
+
+// ---------- value fields / tiles (indicators/valueField: title label + large value) ----------
+.tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: vt.spacePx(xs); }
+.tile { background: vt.color(offWhite); padding: vt.spacePx(small); display: flex; flex-direction: column; gap: vt.spacePx(xxs); color: vt.typo(color, dark, normal); box-shadow: vt.layout(controls, surface, contact, dark);
+  &:hover { background: vt.color(paleGray); text-decoration: none; }
+  .v { font-size: vt.typo(fontSize, xl); font-weight: vt.typo(fontWeight, normal); line-height: vt.typo(lineHeight, small); font-variant-numeric: tabular-nums; }
+  .l { @include vt.typoSet(label, $disabled: false); }
+  .d { @include vt.typoSet(hint, $disabled: false); font-size: vt.typo(fontSize, xs); }
+}
+
+// ---------- tabular (layouts/tabular, LINE style: label column, value column, divider lines) ----------
+.dl { display: grid; grid-template-columns: minmax(160px, max-content) 1fr; font-size: vt.typo(fontSize, small);
+  dt, dd { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color("lightGray"); }
+  dt { @include vt.typoSet(label, $disabled: false); padding-right: vt.spacePx(normal); }
+  dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+}
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: vt.spacePx(normal); }
+
+// ---------- tab bar (controls/tabBar: title items, marker line under the selected tab) ----------
+.tabs { display: flex; gap: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; margin-bottom: vt.spacePx(small); flex-wrap: wrap;
+  button { border: 0; padding: vt.spacePx(xs) vt.spacePx(normal); font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, weak); border-bottom: 4px solid transparent; margin-bottom: -1px;
+    &:hover { color: vt.typo(color, dark, normal); }
+    &[aria-selected="true"] { color: vt.typo(color, dark, normal); border-bottom-color: vt.color(primary); }
+  }
+}
+.timeline { list-style: none; margin: 0; padding: 0;
+  li { padding: vt.spacePx(xs) 0; border-bottom: 1px solid vt.color("lightGray"); font-size: vt.typo(fontSize, small); }
+  .when { color: vt.typo(color, dark, weak); font-size: vt.typo(fontSize, xs); }
+}
+.tree { list-style: none; margin: 0; padding: 0;
+  li { padding: vt.spacePx(xxs) 0; }
+  ul { list-style: none; margin: 0 0 0 vt.spacePx(normal); padding: 0 0 0 vt.spacePx(small); border-left: 1px solid vt.layout(dividerColor, soft); }
+}
+// toolbar (layouts/toolbar) for filter rows above tables
+.toolbar { display: flex; gap: vt.spacePx(small); flex-wrap: wrap; align-items: flex-end; margin-bottom: vt.spacePx(small);
+  .field { width: 200px; }
+}
+// spinner (helpers/spinner, circle)
+.spin { width: 16px; height: 16px; border: 2px solid vt.color("lightGray"); border-top-color: vt.color(attention); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: middle; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ---------- dialogs (popups/dialog + card: dimmed background, level-3 shadow, toolbar header), notifications, search ----------
+.scrim { position: fixed; inset: 0; background: vt.layout(dimmedBackground); z-index: 80; display: flex; align-items: flex-start; justify-content: center; padding: 6vh vt.spacePx(normal); overflow-y: auto; }
+.dialog { background: vt.color(offWhite); width: min(680px, 100%); box-shadow: vt.layout(boxShadow, floating);
+  &.wide { width: min(960px, 100%); }
+  header { display: flex; align-items: center; min-height: vt.spacePx(xl); padding: vt.spacePx(xs) vt.spacePx(normal); border-bottom: 1px solid #{vt.layout(dividerColor, dark)};
+    h2 { @include vt.typoSet(title, $disabled: false); }
+    button { margin-left: auto; }
+  }
+  .body { padding: vt.spacePx(normal); }
+}
+// frame/notifications: dark notification cards bottom right
+.toasts { position: fixed; right: vt.spacePx(small); bottom: calc(#{vt.spacePx(large)} + #{vt.spacePx(small)}); display: flex; flex-direction: column; gap: vt.spacePx(xs); z-index: 90; }
+.toast { background: vt.color(primary); color: vt.typo(color, light, normal); padding: vt.spacePx(small) vt.spacePx(normal); font-size: vt.typo(fontSize, small); box-shadow: vt.layout(boxShadow, anchored); max-width: 400px;
+  &.bad { background: vt.color(signalError); }
+}
+.palette { width: min(660px, 100%);
+  input { border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; width: 100%; padding: vt.spacePx(small) vt.spacePx(normal); font-size: vt.typo(fontSize, normal); background: transparent; &:focus { outline: none; border-bottom-color: vt.color(impulseGreen); } }
+  ul { list-style: none; margin: 0; padding: vt.spacePx(xxs) 0; max-height: 55vh; overflow: auto; }
+  li a { display: block; padding: vt.spacePx(xs) vt.spacePx(normal); color: vt.typo(color, dark, normal);
+    &[aria-selected="true"], &:hover { background: vt.colorA(structureSilver, 0.08); text-decoration: none; }
+  }
+  .g { padding: vt.spacePx(xs) vt.spacePx(normal) vt.spacePx(xxs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: vt.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
+}
+
+// ---------- tables (ui/kit.tsx DataTable): framework Toolbar and Cards above a native table in the framework DataTable look ----------
+.vt-table { display: flex; flex-direction: column; min-width: 0; max-width: 100%; overflow: visible;
+  .table-search { width: 260px; min-width: 0; }
+  .table-count { white-space: nowrap; }
+}
+.vt-table-state { padding: vt.spacePx(small) vt.spacePx(normal); }
+// Rows stay on one line as in the framework DataTable: the table is as wide as its content, and a cell wraps only past 24rem (a column's
+// maxWidth sets a narrower cap). break-word, not anywhere: "anywhere" would shrink a column's minimum width to a single letter.
+.vt-cell { display: block; min-width: 0; max-width: 24rem; overflow-wrap: break-word; }
+// Sideways overflow is signposted by edge shadows that appear only where there is more to scroll (GUI-06).
+.vt-table-scroll {
+  overflow-x: auto; max-width: 100%;
+  background:
+    linear-gradient(to right, #{vt.color(offWhite)} 30%, transparent) left / 24px 100% no-repeat local,
+    linear-gradient(to left, #{vt.color(offWhite)} 30%, transparent) right / 24px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, #{vt.colorA(primary, 0.22)}, transparent) left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, #{vt.colorA(primary, 0.22)}, transparent) right / 12px 100% no-repeat scroll;
+  &:focus-visible { outline-offset: -2px; }
+}
+// The framework DataTable look (header cells: label typography and ARROWUP/ARROWDOWN; 20px column gap; offWhite rows).
+table.vt-grid { width: max-content; min-width: 100%; }
+.vt-grid {
+  th { padding: 0; background: transparent; vertical-align: middle; }
+  th > .grid-heading-label { display: flex; min-height: 36px; padding: 0 vt.spacePx(small); }
+  .grid-heading-label { @include vt.typoSet(label, $disabled: false); white-space: nowrap; }
+  .grid-sort { display: flex; width: 100%; min-height: 36px; padding: 0 vt.spacePx(small); gap: vt.spacePx(xxs);
+    &:hover .grid-heading-label, &:focus-visible .grid-heading-label { color: vt.typo(color, dark, attention); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .grid-sort-indicator { display: inline-flex; line-height: 0; svg { fill: currentColor; } }
+  .grid-sort-muted { visibility: hidden; }
+  .grid-sort:hover .grid-sort-muted, .grid-sort:focus-visible .grid-sort-muted { visibility: visible; opacity: .45; }
+  th.num .grid-sort { flex-direction: row-reverse; }
+  td { padding: vt.spacePx(xxs) vt.spacePx(small); height: 34px; }
+  tbody tr.vt-row:hover td { background: vt.colorA(structureSilver, 0.08); }
+  tbody tr.vt-row:has(a[href]) { cursor: pointer; }
+  .col-disclose, .row-details { display: none; }
+  &.has-details .col-disclose { display: table-cell; }
+  &.has-details .row-details { display: table-row; }
+  .col-actions { position: sticky; right: 0; z-index: 1; background: vt.color(offWhite); }
+  tbody tr.vt-row:hover td.col-actions { background: linear-gradient(#{vt.colorA(structureSilver, 0.08)}, #{vt.colorA(structureSilver, 0.08)}), vt.color(offWhite); }
+  th.col-disclose, td.col-disclose { width: 44px; padding: 0; }
+}
+.vt-table-scroll.is-overflowing .vt-grid .col-actions { box-shadow: -8px 0 8px -8px #{vt.colorA(primary, 0.35)}; }
+// UX-002: beside the phone layout (row details), a table wider than its panel keeps the identifying column at the left edge. Only the
+// sticky placement follows the overflow state: a width change there would change the overflow itself and never settle (React #185).
+@media (min-width: 601px) {
+  .vt-table-scroll.is-overflowing .vt-grid .col-identity { position: sticky; left: 0; z-index: 1; background: vt.color(offWhite); box-shadow: 8px 0 8px -8px #{vt.colorA(primary, 0.35)}; }
+  .vt-table-scroll.is-overflowing .vt-grid tbody tr.vt-row:hover td.col-identity { background: linear-gradient(#{vt.colorA(structureSilver, 0.08)}, #{vt.colorA(structureSilver, 0.08)}), vt.color(offWhite); }
+}
+// On tablets the identifier is capped at 14rem, so the pinned part never takes most of the panel; long identifiers wrap instead of being cut.
+@media (min-width: 601px) and (max-width: 1199px) {
+  .vt-grid .col-identity .vt-cell { max-width: 14rem; }
+}
+.row-disclose { display: grid; place-items: center; width: 40px; height: 40px; border: 0; color: vt.typo(color, dark, attention);
+  svg { fill: currentColor; }
+  &:focus-visible { outline-offset: -2px; }
+}
+.row-details > td { padding: 0 vt.spacePx(small) vt.spacePx(small) 44px; background: vt.colorA(structureSilver, 0.05); }
+.row-details-list { display: grid; grid-template-columns: minmax(6.5rem, max-content) minmax(0, 1fr); gap: vt.spacePx(xxs) vt.spacePx(small); margin: 0; padding-top: vt.spacePx(xs);
+  > div { display: contents; }
+  dt { @include vt.typoSet(label, $disabled: false); }
+  dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+}
+
+// The framework Toolbar is a single grid row, which squeezes and truncates the actions on narrow screens. Here it wraps instead: the
+// search and the row count come first, and the actions move to their own row whenever they do not fit beside them (GUI-07).
+.vt-table-toolbar {
+  [class*="toolbar__toolbar"] { display: flex; flex-wrap: wrap; align-items: center; gap: vt.spacePx(xs) vt.spacePx(small); }
+  [class*="toolbarContrItem__toolbarContrItem"] { min-width: 0; }
+  [class*="toolbarContrItem__toolbarContrItem"]:first-child { flex: 1 1 18rem; grid-template-columns: minmax(0, 1fr) auto; }
+  [class*="toolbarContrItem__toolbarContrItem"]:last-child { flex: 0 1 auto; display: flex; flex-wrap: wrap; margin-left: auto; gap: vt.spacePx(xs) vt.spacePx(small); }
+  .table-search { width: 100%; max-width: 260px; }
+}
+@media (max-width: 600px) {
+  .vt-table-toolbar {
+    [class*="toolbarContrItem__toolbarContrItem"]:first-child { flex-basis: 100%; }
+    [class*="toolbarContrItem__toolbarContrItem"]:last-child { margin-left: 0; }
+    .table-search { max-width: none; }
+  }
+}
+
+// Toolbar cards (Filter, Columns): the body scrolls, the action row stays in view on an opaque ground (GUI-04).
+.vt-card-panel { display: grid; grid-template-rows: minmax(0, 1fr) auto; row-gap: vt.spacePx(small); height: 100%; min-height: 0; }
+.vt-card-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.vt-card-panel > .grid-filter-actions { margin-top: 0; padding-top: vt.spacePx(small); border-top: 1px solid vt.layout(dividerColor, soft); background: vt.color(offWhite); }
+.vt-filter-card { display: grid; gap: vt.spacePx(small); }
+.vt-filter-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: vt.spacePx(xs); align-items: center; }
+// Operator and value share the row while each keeps at least 8.75rem (about 150px); otherwise the value moves under the operator (GUI-03).
+.vt-filter-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(8.75rem, 100%), 1fr)); gap: vt.spacePx(xs); min-width: 0;
+  > * { min-width: 0; }
+  .grid-filter-value { margin-top: 0; }
+}
+.vt-filter-incomplete { grid-column: 1 / -1; }
+.vt-columns-card { display: grid; gap: vt.spacePx(small); }
+.vt-columns-list { list-style: none; margin: 0; padding: 0; display: grid;
+  .check { width: 100%; min-height: 32px; }
+}
+
+// ---------- phones: label above the filter controls; toolbar on two rows; secondary columns in the row details ----------
+@media (max-width: 600px) {
+  .vt-filter-row { grid-template-columns: minmax(0, 1fr); gap: vt.spacePx(xxs); }
+  // The primary columns share the screen width and wrap, so identity, status and actions are seen without panning.
+  table.vt-grid { width: 100%; min-width: 0; }
+  .vt-grid {
+    .grid-heading-label { white-space: normal; }
+    td { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
+    th > .grid-heading-label, .grid-sort { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
+    th.col-disclose, td.col-disclose { width: 40px; padding: 0; }
+    .col-secondary { display: none; }
+    .col-disclose { display: table-cell; }
+    .row-details { display: table-row; }
+  }
+}
+
+// ---------- target sizes (GUI-12, WCAG 2.2 SC 2.5.8): at least 24 x 24 px, 40 px and more on touch screens ----------
+.vt-grid .linkbtn, .row-actions .linkbtn { display: inline-flex; align-items: center; min-height: 24px; padding: 0 vt.spacePx(xxs); }
+.pager button { min-height: 24px; min-width: 44px; padding: 0 vt.spacePx(xs); }
+.pager select { min-height: 24px; }
+.check { min-height: 24px; }
+// UX-004: record links in table cells were 19-22 px high and closer than 24 px to the next target (measured at 768 px). Vertical padding on
+// an inline link widens its hit area without changing the line box, so rows keep their height and density.
+.vt-grid td a[href] { padding-block: 3px; }
+@media (pointer: coarse) {
+  .vt-grid .linkbtn, .row-actions .linkbtn, .pager button, .pager select { min-height: 40px; }
+  .check { min-height: 40px; }
+  .vt-grid td a[href] { padding-block: 6px; }
+}
+
+// ---------- KPI cards (ui/charts.tsx Kpi): one design for every dashboard (owner brief, 28 Oct 2026) ----------
+// White cards with a hairline border, 12px radius and a quiet shadow; the state shows in the icon tile, a text badge and the line dots,
+// never in a coloured card surface. Status colours: the brief's palette. Text in a status colour uses the darker shade of the pair, so
+// it keeps 4.5:1 on white; the bright shade is only used for fills (bars, dots).
+:root {
+  --dash-bg: #f5f7fb;
+  --kpi-card: #ffffff;
+  --kpi-text: #08244a;
+  --kpi-muted: #64748b;
+  --kpi-border: #e4eaf2;
+  --kpi-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  --kpi-shadow-hover: 0 6px 18px rgba(0, 0, 0, 0.08);
+  --kpi-track: #eef2f7;
+  // fill / text / tint per state
+  --st-info: #3b82f6; --st-info-text: #1d4ed8; --st-info-tint: #dbeafe;
+  --st-warning: #f59e0b; --st-warning-text: #b45309; --st-warning-tint: #fef3c7;
+  --st-critical: #e11d48; --st-critical-text: #be123c; --st-critical-tint: #ffe4e6;
+  --st-healthy: #16a34a; --st-healthy-text: #15803d; --st-healthy-tint: #dcfce7;
+  --st-purple: #8b5cf6;
+  --st-neutral: #94a3b8; --st-neutral-text: #475569; --st-neutral-tint: #f1f5f9;
+}
+.kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-bottom: var(--gap); }
+
+.kpi {
+  --st: var(--st-neutral); --st-text: var(--st-neutral-text); --st-tint: var(--st-neutral-tint);
+  &.st-info { --st: var(--st-info); --st-text: var(--st-info-text); --st-tint: var(--st-info-tint); }
+  &.st-warning { --st: var(--st-warning); --st-text: var(--st-warning-text); --st-tint: var(--st-warning-tint); }
+  &.st-critical { --st: var(--st-critical); --st-text: var(--st-critical-text); --st-tint: var(--st-critical-tint); }
+  &.st-healthy { --st: var(--st-healthy); --st-text: var(--st-healthy-text); --st-tint: var(--st-healthy-tint); }
+
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+  padding: 16px 18px; background: var(--kpi-card); color: var(--kpi-text);
+  border: 1px solid var(--kpi-border); border-radius: 0; box-shadow: var(--kpi-shadow);
+  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
+
+  &.link { cursor: pointer; }
+  &.link:hover { box-shadow: var(--kpi-shadow-hover); border-color: #d5deea; transform: translateY(-1px); }
+  &.link:focus-visible { outline: 2px solid var(--st-info-text); outline-offset: 2px; }
+  @media (hover: none) { &.link:hover { transform: none; } }
+}
+.kpi-head { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.kpi-ic {
+  display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 0;
+  background: var(--st-tint); color: var(--st-text);
+  svg { fill: currentColor; }
+}
+.kpi-title { flex: 1 1 auto; min-width: 0; font-size: 14px; font-weight: 600; line-height: 1.3; color: var(--kpi-text); }
+.kpi-go { flex: none; align-self: flex-start; font-size: 20px; line-height: 1; color: var(--kpi-muted); transition: transform 180ms ease, color 180ms ease; }
+.kpi.link:hover .kpi-go, .kpi.link:focus-visible .kpi-go { color: var(--st-info-text); transform: translateX(2px); }
+
+.kpi-body { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.kpi-v { flex: 1 1 auto; min-width: 0; font-variant-numeric: tabular-nums;
+  // The framework ValueField carries the number; size, weight and colour follow the card design.
+  [class*="valueField__valueField"] { text-align: left; }
+  [class*="valueField__valueContr"] { justify-content: start; text-align: left; }
+  [class*="valueField__value__"] { font-size: 30px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; }
+}
+.kpi-status {
+  display: inline-flex; align-items: center; gap: 4px; flex: none; padding: 2px 8px; border-radius: 0;
+  background: var(--st-tint); color: var(--st-text); font-size: 11px; font-weight: 700; letter-spacing: 0.02em; text-transform: uppercase;
+}
+.kpi-glyph { font-size: 9px; line-height: 1; }
+.kpi-bar {
+  display: flex; gap: 2px; height: 6px; border-radius: 0; overflow: hidden; background: var(--kpi-track);
+  > span { display: block; height: 100%; border-radius: 0; }
+}
+.kpi-bar > .st-critical, .kpi-dot.st-critical { background: var(--st-critical); }
+.kpi-bar > .st-warning, .kpi-dot.st-warning { background: var(--st-warning); }
+.kpi-bar > .st-healthy, .kpi-dot.st-healthy { background: var(--st-healthy); }
+.kpi-bar > .st-info, .kpi-dot.st-info { background: var(--st-purple); }
+.kpi-bar > .st-neutral, .kpi-dot.st-neutral { background: var(--st-neutral); }
+.kpi-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; min-width: 0;
+  li { display: flex; align-items: flex-start; gap: 8px; min-width: 0; font-size: 12px; line-height: 1.35; color: var(--kpi-muted); }
+}
+.kpi-dot { flex: none; width: 7px; height: 7px; margin-top: 0.3em; border-radius: 50%; }
+// Lines wrap rather than being cut off: every word of a supporting line stays readable.
+.kpi-line { min-width: 0; overflow-wrap: break-word; }
+
+// Not available (for example a rate with nothing measured): the value reads as a state, not as a figure.
+// The value colour: the field's own colour classes (per ground) are specific, so this rule names the whole field.
+.kpi .kpi-v [class*="valueField__valueField"] [class*="valueField__valueContr"] [class*="valueField__value__"] { color: var(--kpi-text); }
+.kpi.is-unavailable .kpi-v [class*="valueField__valueField"] [class*="valueField__valueContr"] [class*="valueField__value__"] { color: var(--kpi-muted); }
+.kpi.is-unavailable .kpi-v [class*="valueField__value__"] { font-size: 18px; font-weight: 600; color: var(--kpi-muted); }
+// Loading: placeholders of the final size, so the cards do not jump when the figures arrive.
+.kpi-skel { display: block; border-radius: 6px; background: linear-gradient(90deg, #eef2f7 25%, #f6f8fb 50%, #eef2f7 75%); background-size: 200% 100%; animation: kpi-shimmer 1.2s ease-in-out infinite; }
+.kpi-skel-v { width: 64px; height: 33px; }
+.kpi-skel-line { width: 75%; height: 12px; margin: 2px 0; }
+.kpi.is-loading .kpi-lines li:nth-child(2) .kpi-skel-line { width: 55%; }
+@keyframes kpi-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+// Supporting cards: the same design, smaller.
+.kpi.small {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "ic title go" "ic body body" "ic bar bar" "ic lines lines";
+  column-gap: 12px; row-gap: 4px; align-content: start; padding: 12px 14px;
+  .kpi-head { display: contents; }
+  .kpi-ic { grid-area: ic; align-self: start; width: 32px; height: 32px; border-radius: 0; }
+  .kpi-title { grid-area: title; font-size: 13px; }
+  .kpi-go { grid-area: go; font-size: 18px; }
+  .kpi-body { grid-area: body; }
+  .kpi-bar { grid-area: bar; height: 5px; margin-top: 2px; }
+  .kpi-lines { grid-area: lines; }
+  .kpi-v [class*="valueField__value__"] { font-size: 22px; font-weight: 700; }
+  .kpi-status { padding: 1px 6px; font-size: 10px; }
+  .kpi-skel-v { width: 48px; height: 25px; }
+  &.is-unavailable .kpi-v [class*="valueField__value__"] { font-size: 16px; }
+}
+@media (max-width: 600px) {
+  .kpi { padding: 14px 16px; }
+  .kpi-v [class*="valueField__value__"] { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { .kpi, .kpi-go { transition: none; } .kpi-skel { animation: none; } }
+
+
+// ---------- Administration → Configuration overview cards and category page lists (pages/Configuration.tsx) ----------
+// Six categories: three columns on wide screens, two on laptops, one on phones.
+.cfg-cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: vt.spacePx(normal); }
+.cfg-card {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; grid-template-areas: "icon title" "icon count" "desc desc" "open open";
+  column-gap: vt.spacePx(small); row-gap: vt.spacePx(xxs); padding: vt.spacePx(normal); background: vt.color(offWhite);
+  border: 1px solid vt.layout(dividerColor, soft); border-left: 4px solid transparent;
+  &:hover, &:focus-within { border-left-color: vt.color(impulseGreen); background: vt.colorA(attention, 0.06); }
+  &:focus-within { outline: 2px solid vt.typo(color, dark, attention); outline-offset: 2px; }
+  .cfg-card-icon { grid-area: icon; align-self: start; display: grid; place-items: center; width: 40px; height: 40px; background: vt.colorA(structureSilver, 0.12); svg { fill: vt.color(primary); } }
+  .cfg-card-title { grid-area: title; margin: 0; font-size: vt.typo(fontSize, normal); font-weight: vt.typo(fontWeight, semibold); line-height: vt.typo(lineHeight, small); overflow-wrap: anywhere; }
+  // The whole card opens the category; the link keeps a short accessible name.
+  .cfg-card-link { color: vt.typo(color, dark, normal); &::after { content: ""; position: absolute; inset: 0; } &:hover { text-decoration: none; } &:focus-visible { outline: none; } }
+  .cfg-card-count { grid-area: count; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
+  .cfg-card-desc { grid-area: desc; margin: vt.spacePx(xs) 0 0; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak);
+    overflow-wrap: anywhere; }
+  .cfg-card-open { grid-area: open; justify-self: end; display: inline-flex; align-items: center; gap: vt.spacePx(xxs); margin-top: vt.spacePx(xs);
+    font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, attention); text-transform: uppercase;
+    svg { fill: currentColor; transform: rotate(180deg); } }
+}
+.cfg-pages { list-style: none; margin: 0; padding: 0; background: vt.color(offWhite); border: 1px solid vt.layout(dividerColor, soft); }
+.cfg-page-row { display: grid; grid-template-columns: minmax(180px, 1fr) minmax(0, 2fr) auto; gap: vt.spacePx(xxs) vt.spacePx(normal); align-items: center;
+  padding: vt.spacePx(small) vt.spacePx(normal); border-top: 1px solid vt.layout(dividerColor, soft);
+  &:first-child { border-top: 0; }
+  .cfg-page-link { font-weight: vt.typo(fontWeight, semibold); overflow-wrap: anywhere; }
+  .cfg-page-desc { font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
+  .cfg-page-meta { display: inline-flex; gap: vt.spacePx(small); align-items: center; justify-content: flex-end; font-size: vt.typo(fontSize, xs); white-space: nowrap; }
+}
+@media (max-width: 700px) {
+  .cfg-page-row { grid-template-columns: 1fr; .cfg-page-meta { justify-content: flex-start; } }
+}

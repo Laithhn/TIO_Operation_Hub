@@ -1,0 +1,51 @@
+@use "assets/styles";
+
+
+.errorScreen {
+  width: 100%;
+  height: 100%;
+  padding: styles.spacePx(large);
+  @include styles.background(styles.layout(content, articleBackground));
+  opacity: 1;
+
+  &.fadeOut {
+    opacity: 0;
+    transition: opacity styles.layoutMs(animationTime, contentFadeOutMs) ease;
+  }
+
+  // Title, subtitle, message and version share one column no wider than the reading measure,
+  // measured at the body size; the screen's background still covers the whole area.
+  .column {
+    max-width: styles.typo(measure);
+  }
+
+  h2 {
+    margin: 0 0 styles.spacePx(xxl);
+    font-size: styles.typo(fontSize, xl);
+    font-weight: styles.typo(fontWeight, bold);
+    color: styles.typo(color, dark, normal);
+    line-height: styles.typo(lineHeight, small);
+  }
+
+  p {
+    font-size: styles.typo(fontSize, normal);
+    font-weight: styles.typo(fontWeight, normal);
+    color: styles.typo(color, dark, normal);
+    line-height: styles.typo(lineHeight, normal);
+    white-space: pre-wrap;
+
+    &.subTitle {
+      margin: -(styles.spacePx(xl)) 0 styles.spacePx(xxl);
+    }
+
+    &.message {
+      padding: styles.spacePx(small);
+      margin: 0 (-(styles.spacePx(small))) styles.spacePx(xl) (-(styles.spacePx(small)));
+      background: styles.color(attentionHigh);
+    }
+
+    &.version {
+      font-size: styles.typo(fontSize, small);
+    }
+  }
+}

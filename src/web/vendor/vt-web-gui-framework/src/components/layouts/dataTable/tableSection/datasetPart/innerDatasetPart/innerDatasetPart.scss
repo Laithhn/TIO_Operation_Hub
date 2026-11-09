@@ -1,0 +1,22 @@
+@use "assets/styles";
+
+
+.innerDatasetPart {
+  display: grid;
+  align-items: center; // do not stretch by default because of staying able to measure the cells
+  justify-items: start; // do not stretch by default because of staying able to measure the cells
+
+  &.endLine {
+    border-right: 1px solid styles.layout(dividerColor, soft);
+  }
+}
+
+
+body[dir='rtl'] {
+  .innerDatasetPart {
+    &.endLine {
+      border-left: 1px solid styles.layout(dividerColor, soft);
+      border-right: 0 none;
+    }
+  }
+}

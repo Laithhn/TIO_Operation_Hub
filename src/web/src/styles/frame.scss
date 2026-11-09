@@ -1,0 +1,245 @@
+// Hub additions to the VtWebGuiFramework frame (src/vt/frame.tsx, ui/Shell.tsx): the grid areas that the framework's
+// App component computes, the collapsible / off-canvas first sidebar, header controls and the footer line.
+// Values come from the framework defines; the frame's own look comes from its CSS modules.
+@use "assets/styles" as vt;
+
+body .hub-app.hub-app {
+  // rows header · main toolbar · main scope · footer (the v4 App keeps its toolbar inside the main scope; the hub's
+  // #viMainToolbar slot is a row of its own, so the rows are set here)
+  grid-template-rows: vt.layoutPx(header, height) auto minmax(0, 1fr) auto;
+  &.with-sidebar {
+    grid-template-columns: 0 vt.layoutPx(firstSidebar, width) minmax(0, 1fr) 0;
+    grid-template-areas:
+      ". viAreaHeader viAreaHeader ."
+      "viAreaBurgerMenu viAreaFirstSidebar viAreaMainToolbar viAreaNotifications"
+      "viAreaBurgerMenu viAreaFirstSidebar viAreaMainScope viAreaNotifications"
+      ". viAreaFooter viAreaFooter .";
+  }
+  &.bare {
+    grid-template-columns: 0 minmax(0, 1fr) 0;
+    grid-template-areas:
+      ". viAreaHeader ."
+      "viAreaBurgerMenu viAreaMainToolbar viAreaNotifications"
+      "viAreaBurgerMenu viAreaMainScope viAreaNotifications"
+      ". viAreaFooter .";
+  }
+}
+@media (min-width: 901px) {
+  body.side-mini .hub-app.hub-app.with-sidebar { grid-template-columns: 0 var(--side-mini) minmax(0, 1fr) 0; }
+}
+
+.skip {
+  position: absolute; left: -9999px; top: 0; z-index: 100;
+  &:focus { left: vt.spacePx(small); top: vt.spacePx(xs); padding: vt.spacePx(xs) vt.spacePx(small); background: vt.color(offWhite); color: vt.color(primary); }
+}
+
+.hub-main-toolbar { grid-area: viAreaMainToolbar; }
+
+// ---------- header ----------
+// Layer order: page content and its sticky bars (dashboard section bar 40) < header and its pop-ups (bell, "+ New", More)
+// < dialogs (80) < toasts (90). The header is one stacking layer, so it has to sit above every layer of the page.
+.hdr {
+  position: relative;
+  z-index: 50;
+  // GUI-10: the primary links that do not fit move into "More" (ui/Shell.tsx useFittingSections); nothing is clipped or hidden in a
+  // scroll strip. The invisible copy of the links (.nav-measure) gives their widths.
+  [class*="primaryHeader__primaryHeader"] { min-width: 0; position: relative; }
+  nav[aria-label="Main"] { justify-content: flex-start; min-width: 0; }
+  .nav-measure { position: absolute; left: 0; top: 0; width: max-content; visibility: hidden; pointer-events: none; }
+  .nav-more { position: relative; display: flex; align-items: stretch; }
+  .nav-more > button { display: flex; align-items: center; gap: vt.spacePx(xxs); white-space: nowrap; }
+  .nav-more-list {
+    position: absolute; right: 0; top: 100%; z-index: 60; min-width: 220px; margin: 0; padding: vt.spacePx(xxs) 0; list-style: none;
+    background: vt.color(offWhite); box-shadow: vt.layout(boxShadow, anchored);
+    a { display: flex; align-items: center; min-height: 40px; padding: 0 vt.spacePx(normal); color: vt.typo(color, dark, normal); font-size: vt.typo(fontSize, small); }
+    a:hover, a:focus-visible { background: vt.colorA(structureSilver, 0.08); text-decoration: none; }
+    a:focus-visible { outline-offset: -2px; }
+  }
+  .hdr-right { flex: none; }
+  .menu-btn { display: none; }
+  // Only the family: the font shorthand would also reset line-height, which centres the primary links (frame primaryLink).
+  button, a { font-family: inherit; }
+  button[class] { background: none; border: 0; }
+  nav[aria-label="Main"] { align-items: stretch; }
+  nav[aria-label="Main"] > a { display: flex; align-items: center; }
+  .hdr-select {
+    height: vt.layoutPx(controls, heightDefault);
+    padding: 0 vt.spacePx(xs);
+    border: 0;
+    border-bottom: 1px solid vt.typo(color, light, weak);
+    background: transparent;
+    color: vt.typo(color, light, normal);
+    font-size: vt.typo(fontSize, small);
+    option { color: vt.color(primary); }
+  }
+  // "+ New" menu trigger in the header, as a flat dark-theme button
+  .menu > .btn {
+    background: transparent; color: vt.typo(color, light, normal); border-color: vt.typo(color, light, weak);
+    &:hover { background: vt.colorA(offWhite, 0.18); }
+  }
+  svg.ic { fill: vt.typo(color, light, normal); }
+  .bell-btn { height: vt.layoutPx(header, height); padding: 0 vt.layoutPx(mostLeftRightPadding); color: vt.typo(color, light, normal); }
+}
+@media (max-width: 1700px) {
+  .hdr nav[aria-label="Main"] > a { padding: 0 vt.spacePx(small); font-size: vt.typo(fontSize, small); }
+}
+
+// ---------- first sidebar ----------
+.side {
+  position: relative;
+  overflow: visible;
+  z-index: 5;
+  .side-nav { overflow-y: auto; overflow-x: hidden; }
+  svg.ic { fill: currentColor; }
+  // GUI-12: 28 x 28 px target (40 px on touch screens) around the 16 px icon.
+  .side-collapse {
+    position: absolute; right: vt.spacePx(xxs); bottom: vt.spacePx(xxs);
+    width: 28px; height: 28px;
+    display: grid; place-items: center;
+    border: 1px solid vt.layout(dividerColor, soft); background: vt.color(offWhite); color: vt.color(primary); cursor: pointer;
+  }
+}
+@media (min-width: 901px) {
+  // Collapsed: the framework's first sidebar has a fixed width (layout firstSidebar.width), so it is narrowed here to the
+  // collapsed grid column; only the menu icons remain, centred.
+  body.side-mini .side {
+    width: var(--side-mini);
+    overflow: hidden;
+    // The framework sidebar is a grid of a title row and a menu row. With the title hidden, the menu would drop into the
+    // 60 px title row and show a single entry; one full-height row keeps every entry visible.
+    grid-template-rows: minmax(0, 1fr);
+    [class*="title__title"], [class*="menuNode__caption"], [class*="menuNode__isSubmenuNode"] { display: none; }
+    [class*="menuNode__link"] { grid-template-columns: 1fr; justify-items: center; padding-left: 0; padding-right: vt.spacePx(small); }
+    .side-collapse { right: 50%; transform: translateX(50%); }
+    .side-collapse svg { transform: rotate(180deg); }
+  }
+}
+
+@media (pointer: coarse) {
+  .side .side-collapse { width: 40px; height: 40px; }
+}
+
+// ---------- Administration → Configuration tree (ui/ConfigNav.tsx): search, overview, collapsible categories ----------
+.cfg-nav {
+  padding: vt.spacePx(xxs) 0 vt.spacePx(xs);
+  .cfg-search {
+    position: relative; display: flex; align-items: center; margin: vt.spacePx(xxs) vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding);
+    > svg { position: absolute; left: vt.spacePx(xs); fill: vt.typo(color, dark, weak); pointer-events: none; }
+    input { width: 100%; min-width: 0; height: 32px; padding: 0 32px 0 28px; border: 1px solid vt.layout(dividerColor, soft); border-radius: 0;
+      background: vt.color(offWhite); font-size: vt.typo(fontSize, xs);
+      &::placeholder { color: vt.typo(color, dark, weak); opacity: 1; }
+      &:focus-visible { outline: 2px solid vt.typo(color, dark, attention); outline-offset: 0; border-color: transparent; }
+    }
+  }
+  .cfg-search-clear { position: absolute; right: 2px; display: grid; place-items: center; width: 28px; height: 28px; border: 0; color: vt.typo(color, dark, normal);
+    svg { fill: currentColor; }
+    &:hover { background: vt.colorA(structureSilver, 0.12); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  // The sidebar is narrow: a category shows its chevron in the column of the tree line, so the name keeps the width; the
+  // pages below keep the line and sit a little deeper. Long names wrap instead of being cut.
+  .cfg-leaf, .cfg-cat { [class*="menuNode__caption"] { overflow-wrap: anywhere; } }
+  .cfg-cat-items .cfg-leaf, .cfg-results .cfg-leaf { [class*="menuNode__caption"] { padding-left: vt.spacePx(xs); } }
+  .cfg-cat { width: 100%; border: 0; background: none; text-align: left; font: inherit; color: inherit; cursor: pointer;
+    [class*="menuNode__caption"] { font-weight: vt.typo(fontWeight, semibold); }
+    svg { fill: currentColor; transform: rotate(180deg); justify-self: center; }
+    &[aria-expanded="true"] svg { transform: rotate(90deg); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .cfg-cat-node.current > .cfg-cat { color: vt.typo(color, dark, attention); }
+  [class*="menuNode__link"]:focus-visible { outline-offset: -2px; }
+  .cfg-result-cat { padding: vt.spacePx(xs) vt.spacePx(small) 0 vt.layoutPx(mostLeftRightPadding);
+    font-size: vt.typo(fontSize, xs); font-weight: vt.typo(fontWeight, semibold); color: vt.typo(color, dark, weak); text-transform: uppercase; letter-spacing: .02em; }
+  .cfg-result-desc { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: normal; }
+  mark { background: vt.colorA(attentionHigh, 0.45); color: inherit; padding: 0; }
+  // A105: where you are in the configuration, above the tree.
+  .cfg-where { margin: 0; padding: 2px vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); line-height: 1.35; }
+  .cfg-where b { color: vt.typo(color, dark, normal); font-weight: 600; }
+  .cfg-empty { margin: 0; padding: vt.spacePx(xs) vt.spacePx(small) vt.spacePx(xs) vt.layoutPx(mostLeftRightPadding); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); }
+}
+@media (min-width: 901px) {
+  body.side-mini .side .cfg-nav { display: none; }
+}
+
+// ---------- main scope ----------
+// --content-pad-x / --content-pad-bottom: full-bleed workspaces such as Notes cancel exactly this padding.
+.content {
+  --content-pad-x: #{vt.spacePx(large)};
+  --content-pad-bottom: #{vt.spacePx(large)};
+  overflow: auto;
+  min-width: 0;
+  background: vt.color("lightGray");
+  padding: vt.spacePx(normal) var(--content-pad-x) var(--content-pad-bottom);
+  outline: none;
+}
+
+// ---------- footer ----------
+.status {
+  grid-auto-flow: column;
+  grid-template-columns: auto auto 1fr auto;
+  align-items: center;
+  column-gap: vt.spacePx(normal);
+  min-height: vt.spacePx(large);
+  padding: 0 vt.layoutPx(mostLeftRightPadding);
+  color: vt.typo(color, light, normal);
+  font-size: vt.typo(fontSize, xs);
+  .center { text-align: center; }
+  .right { display: inline-flex; gap: vt.spacePx(normal); align-items: center; }
+  .online { display: inline-flex; gap: vt.spacePx(xxs); align-items: center; svg { fill: vt.color(calmingGreen); } }
+  .env-badge { padding: 0 vt.spacePx(xs); background: vt.color(attentionHigh); color: vt.color(primary); font-weight: vt.typo(fontWeight, semibold); }
+}
+
+// ---------- phone: primary links keep the room; "+ New" (also in every section sidebar) and the dev switch step aside ----------
+@media (max-width: 600px) {
+  .hdr .hdr-right > :has(> .hdr-select), .hdr .hdr-right > :has(> .menu) { display: none; }
+  .hdr [class*="headerLogo__headerLogo"] svg { width: 92px; }
+  .hdr .hdr-right [class*="menuNode__menuNode"] { padding-left: vt.spacePx(xxs); padding-right: vt.spacePx(xxs); }
+  // UX-001: 360-390 px leave 27-97 px beside the logo, too little for "Commitments" or "Administration" (99/105 px). The menu button keeps
+  // its icon and its name ("Menu, current section …"); the main toolbar shows the section above the page title (kit.scss .page-section).
+  // Pages without a main toolbar (the Notes workspace) keep the short label in the header.
+  .hub-app:has(.page-section) .hdr .menu-btn-label { display: none; }
+}
+
+// ---------- tablet / phone: the first sidebar becomes an off-canvas drawer ----------
+.scrim-nav { display: none; }
+@media (max-width: 900px) {
+  // same specificity as the column rules above, so the drawer layout wins on narrow screens
+  body .hub-app.hub-app.with-sidebar, body.side-mini .hub-app.hub-app.with-sidebar { grid-template-columns: 0 0 minmax(0, 1fr) 0; }
+  // GUI-10: the drawer replaces the header links; the menu button names the current section.
+  .hdr .menu-btn { display: inline-flex; align-items: center; gap: vt.spacePx(xs); min-width: 44px; }
+  .hdr .menu-btn-label { max-width: 10rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: vt.typo(color, light, normal); font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, semibold); }
+  .hdr .hdr-primary > nav { display: none; }
+  .side.drawer { display: flex; flex-direction: column; overflow: hidden;
+    [class*="menu__menuWrapper"] { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  }
+  .drawer-head { display: flex; align-items: center; justify-content: space-between; flex: none;
+    > :first-child { flex: 1 1 auto; min-width: 0; }
+  }
+  .drawer-close, .drawer-toggle { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border: 0; background: none; color: vt.color(primary);
+    svg { fill: currentColor; }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .drawer-toggle svg { transform: rotate(-90deg); transition: transform vt.layoutMs(animationTime, fastMs) ease; }
+  .drawer-toggle[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .drawer-section { border-bottom: 1px solid vt.layout(dividerColor, soft); }
+  .drawer-section-head { display: flex; align-items: center; }
+  .drawer-section-link { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; min-height: 44px; padding: 0 vt.spacePx(small) 0 vt.spacePx(normal);
+    color: vt.typo(color, dark, normal); font-weight: vt.typo(fontWeight, semibold); border-left: 4px solid transparent;
+    &:hover { text-decoration: none; background: vt.colorA(structureSilver, 0.08); }
+    &:focus-visible { outline-offset: -2px; }
+  }
+  .drawer-section.current .drawer-section-link { border-left-color: vt.color(impulseGreen); background: vt.colorA(attention, 0.12); }
+  .drawer-items { padding-bottom: vt.spacePx(xs); }
+  .drawer-items [class*="menuNode__link"] { min-height: 40px; }
+  .hdr [class*="headerLogo__headerLogo"] { min-width: auto; flex: none; padding: 0 vt.spacePx(small); }
+  .side {
+    position: fixed; left: 0; top: vt.layoutPx(header, height); bottom: 0;
+    width: vt.layoutPx(firstSidebar, width);
+    transform: translateX(-105%); transition: transform vt.layoutMs(animationTime, slowMs) ease; z-index: 40;
+    .side-collapse { display: none; }
+  }
+  body.nav-open .side { transform: none; }
+  body.nav-open .scrim-nav { display: block; position: fixed; inset: vt.layoutPx(header, height) 0 0 0; background: vt.layout(dimmedBackground); z-index: 30; }
+  .content { --content-pad-x: #{vt.spacePx(small)}; --content-pad-bottom: #{vt.spacePx(small)}; padding: vt.spacePx(small) var(--content-pad-x) var(--content-pad-bottom); }
+  .status { grid-template-columns: 1fr; grid-auto-flow: row; padding: vt.spacePx(xxs) vt.spacePx(small); .app, .center { display: none; } }
+}

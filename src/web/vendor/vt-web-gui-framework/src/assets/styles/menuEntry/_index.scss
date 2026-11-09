@@ -1,0 +1,88 @@
+@use "../color";
+@use "../layout";
+@use "../typo";
+
+
+// Mixin to style the fonts of the entries of menus. The following CSS classes are included:
+// :hover, :focus-visible, .caption, .active and .disabled. This mixin is currently used for the
+// links of the burger menu, for the links of the mega menu of the header, for the links of the
+// first sidebar, for the breadcrumb entries of the main toolbar and for the entries of the control
+// component "Menu".
+//
+// An entry of a menu marks its selection on its lettering rather than with a face of its own, so
+// its interaction appearance is the underline of the base design and not the veil - see
+// documentation/design/controls.md. **The line sits on a child with the class "caption"**, which is
+// what an entry made of several parts has and what keeps the line off its icons: an entry without
+// such a child shows the opacity half alone, the way the tab bar's container tab does.
+//
+// $markActiveCaption (true or false (default)): set to true, to give a decoration to a child class
+//   called .caption if class .active is set.
+@mixin menuEntry($markActiveCaption: false, $activeFontWeight: normal) {
+  font-size: typo.typo(fontSize, small);
+  font-weight: typo.typo(fontWeight, normal);
+  color: typo.typo(color, dark, normal);
+  fill: typo.typo(color, dark, normal);
+  outline: none;
+  text-decoration: none;
+  cursor: pointer;
+  // The resting lettering of the appearance, thinned so that reaching full opacity says something.
+  // The value comes from the controls map, so an entry of a menu and a tab of the tab bar are
+  // thinned by one number rather than by two that agree today.
+  opacity: layout.layout(controls, interactionTextOpacity);
+  transition: opacity #{layout.layoutMs(controls, interactionEaseOutMs)} ease-out;
+
+  // The interaction line, drawn at rest and transparent: text-decoration-color transitions where
+  // text-decoration-line does not, so a line switched on and off could only jump.
+  .caption {
+    text-decoration-line: underline;
+    text-decoration-style: solid;
+    text-decoration-color: transparent;
+    text-decoration-thickness: #{layout.layout(controls, interactionUnderlineWidth)}px;
+    text-underline-offset: #{layout.layout(controls, interactionUnderlineOffset)}px;
+    transition: text-decoration-color #{layout.layoutMs(controls, interactionEaseOutMs)} ease-out;
+  }
+
+  &.active {
+    cursor: default;
+    opacity: 1;
+
+    @if ($activeFontWeight == semibold) {
+      font-weight: typo.typo(fontWeight, semibold);
+    }
+
+    @if ($markActiveCaption == true) {
+      .caption {
+        // The selection's own line, and it is the very line the interaction colours: same element,
+        // same thickness, same offset, so a list whose selection is underlined shows **one line in
+        // two colours** - primary for the selection, impulseGreen for the interaction - rather than
+        // two lines under one word. Nothing but the colour is stated here; the geometry stands
+        // above and belongs to the line, not to what it currently says. Until 2026-09-09 the
+        // selection drew 1.9px against the interaction's 2, two numbers for one line.
+        text-decoration-color: color.color(primary);
+      }
+    }
+  }
+
+  &.disabled {
+    color: typo.typo(color, dark, extraWeak);
+    fill: typo.typo(color, dark, extraWeak);
+    cursor: default;
+    // A disabled entry rests at full opacity: its lettering is weakened by its colour already, and
+    // the two thinnings would multiply.
+    opacity: 1;
+  }
+
+  // FOCUS and HOVER are two statuses with one appearance. **The place of this rule is part of it:**
+  // an entry that is selected carries its line from the rule above, which weighs as much as this
+  // one, so only standing later lets the interaction colour reach it. A status arrives instantly
+  // and leaves over the ease-out, the pair every interaction status of the framework uses.
+  &:hover:not(.disabled), &:focus-visible:not(.disabled) {
+    opacity: 1;
+    transition-duration: #{layout.layoutMs(controls, interactionEaseInMs)};
+
+    .caption {
+      text-decoration-color: layout.layout(controls, interactionUnderline);
+      transition-duration: #{layout.layoutMs(controls, interactionEaseInMs)};
+    }
+  }
+}

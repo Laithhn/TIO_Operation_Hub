@@ -1,0 +1,38 @@
+@use "assets/styles";
+
+.image {
+  position: relative;
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  overflow: hidden;
+  // Half the time an image change takes: this is its first half, the fading out, and the fading in
+  // of the next image is the second. The whole time is a setting of the viewer (imageViewer.scss).
+  transition: opacity calc(var(--imageViewerChangeTime) / 2) ease-in-out;
+
+  &.fadeOut {
+    opacity: 0;
+  }
+
+  // The image lies on the viewer's ground, so it takes the pane of a placed component in the form for
+  // that dark ground - the edge and the contact shadow alone, rim and glow being inset shadows that
+  // would lie over the picture.
+  img {
+    position: absolute;
+    touch-action: none;
+    @include styles.contactPane($inner: false);
+  }
+
+  &.isSelectable {
+    img {
+      cursor: pointer;
+    }
+  }
+
+  &:not(.scaleImage) {
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
+}

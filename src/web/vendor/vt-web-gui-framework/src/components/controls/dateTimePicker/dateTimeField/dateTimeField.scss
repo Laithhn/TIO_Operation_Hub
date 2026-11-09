@@ -1,0 +1,7 @@
+@use "assets/styles";
+
+
+.dateTimeField {
+  display: inline-flex;
+  @include styles.noTextSelection;
+}

@@ -46,24 +46,23 @@ public static class PortfolioData
         // ---------- people (fictional personas; roles follow the workbook's lead / team structure) ----------
         var users = new Dictionary<string, User>();
         var builtInRoles = await BuiltInRoles.EnsureAsync(db, ct);
-        User U(string key, string account, string name, string tz, Grant g, bool allClients, bool allInternal, params Role[] roles)
+        User U(string key, string account, string name, string tz, bool allClients, bool allInternal, params string[] roles)
         {
-            var u = new User { AccountName = account, DisplayName = name, Email = $"{key}@example.com", WorkingTimeZone = tz, Grants = g, AllClients = allClients, AllInternal = allInternal };
+            var u = new User { AccountName = account, DisplayName = name, Email = $"{key}@example.com", WorkingTimeZone = tz, AllClients = allClients, AllInternal = allInternal };
             foreach (var r in roles) u.Roles.Add(new UserRole { AppRoleId = builtInRoles[r] });
             db.Users.Add(u);
             users[key] = u;
             return u;
         }
-        var full = Grant.Export | Grant.TechnicalDetail | Grant.Audit;
-        var manager = U("manager", "DEV\\manager", "Mara Okafor (demo TIO Manager)", "Asia/Dubai", full, true, true, Role.Manager);
-        var leadOps = U("lead", "DEV\\lead", "Leon Brandt (demo lead, TIO Operations)", "Asia/Dubai", Grant.Export | Grant.TechnicalDetail, true, true, Role.Engineer);
-        var leadDel = U("lead2", "DEV\\lead2", "Sofia Lindqvist (demo lead, Project Delivery)", "Asia/Dubai", Grant.Export | Grant.TechnicalDetail, true, true, Role.Engineer);
-        var leadAu = U("lead3", "DEV\\lead3", "Tomas Varga (demo lead, Product Team A-1)", "Asia/Dubai", Grant.TechnicalDetail, true, true, Role.Engineer);
-        var engDp = U("engineer", "DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Dubai", Grant.TechnicalDetail, false, false, Role.Engineer);
-        var engTah = U("engineer2", "DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Riyadh", Grant.TechnicalDetail, false, false, Role.Engineer);
-        U("viewer", "DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", Grant.None, false, false, Role.Engineer);
-        U("admin", "DEV\\admin", "Adam Reyes (demo administrator)", "UTC", Grant.Audit, false, false, Role.Manager);
-        var former = U("former", "DEV\\former", "Farid Haddad (demo, deactivated)", "Africa/Casablanca", Grant.None, true, false, Role.Engineer);
+        var manager = U("manager", "DEV\\manager", "Mara Okafor (demo TIO Manager)", "Asia/Dubai", true, true, BuiltInRoles.ManagerKey);
+        var leadOps = U("lead", "DEV\\lead", "Leon Brandt (demo lead, TIO Operations)", "Asia/Dubai", true, true, BuiltInRoles.EngineerKey);
+        var leadDel = U("lead2", "DEV\\lead2", "Sofia Lindqvist (demo lead, Project Delivery)", "Asia/Dubai", true, true, BuiltInRoles.EngineerKey);
+        var leadAu = U("lead3", "DEV\\lead3", "Tomas Varga (demo lead, Product Team A-1)", "Asia/Dubai", true, true, BuiltInRoles.EngineerKey);
+        var engDp = U("engineer", "DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Dubai", false, false, BuiltInRoles.EngineerKey);
+        var engTah = U("engineer2", "DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Riyadh", false, false, BuiltInRoles.EngineerKey);
+        U("viewer", "DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", false, false, BuiltInRoles.EngineerKey);
+        U("admin", "DEV\\admin", "Adam Reyes (demo administrator)", "UTC", false, false, BuiltInRoles.ManagerKey);
+        var former = U("former", "DEV\\former", "Farid Haddad (demo, deactivated)", "Africa/Casablanca", true, false, BuiltInRoles.EngineerKey);
         // Field and product engineers (fictional), all with technical detail; client-wide scope inside the organization.
         string[][] crew =
         [
@@ -72,7 +71,7 @@ public static class PortfolioData
             ["e09", "Zara Malik", "Asia/Dubai"], ["e10", "Noah Fischer", "Australia/Adelaide"], ["e11", "Elena Rossi", "Asia/Dubai"], ["e12", "Samir Aziz", "Asia/Dubai"],
             ["e13", "Ivo Novak", "Asia/Dubai"], ["e14", "Lea Martin", "Asia/Dubai"]
         ];
-        foreach (var c in crew) U(c[0], $"DEV\\{c[0]}", $"{c[1]} (demo engineer)", c[2], Grant.TechnicalDetail, true, true, Role.Engineer);
+        foreach (var c in crew) U(c[0], $"DEV\\{c[0]}", $"{c[1]} (demo engineer)", c[2], true, true, BuiltInRoles.EngineerKey);
         await db.SaveChangesAsync(ct);
         long Id(string key) => users[key].Id;
 
