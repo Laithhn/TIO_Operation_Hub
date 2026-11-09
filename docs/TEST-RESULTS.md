@@ -3,6 +3,8 @@
 Recorded on 16 October 2026 on a Windows 11 developer machine (SQL Server LocalDB 15.0, .NET SDK 10.0.401, Node 22.23.3, Microsoft Edge).
 Re-run with the commands in the README; results below are from actual runs, not expectations.
 
+**2.58.1 package (9 November 2026, Jira details above the tabs, A106):** `release/TioHub-2.58.1.zip` was built from commit `600f6c4` on a clean checkout (BUILD-INFO: no uncommitted changes, SQL-backed tests run), SHA-256 `5d43a96724acb02645f51444be998d022874a9a38598617d40a5377610abe6d6`. In that build, on the isolated QA instance: 739 backend tests and 264 front-end unit tests passed. No database change: from 2.56.0 or later, deploy the application only.
+
 **2.58.1 (9 November 2026, Jira details above the tabs, A106):** in a scratch copy holding only this change: front-end build and 264 front-end unit tests passed, and the six browser specs that cover the ticket page passed (58 tests: `jira-integration`, `ticket-redesign`, `release-2-54`, `release-2-55`, `usability-corrections`, `resource-permissions`). `jira-integration` now also checks that the section sits between the key facts and the tabs and is not in the details panel. Checked by eye at 1920 and 1366 px with an injected Jira source.
 
 **2.58.0 package (6 November 2026, ticket page redesign A106):** `release/TioHub-2.58.0.zip` was built from commit `9771b39` on a clean checkout (BUILD-INFO: no uncommitted changes, SQL-backed tests run), SHA-256 `9645cd9f8f58d13a21633a9bf56649c37d99b3f1616ae3bcab7434ca5d60c89a`. In that build, on the isolated QA instance: 739 backend tests and 264 front-end unit tests passed. No database change: from 2.56.0 or 2.57.0, deploy the application only.
