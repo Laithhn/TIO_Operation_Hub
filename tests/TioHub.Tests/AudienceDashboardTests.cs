@@ -394,10 +394,11 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await norole.Get("/dashboard/sla-contracts")).Status);
 
         // A ticket that is Closed but has no recorded closing time (older or imported data) cannot be dated: it must not make the latest trend point differ from the backlog now.
+        // Status and configured status code are set together, as the application keeps them: a Closed status with an open code would break other tests' counts in the shared database.
         using (var scope = Hub.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
-            await db.Cases.IgnoreQueryFilters().Where(x => x.Id == noTarget).ExecuteUpdateAsync(u => u.SetProperty(x => x.Status, CaseStatus.Closed).SetProperty(x => x.ClosedAt, (DateTimeOffset?)null));
+            await db.Cases.IgnoreQueryFilters().Where(x => x.Id == noTarget).ExecuteUpdateAsync(u => u.SetProperty(x => x.Status, CaseStatus.Closed).SetProperty(x => x.StatusCode, CaseStatuses.ClosedCode).SetProperty(x => x.ClosedAt, (DateTimeOffset?)null));
         }
         // Management: the backlog equals the open-case list; the portfolio carries the project; period names are validated.
         // Other work in the shared database can add or close tickets between two calls: compare only when the list is the same before and after.
