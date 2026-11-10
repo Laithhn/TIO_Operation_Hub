@@ -39,7 +39,10 @@ public static class ReferenceData
         (SettingKeys.CoveragePriorities, "Critical", "Ticket priorities that require an active backup owner (coverage policy)."),
         (SettingKeys.UpcomingDays, "7", "Upcoming window for commitments, in calendar days (Section 7 proposed default)."),
         (SettingKeys.DefaultTimeZone, "UTC", "Default display time zone for new users."),
-        (SettingKeys.PaymentReminderDays, "14", "Days before a contract payment is due that its owner and the managers are reminded (1–90).")
+        (SettingKeys.PaymentReminderDays, "14", "Days before a contract payment is due that its owner and the managers are reminded (1–90)."),
+        (SettingKeys.SlaAtRiskPercent, "25", "A running contractual SLA clock is shown as at risk when this percentage of its target time, or less, is left (5–50)."),
+        (SettingKeys.SlaComplianceTargetPercent, "90", "Compliance objective in percent that the SLA and project dashboards compare measured rates with (50–100). An internal objective, not a contract term."),
+        (SettingKeys.ProjectStatusMaxAgeDays, "14", "A recorded project status older than this many days is shown as needing review (1–90).")
     ];
 
     // OPS-04 pilot defaults; condition evidence interval is an implementation assumption (BRD gives no figure).

@@ -682,9 +682,9 @@ public static class CaseEndpoints
     public sealed record CaseListQuery(long? ClientId, long? RegionId, long? EnvironmentId, long? ProductId, long? TeamId, long? OwnerId, bool? Unassigned, string? Status,
         string? Priority, WorkScope? Scope, string? Due, bool? Waiting, bool? ReviewOverdue, bool? Stale, string? JiraKey, string? Q, DateTimeOffset? CreatedFrom, DateTimeOffset? CreatedTo,
         bool? CoverageGap, bool? DeactivatedOwner, string? Country, DateTimeOffset? AsOf, string? Sort, int? Page, int? PageSize, long? ContractId = null, string? Sla = null,
-        string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null, WaitingReason? WaitingFor = null)
+        string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null, WaitingReason? WaitingFor = null, long? ProjectId = null)
     {
-        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, null, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla, JiraSource, JiraConnectionId, JiraSpace, CaseQuery.ParsePriorities(Priority), WaitingFor);
+        public CaseFilter ToFilter() => new(ClientId, RegionId, EnvironmentId, ProductId, TeamId, OwnerId, Unassigned, Status, null, Scope, Due, Waiting, ReviewOverdue, Stale, JiraKey, Q, CreatedFrom, CreatedTo, CoverageGap, DeactivatedOwner, Country, ContractId, Sla, JiraSource, JiraConnectionId, JiraSpace, CaseQuery.ParsePriorities(Priority), WaitingFor, ProjectId);
     }
 
     private static double AgeDays(DateTimeOffset from, Case c, DateTimeOffset now) => Math.Round(Math.Max(0, ((c.ClosedAt ?? c.CancelledAt ?? now) - from).TotalDays), 1);

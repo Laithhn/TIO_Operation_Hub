@@ -139,6 +139,13 @@ The Roles page adds a read-only permission comparison matrix and links into the 
 
 Apply OptionalOrganizationGraph before deploying the matching application. It creates canonical organization identities for existing clients (including archived clients), adds independent organizations and contextual edges, and preserves all client records/IDs. It does not infer contractor relationships or alter existing sub-client grouping. OrganizationRelationshipType is an extensible configuration list. See ORGANIZATION-HIERARCHY.md for endpoints, limits, concurrency and access rules. Graph responses retain archived participants for authorized cleanup; new links to archived clients are refused.
 
+### Audience dashboards and project status reports (2.59.0)
+
+- The `AudienceDashboards` migration adds one table, `clients.ProjectStatusReport` (the recorded status history of projects), and grants four new view rights (`OperationalDashboard:View`, `SlaContractsDashboard:View`, `ManagementDashboard:View`, `ProjectDashboard:View`) to every role that already holds `Dashboard:View`; no other role, user or existing grant changes. No existing table or row is changed; projects start without a recorded status and show *Not recorded* until someone records one. The migration bumps the authorization version, so the new rights apply at once. Rolling the application files back is safe with the table and the grants in place (an older version ignores both).
+- Three settings are added at the first start (Administration → Settings): `Dashboard.SlaAtRiskPercent` (25), `Dashboard.SlaComplianceTargetPercent` (90) and `Dashboard.ProjectStatusMaxAgeDays` (14). They only change what the dashboards flag; no stored result depends on them.
+- The dashboards read through the same scope filters as every list and add no background job. The Operational dashboard refreshes itself every 60 seconds while it is open (one request per open page).
+- After the upgrade, ask project managers to record a status for their running projects (Dashboard → Project → *Update status*); the Management dashboard's *Data trust* panel counts the projects without one. To give a role the new dashboards, tick them on Administration → Rights (they need `Dashboard:View`).
+
 ## 4. Application (IIS)
 
 1. Unzip the release into e.g. `D:\Apps\TioHub\app`. Create an IIS site bound to HTTPS only, app pool “No Managed Code”, identity = the gMSA.

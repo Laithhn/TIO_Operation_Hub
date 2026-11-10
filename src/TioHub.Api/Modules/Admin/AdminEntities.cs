@@ -77,6 +77,12 @@ public static class SettingKeys
     public const string SlaTrackingFrom = "Sla.FirstResponseTrackingFrom";
     public const string JiraContractsByDateFrom = "Jira.ContractsByDateFrom";
     public const string JiraPrioritiesFrom = "Jira.PrioritiesFollowJiraFrom";
+    /// <summary>A108: a running SLA clock is "at risk" when this share of its target time (or less) is left.</summary>
+    public const string SlaAtRiskPercent = "Dashboard.SlaAtRiskPercent";
+    /// <summary>A108: the compliance objective the SLA dashboards compare measured rates with (the contracts record times, not a percentage).</summary>
+    public const string SlaComplianceTargetPercent = "Dashboard.SlaComplianceTargetPercent";
+    /// <summary>A108: a recorded project status older than this is shown as needing review.</summary>
+    public const string ProjectStatusMaxAgeDays = "Dashboard.ProjectStatusMaxAgeDays";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

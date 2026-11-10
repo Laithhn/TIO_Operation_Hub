@@ -117,4 +117,5 @@ Status values: **Implemented** = built end to end, enforced on the server and te
 | Capability | Status | Notes |
 |---|---|---|
 | Geographic client map (Optional, Section 3) | Implemented | Dashboard choropleth of authorized clients by country, offline map data, click-to-filter, unknown countries listed separately. Not an MVP dependency. |
+| Audience dashboards (owner request, A108) | Implemented (2.59.0) | Operational, SLA & Contracts, Management and Project dashboards. Project status is a recorded report with rule-based signals beside it — no health score (DAS-02 unchanged). DAS-06/DAS-07 stay deferred. Evidence: `AudienceDashboardRules`, `AC63_AudienceDashboards`, e2e *Audience dashboards (A108)*. |
 | Personal saved views, client follows, visual dependency diagram | Not built | Optional. |

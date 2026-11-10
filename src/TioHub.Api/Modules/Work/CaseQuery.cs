@@ -14,7 +14,7 @@ public sealed record CaseFilter(
     bool? ReviewOverdue = null, bool? Stale = null, string? JiraKey = null, string? Q = null, DateTimeOffset? CreatedFrom = null, DateTimeOffset? CreatedTo = null,
     bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null,
     string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null,
-    IReadOnlyCollection<Priority>? Priorities = null, WaitingReason? WaitingFor = null);
+    IReadOnlyCollection<Priority>? Priorities = null, WaitingReason? WaitingFor = null, long? ProjectId = null);
 
 public static class CaseQuery
 {
@@ -94,6 +94,7 @@ public static class CaseQuery
             var prefix = f.JiraSpace.Trim().ToUpperInvariant() + "-";
             q = q.Where(c => c.JiraSource != null && c.JiraSource.IssueKey.StartsWith(prefix));
         }
+        if (f.ProjectId is not null) q = OfProject(q, f.ProjectId.Value, db);
         // A61: contractual SLA outcome; a pending obligation whose deadline passed counts as breached (same rule as the dashboard).
         q = f.Sla switch
         {
@@ -124,6 +125,11 @@ public static class CaseQuery
         }
         return q;
     }
+
+    /// <summary>A108: the cases of a project — linked to one of its contracts, or affecting one of its environments (A4).</summary>
+    public static IQueryable<Case> OfProject(IQueryable<Case> q, long projectId, HubDbContext db) =>
+        q.Where(c => (c.ContractId != null && db.Contracts.Any(k => k.Id == c.ContractId && k.ProjectId == projectId))
+            || c.Environments.Any(e => db.Environments.Any(env => env.Id == e.EnvironmentId && env.ProjectId == projectId)));
 
     /// <summary>OPS-02: stale when the maximum age since meaningful review or the explicit next-review date has passed. Creation is the baseline.</summary>
     public static IQueryable<Case> StaleOnly(IQueryable<Case> q, DateTimeOffset now, ReviewPolicy? policy)

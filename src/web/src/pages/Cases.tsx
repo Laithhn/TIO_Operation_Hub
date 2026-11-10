@@ -94,6 +94,7 @@ export function CaseList() {
     ...chip('jiraConnectionId', f.jiraConnectionId, 'One Jira connection', { jiraConnectionId: '' }),
     ...chip('country', f.country, `Country: ${f.country}`, { country: '' }),
     ...chip('contractId', f.contractId, `Contract #${f.contractId}`, { contractId: '' }),
+    ...chip('projectId', f.projectId, `Project #${f.projectId} (its contracts or environments)`, { projectId: '' }),
     ...chip('opened', f.createdFrom || f.createdTo, `Opened${f.createdFrom ? ` from ${fmtDateTime(f.createdFrom)}` : ''}${f.createdTo ? ` until ${fmtDateTime(f.createdTo)}` : ''}`, { createdFrom: '', createdTo: '' }),
     ...chip('asOf', f.asOf, `Evaluated at ${fmtDateTime(f.asOf)}`, { asOf: '' })
   ];

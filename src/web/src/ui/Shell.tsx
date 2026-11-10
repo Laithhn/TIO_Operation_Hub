@@ -26,11 +26,16 @@ const integrations = (m: Me) => isAdministrator(m) && hasRight(m, 'AdminIntegrat
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
-  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|my-dashboard|overview|map|actions|notifications|data-quality)/, show: biz, side: [
+  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|my-dashboard|overview|map|dashboards|actions|notifications|data-quality)/, show: biz, side: [
     { to: '/my-dashboard', label: 'My dashboard', icon: 'user' },
     // For managers it is the start page; for others the start page is My dashboard, so the overview has its own address.
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true, show: m => hasRight(m, 'ClientStructure', 'Coordinate') || !hasRight(m, 'MyDashboard', 'View') },
     { to: '/overview', label: 'Executive overview', icon: 'dashboard', show: m => !hasRight(m, 'ClientStructure', 'Coordinate') && hasRight(m, 'MyDashboard', 'View') },
+    // A108: one dashboard per audience and question; each has its own right.
+    { to: '/dashboards/operational', label: 'Operational', icon: 'case', show: m => hasRight(m, 'OperationalDashboard', 'View') },
+    { to: '/dashboards/sla', label: 'SLA & Contracts', icon: 'matrix', show: m => hasRight(m, 'SlaContractsDashboard', 'View') },
+    { to: '/dashboards/management', label: 'Management', icon: 'team', show: m => hasRight(m, 'ManagementDashboard', 'View') },
+    { to: '/dashboards/project', label: 'Project', icon: 'project', show: m => hasRight(m, 'ProjectDashboard', 'View') },
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
     { to: '/notifications', label: 'Notifications', icon: 'bell' },

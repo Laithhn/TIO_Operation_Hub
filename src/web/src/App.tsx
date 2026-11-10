@@ -55,6 +55,11 @@ const ProjectDetail = page(() => import('./pages/Contracts'), 'ProjectDetail');
 const ActionList = page(() => import('./pages/Actions'), 'ActionList');
 const ClientMap = page(() => import('./pages/ClientMap'), 'ClientMap');
 const Dashboard = page(() => import('./pages/Dashboard'), 'Dashboard');
+// A108: one dashboard per audience and question.
+const OperationalDashboard = page(() => import('./pages/Dashboards'), 'OperationalDashboard');
+const SlaContractsDashboard = page(() => import('./pages/Dashboards'), 'SlaContractsDashboard');
+const ManagementDashboard = page(() => import('./pages/Dashboards'), 'ManagementDashboard');
+const ProjectDashboard = page(() => import('./pages/Dashboards'), 'ProjectDashboard');
 const MicroserviceDetail = page(() => import('./pages/Products'), 'MicroserviceDetail');
 const ProductDetail = page(() => import('./pages/Products'), 'ProductDetail');
 const ProductForm = page(() => import('./pages/Products'), 'ProductForm');
@@ -152,6 +157,10 @@ export const router = createBrowserRouter([
       { index: true, element: <Home /> },
       { path: 'overview', element: <Overview /> },
       { path: 'map', element: <MapHome /> },
+      { path: 'dashboards/operational', element: <OperationalDashboard /> },
+      { path: 'dashboards/sla', element: <SlaContractsDashboard /> },
+      { path: 'dashboards/management', element: <ManagementDashboard /> },
+      { path: 'dashboards/project', element: <ProjectDashboard /> },
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'data-quality', element: <DataQuality /> },

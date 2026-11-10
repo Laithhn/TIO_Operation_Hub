@@ -21,6 +21,10 @@ All record screens also depend on data scope (client, project or team). A record
 | `/` | Executive overview | `Dashboard:View` (requires every business module's View) | Dashboard API |
 | `/overview` | Executive overview, at its own address for those who start on My dashboard | As `/` | Dashboard API |
 | `/map` | Client map | `ClientMap:View`, `Dashboard:View` | Dashboard API |
+| `/dashboards/operational` | Operational dashboard (A108) | `OperationalDashboard:View` (requires `Dashboard:View`) | Dashboard API; scope-filtered |
+| `/dashboards/sla` | SLA & Contracts dashboard (A108) | `SlaContractsDashboard:View` (requires `Dashboard:View`) | Dashboard API; scope-filtered |
+| `/dashboards/management` | Management dashboard (A108) | `ManagementDashboard:View` (requires `Dashboard:View`) | Dashboard API; scope-filtered |
+| `/dashboards/project` | Project dashboard (A108). *Update status* is shown with `Projects:Maintain` in the client's scope | `ProjectDashboard:View` (requires `Dashboard:View`); recording needs `Projects:Maintain` | Project and status-report API; scope-filtered |
 | `/actions` | Action list | `ActionList:View`, `Dashboard:View` | Actions API |
 | `/notifications` | Notifications; bell in the top bar | `Notifications:View`. Mark read `Notifications:Maintain`, dismiss `Notifications:Delete` | Own notices, filtered by source record |
 | `/data-quality` | Data quality | `DataQuality:View`, `Dashboard:View`. Accept or dismiss `DataQuality:Maintain` | Findings filtered by scope |

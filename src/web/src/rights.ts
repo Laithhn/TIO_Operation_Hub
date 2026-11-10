@@ -53,6 +53,7 @@ export function routePermissions(pathname: string): string[] {
   const parts = pathname.split('/').filter(Boolean);
   const root = parts[0] ?? '';
   if (root === 'my-dashboard') return ['MyDashboard:View'];
+  if (root === 'dashboards') return [`${dashboardAreas[parts[1] ?? ''] ?? 'unregistered'}:View`];
   if (['', 'overview', 'map', 'actions', 'data-quality'].includes(root)) return ['Dashboard:View', ...businessResources.map(r => `${r}:View`)];
   if (root === 'notifications') return ['Notifications:View'];
   if (root === 'notes') return ['PersonalNotes:View'];
@@ -66,6 +67,9 @@ export function routePermissions(pathname: string): string[] {
   else if (/^\d+$/.test(parts[1] ?? '')) required.push(`${resource}:DetailsView`);
   return required;
 }
+
+/** A108: each audience dashboard is its own right (Dashboard:View is needed too, through the right's prerequisite). */
+const dashboardAreas: Record<string, string> = { operational: 'OperationalDashboard', sla: 'SlaContractsDashboard', management: 'ManagementDashboard', project: 'ProjectDashboard' };
 
 const routeAreas: Record<string, string> = {
   map: 'ClientMap', actions: 'ActionList', 'data-quality': 'DataQuality', handovers: 'Handovers', reassignment: 'Reassignment'

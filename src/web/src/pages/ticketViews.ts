@@ -1,7 +1,7 @@
 /** A102: the ticket list's quick views. Each one is a whole filter, so its count equals the list it opens. */
 export const TICKET_FILTER_DEFAULTS = {
   status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', waitingFor: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '',
-  coverageGap: '', country: '', asOf: '', contractId: '', sla: '', jiraSource: '', jiraSpace: '', jiraConnectionId: '', createdFrom: '', createdTo: ''
+  coverageGap: '', country: '', asOf: '', contractId: '', projectId: '', sla: '', jiraSource: '', jiraSpace: '', jiraConnectionId: '', createdFrom: '', createdTo: ''
 };
 export type TicketFilters = typeof TICKET_FILTER_DEFAULTS;
 export type QuickViewCounts = { open: number; mine: number; overdue: number; unassigned: number; waitingForCustomer: number };

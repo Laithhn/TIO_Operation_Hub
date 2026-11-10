@@ -9,7 +9,7 @@ One dependable operational view of TIO's clients (with or without regions), thei
 | Front end | React 18 + TypeScript + Vite + TanStack Query (`src/web`), built into the API's `wwwroot` |
 | Tests | xUnit unit + SQL Server acceptance tests (`tests/TioHub.Tests`), Playwright browser journeys in Microsoft Edge (`tests/e2e`) |
 
-The hub never calls vaults, client systems or messaging. It reads from Jira Cloud and never writes to it (A76, off by default); other Jira tickets are stored as manual references. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
+The hub never calls vaults, client systems or messaging. It reads from Jira Cloud and never writes to it (A76, off by default); other Jira tickets are stored as manual references. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). Four audience dashboards (A108) sit beside the Executive overview: Operational (what to act on today), SLA & Contracts (measured compliance and contract lifecycle), Management (trends and the project portfolio) and Project (the recorded project status with rule-based signals). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
 
 ## Documents
 
@@ -95,7 +95,7 @@ Create production packages only from the intended Git commit with `build/Build-R
 dotnet test tests/TioHub.Tests
 ```
 
-Uses LocalDB by default; set `TIOHUB_TEST_SQL` to another SQL Server instance. Browser journeys (start nothing else on port 5096):
+Uses LocalDB by default; set `TIOHUB_TEST_SQL` to another SQL Server instance, and `TIOHUB_TEST_SQL_AUTH` (for example `User Id=sa;Password=…`) when that server needs a SQL login instead of Windows authentication (a Linux container). Browser journeys (start nothing else on port 5096):
 
 ```bash
 cd tests/e2e && npm ci && npx playwright test

@@ -255,7 +255,7 @@ public static class Cascade
             "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Ticket–server links",
             "CaseEnvironment" => "Ticket–environment links", "CaseComponent" => "Ticket–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
             "CaseEvent" => "Ticket history entries", "CommitmentEvent" => "Commitment history entries", "EscalationEvent" => "Escalation timeline entries", "Review" => "Reviews",
-            "ProductDeveloper" => "Product developers", "TeamMember" => "Team members",
+            "ProductDeveloper" => "Product developers", "ProjectStatusReport" => "Project status reports", "TeamMember" => "Team members",
             _ => System.Text.RegularExpressions.Regex.Replace(t.ClrType.Name, "(?<!^)([A-Z])", " $1") + "s"
         };
         return n.Replace("Cases", "Tickets").Replace("ys", "ies");

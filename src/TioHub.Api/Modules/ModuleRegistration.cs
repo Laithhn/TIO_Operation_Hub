@@ -34,6 +34,10 @@ public static class ModuleRegistration
         services.AddScoped<Dashboard>();
         services.AddScoped<Insights>();
         services.AddScoped<CommandCenter>();
+        services.AddScoped<ProjectInsight>();
+        services.AddScoped<OperationalDashboard>();
+        services.AddScoped<SlaContractsDashboard>();
+        services.AddScoped<ManagementDashboard>();
         services.AddHostedService<DataQualityScanner>();
         services.AddHostedService<Notifications.NotificationScanner>();
         services.AddHostedService<Work.SlaSweep>();
@@ -90,6 +94,7 @@ public static class ModuleRegistration
         api.MapTeamEndpoints();
         api.MapQualityEndpoints();
         api.MapDashboardEndpoints();
+        api.MapAudienceDashboardEndpoints();
         api.MapOverviewEndpoints();
         api.MapSearchExportEndpoints();
         api.MapReportingEndpoints();
