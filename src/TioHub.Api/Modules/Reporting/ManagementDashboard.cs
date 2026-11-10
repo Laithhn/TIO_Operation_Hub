@@ -79,8 +79,9 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
         {
             var m = firstMonth.AddMonths(i);
             DateTimeOffset a = new(m, zone.GetUtcOffset(m)), b = new(m.AddMonths(1), zone.GetUtcOffset(m.AddMonths(1)));
-            var end = b > now ? now : b;
-            return new { key = m.ToString("yyyy-MM"), label = m.ToString("MMM yy"), opened = hist.Count(c => c.CreatedAt >= a && c.CreatedAt < b), closed = hist.Count(c => c.ClosedAt >= a && c.ClosedAt < b), backlog = BacklogAt(end) };
+            // The current month ends now: its backlog is the open backlog by status, the same figure as the KPI and the open-ticket list.
+            var backlog = b > now ? backlogNow : BacklogAt(b);
+            return new { key = m.ToString("yyyy-MM"), label = m.ToString("MMM yy"), opened = hist.Count(c => c.CreatedAt >= a && c.CreatedAt < b), closed = hist.Count(c => c.ClosedAt >= a && c.ClosedAt < b), backlog };
         }).ToList();
 
         // ---- contractual SLA: cases with a contract opened in each period ----
