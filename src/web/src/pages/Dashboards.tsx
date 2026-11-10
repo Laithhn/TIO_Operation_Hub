@@ -173,7 +173,7 @@ export function OperationalDashboard() {
           <Link className="btn" to="/actions">Action list</Link>
           <Link className="btn btn-primary" to="/cases/new">+ New Ticket</Link>
         </>} />
-      <div className="toolbar dash-filters">
+      <div className="toolbar ad-filters">
         <div className="field cc-view ad-view">
           <span className="flabel">Show</span>
           <div className="seg" role="group" aria-label="Show">
@@ -413,7 +413,7 @@ export function SlaContractsDashboard() {
           <Link className="btn" to="/contracts">Contract register</Link>
           {canExport(me) && <Link className="btn btn-primary" to="/reporting-center">Reporting Center</Link>}
         </>} />
-      <div className="toolbar dash-filters">
+      <div className="toolbar ad-filters">
         <SelectInput label="Reporting period" value={f.period} onChange={v => set({ period: v })} empty={null} options={SLA_PERIODS} />
         {custom && <>
           <TextInput label="From" type="date" value={f.from} onChange={v => set({ from: v })} />
@@ -600,7 +600,7 @@ export function ManagementDashboard() {
           <Link className="btn" to="/">Command Center</Link>
           {canExport(me) && <Link className="btn btn-primary" to="/reporting-center">Reporting Center</Link>}
         </>} />
-      <div className="toolbar dash-filters">
+      <div className="toolbar ad-filters">
         <SelectInput label="Period" value={f.period} onChange={v => set({ period: v })} empty={null} options={MGMT_PERIODS} />
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
         <SelectInput label="Product" value={f.productId} onChange={v => set({ productId: v })} options={products} empty="All products" />
@@ -789,7 +789,7 @@ export function ProjectDashboard() {
           {d && <Link className="btn" to={`/projects/${d.project.id}`}>Project record</Link>}
           {d?.status.canRecord && <button className="btn btn-primary" onClick={() => setDialog(true)}>Update status</button>}
         </>} />
-      <div className="toolbar dash-filters">
+      <div className="toolbar ad-filters">
         <SelectInput label="Project" value={f.projectId} onChange={v => set({ projectId: v })} options={options} empty={null} wide />
       </div>
       {(list.isLoading || q.isLoading) && <StateMessage kind="loading" />}

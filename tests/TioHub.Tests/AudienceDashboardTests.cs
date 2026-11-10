@@ -394,8 +394,18 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await norole.Get("/dashboard/sla-contracts")).Status);
 
         // Management: the backlog equals the open-case list; the portfolio carries the project; period names are validated.
-        var g = (await m.Get("/dashboard/management?period=quarter")).Body!;
-        Assert.Equal(Total(await m.Get("/cases?status=open")), g["kpis"]!["backlog"]!["value"]!.GetValue<int>());
+        // Other work in the shared database can add or close tickets between two calls: compare only when the list is the same before and after.
+        JsonNode g;
+        int listed;
+        var attempts = 0;
+        while (true)
+        {
+            var before = Total(await m.Get("/cases?status=open"));
+            g = (await m.Get("/dashboard/management?period=quarter")).Body!;
+            listed = Total(await m.Get("/cases?status=open"));
+            if (before == listed || ++attempts >= 5) break;
+        }
+        Assert.Equal(listed, g["kpis"]!["backlog"]!["value"]!.GetValue<int>());
         Assert.Equal(12, g["trend"]!.AsArray().Count);
         Assert.True(g["trend"]!.AsArray().Last()!["opened"]!.GetValue<int>() >= 3);
         Assert.Equal(g["kpis"]!["backlog"]!["value"]!.GetValue<int>(), g["trend"]!.AsArray().Last()!["backlog"]!.GetValue<int>());

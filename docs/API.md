@@ -1,6 +1,6 @@
 # REST API (v1)
 
-- Base path: `/api/v1`. Full OpenAPI 3 document: served at `/openapi/v1.json` (signed-in users) and saved in [`openapi-v1.json`](openapi-v1.json) (277 operations, refreshed for 2.30.0).
+- Base path: `/api/v1`. Full OpenAPI 3 document: served at `/openapi/v1.json` (signed-in users) and saved in [`openapi-v1.json`](openapi-v1.json) (373 operations, refreshed for 2.59.0).
 - Health (anonymous): `/api/health/live`, `/api/health/ready`.
 
 ## Conventions

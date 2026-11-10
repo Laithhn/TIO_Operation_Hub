@@ -1043,4 +1043,7 @@ a.ad-env:hover{background:var(--row-hover);text-decoration:none}
 .ad-timeline{list-style:none;margin:0;padding:0 0 0 14px;border-left:1px solid var(--line-strong)}
 .ad-timeline li{position:relative;padding:0 0 10px 6px;font-size:12.5px;display:flex;flex-direction:column}
 .ad-timeline li::before{content:"";position:absolute;left:-19px;top:4px;width:8px;height:8px;border-radius:50%;background:#2a78d6;box-shadow:0 0 0 2px #fff}
-.dash .dash-filters .field.ad-view{flex:0 0 auto;min-width:0}
+
+.dash .ad-filters{background:var(--surface);padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-bottom:10px;border:1px solid var(--line)}
+.dash .ad-filters .field{min-width:140px;flex:1 1 160px;margin:0}
+.dash .ad-filters .field.ad-view{flex:0 0 auto;min-width:0}

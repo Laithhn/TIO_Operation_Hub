@@ -10415,3 +10415,75 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110082431_AudienceDashboards'
+)
+BEGIN
+    CREATE TABLE [clients].[ProjectStatusReport] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ProjectId] bigint NOT NULL,
+        [ClientId] bigint NOT NULL,
+        [Status] nvarchar(40) NOT NULL,
+        [Summary] nvarchar(1000) NOT NULL,
+        [NextReviewOn] date NULL,
+        [RecordedById] bigint NULL,
+        [RecordedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_ProjectStatusReport] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ProjectStatusReport_Project_ProjectId] FOREIGN KEY ([ProjectId]) REFERENCES [clients].[Project] ([Id]),
+        CONSTRAINT [FK_ProjectStatusReport_User_RecordedById] FOREIGN KEY ([RecordedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110082431_AudienceDashboards'
+)
+BEGIN
+    CREATE INDEX [IX_ProjectStatusReport_ProjectId_RecordedAt] ON [clients].[ProjectStatusReport] ([ProjectId], [RecordedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110082431_AudienceDashboards'
+)
+BEGIN
+    CREATE INDEX [IX_ProjectStatusReport_RecordedById] ON [clients].[ProjectStatusReport] ([RecordedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110082431_AudienceDashboards'
+)
+BEGIN
+    DECLARE @now datetimeoffset = SYSDATETIMEOFFSET();
+    INSERT [iam].[RightDefinition] ([Key],[Label],[Description],[Module],[Feature],[Kind],[RiskLevel],[DisplayOrder],[IsActive],[CreatedAt],[UpdatedAt])
+    SELECT v.[Key], N'View', v.[Description], N'Dashboard', v.[Feature], N'Access', N'Normal', 0, 1, @now, @now
+    FROM (VALUES
+        (N'OperationalDashboard:View', N'OperationalDashboard', N'View in Operational dashboard. Data, ownership and scope checks still apply.'),
+        (N'SlaContractsDashboard:View', N'SlaContractsDashboard', N'View in SLA & Contracts dashboard. Data, ownership and scope checks still apply.'),
+        (N'ManagementDashboard:View', N'ManagementDashboard', N'View in Management dashboard. Data, ownership and scope checks still apply.'),
+        (N'ProjectDashboard:View', N'ProjectDashboard', N'View in Project dashboard. Data, ownership and scope checks still apply.')
+    ) v ([Key],[Feature],[Description])
+    WHERE NOT EXISTS (SELECT 1 FROM [iam].[RightDefinition] d WHERE d.[Key] = v.[Key]);
+    INSERT [iam].[RoleRight] ([AppRoleId],[RightKey])
+    SELECT r.[AppRoleId], k.[Key] FROM [iam].[RoleRight] r
+    CROSS JOIN (VALUES (N'OperationalDashboard:View'), (N'SlaContractsDashboard:View'), (N'ManagementDashboard:View'), (N'ProjectDashboard:View')) k ([Key])
+    WHERE r.[RightKey] = N'Dashboard:View'
+      AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[AppRoleId] AND x.[RightKey] = k.[Key]);
+    UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110082431_AudienceDashboards'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261110082431_AudienceDashboards', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
