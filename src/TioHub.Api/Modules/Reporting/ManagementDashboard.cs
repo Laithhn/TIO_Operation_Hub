@@ -63,9 +63,11 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
         static double? Diff(double? a, double? b) => a is null || b is null ? null : Math.Round(a.Value - b.Value, 1);
 
         // ---- cases: backlog, flow and time to resolve ----
-        // A case counts in the backlog at T when it existed and was neither closed nor cancelled before T (a later reopen is not replayed).
+        // A ticket counts in the backlog at T when it existed then and was still open: a ticket that is open now counts from its creation (an earlier close and reopen is not replayed);
+        // a ticket that is closed or cancelled now counts until its closing time. One that is closed with no recorded closing time cannot be dated, so it is left out of every point,
+        // which keeps the latest point equal to the backlog now.
         var hist = await all.Select(c => new { CreatedAt = c.SlaClockStartAt ?? c.CreatedAt, c.ClosedAt, c.CancelledAt, c.Status }).ToListAsync(ct);
-        int BacklogAt(DateTimeOffset t) => hist.Count(c => c.CreatedAt < t && (c.ClosedAt == null || c.ClosedAt >= t) && (c.CancelledAt == null || c.CancelledAt >= t));
+        int BacklogAt(DateTimeOffset t) => hist.Count(c => c.CreatedAt < t && (CaseQuery.IsOpen(c.Status) || (c.ClosedAt ?? c.CancelledAt) is { } done && done >= t));
         var backlogNow = hist.Count(c => CaseQuery.IsOpen(c.Status));
         var backlogStart = BacklogAt(pf);
         double? Resolve(DateTimeOffset a, DateTimeOffset b) => Median(hist.Where(c => c.Status == CaseStatus.Closed && c.ClosedAt >= a && c.ClosedAt < b).Select(c => (c.ClosedAt!.Value - c.CreatedAt).TotalDays));
@@ -182,7 +184,7 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
                 projects = new { total = portfolio.Count, staleStatus = portfolio.Count(p => p.StatusStale), noStatus = portfolio.Count(p => p.Status is null), disagree = portfolio.Count(p => p.Agreement == "Disagree") },
                 contractsUnknownEnd = unknownEnd
             },
-            note = "Changes compare the period to date with the same number of days of the previous period. The backlog history does not replay reopened tickets."
+            note = "Changes compare the period to date with the same number of days of the previous period. The backlog history does not replay reopened tickets, and leaves out closed tickets that have no recorded closing time."
         };
     }
 }
