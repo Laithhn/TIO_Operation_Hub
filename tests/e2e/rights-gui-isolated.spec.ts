@@ -88,6 +88,23 @@ test('the grid shows a role at a glance and stages a change until it is reviewed
   await expect(page.getByRole('button', { name: 'Review and save' })).toHaveCount(0);
 });
 
+test('Technical detail has its own section at the top, apart from the administration screens', async ({ page }) => {
+  await application(page);
+  await page.goto('/admin/rights?role=2');
+  const jump = page.getByRole('navigation', { name: 'Go to a module' }).getByRole('button');
+  await expect(jump.first()).toHaveText(/^Platform-wide controls/);
+  const platform = page.getByRole('region', { name: 'Platform-wide controls rights' });
+  await expect(platform.getByRole('columnheader', { name: 'Technical detail', exact: true })).toBeVisible();
+  await expect(page.getByText(/Technical detail shows network zones, server IP addresses and firewall rules/)).toBeVisible();
+  const technical = box(page, 'Platform-wide controls: Technical detail for Operation Engineer');
+  await expect(technical).not.toBeChecked();
+  await technical.check();
+  await page.screenshot({ path: 'test-results/rights-platform-section.png' });
+  await expect(page.getByRole('region', { name: 'Administration rights' }).getByRole('columnheader', { name: 'Technical detail', exact: true })).toHaveCount(0);
+  await page.getByRole('combobox', { name: 'Module' }).selectOption('Platform-wide controls');
+  await expect(page.getByRole('status').filter({ hasText: /^Showing 4 of/ })).toBeVisible();
+});
+
 test('a missing prerequisite is pointed out, and only the one asked for is added', async ({ page }) => {
   await application(page);
   await page.goto('/admin/rights?role=2');

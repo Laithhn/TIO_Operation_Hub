@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import catalogJson from '../rightsCatalog.json';
-import { assignedCount, filterRights, gridRights, groupRights, missingPrerequisites, newlyBlocked, prerequisiteWarnings, reviewGroups, rightChanges, sensitive, setRights, sortedRights, withPrerequisites, type RightDefinition, type RightFilters } from './adminRightsModel';
+import { assignedCount, filterRights, moduleOf, PLATFORM_SECTION, gridRights, groupRights, missingPrerequisites, newlyBlocked, prerequisiteWarnings, reviewGroups, rightChanges, sensitive, setRights, sortedRights, withPrerequisites, type RightDefinition, type RightFilters } from './adminRightsModel';
 
 const right = (key: string, changes: Partial<RightDefinition> = {}): RightDefinition => ({
   key, label: key.split(':')[1], description: 'Test right', module: 'Cases', feature: key.split(':')[0], featureLabel: key.split(':')[0], action: key.split(':')[1],
@@ -68,8 +68,24 @@ describe('rights editor security semantics', () => {
 
   it('groups by module and feature in catalog order', () => {
     const groups = groupRights(rows);
-    expect(groups.map(g => g.key)).toEqual(['Administration', 'Cases']);
+    expect(groups.map(g => g.key)).toEqual(['Platform-wide controls', 'Cases']);
     expect(groups[1].features.map(f => f.key)).toEqual(['Cases', 'Old']);
+  });
+
+  it('shows the platform-wide controls as a section of their own, first, so Technical detail can be found', () => {
+    const platform = [right('Platform:TechnicalDetail', { module: 'Administration', feature: 'Platform', displayOrder: -2 }),
+      right('AdminUsers:View', { module: 'Administration', feature: 'AdminUsers', displayOrder: -1 })];
+    const all = [...platform, ...rows];
+    expect(moduleOf(platform[0])).toBe(PLATFORM_SECTION);
+    expect(groupRights(all).map(g => g.key)).toEqual([PLATFORM_SECTION, 'Administration', 'Cases']);
+    expect(filterRights(all, { ...filters, module: PLATFORM_SECTION }, [], []).map(r => r.key)).toEqual(['Platform:TechnicalDetail', 'Platform:Audit']);
+    expect(filterRights(all, { ...filters, search: 'platform-wide' }, [], []).map(r => r.key)).toEqual(['Platform:TechnicalDetail', 'Platform:Audit']);
+  });
+
+  it('puts Technical detail from the real catalog in the platform-wide section', () => {
+    const real = sortedRights(catalogJson as RightDefinition[]);
+    const technical = gridRights(real, real).find(m => m.key === PLATFORM_SECTION);
+    expect(technical?.columns.map(c => c.label)).toContain('Technical detail');
   });
 
   it('marks sensitive rights', () => {

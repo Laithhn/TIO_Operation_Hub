@@ -21,9 +21,12 @@ export const PROTOCOLS = [
 const protoLabel = (p: string) => PROTOCOLS.find(x => x.value === p)?.label ?? p;
 const arrow = (d: string) => d === 'Bidirectional' ? '⇄' : '→';
 
+/** Where the right is ticked, so an administrator does not have to search the rights editor for it. */
+const TECH_WHERE = ' In a role, it is under Platform-wide controls.';
+
 function TechGate({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!seesTechnical(me)) return <Restricted need="Firewall rules need the Technical detail right." />;
+  if (!seesTechnical(me)) return <Restricted need="Firewall rules need the Technical detail right.">{TECH_WHERE}</Restricted>;
   return <>{children}</>;
 }
 
@@ -76,7 +79,7 @@ export function FirewallRulesPanel({ environmentId, assetId, clientId }: { envir
   const canCreate = useRight('OtherOperations', 'Create');
   const [edit, setEdit] = useState<RuleRow | 'new' | null>(null);
   const q = useQuery({ queryKey: ['firewall-rules', { environmentId, assetId }], queryFn: () => get<Paged<RuleRow>>(`/firewall-rules${qs({ environmentId, assetId, pageSize: 200 })}`), enabled: seesTechnical(me) });
-  if (!seesTechnical(me)) return <Restricted need="Firewall rules need the Technical detail right." />;
+  if (!seesTechnical(me)) return <Restricted need="Firewall rules need the Technical detail right.">{TECH_WHERE}</Restricted>;
   return (
     <>
       {canCreate && <div className="toolbar"><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New firewall rule</button></div>}

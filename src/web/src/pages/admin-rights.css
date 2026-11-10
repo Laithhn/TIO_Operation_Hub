@@ -54,6 +54,7 @@
 .rights-module-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 14px; background: var(--surface-2); }
 .rights-module-head h3 { margin: 0; font-size: var(--fs-md); font-weight: 700; }
 .rights-module-head .rights-coverage { flex: 0 1 220px; }
+.rights-module-hint { margin: 0; padding: 0 14px 8px; background: var(--surface-2); }
 .rights-group-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-left: auto; font-size: var(--fs-sm); }
 .rights-group-actions .linkbtn { min-height: 24px; }
 .rights-group-actions .rights-coverage { flex: 0 0 170px; }

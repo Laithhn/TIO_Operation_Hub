@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Badge } from '../ui/kit';
-import { groupRights, isGranted, missingPrerequisites, sortedRights, type RightDefinition } from './adminRightsModel';
+import { groupRights, moduleOf, isGranted, missingPrerequisites, sortedRights, type RightDefinition } from './adminRightsModel';
 import './role-access-matrix.css';
 
 type MatrixRole = { id: number; name: string; description?: string; isActive: boolean; isLocked: boolean; userCount: number; rights: string[] };
@@ -21,9 +21,9 @@ export function RoleAccessMatrix({ roles, catalog, editable }: { roles: MatrixRo
   const [open, setOpen] = useState<string[]>([]);
   const [onlyDifferent, setOnlyDifferent] = useState(false);
   const needle = search.trim().toLocaleLowerCase();
-  const filtered = rows.filter(r => (!module || r.module === module)
+  const filtered = rows.filter(r => (!module || moduleOf(r) === module)
     && (!onlyDifferent || new Set(roles.filter(role => !role.isLocked).map(role => isGranted(role.rights, r))).size > 1)
-    && (!needle || [r.label, r.key, r.description, r.module, r.featureLabel].some(x => x.toLocaleLowerCase().includes(needle))));
+    && (!needle || [r.label, r.key, r.description, r.module, moduleOf(r), r.featureLabel].some(x => x.toLocaleLowerCase().includes(needle))));
   const groups = groupRights(filtered);
   const toggle = (key: string) => setOpen(p => p.includes(key) ? p.filter(k => k !== key) : [...p, key]);
   return <section className="role-matrix" aria-labelledby="role-matrix-title">
@@ -32,7 +32,7 @@ export function RoleAccessMatrix({ roles, catalog, editable }: { roles: MatrixRo
     <div className="role-matrix-filters">
       <label>Find a right<input type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Name, module or key" /></label>
       <label>Module<select value={module} onChange={e => setModule(e.target.value)}><option value="">All modules</option>
-        {[...new Set(rows.map(r => r.module))].map(m => <option key={m}>{m}</option>)}</select></label>
+        {[...new Set(rows.map(moduleOf))].map(m => <option key={m}>{m}</option>)}</select></label>
       <label className="role-matrix-check"><input type="checkbox" checked={onlyDifferent} onChange={e => setOnlyDifferent(e.target.checked)} />Only where roles differ</label>
       <span role="status">{filtered.length} of {rows.length} rights</span>
       <span className="role-matrix-actions">

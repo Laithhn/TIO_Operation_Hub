@@ -11,6 +11,12 @@ export function sortedRights(catalog: RightDefinition[]): RightDefinition[] {
   return [...catalog].sort((a, b) => a.displayOrder - b.displayOrder);
 }
 
+/** Rights that apply across every module (Administration, Export files, Technical detail, Change history). The catalog files them under
+ * Administration, where nobody looks for Technical detail, so the editor shows them as a section of their own. The catalog is unchanged. */
+export const PLATFORM_SECTION = 'Platform-wide controls';
+export const PLATFORM_SECTION_HINT = 'These apply across every module. Technical detail shows network zones, server IP addresses and firewall rules; Export files and Change history unlock the per-module Export and history rights.';
+export const moduleOf = (row: Pick<RightDefinition, 'module' | 'feature'>) => row.module === 'Administration' && row.feature === 'Platform' ? PLATFORM_SECTION : row.module;
+
 export const isGranted = (selection: string[], row: RightDefinition) => selection.includes(row.key);
 
 /** A retired key the role still stores stays in the selection until removed: it grants nothing, and removing it is a reviewed change. */
@@ -34,8 +40,8 @@ export const sensitive = (row: RightDefinition) => /^(high|critical)$/i.test(row
 
 export function filterRights(rows: RightDefinition[], filters: RightFilters, draft: string[], base: string[], compare?: string[]): RightDefinition[] {
   const search = filters.search.trim().toLocaleLowerCase();
-  return rows.filter(r => (!search || [r.key, r.label, r.description, r.featureLabel, r.module].some(s => s.toLocaleLowerCase().includes(search)))
-    && (!filters.module || r.module === filters.module) && (!filters.feature || r.feature === filters.feature)
+  return rows.filter(r => (!search || [r.key, r.label, r.description, r.featureLabel, r.module, moduleOf(r)].some(s => s.toLocaleLowerCase().includes(search)))
+    && (!filters.module || moduleOf(r) === filters.module) && (!filters.feature || r.feature === filters.feature)
     && (!filters.kind || r.kind === filters.kind) && (!filters.risk || r.riskLevel === filters.risk)
     && (filters.assignment !== 'granted' || isGranted(draft, r)) && (filters.assignment !== 'denied' || !isGranted(draft, r))
     && (filters.assignment !== 'changed' || isGranted(base, r) !== isGranted(draft, r))
@@ -46,8 +52,9 @@ export function filterRights(rows: RightDefinition[], filters: RightFilters, dra
 export function groupRights(rows: RightDefinition[]): RightGroup[] {
   const groups = new Map<string, RightGroup>();
   for (const row of rows) {
-    let group = groups.get(row.module);
-    if (!group) { group = { key: row.module, label: row.module, rows: [], features: [] }; groups.set(row.module, group); }
+    const module = moduleOf(row);
+    let group = groups.get(module);
+    if (!group) { group = { key: module, label: module, rows: [], features: [] }; groups.set(module, group); }
     group.rows.push(row);
     let feature = group.features.find(f => f.key === row.feature);
     if (!feature) { feature = { key: row.feature, label: row.featureLabel, rows: [] }; group.features.push(feature); }

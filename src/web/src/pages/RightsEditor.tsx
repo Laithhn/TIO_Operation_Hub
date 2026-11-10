@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type Dispatch, type Set
 import { put } from '../api';
 import { useForm, useLeaveGuard, useRefresh, useRight } from '../hooks';
 import { Badge, Dialog, FormError, Panel, StateMessage, useToast } from '../ui/kit';
-import { assignedCount, filterRights, gridRights, groupRights, isGranted, missingPrerequisites, newlyBlocked, prerequisiteWarnings, reviewGroups, rightChanges, sensitive, setRights, sortedRights, withPrerequisites,
+import { assignedCount, filterRights, moduleOf, PLATFORM_SECTION, PLATFORM_SECTION_HINT, gridRights, groupRights, isGranted, missingPrerequisites, newlyBlocked, prerequisiteWarnings, reviewGroups, rightChanges, sensitive, setRights, sortedRights, withPrerequisites,
   type RightDefinition, type RightFilters, type RoleDef } from './adminRightsModel';
 import './admin-rights.css';
 
@@ -59,7 +59,7 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
   const canMaintain = useRight('AdminRoles', 'Maintain');
   const disabled = base.isLocked || f.busy || !canMaintain;
   const sensitiveHeld = rows.filter(r => r.isActive && sensitive(r) && isGranted(draft, r)).length;
-  const featureOptions = [...new Map(rows.filter(r => !filters.module || r.module === filters.module).map(r => [r.feature, r.featureLabel]))];
+  const featureOptions = [...new Map(rows.filter(r => !filters.module || moduleOf(r) === filters.module).map(r => [r.feature, r.featureLabel]))];
   const update = (next: Partial<RightsPrefs>) => onPrefs(p => ({ ...p, ...next }));
   const updateFilter = (key: keyof RightFilters, value: string) => onPrefs(p => ({ ...p, filters: { ...p.filters, [key]: value } }));
   const setDraft = (rights: string[]) => f.setValues({ rights });
@@ -187,6 +187,7 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
     {visible.length === 0 ? <StateMessage kind="nomatch" /> : view === 'grid'
       ? <div className="rights-tree" aria-label="Rights catalog">{grid.map(module => <section key={module.key} id={`rights-module-${module.key}`} className="rights-module">
         <div className="rights-module-head"><h3>{module.label}</h3><Coverage held={assignedCount(module.rows, draft)} total={activeTotal(module.rows)} label={module.label} /><div className="rights-group-actions">{bulkButtons(module.label, module.rows)}</div></div>
+        {module.key === PLATFORM_SECTION && <p className="hint rights-module-hint">{PLATFORM_SECTION_HINT}</p>}
         <div className="rights-grid-scroll" role="region" aria-label={`${module.label} rights`} tabIndex={0}>
           <table className="rights-grid"><thead><tr><th scope="col">Feature</th>{module.columns.map(c => <th scope="col" key={c.action}>{c.label}</th>)}</tr></thead>
             <tbody>{module.resources.map(resource => <tr key={resource.key}>
@@ -197,6 +198,7 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
       </section>)}</div>
       : <div className="rights-tree" aria-label="Rights catalog">{groups.map(group => <section key={group.key} id={`rights-module-${group.key}`} className="rights-module">
         <div className="rights-module-head"><h3>{group.label}</h3><Coverage held={assignedCount(group.rows, draft)} total={activeTotal(group.rows)} label={group.label} /></div>
+        {group.key === PLATFORM_SECTION && <p className="hint rights-module-hint">{PLATFORM_SECTION_HINT}</p>}
         {group.features.map(feature => {
           const expanded = activeFilters > 0 || open.includes(feature.key);
           return <section key={feature.key}>
