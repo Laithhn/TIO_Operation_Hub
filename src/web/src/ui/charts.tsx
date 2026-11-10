@@ -162,6 +162,59 @@ export function TrendLines({ data, aLabel, bLabel, height = 170 }: { data: Point
   );
 }
 
+// ---------- A63: two percentage series with gaps and an objective line ----------
+export type RatePoint = { label: string; a: number | null; b: number | null };
+
+/** Rates in percent per period. A period without a measured value has no point (never drawn as 0); the dashed line is the objective. */
+export function RateLines({ data, aLabel, bLabel, target, height = 200 }: { data: RatePoint[]; aLabel: string; bLabel: string; target?: number; height?: number }) {
+  const tip = useTip();
+  const [hover, setHover] = useState<number | null>(null);
+  const values = data.flatMap(d => [d.a, d.b]).filter((v): v is number => v !== null);
+  if (values.length === 0) return <div className="viz-empty">No measured obligation in the last 12 months.</div>;
+  const W = 520, H = height, padL = 34, padR = 96, padT = 10, padB = 22;
+  const min = Math.max(0, Math.floor((Math.min(...values, target ?? 100) - 5) / 10) * 10);
+  const ticks = [0, 1, 2, 3, 4].map(i => Math.round(min + ((100 - min) * i) / 4));
+  const x = (i: number) => padL + (i * (W - padL - padR)) / Math.max(1, data.length - 1);
+  const y = (v: number) => padT + (1 - (v - min) / (100 - min)) * (H - padT - padB);
+  // Segments break at missing values, so a gap in the data is a gap in the line.
+  const path = (k: 'a' | 'b') => data.map((d, i) => (d[k] === null ? '' : `${i > 0 && data[i - 1][k] !== null ? 'L' : 'M'}${x(i)},${y(d[k]!)}`)).join('');
+  const lastOf = (k: 'a' | 'b') => { for (let i = data.length - 1; i >= 0; i--) if (data[i][k] !== null) return i; return -1; };
+  const series = [{ k: 'a' as const, label: aLabel, color: SERIES.blue }, { k: 'b' as const, label: bLabel, color: SERIES.orange }];
+  const ends = series.map(s => ({ ...s, i: lastOf(s.k) })).filter(s => s.i >= 0).map(s => ({ ...s, v: data[s.i][s.k]!, y: y(data[s.i][s.k]!) }));
+  // Keep the two end labels at least 13 px apart.
+  if (ends.length === 2 && Math.abs(ends[0].y - ends[1].y) < 13) { const up = ends[0].y <= ends[1].y ? 0 : 1; const mid = (ends[0].y + ends[1].y) / 2; ends[up].y = mid - 6.5; ends[1 - up].y = mid + 6.5; }
+  const onMove = (e: React.MouseEvent<SVGRectElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const rel = ((e.clientX - r.left) / r.width) * (W - padL - padR);
+    const i = Math.max(0, Math.min(data.length - 1, Math.round((rel / (W - padL - padR)) * (data.length - 1))));
+    setHover(i);
+    const d = data[i];
+    tip.show(e, <><b>{d.label}</b>{series.map(s => <div key={s.k}><span className="key" style={{ background: s.color }} />{s.label}: {d[s.k] === null ? 'not measured' : `${d[s.k]} %`}</div>)}</>);
+  };
+  return (
+    <div className="viz-wrap" ref={tip.ref}>
+      <div className="legend" aria-hidden="true">
+        {series.map(s => <span key={s.k}><span className="key" style={{ background: s.color }} />{s.label}</span>)}
+        {target !== undefined && <span><span className="key dash" />Objective {target} %</span>}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`${aLabel} and ${bLabel} in percent per month${target !== undefined ? `, objective ${target} %` : ''}`}>
+        {ticks.map(t => <g key={t}><line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className="grid" /><text x={padL - 6} y={y(t) + 3} className="tick" textAnchor="end">{t} %</text></g>)}
+        {data.map((d, i) => (i % 2 === (data.length - 1) % 2) && <text key={i} x={x(i)} y={H - 6} className="tick" textAnchor="middle">{d.label}</text>)}
+        {target !== undefined && target >= min && <line x1={padL} x2={W - padR} y1={y(target)} y2={y(target)} stroke="#6b7487" strokeWidth={1.5} strokeDasharray="5 4" />}
+        {hover !== null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} className="crosshair" />}
+        {series.map(s => <path key={s.k} d={path(s.k)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />)}
+        {/* A value with no measured neighbour is still visible as a dot. */}
+        {series.flatMap(s => data.map((d, i) => d[s.k] !== null && (data[i - 1]?.[s.k] ?? null) === null && (data[i + 1]?.[s.k] ?? null) === null
+          ? <circle key={s.k + i} cx={x(i)} cy={y(d[s.k]!)} r={3} fill={s.color} /> : null))}
+        {series.map(s => { const i = hover ?? lastOf(s.k); return i >= 0 && data[i][s.k] !== null ? <circle key={s.k} cx={x(i)} cy={y(data[i][s.k]!)} r={4} fill={s.color} stroke="#fff" strokeWidth={2} /> : null; })}
+        {ends.map(e => <text key={e.k} x={x(e.i) + 8} y={e.y + 3} className="end-label">{e.v} % {e.label}</text>)}
+        <rect x={padL} y={padT} width={W - padL - padR} height={H - padT - padB} fill="transparent" onMouseMove={onMove} onMouseLeave={() => { setHover(null); tip.hide(); }} />
+      </svg>
+      {tip.node}
+    </div>
+  );
+}
+
 // ---------- panel with a table view ----------
 export function VizPanel({ title, sub, table, children, actions }: { title: string; sub?: ReactNode; table: { columns: string[]; rows: (string | number)[][] }; children: ReactNode; actions?: ReactNode }) {
   const [asTable, setAsTable] = useState(false);

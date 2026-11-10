@@ -29,7 +29,7 @@ export function SlaPair({ response, resolution }: { response: string; resolution
 
 export function CaseList() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', createdFrom: '', createdTo: '', sort: '-created', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ status: 'open', scope: '', clientId: '', teamId: '', ownerId: '', unassigned: '', priority: '', due: '', waiting: '', reviewOverdue: '', stale: '', productId: '', jiraKey: '', q: '', coverageGap: '', country: '', asOf: '', contractId: '', sla: '', createdFrom: '', createdTo: '', projectId: '', sort: '-created', page: '1', pageSize: '15' });
   const [text, setText] = useState(f.q);
   const dq = useDebounced(text);
   useEffect(() => { if (dq !== f.q) set({ q: dq }); }, [dq]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -58,7 +58,7 @@ export function CaseList() {
         <SelectInput label="Contractual SLA" value={f.sla} onChange={v => set({ sla: v })} options={SLA_FILTERS} empty="Any" />
         <TextInput label="Jira key" value={f.jiraKey} onChange={v => set({ jiraKey: v })} placeholder="ABC-123" />
         {(f.contractId || f.createdFrom || f.createdTo) && <div className="notice" style={{ margin: 0 }}>
-          {f.contractId && <>Contract #{f.contractId}. </>}{(f.createdFrom || f.createdTo) && <>Opened {f.createdFrom ? `from ${fmtDateTime(f.createdFrom)}` : ''} {f.createdTo ? `until ${fmtDateTime(f.createdTo)}` : ''} (from dashboard). </>}
+          {f.contractId && <>Contract #{f.contractId}. </>}{f.projectId && <>Cases of project #{f.projectId} (linked to its contracts or affecting its environments). </>}{(f.createdFrom || f.createdTo) && <>Opened {f.createdFrom ? `from ${fmtDateTime(f.createdFrom)}` : ''} {f.createdTo ? `until ${fmtDateTime(f.createdTo)}` : ''} (from dashboard). </>}
           <button className="linkbtn" onClick={() => set({ contractId: '', createdFrom: '', createdTo: '' })}>Clear</button></div>}
         {f.asOf && <div className="notice" style={{ margin: 0 }}>Evaluated at {fmtDateTime(f.asOf)} (from dashboard). <button className="linkbtn" onClick={() => set({ asOf: '' })}>Use now</button></div>}
       </div>

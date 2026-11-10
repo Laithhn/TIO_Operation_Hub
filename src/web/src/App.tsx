@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
@@ -11,6 +12,7 @@ import { ConfigHome, ConfigListPage } from './pages/Configuration';
 import { ContractDetail, ContractForm, ContractList, ProjectDetail } from './pages/Contracts';
 import { ActionList } from './pages/Actions';
 import { ClientMap, Dashboard } from './pages/Dashboard';
+import { ManagementDashboard, OperationalDashboard, ProjectDashboard, SlaContractsDashboard } from './pages/Dashboards';
 import { MicroserviceDetail, ProductDetail, ProductForm, ProductList } from './pages/Products';
 import { ChangePasswordPage, LoginPage } from './pages/SignIn';
 import { EnvironmentDetail, EnvironmentForm, EnvironmentList } from './pages/Environments';
@@ -45,6 +47,13 @@ function MapHome() {
   return <ClientMap />;
 }
 
+/** A63: the audience dashboards need a business role, like the overview. */
+function Biz({ children }: { children: ReactNode }) {
+  const me = useMe().data!;
+  if (!me.businessRole) return me.isAdministrator ? <Navigate to="/admin/users" replace /> : <NoAccess />;
+  return <>{children}</>;
+}
+
 function NoAccess() {
   return (<>
     <PageHead title="No business access" />
@@ -63,6 +72,10 @@ export const router = createBrowserRouter([
     path: '/', element: <Root />, children: [
       { index: true, element: <Home /> },
       { path: 'map', element: <MapHome /> },
+      { path: 'dashboards/operational', element: <Biz><OperationalDashboard /></Biz> },
+      { path: 'dashboards/sla', element: <Biz><SlaContractsDashboard /></Biz> },
+      { path: 'dashboards/management', element: <Biz><ManagementDashboard /></Biz> },
+      { path: 'dashboards/project', element: <Biz><ProjectDashboard /></Biz> },
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'data-quality', element: <DataQuality /> },

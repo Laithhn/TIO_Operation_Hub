@@ -143,7 +143,7 @@ public sealed class OperationalDashboard(HubDbContext db, HubSettings settings, 
             H("reviewOverdue", "My cases with the next review passed", await Cases(myCases with { ReviewOverdue = true }).CountAsync(ct), $"/cases?ownerId={uid}&reviewOverdue=true"),
             H("noFirstResponse", "My cases with a response clock still running", await Cases(myCases with { Sla = "responsePending" }).CountAsync(ct), $"/cases?ownerId={uid}&sla=responsePending"),
             H("coverage", "My environments without an active backup owner",
-                await db.Environments.CountAsync(e => e.OwnerUserId == uid && crit.Contains(e.Criticality) && (e.BackupOwnerUserId == null || !e.BackupOwner!.IsActive), ct), $"/environments?ownerId={uid}"),
+                await db.Environments.CountAsync(e => e.OwnerUserId == uid && crit.Contains(e.Criticality) && (e.BackupOwnerUserId == null || !e.BackupOwner!.IsActive), ct), "/actions?category=CoverageGap"),
             H("dataQuality", "Data-quality items I coordinate", await db.DataQualityItems.CountAsync(i => i.Status == DataQualityStatus.Open && i.CoordinatorUserId == uid, ct), "/data-quality"),
             H("notifications", "Unread notifications", await db.Notifications.CountAsync(n => n.UserId == uid && n.ReadAt == null, ct), "/notifications")
         };

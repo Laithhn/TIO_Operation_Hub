@@ -19,8 +19,13 @@ const admin = (m: Me) => m.isAdministrator;
 
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
-  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|actions|notifications|data-quality|reports)/, show: biz, side: [
+  { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|map|dashboards|actions|notifications|data-quality|reports)/, show: biz, side: [
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true },
+    // A63: one dashboard per audience and question.
+    { to: '/dashboards/operational', label: 'Operational', icon: 'case' },
+    { to: '/dashboards/sla', label: 'SLA & Contracts', icon: 'matrix' },
+    { to: '/dashboards/management', label: 'Management', icon: 'team' },
+    { to: '/dashboards/project', label: 'Project', icon: 'project' },
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
     { to: '/notifications', label: 'Notifications', icon: 'bell' },

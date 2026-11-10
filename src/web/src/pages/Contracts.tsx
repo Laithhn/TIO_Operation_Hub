@@ -59,7 +59,7 @@ const RENEWAL_FILTERS = [
 export function ContractList() {
   const T = useTypes();
   const me = useMe().data!;
-  const [f, set] = useUrlState({ q: '', clientId: '', status: '', type: '', renewal: '', country: '', productId: '', sort: 'end', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ q: '', clientId: '', status: '', type: '', renewal: '', country: '', productId: '', projectId: '', sort: 'end', page: '1', pageSize: '15' });
   const q = useQuery({ queryKey: ['contracts', f], queryFn: () => get<Paged<Row>>(`/contracts${qs(f)}`) });
   const clients = useClientOptions();
   const statuses = useEnum('ContractStatus');

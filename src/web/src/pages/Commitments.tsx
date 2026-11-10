@@ -15,7 +15,7 @@ type Row = { id: number; ref: string; scope: string; description: string; type: 
 
 export function CommitmentList() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ status: 'open', due: '', clientId: '', teamId: '', ownerId: '', scope: '', type: '', late: '', stale: '', q: '', country: '', asOf: '', sort: 'due', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ status: 'open', due: '', clientId: '', teamId: '', ownerId: '', scope: '', type: '', late: '', stale: '', q: '', country: '', asOf: '', projectId: '', sort: 'due', page: '1', pageSize: '15' });
   const q = useQuery({ queryKey: ['commitments', f], queryFn: () => get<Paged<Row>>(`/commitments${qs(f)}`) });
   const clients = useClientOptions();
   const teams = useTeamOptions();
