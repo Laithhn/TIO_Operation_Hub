@@ -86,6 +86,23 @@ public class Project : Entity, IArchivable, IClientOwned
     public List<ProjectProduct> Products { get; set; } = [];
 }
 
+/// <summary>
+/// A63: a manually recorded project status with its reason, kept as history (like an environment condition report, ENV-04).
+/// The latest report is the project's status; it is a person's judgement, not a calculated health score (DAS-02).
+/// </summary>
+public class ProjectStatusReport
+{
+    public long Id { get; set; }
+    public long ProjectId { get; set; }
+    public long ClientId { get; set; }
+    public ProjectReportedStatus Status { get; set; }
+    public string Summary { get; set; } = "";
+    public DateOnly? NextReviewOn { get; set; }
+    public long? RecordedById { get; set; }
+    public User? RecordedBy { get; set; }
+    public DateTimeOffset RecordedAt { get; set; }
+}
+
 public class ProjectProduct
 {
     public long ProjectId { get; set; }

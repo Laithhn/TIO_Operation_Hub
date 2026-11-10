@@ -1542,6 +1542,48 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("ProjectProduct", "clients");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.ProjectStatusReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly?>("NextReviewOn")
+                        .HasColumnType("date");
+
+                    b.Property<long>("ProjectId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("RecordedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedById");
+
+                    b.HasIndex("ProjectId", "RecordedAt");
+
+                    b.ToTable("ProjectStatusReport", "clients");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Clients.Region", b =>
                 {
                     b.Property<long>("Id")
@@ -5512,6 +5554,22 @@ namespace TioHub.Api.Data.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.ProjectStatusReport", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Clients.Project", null)
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", "RecordedBy")
+                        .WithMany()
+                        .HasForeignKey("RecordedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("RecordedBy");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Clients.Region", b =>

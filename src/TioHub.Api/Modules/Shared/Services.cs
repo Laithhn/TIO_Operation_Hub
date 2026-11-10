@@ -38,6 +38,16 @@ public sealed class HubSettings(HubDbContext db, IMemoryCache cache)
     public async Task<HashSet<Priority>> CoveragePrioritiesAsync(CancellationToken ct) =>
         (await ListAsync(SettingKeys.CoveragePriorities, ct)).Select(v => Enum.TryParse<Priority>(v, out var c) ? c : (Priority?)null).OfType<Priority>().ToHashSet();
 
+    private async Task<int> IntAsync(string key, int fallback, int min, int max, CancellationToken ct) =>
+        int.TryParse(await GetAsync(key, "", ct), out var v) && v >= min && v <= max ? v : fallback;
+
+    /// <summary>A63: share of the target time left (percent) at or below which a running SLA clock is at risk.</summary>
+    public Task<int> SlaAtRiskPercentAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaAtRiskPercent, 25, 5, 50, ct);
+    /// <summary>A63: the internal compliance objective (percent) measured rates are compared with.</summary>
+    public Task<int> SlaComplianceTargetAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaComplianceTargetPercent, 90, 50, 100, ct);
+    /// <summary>A63: days after which a recorded project status needs review.</summary>
+    public Task<int> ProjectStatusMaxAgeDaysAsync(CancellationToken ct) => IntAsync(SettingKeys.ProjectStatusMaxAgeDays, 14, 1, 90, ct);
+
     public void Invalidate() => cache.Remove(CacheKey);
 }
 

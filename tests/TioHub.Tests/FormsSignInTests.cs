@@ -12,7 +12,8 @@ public sealed class FormsFactory : WebApplicationFactory<Program>, IAsyncLifetim
 {
     private readonly string _db = "TioHub_Forms_" + Guid.NewGuid().ToString("N")[..8];
     private static string SqlServer => Environment.GetEnvironmentVariable("TIOHUB_TEST_SQL") ?? @"(localdb)\MSSQLLocalDB";
-    public string ConnectionString => $"Server={SqlServer};Database={_db};Trusted_Connection=True;TrustServerCertificate=True";
+    private static string SqlAuth => Environment.GetEnvironmentVariable("TIOHUB_TEST_SQL_AUTH") ?? "Trusted_Connection=True";
+    public string ConnectionString => $"Server={SqlServer};Database={_db};{SqlAuth};TrustServerCertificate=True";
     public string SetupFile { get; } = Path.Combine(Path.GetTempPath(), $"tiohub-setup-{Guid.NewGuid():N}.txt");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -53,7 +54,7 @@ public sealed class FormsFactory : WebApplicationFactory<Program>, IAsyncLifetim
         await base.DisposeAsync();
         if (File.Exists(SetupFile)) File.Delete(SetupFile);
         SqlConnection.ClearAllPools();
-        await using var conn = new SqlConnection($"Server={SqlServer};Database=master;Trusted_Connection=True;TrustServerCertificate=True");
+        await using var conn = new SqlConnection($"Server={SqlServer};Database=master;{SqlAuth};TrustServerCertificate=True");
         await conn.OpenAsync();
         await using var cmd = conn.CreateCommand();
         cmd.CommandText = $"IF DB_ID('{_db}') IS NOT NULL BEGIN ALTER DATABASE [{_db}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [{_db}]; END";

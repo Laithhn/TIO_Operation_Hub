@@ -25,6 +25,9 @@ public enum HostingType { Unknown, OnPrem, Cloud }
 
 public enum ProjectStatus { Planned, Active, OnHold, Completed, Archived }
 
+/// <summary>A63: the status a project manager records for a project (a recorded judgement with a reason, never a calculated score).</summary>
+public enum ProjectReportedStatus { OnTrack, AtRisk, OffTrack }
+
 public enum EnvironmentType { Production, Staging, UAT, Test, DR, Other }
 
 public enum Criticality { Critical, High, Normal, Unknown }
