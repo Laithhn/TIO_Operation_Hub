@@ -45,6 +45,43 @@ public class A72_NotificationLifecycle(HubFactory hub) : Scenario(hub)
         await Scan(DateTimeOffset.UtcNow); // and the next scan, which updates the same alert, still succeeds
     }
 
+    [Fact]
+    public async Task A107_assigning_a_closed_ticket_sends_no_notice_but_an_open_one_does()
+    {
+        var target = (await Hub.As(HubFactory.Engineer2)).UserId;
+        var closed = await NewCase(null, scope: "Internal");
+        var open = await NewCase(null, scope: "Internal");
+        await Db(async db =>
+        {
+            var c = await db.Cases.IgnoreQueryFilters().SingleAsync(x => x.Id == closed);
+            c.Status = CaseStatus.Closed;
+            c.StatusCode = TioHub.Api.Modules.Work.CaseStatuses.ClosedCode;
+            c.ClosedAt = DateTimeOffset.UtcNow;
+            c.OwnerUserId = target;   // closed and reassigned in one save, as a Jira run does
+            (await db.Cases.IgnoreQueryFilters().SingleAsync(x => x.Id == open)).OwnerUserId = target;
+            await db.SaveChangesAsync();
+        });
+        await Db(async db =>
+        {
+            var keys = await db.Notifications.IgnoreQueryFilters().AsNoTracking().Where(n => n.UserId == target && n.Kind == NotificationKinds.Assigned).Select(n => n.Key).ToListAsync();
+            Assert.DoesNotContain(keys, k => k.StartsWith($"case:{closed}:"));
+            Assert.Contains(keys, k => k.StartsWith($"case:{open}:OwnerUserId:{target}:"));
+        });
+    }
+
+    [Fact]
+    public void A107_finished_records_are_recognised()
+    {
+        Assert.True(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Work.Case { Status = CaseStatus.Cancelled }));
+        Assert.False(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Work.Case { Status = CaseStatus.PendingValidation }));
+        Assert.True(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Commitments.Commitment { Status = CommitmentStatus.Completed }));
+        Assert.False(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Commitments.Commitment { Status = CommitmentStatus.Open }));
+        Assert.True(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Escalations.Escalation { Status = TioHub.Api.Modules.Escalations.EscalationStatus.Withdrawn }));
+        Assert.False(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Escalations.Escalation { Status = TioHub.Api.Modules.Escalations.EscalationStatus.InProgress }));
+        Assert.True(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Teams.Handover { Status = HandoverStatus.Cancelled }));
+        Assert.False(AssignmentNotices.IsFinished(new TioHub.Api.Modules.Teams.Handover()));
+    }
+
     /// <summary>An open commitment owned by the engineer, made overdue in the database (the API refuses past due dates).</summary>
     private async Task<long> OverdueCommitment(string description)
     {

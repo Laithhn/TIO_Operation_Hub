@@ -95,7 +95,7 @@ public static class AssignmentNotices
         foreach (var e in tracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
         {
             var w = Watched.FirstOrDefault(x => x.Type == e.Entity.GetType());
-            if (w.Type is null) continue;
+            if (w.Type is null || IsFinished(e.Entity)) continue;
             foreach (var f in w.Fields)
             {
                 var p = e.Property(f);
@@ -106,6 +106,19 @@ public static class AssignmentNotices
         }
         return list;
     }
+
+    /// <summary>
+    /// A107: a record that is already finished needs no "you are now the owner" notice, such as a ticket imported from Jira as Done,
+    /// or one reassigned and closed in the same save. The status at save time decides.
+    /// </summary>
+    public static bool IsFinished(object entity) => entity switch
+    {
+        Case c => c.Status is CaseStatus.Closed or CaseStatus.Cancelled,
+        Commitment c => c.Status != CommitmentStatus.Open,
+        Escalations.Escalation e => e.Status is Escalations.EscalationStatus.Resolved or Escalations.EscalationStatus.Closed or Escalations.EscalationStatus.Withdrawn,
+        Handover h => h.Status != HandoverStatus.PendingAcknowledgment,
+        _ => false
+    };
 
     public static Notification? Build(Intent i, DateTimeOffset now)
     {
