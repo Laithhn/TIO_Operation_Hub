@@ -350,9 +350,9 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
         return rows.OrderBy(Rank).ThenByDescending(r => r.Signals.Count(x => x.State == SignalState.OffTrack)).ThenBy(r => r.NextMilestoneDate ?? DateOnly.MaxValue).ThenBy(r => r.Code).ToList();
     }
 
-    /// <summary>Who may record a client's status: Projects:Maintain in the client's scope (the people who could record a project status in 2.59.0).</summary>
+    /// <summary>Who may record a client's status: ClientStructure:Maintain in the client's scope (A109, owner decision 10 Nov 2026).</summary>
     public static bool CanRecord(UserContext me, long clientId, ClientStatus status) =>
-        status != ClientStatus.Archived && me.SeesContext(ResourceContext.ForRecord(clientId, null)) && me.HasRightIn(RightKeys.Projects, RightKeys.Maintain, ResourceContext.ForRecord(clientId, null));
+        status != ClientStatus.Archived && me.SeesContext(ResourceContext.ForRecord(clientId, null)) && me.HasRightIn(RightKeys.Structure, RightKeys.Maintain, ResourceContext.ForRecord(clientId, null));
 
     /// <summary>The client dashboard: recorded status, signals and the records behind them, across all the client's projects.</summary>
     public async Task<object> ClientAsync(long id, UserContext me, CancellationToken ct)

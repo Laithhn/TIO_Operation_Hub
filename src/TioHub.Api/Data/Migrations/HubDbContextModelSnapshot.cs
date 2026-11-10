@@ -1972,48 +1972,6 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("ProjectProduct", "clients");
                 });
 
-            modelBuilder.Entity("TioHub.Api.Modules.Clients.ProjectStatusReport", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("ClientId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateOnly?>("NextReviewOn")
-                        .HasColumnType("date");
-
-                    b.Property<long>("ProjectId")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTimeOffset>("RecordedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<long?>("RecordedById")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
-
-                    b.Property<string>("Summary")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecordedById");
-
-                    b.HasIndex("ProjectId", "RecordedAt");
-
-                    b.ToTable("ProjectStatusReport", "clients");
-                });
-
             modelBuilder.Entity("TioHub.Api.Modules.Clients.Region", b =>
                 {
                     b.Property<long>("Id")
@@ -2443,8 +2401,8 @@ namespace TioHub.Api.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Obligations")
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("OnSiteEngineersRequired")
                         .HasColumnType("int");
@@ -2495,8 +2453,8 @@ namespace TioHub.Api.Data.Migrations
                         .HasColumnType("time");
 
                     b.Property<string>("SupportHours")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SupportModel")
                         .IsRequired()
@@ -3418,6 +3376,21 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<long>("EnvironmentId")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("GpuCount")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("GpuMemoryQuantity")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("decimal(12,2)");
+
+                    b.Property<string>("GpuMemoryUnit")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("GpuModel")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("IpAddress")
                         .HasMaxLength(64)
@@ -7614,22 +7587,6 @@ namespace TioHub.Api.Data.Migrations
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("TioHub.Api.Modules.Clients.ProjectStatusReport", b =>
-                {
-                    b.HasOne("TioHub.Api.Modules.Clients.Project", null)
-                        .WithMany()
-                        .HasForeignKey("ProjectId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("TioHub.Api.Modules.Access.User", "RecordedBy")
-                        .WithMany()
-                        .HasForeignKey("RecordedById")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("RecordedBy");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Clients.Region", b =>

@@ -3,10 +3,10 @@ import { canExportReport } from '../exportRights';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { ApiError, exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
-import { fmtDate, label } from '../format';
+import { fmtDate, fmtMoney, label } from '../format';
 import { renewalPeriod, shiftDay } from './contractRenewal';
 import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
-import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
+import { ActionDialog, ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, ExpandableText, SectionNav, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
@@ -20,6 +20,7 @@ import { MyNotesPanel } from './Notes';
 type Row = {
   id: number; ref: string; title: string; contractReference?: string; type: string; status: string; clientId: number; clientCode: string; clientName: string;
   projectId: number; projectCode: string; projectName: string; startDate?: string; endDate?: string; noticeDeadline?: string; renewalTerms: string; supportModel: string; onSiteEngineersRequired?: number; owner?: UserRef; slaTargets: number; renewalState: string;
+  currency?: string | null; amount?: number | null;
 };
 type Target = { id?: number; priority: string; responseMinutes?: number | null; resolutionMinutes?: number | null; basis: string; notes?: string | null };
 type PenaltyForm = { id?: number; name: string; trigger: string; calculation: string; fixedAmount: string; percentage: string; referenceAmount: string; monthlyCap: string; billingTimeZone: string };
@@ -90,7 +91,8 @@ export function ContractList() {
           { key: 'ref', header: 'Ref', sort: 'ref', render: c => <Link to={`/contracts/${c.id}`}>{c.ref}</Link>,
             filter: <input className="input" aria-label="Search contracts" placeholder="Title or reference" value={f.q} onChange={e => set({ q: e.target.value, page: '1' })} /> },
           { key: 'title', header: 'Contract', sort: 'title', render: c => <><Link to={`/contracts/${c.id}`}>{c.title}</Link>{c.contractReference && <div className="hint">{c.contractReference}</div>}</> },
-          { key: 'project', header: 'Project', sort: 'project', render: c => <><Link to={`/projects/${c.projectId}`}>{c.projectCode}</Link><div className="hint"><ClientDisplay id={c.clientId} code={c.clientCode} name={c.clientName} size="xs" link={false} /></div></> },
+          { key: 'client', header: 'Client', sort: 'client', render: c => <ClientDisplay id={c.clientId} code={c.clientCode} name={c.clientName} size="xs" /> },
+          { key: 'project', header: 'Project', sort: 'project', render: c => <><Link to={`/projects/${c.projectId}`}>{c.projectCode}</Link><div className="hint">{c.projectName}</div></> },
           { key: 'type', header: 'Type', render: c => T.name('ContractType', c.type) },
           { key: 'status', header: 'Status', sort: 'status', render: c => <StatusBadge value={c.status} />,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value, page: '1' })}><option value="">All</option>{statuses.map(s => <option key={s} value={s}>{label(s)}</option>)}</select> },
@@ -99,6 +101,7 @@ export function ContractList() {
           { key: 'renewal', header: 'Renewal', render: c => <RenewalBadge state={c.renewalState} /> },
           { key: 'support', header: 'Support', render: c => <>{label(c.supportModel)}{c.onSiteEngineersRequired ? <div className="hint">{c.onSiteEngineersRequired} on site required</div> : null}</> },
           { key: 'sla', header: 'SLA targets', className: 'num', render: c => c.slaTargets || <span className="muted">none</span> },
+          { key: 'amount', header: 'Contract amount', sort: 'amount', className: 'num nowrap', render: c => c.amount != null ? fmtMoney(c.amount, c.currency ?? undefined) : <span className="muted" title="No fee line with a price is recorded">Not recorded</span> },
           { key: 'owner', header: 'Owner', sort: 'owner', render: c => <Person u={c.owner} /> }, { key: 'del', header: '', className: 'row-actions', render: c => <DeleteAction path={`/contracts/${c.id}`} what={`contract ${c.ref}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s), page: '1' })} />}
@@ -415,7 +418,7 @@ export function ContractForm() {
           <SelectInput label="Support model" value={f.values.supportModel} onChange={v => f.set('supportModel', v)} options={enumOptions(models)} empty={null} />
           <SupportHoursField v={f.values} set={(k, x) => f.set(k as never, x as never)} error={f.fieldError('supportTo') ?? f.fieldError('supportDays')} />
           <TimeZoneSelect label="Support time zone" value={f.values.supportTimeZone} onChange={v => f.set('supportTimeZone', v)} error={f.fieldError('supportTimeZone')} hint="The zone the support hours are counted in." />
-          <TextInput label="Support notes" value={f.values.supportHours} onChange={v => f.set('supportHours', v)} error={f.fieldError('supportHours')} placeholder="e.g. Public holidays excluded" />
+          <TextInput label="Support notes" wide multiline value={f.values.supportHours} onChange={v => f.set('supportHours', v)} error={f.fieldError('supportHours')} placeholder="e.g. Public holidays excluded" />
           <TextInput label="On-site engineers required" type="number" value={f.values.onSiteEngineersRequired} onChange={v => f.set('onSiteEngineersRequired', v)} error={f.fieldError('onSiteEngineersRequired')} />
           <TextInput label="Service coverage" wide multiline value={f.values.coverage} onChange={v => f.set('coverage', v)} error={f.fieldError('coverage')} />
           <TextInput label="Obligations" wide multiline value={f.values.obligations} onChange={v => f.set('obligations', v)} error={f.fieldError('obligations')} hint="Reports, staffing, maintenance windows and other duties as written in the contract." />
@@ -669,6 +672,7 @@ function ContractTermsEditor({ v, set, errors }: { v: TermsV; set: (k: keyof Ter
 }
 
 function ContractTermsView({ c }: { c: Detail }) {
+  const [statusOf, setStatusOf] = useState<Detail['payments'][number] | null>(null);
   const done = c.milestones.length ? Math.round(c.milestones.reduce((a, m) => a + (m.completionPercent ?? 0), 0) / c.milestones.length) : null;
   const paid = c.payments.filter(p => p.status === 'Paid').reduce((a, p) => a + (p.amount ?? 0), 0);
   const open = c.payments.filter(p => p.status === 'Pending' || p.status === 'Invoiced');
@@ -707,9 +711,20 @@ function ContractTermsView({ c }: { c: Detail }) {
               { key: 'percentage', header: '%', className: 'num', render: p => p.percentage !== undefined && p.percentage !== null ? `${p.percentage} %` : '' },
               { key: 'amount', header: 'Amount', className: 'num nowrap', render: p => money(p.amount, c.currency) },
               { key: 'due', header: 'Due', className: 'nowrap', render: p => p.dueDate ? fmtDate(p.dueDate) : <Unknown /> },
-              { key: 'status', header: 'Status', className: 'nowrap', render: p => <><StatusBadge value={p.status} />{p.overdue && <> <Badge tone="bad">Overdue</Badge></>}{p.paidOn && <div className="hint">paid {fmtDate(p.paidOn)}</div>}</> }
+              { key: 'status', header: 'Status', className: 'nowrap', render: p => <><StatusBadge value={p.status} />{p.overdue && <> <Badge tone="bad">Overdue</Badge></>}{p.paidOn && <div className="hint">paid {fmtDate(p.paidOn)}</div>}</> },
+              // A110: the status of one payment changes here, without editing the contract.
+              ...(c.permissions.canEdit ? [{ key: 'change', header: '', className: 'row-actions', render: (p: Detail['payments'][number]) => <button className="linkbtn" onClick={() => setStatusOf(p)}>Change status</button> }] : [])
             ]} />
           </>)}
+          {statusOf && <ActionDialog title="Change payment status" submitLabel="Save status" path={`/contracts/${c.id}/payments/${statusOf.id}/status`} onClose={() => setStatusOf(null)}
+            intro={<>Payment <b>{statusOf.condition}</b>{statusOf.amount != null ? <> ({money(statusOf.amount, c.currency)})</> : null}. The rest of the contract is not changed.</>}
+            initial={{ status: statusOf.status, paidOn: statusOf.paidOn ?? '', notes: statusOf.notes ?? '' }}
+            transform={v => ({ status: v.status || null, paidOn: v.status === 'Paid' ? v.paidOn || null : null, notes: v.notes })}
+            fields={[
+              { name: 'status', label: 'Status', kind: 'select', required: true, options: [{ value: 'Pending', label: 'Pending' }, { value: 'Invoiced', label: 'Invoiced' }, { value: 'Paid', label: 'Paid' }, { value: 'Waived', label: 'Waived' }] },
+              { name: 'paidOn', label: 'Paid on', kind: 'date', hint: 'Required when the status is Paid.' },
+              { name: 'notes', label: 'Notes', kind: 'textarea', hint: 'Optional, for example the invoice number.' }
+            ]} />}
         </Panel>
       </div>
     </>

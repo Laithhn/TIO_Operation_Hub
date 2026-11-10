@@ -64,7 +64,6 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<ClientTeamMember> ClientTeamMembers => Set<ClientTeamMember>();
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<ProjectProduct> ProjectProducts => Set<ProjectProduct>();
-    public DbSet<ProjectStatusReport> ProjectStatusReports => Set<ProjectStatusReport>();
     public DbSet<ClientStatusReport> ClientStatusReports => Set<ClientStatusReport>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<ResponsibilityBoundary> Boundaries => Set<ResponsibilityBoundary>();
@@ -339,15 +338,6 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasMany(x => x.Products).WithOne().HasForeignKey(x => x.ProjectId);
             e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || ProjectIds.Contains(x.Id));
         });
-        m.Entity<ProjectStatusReport>(e =>
-        {
-            e.ToTable("ProjectStatusReport", "clients");
-            e.Property(x => x.Summary).HasMaxLength(1000);
-            e.HasIndex(x => new { x.ProjectId, x.RecordedAt });
-            e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId);
-            e.HasOne(x => x.RecordedBy).WithMany().HasForeignKey(x => x.RecordedById);
-            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || ProjectIds.Contains(x.ProjectId));
-        });
         m.Entity<ClientStatusReport>(e =>
         {
             e.ToTable("ClientStatusReport", "clients");
@@ -535,6 +525,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         {
             e.ToTable("Asset", "inventory");
             e.Property(x => x.Name).HasMaxLength(150);
+            e.Property(x => x.GpuModel).HasMaxLength(200);
             e.Property(x => x.NormalizedName).HasMaxLength(150);
             e.HasIndex(x => new { x.EnvironmentId, x.NormalizedName }).IsUnique().HasFilter("[ArchivedAt] IS NULL");
             e.Property(x => x.Role).HasMaxLength(100);
@@ -751,10 +742,10 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => x.Ref).IsUnique();
             e.Property(x => x.Title).HasMaxLength(200);
             e.Property(x => x.ContractReference).HasMaxLength(100);
-            e.Property(x => x.SupportHours).HasMaxLength(200);
+            e.Property(x => x.SupportHours).HasColumnType("nvarchar(max)"); // A110: owner request, no length limit
             e.Property(x => x.SupportTimeZone).HasMaxLength(64);
             e.Property(x => x.Coverage).HasMaxLength(2000);
-            e.Property(x => x.Obligations).HasMaxLength(4000);
+            e.Property(x => x.Obligations).HasColumnType("nvarchar(max)"); // A110: owner request, no length limit
             e.Ignore(x => x.ScopeClientId);
             e.Ignore(x => x.NoticeDeadline);
             e.HasIndex(x => new { x.Status, x.EndDate });

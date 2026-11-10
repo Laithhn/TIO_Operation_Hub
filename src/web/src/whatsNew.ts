@@ -3,7 +3,12 @@ export const WHATS_NEW: { version: string; date: string; changes: string[] }[] =
   {
     version: '2.60.0', date: '10 November 2026', changes: [
       'The Project dashboard is now the Client dashboard: one recorded status per client, with signals across all its projects.',
-      'The Management dashboard lists clients in its portfolio instead of projects.'
+      'The Management dashboard lists clients in its portfolio instead of projects.',
+      "A client's Tickets tab shows the same table as the Tickets page.",
+      'Servers can record an optional GPU: number, model and memory.',
+      'The contract register shows the client and the contract amount.',
+      'Contract obligations and support notes have no length limit.',
+      "Change a payment's status from the contract page without editing the contract."
     ]
   },
   {

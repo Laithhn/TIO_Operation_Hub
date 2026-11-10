@@ -44,6 +44,11 @@ public class Asset : Entity, IArchivable, IAccountable, IClientOwned
     public CpuUnit? CpuUnit { get; set; }
     public decimal? RamQuantity { get; set; }
     public MemoryUnit? RamUnit { get; set; }
+    /// <summary>A110: optional GPU specification. Null = none recorded (unknown, or the server has no GPU).</summary>
+    public int? GpuCount { get; set; }
+    public string? GpuModel { get; set; }
+    public decimal? GpuMemoryQuantity { get; set; }
+    public MemoryUnit? GpuMemoryUnit { get; set; }
     public string? OsFamily { get; set; }
     public string? OsVersion { get; set; }
     public DateTimeOffset? VerifiedAt { get; set; }

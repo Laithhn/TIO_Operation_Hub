@@ -69,8 +69,8 @@ public static class AudienceDashboardEndpoints
         cg.MapPost("/{id:long}/status-reports", async (long id, StatusReportInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var c = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
-            // Who may record: Projects:Maintain in the client's scope, the people who recorded project statuses in 2.59.0 (A109, owner may revisit).
-            access.RequireMaintain(RightKeys.Projects, c.Id, null);
+            // Who may record: ClientStructure:Maintain in the client's scope (A109, owner decision 10 Nov 2026).
+            access.RequireMaintain(RightKeys.Structure, c.Id, null, c.OwnerUserId, c.CoordinatorUserId);
             var now = clock.GetUtcNow();
             var today = DateOnly.FromDateTime(now.UtcDateTime);
             var check = new Check();

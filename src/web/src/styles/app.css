@@ -855,10 +855,12 @@ a.glance-tile:hover{background:var(--strip);border-color:var(--line-strong)}
 /* What's new */
 .whats-new-link{display:inline-flex;align-items:center;min-height:24px;background:none;border:0;padding:0;font:inherit;color:inherit;text-decoration:underline;cursor:pointer}
 .whats-new-link .dot{display:inline-block;width:7px;height:7px;margin-left:4px;border-radius:50%;background:#fab219;vertical-align:middle}
-.whats-new h3{font-size:var(--fs-md);margin:14px 0 2px}
+/* The dialog opens from the dark footer: set the text colour so it never inherits the footer's white. */
+.whats-new{color:#1d1d1b}
+.whats-new h3{font-size:var(--fs-md);margin:14px 0 2px;color:#1d1d1b}
 .whats-new h3:first-child{margin-top:0}
-.whats-new ul{margin:4px 0 0;padding-left:18px}
-.whats-new li{margin-bottom:3px}
+.whats-new ol{margin:4px 0 0;padding-left:22px;list-style:decimal}
+.whats-new li{margin-bottom:3px;color:#1d1d1b}
 /* Selecting table rows */
 .vt-bulk{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;padding:6px 14px;background:#eef3fb;border-bottom:1px solid var(--line)}
 .vt-bulk b{font-weight:600}

@@ -150,7 +150,7 @@ Apply OptionalOrganizationGraph before deploying the matching application. It cr
 ### Client dashboard (2.60.0)
 
 - The `ClientDashboard` migration adds one table, `clients.ClientStatusReport` (the recorded status history of clients). It renames the right `ProjectDashboard:View` to `ClientDashboard:View`: every role and person exception that held the old right holds the new one, and nobody else gains it. It renames the setting `Dashboard.ProjectStatusMaxAgeDays` to `Dashboard.ClientStatusMaxAgeDays` and keeps its value. It bumps the authorization version, so the change applies at once.
-- `clients.ProjectStatusReport` from 2.59.0 is left in place with any rows in it; the application no longer reads it. Project statuses recorded under 2.59.0 are not converted into client statuses. Dropping the table needs the owner's approval.
+- The `ServerGpuContractText` migration drops `clients.ProjectStatusReport` from 2.59.0 with any rows in it (owner approval, 10 Nov 2026); project statuses are not converted into client statuses. It adds four nullable GPU columns to `inventory.Asset` and changes `contracts.Contract.Obligations` and `SupportHours` to `nvarchar(max)`; no existing value changes. Rolling the application back to 2.59.0 after this migration breaks its Project dashboard (its table is gone); roll back the database too, or stay on 2.60.0.
 - After the upgrade, ask whoever follows each client to record its status (Dashboard → Client → *Update status*). The Management dashboard's *Data trust* panel counts the clients without one.
 
 ## 4. Application (IIS)

@@ -196,7 +196,7 @@ public static class CloneEndpoints
                     NetworkZone = access.Me.SeesTechnical ? a.NetworkZone : null, Notes = access.Me.SeesTechnical ? a.Notes : null, ProjectPhase = a.ProjectPhase, Lifecycle = lifecycle,
                     OwnerUserId = a.OwnerUserId, TechnicalOwnerName = a.TechnicalOwnerName, TechnicalOwnerContact = a.TechnicalOwnerContact, TechnicalOwnerTitle = a.TechnicalOwnerTitle,
                     TechnicalOwnerOrganization = a.TechnicalOwnerOrganization, TechnicalOwnerPhone = a.TechnicalOwnerPhone, TechnicalOwnerMobile = a.TechnicalOwnerMobile, TechnicalOwnerEmail = a.TechnicalOwnerEmail, ResponsibleParty = a.ResponsibleParty, ResponsibleOrganization = a.ResponsibleOrganization, ResponsibleTeamId = a.ResponsibleTeamId,
-                    CoordinatorUserId = a.CoordinatorUserId, CpuQuantity = a.CpuQuantity, CpuUnit = a.CpuUnit, RamQuantity = a.RamQuantity, RamUnit = a.RamUnit,
+                    CoordinatorUserId = a.CoordinatorUserId, CpuQuantity = a.CpuQuantity, CpuUnit = a.CpuUnit, RamQuantity = a.RamQuantity, RamUnit = a.RamUnit, GpuCount = a.GpuCount, GpuModel = a.GpuModel, GpuMemoryQuantity = a.GpuMemoryQuantity, GpuMemoryUnit = a.GpuMemoryUnit,
                     OsFamily = a.OsFamily, OsVersion = a.OsVersion
                 };
                 if (input.IncludeVolumes)

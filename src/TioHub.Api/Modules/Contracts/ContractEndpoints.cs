@@ -100,7 +100,9 @@ public static class ContractEndpoints
             var keys = new Dictionary<string, Expression<Func<Contract, object?>>>
             {
                 ["end"] = c => c.EndDate, ["ref"] = c => c.Id, ["client"] = c => c.Client!.Code, ["title"] = c => c.Title, ["status"] = c => c.Status, ["owner"] = c => c.Owner!.DisplayName,
-                ["project"] = c => c.Project!.Code
+                ["project"] = c => c.Project!.Code,
+                // A110: the contract amount is the total of its fee lines (unit price × quantity, a missing quantity counting as 1).
+                ["amount"] = c => c.Fees.Sum(f => (f.UnitPrice ?? 0) * (f.Quantity ?? 1))
             };
             var paged = await query.SortBy(sort, keys, "end").Select(c => new
             {
@@ -108,7 +110,9 @@ public static class ContractEndpoints
                 c.ProjectId, projectCode = c.Project!.Code, projectName = c.Project.Name,
                 c.StartDate, c.EndDate, c.NoticeDays, c.RenewalTerms, c.SupportModel, c.OnSiteEngineersRequired,
                 owner = c.Owner == null ? null : new UserRef(c.Owner.Id, c.Owner.DisplayName, c.Owner.IsActive),
-                slaTargets = c.SlaTargets.Count
+                slaTargets = c.SlaTargets.Count,
+                c.Currency,
+                amount = c.Fees.Any(f => f.UnitPrice != null) ? c.Fees.Sum(f => (f.UnitPrice ?? 0) * (f.Quantity ?? 1)) : (decimal?)null
             }).ToPagedAsync(PageQuery.From(page, pageSize), ct);
             return Results.Ok(new
             {
@@ -117,7 +121,7 @@ public static class ContractEndpoints
                     var notice = c.EndDate is { } e && c.NoticeDays is { } n ? e.AddDays(-n) : (DateOnly?)null;
                     var state = ContractQuery.State(new Contract { Status = c.Status, EndDate = c.EndDate, NoticeDays = c.NoticeDays }, now);
                     return new { c.Id, c.Ref, c.Title, c.ContractReference, c.Type, c.Status, c.ClientId, c.clientCode, c.clientName, c.ProjectId, c.projectCode, c.projectName, c.StartDate, c.EndDate, noticeDeadline = notice,
-                        c.RenewalTerms, c.SupportModel, c.OnSiteEngineersRequired, c.owner, c.slaTargets, renewalState = state };
+                        c.RenewalTerms, c.SupportModel, c.OnSiteEngineersRequired, c.owner, c.slaTargets, renewalState = state, c.Currency, c.amount };
                 }),
                 paged.Page, paged.PageSize, paged.TotalCount
             });
@@ -344,9 +348,9 @@ public static class ContractEndpoints
             .When(i.StartDate is not null && i.EndDate is not null && i.EndDate < i.StartDate, "endDate", "The end date is before the start date.")
             .When(i.NoticeDays is < 0 or > 730, "noticeDays", "Enter a notice period between 0 and 730 days, or leave it empty if unknown.")
             .When(i.OnSiteEngineersRequired is < 0 or > 500, "onSiteEngineersRequired", "Enter a number between 0 and 500, or leave it empty if unknown.")
-            .Text("supportHours", i.SupportHours, 200, "Support hours")
+            .Text("supportHours", i.SupportHours, int.MaxValue, "Support notes")
             .Text("coverage", i.Coverage, 2000, "Service coverage")
-            .Text("obligations", i.Obligations, 4000, "Service obligations");
+            .Text("obligations", i.Obligations, int.MaxValue, "Service obligations");
         // A34: configured contract type with its built-in category.
         var (typeCode, typeCategory) = await new LookupService(db).TypeAsync<ContractType>(check, "type", LookupLists.ContractType, i.Type, "the contract type", c.Id == 0 ? null : c.Type, ct);
         if (!string.IsNullOrWhiteSpace(i.SupportTimeZone) && Zones.Find(i.SupportTimeZone) is null) check.Add("supportTimeZone", "Select a valid time zone (for example Asia/Riyadh).");

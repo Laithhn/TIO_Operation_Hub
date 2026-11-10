@@ -14,6 +14,13 @@ import { FirewallRulesPanel } from './Firewall';
 import { HistoryPanel, toNum, useClientOptions, useProductOptions, ContactCard, ContactFields, contactFrom, contactOut } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 
+
+/** A110: the optional GPU specification in words: "2 × NVIDIA A100 · 80 GB". */
+export function gpuText(a: { gpuCount?: number | null; gpuModel?: string | null; gpuMemoryQuantity?: number | null; gpuMemoryUnit?: string | null }) {
+  const parts = [a.gpuCount || a.gpuModel ? `${a.gpuCount ? `${a.gpuCount} × ` : ''}${a.gpuModel ?? 'GPU'}` : null, a.gpuMemoryQuantity ? `${a.gpuMemoryQuantity} ${a.gpuMemoryUnit ?? ''}`.trim() : null].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'None recorded';
+}
+
 export function InstallationDialog({ environmentId, clientId, onClose }: { environmentId: number; clientId: number; onClose: () => void }) {
   const ref = useReference().data;
   const f = useForm({ productId: '', moduleId: '', instanceName: '', productVersionId: '', versionEvidence: '', deployedOn: '', supportNotes: '', ownerUserId: null as number | null });
@@ -49,6 +56,7 @@ type AssetDto = {
   id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; ipAddress?: string; vlan?: string; notes?: string; technicalRestricted: boolean;
   environment: { id: number; name: string; clientId: number; clientCode: string; regionId?: number; regionCode?: string }; owner?: UserRef; ownerName?: string; ownerContact?: string; ownerDetails?: { name: string; title?: string; organization?: string; phone?: string; mobile?: string; email?: string }; responsibleParty: string; responsibleOrganization?: string; coordinatorUserId?: number;
   cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; osVersion?: string; verifiedAt?: string;
+  gpuCount?: number | null; gpuModel?: string | null; gpuMemoryQuantity?: number | null; gpuMemoryUnit?: string | null;
   volumes: { id: number; label: string; capacity?: number; unit?: string; purpose?: string; sharedStorageId?: number; sharedStorageName?: string; version: string }[];
   components: { componentId: number; name: string; role: string; installationId: number; installationName: string; productCode: string }[]; version: string;
 };
@@ -174,6 +182,7 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
     // Owner request (20 Oct 2026): the technical owner can be a team member or any named person with contact details.
     ownerKind: (asset?.ownerName ? 'person' : 'member') as 'member' | 'person', ownerPerson: contactFrom(asset?.ownerDetails ?? (asset?.ownerName ? { name: asset.ownerName } : null)), ownerContact: asset?.ownerContact ?? '',
     cpuQuantity: asset?.cpuQuantity?.toString() ?? '', cpuUnit: asset?.cpuUnit ?? '', ramQuantity: asset?.ramQuantity?.toString() ?? '', ramUnit: asset?.ramUnit ?? '', osFamily: asset?.osFamily ?? '', osVersion: asset?.osVersion ?? '',
+    gpuCount: asset?.gpuCount?.toString() ?? '', gpuModel: asset?.gpuModel ?? '', gpuMemoryQuantity: asset?.gpuMemoryQuantity?.toString() ?? '', gpuMemoryUnit: asset?.gpuMemoryUnit ?? '',
     ipAddress: asset?.ipAddress ?? '', vlan: asset?.vlan ?? '', notes: asset?.notes ?? ''
   });
   const person = f.values.ownerKind === 'person';
@@ -189,6 +198,7 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
       ownerUserId: person ? null : v.ownerUserId, owner: person ? contactOut(v.ownerPerson) : null, ownerContact: person ? v.ownerContact || null : null,
       responsibleParty: v.responsibleParty, coordinatorUserId: hasOwner ? null : v.coordinatorUserId, cpuQuantity: v.cpuQuantity === '' ? null : Number(v.cpuQuantity), cpuUnit: v.cpuUnit || null,
       ramQuantity: v.ramQuantity === '' ? null : Number(v.ramQuantity), ramUnit: v.ramUnit || null, osFamily: v.osFamily || null, osVersion: v.osVersion || null,
+      gpuCount: v.gpuCount === '' ? null : Number(v.gpuCount), gpuModel: v.gpuModel || null, gpuMemoryQuantity: v.gpuMemoryQuantity === '' ? null : Number(v.gpuMemoryQuantity), gpuMemoryUnit: v.gpuMemoryUnit || null,
       microservices: logical ? null : hostedMs.payload() };
     const ok = await f.submit(() => (asset ? put(`/assets/${asset.id}`, body, asset.version) : post('/assets', body)).then(() => true));
     if (ok) { toast('Server saved.'); refresh(); onClose(); }
@@ -219,6 +229,10 @@ export function AssetDialog({ environmentId, clientId, asset, onClose }: { envir
             units={[{ value: 'vCPU', label: 'vCPU' }, { value: 'PhysicalCore', label: 'Physical cores' }]} error={f.fieldError('cpuQuantity') ?? f.fieldError('cpuUnit')} />
           <QuantityInput label="RAM" value={f.values.ramQuantity} onChange={v => f.set('ramQuantity', v)} unit={f.values.ramUnit} onUnit={v => f.set('ramUnit', v)}
             units={[{ value: 'GB', label: 'GB' }, { value: 'GiB', label: 'GiB' }]} error={f.fieldError('ramQuantity') ?? f.fieldError('ramUnit')} />
+          <TextInput label="GPUs (optional)" type="number" value={f.values.gpuCount} onChange={v => f.set('gpuCount', v)} error={f.fieldError('gpuCount')} placeholder="None recorded" hint="Number of GPUs; leave empty when the server has none or it is not known." />
+          <TextInput label="GPU model (optional)" value={f.values.gpuModel} onChange={v => f.set('gpuModel', v)} error={f.fieldError('gpuModel')} maxLength={200} placeholder="e.g. NVIDIA A100" />
+          <QuantityInput label="GPU memory (optional)" value={f.values.gpuMemoryQuantity} onChange={v => f.set('gpuMemoryQuantity', v)} unit={f.values.gpuMemoryUnit} onUnit={v => f.set('gpuMemoryUnit', v)}
+            units={[{ value: 'GB', label: 'GB' }, { value: 'GiB', label: 'GiB' }]} error={f.fieldError('gpuMemoryQuantity') ?? f.fieldError('gpuMemoryUnit')} />
           <SelectInput label="OS family" value={f.values.osFamily} onChange={v => f.set('osFamily', v)} options={osf.map(r => ({ value: r.code, label: r.label }))} empty="Unknown" />
           <TextInput label="OS version" value={f.values.osVersion} onChange={v => f.set('osVersion', v)} placeholder="e.g. 2022" />
         </FormSection>
@@ -444,6 +458,7 @@ export function AssetDetail() {
         <Panel title="Recorded specification">
           <DL items={[
             ['CPU', T.category('AssetType', a.type) === 'LogicalEndpoint' ? 'Not applicable (logical endpoint)' : qty(a.cpuQuantity, a.cpuUnit)], ['RAM', T.category('AssetType', a.type) === 'LogicalEndpoint' ? 'Not applicable' : qty(a.ramQuantity, a.ramUnit)],
+            ['GPU', T.category('AssetType', a.type) === 'LogicalEndpoint' ? 'Not applicable' : gpuText(a)],
             ['OS', a.osFamily ? `${a.osFamily} ${a.osVersion ?? ''}` : null], ['Network zone', a.technicalRestricted ? <span className="muted">Restricted (Technical detail)</span> : a.networkZone ?? 'Unknown'],
             ...(a.technicalRestricted ? [] : [['IP address', a.ipAddress ?? 'Unknown'], ['VLAN', a.vlan ?? 'Unknown']] as [string, string][]),
             ['Project phase', a.projectPhase], ['Technical owner', a.ownerName ? a.ownerName : <Person u={a.owner} gap="No owner (gap)" />], ['Last verified', <When v={a.verifiedAt} />]
@@ -507,7 +522,7 @@ function VolumeDialog({ assetId, clientId, onClose }: { assetId: number; clientI
   );
 }
 
-type AssetRow = { ownerName?: string; id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; networkZoneRestricted: boolean; ipAddress?: string; environmentId: number; environmentName: string; clientId: number; clientCode: string; regionCode?: string; cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; osFamily?: string; verifiedAt?: string; owner?: UserRef; componentCount: number; volumeCount: number; placeholderFlag: boolean };
+type AssetRow = { ownerName?: string; id: number; name: string; type: string; role?: string; projectPhase?: string; lifecycle: string; networkZone?: string; networkZoneRestricted: boolean; ipAddress?: string; environmentId: number; environmentName: string; clientId: number; clientCode: string; regionCode?: string; cpuQuantity?: number; cpuUnit?: string; ramQuantity?: number; ramUnit?: string; gpuCount?: number | null; gpuModel?: string | null; gpuMemoryQuantity?: number | null; gpuMemoryUnit?: string | null; osFamily?: string; verifiedAt?: string; owner?: UserRef; componentCount: number; volumeCount: number; placeholderFlag: boolean };
 
 export function AssetList() {
   const T = useTypes();
@@ -545,6 +560,7 @@ export function AssetList() {
           { key: 'ip', header: 'IP address', render: r => r.ipAddress },
           { key: 'cpu', header: 'CPU', render: r => T.category('AssetType', r.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : qty(r.cpuQuantity, r.cpuUnit) },
           { key: 'ram', header: 'RAM', render: r => T.category('AssetType', r.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : qty(r.ramQuantity, r.ramUnit) },
+          { key: 'gpu', header: 'GPU', defaultHidden: true, render: r => T.category('AssetType', r.type) === 'LogicalEndpoint' ? <span className="muted">n/a</span> : gpuText(r) },
           { key: 'comp', header: 'Components', className: 'num', render: r => r.componentCount },
           { key: 'flag', header: 'Flags', render: r => <>{!r.verifiedAt && <Badge tone="neutral">Unverified</Badge>}</> },
           { key: 'owner', header: 'Owner', render: r => r.ownerName ?? <Person u={r.owner} gap="No owner" /> }, { key: 'del', header: '', className: 'row-actions', render: r => <DeleteAction path={`/assets/${r.id}`} what={`server ${r.name}`} /> }

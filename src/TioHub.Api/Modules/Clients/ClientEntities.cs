@@ -107,23 +107,6 @@ public class ClientStatusReport
     public DateTimeOffset RecordedAt { get; set; }
 }
 
-/// <summary>
-/// A108, retired by A109: the project statuses 2.59.0 recorded. Nothing reads or writes them any more; the table is kept so that
-/// reports already recorded are not lost (removing it is an owner decision) and still mapped so that deleting a project removes them with it.
-/// </summary>
-public class ProjectStatusReport
-{
-    public long Id { get; set; }
-    public long ProjectId { get; set; }
-    public long ClientId { get; set; }
-    public ReportedStatus Status { get; set; }
-    public string Summary { get; set; } = "";
-    public DateOnly? NextReviewOn { get; set; }
-    public long? RecordedById { get; set; }
-    public User? RecordedBy { get; set; }
-    public DateTimeOffset RecordedAt { get; set; }
-}
-
 public class ProjectProduct
 {
     public long ProjectId { get; set; }

@@ -7,7 +7,7 @@ export function WhatsNewDialog({ version, onClose }: { version: string; onClose:
       <div className="whats-new">
         {WHATS_NEW.map(r => <section key={r.version} aria-label={`Version ${r.version}`}>
           <h3>Version {r.version}{r.version === version && ' · running now'} <small className="hint">{r.date}</small></h3>
-          <ul>{r.changes.map(c => <li key={c}>{c}</li>)}</ul>
+          <ol>{r.changes.map(c => <li key={c}>{c}</li>)}</ol>
         </section>)}
       </div>
     </Dialog>

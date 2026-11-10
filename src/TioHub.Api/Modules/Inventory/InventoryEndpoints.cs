@@ -15,7 +15,8 @@ public static class InventoryEndpoints
         long? OwnerUserId, ResponsibleParty? ResponsibleParty, string? ResponsibleOrganization, long? ResponsibleTeamId, long? CoordinatorUserId,
         decimal? CpuQuantity, CpuUnit? CpuUnit, decimal? RamQuantity, MemoryUnit? RamUnit, string? OsFamily, string? OsVersion,
         List<Deployment.Selection>? Microservices = null, string? OwnerName = null, string? OwnerContact = null, ContactDetailsInput? Owner = null,
-        string? IpAddress = null, string? Vlan = null, string? Notes = null);
+        string? IpAddress = null, string? Vlan = null, string? Notes = null,
+        int? GpuCount = null, string? GpuModel = null, decimal? GpuMemoryQuantity = null, MemoryUnit? GpuMemoryUnit = null);
     public sealed record HostedMicroservicesInput(List<Deployment.Selection>? Microservices);
     public sealed record VolumeInput(string? Label, decimal? Capacity, StorageUnit? Unit, string? Purpose, long? SharedStorageId);
     public sealed record ComponentInput(long? InstallationId, string? Name, string? Role, string? ComponentVersion, long? OwnerUserId,
@@ -36,7 +37,7 @@ public static class InventoryEndpoints
             {
                 a.Id, a.Name, a.Type, a.Role, a.ProjectPhase, a.Lifecycle, networkZone = tech ? a.NetworkZone : null, networkZoneRestricted = !tech && a.NetworkZone != null, ipAddress = tech ? a.IpAddress : null,
                 a.EnvironmentId, environmentName = a.Environment!.Name, a.ClientId, clientCode = a.Environment.Client!.Code, regionCode = a.Environment.Region == null ? null : a.Environment.Region.Code,
-                a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
+                a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.GpuCount, a.GpuModel, a.GpuMemoryQuantity, a.GpuMemoryUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
                 owner = a.Owner == null ? null : new UserRef(a.Owner.Id, a.Owner.DisplayName, a.Owner.IsActive),
                 ownerName = a.TechnicalOwnerName,
                 componentCount = a.Hosts.Count, volumeCount = a.Volumes.Count(v => v.ArchivedAt == null)
@@ -67,7 +68,7 @@ public static class InventoryEndpoints
                 ownerDetails = a.TechnicalOwnerName == null ? null : new { name = a.TechnicalOwnerName, title = a.TechnicalOwnerTitle, organization = a.TechnicalOwnerOrganization,
                     phone = a.TechnicalOwnerPhone, mobile = a.TechnicalOwnerMobile, email = a.TechnicalOwnerEmail },
                 a.ResponsibleParty, a.ResponsibleOrganization, a.ResponsibleTeamId, a.CoordinatorUserId,
-                a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
+                a.CpuQuantity, a.CpuUnit, a.RamQuantity, a.RamUnit, a.GpuCount, a.GpuModel, a.GpuMemoryQuantity, a.GpuMemoryUnit, a.OsFamily, a.OsVersion, a.VerifiedAt,
                 volumes, components, firewallRules, a.CreatedAt, a.UpdatedAt
             });
         });
@@ -396,6 +397,13 @@ public static class InventoryEndpoints
         CheckQuantity(check, "ramQuantity", i.RamQuantity, i.RamUnit, "ramUnit");
         if (typeCode != "" && typeCategory == AssetType.LogicalEndpoint && (i.CpuQuantity is not null || i.RamQuantity is not null))
             check.Add("cpuQuantity", "A logical endpoint (for example a listener) has no own CPU or RAM; record capacity on its hosting servers.");
+        // A110: GPU is optional. A count is a whole positive number; memory is a quantity with its unit, like RAM.
+        if (i.GpuCount is not null && i.GpuCount <= 0) check.Add("gpuCount", "Enter a positive number of GPUs, or leave it empty.");
+        if (i.GpuCount is > 64) check.Add("gpuCount", "Enter at most 64 GPUs.");
+        check.Text("gpuModel", i.GpuModel, 200, "GPU model");
+        CheckQuantity(check, "gpuMemoryQuantity", i.GpuMemoryQuantity, i.GpuMemoryUnit, "gpuMemoryUnit");
+        if (typeCode != "" && typeCategory == AssetType.LogicalEndpoint && (i.GpuCount is not null || Text.Clean(i.GpuModel) is not null || i.GpuMemoryQuantity is not null))
+            check.Add("gpuCount", "A logical endpoint has no own GPU; record it on its hosting servers.");
         var party = i.ResponsibleParty ?? ResponsibleParty.TIO;
         // A team member, or a named person with contact details (not both).
         // A36: structured details (Owner) take precedence over the older OwnerName / OwnerContact fields.
@@ -440,6 +448,10 @@ public static class InventoryEndpoints
         a.CpuUnit = i.CpuQuantity is null ? null : i.CpuUnit;
         a.RamQuantity = i.RamQuantity;
         a.RamUnit = i.RamQuantity is null ? null : i.RamUnit;
+        a.GpuCount = i.GpuCount;
+        a.GpuModel = Text.Clean(i.GpuModel);
+        a.GpuMemoryQuantity = i.GpuMemoryQuantity;
+        a.GpuMemoryUnit = i.GpuMemoryQuantity is null ? null : i.GpuMemoryUnit;
         a.OsFamily = Text.Clean(i.OsFamily);
         a.OsVersion = Text.Clean(i.OsVersion);
     }

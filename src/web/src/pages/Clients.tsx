@@ -18,6 +18,7 @@ import { ClientDisplay, ClientLogo, logoProblem, type LogoRules } from '../ui/Cl
 import { MyNotesPanel } from './Notes';
 import { ClientContracts } from './Contracts';
 import { EscalationTable } from './Escalations';
+import { ClientTickets } from './ticket/TicketTable';
 import { InitialOrganizationStructure, OrganizationStructure, type InitialRelationshipDraft } from './OrganizationStructure';
 
 type ClientRow = {
@@ -469,9 +470,9 @@ export function ClientDetail() {
           )}
         </>)}
         {activeTab === 'contracts' && <ClientContracts clientId={Number(id)} canCreate={canContractCreate && full} />}
-        {o && activeTab === 'cases' && (
-          <Panel title={`Open tickets (${o.cases.length})`} actions={<Link className="btn" to={`/cases?clientId=${id}`}>Open list</Link>}>
-            {o.cases.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.cases.map(k => <li key={k.id}><Link to={`/cases/${k.id}`}>{k.ref}</Link> {k.title} <StatusBadge value={k.status} enumName="CaseStatus" /> {k.overdue && <Badge tone="bad">Overdue</Badge>}{k.waitingReason && <Badge tone="warn">Waiting: {label(k.waitingReason)}</Badge>}<div className="when">{k.owner} · next: {k.nextAction}</div></li>)}</ul>}
+        {activeTab === 'cases' && (
+          <Panel title="Tickets" pad={false} actions={<Link className="btn" to={`/cases?clientId=${id}`}>Open in Tickets</Link>}>
+            <ClientTickets clientId={Number(id)} />
           </Panel>
         )}
         {activeTab === 'escalations' && <Panel title="Escalations" pad={false} actions={canOtherCreate && <Link className="btn" to={`/escalations/new?clientId=${id}`}>+ Escalation</Link>}><EscalationTable clientId={Number(id)} compact /></Panel>}
