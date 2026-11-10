@@ -48,6 +48,13 @@ Schema changes in later releases: developers add an EF Core migration and regene
 - `Reporting:MaxRows` (default 100 000) limits one export; `Reporting:SchedulerMinutes` (default 1, `0` = off) is how often due schedules run and expired files are removed. Scheduler failures are logged and retried at the next interval.
 - The `ReportingCenter` migration only adds the `reporting` schema (export jobs, schedules, recipients, presets). The application identity needs read/write there like on the other schemas; `02-app-login.sql` grants database-wide read/write, so nothing changes for the DBA.
 
+### Audience dashboards and project status reports (2.30.0)
+
+- The `ProjectStatusReports` migration only adds one table, `clients.ProjectStatusReport` (the recorded status history of projects). No existing table or row is changed; projects start without a recorded status and show *Not recorded* until someone records one. Rolling back to 2.29.0 application files is safe with the new table in place (the old version ignores it).
+- Three settings are added at the first start (Administration → Settings): `Dashboard.SlaAtRiskPercent` (25), `Dashboard.SlaComplianceTargetPercent` (90) and `Dashboard.ProjectStatusMaxAgeDays` (14). They only change what the dashboards flag; no stored result depends on them.
+- The dashboards read through the same scope filters as every list and add no background job. The Operational dashboard refreshes itself every 60 seconds while it is open (one request per open page).
+- After the upgrade, ask project managers to record a status for their running projects (Dashboard → Project → *Update status*); the Management dashboard's *Data trust* panel counts the projects without one.
+
 ## 4. Application (IIS)
 
 1. Unzip the release into e.g. `D:\Apps\TioHub\app`. Create an IIS site bound to HTTPS only, app pool “No Managed Code”, identity = the gMSA.

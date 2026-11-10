@@ -6288,3 +6288,52 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110073311_ProjectStatusReports'
+)
+BEGIN
+    CREATE TABLE [clients].[ProjectStatusReport] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ProjectId] bigint NOT NULL,
+        [ClientId] bigint NOT NULL,
+        [Status] nvarchar(40) NOT NULL,
+        [Summary] nvarchar(1000) NOT NULL,
+        [NextReviewOn] date NULL,
+        [RecordedById] bigint NULL,
+        [RecordedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_ProjectStatusReport] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ProjectStatusReport_Project_ProjectId] FOREIGN KEY ([ProjectId]) REFERENCES [clients].[Project] ([Id]),
+        CONSTRAINT [FK_ProjectStatusReport_User_RecordedById] FOREIGN KEY ([RecordedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110073311_ProjectStatusReports'
+)
+BEGIN
+    CREATE INDEX [IX_ProjectStatusReport_ProjectId_RecordedAt] ON [clients].[ProjectStatusReport] ([ProjectId], [RecordedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110073311_ProjectStatusReports'
+)
+BEGIN
+    CREATE INDEX [IX_ProjectStatusReport_RecordedById] ON [clients].[ProjectStatusReport] ([RecordedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110073311_ProjectStatusReports'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261110073311_ProjectStatusReports', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

@@ -71,12 +71,12 @@ function Meter({ value, tone, label }: { value: number; tone?: 'critical' | 'war
 
 function SignalBadge({ state }: { state: string }) {
   const s = SIGNAL[state] ?? SIGNAL.Unknown;
-  return <Badge tone={s.tone}>{s.glyph} {s.label}</Badge>;
+  return <Badge tone={s.tone}>{s.label}</Badge>;
 }
 function StatusWords({ status }: { status?: string | null }) {
-  if (!status) return <Badge tone="neutral">○ No status recorded</Badge>;
+  if (!status) return <Badge tone="neutral">No status recorded</Badge>;
   const s = STATUS_WORDS[status];
-  return <Badge tone={s.tone}>{s.glyph} {s.label}</Badge>;
+  return <Badge tone={s.tone}>{s.label}</Badge>;
 }
 
 function Delta({ value, unit, goodWhen, digits = 1 }: { value?: number | null; unit: string; goodWhen: 'up' | 'down'; digits?: number }) {
@@ -160,7 +160,7 @@ export function OperationalDashboard() {
           <Link className="btn btn-primary" to="/cases/new">+ New case</Link>
         </>} />
       <div className="toolbar dash-filters">
-        <div className="field cc-view">
+        <div className="field cc-view ad-view">
           <span className="flabel">Show</span>
           <div className="seg" role="group" aria-label="Show">
             <button aria-pressed={f.view === 'mine'} onClick={() => set({ view: 'mine' })}>My work</button>
@@ -177,7 +177,7 @@ export function OperationalDashboard() {
       {q.error && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       {d && k && <>
         <div className="kpis cc-kpis">
-          <Kpi hero icon={<Icon name="case" size={18} />} label={f.view === 'mine' ? 'My open cases' : 'Open cases'} value={k.openCases.value} to={k.openCases.link}
+          <Kpi icon={<Icon name="case" size={18} />} label={f.view === 'mine' ? 'My open cases' : 'Open cases'} value={k.openCases.value} to={k.openCases.link}
             context={<>{k.openCases.criticalHigh} critical or high{f.view !== 'mine' ? ` · ${k.openCases.mine} mine` : ''}</>} />
           <Kpi icon={<Icon name="users" size={18} />} label="Unassigned critical / high" value={k.unassigned.value} to={k.unassigned.link} tone={k.unassigned.value ? 'critical' : undefined}
             partLabel={k.unassigned.value && k.unassigned.oldestMinutes != null ? `Oldest waiting ${span(k.unassigned.oldestMinutes)}` : 'None waiting for an owner'} />
@@ -417,7 +417,7 @@ export function SlaContractsDashboard() {
       {q.error && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       {d && c && <>
         <div className="kpis cc-kpis">
-          <Kpi hero icon={<Icon name="matrix" size={18} />} label="Response compliance" value={pctText(c.response.rate)} to={c.links.all}
+          <Kpi icon={<Icon name="matrix" size={18} />} label="Response compliance" value={pctText(c.response.rate)} to={c.links.all}
             context={<>{c.response.met} met · {c.response.breached} breached · objective {d.target} %</>} />
           <Kpi icon={<Icon name="matrix" size={18} />} label="Resolution compliance" value={pctText(c.resolution.rate)} to={c.links.all}
             tone={c.resolution.rate !== null && c.resolution.rate < d.target - 10 ? 'critical' : c.resolution.rate !== null && c.resolution.rate < d.target ? 'warning' : undefined}
@@ -428,7 +428,7 @@ export function SlaContractsDashboard() {
           <Kpi icon={<Icon name="commitment" size={18} />} label="Clocks at risk now" value={c.atRiskNow} to={c.links.atRisk} tone={c.breachedNow ? 'critical' : c.atRiskNow ? 'warning' : undefined}
             partLabel={`${d.atRiskPercent} % of the target or less is left`} context={<>{c.runningNow} running{c.breachedNow ? ` · ${c.breachedNow} already breached` : ''}</>} />
           <Kpi icon={<Icon name="quality" size={18} />} label="Not measurable" value={c.notMeasurable} tone={c.notMeasurable ? 'warning' : undefined}
-            context={c.notMeasurable ? `of ${c.cases} case(s) — see the reasons below` : `All ${c.cases} case(s) are measurable`} />
+            context={c.notMeasurable ? `of ${c.cases} case(s) — see the reasons below` : c.cases ? `All ${c.cases} case(s) are measurable` : 'No case with a contract in the period'} />
           <Kpi icon={<Icon name="list" size={18} />} label="Active contracts" value={d.contracts.active} to="/contracts?status=Active"
             part={d.contracts.withTargets} of={d.contracts.active} partLabel={`${d.contracts.withTargets} with SLA targets`} context={d.contracts.draft ? `${d.contracts.draft} draft, not signed` : 'No draft'} />
           <Kpi icon={<Icon name="bell" size={18} />} label="Renewal decisions due" value={d.contracts.noticeWithin90} to="/contracts?renewal=due" tone={d.contracts.noticeWithin90 ? 'warning' : undefined}
@@ -483,8 +483,8 @@ export function SlaContractsDashboard() {
                       <td><Link to={`/contracts/${w.id}`}>{w.ref}</Link> {w.client}<div className="hint">{w.owner ?? 'No owner'}</div></td>
                       <td className="nowrap">{w.decideBy ? fmtDate(w.decideBy) : <span className="muted">Unknown</span>}</td>
                       <td>{w.daysLeft == null ? <Badge tone="neutral">End date unknown</Badge>
-                        : w.daysLeft < 0 ? <Badge tone="bad">▲ {-w.daysLeft} day(s) ago</Badge>
-                        : <Badge tone={w.daysLeft <= 30 ? 'bad' : 'warn'}>{w.daysLeft <= 30 ? '▲' : '●'} {w.daysLeft} day(s)</Badge>}</td>
+                        : w.daysLeft < 0 ? <Badge tone="bad">{-w.daysLeft} day(s) ago</Badge>
+                        : <Badge tone={w.daysLeft <= 30 ? 'bad' : 'warn'}>{w.daysLeft} day(s)</Badge>}</td>
                     </tr>
                   ))}
                 </tbody></table>
@@ -597,7 +597,7 @@ export function ManagementDashboard() {
       {q.error && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       {d && k && t && <>
         <div className="kpis cc-kpis">
-          <Kpi hero icon={<Icon name="project" size={18} />} label="Running projects" value={k.projects.total} to="/projects"
+          <Kpi icon={<Icon name="project" size={18} />} label="Running projects" value={k.projects.total} to="/projects"
             context={<>{k.projects.offTrack} off track · {k.projects.atRisk} at risk · {k.projects.noStatus} without a status</>} />
           <Kpi icon={<Icon name="case" size={18} />} label="Open case backlog" value={k.backlog.value} to="/cases?status=open" tone={k.backlog.change > 0 ? 'warning' : undefined}
             partLabel={`${k.backlog.atPeriodStart} at the start of the period`}
@@ -864,7 +864,7 @@ export function ProjectDashboard() {
               {d.sla.openBreached > 0 && <p className="t-bad"><b>▲ {d.sla.openBreached} open case(s) have breached a target.</b></p>}
               <h3 className="ad-sub">Active escalations</h3>
               {d.escalations.length === 0 ? <p className="hint">None.</p> : (
-                <ul className="ad-list">{d.escalations.map(e => <li key={e.id}><Link to={`/escalations/${e.id}`}>{e.ref}</Link> · level {e.level} · {e.title} <span className="muted">· {e.owner}</span>{e.overdue && <> <Badge tone="bad">▲ past a target</Badge></>}</li>)}</ul>
+                <ul className="ad-list">{d.escalations.map(e => <li key={e.id}><Link to={`/escalations/${e.id}`}>{e.ref}</Link> · level {e.level} · {e.title} <span className="muted">· {e.owner}</span>{e.overdue && <> <Badge tone="bad">Past a target</Badge></>}</li>)}</ul>
               )}
             </Card>
             <Card title="Open commitments" sub="Commitments linked to this project, the earliest first.">
