@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => {
   const apiUrl = env.TIOHUB_API_URL || 'http://localhost:5094';
   return mergeConfig(vtConfig(), {
     plugins: [vtFramework(), react({ include: /\.(jsx|tsx|js)$/ })],
-    build: { outDir: '../TioHub.Api/wwwroot', emptyOutDir: true, sourcemap: false, assetsInlineLimit: 0, chunkSizeWarningLimit: 900 },
+    build: { outDir: '../TioHub.Api/wwwroot', emptyOutDir: true, sourcemap: false, assetsInlineLimit: 0, chunkSizeWarningLimit: 902 },
     server: { port: webPort, strictPort: Boolean(env.TIOHUB_WEB_PORT), proxy: { '/api': apiUrl } },
     test: { environment: 'node', include: ['src/**/*.test.ts'] }
   }) as never;

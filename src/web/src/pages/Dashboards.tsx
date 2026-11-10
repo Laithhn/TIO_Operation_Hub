@@ -1,10 +1,10 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { Link, Navigate, Route, Routes, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
 import { useMe, useUrlState } from '../hooks';
-import { canExport } from '../rights';
+import { audienceDashboards, canExport, hasRight } from '../rights';
 import { HBars, Kpi as BaseKpi, RAMP, RateLines, SERIES, STATUS, TrendLines, VizPanel, type KpiStatus } from '../ui/charts';
 import { Icon } from '../ui/Icon';
 import { ActionDialog } from '../ui/pickers';
@@ -929,5 +929,24 @@ export function ProjectDashboard() {
           ]} />}
       </>}
     </div>
+  );
+}
+
+/** A108: /dashboards opens the first dashboard the person may use; the four dashboards are routed here, each behind its own right. */
+function DashboardsHome() {
+  const me = useMe().data!;
+  const first = audienceDashboards.find(d => hasRight(me, d[3], 'View'));
+  return first ? <Navigate to={`/dashboards/${first[0]}`} replace /> : <Navigate to="/" replace />;
+}
+
+export function Dashboards() {
+  return (
+    <Routes>
+      <Route index element={<DashboardsHome />} />
+      <Route path="operational" element={<OperationalDashboard />} />
+      <Route path="sla" element={<SlaContractsDashboard />} />
+      <Route path="management" element={<ManagementDashboard />} />
+      <Route path="project" element={<ProjectDashboard />} />
+    </Routes>
   );
 }

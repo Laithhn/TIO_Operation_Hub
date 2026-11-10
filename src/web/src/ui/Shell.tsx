@@ -1,4 +1,4 @@
-import { canAccessPath, hasRight, hasAnyAction, canExport, canAudit, seesTechnical, isAdministrator, hasAccess } from '../rights';
+import { canAccessPath, hasRight, hasAnyAction, canExport, canAudit, seesTechnical, isAdministrator, hasAccess , audienceDashboards } from '../rights';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { signOut } from '../api';
@@ -32,10 +32,7 @@ const SECTIONS: Section[] = [
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true, show: m => hasRight(m, 'ClientStructure', 'Coordinate') || !hasRight(m, 'MyDashboard', 'View') },
     { to: '/overview', label: 'Executive overview', icon: 'dashboard', show: m => !hasRight(m, 'ClientStructure', 'Coordinate') && hasRight(m, 'MyDashboard', 'View') },
     // A108: one dashboard per audience and question; each has its own right.
-    { to: '/dashboards/operational', label: 'Operational', icon: 'case', show: m => hasRight(m, 'OperationalDashboard', 'View') },
-    { to: '/dashboards/sla', label: 'SLA & Contracts', icon: 'matrix', show: m => hasRight(m, 'SlaContractsDashboard', 'View') },
-    { to: '/dashboards/management', label: 'Management', icon: 'team', show: m => hasRight(m, 'ManagementDashboard', 'View') },
-    { to: '/dashboards/project', label: 'Project', icon: 'project', show: m => hasRight(m, 'ProjectDashboard', 'View') },
+    ...audienceDashboards.map(([to, label, icon, right]) => ({ to: `/dashboards/${to}`, label, icon, show: (m: Me) => hasRight(m, right, 'View') })),
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
     { to: '/notifications', label: 'Notifications', icon: 'bell' },

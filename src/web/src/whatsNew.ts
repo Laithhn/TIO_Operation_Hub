@@ -2,11 +2,8 @@
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
     version: '2.59.0', date: '10 November 2026', changes: [
-      'Four new dashboards under Dashboard, one per question. Operational shows what to act on today, with live SLA clocks. SLA & Contracts shows measured compliance, why tickets cannot be measured, and the contract lifecycle.',
-      'Management compares this period with the last one and lists every running project. Project answers "what is the status of this project?" with the status the project manager recorded and seven signals worked out from the records.',
-      'A project manager records a status (On track, At risk or Off track) with a reason from the Project dashboard. The history is kept, and the page says when the signals disagree with the status or the status is old.',
-      'Missing data shows as Unknown, never as On track. A rate with nothing measured reads Not available.',
-      'Each new dashboard is a right on Administration → Rights; roles that could open the Executive overview keep access to all four. Three settings (SLA at-risk share, compliance objective, status age) are under Settings.'
+      'Four dashboards under Dashboard: Operational (what to act on today), SLA & Contracts, Management and Project.',
+      'On a project, record a status with a reason. The page shows signals from the records and says when they disagree.'
     ]
   },
   {
