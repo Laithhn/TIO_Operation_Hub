@@ -279,7 +279,7 @@ Each right's prerequisites apply too. All record operations also enforce data sc
 | `OperationalDashboard:View` | Operational dashboard | View | Access | Normal | `Dashboard:View` |
 | `SlaContractsDashboard:View` | SLA & Contracts dashboard | View | Access | Normal | `Dashboard:View` |
 | `ManagementDashboard:View` | Management dashboard | View | Access | Normal | `Dashboard:View` |
-| `ProjectDashboard:View` | Project dashboard | View | Access | Normal | `Dashboard:View` |
+| `ClientDashboard:View` | Client dashboard | View | Access | Normal | `Dashboard:View` |
 
 ### Reporting Center
 
@@ -476,6 +476,8 @@ Each right's prerequisites apply too. All record operations also enforce data sc
 | `GET /clients/{id:long}/overview` | Dynamic: ClientTab |  | `Cases:View`, `ClientStructure:View`, `Environments:View`, `Installations:View`, `Products:View`, `Projects:View`, `Servers:View` |  |
 | `GET /clients/{id:long}/regions` | Rights | `ClientStructure:View`, `tab.ClientStructure.structure:View` | `Environments:View` |  |
 | `POST /clients/{id:long}/regions` | Rights | `tab.ClientStructure.structure:Create` | `ClientStructure:Create` |  |
+| `GET /clients/{id:long}/status-reports` | Rights | `ClientDashboard:View` |  |  |
+| `POST /clients/{id:long}/status-reports` | Handler |  | `Projects:Maintain` |  |
 | `GET /commitments` | Rights | `Commitments:View` |  |  |
 | `POST /commitments` | Handler |  | `Commitments:Coordinate`, `Commitments:Create` |  |
 | `DELETE /commitments/{id:long}` | Handler |  | `Commitments:Delete` |  |
@@ -504,13 +506,13 @@ Each right's prerequisites apply too. All record operations also enforce data sc
 | `POST /contracts/{id:long}/penalty-assessments/{assessmentId:long}/confirm` | Handler |  | `Contracts:Coordinate` |  |
 | `GET /dashboard` | Rights | `Cases:View`, `ClientStructure:View`, `Commitments:View`, `Contracts:View`, `Dashboard:View`, `Environments:View`, `Installations:View`, `OtherOperations:View`, `Products:View`, `Projects:View`, `Servers:View`, `Teams:View` |  |  |
 | `GET /dashboard/actions` | Rights | `ActionList:View`, `Cases:View`, `ClientStructure:View`, `Commitments:View`, `Contracts:View`, `Dashboard:View`, `Environments:View`, `Installations:View`, `OtherOperations:View`, `Products:View`, `Projects:View`, `Servers:View`, `Teams:View` |  |  |
+| `GET /dashboard/clients` | Rights | `ClientDashboard:View` |  |  |
+| `GET /dashboard/clients/{id:long}` | Rights | `ClientDashboard:View` | `Projects:Maintain` |  |
 | `GET /dashboard/command-center` | Rights | `Cases:View`, `ClientStructure:View`, `Commitments:View`, `Contracts:View`, `Dashboard:View`, `Environments:View`, `Installations:View`, `OtherOperations:View`, `Products:View`, `Projects:View`, `Servers:View`, `Teams:View` |  |  |
 | `GET /dashboard/insights` | Rights | `Cases:View`, `ClientStructure:View`, `Commitments:View`, `Contracts:View`, `Dashboard:View`, `Environments:View`, `Installations:View`, `OtherOperations:View`, `Products:View`, `Projects:View`, `Servers:View`, `Teams:View` |  |  |
 | `GET /dashboard/management` | Rights | `ManagementDashboard:View` |  |  |
 | `GET /dashboard/me` | Rights | `MyDashboard:View` |  |  |
 | `GET /dashboard/operational` | Rights | `OperationalDashboard:View` |  |  |
-| `GET /dashboard/projects` | Rights | `ProjectDashboard:View` |  |  |
-| `GET /dashboard/projects/{id:long}` | Rights | `ProjectDashboard:View` | `Projects:Maintain` |  |
 | `GET /dashboard/sla-contracts` | Rights | `SlaContractsDashboard:View` |  |  |
 | `GET /data-quality` | Rights | `Cases:View`, `ClientStructure:View`, `Commitments:View`, `Contracts:View`, `DataQuality:View`, `Environments:View`, `Installations:View`, `OtherOperations:View`, `Products:View`, `Projects:View`, `Servers:View`, `Teams:View` |  |  |
 | `POST /data-quality/scan` | Rights | `DataQuality:Maintain` | `OtherOperations:Maintain` |  |
@@ -626,8 +628,6 @@ Each right's prerequisites apply too. All record operations also enforce data sc
 | `GET /projects/{id:long}` | Rights | `Projects:DetailsView`, `Projects:View` | `Contracts:Create`, `Contracts:View`, `Environments:View`, `Products:View`, `Projects:ArchiveRestore`, `Projects:Maintain` |  |
 | `PUT /projects/{id:long}` | Handler |  | `Projects:Maintain` |  |
 | `POST /projects/{id:long}/archive` | Handler |  | `Projects:ArchiveRestore` |  |
-| `GET /projects/{id:long}/status-reports` | Rights | `ProjectDashboard:View` |  |  |
-| `POST /projects/{id:long}/status-reports` | Handler |  | `Projects:Maintain` |  |
 | `GET /reassignment-queue` | Rights | `Reassignment:View`, `Teams:View` |  |  |
 | `GET /reference` | Authenticated |  |  | Reference values. Products, teams and Jira instances inside it are filtered by right. |
 | `DELETE /regions/{id:long}` | Rights | `tab.ClientStructure.structure:Delete` |  |  |

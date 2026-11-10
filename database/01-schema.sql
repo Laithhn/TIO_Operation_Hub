@@ -10487,3 +10487,73 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110114537_ClientDashboard'
+)
+BEGIN
+    CREATE TABLE [clients].[ClientStatusReport] (
+        [Id] bigint NOT NULL IDENTITY,
+        [ClientId] bigint NOT NULL,
+        [Status] nvarchar(40) NOT NULL,
+        [Summary] nvarchar(1000) NOT NULL,
+        [NextReviewOn] date NULL,
+        [RecordedById] bigint NULL,
+        [RecordedAt] datetimeoffset NOT NULL,
+        CONSTRAINT [PK_ClientStatusReport] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ClientStatusReport_Client_ClientId] FOREIGN KEY ([ClientId]) REFERENCES [clients].[Client] ([Id]),
+        CONSTRAINT [FK_ClientStatusReport_User_RecordedById] FOREIGN KEY ([RecordedById]) REFERENCES [iam].[User] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110114537_ClientDashboard'
+)
+BEGIN
+    CREATE INDEX [IX_ClientStatusReport_ClientId_RecordedAt] ON [clients].[ClientStatusReport] ([ClientId], [RecordedAt]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110114537_ClientDashboard'
+)
+BEGIN
+    CREATE INDEX [IX_ClientStatusReport_RecordedById] ON [clients].[ClientStatusReport] ([RecordedById]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110114537_ClientDashboard'
+)
+BEGIN
+    DECLARE @now datetimeoffset = SYSDATETIMEOFFSET();
+    INSERT [iam].[RightDefinition] ([Key],[Label],[Description],[Module],[Feature],[Kind],[RiskLevel],[DisplayOrder],[IsActive],[CreatedAt],[UpdatedAt])
+    SELECT N'ClientDashboard:View', N'View', N'View in Client dashboard. Data, ownership and scope checks still apply.', N'Dashboard', N'ClientDashboard', N'Access', N'Normal', 0, 1, @now, @now
+    WHERE NOT EXISTS (SELECT 1 FROM [iam].[RightDefinition] d WHERE d.[Key] = N'ClientDashboard:View');
+    INSERT [iam].[RoleRight] ([AppRoleId],[RightKey])
+    SELECT r.[AppRoleId], N'ClientDashboard:View' FROM [iam].[RoleRight] r
+    WHERE r.[RightKey] = N'ProjectDashboard:View'
+      AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[AppRoleId] AND x.[RightKey] = N'ClientDashboard:View');
+    DELETE FROM [iam].[RoleRight] WHERE [RightKey] = N'ProjectDashboard:View';
+    UPDATE [iam].[UserRightException] SET [RightKey] = N'ClientDashboard:View' WHERE [RightKey] = N'ProjectDashboard:View';
+    UPDATE [admin].[Setting] SET [Key] = N'Dashboard.ClientStatusMaxAgeDays',
+        [Description] = N'A recorded client status older than this many days is shown as needing review (1–90).'
+    WHERE [Key] = N'Dashboard.ProjectStatusMaxAgeDays'
+      AND NOT EXISTS (SELECT 1 FROM [admin].[Setting] s WHERE s.[Key] = N'Dashboard.ClientStatusMaxAgeDays');
+    UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261110114537_ClientDashboard'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261110114537_ClientDashboard', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

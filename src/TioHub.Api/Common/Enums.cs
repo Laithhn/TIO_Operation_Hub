@@ -15,8 +15,8 @@ public enum HostingType { Unknown, OnPrem, Cloud }
 
 public enum ProjectStatus { Planned, Active, OnHold, Completed, Archived }
 
-/// <summary>A108: the status a project manager records for a project (a recorded judgement with a reason, never a calculated score).</summary>
-public enum ProjectReportedStatus { OnTrack, AtRisk, OffTrack }
+/// <summary>A108/A109: the status a person records for a client (a recorded judgement with a reason, never a calculated score). 2.59.0 recorded it per project.</summary>
+public enum ReportedStatus { OnTrack, AtRisk, OffTrack }
 
 public enum EnvironmentType { Production, Staging, UAT, Test, DR, Other }
 

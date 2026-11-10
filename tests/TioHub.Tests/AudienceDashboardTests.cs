@@ -6,10 +6,11 @@ using TioHub.Api.Common;
 using TioHub.Api.Modules.Contracts;
 using TioHub.Api.Modules.Reporting;
 using TioHub.Api.Modules.Work;
+using TioHub.Api.Security;
 
 namespace TioHub.Tests;
 
-/// <summary>A108: the rules behind the project signals, the SLA clocks and the period arithmetic (no database).</summary>
+/// <summary>A108/A109: the rules behind the client signals, the SLA clocks and the period arithmetic (no database).</summary>
 public class AudienceDashboardRules
 {
     private static readonly DateTimeOffset Now = new(2026, 11, 10, 9, 0, 0, TimeSpan.Zero);
@@ -18,41 +19,41 @@ public class AudienceDashboardRules
     private static string State(List<Signal> s, string key) => s.Single(x => x.Key == key).State;
     private static ContractFact K(ContractStatus st = ContractStatus.Active, DateOnly? end = null) => new(1, "CT-1", "Contract", "Support", st, new DateOnly(2026, 1, 1), end ?? new DateOnly(2028, 1, 1), 30, "AED");
     private static MilestoneFact M(int daysFromToday, int? percent) => new(1, "CT-1", ContractStatus.Active, 0, "Phase", null, Today.AddDays(daysFromToday), percent);
-    private static StatusFact St(ProjectReportedStatus s, int ageDays = 1, DateOnly? next = null) => new(1, s, "Because", next, Now.AddDays(-ageDays), "PM");
+    private static StatusFact St(ReportedStatus s, int ageDays = 1, DateOnly? next = null) => new(1, s, "Because", next, Now.AddDays(-ageDays), "PM");
 
     [Fact]
-    public void A_project_without_records_is_unknown_never_on_track()
+    public void A_client_without_records_is_unknown_never_on_track()
     {
-        var signals = ProjectSignals.Evaluate(new ProjectFacts(), Now, S);
-        Assert.Equal(ProjectSignals.Keys, signals.Select(x => x.Key));
+        var signals = ClientSignals.Evaluate(new ClientFacts(), Now, S);
+        Assert.Equal(ClientSignals.Keys, signals.Select(x => x.Key));
         foreach (var key in new[] { "delivery", "sla", "commercial", "environments", "review" }) Assert.Equal(SignalState.Unknown, State(signals, key));
         // No escalation and no commitment are known facts, not missing data.
         Assert.Equal(SignalState.OnTrack, State(signals, "escalations"));
         Assert.Equal(SignalState.OnTrack, State(signals, "commitments"));
-        Assert.Equal("NoStatus", ProjectSignals.Compare(null, signals, Now, 14).Agreement);
+        Assert.Equal("NoStatus", ClientSignals.Compare(null, signals, Now, 14).Agreement);
         Assert.All(signals, x => Assert.False(string.IsNullOrWhiteSpace(x.Rule)));
     }
 
     [Fact]
     public void Delivery_follows_late_milestones_of_active_contracts()
     {
-        string Delivery(params MilestoneFact[] ms) => State(ProjectSignals.Evaluate(new ProjectFacts { Contracts = [K()], Milestones = [.. ms] }, Now, S), "delivery");
+        string Delivery(params MilestoneFact[] ms) => State(ClientSignals.Evaluate(new ClientFacts { Contracts = [K()], Milestones = [.. ms] }, Now, S), "delivery");
         Assert.Equal(SignalState.OnTrack, Delivery(M(-40, 100), M(20, 0)));
         Assert.Equal(SignalState.Watch, Delivery(M(-9, 70), M(20, 0)));
         Assert.Equal(SignalState.OffTrack, Delivery(M(-31, 70)));
         Assert.Equal(SignalState.OffTrack, Delivery(M(-3, 10), M(-2, null)));
         // A milestone of a contract that is not Active is not judged.
         Assert.Equal(SignalState.Unknown, Delivery(M(-9, 0) with { ContractStatus = ContractStatus.Draft }));
-        Assert.Equal("Late", ProjectSignals.MilestoneState(M(-1, 99), Today));
-        Assert.Equal("Done", ProjectSignals.MilestoneState(M(-1, 100), Today));
-        Assert.Equal("Planned", ProjectSignals.MilestoneState(M(1, 0), Today));
+        Assert.Equal("Late", ClientSignals.MilestoneState(M(-1, 99), Today));
+        Assert.Equal("Done", ClientSignals.MilestoneState(M(-1, 100), Today));
+        Assert.Equal("Planned", ClientSignals.MilestoneState(M(1, 0), Today));
     }
 
     [Fact]
     public void Sla_commercial_escalation_commitment_and_environment_rules()
     {
-        CaseFact C(SlaState response, SlaState resolution, CaseStatus st = CaseStatus.Closed) => new(1, "CS-1", "Case", Priority.High, st, Now.AddDays(-10), null, 1, null, response, Now.AddDays(-9), resolution, Now.AddDays(-8), []);
-        string Sla(params CaseFact[] cs) => State(ProjectSignals.Evaluate(new ProjectFacts { Cases = [.. cs] }, Now, S), "sla");
+        CaseFact C(SlaState response, SlaState resolution, CaseStatus st = CaseStatus.Closed) => new(1, "CS-1", "Case", Priority.High, st, Now.AddDays(-10), null, 1, null, response, Now.AddDays(-9), resolution, Now.AddDays(-8));
+        string Sla(params CaseFact[] cs) => State(ClientSignals.Evaluate(new ClientFacts { Cases = [.. cs] }, Now, S), "sla");
         Assert.Equal(SignalState.OnTrack, Sla(C(SlaState.Met, SlaState.Met)));
         // 9 of 10 resolutions met = 90 % (on the objective); 8 of 10 = 80 % (under); 7 of 10 = 70 % (more than 10 points under).
         Assert.Equal(SignalState.OnTrack, Sla([.. Enumerable.Repeat(C(SlaState.Met, SlaState.Met), 9), C(SlaState.Met, SlaState.Breached)]));
@@ -63,26 +64,26 @@ public class AudienceDashboardRules
         Assert.Equal(SignalState.Unknown, Sla(C(SlaState.NotMeasurable, SlaState.NotMeasurable)));
 
         var overdue = new PaymentFact(1, 1, "CT-1", ContractStatus.Active, 0, "Milestone 3", 100m, "AED", Today.AddDays(-21), PaymentStatus.Invoiced, null);
-        string Commercial(ProjectFacts f) => State(ProjectSignals.Evaluate(f, Now, S), "commercial");
-        Assert.Equal(SignalState.OnTrack, Commercial(new ProjectFacts { Contracts = [K()] }));
-        Assert.Equal(SignalState.OffTrack, Commercial(new ProjectFacts { Contracts = [K()], Payments = [overdue] }));
-        Assert.Equal(SignalState.OnTrack, Commercial(new ProjectFacts { Contracts = [K()], Payments = [overdue with { Status = PaymentStatus.Paid }] }));
-        Assert.Equal(SignalState.Watch, Commercial(new ProjectFacts { Contracts = [K(end: Today.AddDays(40))] }));
-        Assert.Equal(SignalState.OffTrack, Commercial(new ProjectFacts { Contracts = [K(end: Today.AddDays(-2))] }));
+        string Commercial(ClientFacts f) => State(ClientSignals.Evaluate(f, Now, S), "commercial");
+        Assert.Equal(SignalState.OnTrack, Commercial(new ClientFacts { Contracts = [K()] }));
+        Assert.Equal(SignalState.OffTrack, Commercial(new ClientFacts { Contracts = [K()], Payments = [overdue] }));
+        Assert.Equal(SignalState.OnTrack, Commercial(new ClientFacts { Contracts = [K()], Payments = [overdue with { Status = PaymentStatus.Paid }] }));
+        Assert.Equal(SignalState.Watch, Commercial(new ClientFacts { Contracts = [K(end: Today.AddDays(40))] }));
+        Assert.Equal(SignalState.OffTrack, Commercial(new ClientFacts { Contracts = [K(end: Today.AddDays(-2))] }));
 
-        EscFact E(int level, DateTimeOffset? resolutionDue = null) => new(1, "ESC-1", "Escalation", level, TioHub.Api.Modules.Escalations.EscalationStatus.Acknowledged, Now.AddDays(-2), null, resolutionDue, 1, null, null, "PM");
-        string Esc(params EscFact[] es) => State(ProjectSignals.Evaluate(new ProjectFacts { Escalations = [.. es] }, Now, S), "escalations");
+        EscFact E(int level, DateTimeOffset? resolutionDue = null) => new(1, "ESC-1", "Escalation", level, TioHub.Api.Modules.Escalations.EscalationStatus.Acknowledged, Now.AddDays(-2), null, resolutionDue, "PM");
+        string Esc(params EscFact[] es) => State(ClientSignals.Evaluate(new ClientFacts { Escalations = [.. es] }, Now, S), "escalations");
         Assert.Equal(SignalState.Watch, Esc(E(2)));
         Assert.Equal(SignalState.OffTrack, Esc(E(3)));
         Assert.Equal(SignalState.OffTrack, Esc(E(1, Now.AddHours(-1))));
 
-        string Com(params double[] dueInHours) => State(ProjectSignals.Evaluate(new ProjectFacts { Commitments = [.. dueInHours.Select(h => new CommitFact(1, "CM-1", "x", Now.AddHours(h), null, 1))] }, Now, S), "commitments");
+        string Com(params double[] dueInHours) => State(ClientSignals.Evaluate(new ClientFacts { Commitments = [.. dueInHours.Select(h => new CommitFact(1, "CM-1", "x", Now.AddHours(h), null))] }, Now, S), "commitments");
         Assert.Equal(SignalState.OnTrack, Com(72));
         Assert.Equal(SignalState.Watch, Com(20));
         Assert.Equal(SignalState.OffTrack, Com(-1, 72));
 
         EnvFact Env(Condition c, int observedDaysAgo = 1) => new(1, "Production", "Production", EnvironmentType.Production, c, c == Condition.Unknown ? null : Now.AddDays(-observedDaysAgo), null);
-        string Envs(params EnvFact[] es) => State(ProjectSignals.Evaluate(new ProjectFacts { Environments = [.. es] }, Now, S), "environments");
+        string Envs(params EnvFact[] es) => State(ClientSignals.Evaluate(new ClientFacts { Environments = [.. es] }, Now, S), "environments");
         Assert.Equal(SignalState.OnTrack, Envs(Env(Condition.Healthy)));
         Assert.Equal(SignalState.Watch, Envs(Env(Condition.Healthy), Env(Condition.Degraded)));
         Assert.Equal(SignalState.Watch, Envs(Env(Condition.Healthy), Env(Condition.Unknown)));
@@ -94,16 +95,16 @@ public class AudienceDashboardRules
     public void The_recorded_status_is_compared_with_the_signals_and_goes_stale()
     {
         var overdue = new PaymentFact(1, 1, "CT-1", ContractStatus.Active, 0, "Milestone 3", 100m, "AED", Today.AddDays(-21), PaymentStatus.Pending, null);
-        Verdict V(ProjectFacts f) => ProjectSignals.Compare(f.Status, ProjectSignals.Evaluate(f, Now, S), Now, 14);
-        Assert.Equal("Agree", V(new ProjectFacts { Contracts = [K()], Status = St(ProjectReportedStatus.OnTrack) }).Agreement);
-        var disagree = V(new ProjectFacts { Contracts = [K()], Payments = [overdue], Status = St(ProjectReportedStatus.OnTrack) });
+        Verdict V(ClientFacts f) => ClientSignals.Compare(f.Status, ClientSignals.Evaluate(f, Now, S), Now, 14);
+        Assert.Equal("Agree", V(new ClientFacts { Contracts = [K()], Status = St(ReportedStatus.OnTrack) }).Agreement);
+        var disagree = V(new ClientFacts { Contracts = [K()], Payments = [overdue], Status = St(ReportedStatus.OnTrack) });
         Assert.Equal("Disagree", disagree.Agreement);
         Assert.Contains("Commercial", disagree.Text);
-        Assert.Equal("Agree", V(new ProjectFacts { Contracts = [K()], Payments = [overdue], Status = St(ProjectReportedStatus.AtRisk) }).Agreement);
-        Assert.Equal("Disagree", V(new ProjectFacts { Contracts = [K()], Status = St(ProjectReportedStatus.OffTrack) }).Agreement);
-        Assert.Equal("Stale", V(new ProjectFacts { Contracts = [K()], Status = St(ProjectReportedStatus.OnTrack, ageDays: 15) }).Agreement);
-        Assert.Equal("Stale", V(new ProjectFacts { Contracts = [K()], Status = St(ProjectReportedStatus.OnTrack, next: Today.AddDays(-1)) }).Agreement);
-        Assert.Equal(SignalState.Watch, State(ProjectSignals.Evaluate(new ProjectFacts { Status = St(ProjectReportedStatus.OnTrack, ageDays: 15) }, Now, S), "review"));
+        Assert.Equal("Agree", V(new ClientFacts { Contracts = [K()], Payments = [overdue], Status = St(ReportedStatus.AtRisk) }).Agreement);
+        Assert.Equal("Disagree", V(new ClientFacts { Contracts = [K()], Status = St(ReportedStatus.OffTrack) }).Agreement);
+        Assert.Equal("Stale", V(new ClientFacts { Contracts = [K()], Status = St(ReportedStatus.OnTrack, ageDays: 15) }).Agreement);
+        Assert.Equal("Stale", V(new ClientFacts { Contracts = [K()], Status = St(ReportedStatus.OnTrack, next: Today.AddDays(-1)) }).Agreement);
+        Assert.Equal(SignalState.Watch, State(ClientSignals.Evaluate(new ClientFacts { Status = St(ReportedStatus.OnTrack, ageDays: 15) }, Now, S), "review"));
     }
 
     [Fact]
@@ -155,7 +156,7 @@ public class AudienceDashboardRules
     }
 }
 
-/// <summary>A108: the four audience dashboards and the project status reports, end to end against SQL Server.</summary>
+/// <summary>A108/A109: the four audience dashboards and the client status reports, end to end against SQL Server.</summary>
 [Collection("hub")]
 public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
 {
@@ -171,14 +172,15 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
-    public async Task Project_status_is_recorded_by_people_and_checked_against_signals()
+    public async Task Client_status_is_recorded_by_people_and_checked_against_signals_across_its_projects()
     {
         var m = await Hub.As(HubFactory.Manager);
         var norole = await Hub.As("DEV\\" + U("norole").ToLowerInvariant());
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
         var c = await NewClient();
+        var empty = await NewClient();
         var project = await m.Create("/projects", new { clientId = c, code = U("PRJ"), name = "Fictional rollout", status = "Active", ownerUserId = m.UserId });
-        var empty = await m.Create("/projects", new { clientId = c, code = U("PRJ"), name = "Fictional empty project", status = "Active", ownerUserId = m.UserId });
+        var second = await m.Create("/projects", new { clientId = c, code = U("PRJ"), name = "Fictional extension", status = "Active", ownerUserId = m.UserId });
         var k = await m.Create("/contracts", new
         {
             projectId = project, title = "Fictional implementation", contractReference = "FIC-A108", type = "SlaSupport", status = "Active", ownerUserId = m.UserId,
@@ -199,71 +201,117 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
             title = "Queue stalled", type = "Incident", scope = "Client", clientId = c, contractId = k, responsibleTeamId = await Team(), impactSummary = "Delayed", priority = "High",
             nextAction = "Investigate", nextReviewAt = DateTimeOffset.UtcNow.AddDays(1)
         });
-        var elsewhere = await NewCase(c);
+        var direct = await NewCase(c);
 
         // Before anyone records a status: signals from the records, the status itself is absent — never assumed.
-        var d = (await m.Get($"/dashboard/projects/{project}")).Body!;
+        var d = (await m.Get($"/dashboard/clients/{c}")).Body!;
         Assert.Null(d["status"]!["recorded"]);
         Assert.Equal("NoStatus", d["status"]!["agreement"]!.GetValue<string>());
         Assert.True(d["status"]!["canRecord"]!.GetValue<bool>());
         Assert.Equal("Watch", Sig(d, "delivery")["state"]!.GetValue<string>());
         Assert.Contains("UAT sign-off", Sig(d, "delivery")["text"]!.GetValue<string>());
+        Assert.Equal($"/contracts?clientId={c}", Sig(d, "delivery")["link"]!.GetValue<string>());
         Assert.Equal("OffTrack", Sig(d, "commercial")["state"]!.GetValue<string>());
         Assert.Equal("Unknown", Sig(d, "review")["state"]!.GetValue<string>());
         Assert.Equal("Unknown", Sig(d, "environments")["state"]!.GetValue<string>());
         Assert.Equal(["Done", "Late", "Planned"], d["milestones"]!.AsArray().Select(x => x!["state"]!.GetValue<string>()));
         Assert.Equal("overdue", d["payments"]![0]!["state"]!.GetValue<string>());
+        Assert.Equal(2, d["projects"]!.AsArray().Count);
 
-        // The project's cases: linked to its contract or affecting its environment — and the count equals the list it opens.
-        Assert.Equal(2, d["cases"]!["open"]!.GetValue<int>());
-        var list = await m.Get($"/cases?projectId={project}&pageSize=50");
-        Assert.Equal(2, Total(list));
+        // The client's tickets: all of them, whatever project they touch — and the count equals the list it opens.
+        Assert.Equal(3, d["cases"]!["open"]!.GetValue<int>());
+        var list = await m.Get(d["cases"]!["link"]!.GetValue<string>() + "&pageSize=50");
+        Assert.Equal(3, Total(list));
         var ids = list.Body!["items"]!.AsArray().Select(x => Id(x)).ToList();
         Assert.Contains(onEnv, ids);
         Assert.Contains(onContract, ids);
-        Assert.DoesNotContain(elsewhere, ids);
+        Assert.Contains(direct, ids);
 
-        // A project with no records is Unknown where data is missing.
-        var e = (await m.Get($"/dashboard/projects/{empty}")).Body!;
+        // A second project's late milestone counts for the same client: two late milestones are Off track.
+        await m.Create("/contracts", new
+        {
+            projectId = second, title = "Fictional extension", contractReference = "FIC-A109", type = "SlaSupport", status = "Active", ownerUserId = m.UserId,
+            startDate = "2026-01-01", endDate = "2028-12-31", renewalTerms = "RenewalByAgreement", noticeDays = 30, supportModel = "Remote", supportTimeZone = "Asia/Dubai", support24x7 = true, currency = "AED",
+            milestones = new[] { new { phase = "Interface build", description = "Second project", completionPercent = (int?)40, date = (DateOnly?)today.AddDays(-5) } }
+        });
+        d = (await m.Get($"/dashboard/clients/{c}")).Body!;
+        Assert.Equal("OffTrack", Sig(d, "delivery")["state"]!.GetValue<string>());
+        Assert.Contains("2 milestone(s) late", Sig(d, "delivery")["text"]!.GetValue<string>());
+
+        // A client with no records is Unknown where data is missing.
+        var e = (await m.Get($"/dashboard/clients/{empty}")).Body!;
         Assert.Equal("Unknown", Sig(e, "delivery")["state"]!.GetValue<string>());
         Assert.Equal("Unknown", Sig(e, "commercial")["state"]!.GetValue<string>());
         Assert.Equal(0, e["cases"]!["open"]!.GetValue<int>());
+        Assert.Empty(e["projects"]!.AsArray());
 
         // Recording a status: a status and a reason are required; people without a role cannot record or read.
-        Assert.NotNull((await m.Post($"/projects/{project}/status-reports", new { summary = "x" })).Error("status"));
-        Assert.NotNull((await m.Post($"/projects/{project}/status-reports", new { status = "OnTrack" })).Error("summary"));
-        Assert.NotNull((await m.Post($"/projects/{project}/status-reports", new { status = "OnTrack", summary = "x", nextReviewOn = today.AddDays(-5) })).Error("nextReviewOn"));
-        Assert.Equal(HttpStatusCode.Forbidden, (await norole.Post($"/projects/{project}/status-reports", new { status = "OnTrack", summary = "x" })).Status);
-        Assert.Equal(HttpStatusCode.Forbidden, (await norole.Get($"/dashboard/projects/{project}")).Status);
-        Assert.Equal(HttpStatusCode.NotFound, (await m.Get("/dashboard/projects/999999999")).Status);
+        Assert.NotNull((await m.Post($"/clients/{c}/status-reports", new { summary = "x" })).Error("status"));
+        Assert.NotNull((await m.Post($"/clients/{c}/status-reports", new { status = "OnTrack" })).Error("summary"));
+        Assert.NotNull((await m.Post($"/clients/{c}/status-reports", new { status = "OnTrack", summary = "x", nextReviewOn = today.AddDays(-5) })).Error("nextReviewOn"));
+        Assert.Equal(HttpStatusCode.Forbidden, (await norole.Post($"/clients/{c}/status-reports", new { status = "OnTrack", summary = "x" })).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await norole.Get($"/dashboard/clients/{c}")).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Get("/dashboard/clients/999999999")).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Post("/clients/999999999/status-reports", new { status = "OnTrack", summary = "x" })).Status);
 
         // "On track" while a payment is overdue: the status stays as recorded and the page says the signals disagree.
-        await m.Create($"/projects/{project}/status-reports", new { status = "OnTrack", summary = "Delivery is proceeding as planned.", nextReviewOn = today.AddDays(7) });
-        d = (await m.Get($"/dashboard/projects/{project}")).Body!;
+        await m.Create($"/clients/{c}/status-reports", new { status = "OnTrack", summary = "Delivery is proceeding as planned.", nextReviewOn = today.AddDays(7) });
+        d = (await m.Get($"/dashboard/clients/{c}")).Body!;
         Assert.Equal("OnTrack", d["status"]!["recorded"]!["status"]!.GetValue<string>());
         Assert.Equal("Disagree", d["status"]!["agreement"]!.GetValue<string>());
         Assert.Contains("Commercial", d["status"]!["agreementText"]!.GetValue<string>());
         Assert.Equal("OnTrack", Sig(d, "review")["state"]!.GetValue<string>());
 
-        // A later report replaces it; history is kept, newest first.
-        await m.Create($"/projects/{project}/status-reports", new { status = "AtRisk", summary = "UAT sign-off is late; the milestone invoice is unpaid." });
-        d = (await m.Get($"/dashboard/projects/{project}")).Body!;
+        // A later report replaces it; history is kept, newest first. Another client's status is its own.
+        await m.Create($"/clients/{c}/status-reports", new { status = "AtRisk", summary = "UAT sign-off is late; the milestone invoice is unpaid." });
+        d = (await m.Get($"/dashboard/clients/{c}")).Body!;
         Assert.Equal("AtRisk", d["status"]!["recorded"]!["status"]!.GetValue<string>());
         Assert.Equal("Agree", d["status"]!["agreement"]!.GetValue<string>());
-        var history = (await m.Get($"/projects/{project}/status-reports")).Body!.AsArray();
+        var history = (await m.Get($"/clients/{c}/status-reports")).Body!.AsArray();
         Assert.Equal(["AtRisk", "OnTrack"], history.Select(x => x!["status"]!.GetValue<string>()));
         Assert.All(history, x => Assert.False(string.IsNullOrEmpty(x!["recordedBy"]?.GetValue<string>())));
+        Assert.Null((await m.Get($"/dashboard/clients/{empty}")).Body!["status"]!["recorded"]);
 
-        // The portfolio shows the same status and signals.
-        var row = (await m.Get($"/dashboard/projects?clientId={c}")).Body!["items"]!.AsArray().Single(x => Id(x) == project)!;
+        // The portfolio: one row per client, with the same status and signals, and its running projects counted.
+        var row = (await m.Get($"/dashboard/clients?clientId={c}")).Body!["items"]!.AsArray().Single(x => Id(x) == c)!;
         Assert.Equal("AtRisk", row["status"]!.GetValue<string>());
+        Assert.Equal(2, row["runningProjects"]!.GetValue<int>());
         Assert.Equal("UAT sign-off", row["nextMilestone"]!.GetValue<string>());
         Assert.True(row["nextMilestoneLate"]!.GetValue<bool>());
         Assert.Equal(7, row["signals"]!.AsArray().Count);
+        // An Active client is in the portfolio even without a project.
+        Assert.Contains((await m.Get($"/dashboard/clients?clientId={empty}")).Body!["items"]!.AsArray(), x => Id(x) == empty);
+    }
 
-        // Deleting the project removes its status reports with it (A43), not the audit trail.
-        var preview = (await m.Get($"/projects/{empty}/delete-preview")).Status;
-        Assert.True(preview is HttpStatusCode.OK or HttpStatusCode.NotFound);
+    /// <summary>A role with every View right except the given ones, for testing one right alone.</summary>
+    private async Task<Api> ViewerWithout(params string[] excluded)
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        // Fixture.Rights adds every dashboard feature right with Dashboard:View, so the excluded ones are taken out afterwards.
+        var rights = Fixture.Rights(RightsCatalog.All.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal)).Select(p => p.Key), Flag.None).Except(excluded).ToArray();
+        var roleId = await m.Create("/admin/roles", new { name = U("A109"), rights });
+        var account = $@"DEV\{U("a109")}";
+        await m.Create("/admin/users", new { accountName = account, displayName = "A109 test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
+        return await Hub.As(account);
+    }
+
+    [Fact]
+    public async Task Client_dashboard_right_allows_and_denies_access()
+    {
+        var c = await NewClient();
+        var allowed = await ViewerWithout();
+        var denied = await ViewerWithout("ClientDashboard:View");
+        Assert.Equal(HttpStatusCode.OK, (await allowed.Get("/dashboard/clients")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await allowed.Get($"/dashboard/clients/{c}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await allowed.Get($"/clients/{c}/status-reports")).Status);
+        // Reading is not recording: without Projects:Maintain the page offers no Update status, and the API refuses.
+        Assert.False((await allowed.Get($"/dashboard/clients/{c}")).Body!["status"]!["canRecord"]!.GetValue<bool>());
+        Assert.Equal(HttpStatusCode.Forbidden, (await allowed.Post($"/clients/{c}/status-reports", new { status = "OnTrack", summary = "x" })).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await denied.Get("/dashboard/clients")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await denied.Get($"/dashboard/clients/{c}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await denied.Get($"/clients/{c}/status-reports")).Status);
+        // The other dashboards do not depend on it.
+        Assert.Equal(HttpStatusCode.OK, (await denied.Get("/dashboard/management")).Status);
     }
 
     [Fact]
@@ -332,8 +380,8 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         JsonNode Setting(string key) => settings.Single(s => s!["key"]!.GetValue<string>() == key)!;
         Assert.Equal("25", Setting("Dashboard.SlaAtRiskPercent")["value"]!.GetValue<string>());
         Assert.Equal("90", Setting("Dashboard.SlaComplianceTargetPercent")["value"]!.GetValue<string>());
-        Assert.Equal("14", Setting("Dashboard.ProjectStatusMaxAgeDays")["value"]!.GetValue<string>());
-        foreach (var (key, bad) in new[] { ("Dashboard.SlaAtRiskPercent", "80"), ("Dashboard.SlaComplianceTargetPercent", "20"), ("Dashboard.ProjectStatusMaxAgeDays", "0") })
+        Assert.Equal("14", Setting("Dashboard.ClientStatusMaxAgeDays")["value"]!.GetValue<string>());
+        foreach (var (key, bad) in new[] { ("Dashboard.SlaAtRiskPercent", "80"), ("Dashboard.SlaComplianceTargetPercent", "20"), ("Dashboard.ClientStatusMaxAgeDays", "0") })
             Assert.NotNull((await m.Put($"/admin/settings/{Id(Setting(key))}", new { value = bad }, Setting(key)["version"]!.GetValue<string>())).Error("value"));
     }
 
@@ -400,7 +448,7 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
             var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
             await db.Cases.IgnoreQueryFilters().Where(x => x.Id == noTarget).ExecuteUpdateAsync(u => u.SetProperty(x => x.Status, CaseStatus.Closed).SetProperty(x => x.StatusCode, CaseStatuses.ClosedCode).SetProperty(x => x.ClosedAt, (DateTimeOffset?)null));
         }
-        // Management: the backlog equals the open-case list; the portfolio carries the project; period names are validated.
+        // Management: the backlog equals the open-case list; the portfolio carries the client; period names are validated.
         // Other work in the shared database can add or close tickets between two calls: compare only when the list is the same before and after.
         JsonNode g;
         int listed;
@@ -416,11 +464,12 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.Equal(12, g["trend"]!.AsArray().Count);
         Assert.True(g["trend"]!.AsArray().Last()!["opened"]!.GetValue<int>() >= 3);
         Assert.Equal(g["kpis"]!["backlog"]!["value"]!.GetValue<int>(), g["trend"]!.AsArray().Last()!["backlog"]!.GetValue<int>());
-        var p = g["portfolio"]!.AsArray().Single(x => Id(x) == project)!;
+        var p = g["portfolio"]!.AsArray().Single(x => Id(x) == c)!;
         Assert.Null(p["status"]);
         Assert.Equal("NoStatus", p["agreement"]!.GetValue<string>());
-        Assert.True(g["kpis"]!["projects"]!["noStatus"]!.GetValue<int>() >= 1);
-        Assert.True(g["dataTrust"]!["projects"]!["noStatus"]!.GetValue<int>() >= 1);
+        Assert.True(g["kpis"]!["clients"]!["noStatus"]!.GetValue<int>() >= 1);
+        Assert.True(g["kpis"]!["clients"]!["runningProjects"]!.GetValue<int>() >= 1);
+        Assert.True(g["dataTrust"]!["clients"]!["noStatus"]!.GetValue<int>() >= 1);
         Assert.Contains(g["decisions"]!.AsArray().Concat((await m.Get("/dashboard/sla-contracts")).Body!["contracts"]!["watch"]!.AsArray()), x => Id(x) == k);
         Assert.Contains(g["kpis"]!["payments"]!["amounts"]!.AsArray(), x => x!["currency"]!.GetValue<string>() == "AED" && x["amount"]!.GetValue<decimal>() >= 1000m);
         Assert.NotEmpty(g["teams"]!.AsArray());

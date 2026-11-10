@@ -472,7 +472,7 @@ export function SlaContractsDashboard() {
           actions={<Link className="linkbtn" to="/contracts">Contract register</Link>}>
           <DataTable<ContractRow> rowKey={r => r.id} rows={d.contracts.rows} tools={false} empty="none" caption="Compliance by contract" pageSize={10} columns={[
             { key: 'ref', header: 'Contract', className: 'nowrap', render: r => <Link to={`/contracts/${r.id}`}>{r.ref}</Link> },
-            { key: 'cl', header: 'Client · project', render: r => <><Link to={`/clients/${r.clientId}`}>{r.client}</Link> · <Link to={`/dashboards/project?projectId=${r.projectId}`}>{r.project}</Link><div className="hint">{r.title}</div></> },
+            { key: 'cl', header: 'Client · project', render: r => <><Link to={`/dashboards/client?clientId=${r.clientId}`}>{r.client}</Link> · <Link to={`/projects/${r.projectId}`}>{r.project}</Link><div className="hint">{r.title}</div></> },
             { key: 'su', header: 'Support', render: r => <>{r.support ?? <span className="muted">Unknown</span>}{r.targets === 0 && <div className="hint">No SLA targets recorded</div>}</> },
             { key: 'n', header: 'Tickets', className: 'num', render: r => r.cases ? <Link to={r.link}>{r.cases}</Link> : 0 },
             { key: 'rs', header: 'Response', render: r => <RateCell t={r.response} target={d.target} /> },
@@ -531,13 +531,13 @@ export function SlaContractsDashboard() {
 // =====================================================================================================================
 
 type PortfolioRow = {
-  id: number; code: string; name: string; clientId: number; clientCode: string; clientName: string; recordStatus: string; owner?: string | null; status?: string | null; statusSummary?: string | null;
+  id: number; code: string; name: string; recordStatus: string; owner?: string | null; country?: string | null; runningProjects: number; status?: string | null; statusSummary?: string | null;
   statusRecordedAt?: string | null; statusAgeDays?: number | null; statusStale: boolean; agreement: string; signals: SignalT[]; nextMilestone?: string | null; nextMilestoneDate?: string | null; nextMilestoneLate: boolean;
 };
 type Mgmt = {
   evaluatedAt: string; period: { name: string; from: string; to: string; previousFrom: string; previousTo: string }; target: number; note: string;
   kpis: {
-    projects: { total: number; offTrack: number; atRisk: number; onTrack: number; noStatus: number; clients: number };
+    clients: { total: number; offTrack: number; atRisk: number; onTrack: number; noStatus: number; runningProjects: number };
     backlog: { value: number; atPeriodStart: number; change: number; changePercent?: number | null };
     resolveDays: { value?: number | null; previous?: number | null; change?: number | null };
     sla: { resolutionRate?: number | null; responseRate?: number | null; previousResolutionRate?: number | null; change?: number | null; measured: number };
@@ -552,7 +552,7 @@ type Mgmt = {
   decisions: { id: number; ref: string; title: string; client: string; state: string; decideBy?: string | null; reason: string }[];
   dataTrust: {
     dataQualityOpen: number; environments: { total: number; needsVerification: number; unknown: number }; sla: { notMeasurable: number; withContract: number };
-    projects: { total: number; staleStatus: number; noStatus: number; disagree: number }; contractsUnknownEnd?: number | null;
+    clients: { total: number; staleStatus: number; noStatus: number; disagree: number }; contractsUnknownEnd?: number | null;
   };
 };
 const MGMT_PERIODS = [{ value: 'quarter', label: 'This quarter vs previous' }, { value: 'month', label: 'This month vs previous' }, { value: 'ytd', label: 'Year to date vs last year' }];
@@ -567,10 +567,10 @@ function SignalDot({ s }: { s?: SignalT }) {
 
 export function PortfolioTable({ rows, maxAgeHint }: { rows: PortfolioRow[]; maxAgeHint?: ReactNode }) {
   return (<>
-    <DataTable<PortfolioRow> rowKey={r => r.id} rows={rows} tools={false} empty="none" caption="Project portfolio" pageSize={15} columns={[
-      { key: 'p', header: 'Project', render: r => <><Link to={`/dashboards/project?projectId=${r.id}`}>{r.code}</Link> {r.name}</> },
-      { key: 'c', header: 'Client', render: r => <Link to={`/clients/${r.clientId}`}>{r.clientCode}</Link> },
-      { key: 'o', header: 'Manager', render: r => r.owner ?? <Badge tone="warn">Unassigned</Badge> },
+    <DataTable<PortfolioRow> rowKey={r => r.id} rows={rows} tools={false} empty="none" caption="Client portfolio" pageSize={15} columns={[
+      { key: 'c', header: 'Client', render: r => <><Link to={`/dashboards/client?clientId=${r.id}`}>{r.code}</Link> {r.name}</> },
+      { key: 'o', header: 'Account owner', render: r => r.owner ?? <Badge tone="warn">Unassigned</Badge> },
+      { key: 'p', header: 'Running projects', className: 'num', render: r => r.runningProjects },
       { key: 's', header: 'Recorded status', render: r => <><StatusWords status={r.status} />{r.agreement === 'Disagree' && <div className="hint t-warn">▲ signals disagree</div>}</> },
       ...SIGNAL_ORDER.map(key => ({ key, header: <span title={SIGNAL_SHORT[key]}>{SIGNAL_SHORT[key]}</span>, className: 'ad-sig-col', render: (r: PortfolioRow) => <SignalDot s={r.signals.find(x => x.key === key)} /> })),
       { key: 'm', header: 'Next milestone', render: r => r.nextMilestone ? <>{r.nextMilestone}<div className={`hint${r.nextMilestoneLate ? ' t-bad' : ''}`}>{fmtDate(r.nextMilestoneDate)}{r.nextMilestoneLate ? ' · late' : ''}</div></> : <span className="muted">—</span> },
@@ -611,8 +611,9 @@ export function ManagementDashboard() {
       {q.error && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
       {d && k && t && <>
         <div className="kpis cc-kpis">
-          <Kpi icon={<Icon name="project" size={18} />} label="Running projects" value={k.projects.total} to="/projects"
-            context={<>{k.projects.offTrack} off track · {k.projects.atRisk} at risk · {k.projects.noStatus} without a status</>} />
+          <Kpi icon={<Icon name="clients" size={18} />} label="Clients in the portfolio" value={k.clients.total} to="/clients"
+            partLabel={`${k.clients.runningProjects} running project(s)`}
+            context={<>{k.clients.offTrack} off track · {k.clients.atRisk} at risk · {k.clients.noStatus} without a status</>} />
           <Kpi icon={<Icon name="case" size={18} />} label="Open ticket backlog" value={k.backlog.value} to="/cases?status=open" tone={k.backlog.change > 0 ? 'warning' : undefined}
             partLabel={`${k.backlog.atPeriodStart} at the start of the period`}
             context={<><Delta value={k.backlog.change} unit="" goodWhen="down" digits={0} /> since then{k.backlog.changePercent != null ? ` (${k.backlog.changePercent > 0 ? '+' : ''}${k.backlog.changePercent} %)` : ''}</>} />
@@ -648,7 +649,7 @@ export function ManagementDashboard() {
           </Card>
         </div>
 
-        <Band id="portfolio" icon="project" title="Project portfolio" hint={<>{k.projects.total} running project(s) of {k.projects.clients} client(s) · the status is what the project manager recorded; the symbols come from rules</>}>
+        <Band id="portfolio" icon="clients" title="Client portfolio" hint={<>{k.clients.total} client(s) — Active clients and any client with a running project · the status is what was recorded for the client; the symbols come from rules</>}>
           <section className="panel"><div className="panel-body"><PortfolioTable rows={d.portfolio} /></div></section>
         </Band>
 
@@ -679,9 +680,9 @@ export function ManagementDashboard() {
               <tr><td><Link to="/environments?freshness=needsVerification">Environments needing verification</Link></td><td className="num"><b>{t.environments.needsVerification}</b> / {t.environments.total}</td></tr>
               <tr><td><Link to="/environments?condition=Unknown">Environments never reported</Link></td><td className="num"><b>{t.environments.unknown}</b> / {t.environments.total}</td></tr>
               <tr><td><Link to="/dashboards/sla">Tickets not SLA-measurable (period)</Link></td><td className="num"><b>{t.sla.notMeasurable}</b> / {t.sla.withContract}</td></tr>
-              <tr><td>Projects without a recorded status</td><td className="num"><b>{t.projects.noStatus}</b> / {t.projects.total}</td></tr>
-              <tr><td>Projects whose status needs review</td><td className="num"><b>{t.projects.staleStatus}</b> / {t.projects.total}</td></tr>
-              <tr><td>Projects where signals disagree with the status</td><td className="num"><b>{t.projects.disagree}</b> / {t.projects.total}</td></tr>
+              <tr><td>Clients without a recorded status</td><td className="num"><b>{t.clients.noStatus}</b> / {t.clients.total}</td></tr>
+              <tr><td>Clients whose status needs review</td><td className="num"><b>{t.clients.staleStatus}</b> / {t.clients.total}</td></tr>
+              <tr><td>Clients where signals disagree with the status</td><td className="num"><b>{t.clients.disagree}</b> / {t.clients.total}</td></tr>
               {t.contractsUnknownEnd != null && <tr><td><Link to="/contracts?renewal=unknownEnd">Active contracts without an end date</Link></td><td className="num"><b>{t.contractsUnknownEnd}</b></td></tr>}
             </tbody></table>
           </Card>
@@ -693,20 +694,20 @@ export function ManagementDashboard() {
 }
 
 // =====================================================================================================================
-// Project dashboard
+// Client dashboard (A109; 2.59.0 had a Project dashboard)
 // =====================================================================================================================
 
-type Proj = {
+type Cli = {
   evaluatedAt: string;
-  project: { id: number; code: string; name: string; clientId: number; clientCode: string; clientName: string; recordStatus: string; owner?: string | null; serviceStart?: string | null; serviceEnd?: string | null; scopeSummary?: string | null;
-    products: { id: number; code: string; name: string }[] };
+  client: { id: number; code: string; name: string; recordStatus: string; owner?: string | null; country?: string | null; products: { id: number; code: string; name: string }[] };
+  projects: { id: number; code: string; name: string; status: string; running: boolean; owner?: string | null; serviceStart?: string | null; serviceEnd?: string | null; contracts: number }[];
   status: {
     recorded?: { status: string; summary: string; nextReviewOn?: string | null; recordedAt: string; recordedBy?: string | null; ageDays: number } | null;
     agreement: string; agreementText: string; stale: boolean; maxAgeDays: number; canRecord: boolean;
     history: { id: number; status: string; summary: string; nextReviewOn?: string | null; recordedAt: string; recordedBy?: string | null }[];
   };
   signals: SignalT[];
-  contracts: { id: number; ref: string; title: string; type: string; status: string; startDate?: string | null; endDate?: string | null; noticeDeadline?: string | null; state: string }[];
+  contracts: { id: number; ref: string; title: string; type: string; status: string; startDate?: string | null; endDate?: string | null; noticeDeadline?: string | null; state: string; projectId: number; projectCode?: string | null }[];
   milestones: { contractId: number; contractRef: string; phase: string; description?: string | null; date?: string | null; percent?: number | null; state: string }[];
   payments: { id: number; contractId: number; contractRef: string; condition: string; amount?: number | null; currency?: string | null; dueDate?: string | null; status: string; paidOn?: string | null; state: string }[];
   cases: { open: number; overdue: number; link: string; byPriority: BarT[]; list: { id: number; ref: string; title: string; priority: string; status: string; owner?: string | null; dueAt?: string | null; overdue: boolean }[] };
@@ -722,11 +723,12 @@ const PAY_STATE: Record<string, { tone: Tone; label: string }> = {
   upcoming: { tone: 'neutral', label: 'Upcoming' }, closed: { tone: 'neutral', label: 'Contract terminated' }
 };
 const VERDICT_CLASS: Record<string, string> = { OnTrack: 'good', AtRisk: 'warn', OffTrack: 'bad' };
+const PROJECT_STATUS: Record<string, string> = { Planned: 'Planned', Active: 'Active', OnHold: 'On hold', Completed: 'Completed', Archived: 'Archived' };
 
 /** Milestones on one time axis: filled = complete, red = late, hollow = planned; a line at today. */
-function MilestoneTimeline({ items }: { items: Proj['milestones'] }) {
+function MilestoneTimeline({ items }: { items: Cli['milestones'] }) {
   const dated = items.filter(m => m.date);
-  if (dated.length === 0) return <div className="viz-empty">No dated milestone is recorded on the project's contracts.</div>;
+  if (dated.length === 0) return <div className="viz-empty">No dated milestone is recorded on the client's contracts.</div>;
   const times = dated.map(m => new Date(m.date!).getTime());
   const now = Date.now();
   const lo = Math.min(...times, now), hi = Math.max(...times, now);
@@ -763,44 +765,44 @@ function MilestoneTimeline({ items }: { items: Proj['milestones'] }) {
   );
 }
 
-/** A108: what is the status of this project — the recorded status first, the rule-based signals beside it, the records below. */
-export function ProjectDashboard() {
+/** A109: what is the status of this client — the recorded status first, the rule-based signals beside it, the records of all its projects below. */
+export function ClientDashboard() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ projectId: '' });
+  const [f, set] = useUrlState({ clientId: '' });
   const [dialog, setDialog] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const list = useQuery({ queryKey: ['dash-projects'], queryFn: () => get<{ items: PortfolioRow[] }>('/dashboard/projects') });
-  const q = useQuery({ queryKey: ['dash-project', f.projectId], queryFn: () => get<Proj>(`/dashboard/projects/${f.projectId}`), enabled: !!f.projectId, placeholderData: keepPreviousData });
-  const refresh = useRefreshAll(['dash-project', 'dash-projects']);
-  // Open on the first project of the list (the one needing most attention) when none is chosen.
-  useEffect(() => { if (!f.projectId && list.data?.items.length) set({ projectId: String(list.data.items[0].id) }); }, [f.projectId, list.data]); // eslint-disable-line react-hooks/exhaustive-deps
-  const options = (list.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name} (${p.clientCode})` }));
+  const list = useQuery({ queryKey: ['dash-clients'], queryFn: () => get<{ items: PortfolioRow[] }>('/dashboard/clients') });
+  const q = useQuery({ queryKey: ['dash-client', f.clientId], queryFn: () => get<Cli>(`/dashboard/clients/${f.clientId}`), enabled: !!f.clientId, placeholderData: keepPreviousData });
+  const refresh = useRefreshAll(['dash-client', 'dash-clients']);
+  // Open on the first client of the list (the one needing most attention) when none is chosen.
+  useEffect(() => { if (!f.clientId && list.data?.items.length) set({ clientId: String(list.data.items[0].id) }); }, [f.clientId, list.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  const options = (list.data?.items ?? []).map(c => ({ value: String(c.id), label: `${c.code} · ${c.name}` }));
   const d = q.data;
-  // A completed or archived project opened by its address is not in the list of running projects: keep it selectable.
-  if (d && !options.some(o => o.value === String(d.project.id))) options.unshift({ value: String(d.project.id), label: `${d.project.code} · ${d.project.name} (${d.project.clientCode})` });
+  // A client outside the portfolio (an opportunity without a running project) opened by its address: keep it selectable.
+  if (d && !options.some(o => o.value === String(d.client.id))) options.unshift({ value: String(d.client.id), label: `${d.client.code} · ${d.client.name}` });
   const rec = d?.status.recorded;
   const words = rec ? STATUS_WORDS[rec.status] : null;
   return (
     <div className="dash">
-      <PageHead title="Project dashboard"
-        sub={<>What is the status of this project? {d && <span className="cc-fresh">As of {fmtDateTime(d.evaluatedAt)} ({me.timeZone}).</span>}</>}
+      <PageHead title="Client dashboard"
+        sub={<>What is the status of this client, across its projects? {d && <span className="cc-fresh">As of {fmtDateTime(d.evaluatedAt)} ({me.timeZone}).</span>}</>}
         actions={<>
           <button className="btn" onClick={refresh} disabled={q.isFetching}>{q.isFetching ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
-          {d && <Link className="btn" to={`/projects/${d.project.id}`}>Project record</Link>}
+          {d && <Link className="btn" to={`/clients/${d.client.id}`}>Client record</Link>}
           {d?.status.canRecord && <button className="btn btn-primary" onClick={() => setDialog(true)}>Update status</button>}
         </>} />
       <div className="toolbar ad-filters">
-        <SelectInput label="Project" value={f.projectId} onChange={v => set({ projectId: v })} options={options} empty={null} wide />
+        <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={options} empty={null} wide />
       </div>
       {(list.isLoading || q.isLoading) && <StateMessage kind="loading" />}
-      {q.error && <StateMessage kind="error">The project could not be loaded. It may not exist, or you may not have access to it.</StateMessage>}
-      {list.data && list.data.items.length === 0 && !f.projectId && <StateMessage kind="none">No running project is recorded. Projects are created under Clients → Projects &amp; contracts.</StateMessage>}
+      {q.error && <StateMessage kind="error">The client could not be loaded. It may not exist, or you may not have access to it.</StateMessage>}
+      {list.data && list.data.items.length === 0 && !f.clientId && <StateMessage kind="none">No Active client and no running project is recorded.</StateMessage>}
       {d && <>
-        <section className="ad-verdict panel" aria-label="Project status">
+        <section className="ad-verdict panel" aria-label="Client status">
           <div className={`ad-verdict-main ${rec ? VERDICT_CLASS[rec.status] : 'none'}`}>
-            <span className="ad-verdict-q">Project status — recorded by the project manager</span>
+            <span className="ad-verdict-q">Client status — recorded by a person</span>
             <span className="ad-verdict-st"><span aria-hidden="true">{words?.glyph ?? '○'}</span> {words?.label ?? 'Not recorded'}</span>
-            <span className="ad-verdict-why">{rec ? rec.summary : 'Nobody has recorded a status for this project yet. The signals on the right are worked out from its records; they do not replace a recorded status.'}</span>
+            <span className="ad-verdict-why">{rec ? rec.summary : 'Nobody has recorded a status for this client yet. The signals on the right are worked out from its records; they do not replace a recorded status.'}</span>
             {rec && <span className="ad-verdict-by">Recorded by {rec.recordedBy ?? 'an unknown user'} · {fmtDateTime(rec.recordedAt)} ({rec.ageDays} d ago){rec.nextReviewOn ? ` · next review ${fmtDate(rec.nextReviewOn)}` : ''}</span>}
             {d.status.history.length > 1 && <button className="linkbtn ad-verdict-hist" aria-expanded={showHistory} onClick={() => setShowHistory(v => !v)}>{showHistory ? 'Hide history' : `Status history (${d.status.history.length})`}</button>}
           </div>
@@ -821,23 +823,38 @@ export function ProjectDashboard() {
           </div>
         </section>
         {showHistory && (
-          <Card title="Status history" sub="Every recorded status is kept; the newest is the project's status.">
+          <Card title="Status history" sub="Every recorded status is kept; the newest is the client's status.">
             <table className="grid"><thead><tr><th>Recorded</th><th>Status</th><th>Reason</th><th>By</th><th>Next review</th></tr></thead><tbody>
               {d.status.history.map(h => <tr key={h.id}><td className="nowrap">{fmtDateTime(h.recordedAt)}</td><td><StatusWords status={h.status} /></td><td>{h.summary}</td><td>{h.recordedBy ?? '—'}</td><td className="nowrap">{h.nextReviewOn ? fmtDate(h.nextReviewOn) : '—'}</td></tr>)}
             </tbody></table>
           </Card>
         )}
 
-        <section className="panel ad-facts" aria-label="Project facts">
-          <div><span>Project</span><b>{d.project.code}</b> · {d.project.name}</div>
-          <div><span>Client</span><Link to={`/clients/${d.project.clientId}`}>{d.project.clientCode}</Link> · {d.project.clientName}</div>
-          <div><span>Project manager</span>{d.project.owner ?? <Badge tone="warn">Unassigned</Badge>}</div>
-          <div><span>Record status · service dates</span>{d.project.recordStatus} · {d.project.serviceStart ? fmtDate(d.project.serviceStart) : 'Unknown'} → {d.project.serviceEnd ? fmtDate(d.project.serviceEnd) : 'Unknown'}</div>
-          <div><span>Products</span>{d.project.products.length ? d.project.products.map(p => p.code).join(', ') : <span className="muted">None recorded</span>}</div>
+        <section className="panel ad-facts" aria-label="Client facts">
+          <div><span>Client</span><b>{d.client.code}</b> · {d.client.name}</div>
+          <div><span>Account owner</span>{d.client.owner ?? <Badge tone="warn">Unassigned</Badge>}</div>
+          <div><span>Record status · country</span>{d.client.recordStatus} · {d.client.country ?? <span className="muted">Not recorded</span>}</div>
+          <div><span>Products</span>{d.client.products.length ? d.client.products.map(p => p.code).join(', ') : <span className="muted">None recorded</span>}</div>
           <div><span>Contracts</span>{d.contracts.length ? d.contracts.map((c, i) => <span key={c.id}>{i > 0 && ' · '}<Link to={`/contracts/${c.id}`}>{c.ref}</Link> <span className="muted">{c.status}</span></span>) : <span className="muted">None recorded</span>}</div>
         </section>
 
-        <Band id="delivery" icon="project" title="Delivery" hint="Milestones and payment terms recorded on the project's contracts">
+        <Card title="Projects" sub="The client's projects. Its status, signals and figures cover all of them.">
+          {d.projects.length === 0 ? <div className="viz-empty">No project is recorded for this client.</div> : (
+            <table className="grid"><thead><tr><th>Project</th><th>Status</th><th>Manager</th><th>Service</th><th className="num">Contracts</th></tr></thead><tbody>
+              {d.projects.map(p => (
+                <tr key={p.id} className={p.running ? undefined : 'muted'}>
+                  <td><Link to={`/projects/${p.id}`}>{p.code}</Link> {p.name}</td>
+                  <td>{PROJECT_STATUS[p.status] ?? p.status}</td>
+                  <td>{p.owner ?? <Badge tone="warn">Unassigned</Badge>}</td>
+                  <td className="nowrap">{p.serviceStart ? fmtDate(p.serviceStart) : 'Unknown'} → {p.serviceEnd ? fmtDate(p.serviceEnd) : 'Unknown'}</td>
+                  <td className="num">{p.contracts}</td>
+                </tr>
+              ))}
+            </tbody></table>
+          )}
+        </Card>
+
+        <Band id="delivery" icon="project" title="Delivery" hint="Milestones and payment terms recorded on the client's contracts, in all its projects">
           <div className="ad-grid ad-2-1">
             <VizPanel title="Milestone timeline" sub="Planned dates and recorded completion. Late = the planned date passed and completion is below 100 %."
               table={{ columns: ['Milestone', 'Contract', 'Planned', 'Complete %', 'State'], rows: d.milestones.map(m => [m.phase, m.contractRef, m.date ? fmtDate(m.date) : 'No date', m.percent ?? 0, m.state]) }}>
@@ -860,14 +877,14 @@ export function ProjectDashboard() {
           </div>
         </Band>
 
-        <Band id="service" icon="case" title="Service" hint="Tickets linked to the project's contracts or affecting its environments">
+        <Band id="service" icon="case" title="Service" hint="The client's tickets, escalations and commitments">
           <div className="ad-grid ad-3">
             <VizPanel title="Open tickets by priority" sub={<>{d.cases.open} open{d.cases.overdue ? <>, <b className="t-bad">{d.cases.overdue} overdue</b></> : ''}. Darker = more urgent. Click a bar for the tickets.</>}
               actions={<Link className="linkbtn" to={d.cases.link}>All tickets</Link>}
               table={{ columns: ['Priority', 'Open tickets'], rows: d.cases.byPriority.map(b => [b.label, b.value]) }}>
               <HBars data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key]} unit="open ticket(s)" empty="No open ticket." />
             </VizPanel>
-            <Card title={`Contractual SLA — last ${d.sla.windowDays} days`} sub={<>Measured compliance of the project's tickets against the {d.sla.target} % objective.</>} actions={<Link className="linkbtn" to={d.sla.link}>Tickets</Link>}>
+            <Card title={`Contractual SLA — last ${d.sla.windowDays} days`} sub={<>Measured compliance of the client's tickets against the {d.sla.target} % objective.</>} actions={<Link className="linkbtn" to={d.sla.link}>Tickets</Link>}>
               {([['First response', d.sla.response], ['Resolution', d.sla.resolution]] as const).map(([name, t]) => (
                 <div key={name} className="ad-rate">
                   <span>{name}</span><b>{pctText(t.rate)}</b>
@@ -881,7 +898,7 @@ export function ProjectDashboard() {
                 <ul className="ad-list">{d.escalations.map(e => <li key={e.id}><Link to={`/escalations/${e.id}`}>{e.ref}</Link> · level {e.level} · {e.title} <span className="muted">· {e.owner}</span>{e.overdue && <> <Badge tone="bad">Past a target</Badge></>}</li>)}</ul>
               )}
             </Card>
-            <Card title="Open commitments" sub="Commitments linked to this project, the earliest first.">
+            <Card title="Open commitments" sub="The client's open commitments, the earliest first.">
               {d.commitments.length === 0 ? <div className="viz-empty">No open commitment.</div> : (
                 <table className="grid"><tbody>
                   {d.commitments.map(c => <tr key={c.id}><td className="nowrap">{dueText(c.dueAt)}</td><td><Link to={`/commitments/${c.id}`}>{c.ref}</Link> {c.description}</td><td>{c.owner ?? <Badge tone="warn">Unassigned</Badge>}</td></tr>)}
@@ -894,7 +911,7 @@ export function ProjectDashboard() {
         <Band id="estate" icon="server" title="Environments, team and activity">
           <div className="ad-grid ad-3">
             <Card title="Environments" sub="Manually reported condition and installed versions.">
-              {d.environments.length === 0 ? <div className="viz-empty">No environment is linked to this project.</div> : (
+              {d.environments.length === 0 ? <div className="viz-empty">No environment is recorded for this client.</div> : (
                 <div className="ad-envs two">
                   {d.environments.map(e => (
                     <Link key={e.id} to={`/environments/${e.id}`} className={`ad-env ${ENV_CLASS[e.condition.reported] ?? 'x'}`}>
@@ -910,16 +927,16 @@ export function ProjectDashboard() {
                 <table className="grid"><tbody>{d.team.members.map(m => <tr key={m.userId}><td>{m.name}{!m.active && <> <Badge tone="warn">Deactivated</Badge></>}</td><td className="muted">{m.role}</td></tr>)}</tbody></table>
               )}
             </Card>
-            <Card title="Recent activity" sub="Worked out from the project's records, newest first.">
+            <Card title="Recent activity" sub="Worked out from the client's records, newest first.">
               {d.activity.length === 0 ? <div className="viz-empty">Nothing recent.</div> : (
                 <ul className="ad-timeline">{d.activity.map((a, i) => <li key={i}><span className="hint">{fmtDateTime(a.at)}</span><Link to={a.link}>{a.text}</Link></li>)}</ul>
               )}
             </Card>
           </div>
         </Band>
-        <p className="hint">The status is a person's recorded judgement, never a calculated score. Signals are rules over the project's records; missing data is Unknown, never On track. A status older than {d.status.maxAgeDays} days is flagged for review (setting <i>Dashboard.ProjectStatusMaxAgeDays</i>).</p>
-        {dialog && <ActionDialog title="Update project status" submitLabel="Record status" path={`/projects/${d.project.id}/status-reports`} onClose={() => setDialog(false)}
-          intro={<>Record what you judge the status of <b>{d.project.code}</b> to be, and why. The previous status stays in the history.</>}
+        <p className="hint">The status is a person's recorded judgement, never a calculated score. Signals are rules over the client's records; missing data is Unknown, never On track. A status older than {d.status.maxAgeDays} days is flagged for review (setting <i>Dashboard.ClientStatusMaxAgeDays</i>).</p>
+        {dialog && <ActionDialog title="Update client status" submitLabel="Record status" path={`/clients/${d.client.id}/status-reports`} onClose={() => setDialog(false)}
+          intro={<>Record what you judge the status of <b>{d.client.code}</b> to be, across its projects, and why. The previous status stays in the history.</>}
           initial={{ status: rec?.status ?? '' }}
           transform={v => ({ status: v.status || null, summary: v.summary, nextReviewOn: v.nextReviewOn || null })}
           fields={[
@@ -946,7 +963,9 @@ export function Dashboards() {
       <Route path="operational" element={<OperationalDashboard />} />
       <Route path="sla" element={<SlaContractsDashboard />} />
       <Route path="management" element={<ManagementDashboard />} />
-      <Route path="project" element={<ProjectDashboard />} />
+      <Route path="client" element={<ClientDashboard />} />
+      {/* A109: the 2.59.0 address of the Project dashboard. */}
+      <Route path="project" element={<Navigate to="/dashboards/client" replace />} />
     </Routes>
   );
 }

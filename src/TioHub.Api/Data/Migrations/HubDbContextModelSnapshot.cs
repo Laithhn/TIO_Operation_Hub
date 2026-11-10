@@ -1541,6 +1541,45 @@ namespace TioHub.Api.Data.Migrations
                     b.ToTable("Client", "clients");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.ClientStatusReport", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateOnly?>("NextReviewOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("RecordedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("RecordedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecordedById");
+
+                    b.HasIndex("ClientId", "RecordedAt");
+
+                    b.ToTable("ClientStatusReport", "clients");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Clients.ClientTeamMember", b =>
                 {
                     b.Property<long>("Id")
@@ -7409,6 +7448,22 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("Owner");
 
                     b.Navigation("ParentClient");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Clients.ClientStatusReport", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Clients.Client", null)
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Access.User", "RecordedBy")
+                        .WithMany()
+                        .HasForeignKey("RecordedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("RecordedBy");
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Clients.ClientTeamMember", b =>

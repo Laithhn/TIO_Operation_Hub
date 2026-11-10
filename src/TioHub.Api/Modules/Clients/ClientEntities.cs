@@ -92,15 +92,31 @@ public class Project : Entity, IArchivable, IClientOwned
 }
 
 /// <summary>
-/// A108: a manually recorded project status with its reason, kept as history (like an environment condition report, ENV-04).
-/// The latest report is the project's status; it is a person's judgement, not a calculated health score (DAS-02).
+/// A108/A109: a manually recorded client status with its reason, kept as history (like an environment condition report, ENV-04).
+/// The latest report is the client's status; it is a person's judgement, not a calculated health score (DAS-02).
+/// </summary>
+public class ClientStatusReport
+{
+    public long Id { get; set; }
+    public long ClientId { get; set; }
+    public ReportedStatus Status { get; set; }
+    public string Summary { get; set; } = "";
+    public DateOnly? NextReviewOn { get; set; }
+    public long? RecordedById { get; set; }
+    public User? RecordedBy { get; set; }
+    public DateTimeOffset RecordedAt { get; set; }
+}
+
+/// <summary>
+/// A108, retired by A109: the project statuses 2.59.0 recorded. Nothing reads or writes them any more; the table is kept so that
+/// reports already recorded are not lost (removing it is an owner decision) and still mapped so that deleting a project removes them with it.
 /// </summary>
 public class ProjectStatusReport
 {
     public long Id { get; set; }
     public long ProjectId { get; set; }
     public long ClientId { get; set; }
-    public ProjectReportedStatus Status { get; set; }
+    public ReportedStatus Status { get; set; }
     public string Summary { get; set; } = "";
     public DateOnly? NextReviewOn { get; set; }
     public long? RecordedById { get; set; }

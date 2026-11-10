@@ -34,7 +34,7 @@ public static class ModuleRegistration
         services.AddScoped<Dashboard>();
         services.AddScoped<Insights>();
         services.AddScoped<CommandCenter>();
-        services.AddScoped<ProjectInsight>();
+        services.AddScoped<ClientInsight>();
         services.AddScoped<OperationalDashboard>();
         services.AddScoped<SlaContractsDashboard>();
         services.AddScoped<ManagementDashboard>();

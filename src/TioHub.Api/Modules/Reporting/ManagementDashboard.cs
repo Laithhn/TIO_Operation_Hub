@@ -17,7 +17,7 @@ namespace TioHub.Api.Modules.Reporting;
 /// Period figures are compared with the same number of days of the previous period. Nothing is estimated: a rate or a median
 /// without records is null ("not available"), and the page shows how far its own figures can be trusted.
 /// </summary>
-public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, FreshnessService fresh, ProjectInsight projects)
+public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, FreshnessService fresh, ClientInsight clients)
 {
     public static readonly string[] Periods = ["quarter", "month", "ytd"];
 
@@ -90,9 +90,9 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
             .Select(r => new { r.CreatedAt, Response = CaseSla.Now(r.ResponseSlaStatus, r.ResponseDueAt, now), Resolution = CaseSla.Now(r.ResolutionSlaStatus, r.ResolutionDueAt, now) }).ToList();
         var slaCur = slaRows.Where(r => r.CreatedAt >= pf && r.CreatedAt < pt).ToList();
         var slaPrev = slaRows.Where(r => r.CreatedAt >= qf && r.CreatedAt < qt).ToList();
-        var resNow = ProjectSignals.Tally.Of(slaCur.Select(r => r.Resolution));
-        var resPrev = ProjectSignals.Tally.Of(slaPrev.Select(r => r.Resolution));
-        var rspNow = ProjectSignals.Tally.Of(slaCur.Select(r => r.Response));
+        var resNow = ClientSignals.Tally.Of(slaCur.Select(r => r.Resolution));
+        var resPrev = ClientSignals.Tally.Of(slaPrev.Select(r => r.Resolution));
+        var rspNow = ClientSignals.Tally.Of(slaCur.Select(r => r.Response));
 
         // ---- commitments completed in the period: on time or late ----
         var comDone = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), new CommitmentFilter(TeamId: teamId, ProductId: productId, Country: country, Status: "all"), now, days, db)
@@ -136,8 +136,8 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
                 coverageGaps = mine.Count(c => prios.Contains(c.Priority) && c.gap), link = $"/cases?teamId={t.Id}" };
         }).OrderByDescending(t => t.open).ToList();
 
-        // ---- portfolio ----
-        var portfolio = await projects.PortfolioAsync(null, country, productId, null, now, ct);
+        // ---- portfolio: one row per client (A109; 2.59.0 listed projects) ----
+        var portfolio = await clients.PortfolioAsync(null, country, productId, null, now, ct);
 
         // ---- risks and pending decisions ----
         var risks = await Cases(baseCase).Where(c => c.TypeCategory == CaseType.RiskFollowUp).OrderBy(c => c.Priority).ThenBy(c => c.SlaClockStartAt ?? c.CreatedAt).Take(5)
@@ -168,8 +168,8 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
             target,
             kpis = new
             {
-                projects = new { total = portfolio.Count, offTrack = portfolio.Count(p => p.Status == "OffTrack"), atRisk = portfolio.Count(p => p.Status == "AtRisk"), onTrack = portfolio.Count(p => p.Status == "OnTrack"),
-                    noStatus = portfolio.Count(p => p.Status is null), clients = portfolio.Select(p => p.ClientId).Distinct().Count() },
+                clients = new { total = portfolio.Count, offTrack = portfolio.Count(p => p.Status == "OffTrack"), atRisk = portfolio.Count(p => p.Status == "AtRisk"), onTrack = portfolio.Count(p => p.Status == "OnTrack"),
+                    noStatus = portfolio.Count(p => p.Status is null), runningProjects = portfolio.Sum(p => p.RunningProjects) },
                 backlog = new { value = backlogNow, atPeriodStart = backlogStart, change = backlogNow - backlogStart, changePercent = backlogStart == 0 ? (double?)null : Math.Round(100.0 * (backlogNow - backlogStart) / backlogStart, 1) },
                 resolveDays = new { value = resolveNow, previous = resolvePrev, change = Diff(resolveNow, resolvePrev) },
                 sla = new { resolutionRate = resNow.Rate, responseRate = rspNow.Rate, previousResolutionRate = resPrev.Rate, change = Diff(resNow.Rate, resPrev.Rate), measured = resNow.Measured },
@@ -182,7 +182,7 @@ public sealed class ManagementDashboard(HubDbContext db, HubSettings settings, F
                 dataQualityOpen = dqOpen,
                 environments = new { total = envViews.Count, needsVerification = envViews.Count(v => v.NeedsVerification), unknown = envViews.Count(v => v.Reported == Condition.Unknown) },
                 sla = new { notMeasurable, withContract = slaCur.Count },
-                projects = new { total = portfolio.Count, staleStatus = portfolio.Count(p => p.StatusStale), noStatus = portfolio.Count(p => p.Status is null), disagree = portfolio.Count(p => p.Agreement == "Disagree") },
+                clients = new { total = portfolio.Count, staleStatus = portfolio.Count(p => p.StatusStale), noStatus = portfolio.Count(p => p.Status is null), disagree = portfolio.Count(p => p.Agreement == "Disagree") },
                 contractsUnknownEnd = unknownEnd
             },
             note = "Changes compare the period to date with the same number of days of the previous period. The backlog history does not replay reopened tickets, and leaves out closed tickets that have no recorded closing time."

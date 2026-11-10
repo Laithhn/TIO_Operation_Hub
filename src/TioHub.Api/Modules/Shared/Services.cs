@@ -45,8 +45,8 @@ public sealed class HubSettings(HubDbContext db, IMemoryCache cache)
     public Task<int> SlaAtRiskPercentAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaAtRiskPercent, 25, 5, 50, ct);
     /// <summary>A108: the internal compliance objective (percent) measured rates are compared with.</summary>
     public Task<int> SlaComplianceTargetAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaComplianceTargetPercent, 90, 50, 100, ct);
-    /// <summary>A108: days after which a recorded project status needs review.</summary>
-    public Task<int> ProjectStatusMaxAgeDaysAsync(CancellationToken ct) => IntAsync(SettingKeys.ProjectStatusMaxAgeDays, 14, 1, 90, ct);
+    /// <summary>A109: days after which a recorded client status needs review.</summary>
+    public Task<int> ClientStatusMaxAgeDaysAsync(CancellationToken ct) => IntAsync(SettingKeys.ClientStatusMaxAgeDays, 14, 1, 90, ct);
 
     public void Invalidate() => cache.Remove(CacheKey);
 }

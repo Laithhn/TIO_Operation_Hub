@@ -65,6 +65,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<ProjectProduct> ProjectProducts => Set<ProjectProduct>();
     public DbSet<ProjectStatusReport> ProjectStatusReports => Set<ProjectStatusReport>();
+    public DbSet<ClientStatusReport> ClientStatusReports => Set<ClientStatusReport>();
     public DbSet<Contact> Contacts => Set<Contact>();
     public DbSet<ResponsibilityBoundary> Boundaries => Set<ResponsibilityBoundary>();
     public DbSet<ClientEnvironment> Environments => Set<ClientEnvironment>();
@@ -346,6 +347,16 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasOne<Project>().WithMany().HasForeignKey(x => x.ProjectId);
             e.HasOne(x => x.RecordedBy).WithMany().HasForeignKey(x => x.RecordedById);
             e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || ProjectIds.Contains(x.ProjectId));
+        });
+        m.Entity<ClientStatusReport>(e =>
+        {
+            e.ToTable("ClientStatusReport", "clients");
+            e.Property(x => x.Summary).HasMaxLength(1000);
+            e.HasIndex(x => new { x.ClientId, x.RecordedAt });
+            e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId);
+            e.HasOne(x => x.RecordedBy).WithMany().HasForeignKey(x => x.RecordedById);
+            // The same people who see the client (A81): its scope, or a project of it.
+            e.HasQueryFilter(ScopeFilter, x => Sys || All || ClientIds.Contains(x.ClientId) || ProjectClientIds.Contains(x.ClientId));
         });
         m.Entity<ProjectProduct>(e =>
         {

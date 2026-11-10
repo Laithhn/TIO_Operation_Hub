@@ -72,11 +72,11 @@ public sealed class SlaContractsDashboard(HubDbContext db, HubSettings settings,
             .Select(r => new { r.Id, r.CreatedAt, r.Priority, r.ContractId, r.SlaNote, Response = CaseSla.Now(r.ResponseSlaStatus, r.ResponseDueAt, now), Resolution = CaseSla.Now(r.ResolutionSlaStatus, r.ResolutionDueAt, now) }).ToList();
         var cur = rows.Where(r => r.CreatedAt >= pf && r.CreatedAt < pt).ToList();
         var prev = rows.Where(r => r.CreatedAt >= prevFrom && r.CreatedAt < pf).ToList();
-        static object T(ProjectSignals.Tally t) => new { met = t.Met, breached = t.Breached, pending = t.Pending, notMeasurable = t.NotMeasurable, measured = t.Measured, rate = t.Rate };
-        var response = ProjectSignals.Tally.Of(cur.Select(r => r.Response));
-        var resolution = ProjectSignals.Tally.Of(cur.Select(r => r.Resolution));
-        var prevResponse = ProjectSignals.Tally.Of(prev.Select(r => r.Response));
-        var prevResolution = ProjectSignals.Tally.Of(prev.Select(r => r.Resolution));
+        static object T(ClientSignals.Tally t) => new { met = t.Met, breached = t.Breached, pending = t.Pending, notMeasurable = t.NotMeasurable, measured = t.Measured, rate = t.Rate };
+        var response = ClientSignals.Tally.Of(cur.Select(r => r.Response));
+        var resolution = ClientSignals.Tally.Of(cur.Select(r => r.Resolution));
+        var prevResponse = ClientSignals.Tally.Of(prev.Select(r => r.Response));
+        var prevResolution = ClientSignals.Tally.Of(prev.Select(r => r.Resolution));
         static double? Delta(double? a, double? b) => a is null || b is null ? null : Math.Round(a.Value - b.Value, 1);
         string CaseLink(string extra) => "/cases?" + string.Join("&", new[] { extra, "status=all", $"createdFrom={Uri.EscapeDataString(pf.ToString("O"))}", $"createdTo={Uri.EscapeDataString(pt.ToString("O"))}",
             p.ClientId is null ? null : $"clientId={p.ClientId}", p.ContractId is null ? null : $"contractId={p.ContractId}", p.Priority is null ? null : $"priority={p.Priority}",
@@ -94,8 +94,8 @@ public sealed class SlaContractsDashboard(HubDbContext db, HubSettings settings,
             var m = monthStart.AddMonths(i);
             DateTimeOffset a = new(m, zone.GetUtcOffset(m)), b = new(m.AddMonths(1), zone.GetUtcOffset(m.AddMonths(1)));
             var inM = rows.Where(r => r.CreatedAt >= a && r.CreatedAt < b).ToList();
-            var rs = ProjectSignals.Tally.Of(inM.Select(r => r.Response));
-            var xs = ProjectSignals.Tally.Of(inM.Select(r => r.Resolution));
+            var rs = ClientSignals.Tally.Of(inM.Select(r => r.Response));
+            var xs = ClientSignals.Tally.Of(inM.Select(r => r.Resolution));
             return new { key = m.ToString("yyyy-MM"), label = m.ToString("MMM yy"), cases = inM.Count, responseRate = rs.Rate, responseMeasured = rs.Measured, resolutionRate = xs.Rate, resolutionMeasured = xs.Measured };
         }).ToList();
 
@@ -119,8 +119,8 @@ public sealed class SlaContractsDashboard(HubDbContext db, HubSettings settings,
             return new
             {
                 x.c.Id, x.c.Ref, x.c.Title, x.c.ClientId, x.client, x.c.ProjectId, x.project, x.c.Type, support = ContractEndpoints.SupportSummary(x.c), targets = x.c.SlaTargets.Count,
-                cases = mine.Count, response = T(ProjectSignals.Tally.Of(mine.Select(r => r.Response))), resolution = T(ProjectSignals.Tally.Of(mine.Select(r => r.Resolution))),
-                resolutionRate = ProjectSignals.Tally.Of(mine.Select(r => r.Resolution)).Rate,
+                cases = mine.Count, response = T(ClientSignals.Tally.Of(mine.Select(r => r.Response))), resolution = T(ClientSignals.Tally.Of(mine.Select(r => r.Resolution))),
+                resolutionRate = ClientSignals.Tally.Of(mine.Select(r => r.Resolution)).Rate,
                 breached = breachedBy.Count, worstPriority = breachedBy.Count == 0 ? null : breachedBy.Min().ToString(),
                 x.c.StartDate, x.c.EndDate, noticeDeadline = x.c.NoticeDeadline, state = ContractQuery.State(x.c, now), x.owner,
                 link = CaseLink($"contractId={x.c.Id}&sla=withContract")

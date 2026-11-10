@@ -81,8 +81,8 @@ public static class SettingKeys
     public const string SlaAtRiskPercent = "Dashboard.SlaAtRiskPercent";
     /// <summary>A108: the compliance objective the SLA dashboards compare measured rates with (the contracts record times, not a percentage).</summary>
     public const string SlaComplianceTargetPercent = "Dashboard.SlaComplianceTargetPercent";
-    /// <summary>A108: a recorded project status older than this is shown as needing review.</summary>
-    public const string ProjectStatusMaxAgeDays = "Dashboard.ProjectStatusMaxAgeDays";
+    /// <summary>A109: a recorded client status older than this is shown as needing review (2.59.0 named it Dashboard.ProjectStatusMaxAgeDays).</summary>
+    public const string ClientStatusMaxAgeDays = "Dashboard.ClientStatusMaxAgeDays";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

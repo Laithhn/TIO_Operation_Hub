@@ -10,8 +10,8 @@ async function confirmDialog(page: Page, button: string) {
 }
 
 // The default development user is the TIO Manager, who holds every right.
-test.describe('Audience dashboards (A108)', () => {
-  test('operational, SLA & contracts, management and project dashboards; a project status is recorded', async ({ page }) => {
+test.describe('Audience dashboards (A108, A109)', () => {
+  test('operational, SLA & contracts, management and client dashboards; a client status is recorded', async ({ page }) => {
     // Operational: as of now, with the work queue, the environment board and the caller's hygiene list.
     await page.goto('/dashboards/operational?view=all');
     await expect(page.getByRole('heading', { level: 1, name: 'Operational dashboard' })).toBeVisible();
@@ -31,15 +31,17 @@ test.describe('Audience dashboards (A108)', () => {
     await expect(page.getByRole('heading', { name: 'Contract lifecycle' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Renewal & notice watchlist' })).toBeVisible();
 
-    // Management: the portfolio links to the project dashboard.
+    // Management: the portfolio lists clients and links to the client dashboard.
     await side.getByRole('link', { name: 'Management' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Management dashboard' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Data trust' })).toBeVisible();
-    await page.getByRole('link', { name: 'DEMO-NTA-OPS' }).first().click();
-    await expect(page).toHaveURL(/dashboards\/project\?projectId=\d+/);
+    await expect(page.getByRole('heading', { name: 'Client portfolio' })).toBeVisible();
+    await page.getByRole('link', { name: 'DEMO-NTA', exact: true }).first().click();
+    await expect(page).toHaveURL(/dashboards\/client\?clientId=\d+/);
 
-    // Project: the recorded status first, seven rule-based signals beside it; recording needs a reason and a confirmation.
-    await expect(page.getByRole('heading', { level: 1, name: 'Project dashboard' })).toBeVisible();
+    // Client: the recorded status first, seven rule-based signals beside it, the client's projects listed; recording needs a reason and a confirmation.
+    await expect(page.getByRole('heading', { level: 1, name: 'Client dashboard' })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'DEMO-NTA-OPS' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Signals behind the status' })).toBeVisible();
     await expect(page.locator('.ad-signal')).toHaveCount(7);
     const reason = unique('Milestone slipped; vendor patch pending');
@@ -48,13 +50,18 @@ test.describe('Audience dashboards (A108)', () => {
     await dialog.getByLabel('Status', { exact: true }).selectOption('AtRisk');
     await dialog.getByLabel(/^Reason/).fill(reason);
     await confirmDialog(page, 'Record status');
-    const verdict = page.getByRole('region', { name: 'Project status' });
+    const verdict = page.getByRole('region', { name: 'Client status' });
     await expect(verdict.locator('.ad-verdict-st')).toContainText('At risk');
     await expect(verdict.getByText(reason)).toBeVisible();
     await expect(verdict.getByText(/Recorded by /)).toBeVisible();
-    await page.screenshot({ path: 'test-results/visual-project-dashboard-1600.png', fullPage: true });
-    // The ticket count on the page opens the list with the same project filter.
+    await page.screenshot({ path: 'test-results/visual-client-dashboard-1600.png', fullPage: true });
+    // The ticket count on the page opens the list with the same client filter.
     await page.getByRole('link', { name: 'All tickets' }).click();
-    await expect(page).toHaveURL(/\/cases\?.*projectId=\d+/);
+    await expect(page).toHaveURL(/\/cases\?.*clientId=\d+/);
+
+    // The 2.59.0 address of the Project dashboard opens the Client dashboard.
+    await page.goto('/dashboards/project');
+    await expect(page).toHaveURL(/dashboards\/client/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Client dashboard' })).toBeVisible();
   });
 });

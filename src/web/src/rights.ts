@@ -53,7 +53,8 @@ export function routePermissions(pathname: string): string[] {
   const parts = pathname.split('/').filter(Boolean);
   const root = parts[0] ?? '';
   if (root === 'my-dashboard') return ['MyDashboard:View'];
-  if (root === 'dashboards') return [parts[1] ? `${audienceDashboards.find(d => d[0] === parts[1])?.[3] ?? 'unregistered'}:View` : 'Dashboard:View'];
+  // A109: /dashboards/project (2.59.0) now opens the Client dashboard.
+  if (root === 'dashboards') { const sub = parts[1] === 'project' ? 'client' : parts[1]; return [sub ? `${audienceDashboards.find(d => d[0] === sub)?.[3] ?? 'unregistered'}:View` : 'Dashboard:View']; }
   if (['', 'overview', 'map', 'actions', 'data-quality'].includes(root)) return ['Dashboard:View', ...businessResources.map(r => `${r}:View`)];
   if (root === 'notifications') return ['Notifications:View'];
   if (root === 'notes') return ['PersonalNotes:View'];
@@ -70,7 +71,7 @@ export function routePermissions(pathname: string): string[] {
 
 /** A108: the audience dashboards: path, menu label, icon and right (Dashboard:View is needed too, through the right's prerequisite). */
 export const audienceDashboards = [['operational', 'Operational', 'case', 'OperationalDashboard'], ['sla', 'SLA & Contracts', 'matrix', 'SlaContractsDashboard'],
-  ['management', 'Management', 'team', 'ManagementDashboard'], ['project', 'Project', 'project', 'ProjectDashboard']] as const;
+  ['management', 'Management', 'team', 'ManagementDashboard'], ['client', 'Client', 'clients', 'ClientDashboard']] as const;
 
 const routeAreas: Record<string, string> = {
   map: 'ClientMap', actions: 'ActionList', 'data-quality': 'DataQuality', handovers: 'Handovers', reassignment: 'Reassignment'

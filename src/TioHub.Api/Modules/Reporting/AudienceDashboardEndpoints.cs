@@ -10,11 +10,11 @@ namespace TioHub.Api.Modules.Reporting;
 /// <summary>
 /// A108 (owner request, 10 Nov 2026): four dashboards, one per audience and question, beside the Operations Command Center —
 /// Operational (what to act on today), SLA &amp; Contracts (are obligations met), Management (trend and where to step in) and
-/// Project (what is the status of this project) — and the project status reports the last one is built on.
+/// Client (what is the status of this client, across its projects; A109 — 2.59.0 had a Project dashboard) — and the client status reports the last one is built on.
 /// </summary>
 public static class AudienceDashboardEndpoints
 {
-    public sealed record StatusReportInput(ProjectReportedStatus? Status, string? Summary, DateOnly? NextReviewOn);
+    public sealed record StatusReportInput(ReportedStatus? Status, string? Summary, DateOnly? NextReviewOn);
 
     public static void MapAudienceDashboardEndpoints(this RouteGroupBuilder api)
     {
@@ -43,49 +43,50 @@ public static class AudienceDashboardEndpoints
             return Results.Ok(await dash.BuildAsync(period, country, teamId, productId, access.Me, ct));
         });
 
-        g.MapGet("/projects", async (long? clientId, string? country, long? productId, long? ownerId, ProjectInsight insight, HubAccess access, CancellationToken ct) =>
+        g.MapGet("/clients", async (long? clientId, string? country, long? productId, long? ownerId, ClientInsight insight, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();
             var now = DateTimeOffset.UtcNow;
             return Results.Ok(new { evaluatedAt = now, items = await insight.PortfolioAsync(clientId, country, productId, ownerId, now, ct) });
         });
 
-        g.MapGet("/projects/{id:long}", async (long id, ProjectInsight insight, HubAccess access, CancellationToken ct) =>
+        g.MapGet("/clients/{id:long}", async (long id, ClientInsight insight, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();
-            return Results.Ok(await insight.ProjectAsync(id, access.Me, ct));
+            return Results.Ok(await insight.ClientAsync(id, access.Me, ct));
         });
 
-        // ---- project status reports: recorded by a person, kept as history ----
-        var pg = api.MapGroup("/projects").WithTags("Projects");
-        pg.MapGet("/{id:long}/status-reports", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
+        // ---- client status reports: recorded by a person, kept as history ----
+        var cg = api.MapGroup("/clients").WithTags("Clients");
+        cg.MapGet("/{id:long}/status-reports", async (long id, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();
-            if (!await db.Projects.AnyAsync(p => p.Id == id, ct)) throw new NotFoundException("The project");
-            return Results.Ok(await db.ProjectStatusReports.AsNoTracking().Where(r => r.ProjectId == id).OrderByDescending(r => r.RecordedAt).ThenByDescending(r => r.Id)
+            if (!await db.Clients.AnyAsync(c => c.Id == id, ct)) throw new NotFoundException("The client");
+            return Results.Ok(await db.ClientStatusReports.AsNoTracking().Where(r => r.ClientId == id).OrderByDescending(r => r.RecordedAt).ThenByDescending(r => r.Id)
                 .Select(r => new { r.Id, status = r.Status.ToString(), r.Summary, r.NextReviewOn, r.RecordedAt, recordedBy = r.RecordedBy == null ? null : r.RecordedBy.DisplayName }).ToListAsync(ct));
         });
 
-        pg.MapPost("/{id:long}/status-reports", async (long id, StatusReportInput input, HubDbContext db, HubAccess access, HubSettings settings, TimeProvider clock, CancellationToken ct) =>
+        cg.MapPost("/{id:long}/status-reports", async (long id, StatusReportInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            var p = await db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The project");
-            access.RequireMaintain(RightKeys.Projects, p.ClientId, null, p.OwnerUserId);
+            var c = await db.Clients.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The client");
+            // Who may record: Projects:Maintain in the client's scope, the people who recorded project statuses in 2.59.0 (A109, owner may revisit).
+            access.RequireMaintain(RightKeys.Projects, c.Id, null);
             var now = clock.GetUtcNow();
             var today = DateOnly.FromDateTime(now.UtcDateTime);
             var check = new Check();
-            check.When(input.Status is null, "status", "Select the project status.")
+            check.When(input.Status is null, "status", "Select the client status.")
                  .Text("summary", input.Summary, 1000, "the reason for this status", required: true)
-                 .When(p.Status is ProjectStatus.Completed or ProjectStatus.Archived, "status", "A completed or archived project takes no new status.")
+                 .When(c.Status == ClientStatus.Archived, "status", "An archived client takes no new status.")
                  .When(input.NextReviewOn is { } d && d < today.AddDays(-1), "nextReviewOn", "The next review date cannot be in the past.")
                  .When(input.NextReviewOn is { } far && far > today.AddDays(366), "nextReviewOn", "Choose a next review date within a year.");
             check.ThrowIfAny();
-            var report = new ProjectStatusReport
+            var report = new ClientStatusReport
             {
-                ProjectId = id, ClientId = p.ClientId, Status = input.Status!.Value, Summary = input.Summary!.Trim(), NextReviewOn = input.NextReviewOn, RecordedAt = now, RecordedById = access.Me.UserId
+                ClientId = id, Status = input.Status!.Value, Summary = input.Summary!.Trim(), NextReviewOn = input.NextReviewOn, RecordedAt = now, RecordedById = access.Me.UserId
             };
-            db.ProjectStatusReports.Add(report);
+            db.ClientStatusReports.Add(report);
             await db.SaveChangesAsync(ct);
-            return Results.Created($"/api/v1/projects/{id}/status-reports/{report.Id}", new { report.Id });
+            return Results.Created($"/api/v1/clients/{id}/status-reports/{report.Id}", new { report.Id });
         });
     }
 }

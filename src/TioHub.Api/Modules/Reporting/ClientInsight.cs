@@ -12,7 +12,7 @@ using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Reporting;
 
-/// <summary>One rule-based signal of a project: its state, the facts behind it, the rule in words and the list it opens.</summary>
+/// <summary>One rule-based signal of a client: its state, the facts behind it, the rule in words and the list it opens.</summary>
 public sealed record Signal(string Key, string Label, string State, string Text, string Rule, string? Link);
 
 public static class SignalState
@@ -20,37 +20,33 @@ public static class SignalState
     public const string OnTrack = "OnTrack", Watch = "Watch", OffTrack = "OffTrack", Unknown = "Unknown";
 }
 
-public sealed record ContractFact(long Id, string Ref, string Title, string Type, ContractStatus Status, DateOnly? StartDate, DateOnly? EndDate, int? NoticeDays, string? Currency);
+public sealed record ProjectFact(long Id, string Code, string Name, ProjectStatus Status, string? Owner, DateOnly? ServiceStart, DateOnly? ServiceEnd);
+public sealed record ContractFact(long Id, string Ref, string Title, string Type, ContractStatus Status, DateOnly? StartDate, DateOnly? EndDate, int? NoticeDays, string? Currency, long ProjectId = 0, string? ProjectCode = null);
 public sealed record MilestoneFact(long ContractId, string ContractRef, ContractStatus ContractStatus, int SortOrder, string Phase, string? Description, DateOnly? Date, int? Percent);
 public sealed record PaymentFact(long Id, long ContractId, string ContractRef, ContractStatus ContractStatus, int SortOrder, string Condition, decimal? Amount, string? Currency, DateOnly? DueDate, PaymentStatus Status, DateOnly? PaidOn);
 public sealed record EnvFact(long Id, string Name, string Type, EnvironmentType TypeCategory, Condition Condition, DateTimeOffset? ObservedAt, string? Reason);
 public sealed record CaseFact(long Id, string Ref, string Title, Priority Priority, CaseStatus Status, DateTimeOffset CreatedAt, DateTimeOffset? DueAt, long? ContractId, string? Owner,
-    SlaState Response, DateTimeOffset? ResponseDueAt, SlaState Resolution, DateTimeOffset? ResolutionDueAt, List<long> EnvIds);
-public sealed record EscFact(long Id, string Ref, string Title, int Level, EscalationStatus Status, DateTimeOffset ReceivedAt, DateTimeOffset? ResponseDueAt, DateTimeOffset? ResolutionDueAt,
-    long? ProjectId, long? ContractId, long? CaseId, string Owner);
-public sealed record CommitFact(long Id, string Ref, string Description, DateTimeOffset DueAt, string? Owner, long ProjectId);
-public sealed record StatusFact(long Id, ProjectReportedStatus Status, string Summary, DateOnly? NextReviewOn, DateTimeOffset RecordedAt, string? RecordedBy);
+    SlaState Response, DateTimeOffset? ResponseDueAt, SlaState Resolution, DateTimeOffset? ResolutionDueAt);
+public sealed record EscFact(long Id, string Ref, string Title, int Level, EscalationStatus Status, DateTimeOffset ReceivedAt, DateTimeOffset? ResponseDueAt, DateTimeOffset? ResolutionDueAt, string Owner);
+public sealed record CommitFact(long Id, string Ref, string Description, DateTimeOffset DueAt, string? Owner);
+public sealed record StatusFact(long Id, ReportedStatus Status, string Summary, DateOnly? NextReviewOn, DateTimeOffset RecordedAt, string? RecordedBy);
 
-/// <summary>Everything the signals of one project are worked out from. Loaded through the caller's scope filters.</summary>
-public sealed class ProjectFacts
+/// <summary>Everything the signals of one client are worked out from. Loaded through the caller's scope filters.</summary>
+public sealed class ClientFacts
 {
     public long Id { get; init; }
     public string Code { get; init; } = "";
     public string Name { get; init; } = "";
-    public long ClientId { get; init; }
-    public string ClientCode { get; init; } = "";
-    public string ClientName { get; init; } = "";
-    public ProjectStatus RecordStatus { get; init; }
+    public ClientStatus RecordStatus { get; init; }
     public long? OwnerUserId { get; init; }
     public string? Owner { get; init; }
-    public DateOnly? ServiceStart { get; init; }
-    public DateOnly? ServiceEnd { get; init; }
-    public string? ScopeSummary { get; init; }
+    public string? Country { get; init; }
+    public List<ProjectFact> Projects { get; init; } = [];
     public List<ContractFact> Contracts { get; init; } = [];
     public List<MilestoneFact> Milestones { get; init; } = [];
     public List<PaymentFact> Payments { get; init; } = [];
     public List<EnvFact> Environments { get; init; } = [];
-    /// <summary>Open cases, and cases opened in the SLA window (not cancelled).</summary>
+    /// <summary>Open tickets of the client, and its tickets opened in the SLA window (not cancelled).</summary>
     public List<CaseFact> Cases { get; init; } = [];
     /// <summary>Active escalations.</summary>
     public List<EscFact> Escalations { get; init; } = [];
@@ -59,16 +55,17 @@ public sealed class ProjectFacts
     public StatusFact? Status { get; init; }
 }
 
-public sealed record SignalSettings(int ComplianceTarget, int StatusMaxAgeDays, ReviewPolicy? ConditionPolicy, int SlaWindowDays = ProjectSignals.SlaWindowDays);
+public sealed record SignalSettings(int ComplianceTarget, int StatusMaxAgeDays, ReviewPolicy? ConditionPolicy, int SlaWindowDays = ClientSignals.SlaWindowDays);
 
 public sealed record Verdict(string Agreement, string Text, bool Stale);
 
 /// <summary>
-/// A108: the rule-based signals shown beside a project's recorded status. They are not a score and never replace the recorded status
+/// A108/A109: the rule-based signals shown beside a client's recorded status. They are not a score and never replace the recorded status
 /// (DAS-02): each signal states its rule and its facts, missing data is Unknown (never On track), and the page says when the signals
-/// contradict what the project manager recorded. Pure functions over <see cref="ProjectFacts"/>, so the rules are unit-tested.
+/// contradict what was recorded. Pure functions over <see cref="ClientFacts"/>, so the rules are unit-tested.
+/// 2.59.0 worked the same rules out per project; A109 moved them to the client, across all its projects.
 /// </summary>
-public static class ProjectSignals
+public static class ClientSignals
 {
     public const int SlaWindowDays = 90;
     public static readonly string[] Keys = ["delivery", "sla", "escalations", "commitments", "commercial", "environments", "review"];
@@ -89,7 +86,7 @@ public static class ProjectSignals
         }
     }
 
-    public static (Tally Response, Tally Resolution, int OpenBreached) Sla(ProjectFacts f, DateTimeOffset now, int windowDays)
+    public static (Tally Response, Tally Resolution, int OpenBreached) Sla(ClientFacts f, DateTimeOffset now, int windowDays)
     {
         var from = now.AddDays(-windowDays);
         var rows = f.Cases.Where(c => c.ContractId != null && c.CreatedAt >= from).ToList();
@@ -100,7 +97,7 @@ public static class ProjectSignals
         return (response, resolution, openBreached);
     }
 
-    public static List<Signal> Evaluate(ProjectFacts f, DateTimeOffset now, SignalSettings s)
+    public static List<Signal> Evaluate(ClientFacts f, DateTimeOffset now, SignalSettings s)
     {
         var today = DateOnly.FromDateTime(now.UtcDateTime);
         string Days(int n) => n == 1 ? "1 day" : $"{n} days";
@@ -108,16 +105,16 @@ public static class ProjectSignals
 
         // ---- delivery: milestones of the Active contracts ----
         {
-            const string rule = "Milestones of Active contracts. Late = planned date passed and completion below 100 %. Off track: two or more late, or one late by more than 30 days. Watch: one late. Unknown: no dated milestone.";
+            const string rule = "Milestones of the client's Active contracts, in all its projects. Late = planned date passed and completion below 100 %. Off track: two or more late, or one late by more than 30 days. Watch: one late. Unknown: no dated milestone.";
             var ms = f.Milestones.Where(m => m.ContractStatus == ContractStatus.Active && m.Date != null).ToList();
             var late = ms.Where(m => IsLate(m, today)).OrderBy(m => m.Date).ToList();
-            var link = $"/projects/{f.Id}";
+            var link = $"/contracts?clientId={f.Id}";
             if (ms.Count == 0) list.Add(new("delivery", "Delivery", SignalState.Unknown, "No dated milestone is recorded on an Active contract.", rule, link));
             else if (late.Count > 0)
             {
                 var worst = today.DayNumber - late[0].Date!.Value.DayNumber;
                 var state = late.Count >= 2 || worst > 30 ? SignalState.OffTrack : SignalState.Watch;
-                list.Add(new("delivery", "Delivery", state, $"{late.Count} milestone(s) late — {late[0].Phase}, {Days(worst)}.", rule, link));
+                list.Add(new("delivery", "Delivery", state, $"{late.Count} milestone(s) late — {late[0].Phase} ({late[0].ContractRef}), {Days(worst)}.", rule, link));
             }
             else
             {
@@ -126,13 +123,13 @@ public static class ProjectSignals
             }
         }
 
-        // ---- service: measured contractual SLA of the project's cases ----
+        // ---- service: measured contractual SLA of the client's tickets ----
         {
-            var rule = $"Tickets of the project opened in the last {s.SlaWindowDays} days with a linked contract. Rate = met ÷ (met + breached), the lower of response and resolution. "
+            var rule = $"Tickets of the client opened in the last {s.SlaWindowDays} days with a linked contract. Rate = met ÷ (met + breached), the lower of response and resolution. "
                 + $"Off track: more than 10 points under the {s.ComplianceTarget} % objective. Watch: under the objective, or an open ticket is breached. Unknown: nothing measured.";
             var (response, resolution, openBreached) = Sla(f, now, s.SlaWindowDays);
             var rates = new[] { response.Rate, resolution.Rate }.OfType<double>().ToList();
-            var link = $"/cases?projectId={f.Id}&sla=withContract&status=all";
+            var link = $"/cases?clientId={f.Id}&sla=withContract&status=all";
             string Pct(double? r) => r is null ? "not measured" : $"{r:0.#} %";
             var text = $"Response {Pct(response.Rate)} · resolution {Pct(resolution.Rate)}" + (openBreached > 0 ? $" · {openBreached} open ticket(s) breached" : "") + ".";
             if (rates.Count == 0 && openBreached == 0) list.Add(new("sla", "Service / SLA", SignalState.Unknown, $"No measured SLA obligation in the last {s.SlaWindowDays} days.", rule, link));
@@ -146,9 +143,9 @@ public static class ProjectSignals
 
         // ---- escalations ----
         {
-            const string rule = "Active escalations of the project, its contracts or its tickets. Off track: one is at level 3 or past a target. Watch: any active escalation.";
+            const string rule = "Active escalations of the client. Off track: one is at level 3 or past a target. Watch: any active escalation.";
             bool Late(EscFact e) => (e.ResolutionDueAt != null && e.ResolutionDueAt < now) || (e.Status == EscalationStatus.Open && e.ResponseDueAt != null && e.ResponseDueAt < now);
-            var link = $"/escalations?clientId={f.ClientId}";
+            var link = $"/escalations?clientId={f.Id}";
             if (f.Escalations.Count == 0) list.Add(new("escalations", "Escalations", SignalState.OnTrack, "No active escalation.", rule, link));
             else
             {
@@ -161,8 +158,8 @@ public static class ProjectSignals
 
         // ---- commitments ----
         {
-            const string rule = "Open commitments linked to the project. Off track: one or more overdue. Watch: one due within 48 hours.";
-            var link = $"/commitments?clientId={f.ClientId}";
+            const string rule = "Open commitments of the client. Off track: one or more overdue. Watch: one due within 48 hours.";
+            var link = $"/commitments?clientId={f.Id}";
             var overdue = f.Commitments.Count(c => c.DueAt < now);
             var soon = f.Commitments.Count(c => c.DueAt >= now && c.DueAt <= now.AddHours(48));
             var next = f.Commitments.Where(c => c.DueAt >= now).OrderBy(c => c.DueAt).FirstOrDefault();
@@ -173,11 +170,11 @@ public static class ProjectSignals
 
         // ---- commercial: payments and contract term ----
         {
-            var rule = $"Recorded contract terms. Off track: an open payment is past its due date, or an Active contract has ended. Watch: a renewal decision is due within {ContractQuery.RenewalWindowDays} days or an end date is unknown. Unknown: no contract.";
-            var link = $"/contracts?projectId={f.Id}";
+            var rule = $"Recorded terms of the client's contracts. Off track: an open payment is past its due date, or an Active contract has ended. Watch: a renewal decision is due within {ContractQuery.RenewalWindowDays} days or an end date is unknown. Unknown: no contract.";
+            var link = $"/contracts?clientId={f.Id}";
             var overdue = f.Payments.Where(p => IsOpenPayment(p) && p.DueDate < today).OrderBy(p => p.DueDate).ToList();
             var states = f.Contracts.Select(c => ContractQuery.State(new Contract { Status = c.Status, EndDate = c.EndDate, NoticeDays = c.NoticeDays }, now)).ToList();
-            if (f.Contracts.Count == 0) list.Add(new("commercial", "Commercial", SignalState.Unknown, "No contract is recorded for this project.", rule, link));
+            if (f.Contracts.Count == 0) list.Add(new("commercial", "Commercial", SignalState.Unknown, "No contract is recorded for this client.", rule, link));
             else if (overdue.Count > 0)
                 list.Add(new("commercial", "Commercial", SignalState.OffTrack, $"{overdue.Count} payment(s) overdue, the oldest by {Days(today.DayNumber - overdue[0].DueDate!.Value.DayNumber)}.", rule, link));
             else if (states.Contains("Expired")) list.Add(new("commercial", "Commercial", SignalState.OffTrack, "A contract has ended but is still marked Active.", rule, link));
@@ -188,11 +185,11 @@ public static class ProjectSignals
 
         // ---- environments: manually reported condition ----
         {
-            const string rule = "Reported condition of the project's environments (manual reports, not monitoring). Off track: one is Unavailable. Watch: one is Degraded, has no report or needs verification. Unknown: no environment, or none reported.";
-            var link = $"/projects/{f.Id}";
+            const string rule = "Reported condition of the client's environments (manual reports, not monitoring). Off track: one is Unavailable. Watch: one is Degraded, has no report or needs verification. Unknown: no environment, or none reported.";
+            var link = $"/environments?clientId={f.Id}";
             var views = f.Environments.Select(e => EnvironmentEndpoints.ConditionView(e.Condition, e.ObservedAt, s.ConditionPolicy, now)).ToList();
             int N(Condition c) => views.Count(v => v.Reported == c);
-            if (views.Count == 0) list.Add(new("environments", "Environments", SignalState.Unknown, "No environment is linked to this project.", rule, link));
+            if (views.Count == 0) list.Add(new("environments", "Environments", SignalState.Unknown, "No environment is recorded for this client.", rule, link));
             else if (N(Condition.Unknown) == views.Count) list.Add(new("environments", "Environments", SignalState.Unknown, "No condition has been reported for its environments.", rule, link));
             else
             {
@@ -206,8 +203,8 @@ public static class ProjectSignals
 
         // ---- status review: how fresh the recorded status is ----
         {
-            var rule = $"The recorded project status. Watch: recorded more than {s.StatusMaxAgeDays} days ago, or its next review date has passed. Unknown: no status recorded.";
-            var link = $"/dashboards/project?projectId={f.Id}";
+            var rule = $"The recorded client status. Watch: recorded more than {s.StatusMaxAgeDays} days ago, or its next review date has passed. Unknown: no status recorded.";
+            var link = $"/dashboards/client?clientId={f.Id}";
             if (f.Status is null) list.Add(new("review", "Status review", SignalState.Unknown, "No status has been recorded yet.", rule, link));
             else
             {
@@ -231,186 +228,191 @@ public static class ProjectSignals
         var watch = facts.Count(x => x.State == SignalState.Watch);
         var unknown = facts.Count(x => x.State == SignalState.Unknown);
         var summary = $"{off.Count} off track, {watch} watch, {facts.Count - off.Count - watch - unknown} on track" + (unknown > 0 ? $", {unknown} unknown" : "");
-        if (status is null) return new Verdict("NoStatus", $"No status has been recorded for this project. Signals: {summary}.", false);
+        if (status is null) return new Verdict("NoStatus", $"No status has been recorded for this client. Signals: {summary}.", false);
         var stale = IsStale(status, now, maxAgeDays);
-        if (status.Status == ProjectReportedStatus.OnTrack && off.Count > 0)
-            return new Verdict("Disagree", $"Signals disagree with the recorded status: {string.Join(", ", off)} off track. Ask the project manager to review.", stale);
-        if (status.Status == ProjectReportedStatus.OffTrack && off.Count == 0 && watch == 0 && unknown < facts.Count)
+        if (status.Status == ReportedStatus.OnTrack && off.Count > 0)
+            return new Verdict("Disagree", $"Signals disagree with the recorded status: {string.Join(", ", off)} off track. Ask whoever recorded it to review.", stale);
+        if (status.Status == ReportedStatus.OffTrack && off.Count == 0 && watch == 0 && unknown < facts.Count)
             return new Verdict("Disagree", "Signals show nothing off track or on watch, but the recorded status is Off track. Review the status.", stale);
         if (stale) return new Verdict("Stale", $"The recorded status needs review (older than {maxAgeDays} days, or its review date passed). Signals: {summary}.", true);
         return new Verdict("Agree", $"Signals are consistent with the recorded status: {summary}.", false);
     }
 }
 
-/// <summary>A108: loads project facts through the caller's scope filters and builds the project dashboard and the portfolio rows.</summary>
-public sealed class ProjectInsight(HubDbContext db, HubSettings settings, FreshnessService fresh)
+/// <summary>A109: loads client facts through the caller's scope filters and builds the client dashboard and the client portfolio rows.</summary>
+public sealed class ClientInsight(HubDbContext db, HubSettings settings, FreshnessService fresh)
 {
     public static readonly ProjectStatus[] Running = [ProjectStatus.Planned, ProjectStatus.Active, ProjectStatus.OnHold];
 
     public async Task<SignalSettings> SettingsAsync(CancellationToken ct) => new(
-        await settings.SlaComplianceTargetAsync(ct), await settings.ProjectStatusMaxAgeDaysAsync(ct),
+        await settings.SlaComplianceTargetAsync(ct), await settings.ClientStatusMaxAgeDaysAsync(ct),
         (await fresh.PoliciesAsync(ct)).GetValueOrDefault((RecordTypes.Environment, ReviewScope.Condition)));
 
-    public async Task<List<ProjectFacts>> LoadAsync(IQueryable<Project> projects, DateTimeOffset now, CancellationToken ct)
+    public async Task<List<ClientFacts>> LoadAsync(IQueryable<Client> clients, DateTimeOffset now, CancellationToken ct)
     {
-        var ps = await projects.AsNoTracking().Select(p => new
+        var cs = await clients.AsNoTracking().Select(c => new
         {
-            p.Id, p.Code, p.Name, p.ClientId, clientCode = p.Client!.Code, clientName = p.Client.Name, p.Status, p.OwnerUserId,
-            owner = p.Owner == null ? null : p.Owner.DisplayName, p.ServiceStart, p.ServiceEnd, p.ScopeSummary
+            c.Id, c.Code, c.Name, c.Status, c.OwnerUserId, owner = c.Owner == null ? null : c.Owner.DisplayName, c.Country, c.CountryUnknown
         }).ToListAsync(ct);
-        var ids = ps.Select(p => p.Id).ToList();
+        var ids = cs.Select(c => c.Id).ToList();
         if (ids.Count == 0) return [];
+        var nullableIds = ids.Select(i => (long?)i).ToList();
 
-        var contracts = await db.Contracts.AsNoTracking().Where(c => ids.Contains(c.ProjectId)).Select(c => new
+        var projects = (await db.Projects.AsNoTracking().Where(p => ids.Contains(p.ClientId))
+            .Select(p => new { p.ClientId, fact = new ProjectFact(p.Id, p.Code, p.Name, p.Status, p.Owner == null ? null : p.Owner.DisplayName, p.ServiceStart, p.ServiceEnd) }).ToListAsync(ct))
+            .ToLookup(x => x.ClientId, x => x.fact);
+
+        var contracts = await db.Contracts.AsNoTracking().Where(c => ids.Contains(c.ClientId)).Select(c => new
         {
-            c.Id, c.ProjectId, c.Ref, c.Title, c.Type, c.Status, c.StartDate, c.EndDate, c.NoticeDays, c.Currency,
+            c.Id, c.ClientId, c.ProjectId, projectCode = c.Project!.Code, c.Ref, c.Title, c.Type, c.Status, c.StartDate, c.EndDate, c.NoticeDays, c.Currency,
             milestones = c.Milestones.Select(m => new { m.SortOrder, m.Phase, m.Description, m.Date, m.CompletionPercent }).ToList(),
             payments = c.Payments.Select(p => new { p.Id, p.SortOrder, p.Condition, p.Amount, p.DueDate, p.Status, p.PaidOn }).ToList()
         }).ToListAsync(ct);
-        var contractProject = contracts.ToDictionary(c => c.Id, c => c.ProjectId);
-        var contractIds = contracts.Select(c => (long?)c.Id).ToList();
 
-        var envs = await db.Environments.AsNoTracking().Where(e => e.ProjectId != null && ids.Contains(e.ProjectId.Value))
-            .Select(e => new { e.Id, projectId = e.ProjectId!.Value, e.Name, e.Type, e.TypeCategory, e.Condition, e.ConditionObservedAt, e.ConditionReason }).ToListAsync(ct);
-        var envProject = envs.ToDictionary(e => e.Id, e => e.projectId);
-        var envIds = envs.Select(e => e.Id).ToList();
+        var envs = (await db.Environments.AsNoTracking().Where(e => ids.Contains(e.ClientId))
+            .Select(e => new { e.ClientId, fact = new EnvFact(e.Id, e.Name, e.Type, e.TypeCategory, e.Condition, e.ConditionObservedAt, e.ConditionReason) }).ToListAsync(ct))
+            .ToLookup(x => x.ClientId, x => x.fact);
 
-        var from = now.AddDays(-ProjectSignals.SlaWindowDays);
-        var cases = await db.Cases.AsNoTracking()
+        var from = now.AddDays(-ClientSignals.SlaWindowDays);
+        var cases = (await db.Cases.AsNoTracking()
+            .Where(c => c.ClientId != null && nullableIds.Contains(c.ClientId))
             .Where(c => c.Status != CaseStatus.Cancelled && (c.Status != CaseStatus.Closed || (c.SlaClockStartAt ?? c.CreatedAt) >= from))
-            .Where(c => contractIds.Contains(c.ContractId) || c.Environments.Any(e => envIds.Contains(e.EnvironmentId)))
-            .Select(c => new CaseFact(c.Id, c.Ref, c.Title, c.Priority, c.Status, c.SlaClockStartAt ?? c.CreatedAt, c.DueAt, c.ContractId, c.Owner == null ? null : c.Owner.DisplayName,
-                c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt, c.Environments.Select(e => e.EnvironmentId).ToList())).ToListAsync(ct);
-        HashSet<long> ProjectsOf(CaseFact c)
-        {
-            var set = new HashSet<long>();
-            if (c.ContractId is { } k && contractProject.TryGetValue(k, out var p)) set.Add(p);
-            foreach (var e in c.EnvIds) if (envProject.TryGetValue(e, out var ep)) set.Add(ep);
-            return set;
-        }
-        var casesByProject = cases.SelectMany(c => ProjectsOf(c).Select(p => (p, c))).ToLookup(x => x.p, x => x.c);
-        var caseProjects = cases.ToDictionary(c => c.Id, ProjectsOf);
-        var caseIds = cases.Select(c => (long?)c.Id).ToList();
-        var nullableIds = ids.Select(i => (long?)i).ToList();
+            .Select(c => new
+            {
+                clientId = c.ClientId!.Value,
+                fact = new CaseFact(c.Id, c.Ref, c.Title, c.Priority, c.Status, c.SlaClockStartAt ?? c.CreatedAt, c.DueAt, c.ContractId, c.Owner == null ? null : c.Owner.DisplayName,
+                    c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt)
+            }).ToListAsync(ct)).ToLookup(x => x.clientId, x => x.fact);
 
-        var escs = await db.Escalations.AsNoTracking()
+        var escs = (await db.Escalations.AsNoTracking()
             .Where(e => e.Status == EscalationStatus.Open || e.Status == EscalationStatus.Acknowledged || e.Status == EscalationStatus.InProgress)
-            .Where(e => nullableIds.Contains(e.ProjectId) || contractIds.Contains(e.ContractId) || caseIds.Contains(e.CaseId))
-            .Select(e => new EscFact(e.Id, e.Ref, e.Title, e.Level, e.Status, e.ReceivedAt, e.ResponseDueAt, e.ResolutionDueAt, e.ProjectId, e.ContractId, e.CaseId, e.Owner!.DisplayName)).ToListAsync(ct);
-        HashSet<long> ProjectsOfEsc(EscFact e)
+            .Where(e => ids.Contains(e.ClientId))
+            .Select(e => new { e.ClientId, fact = new EscFact(e.Id, e.Ref, e.Title, e.Level, e.Status, e.ReceivedAt, e.ResponseDueAt, e.ResolutionDueAt, e.Owner!.DisplayName) }).ToListAsync(ct))
+            .ToLookup(x => x.ClientId, x => x.fact);
+
+        var commitments = (await db.Commitments.AsNoTracking().Where(c => c.Status == CommitmentStatus.Open && c.ClientId != null && nullableIds.Contains(c.ClientId))
+            .Select(c => new { clientId = c.ClientId!.Value, fact = new CommitFact(c.Id, c.Ref, c.Description, c.CurrentDueAt, c.Owner == null ? null : c.Owner.DisplayName) }).ToListAsync(ct))
+            .ToLookup(x => x.clientId, x => x.fact);
+
+        var status = (await db.ClientStatusReports.AsNoTracking().Where(r => ids.Contains(r.ClientId)
+                && r.Id == db.ClientStatusReports.Where(x => x.ClientId == r.ClientId).OrderByDescending(x => x.RecordedAt).ThenByDescending(x => x.Id).Select(x => x.Id).First())
+            .Select(r => new { r.ClientId, fact = new StatusFact(r.Id, r.Status, r.Summary, r.NextReviewOn, r.RecordedAt, r.RecordedBy == null ? null : r.RecordedBy.DisplayName) }).ToListAsync(ct))
+            .ToDictionary(x => x.ClientId, x => x.fact);
+
+        return cs.Select(c =>
         {
-            var set = new HashSet<long>();
-            if (e.ProjectId is { } p && ids.Contains(p)) set.Add(p);
-            if (e.ContractId is { } k && contractProject.TryGetValue(k, out var kp)) set.Add(kp);
-            if (e.CaseId is { } c && caseProjects.TryGetValue(c, out var cp)) set.UnionWith(cp);
-            return set;
-        }
-        var escByProject = escs.SelectMany(e => ProjectsOfEsc(e).Select(p => (p, e))).ToLookup(x => x.p, x => x.e);
-
-        var commitments = (await db.Commitments.AsNoTracking().Where(c => c.Status == CommitmentStatus.Open && nullableIds.Contains(c.ProjectId))
-            .Select(c => new CommitFact(c.Id, c.Ref, c.Description, c.CurrentDueAt, c.Owner == null ? null : c.Owner.DisplayName, c.ProjectId!.Value)).ToListAsync(ct)).ToLookup(c => c.ProjectId);
-
-        var status = (await db.ProjectStatusReports.AsNoTracking().Where(r => ids.Contains(r.ProjectId)
-                && r.Id == db.ProjectStatusReports.Where(x => x.ProjectId == r.ProjectId).OrderByDescending(x => x.RecordedAt).ThenByDescending(x => x.Id).Select(x => x.Id).First())
-            .Select(r => new { r.ProjectId, fact = new StatusFact(r.Id, r.Status, r.Summary, r.NextReviewOn, r.RecordedAt, r.RecordedBy == null ? null : r.RecordedBy.DisplayName) }).ToListAsync(ct))
-            .ToDictionary(x => x.ProjectId, x => x.fact);
-
-        return ps.Select(p => new ProjectFacts
-        {
-            Id = p.Id, Code = p.Code, Name = p.Name, ClientId = p.ClientId, ClientCode = p.clientCode, ClientName = p.clientName, RecordStatus = p.Status, OwnerUserId = p.OwnerUserId, Owner = p.owner,
-            ServiceStart = p.ServiceStart, ServiceEnd = p.ServiceEnd, ScopeSummary = p.ScopeSummary,
-            Contracts = contracts.Where(c => c.ProjectId == p.Id).Select(c => new ContractFact(c.Id, c.Ref, c.Title, c.Type, c.Status, c.StartDate, c.EndDate, c.NoticeDays, c.Currency)).ToList(),
-            Milestones = contracts.Where(c => c.ProjectId == p.Id).SelectMany(c => c.milestones.Select(m => new MilestoneFact(c.Id, c.Ref, c.Status, m.SortOrder, m.Phase, m.Description, m.Date, m.CompletionPercent))).ToList(),
-            Payments = contracts.Where(c => c.ProjectId == p.Id).SelectMany(c => c.payments.Select(x => new PaymentFact(x.Id, c.Id, c.Ref, c.Status, x.SortOrder, x.Condition, x.Amount, c.Currency, x.DueDate, x.Status, x.PaidOn))).ToList(),
-            Environments = envs.Where(e => e.projectId == p.Id).Select(e => new EnvFact(e.Id, e.Name, e.Type, e.TypeCategory, e.Condition, e.ConditionObservedAt, e.ConditionReason)).ToList(),
-            Cases = casesByProject[p.Id].ToList(),
-            Escalations = escByProject[p.Id].ToList(),
-            Commitments = commitments[p.Id].ToList(),
-            Status = status.GetValueOrDefault(p.Id)
+            var mine = contracts.Where(k => k.ClientId == c.Id).ToList();
+            return new ClientFacts
+            {
+                Id = c.Id, Code = c.Code, Name = c.Name, RecordStatus = c.Status, OwnerUserId = c.OwnerUserId, Owner = c.owner, Country = c.CountryUnknown ? "Unknown" : c.Country,
+                Projects = projects[c.Id].ToList(),
+                Contracts = mine.Select(k => new ContractFact(k.Id, k.Ref, k.Title, k.Type, k.Status, k.StartDate, k.EndDate, k.NoticeDays, k.Currency, k.ProjectId, k.projectCode)).ToList(),
+                Milestones = mine.SelectMany(k => k.milestones.Select(m => new MilestoneFact(k.Id, k.Ref, k.Status, m.SortOrder, m.Phase, m.Description, m.Date, m.CompletionPercent))).ToList(),
+                Payments = mine.SelectMany(k => k.payments.Select(x => new PaymentFact(x.Id, k.Id, k.Ref, k.Status, x.SortOrder, x.Condition, x.Amount, k.Currency, x.DueDate, x.Status, x.PaidOn))).ToList(),
+                Environments = envs[c.Id].ToList(),
+                Cases = cases[c.Id].ToList(),
+                Escalations = escs[c.Id].ToList(),
+                Commitments = commitments[c.Id].ToList(),
+                Status = status.GetValueOrDefault(c.Id)
+            };
         }).ToList();
     }
 
-    public sealed record PortfolioRow(long Id, string Code, string Name, long ClientId, string ClientCode, string ClientName, string RecordStatus, string? Owner,
+    public sealed record PortfolioRow(long Id, string Code, string Name, string RecordStatus, string? Owner, string? Country, int RunningProjects,
         string? Status, string? StatusSummary, DateTimeOffset? StatusRecordedAt, int? StatusAgeDays, bool StatusStale, string Agreement, List<Signal> Signals, string? NextMilestone, DateOnly? NextMilestoneDate, bool NextMilestoneLate);
 
-    /// <summary>One row per running project (Planned, Active, On hold): the recorded status and the signals. Worst first.</summary>
+    /// <summary>The clients the portfolio covers: Active clients, and any other client with a running project (Planned, Active, On hold). Archived clients are hidden by the archive filter.</summary>
+    public IQueryable<Client> Portfolio(long? clientId, string? country, long? productId, long? ownerId)
+    {
+        var q = db.Clients.Where(c => c.Status == ClientStatus.Active || db.Projects.Any(p => p.ClientId == c.Id && Running.Contains(p.Status)));
+        if (clientId is not null) q = q.Where(c => c.Id == clientId);
+        if (ownerId is not null) q = q.Where(c => c.OwnerUserId == ownerId);
+        if (productId is not null) q = q.Where(c => db.Projects.Any(p => p.ClientId == c.Id && p.Products.Any(x => x.ProductId == productId)));
+        if (!string.IsNullOrWhiteSpace(country)) q = country == "Unknown" ? q.Where(c => c.CountryUnknown) : q.Where(c => c.Country == country);
+        return q;
+    }
+
+    /// <summary>One row per client in the portfolio: the recorded status and the signals. Worst first.</summary>
     public async Task<List<PortfolioRow>> PortfolioAsync(long? clientId, string? country, long? productId, long? ownerId, DateTimeOffset now, CancellationToken ct)
     {
-        var q = db.Projects.Where(p => Running.Contains(p.Status));
-        if (clientId is not null) q = q.Where(p => p.ClientId == clientId);
-        if (ownerId is not null) q = q.Where(p => p.OwnerUserId == ownerId);
-        if (productId is not null) q = q.Where(p => p.Products.Any(x => x.ProductId == productId));
-        if (!string.IsNullOrWhiteSpace(country)) q = country == "Unknown" ? q.Where(p => p.Client!.CountryUnknown) : q.Where(p => p.Client!.Country == country);
         var s = await SettingsAsync(ct);
         var today = DateOnly.FromDateTime(now.UtcDateTime);
-        var rows = (await LoadAsync(q, now, ct)).Select(f =>
+        var rows = (await LoadAsync(Portfolio(clientId, country, productId, ownerId), now, ct)).Select(f =>
         {
-            var signals = ProjectSignals.Evaluate(f, now, s);
-            var verdict = ProjectSignals.Compare(f.Status, signals, now, s.StatusMaxAgeDays);
+            var signals = ClientSignals.Evaluate(f, now, s);
+            var verdict = ClientSignals.Compare(f.Status, signals, now, s.StatusMaxAgeDays);
             var next = f.Milestones.Where(m => m.ContractStatus == ContractStatus.Active && m.Date != null && (m.Percent ?? 0) < 100).OrderBy(m => m.Date).FirstOrDefault();
-            return new PortfolioRow(f.Id, f.Code, f.Name, f.ClientId, f.ClientCode, f.ClientName, f.RecordStatus.ToString(), f.Owner,
+            return new PortfolioRow(f.Id, f.Code, f.Name, f.RecordStatus.ToString(), f.Owner, f.Country, f.Projects.Count(p => Running.Contains(p.Status)),
                 f.Status?.Status.ToString(), f.Status?.Summary, f.Status?.RecordedAt, f.Status is null ? null : (int)(now - f.Status.RecordedAt).TotalDays,
-                f.Status is not null && ProjectSignals.IsStale(f.Status, now, s.StatusMaxAgeDays), verdict.Agreement, signals, next?.Phase, next?.Date, next is not null && ProjectSignals.IsLate(next, today));
+                f.Status is not null && ClientSignals.IsStale(f.Status, now, s.StatusMaxAgeDays), verdict.Agreement, signals, next?.Phase, next?.Date, next is not null && ClientSignals.IsLate(next, today));
         }).ToList();
         static int Rank(PortfolioRow r) => r.Status switch { "OffTrack" => 0, "AtRisk" => 1, null => 2, _ => 3 };
         return rows.OrderBy(Rank).ThenByDescending(r => r.Signals.Count(x => x.State == SignalState.OffTrack)).ThenBy(r => r.NextMilestoneDate ?? DateOnly.MaxValue).ThenBy(r => r.Code).ToList();
     }
 
-    /// <summary>The project dashboard: recorded status, signals and the records behind them.</summary>
-    public async Task<object> ProjectAsync(long id, UserContext me, CancellationToken ct)
+    /// <summary>Who may record a client's status: Projects:Maintain in the client's scope (the people who could record a project status in 2.59.0).</summary>
+    public static bool CanRecord(UserContext me, long clientId, ClientStatus status) =>
+        status != ClientStatus.Archived && me.SeesContext(ResourceContext.ForRecord(clientId, null)) && me.HasRightIn(RightKeys.Projects, RightKeys.Maintain, ResourceContext.ForRecord(clientId, null));
+
+    /// <summary>The client dashboard: recorded status, signals and the records behind them, across all the client's projects.</summary>
+    public async Task<object> ClientAsync(long id, UserContext me, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;
-        var f = (await LoadAsync(db.Projects.Where(p => p.Id == id), now, ct)).FirstOrDefault() ?? throw new NotFoundException("The project");
+        var f = (await LoadAsync(db.Clients.Where(c => c.Id == id), now, ct)).FirstOrDefault() ?? throw new NotFoundException("The client");
         var s = await SettingsAsync(ct);
         var today = DateOnly.FromDateTime(now.UtcDateTime);
-        var signals = ProjectSignals.Evaluate(f, now, s);
-        var verdict = ProjectSignals.Compare(f.Status, signals, now, s.StatusMaxAgeDays);
-        var (response, resolution, openBreached) = ProjectSignals.Sla(f, now, s.SlaWindowDays);
+        var signals = ClientSignals.Evaluate(f, now, s);
+        var verdict = ClientSignals.Compare(f.Status, signals, now, s.StatusMaxAgeDays);
+        var (response, resolution, openBreached) = ClientSignals.Sla(f, now, s.SlaWindowDays);
         var reminder = await PaymentQuery.ReminderDaysAsync(db, ct);
-        object T(ProjectSignals.Tally t) => new { met = t.Met, breached = t.Breached, pending = t.Pending, notMeasurable = t.NotMeasurable, measured = t.Measured, rate = t.Rate };
+        object T(ClientSignals.Tally t) => new { met = t.Met, breached = t.Breached, pending = t.Pending, notMeasurable = t.NotMeasurable, measured = t.Measured, rate = t.Rate };
 
-        var products = await db.ProjectProducts.AsNoTracking().Where(pp => pp.ProjectId == id).Join(db.Products, pp => pp.ProductId, pr => pr.Id, (pp, pr) => new { pr.Id, pr.Code, pr.Name }).ToListAsync(ct);
+        var projectIds = f.Projects.Select(p => p.Id).ToList();
+        var products = await db.ProjectProducts.AsNoTracking().Where(pp => projectIds.Contains(pp.ProjectId)).Join(db.Products, pp => pp.ProductId, pr => pr.Id, (pp, pr) => new { pr.Id, pr.Code, pr.Name })
+            .Distinct().OrderBy(p => p.Code).ToListAsync(ct);
         var envIds = f.Environments.Select(e => e.Id).ToList();
         var installs = await db.Installations.AsNoTracking().Where(i => envIds.Contains(i.EnvironmentId))
             .Select(i => new { i.EnvironmentId, product = i.Product!.Code, version = i.ProductVersion == null ? null : i.ProductVersion.Version }).ToListAsync(ct);
-        var team = await db.ClientTeamMembers.AsNoTracking().Where(t => t.ClientId == f.ClientId).OrderBy(t => t.SortOrder)
+        var team = await db.ClientTeamMembers.AsNoTracking().Where(t => t.ClientId == f.Id).OrderBy(t => t.SortOrder)
             .Select(t => new { t.UserId, name = t.User!.DisplayName, t.Role, active = t.User.IsActive }).ToListAsync(ct);
-        var history = await db.ProjectStatusReports.AsNoTracking().Where(r => r.ProjectId == id).OrderByDescending(r => r.RecordedAt).ThenByDescending(r => r.Id).Take(10)
+        var history = await db.ClientStatusReports.AsNoTracking().Where(r => r.ClientId == id).OrderByDescending(r => r.RecordedAt).ThenByDescending(r => r.Id).Take(10)
             .Select(r => new { r.Id, status = r.Status.ToString(), r.Summary, r.NextReviewOn, r.RecordedAt, recordedBy = r.RecordedBy == null ? null : r.RecordedBy.DisplayName }).ToListAsync(ct);
 
         var open = f.Cases.Where(c => CaseQuery.IsOpen(c.Status)).ToList();
-        string CaseLink(string extra) => $"/cases?projectId={id}" + (extra.Length > 0 ? "&" + extra : "");
+        string CaseLink(string extra) => $"/cases?clientId={id}" + (extra.Length > 0 ? "&" + extra : "");
 
         // Recent events worked out from the records (not a separate log): newest first.
         var activity = new List<(DateTimeOffset At, string Text, string Link)>();
-        activity.AddRange(history.Take(5).Select(h => (h.RecordedAt, $"Status recorded as {Words(h.status)} by {h.recordedBy ?? "an unknown user"}", $"/dashboards/project?projectId={id}")));
+        activity.AddRange(history.Take(5).Select(h => (h.RecordedAt, $"Status recorded as {Words(h.status)} by {h.recordedBy ?? "an unknown user"}", $"/dashboards/client?clientId={id}")));
         activity.AddRange(f.Cases.Where(c => c.CreatedAt >= now.AddDays(-30)).Select(c => (c.CreatedAt, $"{c.Ref} opened ({c.Priority}) — {c.Title}", $"/cases/{c.Id}")));
         activity.AddRange(f.Escalations.Select(e => (e.ReceivedAt, $"{e.Ref} escalation received (level {e.Level}) — {e.Title}", $"/escalations/{e.Id}")));
-        activity.AddRange(f.Milestones.Where(m => ProjectSignals.IsLate(m, today)).Select(m => (new DateTimeOffset(m.Date!.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), $"Milestone “{m.Phase}” passed its planned date ({m.Percent ?? 0} % complete)", $"/contracts/{m.ContractId}")));
-        activity.AddRange(f.Payments.Where(p => ProjectSignals.IsOpenPayment(p) && p.DueDate < today).Select(p => (new DateTimeOffset(p.DueDate!.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), $"Payment “{p.Condition}” became overdue", $"/contracts/{p.ContractId}")));
+        activity.AddRange(f.Milestones.Where(m => ClientSignals.IsLate(m, today)).Select(m => (new DateTimeOffset(m.Date!.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), $"Milestone “{m.Phase}” of {m.ContractRef} passed its planned date ({m.Percent ?? 0} % complete)", $"/contracts/{m.ContractId}")));
+        activity.AddRange(f.Payments.Where(p => ClientSignals.IsOpenPayment(p) && p.DueDate < today).Select(p => (new DateTimeOffset(p.DueDate!.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), $"Payment “{p.Condition}” of {p.ContractRef} became overdue", $"/contracts/{p.ContractId}")));
 
         return new
         {
             evaluatedAt = now,
-            project = new
+            client = new { f.Id, f.Code, f.Name, recordStatus = f.RecordStatus.ToString(), f.Owner, f.OwnerUserId, f.Country, products },
+            projects = f.Projects.OrderByDescending(p => Running.Contains(p.Status)).ThenBy(p => p.Code).Select(p => new
             {
-                f.Id, f.Code, f.Name, f.ClientId, f.ClientCode, f.ClientName, recordStatus = f.RecordStatus.ToString(), f.Owner, f.OwnerUserId, f.ServiceStart, f.ServiceEnd, f.ScopeSummary, products
-            },
+                p.Id, p.Code, p.Name, status = p.Status.ToString(), running = Running.Contains(p.Status), p.Owner, p.ServiceStart, p.ServiceEnd,
+                contracts = f.Contracts.Count(k => k.ProjectId == p.Id)
+            }).ToList(),
             status = new
             {
                 recorded = f.Status is null ? null : new { status = f.Status.Status.ToString(), f.Status.Summary, f.Status.NextReviewOn, f.Status.RecordedAt, f.Status.RecordedBy, ageDays = (int)(now - f.Status.RecordedAt).TotalDays },
                 agreement = verdict.Agreement, agreementText = verdict.Text, stale = verdict.Stale, maxAgeDays = s.StatusMaxAgeDays,
-                canRecord = me.SeesContext(ResourceContext.ForRecord(f.ClientId, null)) && me.HasRightIn(RightKeys.Projects, RightKeys.Maintain, ResourceContext.ForRecord(f.ClientId, null)),
+                canRecord = CanRecord(me, f.Id, f.RecordStatus),
                 history
             },
             signals,
             contracts = f.Contracts.OrderByDescending(c => c.Status == ContractStatus.Active).ThenBy(c => c.StartDate).Select(c =>
             {
                 var k = new Contract { Status = c.Status, EndDate = c.EndDate, NoticeDays = c.NoticeDays };
-                return new { c.Id, c.Ref, c.Title, c.Type, status = c.Status.ToString(), c.StartDate, c.EndDate, noticeDeadline = k.NoticeDeadline, state = ContractQuery.State(k, now) };
+                return new { c.Id, c.Ref, c.Title, c.Type, status = c.Status.ToString(), c.StartDate, c.EndDate, noticeDeadline = k.NoticeDeadline, state = ContractQuery.State(k, now), c.ProjectId, c.ProjectCode };
             }).ToList(),
             milestones = f.Milestones.Where(m => m.ContractStatus != ContractStatus.Terminated).OrderBy(m => m.Date ?? DateOnly.MaxValue).ThenBy(m => m.SortOrder)
-                .Select(m => new { m.ContractId, m.ContractRef, m.Phase, m.Description, m.Date, percent = m.Percent, state = ProjectSignals.MilestoneState(m, today) }).ToList(),
+                .Select(m => new { m.ContractId, m.ContractRef, m.Phase, m.Description, m.Date, percent = m.Percent, state = ClientSignals.MilestoneState(m, today) }).ToList(),
             payments = f.Payments.OrderBy(p => p.DueDate ?? DateOnly.MaxValue).ThenBy(p => p.SortOrder).Select(p => new
             {
                 p.Id, p.ContractId, p.ContractRef, p.Condition, p.Amount, p.Currency, p.DueDate, status = p.Status.ToString(), p.PaidOn,
@@ -437,7 +439,7 @@ public sealed class ProjectInsight(HubDbContext db, HubSettings settings, Freshn
                 e.Id, e.Name, e.Type, condition = EnvironmentEndpoints.ConditionView(e.Condition, e.ObservedAt, s.ConditionPolicy, now), reason = e.Reason,
                 installations = installs.Where(i => i.EnvironmentId == e.Id).Select(i => new { i.product, i.version }).ToList()
             }).ToList(),
-            team = new { note = "The project team is recorded per client (A29): everyone on this client's team is shown.", members = team },
+            team = new { note = "The team recorded for this client (A29).", members = team },
             activity = activity.OrderByDescending(a => a.At).Take(10).Select(a => new { at = a.At, text = a.Text, link = a.Link }).ToList()
         };
     }

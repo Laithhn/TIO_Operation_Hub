@@ -146,6 +146,13 @@ Apply OptionalOrganizationGraph before deploying the matching application. It cr
 - The dashboards read through the same scope filters as every list and add no background job. The Operational dashboard refreshes itself every 60 seconds while it is open (one request per open page).
 - After the upgrade, ask project managers to record a status for their running projects (Dashboard → Project → *Update status*); the Management dashboard's *Data trust* panel counts the projects without one. To give a role the new dashboards, tick them on Administration → Rights (they need `Dashboard:View`).
 
+
+### Client dashboard (2.60.0)
+
+- The `ClientDashboard` migration adds one table, `clients.ClientStatusReport` (the recorded status history of clients). It renames the right `ProjectDashboard:View` to `ClientDashboard:View`: every role and person exception that held the old right holds the new one, and nobody else gains it. It renames the setting `Dashboard.ProjectStatusMaxAgeDays` to `Dashboard.ClientStatusMaxAgeDays` and keeps its value. It bumps the authorization version, so the change applies at once.
+- `clients.ProjectStatusReport` from 2.59.0 is left in place with any rows in it; the application no longer reads it. Project statuses recorded under 2.59.0 are not converted into client statuses. Dropping the table needs the owner's approval.
+- After the upgrade, ask whoever follows each client to record its status (Dashboard → Client → *Update status*). The Management dashboard's *Data trust* panel counts the clients without one.
+
 ## 4. Application (IIS)
 
 1. Unzip the release into e.g. `D:\Apps\TioHub\app`. Create an IIS site bound to HTTPS only, app pool “No Managed Code”, identity = the gMSA.

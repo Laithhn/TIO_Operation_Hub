@@ -1,6 +1,12 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.60.0', date: '10 November 2026', changes: [
+      'The Project dashboard is now the Client dashboard: one recorded status per client, with signals across all its projects.',
+      'The Management dashboard lists clients in its portfolio instead of projects.'
+    ]
+  },
+  {
     version: '2.59.0', date: '10 November 2026', changes: [
       'Four dashboards under Dashboard: Operational (what to act on today), SLA & Contracts, Management and Project.',
       'On a project, record a status with a reason. The page shows signals from the records and says when they disagree.'
