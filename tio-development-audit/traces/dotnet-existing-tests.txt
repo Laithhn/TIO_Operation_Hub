@@ -1,0 +1,4 @@
+  Failed TioHub.Tests.AC62_ReportingCenter.Exports_are_generated_kept_downloaded_only_by_their_owner_retried_and_expired
+  Failed TioHub.Tests.AC48_AttachmentStorageSettings.The_storage_folder_and_limits_are_edited_and_files_move_with_the_folder
+  Failed TioHub.Tests.AC46_Attachments.Files_are_stored_on_disk_downloaded_and_removed_with_their_record
+Failed!  - Failed:     3, Passed:   137, Skipped:     0, Total:   140, Duration: 1 m 14 s - TioHub.Tests.dll (net10.0)

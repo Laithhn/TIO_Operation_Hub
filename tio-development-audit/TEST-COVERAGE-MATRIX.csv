@@ -1,0 +1,59 @@
+Area,Feature,Method,Test IDs / artefact,Executed,Result,Related issues
+Environment,Development verification,Config + runtime inspection,00-DEVELOPMENT-ENVIRONMENT-VERIFICATION.md,Yes,Verified,
+Authentication,Development identities and unknown account,API + Playwright,01-auth-roles.spec.ts,Yes,Pass,
+Authentication,Antiforgery on state changes,API,01-auth-roles.spec.ts,Yes,Pass,
+Authentication,Forms sign-in / lockout / session expiry / password change,Existing .NET tests only (FormsSignInTests),traces/dotnet-existing-tests.txt,Indirect,Pass (project tests),029
+Authentication,Windows sign-in and group mappings,Not testable on audit host,,No,Blocked,
+Authorization,Administration endpoints by role,API,SEC-ADM; SEC-01..07,Yes,Pass,
+Authorization,Custom read-only role,API + Playwright,ROLE-01; RO-01..08,Yes,Pass with UX defect,020
+Authorization,Record ownership,API,COM-19; COM-29; CASE-20,Yes,Fail (by design),010
+Navigation,Main sections / deep link / refresh / back-forward / 404,Playwright,02-navigation.spec.ts,Yes,Pass,
+Navigation,Top bar at 1366 px,Playwright + screenshot,02-navigation.spec.ts @defect,Yes,Fail,016
+Cases,Create validation,API + Playwright,CASE-01..09,Yes,Pass (CASE-03 fail),007
+Cases,Lifecycle transitions,API,CASE-12..30,Yes,Pass,014
+Cases,Edits after closure,API,CASE-31..33,Yes,Fail,004
+Cases,Reopen and cancel,API,CASE-35..39,Yes,Pass,032
+Cases,Duplicate submission,API + Playwright,CASE-11; double click,Yes,UI pass / API fail,006
+Cases,Optimistic concurrency,API,CASE-15; CASE-16; concurrency run,Yes,Pass,
+Cases,UI create / search / cancel / unsaved changes / offline / server error,Playwright,03-cases-ui-crud.spec.ts,Yes,Pass,023
+Contractual SLA,Target snapshot / first response / states,API,SLA-01..05,Yes,Pass,031
+Contractual SLA,Integrity of recorded breaches,API,SLA-06..10,Yes,Fail,001;002;003
+Contractual SLA,Support-hours calendar and DST,Existing .NET tests only (SlaTests),traces/dotnet-existing-tests.txt,Indirect,Pass (project tests),
+Commitments,Validation / revise / complete / cancel / reopen,API,COM-01..29,Yes,Pass with defects,005;007;008;015
+Escalations,Validation and status path,API,ESC-01..20,Yes,Pass with defect,012;013
+Clients,Create / duplicates / country,API,CLI-01..06,Yes,Pass with defect,009
+Projects,Create / date order / archive rule,API,PRJ-01..02; ARC-02,Yes,Pass,
+Contracts,Dates / SLA targets / payments,API,CON-01..10,Yes,Pass with defects,007;009
+Environments,Create / duplicate / condition reports / archive,API,ENV-01..05; CND-01..06; ARC-03,Yes,Pass,013
+Inventory,Servers / volumes / installation,API,AST-01..05; VOL-01..02; INS-01..02,Yes,Pass,
+Firewall rules,Validation,API,FW-01..06,Yes,Pass with defect,009
+Deletion,Plain delete refusal / cascade preview / cascade delete,API,DEL-01..02; cleanup run,Yes,Pass with observation,011
+Archive and restore,Archive rules / restore reason,API,ARC-01..03; RST-01,Yes,Pass,
+Attachments,Upload / types / download / delete,API,misc run; 04-business-rules.spec.ts,Yes,Pass,029
+Notes,Privacy and sanitising,API,misc run; 04-business-rules.spec.ts,Yes,Pass,
+Notes,Editor UI (formatting / drag and drop / recycle bin),Not executed,,No,Not tested,
+Search,Global search,API + Playwright,misc run; probe2,Yes,Pass,
+Tables,Server search / sort / filter / pagination / empty state,Playwright,06-tables-dashboard-reports.spec.ts,Yes,Pass,019
+Dashboard,KPI values vs independent SQL,SQL + API,08-DASHBOARD-KPI-VALIDATION.md,Yes,Pass (16 of 16),
+Dashboard,KPI vs drill-down,API,06-tables-dashboard-reports.spec.ts,Yes,Pass (10 of 10),
+Dashboard,KPI reaction to synthetic record,API,06-tables-dashboard-reports.spec.ts,Yes,Pass,
+Dashboard,Charts (visual values) and map,Screenshot review only,screenshots/desktop-dashboard.png,Partial,Viewed,025
+Reports,13 previews / filters validation,API,REP-01..04,Yes,Pass,
+Reports,CSV and Excel export / formula neutralising / owner-only download,API,rep run; 06 spec,Yes,Pass,
+Reports,Schedules and presets,Existing .NET tests only (ReportingTests),traces/dotnet-existing-tests.txt,Indirect,Pass except 1 path-related failure on Linux,026
+Administration,Users / roles,API,USR-01..04; ROLE-01..02,Yes,Pass,034
+Administration,Configuration lists / settings / review policies / Jira instances,Rendered only,screenshots/desktop-admin-*.png,Partial,Viewed,
+Audit trail,Field-level history,API,audit run,Yes,Pass,033
+Teams and handovers,Pages render,Crawl,screenshots/desktop-team*.png; desktop-handover*.png,Partial,Viewed,
+Products,Pages render,Crawl,screenshots/desktop-product*.png,Partial,Viewed,
+Copy servers / environments,Clone endpoints,Not executed,,No,Not tested,
+Responsive,64 routes at 1920 / 1366 / 768 / 390,Playwright crawl,traces/ui-crawl-results.json,Yes,Fail on listed pages,016;017
+Accessibility,axe WCAG 2.2 A/AA on 64 routes; keyboard probes,axe-core + Playwright,traces/ui-crawl-results.json,Yes,Fail,018
+Accessibility,Screen reader,Not executed,,No,Not tested,
+Performance,Page load / API timing / console / failed requests,Playwright crawl,traces/ui-crawl-results.json,Yes,Pass (dev volume),025;028
+Performance,Load and volume,Not authorised / not executed,,No,Not tested,
+Security,Headers / CSP / error disclosure / input handling,API,sec run,Yes,Pass with observations,029
+Existing tests,.NET suite (140),dotnet test on adapted copy,traces/dotnet-existing-tests.txt,Yes,137 pass / 3 fail (Linux paths),026
+Existing tests,Project e2e (tests/e2e; Edge + LocalDB),Not runnable on audit host,,No,Blocked,026
+Audit regression suite,57 Playwright tests,Playwright,traces/playwright-regression-summary.json,Yes,40 pass / 17 fail (all 17 assert fixes for confirmed defects),
+Deployment,Installer / upgrade / backup scripts / IIS,Document review only,,No,Not tested,
