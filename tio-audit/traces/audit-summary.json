@@ -1,0 +1,49 @@
+{
+  "inventoryGroups": 29,
+  "partiallyAssessedGroups": 28,
+  "blockedGroups": 1,
+  "fullyTestedGroups": 0,
+  "responsiveRoutes": 91,
+  "responsiveStates": 364,
+  "scenarioTotal": 465,
+  "scenarioStatus": {
+    "Passed": 429,
+    "Failed": 7,
+    "Blocked": 29
+  },
+  "scenarioTypes": {
+    "Layout geometry": {
+      "Passed": 364
+    },
+    "Read interaction": {
+      "Passed": 14
+    },
+    "Read tab": {
+      "Passed": 20
+    },
+    "Catalog preview": {
+      "Passed": 14
+    },
+    "Displayed arithmetic": {
+      "Passed": 11
+    },
+    "Anonymous HTTP": {
+      "Passed": 6
+    },
+    "Defect assertion": {
+      "Failed": 7
+    },
+    "Unexecuted workflow family": {
+      "Blocked": 29
+    }
+  },
+  "confirmedDefects": 7,
+  "severity": {
+    "P0": 0,
+    "P1": 0,
+    "P2": 4,
+    "P3": 3
+  },
+  "preparedPlaywrightDefinitions": 298,
+  "executedLocalPolicyTests": 8
+}

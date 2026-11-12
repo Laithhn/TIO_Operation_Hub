@@ -1,0 +1,15 @@
+{
+  "id": "R031-laptop",
+  "route": "/admin/config",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Configuration"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 524,
+  "title": "Configuration · TIO Operations Hub",
+  "width": 1366
+}

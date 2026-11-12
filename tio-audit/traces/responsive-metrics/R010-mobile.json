@@ -1,0 +1,15 @@
+{
+  "id": "R010-mobile",
+  "route": "/escalations",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Escalations"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 934,
+  "title": "Escalations · TIO Operations Hub",
+  "width": 390
+}

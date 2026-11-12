@@ -1,0 +1,123 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Reported conditions
+- heading "Reported conditions" [level=1]
+- generic: Change the display labels of the built-in reported conditions. Their codes, order and operational meaning stay fixed.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - region "Reported conditions":
+    - searchbox "Filter rows"
+    - generic: 4 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Reported conditions: scroll sideways for more columns"':
+      - table "Reported conditions":
+        - caption: Reported conditions
+        - rowgroup:
+          - row "Workflow code Display label Status":
+            - columnheader "Workflow code":
+              - button "Workflow code":
+                - generic: Workflow code
+            - columnheader "Display label":
+              - button "Display label":
+                - generic: Display label
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+        - rowgroup:
+          - row "Unknown Unknown Fixed workflow value":
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Unknown":
+              - button "Unknown"
+            - cell "Fixed workflow value":
+              - generic: Fixed workflow value
+          - row "Healthy Healthy Fixed workflow value":
+            - cell "Healthy":
+              - generic: Healthy
+            - cell "Healthy":
+              - button "Healthy"
+            - cell "Fixed workflow value":
+              - generic: Fixed workflow value
+          - row "Degraded Degraded Fixed workflow value":
+            - cell "Degraded":
+              - generic: Degraded
+            - cell "Degraded":
+              - button "Degraded"
+            - cell "Fixed workflow value":
+              - generic: Fixed workflow value
+          - row "Unavailable Unavailable Fixed workflow value":
+            - cell "Unavailable":
+              - generic: Unavailable
+            - cell "Unavailable":
+              - button "Unavailable"
+            - cell "Fixed workflow value":
+              - generic: Fixed workflow value
+    - status
+  - paragraph: Only display labels can be changed. All built-in values remain available and keep their workflow meaning.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

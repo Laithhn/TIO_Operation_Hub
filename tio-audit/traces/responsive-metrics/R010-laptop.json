@@ -1,0 +1,15 @@
+{
+  "id": "R010-laptop",
+  "route": "/escalations",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Escalations"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 1003,
+  "title": "Escalations · TIO Operations Hub",
+  "width": 1366
+}

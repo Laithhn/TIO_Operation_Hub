@@ -1,0 +1,74 @@
+[
+  {
+    "inDrawer": false,
+    "label": "TIO Operations Hub home",
+    "tag": "A",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": "Search (/ or Ctrl+K)",
+    "tag": "BUTTON",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": "Notifications, 11 unread",
+    "tag": "BUTTON",
+    "text": "11"
+  },
+  {
+    "inDrawer": false,
+    "label": "Signed in as Laith Hamdan. Change password",
+    "tag": "A",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": "Sign out",
+    "tag": "BUTTON",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "BODY",
+    "text": "\n    Skip to contentTicketsDashboardClientsProductsTicketsCommitmentsNotesEscala"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "A",
+    "text": "Skip to content"
+  },
+  {
+    "inDrawer": false,
+    "label": "Menu, current section Tickets",
+    "tag": "BUTTON",
+    "text": "Tickets"
+  },
+  {
+    "inDrawer": false,
+    "label": "TIO Operations Hub home",
+    "tag": "A",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": "Search (/ or Ctrl+K)",
+    "tag": "BUTTON",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": "Notifications, 11 unread",
+    "tag": "BUTTON",
+    "text": "11"
+  },
+  {
+    "inDrawer": false,
+    "label": "Signed in as Laith Hamdan. Change password",
+    "tag": "A",
+    "text": ""
+  }
+]

@@ -1,0 +1,168 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Administration":
+      - /url: /admin
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Servers":
+    - /url: /admin/config/category/servers
+  - generic: ›
+  - generic: Operating systems
+- heading "Operating systems" [level=1]
+- generic: Operating system families offered on the server form; the version is typed per server.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Operating systems":
+    - searchbox "Filter rows"
+    - generic: 3 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Operating systems":
+      - caption: Operating systems
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (servers) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (servers)":
+            - button "In use (servers)":
+              - generic: In use (servers)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Windows Server up Move Windows Server down Windows Server — 72 Active Actions for Windows Server":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Windows Server up Move Windows Server down":
+            - button "Move Windows Server up" [disabled]: ▲
+            - button "Move Windows Server down": ▼
+          - cell "Windows Server":
+            - button "Windows Server"
+          - cell "—":
+            - generic: —
+          - cell "72":
+            - generic: "72"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Windows Server":
+            - button "Actions for Windows Server": ⋯
+        - row "Select ▲ ▼ Move Linux up Move Linux down Linux — 46 Active Actions for Linux":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Linux up Move Linux down":
+            - button "Move Linux up": ▲
+            - button "Move Linux down": ▼
+          - cell "Linux":
+            - button "Linux"
+          - cell "—":
+            - generic: —
+          - cell "46":
+            - generic: "46"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Linux":
+            - button "Actions for Linux": ⋯
+        - row "Select ▲ ▼ Move Other up Move Other down Other — 1 Active Actions for Other":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,613 @@
+
+=== PAGE 1 ===
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ May / 2025 
+ANPR Data 
+Management 
+Solution 
+VITRONIC Commercial Proposal 
+
+=== PAGE 2 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 2 of 13 
+Document Information 
+Document History 
+Date Version  Status Author(s) Changes 
+11.11.2024 V1.0  Draft AEO Initial Document 
+11.03.2024 V1.0  Release AASA Initial Document 
+05.03.2025 V2.0  Release AASA Initial Document 
+Authors and Reviewers 
+Role Initials Name 
+Author ITD Team Solution Design Team 
+Reviewer AASA AbdAlrahman Assad 
+Reviewer AEO Ahmed Elobaid 
+Legal 
+➢ Copyright in this document is held by VITRONIC. Separation into sections and unauthorized 
+reproduction are prohibited. 
+➢ This document contains confidential information and may not be disclosed to any third party without the 
+express written permission of VITRONIC. 
+➢ The person or organization to whom this document is issued is responsible for storing it securely and 
+preventing any unauthorized access, copying, or distribution. 
+Terminology  
+Term Meaning 
+POLISCAN (PS) Product for Traffic Law Enforcement by VITRONIC, composed of H a r d w a r e and 
+Software. 
+PS Office Pro 
+(PSOP) 
+POLISCAN Office Pro Incident Processing Software by VITRONI. 
+IAP Incident Adjudication & Processing Module 
+RRM Remote Roadside Monitoring Module 
+SDB Smart Dashboard Module 
+AMT Smart Asset Management Ticketing Module 
+ITS Intelligent Tracking Management Module 
+Table 1. Terminology 
+ 
+
+=== PAGE 3 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 3 of 13 
+Contents 
+Document Information ................................ ................................ ................................ ............. 2 
+Document History ................................ ................................ ................................ ................................ . 2 
+Authors and Reviewers ................................ ................................ ................................ ......................... 2 
+Legal ................................ ................................ ................................ ................................ .................... 2 
+Terminology ................................ ................................ ................................ ................................ .......... 2 
+Executive Summary ................................ ................................ ................................ .................. 5 
+Introduction................................ ................................ ................................ ...............................  6 
+Overview of VITRONIC Traffic Intelligence Platform ................................ ................................ ................ 6 
+What is the VITRONIC Traffic Intelligence Platform? ................................ ................................ ............... 6 
+Scope of Work ................................ ................................ ................................ .......................... 6 
+Project Methodology ................................ ................................ ................................ ................................  7 
+Detailed Project Plan ................................ ................................ ................................ ................................  8 
+RACI Matrix (Roles & Responsibilities) ................................ ................................ ................................ .... 8 
+Overview of Proposed VITRONIC Platform Modules................................ ..............................  9 
+System Objectives ................................ ................................ ................................ ................................ ... 9 
+Technical Overview ................................ ................................ ................................ .................. 9 
+Key System Components and Their Impact ................................ ................................ ........................... 10 
+Gateway Listener (GWL) ................................ ................................ ................................ .................... 10 
+Data Pre-Processing (DPP) ................................ ................................ ................................ ................ 10 
+Remote Roadside Management (RRM) ................................ ................................ ..............................  10 
+Enhanced Data Reliability and Security ................................ ................................ ................................ .. 10 
+Operational Excellence and Monitoring ................................ ................................ ................................ .. 10 
+Operational Team & 16/5 Support ................................ ................................ ......................... 11 
+Core Responsibilities ................................ ................................ ................................ ............................. 11 
+16/5 Support Model ................................ ................................ ................................ ................................  11 
+Pricing ................................ ................................ ................................ ................................ ..... 12 
+Agreement Start ................................ ................................ ................................ ................................ ..... 13 
+Agreement Commencement ................................ ................................ ................................ .................. 13 
+ 
+ 
+
+=== PAGE 4 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 4 of 13 
+List of Tables 
+Table 1. Terminology ................................ ................................ ................................ ................................ ... 2 
+Table 2. Scope of Work ................................ ................................ ................................ ...............................  7 
+Table 3. Project Methodology ................................ ................................ ................................ ...................... 7 
+Table 4. Detailed Project Plan ................................ ................................ ................................ ..................... 8 
+Table 5. RACI Matrix (Roles & Responsibilities) ................................ ................................ .......................... 9 
+Table 6. Pricing ................................ ................................ ................................ ................................ .......... 12 
+ 
+List of Figures 
+No table of figures entries found. 
+  
+
+=== PAGE 5 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 5 of 13 
+Executive Summary 
+Since its inception in 1984 in Germany, VITRONIC has constantly been pushing the boundaries of the 
+feasible. The company aims to contribute to shaping a safer and more sustainable world. In this direction, 
+our primary aim is to render our personal and prof essional lives more accessible and meaningful. 
+Consequently, one of VITRONIC's most recent and most reliable management and tracking tools is the 
+VITRONIC Traffic Intelligence Platform. 
+VITRONIC Traffic Intelligence Platform is a powerful, intelligent data analytics platform that allows faster 
+and wiser decision-making. It integrates various real-time and historical data stored, organized, and fused 
+to produce relevant and reliable insights about the road. These insights enable operators to make better 
+data-driven decisions to increase road safety. 
+VITRONIC Traffic Intelligence Platform  seamlessly collects data from units on the Roadside. As such, it 
+delivers a comprehensive view of the road's status, precisely meeting the demands of Police entities and 
+governments. Accordingly, the platform allows for reliable and excellent violation management, real -time 
+traffic monitoring, advanced security, streamlined payment, and claims processing to provide additional value 
+for daily tasks. 
+This proposal outlines VITRONIC's plan to take over the existing "Dubai Police ANPR Pool (DP ANPR 
+Pool)" system. Our engagement includes assuming full operational responsibility and executing a 
+provisioning phase to assess whether to enhance or replace the current system using our modular 
+VITRONIC platform, composed of the following modules: 
+• GWL (Gateway Listener) 
+• DPP (Data Pre-Processing) 
+• RRM (Remote Roadside Management) 
+The document provides a comprehensive overview of the architecture, detailed feature set, operational 
+plan, milestone-based roadmap, and tangible deliverables aligned with customer expectations for 
+governance and performance. Risk mitigation, escalation structure, SLA metrics, and contractual 
+responsibilities have also been added to ensure compliance and audit-readiness. 
+  
+
+=== PAGE 6 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 6 of 13 
+Introduction 
+With the increasing need for efficient traffic management, law enforcement, and urban security, a highly 
+scalable and accurate ANPR Data management system is essential. VITRONIC Traffic Intelligence Platform 
+is designed to meet these demands by providing real-time processing of media and metadata from thousands 
+of roadside cameras. This document outlines the technical architecture, system features, and implementation 
+plan for the VITRONIC Traffic Intelligence Platform, detailing how its core modules ensure reliable, secure, 
+and scalable data processing. 
+Overview of VITRONIC Traffic Intelligence Platform 
+With its centralized platform, the VITRONIC Traffic Intelligence Platform revolutionizes how traffic and road 
+safety are managed. It seamlessly gathers data from units on the Roadside, delivering a comprehensive 
+solution that meets the demands of Police entities and governments. Features like violation management, 
+traffic information systems, real -time traffic monitoring, advanced security, and streamlined payment and 
+claims processing provide additional value for daily tasks. 
+What is the VITRONIC Traffic Intelligence Platform? 
+VITRONIC Traffic Intelligence Platform  is a data analytics platform for advanced operators to leverage 
+diverse mobility data and make better decisions. It integrates a wide variety of real-time and historical data, 
+which is stored, organized, and fused to produce relevant and reliable insights about the road. These insights 
+enable operators to make better data-driven decisions to increase road safety. 
+Scope of Work 
+Phase Task Description 
+Phase 1: 
+Operational 
+Takeover of 
+DP ANPR Pool 
+Technical Audit Inventory of devices, review of data flows, integration points, 
+and incident/performance logs 
+Operational Transition VITRONIC assumes system responsibility while ensuring zero 
+downtime and data integrity 
+Hardware/Infrastructure 
+Continuity 
+Maintain current devices and network infrastructure during 
+transition 
+Monitoring Setup Deploy interim scripts for early anomaly detection and incident 
+tracking 
+On-Site Operational 
+Support 
+VITRONIC engineers co-manage the system alongside Dubai 
+Police 
+Joint Operations 
+Protocol 
+Define daily routines, incident handling, and escalation with 
+Dubai Police 
+RACI Finalization Deliver a RACI matrix aligning system responsibilities and 
+decision-making authority 
+Phase 2: 
+Provisioning 
+and 
+Assessment 
+Module Provisioning Deploy GWL, DPP, RRM, and IDS on an isolated infrastructure 
+for live comparative testing 
+Live Data Mirroring Redirect selected ANPR unit streams to both legacy and 
+VITRONIC systems 
+
+=== PAGE 7 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 7 of 13 
+Performance 
+Benchmarking 
+Measure ingestion latency, validation accuracy, error rates, and 
+scalability 
+Improvement Analysis Analyze current system limitations and opportunities for 
+improvement 
+Solution Fit 
+Assessment 
+Map how VITRONIC modules address identified gaps and align 
+with enhancement goals 
+Pilot Evaluation Report Produce detailed KPIs and operational feasibility of proposed 
+modules 
+Assessment 
+Committee Review 
+Convene stakeholders to decide between enhancement or 
+replacement based on the analysis 
+Decision 
+Documentation 
+Record the final system path and any phased 
+upgrade/replacement strategy 
+Fallback Planning Outline a mitigation plan for rollout or performance failure 
+Final Integration 
+Planning 
+Draft integration/migration blueprint if the replacement track is 
+chosen 
+Table 2. Scope of Work 
+Project Methodology 
+This methodology outlines a structured and iterative approach that ensures a seamless transition from the 
+current DP ANPR Pool system to VITRONIC’s managed platform. It integrates technical assessment, pilot 
+testing, decision-making, development, and full -scale operationalization. Ea ch phase ensures traceability, 
+quality assurance, and risk preparedness while maintaining live system stability and user confidence. 
+Phase Description Output 
+Discovery Audit the current DP ANPR Pool, map workflows, and 
+pain points 
+Gap analysis report 
+Operational Handover VITRONIC assumes full responsibility for the legacy 
+DP ANPR Pool system, including ongoing monitoring, 
+incident handling, and reporting 
+Handover 
+Acceptance 
+Provisioning Deploy GWL, DPP, IDS, and RRM in parallel for 
+isolated pilot tests 
+Pilot findings and 
+integration report 
+Development/Integration Execute either enhancement plan (partial modules) or 
+replacement (full platform) 
+New modules 
+implemented 
+Validation & Testing Validate data accuracy, performance, uptime, and 
+throughput 
+System Acceptance 
+Report, Quality Gate 
+Checkpoint 
+Training & Transition Train Dubai Police operators and integrate support 
+handover 
+Knowledge Transfer 
+Pack 
+Go-Live & Monitoring Launch platform and initiate full operational takeover Operational KPI 
+dashboard, SLA 
+Agreement Signed 
+Risk Management Apply fallback and rollback procedures if needed Risk Mitigation 
+Strategy Document 
+Table 3. Project Methodology 
+
+=== PAGE 8 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 8 of 13 
+Detailed Project Plan 
+This section consolidates the project methodology, scope of work, and delivery timing into an integrated plan 
+with actionable stages and deliverables. Each phase builds upon the previous one, ensuring traceable 
+progress toward operational takeover and platform transition. It also outli nes the duration and expectations 
+for VITRONIC's full operational responsibility, which begins from the main handover of the existing DP ANPR 
+Pool system. 
+Phase Duration Description Key Deliverables 
+Phase 1: 
+Discovery & Audit 
+Week 1–4 Perform a technical and functional audit of 
+the DP ANPR Pool. Prepare for operational 
+transition with a co-management structure. 
+System Audit Report, 
+RACI Matrix, Joint 
+Operations Protocol 
+Phase 2: 
+Provisioning & 
+Gap Analysis 
+Month 2 Deploy GWL, DPP, RRM, and IDS modules 
+on the pilot setup. Conduct benchmarking, 
+data mirroring, and improvement analysis. 
+Provisioning Pilot 
+Report, Improvement 
+Analysis, Solution Fit 
+Matrix 
+Phase 3: 
+Operational 
+Handover & 
+System Takeover 
+Start of 
+Month 3 
+VITRONIC assumes full operational control 
+of the existing DP ANPR Pool system. This 
+includes ongoing system monitoring, 
+maintenance, and reporting. 
+Signed Handover 
+Document, 
+Operations Schedule 
+Phase 4: 
+Development & 
+Module 
+Integration 
+Month 3–7 Configure and integrate selected VITRONIC 
+modules. Prepare data migration if 
+applicable. 
+Configured Modules, 
+Updated 
+Infrastructure, 
+Development 
+Checklist 
+Phase 5: 
+Validation & 
+System Testing 
+Month 5–7 Run UAT, load testing, system validation, 
+and security compliance checks. 
+System Acceptance 
+Report, Quality Gate 
+Validation, Security 
+Audit Report 
+Phase 6: Training 
+& Go-Live 
+Preparation 
+Month 7 Train Dubai Police staff, finalize terms, and 
+prepare support handover. 
+Training Documents, 
+Agreement, Support 
+Plan 
+Phase 7: New 
+System Go-Live & 
+Continuous 
+Operations 
+Months 7–
+8 
+Launch platform (if 
+enhancement/replacement). Continue 
+operational responsibility, including 
+monitoring and optimization under 16/5 
+support. 
+Go-Live Confirmation, 
+Live Monitoring 
+Dashboard, Monthly 
+Reports 
+Optional 
+Extension: Long-
+Term Operations 
+Post-Year 
+1 (TBD) 
+Subject to agreement, continued operations, 
+enhancements, and feature updates can be 
+contracted under a renewal custom 
+development. 
+Renewal contract or 
+Addendum, Feature 
+Roadmap 
+Table 4. Detailed Project Plan 
+RACI Matrix (Roles & Responsibilities) 
+R – Responsible, A – Accountable, C – Consulted, I – Informed 
+
+=== PAGE 9 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 9 of 13 
+Activity VITRONIC Dubai Police 
+System Audit R A 
+Operational Handover R A 
+Infrastructure Readiness C R 
+Module Provisioning (GWL, DPP, etc.) R C 
+Data Validation Pilot R C 
+Enhancement/Replacement Decision C A 
+Development of New Modules A C 
+Security & Compliance Review R A 
+Integration with Zabeel/Backoffice A A 
+Onboarding & Training R C 
+Support & Monitoring R I 
+ 
+Table 5. RACI Matrix (Roles & Responsibilities) 
+Overview of Proposed VITRONIC Platform Modules 
+The solution is composed of three key modules: 
+1. GWL (Gateway Listener): Handles communication protocols and data reception from roadside 
+ANPR cameras. 
+2. DPP (Data Pre-Processing): Manages Pre-processing of the events, ANPR data validation 
+through an ANPR engine, storage, and integration with ITS and other platforms. 
+3. RRM (Remote Roadside Management): manages activating roadside units and monitoring their 
+health by detecting inactive units or sites that stop pushing data after a set period. 
+These three modules ensure efficient real-time processing, data validation, and comprehensive system 
+monitoring, making the VITRONIC Traffic Intelligence Platform highly reliable and scalable for large 
+deployments. 
+System Objectives 
+• Real-Time Processing: Efficiently manage large-scale data from a high number of cameras. 
+• Reliability: Zero data loss with automatic failover mechanisms. 
+• Scalability: Adapt to growing data volumes with dynamic scaling capabilities. 
+• Security: Implement strong encryption and access controls to protect data. 
+• Modularity: GWL handles communication, DPP manages processing, and RRM ensures system 
+health by monitoring roadside units. 
+Technical Overview 
+This ANPR Data Management System is designed to support up to 50,000 roadside ANPR cameras, 
+providing a seamless, high-capacity solution for real-time data collection, processing, and storage. It 
+
+=== PAGE 10 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 10 of 13 
+ensures reliability and efficiency in traffic violation management, law enforcement, and operational 
+oversight. The system's core components include Gateway Listener (GWL), Data Pre-Processing (DPP ), 
+and Remote Roadside Management (RRM), each contributing to a robust data pipeline and comprehensive 
+monitoring. 
+Key System Components and Their Impact 
+Gateway Listener (GWL) 
+• Purpose: Manages real-time data ingestion from ANPR cameras and handles high volumes of data 
+with fault tolerance. 
+• Client Benefit: Ensures continuous and efficient data intake, critical for reliable monitoring across 
+large infrastructures. 
+Data Pre-Processing (DPP) 
+• Purpose: Processes and queues data for validation, integrates with law enforcement systems, and 
+stores data in accessible and archival formats. 
+• Client Benefit: Offers high accuracy through double-check validation, critical for legal actions, and 
+ensures rapid access to data for real-time reporting. 
+Remote Roadside Management (RRM) 
+• Purpose: Monitors the health and connectivity of roadside units, allowing for proactive 
+management and maintenance. 
+• Client Benefit: Reduces downtime through health checks and alerts, ensuring data continuity and 
+reliable field operations. 
+Enhanced Data Reliability and Security 
+• Data Integrity and Redundancy: Redundant storage solutions ensure that data is securely 
+archived and accessible for both real-time and historical analysis. 
+• High Availability and Load Balancing: Distributed processing and failover mechanisms ensure 
+uninterrupted operations, even under high demand. 
+• Security Protocols: Advanced encryption (AES-256 for data at rest, TLS for data in transit) and 
+strict access controls (OAuth 2.0 and RBAC) maintain data security and regulatory compliance. 
+Operational Excellence and Monitoring 
+• Continuous Monitoring: Real-time monitoring and automated alerts across all system components 
+facilitate rapid issue resolution and self-healing mechanisms. 
+• On-Premises Control: All components are deployed on-site, providing full control over data 
+handling, privacy, and compliance with local regulatory standards. 
+ 
+
+=== PAGE 11 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 11 of 13 
+Operational Team & 16/5 Support 
+The VITRONIC Traffic Intelligence Platform ANPR Data Management System will be supported by a 
+dedicated operational team to ensure continuous availability, system performance, and quick incident 
+resolution. 
+Core Responsibilities 
+• System Monitoring: The team will provide 16/5 real-time monitoring of all ANPR Pool system 
+components. Key metrics such as data throughput, latency, and system health will be continuously 
+tracked. 
+• Incident Management: Automated alerts will notify the team of critical issues such as data flow 
+disruptions or hardware failures. The team will quickly diagnose and resolve issues. 
+• Health Monitoring (RRM): The RRM module will regularly check the status of roadside ANPR 
+units, triggering alerts for units that fail to send data within a set timeframe. The team will remotely 
+activate or troubleshoot units as needed. 
+• Performance Optimization: The team will manage predictive scaling to adjust system resources 
+during high-traffic periods, ensuring seamless performance even during data spikes. 
+• System Maintenance: Regular updates, patches, and optimizations will be performed to ensure 
+the system remains secure and operates at peak efficiency. This includes verifying backups and 
+managing storage capacity. 
+16/5 Support Model 
+The operational team will work in shifts to provide around-the-clock support, ensuring immediate responses 
+to critical incidents. Escalation procedures will prioritize severe incidents for rapid resolution, and Service 
+Level Agreements will be met or exceeded for uptime and data integrity. 
+ 
+ 
+  
+
+=== PAGE 12 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 12 of 13 
+Pricing 
+VITRONIC offers the following equipment and services in AED. 
+Module Description Price 
+Custom Development Services, with the following details: 
+GWL 
+Communication gateway module that manages data traffic 
+between roadside units and stores, it is in the Message Queue 
+buses 
+Included 
+DPP Data pre-processing module to track files transferred from roadside 
+units Included 
+Enhanced 
+System 
+Integrations 
+With Oyoon backend, traffic systems, and law enforcement DBs Included 
+Customized Customer Care Package, which includes 2 Operation/Dev Engineers 
+to cover 16/5 support Included 
+Total 440,000 AED 
+Service Level Agreement Included with a customized proposal  
+Table 6. Pricing 
+Note: All prices stated are net and exclude VAT, withholding tax, customs duties, and other applicable taxes. In 
+the event that taxes are applicable, VITRONIC will forward them to the customer. 
+  
+
+=== PAGE 13 ===
+Document ANPR Data Management Solution Version 
+Reference Commercial Proposal (VITRONIC Traffic Intelligent Platform) 4.0 
+Company VITRONIC Project # 
+Project Dubai Police - OYOON  
+ 
+ 
+ 
+Commercial Proposal                          Page 13 of 13 
+Agreement Start 
+This Commercial Agreement shall commence on 08/04/2025 (the “Effective Date”) and shall remain 
+in effect in accordance with the terms and conditions unless terminated earlier in accordance with 
+the provisions of this Agreement. 
+ 
+Agreement Commencement 
+This Agreement is entered into as of [08/04/2025] (the “Effective Date”). It shall remain in effect 
+until [31/12/2025] (the “End Date”), by and between [Dubai Police – Oyoon], and [VITRONIC 
+Machine Vision ME LLC], with its principal place of business at [Dubai, Dubai Hills Business Park 
+3]. 
+The parties agree that this Agreement shall become effective as of the Effective Date and shall 
+govern the relationship between the parties from that date forward. 
+IN WITNESS WHEREOF, the parties have executed this Agreement as of the Effective Date. 
+ 
+[Dubai Police – Oyoon] 
+By: ________________________ 
+Name: 
+Title: 
+Date: 
+ 
+[VITRONIC Machine Vision ME LLC] 
+By: ________________________ 
+Name: 
+Title: 
+Date: 
+ 

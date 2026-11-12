@@ -1,0 +1,15 @@
+{
+  "id": "R012-laptop",
+  "route": "/reporting-center",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 1899,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 1366
+}

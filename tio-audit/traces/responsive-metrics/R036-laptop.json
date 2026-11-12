@@ -1,0 +1,15 @@
+{
+  "id": "R036-laptop",
+  "route": "/admin/integrations/jira/conflicts",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Jira conflict resolution"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 954,
+  "title": "Jira conflict resolution · TIO Operations Hub",
+  "width": 1366
+}

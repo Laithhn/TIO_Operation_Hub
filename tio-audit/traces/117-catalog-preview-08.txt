@@ -1,0 +1,1741 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Report library
+- heading "Reporting Center" [level=1]
+- generic: "All reports by category: configure, preview and export (CSV or Excel); the Tickets report also has the Report Builder."
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Section menu":
+  - navigation:
+    - link "Overview":
+      - /url: /reporting-center
+    - link "Report library":
+      - /url: /reporting-center/library
+    - link "Tickets report builder":
+      - /url: /reporting-center/builder/cases
+    - link "My reports":
+      - /url: /reporting-center/my-reports
+    - link "Scheduled reports":
+      - /url: /reporting-center/schedules
+    - link "Export history":
+      - /url: /reporting-center/history
+    - link "Templates":
+      - /url: /reporting-center/templates
+  - button "Expand menu":
+- main:
+  - button "← All reports"
+  - heading "SLA compliance report" [level=2]
+  - paragraph: Operational intelligence · Contractual first-response and resolution compliance of client tickets linked to a contract (A61), with breached and at-risk tickets and performance by client, team and owner.
+  - list "Export steps":
+    - generic: "1"
+    - text: Configure
+    - generic: "2"
+    - text: Preview
+    - generic: "3"
+    - text: Export options
+    - generic: "4"
+    - text: Generate & download
+  - heading "1 · Configure" [level=2]
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Team
+  - combobox "Team":
+    - option "All teams" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+    - option "Abdalrhman (Aboud) Asaad"
+    - option "Abdulhamid Tork"
+    - option "Ahmed Awadalla"
+    - option "LMH OPR"
+    - option "Moataz Al Khaldi"
+    - option "Mohammad Al Omari"
+    - option "Mohammed Alqaruoti"
+    - option "Naveed Ur Rehman"
+    - option "Ousama Didouqen"
+    - option "Reda Moulouki"
+    - option "Reem Hamid"
+    - option "Shiju Unnithan"
+    - option "Tareq Abdul Jabar"
+    - option "Waleed Alharthi"
+    - option "Ziyad Bu Dukhi"
+  - generic: Priority
+  - combobox "Priority":
+    - option "Any" [selected]
+    - option "Critical"
+    - option "High"
+    - option "Normal"
+    - option "Low"
+  - generic: Opened from
+  - textbox "Opened from"
+  - generic: Tickets opened in this range.
+  - generic: Opened to
+  - textbox "Opened to"
+  - generic: Time zone for dates and times
+  - combobox "Time zone for dates and times":
+    - option "Not set"
+    - option "(UTC−11:00) Pacific/Midway"
+    - option "(UTC−11:00) Pacific/Niue"
+    - option "(UTC−11:00) Pacific/Pago Pago"
+    - option "(UTC−10:00) America/Adak"
+    - option "(UTC−10:00) Pacific/Honolulu"
+    - option "(UTC−10:00) Pacific/Rarotonga"
+    - option "(UTC−10:00) Pacific/Tahiti"
+    - option "(UTC−09:30) Pacific/Marquesas"
+    - option "(UTC−09:00) America/Anchorage"
+    - option "(UTC−09:00) America/Juneau"
+    - option "(UTC−09:00) America/Metlakatla"
+    - option "(UTC−09:00) America/Nome"
+    - option "(UTC−09:00) America/Sitka"
+    - option "(UTC−09:00) America/Yakutat"
+    - option "(UTC−09:00) Pacific/Gambier"
+    - option "(UTC−08:00) America/Los Angeles"
+    - option "(UTC−08:00) America/Tijuana"
+    - option "(UTC−08:00) Pacific/Pitcairn"
+    - option "(UTC−07:00) America/Boise"
+    - option "(UTC−07:00) America/Cambridge Bay"
+    - option "(UTC−07:00) America/Ciudad Juarez"
+    - option "(UTC−07:00) America/Creston"
+    - option "(UTC−07:00) America/Dawson"
+    - option "(UTC−07:00) America/Dawson Creek"
+    - option "(UTC−07:00) America/Denver"
+    - option "(UTC−07:00) America/Fort Nelson"
+    - option "(UTC−07:00) America/Hermosillo"
+    - option "(UTC−07:00) America/Inuvik"
+    - option "(UTC−07:00) America/Mazatlan"
+    - option "(UTC−07:00) America/Phoenix"
+    - option "(UTC−07:00) America/Vancouver"
+    - option "(UTC−07:00) America/Whitehorse"
+    - option "(UTC−06:00) America/Bahia Banderas"
+    - option "(UTC−06:00) America/Belize"
+    - option "(UTC−06:00) America/Chicago"
+    - option "(UTC−06:00) America/Chihuahua"
+    - option "(UTC−06:00) America/Costa Rica"
+    - option "(UTC−06:00) America/Edmonton"
+    - option "(UTC−06:00) America/El Salvador"
+    - option "(UTC−06:00) America/Guatemala"
+    - option "(UTC−06:00) America/Indiana/Knox"
+    - option "(UTC−06:00) America/Indiana/Tell City"
+    - option "(UTC−06:00) America/Managua"
+    - option "(UTC−06:00) America/Matamoros"
+    - option "(UTC−06:00) America/Menominee"
+    - option "(UTC−06:00) America/Merida"
+    - option "(UTC−06:00) America/Mexico City"
+    - option "(UTC−06:00) America/Monterrey"
+    - option "(UTC−06:00) America/North Dakota/Beulah"
+    - option "(UTC−06:00) America/North Dakota/Center"
+    - option "(UTC−06:00) America/North Dakota/New Salem"
+    - option "(UTC−06:00) America/Ojinaga"
+    - option "(UTC−06:00) America/Rankin Inlet"
+    - option "(UTC−06:00) America/Regina"
+    - option "(UTC−06:00) America/Resolute"
+    - option "(UTC−06:00) America/Swift Current"
+    - option "(UTC−06:00) America/Tegucigalpa"
+    - option "(UTC−06:00) America/Winnipeg"
+    - option "(UTC−06:00) Pacific/Galapagos"
+    - option "(UTC−05:00) America/Bogota"
+    - option "(UTC−05:00) America/Cancun"
+    - option "(UTC−05:00) America/Cayman"
+    - option "(UTC−05:00) America/Coral Harbour"
+    - option "(UTC−05:00) America/Detroit"
+    - option "(UTC−05:00) America/Eirunepe"
+    - option "(UTC−05:00) America/Grand Turk"
+    - option "(UTC−05:00) America/Guayaquil"
+    - option "(UTC−05:00) America/Havana"
+    - option "(UTC−05:00) America/Indiana/Marengo"
+    - option "(UTC−05:00) America/Indiana/Petersburg"
+    - option "(UTC−05:00) America/Indiana/Vevay"
+    - option "(UTC−05:00) America/Indiana/Vincennes"
+    - option "(UTC−05:00) America/Indiana/Winamac"
+    - option "(UTC−05:00) America/Indianapolis"
+    - option "(UTC−05:00) America/Iqaluit"
+    - option "(UTC−05:00) America/Jamaica"
+    - option "(UTC−05:00) America/Kentucky/Monticello"
+    - option "(UTC−05:00) America/Lima"
+    - option "(UTC−05:00) America/Louisville"
+    - option "(UTC−05:00) America/Nassau"
+    - option "(UTC−05:00) America/New York"
+    - option "(UTC−05:00) America/Panama"
+    - option "(UTC−05:00) America/Port-au-Prince"
+    - option "(UTC−05:00) America/Rio Branco"
+    - option "(UTC−05:00) America/Toronto"
+    - option "(UTC−05:00) Pacific/Easter"
+    - option "(UTC−04:00) America/Anguilla"
+    - option "(UTC−04:00) America/Antigua"
+    - option "(UTC−04:00) America/Aruba"
+    - option "(UTC−04:00) America/Barbados"
+    - option "(UTC−04:00) America/Blanc-Sablon"
+    - option "(UTC−04:00) America/Boa Vista"
+    - option "(UTC−04:00) America/Campo Grande"
+    - option "(UTC−04:00) America/Caracas"
+    - option "(UTC−04:00) America/Cuiaba"
+    - option "(UTC−04:00) America/Curacao"
+    - option "(UTC−04:00) America/Dominica"
+    - option "(UTC−04:00) America/Glace Bay"
+    - option "(UTC−04:00) America/Goose Bay"
+    - option "(UTC−04:00) America/Grenada"
+    - option "(UTC−04:00) America/Guadeloupe"
+    - option "(UTC−04:00) America/Guyana"
+    - option "(UTC−04:00) America/Halifax"
+    - option "(UTC−04:00) America/Kralendijk"
+    - option "(UTC−04:00) America/La Paz"
+    - option "(UTC−04:00) America/Lower Princes"
+    - option "(UTC−04:00) America/Manaus"
+    - option "(UTC−04:00) America/Marigot"
+    - option "(UTC−04:00) America/Martinique"
+    - option "(UTC−04:00) America/Moncton"
+    - option "(UTC−04:00) America/Montserrat"
+    - option "(UTC−04:00) America/Port of Spain"
+    - option "(UTC−04:00) America/Porto Velho"
+    - option "(UTC−04:00) America/Puerto Rico"
+    - option "(UTC−04:00) America/Santo Domingo"
+    - option "(UTC−04:00) America/St Barthelemy"
+    - option "(UTC−04:00) America/St Kitts"
+    - option "(UTC−04:00) America/St Lucia"
+    - option "(UTC−04:00) America/St Thomas"
+    - option "(UTC−04:00) America/St Vincent"
+    - option "(UTC−04:00) America/Thule"
+    - option "(UTC−04:00) America/Tortola"
+    - option "(UTC−04:00) Atlantic/Bermuda"
+    - option "(UTC−03:30) America/St Johns"
+    - option "(UTC−03:00) America/Araguaina"
+    - option "(UTC−03:00) America/Argentina/La Rioja"
+    - option "(UTC−03:00) America/Argentina/Rio Gallegos"
+    - option "(UTC−03:00) America/Argentina/Salta"
+    - option "(UTC−03:00) America/Argentina/San Juan"
+    - option "(UTC−03:00) America/Argentina/San Luis"
+    - option "(UTC−03:00) America/Argentina/Tucuman"
+    - option "(UTC−03:00) America/Argentina/Ushuaia"
+    - option "(UTC−03:00) America/Asuncion"
+    - option "(UTC−03:00) America/Bahia"
+    - option "(UTC−03:00) America/Belem"
+    - option "(UTC−03:00) America/Buenos Aires"
+    - option "(UTC−03:00) America/Catamarca"
+    - option "(UTC−03:00) America/Cayenne"
+    - option "(UTC−03:00) America/Cordoba"
+    - option "(UTC−03:00) America/Coyhaique"
+    - option "(UTC−03:00) America/Fortaleza"
+    - option "(UTC−03:00) America/Jujuy"
+    - option "(UTC−03:00) America/Maceio"
+    - option "(UTC−03:00) America/Mendoza"
+    - option "(UTC−03:00) America/Miquelon"
+    - option "(UTC−03:00) America/Montevideo"
+    - option "(UTC−03:00) America/Paramaribo"
+    - option "(UTC−03:00) America/Punta Arenas"
+    - option "(UTC−03:00) America/Recife"
+    - option "(UTC−03:00) America/Santarem"
+    - option "(UTC−03:00) America/Santiago"
+    - option "(UTC−03:00) America/Sao Paulo"
+    - option "(UTC−03:00) Antarctica/Palmer"
+    - option "(UTC−03:00) Antarctica/Rothera"
+    - option "(UTC−03:00) Atlantic/Stanley"
+    - option "(UTC−02:00) America/Godthab"
+    - option "(UTC−02:00) America/Noronha"
+    - option "(UTC−02:00) America/Scoresbysund"
+    - option "(UTC−02:00) Atlantic/South Georgia"
+    - option "(UTC−01:00) Atlantic/Azores"
+    - option "(UTC−01:00) Atlantic/Cape Verde"
+    - option "(UTC+00:00) Africa/Abidjan"
+    - option "(UTC+00:00) Africa/Accra"
+    - option "(UTC+00:00) Africa/Bamako"
+    - option "(UTC+00:00) Africa/Banjul"
+    - option "(UTC+00:00) Africa/Bissau"
+    - option "(UTC+00:00) Africa/Casablanca"
+    - option "(UTC+00:00) Africa/Conakry"
+    - option "(UTC+00:00) Africa/Dakar"
+    - option "(UTC+00:00) Africa/El Aaiun"
+    - option "(UTC+00:00) Africa/Freetown"
+    - option "(UTC+00:00) Africa/Lome"
+    - option "(UTC+00:00) Africa/Monrovia"
+    - option "(UTC+00:00) Africa/Nouakchott"
+    - option "(UTC+00:00) Africa/Ouagadougou"
+    - option "(UTC+00:00) Africa/Sao Tome"
+    - option "(UTC+00:00) America/Danmarkshavn"
+    - option "(UTC+00:00) Antarctica/Troll"
+    - option "(UTC+00:00) Atlantic/Canary"
+    - option "(UTC+00:00) Atlantic/Faeroe"
+    - option "(UTC+00:00) Atlantic/Madeira"
+    - option "(UTC+00:00) Atlantic/Reykjavik"
+    - option "(UTC+00:00) Atlantic/St Helena"
+    - option "(UTC+00:00) Europe/Dublin"
+    - option "(UTC+00:00) Europe/Guernsey"
+    - option "(UTC+00:00) Europe/Isle of Man"
+    - option "(UTC+00:00) Europe/Jersey"
+    - option "(UTC+00:00) Europe/Lisbon"
+    - option "(UTC+00:00) Europe/London"
+    - option "(UTC+00:00) UTC"
+    - option "(UTC+01:00) Africa/Algiers"
+    - option "(UTC+01:00) Africa/Bangui"
+    - option "(UTC+01:00) Africa/Brazzaville"
+    - option "(UTC+01:00) Africa/Ceuta"
+    - option "(UTC+01:00) Africa/Douala"
+    - option "(UTC+01:00) Africa/Kinshasa"
+    - option "(UTC+01:00) Africa/Lagos"
+    - option "(UTC+01:00) Africa/Libreville"
+    - option "(UTC+01:00) Africa/Luanda"
+    - option "(UTC+01:00) Africa/Malabo"
+    - option "(UTC+01:00) Africa/Ndjamena"
+    - option "(UTC+01:00) Africa/Niamey"
+    - option "(UTC+01:00) Africa/Porto-Novo"
+    - option "(UTC+01:00) Africa/Tunis"
+    - option "(UTC+01:00) Arctic/Longyearbyen"
+    - option "(UTC+01:00) Europe/Amsterdam"
+    - option "(UTC+01:00) Europe/Andorra"
+    - option "(UTC+01:00) Europe/Belgrade"
+    - option "(UTC+01:00) Europe/Berlin"
+    - option "(UTC+01:00) Europe/Bratislava"
+    - option "(UTC+01:00) Europe/Brussels"
+    - option "(UTC+01:00) Europe/Budapest"
+    - option "(UTC+01:00) Europe/Busingen"
+    - option "(UTC+01:00) Europe/Copenhagen"
+    - option "(UTC+01:00) Europe/Gibraltar"
+    - option "(UTC+01:00) Europe/Ljubljana"
+    - option "(UTC+01:00) Europe/Luxembourg"
+    - option "(UTC+01:00) Europe/Madrid"
+    - option "(UTC+01:00) Europe/Malta"
+    - option "(UTC+01:00) Europe/Monaco"
+    - option "(UTC+01:00) Europe/Oslo"
+    - option "(UTC+01:00) Europe/Paris"
+    - option "(UTC+01:00) Europe/Podgorica"
+    - option "(UTC+01:00) Europe/Prague"
+    - option "(UTC+01:00) Europe/Rome"
+    - option "(UTC+01:00) Europe/San Marino"
+    - option "(UTC+01:00) Europe/Sarajevo"
+    - option "(UTC+01:00) Europe/Skopje"
+    - option "(UTC+01:00) Europe/Stockholm"
+    - option "(UTC+01:00) Europe/Tirane"
+    - option "(UTC+01:00) Europe/Vaduz"
+    - option "(UTC+01:00) Europe/Vatican"
+    - option "(UTC+01:00) Europe/Vienna"
+    - option "(UTC+01:00) Europe/Warsaw"
+    - option "(UTC+01:00) Europe/Zagreb"
+    - option "(UTC+01:00) Europe/Zurich"
+    - option "(UTC+02:00) Africa/Blantyre"
+    - option "(UTC+02:00) Africa/Bujumbura"
+    - option "(UTC+02:00) Africa/Cairo"
+    - option "(UTC+02:00) Africa/Gaborone"
+    - option "(UTC+02:00) Africa/Harare"
+    - option "(UTC+02:00) Africa/Johannesburg"
+    - option "(UTC+02:00) Africa/Juba"
+    - option "(UTC+02:00) Africa/Khartoum"
+    - option "(UTC+02:00) Africa/Kigali"
+    - option "(UTC+02:00) Africa/Lubumbashi"
+    - option "(UTC+02:00) Africa/Lusaka"
+    - option "(UTC+02:00) Africa/Maputo"
+    - option "(UTC+02:00) Africa/Maseru"
+    - option "(UTC+02:00) Africa/Mbabane"
+    - option "(UTC+02:00) Africa/Tripoli"
+    - option "(UTC+02:00) Africa/Windhoek"
+    - option "(UTC+02:00) Asia/Beirut"
+    - option "(UTC+02:00) Asia/Famagusta"
+    - option "(UTC+02:00) Asia/Gaza"
+    - option "(UTC+02:00) Asia/Hebron"
+    - option "(UTC+02:00) Asia/Jerusalem"
+    - option "(UTC+02:00) Asia/Nicosia"
+    - option "(UTC+02:00) Europe/Athens"
+    - option "(UTC+02:00) Europe/Bucharest"
+    - option "(UTC+02:00) Europe/Chisinau"
+    - option "(UTC+02:00) Europe/Helsinki"
+    - option "(UTC+02:00) Europe/Kaliningrad"
+    - option "(UTC+02:00) Europe/Kiev"
+    - option "(UTC+02:00) Europe/Mariehamn"
+    - option "(UTC+02:00) Europe/Riga"
+    - option "(UTC+02:00) Europe/Sofia"
+    - option "(UTC+02:00) Europe/Tallinn"
+    - option "(UTC+02:00) Europe/Vilnius"
+    - option "(UTC+03:00) Africa/Addis Ababa"
+    - option "(UTC+03:00) Africa/Asmera"
+    - option "(UTC+03:00) Africa/Dar es Salaam"
+    - option "(UTC+03:00) Africa/Djibouti"
+    - option "(UTC+03:00) Africa/Kampala"
+    - option "(UTC+03:00) Africa/Mogadishu"
+    - option "(UTC+03:00) Africa/Nairobi"
+    - option "(UTC+03:00) Antarctica/Syowa"
+    - option "(UTC+03:00) Asia/Aden"
+    - option "(UTC+03:00) Asia/Amman"
+    - option "(UTC+03:00) Asia/Baghdad"
+    - option "(UTC+03:00) Asia/Bahrain"
+    - option "(UTC+03:00) Asia/Damascus"
+    - option "(UTC+03:00) Asia/Kuwait"
+    - option "(UTC+03:00) Asia/Qatar"
+    - option "(UTC+03:00) Asia/Riyadh"
+    - option "(UTC+03:00) Europe/Istanbul"
+    - option "(UTC+03:00) Europe/Kirov"
+    - option "(UTC+03:00) Europe/Minsk"
+    - option "(UTC+03:00) Europe/Moscow"
+    - option "(UTC+03:00) Europe/Simferopol"
+    - option "(UTC+03:00) Europe/Volgograd"
+    - option "(UTC+03:00) Indian/Antananarivo"
+    - option "(UTC+03:00) Indian/Comoro"
+    - option "(UTC+03:00) Indian/Mayotte"
+    - option "(UTC+03:30) Asia/Tehran"
+    - option "(UTC+04:00) Asia/Baku"
+    - option "(UTC+04:00) Asia/Dubai" [selected]
+    - option "(UTC+04:00) Asia/Muscat"
+    - option "(UTC+04:00) Asia/Tbilisi"
+    - option "(UTC+04:00) Asia/Yerevan"
+    - option "(UTC+04:00) Europe/Astrakhan"
+    - option "(UTC+04:00) Europe/Samara"
+    - option "(UTC+04:00) Europe/Saratov"
+    - option "(UTC+04:00) Europe/Ulyanovsk"
+    - option "(UTC+04:00) Indian/Mahe"
+    - option "(UTC+04:00) Indian/Mauritius"
+    - option "(UTC+04:00) Indian/Reunion"
+    - option "(UTC+04:30) Asia/Kabul"
+    - option "(UTC+05:00) Antarctica/Mawson"
+    - option "(UTC+05:00) Antarctica/Vostok"
+    - option "(UTC+05:00) Asia/Almaty"
+    - option "(UTC+05:00) Asia/Aqtau"
+    - option "(UTC+05:00) Asia/Aqtobe"
+    - option "(UTC+05:00) Asia/Ashgabat"
+    - option "(UTC+05:00) Asia/Atyrau"
+    - option "(UTC+05:00) Asia/Dushanbe"
+    - option "(UTC+05:00) Asia/Karachi"
+    - option "(UTC+05:00) Asia/Oral"
+    - option "(UTC+05:00) Asia/Qostanay"
+    - option "(UTC+05:00) Asia/Qyzylorda"
+    - option "(UTC+05:00) Asia/Samarkand"
+    - option "(UTC+05:00) Asia/Tashkent"
+    - option "(UTC+05:00) Asia/Yekaterinburg"
+    - option "(UTC+05:00) Indian/Kerguelen"
+    - option "(UTC+05:00) Indian/Maldives"
+    - option "(UTC+05:30) Asia/Calcutta"
+    - option "(UTC+05:30) Asia/Colombo"
+    - option "(UTC+05:45) Asia/Katmandu"
+    - option "(UTC+06:00) Asia/Bishkek"
+    - option "(UTC+06:00) Asia/Dhaka"
+    - option "(UTC+06:00) Asia/Omsk"
+    - option "(UTC+06:00) Asia/Thimphu"
+    - option "(UTC+06:00) Asia/Urumqi"
+    - option "(UTC+06:00) Indian/Chagos"
+    - option "(UTC+06:30) Asia/Rangoon"
+    - option "(UTC+06:30) Indian/Cocos"
+    - option "(UTC+07:00) Antarctica/Davis"
+    - option "(UTC+07:00) Asia/Bangkok"
+    - option "(UTC+07:00) Asia/Barnaul"
+    - option "(UTC+07:00) Asia/Hovd"
+    - option "(UTC+07:00) Asia/Jakarta"
+    - option "(UTC+07:00) Asia/Krasnoyarsk"
+    - option "(UTC+07:00) Asia/Novokuznetsk"
+    - option "(UTC+07:00) Asia/Novosibirsk"
+    - option "(UTC+07:00) Asia/Phnom Penh"
+    - option "(UTC+07:00) Asia/Pontianak"
+    - option "(UTC+07:00) Asia/Saigon"
+    - option "(UTC+07:00) Asia/Tomsk"
+    - option "(UTC+07:00) Asia/Vientiane"
+    - option "(UTC+07:00) Indian/Christmas"
+    - option "(UTC+08:00) Antarctica/Casey"
+    - option "(UTC+08:00) Asia/Brunei"
+    - option "(UTC+08:00) Asia/Hong Kong"
+    - option "(UTC+08:00) Asia/Irkutsk"
+    - option "(UTC+08:00) Asia/Kuala Lumpur"
+    - option "(UTC+08:00) Asia/Kuching"
+    - option "(UTC+08:00) Asia/Macau"
+    - option "(UTC+08:00) Asia/Makassar"
+    - option "(UTC+08:00) Asia/Manila"
+    - option "(UTC+08:00) Asia/Shanghai"
+    - option "(UTC+08:00) Asia/Singapore"
+    - option "(UTC+08:00) Asia/Taipei"
+    - option "(UTC+08:00) Asia/Ulaanbaatar"
+    - option "(UTC+08:00) Australia/Perth"
+    - option "(UTC+08:45) Australia/Eucla"
+    - option "(UTC+09:00) Asia/Chita"
+    - option "(UTC+09:00) Asia/Dili"
+    - option "(UTC+09:00) Asia/Jayapura"
+    - option "(UTC+09:00) Asia/Khandyga"
+    - option "(UTC+09:00) Asia/Pyongyang"
+    - option "(UTC+09:00) Asia/Seoul"
+    - option "(UTC+09:00) Asia/Tokyo"
+    - option "(UTC+09:00) Asia/Yakutsk"
+    - option "(UTC+09:00) Pacific/Palau"
+    - option "(UTC+09:30) Australia/Darwin"
+    - option "(UTC+10:00) Antarctica/DumontDUrville"
+    - option "(UTC+10:00) Asia/Ust-Nera"
+    - option "(UTC+10:00) Asia/Vladivostok"
+    - option "(UTC+10:00) Australia/Brisbane"
+    - option "(UTC+10:00) Australia/Lindeman"
+    - option "(UTC+10:00) Pacific/Guam"
+    - option "(UTC+10:00) Pacific/Port Moresby"
+    - option "(UTC+10:00) Pacific/Saipan"
+    - option "(UTC+10:00) Pacific/Truk"
+    - option "(UTC+10:30) Australia/Adelaide"
+    - option "(UTC+10:30) Australia/Broken Hill"
+    - option "(UTC+11:00) Antarctica/Macquarie"
+    - option "(UTC+11:00) Asia/Magadan"
+    - option "(UTC+11:00) Asia/Sakhalin"
+    - option "(UTC+11:00) Asia/Srednekolymsk"
+    - option "(UTC+11:00) Australia/Hobart"
+    - option "(UTC+11:00) Australia/Lord Howe"
+    - option "(UTC+11:00) Australia/Melbourne"
+    - option "(UTC+11:00) Australia/Sydney"
+    - option "(UTC+11:00) Pacific/Bougainville"
+    - option "(UTC+11:00) Pacific/Efate"
+    - option "(UTC+11:00) Pacific/Guadalcanal"
+    - option "(UTC+11:00) Pacific/Kosrae"
+    - option "(UTC+11:00) Pacific/Noumea"
+    - option "(UTC+11:00) Pacific/Ponape"
+    - option "(UTC+12:00) Asia/Anadyr"
+    - option "(UTC+12:00) Asia/Kamchatka"
+    - option "(UTC+12:00) Pacific/Fiji"
+    - option "(UTC+12:00) Pacific/Funafuti"
+    - option "(UTC+12:00) Pacific/Kwajalein"
+    - option "(UTC+12:00) Pacific/Majuro"
+    - option "(UTC+12:00) Pacific/Nauru"
+    - option "(UTC+12:00) Pacific/Norfolk"
+    - option "(UTC+12:00) Pacific/Tarawa"
+    - option "(UTC+12:00) Pacific/Wake"
+    - option "(UTC+12:00) Pacific/Wallis"
+    - option "(UTC+13:00) Antarctica/McMurdo"
+    - option "(UTC+13:00) Pacific/Apia"
+    - option "(UTC+13:00) Pacific/Auckland"
+    - option "(UTC+13:00) Pacific/Enderbury"
+    - option "(UTC+13:00) Pacific/Fakaofo"
+    - option "(UTC+13:00) Pacific/Tongatapu"
+    - option "(UTC+13:45) Pacific/Chatham"
+    - option "(UTC+14:00) Pacific/Kiritimati"
+  - generic: Dates in the filters are calendar days in this zone.
+  - generic: "No filters: all rows you are authorized to see."
+  - button "Reset filters"
+  - button "Refresh preview" [active]
+  - generic "Save these filters as a preset"
+  - heading "2 · Preview" [level=2]
+  - generic: 677 matching row(s) · data as of 10 Nov 2026, 17:06 (Asia/Dubai)
+  - paragraph: "SLA compliance report · Filters: none"
+  - generic "Report summary":
+    - generic "Client tickets linked to a contract (not cancelled), including pending and not measurable obligations.":
+      - generic: "677"
+      - generic: Contract-linked tickets
+      - generic: Client tickets linked to a contract (not cancelled), including pending and not measurable obligations.
+    - generic "Met ÷ (met + breached) = 198 of 674; pending and not measurable excluded.":
+      - generic: 29.4 %
+      - generic: Response compliance
+      - generic: Met ÷ (met + breached) = 198 of 674; pending and not measurable excluded.
+    - generic "Met ÷ (met + breached) = 85 of 665.":
+      - generic: 12.8 %
+      - generic: Resolution compliance
+      - generic: Met ÷ (met + breached) = 85 of 665.
+    - generic "Response or resolution breached (a pending obligation past its deadline counts as breached).":
+      - generic: "630"
+      - generic: Breached tickets
+      - generic: Response or resolution breached (a pending obligation past its deadline counts as breached).
+    - generic "Pending with a deadline within the next 24 hours.":
+      - generic: "4"
+      - generic: At risk
+      - generic: Pending with a deadline within the next 24 hours.
+    - generic "No target for the priority, incomplete support calendar, or opened before responses were recorded.":
+      - generic: "3"
+      - generic: Not measurable
+      - generic: No target for the priority, incomplete support calendar, or opened before responses were recorded.
+  - heading "By client" [level=3]
+  - region "By client":
+    - 'group "By client: scroll sideways for more columns"':
+      - table "By client":
+        - caption: By client
+        - rowgroup:
+          - row "Client Tickets Response Resolution Breached At risk":
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Tickets":
+              - button "Tickets":
+                - generic: Tickets
+            - columnheader "Response":
+              - button "Response":
+                - generic: Response
+            - columnheader "Resolution":
+              - button "Resolution":
+                - generic: Resolution
+            - columnheader "Breached":
+              - button "Breached":
+                - generic: Breached
+            - columnheader "At risk":
+              - button "At risk":
+                - generic: At risk
+        - rowgroup:
+          - row "TAH 581 27.2 % 13.3 % 542 4":
+            - cell "TAH":
+              - generic: TAH
+            - cell "581":
+              - generic: "581"
+            - cell "27.2 %":
+              - generic: 27.2 %
+            - cell "13.3 %":
+              - generic: 13.3 %
+            - cell "542":
+              - generic: "542"
+            - cell "4":
+              - generic: "4"
+          - row "SEW 96 42.7 % 9.7 % 88 0":
+            - cell "SEW":
+              - generic: SEW
+            - cell "96":
+              - generic: "96"
+            - cell "42.7 %":
+              - generic: 42.7 %
+            - cell "9.7 %":
+              - generic: 9.7 %
+            - cell "88":
+              - generic: "88"
+            - cell "0":
+              - generic: "0"
+    - status
+  - heading "By team" [level=3]
+  - region "By team":
+    - 'group "By team: scroll sideways for more columns"':
+      - table "By team":
+        - caption: By team
+        - rowgroup:
+          - row "Team Tickets Response Resolution Breached At risk":
+            - columnheader "Team":
+              - button "Team":
+                - generic: Team
+            - columnheader "Tickets":
+              - button "Tickets":
+                - generic: Tickets
+            - columnheader "Response":
+              - button "Response":
+                - generic: Response
+            - columnheader "Resolution":
+              - button "Resolution":
+                - generic: Resolution
+            - columnheader "Breached":
+              - button "Breached":
+                - generic: Breached
+            - columnheader "At risk":
+              - button "At risk":
+                - generic: At risk
+        - rowgroup:
+          - row "KSA Operation Team 581 27.2 % 13.3 % 542 4":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "581":
+              - generic: "581"
+            - cell "27.2 %":
+              - generic: 27.2 %
+            - cell "13.3 %":
+              - generic: 13.3 %
+            - cell "542":
+              - generic: "542"
+            - cell "4":
+              - generic: "4"
+          - row "— 96 42.7 % 9.7 % 88 0":
+            - cell "—":
+              - generic: —
+            - cell "96":
+              - generic: "96"
+            - cell "42.7 %":
+              - generic: 42.7 %
+            - cell "9.7 %":
+              - generic: 9.7 %
+            - cell "88":
+              - generic: "88"
+            - cell "0":
+              - generic: "0"
+    - status
+  - heading "By owner" [level=3]
+  - region "By owner":
+    - 'group "By owner: scroll sideways for more columns"':
+      - table "By owner":
+        - caption: By owner
+        - rowgroup:
+          - row "Owner Tickets Response Resolution Breached At risk":
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Tickets":
+              - button "Tickets":
+                - generic: Tickets
+            - columnheader "Response":
+              - button "Response":
+                - generic: Response
+            - columnheader "Resolution":
+              - button "Resolution":
+                - generic: Resolution
+            - columnheader "Breached":
+              - button "Breached":
+                - generic: Breached
+            - columnheader "At risk":
+              - button "At risk":
+                - generic: At risk
+        - rowgroup:
+          - row "Unassigned 539 31.5 % 12 % 502 2":
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "539":
+              - generic: "539"
+            - cell "31.5 %":
+              - generic: 31.5 %
+            - cell "12 %":
+              - generic: 12 %
+            - cell "502":
+              - generic: "502"
+            - cell "2":
+              - generic: "2"
+          - row "Ahmed Awadalla 45 20 % 21.4 % 40 1":
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "45":
+              - generic: "45"
+            - cell "20 %":
+              - generic: 20 %
+            - cell "21.4 %":
+              - generic: 21.4 %
+            - cell "40":
+              - generic: "40"
+            - cell "1":
+              - generic: "1"
+          - row "Abdulhamid Tork 26 3.8 % 3.8 % 26 0":
+            - cell "Abdulhamid Tork":
+              - generic: Abdulhamid Tork
+            - cell "26":
+              - generic: "26"
+            - cell "3.8 %":
+              - generic: 3.8 %
+            - cell "3.8 %":
+              - generic: 3.8 %
+            - cell "26":
+              - generic: "26"
+            - cell "0":
+              - generic: "0"
+          - row "Waleed Alharthi 18 33.3 % 33.3 % 16 0":
+            - cell "Waleed Alharthi":
+              - generic: Waleed Alharthi
+            - cell "18":
+              - generic: "18"
+            - cell "33.3 %":
+              - generic: 33.3 %
+            - cell "33.3 %":
+              - generic: 33.3 %
+            - cell "16":
+              - generic: "16"
+            - cell "0":
+              - generic: "0"
+          - row "Mohammed Alqaruoti 15 26.7 % 20 % 14 0":
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "15":
+              - generic: "15"
+            - cell "26.7 %":
+              - generic: 26.7 %
+            - cell "20 %":
+              - generic: 20 %
+            - cell "14":
+              - generic: "14"
+            - cell "0":
+              - generic: "0"
+          - row "Naveed Ur Rehman 15 14.3 % 0 % 14 1":
+            - cell "Naveed Ur Rehman":
+              - generic: Naveed Ur Rehman
+            - cell "15":
+              - generic: "15"
+            - cell "14.3 %":
+              - generic: 14.3 %
+            - cell "0 %":
+              - generic: 0 %
+            - cell "14":
+              - generic: "14"
+            - cell "1":
+              - generic: "1"
+          - row "Faisal Alyami 7 28.6 % 14.3 % 7 0":
+            - cell "Faisal Alyami":
+              - generic: Faisal Alyami
+            - cell "7":
+              - generic: "7"
+            - cell "28.6 %":
+              - generic: 28.6 %
+            - cell "14.3 %":
+              - generic: 14.3 %
+            - cell "7":
+              - generic: "7"
+            - cell "0":
+              - generic: "0"
+          - row "Tareq Abdul Jabar 5 40 % 20 % 4 0":
+            - cell "Tareq Abdul Jabar":
+              - generic: Tareq Abdul Jabar
+            - cell "5":
+              - generic: "5"
+            - cell "40 %":
+              - generic: 40 %
+            - cell "20 %":
+              - generic: 20 %
+            - cell "4":
+              - generic: "4"
+            - cell "0":
+              - generic: "0"
+          - row "Moataz Al Khaldi 3 66.7 % 0 % 3 0":
+            - cell "Moataz Al Khaldi":
+              - generic: Moataz Al Khaldi
+            - cell "3":
+              - generic: "3"
+            - cell "66.7 %":
+              - generic: 66.7 %
+            - cell "0 %":
+              - generic: 0 %
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+          - row "Ansil Ansar2 2 0 % 0 % 2 0":
+            - cell "Ansil Ansar2":
+              - generic: Ansil Ansar2
+            - cell "2":
+              - generic: "2"
+            - cell "0 %":
+              - generic: 0 %
+            - cell "0 %":
+              - generic: 0 %
+            - cell "2":
+              - generic: "2"
+            - cell "0":
+              - generic: "0"
+          - row "Laith Hamdan 1 100 % 0 % 1 0":
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "1":
+              - generic: "1"
+            - cell "100 %":
+              - generic: 100 %
+            - cell "0 %":
+              - generic: 0 %
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+          - row "Shabraz Ahmed 1 0 % 0 % 1 0":
+            - cell "Shabraz Ahmed":
+              - generic: Shabraz Ahmed
+            - cell "1":
+              - generic: "1"
+            - cell "0 %":
+              - generic: 0 %
+            - cell "0 %":
+              - generic: 0 %
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+    - status
+  - region "Preview of SLA compliance report":
+    - 'group "Preview of SLA compliance report: scroll sideways for more columns"':
+      - table "Preview of SLA compliance report":
+        - caption: Preview of SLA compliance report
+        - rowgroup:
+          - row "Reference Title Client Contract Priority Team Owner Opened Response deadline First response Response status Resolution deadline Resolved Resolution status At risk":
+            - columnheader "Reference":
+              - button "Reference":
+                - generic: Reference
+            - columnheader "Title":
+              - button "Title":
+                - generic: Title
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Contract":
+              - button "Contract":
+                - generic: Contract
+            - columnheader "Priority":
+              - button "Priority":
+                - generic: Priority
+            - columnheader "Team":
+              - button "Team":
+                - generic: Team
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Opened":
+              - button "Opened":
+                - generic: Opened
+            - columnheader "Response deadline":
+              - button "Response deadline":
+                - generic: Response deadline
+            - columnheader "First response":
+              - button "First response":
+                - generic: First response
+            - columnheader "Response status":
+              - button "Response status":
+                - generic: Response status
+            - columnheader "Resolution deadline":
+              - button "Resolution deadline":
+                - generic: Resolution deadline
+            - columnheader "Resolved":
+              - button "Resolved":
+                - generic: Resolved
+            - columnheader "Resolution status":
+              - button "Resolution status":
+                - generic: Resolution status
+            - columnheader "At risk":
+              - button "At risk":
+                - generic: At risk
+        - rowgroup:
+          - row "CS-1470 Using SessionID in SessionIndex calculation TAH CT-1006 Normal KSA Operation Team Abdulhamid Tork 2025-01-14 12:31 +04:00 2025-01-14 16:31 +04:00 Breached 2025-01-15 15:31 +04:00 2025-01-27 12:09 +04:00 Breached No":
+            - cell "CS-1470":
+              - generic: CS-1470
+            - cell "Using SessionID in SessionIndex calculation":
+              - generic: Using SessionID in SessionIndex calculation
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Abdulhamid Tork":
+              - generic: Abdulhamid Tork
+            - cell "2025-01-14 12:31 +04:00":
+              - generic: 2025-01-14 12:31 +04:00
+            - cell "2025-01-14 16:31 +04:00":
+              - generic: 2025-01-14 16:31 +04:00
+            - cell
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-01-15 15:31 +04:00":
+              - generic: 2025-01-15 15:31 +04:00
+            - cell "2025-01-27 12:09 +04:00":
+              - generic: 2025-01-27 12:09 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1472 Case Index as Incident ID for Foreign Plate Cases TAH CT-1006 Normal KSA Operation Team Unassigned 2025-02-03 14:39 +04:00 2025-02-04 09:39 +04:00 Breached 2025-02-04 17:39 +04:00 2025-02-11 13:37 +04:00 Breached No":
+            - cell "CS-1472":
+              - generic: CS-1472
+            - cell "Case Index as Incident ID for Foreign Plate Cases":
+              - generic: Case Index as Incident ID for Foreign Plate Cases
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-02-03 14:39 +04:00":
+              - generic: 2025-02-03 14:39 +04:00
+            - cell "2025-02-04 09:39 +04:00":
+              - generic: 2025-02-04 09:39 +04:00
+            - cell
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-02-04 17:39 +04:00":
+              - generic: 2025-02-04 17:39 +04:00
+            - cell "2025-02-11 13:37 +04:00":
+              - generic: 2025-02-11 13:37 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1474 VISmartFIleManager for CCTV Raw Data TAH CT-1006 Normal KSA Operation Team Unassigned 2025-01-15 16:06 +04:00 2025-01-16 11:06 +04:00 2025-02-03 17:34 +04:00 Breached 2025-01-19 10:06 +04:00 2025-02-26 12:50 +04:00 Breached No":
+            - cell "CS-1474":
+              - generic: CS-1474
+            - cell "VISmartFIleManager for CCTV Raw Data":
+              - generic: VISmartFIleManager for CCTV Raw Data
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-01-15 16:06 +04:00":
+              - generic: 2025-01-15 16:06 +04:00
+            - cell "2025-01-16 11:06 +04:00":
+              - generic: 2025-01-16 11:06 +04:00
+            - cell "2025-02-03 17:34 +04:00":
+              - generic: 2025-02-03 17:34 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-01-19 10:06 +04:00":
+              - generic: 2025-01-19 10:06 +04:00
+            - cell "2025-02-26 12:50 +04:00":
+              - generic: 2025-02-26 12:50 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1475 VISmartFIleManager for EMT files TAH CT-1006 Normal KSA Operation Team Unassigned 2025-01-19 11:21 +04:00 2025-01-19 15:21 +04:00 2025-02-03 13:27 +04:00 Breached 2025-01-20 14:21 +04:00 2025-02-26 12:51 +04:00 Breached No":
+            - cell "CS-1475":
+              - generic: CS-1475
+            - cell "VISmartFIleManager for EMT files":
+              - generic: VISmartFIleManager for EMT files
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-01-19 11:21 +04:00":
+              - generic: 2025-01-19 11:21 +04:00
+            - cell "2025-01-19 15:21 +04:00":
+              - generic: 2025-01-19 15:21 +04:00
+            - cell "2025-02-03 13:27 +04:00":
+              - generic: 2025-02-03 13:27 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-01-20 14:21 +04:00":
+              - generic: 2025-01-20 14:21 +04:00
+            - cell "2025-02-26 12:51 +04:00":
+              - generic: 2025-02-26 12:51 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1476 ViSmartFileManager Enhancement TAH CT-1006 Normal KSA Operation Team Abdulhamid Tork 2025-01-27 15:15 +04:00 2025-01-28 10:15 +04:00 2025-01-28 10:03 +04:00 Met 2025-01-29 09:15 +04:00 2025-02-26 13:06 +04:00 Breached No":
+            - cell "CS-1476":
+              - generic: CS-1476
+            - cell "ViSmartFileManager Enhancement":
+              - generic: ViSmartFileManager Enhancement
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Abdulhamid Tork":
+              - generic: Abdulhamid Tork
+            - cell "2025-01-27 15:15 +04:00":
+              - generic: 2025-01-27 15:15 +04:00
+            - cell "2025-01-28 10:15 +04:00":
+              - generic: 2025-01-28 10:15 +04:00
+            - cell "2025-01-28 10:03 +04:00":
+              - generic: 2025-01-28 10:03 +04:00
+            - cell "Met":
+              - generic: Met
+            - cell "2025-01-29 09:15 +04:00":
+              - generic: 2025-01-29 09:15 +04:00
+            - cell "2025-02-26 13:06 +04:00":
+              - generic: 2025-02-26 13:06 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1477 Adding Operation Date Filed in Device Profile in PSOP TAH CT-1006 Normal KSA Operation Team Unassigned 2025-02-11 16:49 +04:00 2025-02-12 11:49 +04:00 Breached 2025-02-13 10:49 +04:00 2025-02-26 15:51 +04:00 Breached No":
+            - cell "CS-1477":
+              - generic: CS-1477
+            - cell "Adding Operation Date Filed in Device Profile in PSOP":
+              - generic: Adding Operation Date Filed in Device Profile in PSOP
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-02-11 16:49 +04:00":
+              - generic: 2025-02-11 16:49 +04:00
+            - cell "2025-02-12 11:49 +04:00":
+              - generic: 2025-02-12 11:49 +04:00
+            - cell
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-02-13 10:49 +04:00":
+              - generic: 2025-02-13 10:49 +04:00
+            - cell "2025-02-26 15:51 +04:00":
+              - generic: 2025-02-26 15:51 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - 'row "CS-1479 RRM: Edit place invalid input message TAH CT-1006 Normal KSA Operation Team Unassigned 2025-03-02 15:20 +04:00 2025-03-03 10:20 +04:00 2025-03-04 22:42 +04:00 Breached 2025-03-04 09:20 +04:00 2025-03-05 13:47 +04:00 Breached No"':
+            - cell "CS-1479":
+              - generic: CS-1479
+            - 'cell "RRM: Edit place invalid input message"':
+              - generic: "RRM: Edit place invalid input message"
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-03-02 15:20 +04:00":
+              - generic: 2025-03-02 15:20 +04:00
+            - cell "2025-03-03 10:20 +04:00":
+              - generic: 2025-03-03 10:20 +04:00
+            - cell "2025-03-04 22:42 +04:00":
+              - generic: 2025-03-04 22:42 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-03-04 09:20 +04:00":
+              - generic: 2025-03-04 09:20 +04:00
+            - cell "2025-03-05 13:47 +04:00":
+              - generic: 2025-03-05 13:47 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1480 Traffic Services Portal Archive Service Hotfixes TAH CT-1006 Normal KSA Operation Team Abdulhamid Tork 2025-01-02 12:47 +04:00 2025-01-02 16:47 +04:00 2025-01-03 10:54 +04:00 Breached 2025-01-05 15:47 +04:00 2025-03-10 12:49 +04:00 Breached No":
+            - cell "CS-1480":
+              - generic: CS-1480
+            - cell "Traffic Services Portal Archive Service Hotfixes":
+              - generic: Traffic Services Portal Archive Service Hotfixes
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Abdulhamid Tork":
+              - generic: Abdulhamid Tork
+            - cell "2025-01-02 12:47 +04:00":
+              - generic: 2025-01-02 12:47 +04:00
+            - cell "2025-01-02 16:47 +04:00":
+              - generic: 2025-01-02 16:47 +04:00
+            - cell "2025-01-03 10:54 +04:00":
+              - generic: 2025-01-03 10:54 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-01-05 15:47 +04:00":
+              - generic: 2025-01-05 15:47 +04:00
+            - cell "2025-03-10 12:49 +04:00":
+              - generic: 2025-03-10 12:49 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1481 Traffic Services Portal Quality Audit Hotfixes TAH CT-1006 Normal KSA Operation Team Unassigned 2025-02-18 12:30 +04:00 2025-02-18 16:30 +04:00 2025-02-28 12:23 +04:00 Breached 2025-02-19 15:30 +04:00 2025-03-26 14:10 +04:00 Breached No":
+            - cell "CS-1481":
+              - generic: CS-1481
+            - cell "Traffic Services Portal Quality Audit Hotfixes":
+              - generic: Traffic Services Portal Quality Audit Hotfixes
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-02-18 12:30 +04:00":
+              - generic: 2025-02-18 12:30 +04:00
+            - cell "2025-02-18 16:30 +04:00":
+              - generic: 2025-02-18 16:30 +04:00
+            - cell "2025-02-28 12:23 +04:00":
+              - generic: 2025-02-28 12:23 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-02-19 15:30 +04:00":
+              - generic: 2025-02-19 15:30 +04:00
+            - cell "2025-03-26 14:10 +04:00":
+              - generic: 2025-03-26 14:10 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1483 System Slowness in Back Office R3 TAH CT-1006 High KSA Operation Team Unassigned 2025-04-20 06:04 +04:00 2025-04-20 11:00 +04:00 2025-04-20 14:00 +04:00 Breached 2025-04-20 13:00 +04:00 2025-04-20 14:01 +04:00 Breached No":
+            - cell "CS-1483":
+              - generic: CS-1483
+            - cell "System Slowness in Back Office R3":
+              - generic: System Slowness in Back Office R3
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "High":
+              - generic: High
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-20 06:04 +04:00":
+              - generic: 2025-04-20 06:04 +04:00
+            - cell "2025-04-20 11:00 +04:00":
+              - generic: 2025-04-20 11:00 +04:00
+            - cell "2025-04-20 14:00 +04:00":
+              - generic: 2025-04-20 14:00 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-20 13:00 +04:00":
+              - generic: 2025-04-20 13:00 +04:00
+            - cell "2025-04-20 14:01 +04:00":
+              - generic: 2025-04-20 14:01 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1486 Approved ALTP cases should move to Investigation Foreign Plates TAH CT-1006 Normal KSA Operation Team Ahmed Awadalla 2025-04-30 12:21 +04:00 2025-04-30 16:21 +04:00 Breached 2025-05-01 15:21 +04:00 2025-05-11 11:41 +04:00 Breached No":
+            - cell "CS-1486":
+              - generic: CS-1486
+            - cell "Approved ALTP cases should move to Investigation Foreign Plates":
+              - generic: Approved ALTP cases should move to Investigation Foreign Plates
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "2025-04-30 12:21 +04:00":
+              - generic: 2025-04-30 12:21 +04:00
+            - cell "2025-04-30 16:21 +04:00":
+              - generic: 2025-04-30 16:21 +04:00
+            - cell
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-05-01 15:21 +04:00":
+              - generic: 2025-05-01 15:21 +04:00
+            - cell "2025-05-11 11:41 +04:00":
+              - generic: 2025-05-11 11:41 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1487 Approved ALTP cases should move to Investigation Saudi Plates TAH CT-1006 High KSA Operation Team Unassigned 2025-04-24 12:12 +04:00 2025-04-24 14:12 +04:00 Breached 2025-04-24 16:12 +04:00 2025-05-11 11:43 +04:00 Breached No":
+            - cell "CS-1487":
+              - generic: CS-1487
+            - cell "Approved ALTP cases should move to Investigation Saudi Plates":
+              - generic: Approved ALTP cases should move to Investigation Saudi Plates
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "High":
+              - generic: High
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-24 12:12 +04:00":
+              - generic: 2025-04-24 12:12 +04:00
+            - cell "2025-04-24 14:12 +04:00":
+              - generic: 2025-04-24 14:12 +04:00
+            - cell
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-24 16:12 +04:00":
+              - generic: 2025-04-24 16:12 +04:00
+            - cell "2025-05-11 11:43 +04:00":
+              - generic: 2025-05-11 11:43 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1488 Altered Plate - NULL value for \"Plate Type\" in search results TAH CT-1006 Normal KSA Operation Team Unassigned 2025-03-10 13:09 +04:00 2025-03-10 17:09 +04:00 2025-03-24 15:32 +04:00 Breached 2025-03-11 16:09 +04:00 2025-05-13 14:31 +04:00 Breached No":
+            - cell "CS-1488":
+              - generic: CS-1488
+            - cell "Altered Plate - NULL value for \"Plate Type\" in search results":
+              - generic: Altered Plate - NULL value for "Plate Type" in search results
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-03-10 13:09 +04:00":
+              - generic: 2025-03-10 13:09 +04:00
+            - cell "2025-03-10 17:09 +04:00":
+              - generic: 2025-03-10 17:09 +04:00
+            - cell "2025-03-24 15:32 +04:00":
+              - generic: 2025-03-24 15:32 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-03-11 16:09 +04:00":
+              - generic: 2025-03-11 16:09 +04:00
+            - cell "2025-05-13 14:31 +04:00":
+              - generic: 2025-05-13 14:31 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1490 Long entry in Incident History TAH CT-1006 Normal KSA Operation Team Unassigned 2025-04-24 12:33 +04:00 2025-04-24 16:33 +04:00 2025-04-24 17:52 +04:00 Breached 2025-04-27 15:33 +04:00 2025-05-20 13:57 +04:00 Breached No":
+            - cell "CS-1490":
+              - generic: CS-1490
+            - cell "Long entry in Incident History":
+              - generic: Long entry in Incident History
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-24 12:33 +04:00":
+              - generic: 2025-04-24 12:33 +04:00
+            - cell "2025-04-24 16:33 +04:00":
+              - generic: 2025-04-24 16:33 +04:00
+            - cell "2025-04-24 17:52 +04:00":
+              - generic: 2025-04-24 17:52 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-27 15:33 +04:00":
+              - generic: 2025-04-27 15:33 +04:00
+            - cell "2025-05-20 13:57 +04:00":
+              - generic: 2025-05-20 13:57 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1491 Disable the approve button for ALTP cases TAH CT-1006 Normal KSA Operation Team Unassigned 2025-04-24 12:34 +04:00 2025-04-24 16:34 +04:00 2025-04-24 17:52 +04:00 Breached 2025-04-27 15:34 +04:00 2025-05-20 13:57 +04:00 Breached No":
+            - cell "CS-1491":
+              - generic: CS-1491
+            - cell "Disable the approve button for ALTP cases":
+              - generic: Disable the approve button for ALTP cases
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-24 12:34 +04:00":
+              - generic: 2025-04-24 12:34 +04:00
+            - cell "2025-04-24 16:34 +04:00":
+              - generic: 2025-04-24 16:34 +04:00
+            - cell "2025-04-24 17:52 +04:00":
+              - generic: 2025-04-24 17:52 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-27 15:34 +04:00":
+              - generic: 2025-04-27 15:34 +04:00
+            - cell "2025-05-20 13:57 +04:00":
+              - generic: 2025-05-20 13:57 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1492 Clerk cannot approve case in Validation after entering plate info TAH CT-1006 Normal KSA Operation Team Unassigned 2025-04-24 12:38 +04:00 2025-04-24 16:38 +04:00 2025-04-24 17:53 +04:00 Breached 2025-04-27 15:38 +04:00 2025-05-20 13:58 +04:00 Breached No":
+            - cell "CS-1492":
+              - generic: CS-1492
+            - cell "Clerk cannot approve case in Validation after entering plate info":
+              - generic: Clerk cannot approve case in Validation after entering plate info
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-24 12:38 +04:00":
+              - generic: 2025-04-24 12:38 +04:00
+            - cell "2025-04-24 16:38 +04:00":
+              - generic: 2025-04-24 16:38 +04:00
+            - cell "2025-04-24 17:53 +04:00":
+              - generic: 2025-04-24 17:53 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-27 15:38 +04:00":
+              - generic: 2025-04-27 15:38 +04:00
+            - cell "2025-05-20 13:58 +04:00":
+              - generic: 2025-05-20 13:58 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1493 Asterisks must be in the order of the missing characters TAH CT-1006 Normal KSA Operation Team Unassigned 2025-04-24 17:45 +04:00 2025-04-27 12:45 +04:00 2025-05-05 10:43 +04:00 Breached 2025-04-28 11:45 +04:00 2025-05-22 19:21 +04:00 Breached No":
+            - cell "CS-1493":
+              - generic: CS-1493
+            - cell "Asterisks must be in the order of the missing characters":
+              - generic: Asterisks must be in the order of the missing characters
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-24 17:45 +04:00":
+              - generic: 2025-04-24 17:45 +04:00
+            - cell "2025-04-27 12:45 +04:00":
+              - generic: 2025-04-27 12:45 +04:00
+            - cell "2025-05-05 10:43 +04:00":
+              - generic: 2025-05-05 10:43 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-28 11:45 +04:00":
+              - generic: 2025-04-28 11:45 +04:00
+            - cell "2025-05-22 19:21 +04:00":
+              - generic: 2025-05-22 19:21 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1497 Configuration queue for Stage 4 (ReadyToAltpValidate) The violation must have a reference number TAH CT-1006 Normal KSA Operation Team Unassigned 2025-04-24 17:29 +04:00 2025-04-27 12:29 +04:00 2025-04-28 11:00 +04:00 Breached 2025-04-28 11:29 +04:00 2025-05-20 13:55 +04:00 Breached No":
+            - cell "CS-1497":
+              - generic: CS-1497
+            - cell "Configuration queue for Stage 4 (ReadyToAltpValidate) The violation must have a reference number":
+              - generic: Configuration queue for Stage 4 (ReadyToAltpValidate) The violation must have a reference number
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-04-24 17:29 +04:00":
+              - generic: 2025-04-24 17:29 +04:00
+            - cell "2025-04-27 12:29 +04:00":
+              - generic: 2025-04-27 12:29 +04:00
+            - cell "2025-04-28 11:00 +04:00":
+              - generic: 2025-04-28 11:00 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-04-28 11:29 +04:00":
+              - generic: 2025-04-28 11:29 +04:00
+            - cell "2025-05-20 13:55 +04:00":
+              - generic: 2025-05-20 13:55 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1498 Add validation on Approve button for ALTP cases TAH CT-1006 Normal KSA Operation Team Unassigned 2025-05-11 11:47 +04:00 2025-05-11 15:47 +04:00 2025-05-12 15:08 +04:00 Breached 2025-05-12 14:47 +04:00 2025-05-29 11:12 +04:00 Breached No":
+            - cell "CS-1498":
+              - generic: CS-1498
+            - cell "Add validation on Approve button for ALTP cases":
+              - generic: Add validation on Approve button for ALTP cases
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-05-11 11:47 +04:00":
+              - generic: 2025-05-11 11:47 +04:00
+            - cell "2025-05-11 15:47 +04:00":
+              - generic: 2025-05-11 15:47 +04:00
+            - cell "2025-05-12 15:08 +04:00":
+              - generic: 2025-05-12 15:08 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-05-12 14:47 +04:00":
+              - generic: 2025-05-12 14:47 +04:00
+            - cell "2025-05-29 11:12 +04:00":
+              - generic: 2025-05-29 11:12 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1499 Bulk clear action for ALTP cases TAH CT-1006 Normal KSA Operation Team Unassigned 2025-05-11 11:55 +04:00 2025-05-11 15:55 +04:00 Breached 2025-05-12 14:55 +04:00 2025-05-29 11:13 +04:00 Breached No":
+            - cell "CS-1499":
+              - generic: CS-1499
+            - cell "Bulk clear action for ALTP cases":
+              - generic: Bulk clear action for ALTP cases
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-05-11 11:55 +04:00":
+              - generic: 2025-05-11 11:55 +04:00
+            - cell "2025-05-11 15:55 +04:00":
+              - generic: 2025-05-11 15:55 +04:00
+            - cell
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-05-12 14:55 +04:00":
+              - generic: 2025-05-12 14:55 +04:00
+            - cell "2025-05-29 11:13 +04:00":
+              - generic: 2025-05-29 11:13 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1500 Reference violation images don't appear automatically TAH CT-1006 Normal KSA Operation Team Unassigned 2025-05-11 12:02 +04:00 2025-05-11 16:02 +04:00 2025-05-12 09:38 +04:00 Breached 2025-05-12 15:02 +04:00 2025-05-29 11:18 +04:00 Breached No":
+            - cell "CS-1500":
+              - generic: CS-1500
+            - cell "Reference violation images don't appear automatically":
+              - generic: Reference violation images don't appear automatically
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-05-11 12:02 +04:00":
+              - generic: 2025-05-11 12:02 +04:00
+            - cell "2025-05-11 16:02 +04:00":
+              - generic: 2025-05-11 16:02 +04:00
+            - cell "2025-05-12 09:38 +04:00":
+              - generic: 2025-05-12 09:38 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-05-12 15:02 +04:00":
+              - generic: 2025-05-12 15:02 +04:00
+            - cell "2025-05-29 11:18 +04:00":
+              - generic: 2025-05-29 11:18 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1501 Lock and clear plate input box after changing the category TAH CT-1006 Normal KSA Operation Team Unassigned 2025-05-22 19:16 +04:00 2025-05-25 13:00 +04:00 2025-05-27 15:57 +04:00 Breached 2025-05-26 12:00 +04:00 2025-05-29 11:21 +04:00 Breached No":
+            - cell "CS-1501":
+              - generic: CS-1501
+            - cell "Lock and clear plate input box after changing the category":
+              - generic: Lock and clear plate input box after changing the category
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-05-22 19:16 +04:00":
+              - generic: 2025-05-22 19:16 +04:00
+            - cell "2025-05-25 13:00 +04:00":
+              - generic: 2025-05-25 13:00 +04:00
+            - cell "2025-05-27 15:57 +04:00":
+              - generic: 2025-05-27 15:57 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-05-26 12:00 +04:00":
+              - generic: 2025-05-26 12:00 +04:00
+            - cell "2025-05-29 11:21 +04:00":
+              - generic: 2025-05-29 11:21 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1502 BackOffice Release 17.5 Hotfix 2 TAH CT-1006 Normal KSA Operation Team Unassigned 2025-05-11 11:34 +04:00 2025-05-11 15:34 +04:00 2025-05-28 14:38 +04:00 Breached 2025-05-12 14:34 +04:00 2025-05-29 15:39 +04:00 Breached No":
+            - cell "CS-1502":
+              - generic: CS-1502
+            - cell "BackOffice Release 17.5 Hotfix 2":
+              - generic: BackOffice Release 17.5 Hotfix 2
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-05-11 11:34 +04:00":
+              - generic: 2025-05-11 11:34 +04:00
+            - cell "2025-05-11 15:34 +04:00":
+              - generic: 2025-05-11 15:34 +04:00
+            - cell "2025-05-28 14:38 +04:00":
+              - generic: 2025-05-28 14:38 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-05-12 14:34 +04:00":
+              - generic: 2025-05-12 14:34 +04:00
+            - cell "2025-05-29 15:39 +04:00":
+              - generic: 2025-05-29 15:39 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1505 R2 slowness issue while processing TAH CT-1006 Critical KSA Operation Team Unassigned 2025-05-24 17:41 +04:00 2025-05-25 10:00 +04:00 2025-05-24 17:47 +04:00 Met 2025-05-25 11:00 +04:00 2025-06-16 12:11 +04:00 Breached No":
+            - cell "CS-1505":
+              - generic: CS-1505
+            - cell "R2 slowness issue while processing":
+              - generic: R2 slowness issue while processing
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Critical":
+              - generic: Critical
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "2025-05-24 17:41 +04:00":
+              - generic: 2025-05-24 17:41 +04:00
+            - cell "2025-05-25 10:00 +04:00":
+              - generic: 2025-05-25 10:00 +04:00
+            - cell "2025-05-24 17:47 +04:00":
+              - generic: 2025-05-24 17:47 +04:00
+            - cell "Met":
+              - generic: Met
+            - cell "2025-05-25 11:00 +04:00":
+              - generic: 2025-05-25 11:00 +04:00
+            - cell "2025-06-16 12:11 +04:00":
+              - generic: 2025-06-16 12:11 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+          - row "CS-1506 'View' Button functionality in R3 backoffice Production TAH CT-1006 Normal KSA Operation Team Ahmed Awadalla 2025-01-21 17:02 +04:00 2025-01-22 12:02 +04:00 2025-01-22 12:32 +04:00 Breached 2025-01-23 11:02 +04:00 2025-05-20 13:56 +04:00 Breached No":
+            - cell "CS-1506":
+              - generic: CS-1506
+            - cell "'View' Button functionality in R3 backoffice Production":
+              - generic: "'View' Button functionality in R3 backoffice Production"
+            - cell "TAH":
+              - generic: TAH
+            - cell "CT-1006":
+              - generic: CT-1006
+            - cell "Normal":
+              - generic: Normal
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "2025-01-21 17:02 +04:00":
+              - generic: 2025-01-21 17:02 +04:00
+            - cell "2025-01-22 12:02 +04:00":
+              - generic: 2025-01-22 12:02 +04:00
+            - cell "2025-01-22 12:32 +04:00":
+              - generic: 2025-01-22 12:32 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "2025-01-23 11:02 +04:00":
+              - generic: 2025-01-23 11:02 +04:00
+            - cell "2025-05-20 13:56 +04:00":
+              - generic: 2025-05-20 13:56 +04:00
+            - cell "Breached":
+              - generic: Breached
+            - cell "No":
+              - generic: "No"
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 677
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 677
+    - button "Next"
+  - heading "3 · Export options" [level=2]
+  - group "Format":
+    - generic: Format
+    - radio "CSV" [checked]
+    - generic: CSV
+    - radio "Excel (.xlsx)"
+    - generic: Excel (.xlsx)
+    - generic "A formatted PDF layout is available for the Tickets report only.":
+      - radio "PDF A formatted PDF layout is available for the Tickets report only." [disabled]
+      - generic: PDF
+      - generic: A formatted PDF layout is available for the Tickets report only.
+  - 'generic "Columns: 15 of 15 in the export"'
+  - button "Generate CSV"
+  - generic: 677 row(s) · the file is kept for download in the export history.
+  - paragraph:
+    - text: Need a report that is not listed? Report definitions live in one place on the server (
+    - link "ask the application team":
+      - /url: /admin
+    - text: ); a new definition appears here automatically.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

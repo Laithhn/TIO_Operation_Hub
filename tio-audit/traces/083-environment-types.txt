@@ -1,0 +1,233 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Environment types
+- heading "Environment types" [level=1]
+- generic: Offered when creating an environment. Each type behaves like its category, for example "Pre-production" behaves like Staging.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Environment types":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Environment types":
+      - caption: Environment types
+      - rowgroup:
+        - row "Select all rows shown Order Name Description Behaves as In use (environments) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Behaves as":
+            - button "Behaves as":
+              - generic: Behaves as
+          - columnheader "In use (environments)":
+            - button "In use (environments)":
+              - generic: In use (environments)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Production up Move Production down Production — Production 8 Active Actions for Production":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Production up Move Production down":
+            - button "Move Production up" [disabled]: ▲
+            - button "Move Production down": ▼
+          - cell "Production":
+            - button "Production"
+          - cell "—":
+            - generic: —
+          - cell "Production":
+            - generic: Production
+          - cell "8":
+            - generic: "8"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Production":
+            - button "Actions for Production": ⋯
+        - row "Select ▲ ▼ Move Staging up Move Staging down Staging — Staging 1 Active Actions for Staging":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Staging up Move Staging down":
+            - button "Move Staging up": ▲
+            - button "Move Staging down": ▼
+          - cell "Staging":
+            - button "Staging"
+          - cell "—":
+            - generic: —
+          - cell "Staging":
+            - generic: Staging
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Staging":
+            - button "Actions for Staging": ⋯
+        - row "Select ▲ ▼ Move UAT up Move UAT down UAT — UAT 0 Active Actions for UAT":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move UAT up Move UAT down":
+            - button "Move UAT up": ▲
+            - button "Move UAT down": ▼
+          - cell "UAT":
+            - button "UAT"
+          - cell "—":
+            - generic: —
+          - cell "UAT":
+            - generic: UAT
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for UAT":
+            - button "Actions for UAT": ⋯
+        - row "Select ▲ ▼ Move Test up Move Test down Test — Test 0 Active Actions for Test":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Test up Move Test down":
+            - button "Move Test up": ▲
+            - button "Move Test down": ▼
+          - cell "Test":
+            - button "Test"
+          - cell "—":
+            - generic: —
+          - cell "Test":
+            - generic: Test
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Test":
+            - button "Actions for Test": ⋯
+        - row "Select ▲ ▼ Move Disaster recovery up Move Disaster recovery down Disaster recovery — Disaster recovery 0 Active Actions for Disaster recovery":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Disaster recovery up Move Disaster recovery down":
+            - button "Move Disaster recovery up": ▲
+            - button "Move Disaster recovery down": ▼
+          - cell "Disaster recovery":
+            - button "Disaster recovery"
+          - cell "—":
+            - generic: —
+          - cell "Disaster recovery":
+            - generic: Disaster recovery
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Disaster recovery":
+            - button "Actions for Disaster recovery": ⋯
+        - row "Select ▲ ▼ Move Other up Move Other down Other — Other 0 Active Actions for Other":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "—":
+            - generic: —
+          - cell "Other":
+            - generic: Other
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

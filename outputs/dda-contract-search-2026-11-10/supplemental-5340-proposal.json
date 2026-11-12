@@ -1,0 +1,314 @@
+{
+  "contract": "5340 of2026",
+  "hub_record": "CT-1010",
+  "excluded_contract": "5341/CT-1009 userexplicitlyskip; unchanged",
+  "source_reference_legend": "C=signed36pagecontract; P=physicalPDFpage(coverincluded) of24pageproposal; L=onepageawardletter. P printedfooterpage is one less thanphysicalPDFpage.",
+  "proposal": {
+    "path": "C:\\Users\\lmh\\Downloads\\DDGE 12600246 -ANPR Pool SLA Commercial Prop.pdf",
+    "sha256": "8ab2bfd15fb7f90751162e0acfea546463f3cf2d482b19800d9deefecdd43e57",
+    "pages": 24,
+    "quotation": "QU040000261",
+    "version": "1.3",
+    "project_code": "115101-AE",
+    "cover_date": "JUL/2026",
+    "signature_evidence": {
+      "pdf_page": 24,
+      "customer": "DubaiPolice/OYOONstampandsignature;signatoryname/positionblank;dateprinted07/05/2026",
+      "supplier": "AbdulhamidTork,ProjectDeliveryLead,signaturevisible;dateblank"
+    },
+    "original_unchanged": true
+  },
+  "precedence": {
+    "contract_pages": [
+      2,
+      27
+    ],
+    "rule": "Maincontractterms prevailoverdocuments/appendices;Arabicprevailsinlanguageconflict. Treatnewoffertermsassupplementaryevidenceandrecordconflicts; donotsilentlyoverwritefixedamount,signeddates,acceptance,securityorrenewal.",
+    "incorporation_link": "SignedC34referencesTechnical/FinancialOfferQU040000261Jul-26;actualfileissamequote,ANPRPool,528000/sameterm;LOAalsomatchestitle/value/quote. Exactversionintegrityhasdate/templateanomalies."
+  },
+  "material_facts": {
+    "scope_and_staffing": [
+      {
+        "text": "Skilled staff; restoration first priority; functional limitations causing operational impact treated as faults/bugs, not mere enhancement. No guarantee of particular staff or application familiarity.",
+        "proposal_pdf_pages": [
+          6,
+          7
+        ],
+        "section": "1.2–1.3"
+      },
+      {
+        "text": "Basic support Mon–Thu09:00–18:00 and Fri08:30–12:30 excluding public holidays; UAE public/nonworking days in Appendix A. Timezone not printed.",
+        "proposal_pdf_pages": [
+          10,
+          22
+        ],
+        "section": "2.3;11.1"
+      },
+      {
+        "text": "Resident software support engineer with Expert/Senior Expert escalation and remote access for all skill levels. Appendix B prices2x Dev/Operation Engineers for remote support, plus500 integration/enhancement hours at AED0; deployment wording differs and is unresolved.",
+        "proposal_pdf_pages": [
+          10,
+          22
+        ],
+        "section": "2.3;11.2"
+      },
+      {
+        "text": "On-demand training modules: system overview, monitoring/incident detection, troubleshooting basics, maintenance, escalation, reporting/JIRA/logs.",
+        "proposal_pdf_pages": [
+          11,
+          12
+        ],
+        "section": "2.9"
+      },
+      {
+        "text": "Application maintenance/debug support distinguished from new development/interfaces requiring PSR with scope/charges. Ad-hoc explicit-request work outside agreement; fault resolution normally does not count against ad-hoc time.",
+        "proposal_pdf_pages": [
+          12,
+          13
+        ],
+        "section": "2.10–2.11"
+      },
+      {
+        "text": "JIRA required; report through JIRA and/or ITD.Operation.ME@vitronic.com; callback within1h during covered hours; provide contact/tracking/site/system/symptoms/priority. Unique tracking ID; max2 calls parallel; progress updates and closure date/time/action summary.",
+        "proposal_pdf_pages": [
+          13,
+          14
+        ],
+        "section": "3.1–3.3"
+      },
+      {
+        "text": "Level A active support/maintenance/development; Level B maintenance limited to P1/P2. Proposal table labels ANPRPool1.4.4 under VITIS; signed appendix separately says VITIS1.4.4 and ANPRPool. Lower classification applies when product/group classifications differ. C best efforts P1/P2, D as-is; no C/D products named.",
+        "proposal_pdf_pages": [
+          19,
+          20
+        ],
+        "section": "6"
+      },
+      {
+        "text": "Review meetings as appropriate; P1/P2 detailed fault investigation on request; service changes require documentation/approval by both parties.",
+        "proposal_pdf_pages": [
+          20
+        ],
+        "section": "7"
+      },
+      {
+        "text": "Vitronic application licenses wording depends on main contract/customer procurement; Windows, SQL Server, Elasticsearch, MongoDB and other system licenses excluded. Mutual employee non-solicitation during agreement and12months thereafter.",
+        "proposal_pdf_pages": [
+          7
+        ],
+        "section": "1.5–1.6"
+      }
+    ],
+    "sla": [
+      {
+        "text": "P1 response1h, workaround8h, MTTR24h; P2 response1h, workaround24h, MTTR48h. All P1/P2 cells starred including after-hours24/7. P3 response1h, workaround72h, MTTR14days. P4 response1h; workaround/MTTR agreed timeline. P3 signed appendix instead calls72h resolution.",
+        "proposal_pdf_pages": [
+          15,
+          16
+        ],
+        "section": "4"
+      },
+      {
+        "text": "RCA for all severities within48h of resolution.",
+        "proposal_pdf_pages": [
+          16
+        ],
+        "section": "4.5"
+      },
+      {
+        "text": "Response clock runs from ticket opened until Verification→Open; resolution starts after Verification complete and moved to Open. Reclassification adjusts deadline. Incorrect/out-of-scope calls recategorized; penalties only after MTTR overrun and valid category.",
+        "proposal_pdf_pages": [
+          17,
+          18
+        ],
+        "section": "4.6"
+      },
+      {
+        "text": "Response time exceeded BY: Laith Hamdan P1+5h/P2+17h/P3+36h; Abdalrhman Asaad P1+10h/P2+34h/P3+72h. Main signed clause18 immediate P1 escalation/level order differs and prevails. Customer may escalate anytime; repetitive calls may escalate.",
+        "proposal_pdf_pages": [
+          18,
+          19
+        ],
+        "section": "5"
+      }
+    ],
+    "fees": [
+      {
+        "text": "Base ANPR Pool remote-support service,2x Dev/Operation Engineers,01-Jul-2026–30-Jun-2027:AED528,000; integration/enhancement500development hours:AED0, same term. Net/exVAT, corporate tax/withholding/customs/othercharges. Framework agreement terms referenced but not supplied.",
+        "proposal_pdf_pages": [
+          22
+        ],
+        "section": "11.2"
+      },
+      {
+        "text": "Basic fee may be quarterly, due no later than30days from quarter firstday. Nonaccepted systems cost at day rates; do not conflate with signed planned invoices.",
+        "proposal_pdf_pages": [
+          22
+        ],
+        "section": "11.2"
+      },
+      {
+        "text": "Outside-scope daily rates: AED4,395.62 prepaid; AED5,548.69 standard if not prepaid. Extra services/licenses before renewal may addfees; renewal fee adjustment reserved. Section9 calls examples2.3–2.10 outside scope despite them being described services—scope/charge ambiguity.",
+        "proposal_pdf_pages": [
+          20,
+          21
+        ],
+        "section": "9"
+      },
+      {
+        "text": "Onsite visits unless otherwise agreed inadvance may be charged: actualairfare/hotel/meals/localtransport, on-site+travel-time manpower and othernecessaryexpenses. Previously reported support-call visits/prebooked useprebookedrate; other visits standardpublishedrate. Main fixed all-expenses clause must be retained.",
+        "proposal_pdf_pages": [
+          11
+        ],
+        "section": "2.7"
+      }
+    ],
+    "renewal_and_other_conflicts": [
+      {
+        "text": "Automatic annual renewal; eitherparty cancellation with90days writtennotice; customer cancellation makesoutstandingpayments immediatelydue; cancellation/amendment charges may include incurredtime/expenses. Duration12months, notice3months. Conflicts with signed clause2 thirty-day intention-to-renew mechanism.",
+        "proposal_pdf_pages": [
+          21
+        ],
+        "section": "9.2;10"
+      },
+      {
+        "text": "Force-majeure delay beyondcontrol; event>90days allows eitherparty termination of undeliveredservices. Signed main clause14 notice/termination wording takes precedence.",
+        "proposal_pdf_pages": [
+          7
+        ],
+        "section": "1.4"
+      },
+      {
+        "text": "Glossary accidentally defines Main Contract and ad-hoc requester as SEWAR, while customer is DubaiPolice/Oyoon. CoverJul2026; history18-Feb-2025 V1.0 Draft; headerV1.3; signaturedate07/05/2026. Version/template anomalies require confirmation.",
+        "proposal_pdf_pages": [
+          1,
+          2,
+          3,
+          9,
+          24
+        ],
+        "section": "Document metadata;glossary;signature"
+      }
+    ]
+  },
+  "proposal_penalty_schedule": {
+    "proposal_pdf_pages": [
+      16,
+      17,
+      18
+    ],
+    "status": "Supporting offer section4.6; main contract prevails. No such schedule in signed36pageSLAappendix, but actual referenced offer now supplies it.",
+    "mttr_formula_exact": "MTTR = Total Restoration Durations / Total Number of TTs for that Tier and Incident Severity",
+    "arl_formula_exact": "Achieved Resolution Level (ARL) = 1 - (MTTR Actual - MTTR Target) / MTTR Target",
+    "measurement": "Monthly average; written narrative also describes percentage of incidents within commitments, so calculation method must not be silently standardized.",
+    "bands": [
+      {
+        "condition": "ARL ≥ 98%",
+        "deduction_percent": 0
+      },
+      {
+        "condition": "90% ≤ ARL < 98%",
+        "deduction_percent": 0.5
+      },
+      {
+        "condition": "85% ≤ ARL < 89%",
+        "deduction_percent": 2
+      },
+      {
+        "condition": "80% ≤ ARL < 84%",
+        "deduction_percent": 5
+      },
+      {
+        "condition": "65% ≤ ARL < 79%",
+        "deduction_percent": 10
+      },
+      {
+        "condition": "ARL < 65%",
+        "result": "Subject to SLA cancellation"
+      }
+    ],
+    "credit_application": "Nextmonthlypayment/invoice or nextmonthly/quarterlySLAfee. Finalquartercreditdeductedfromlastquarterinvoice; paymentdeferreduntilquarterend.",
+    "gaps_or_caps": "Printed gaps at89–<90%,84–<85%,79–<80% remain; no explicit aggregate SLA-credit cap. Do not repair bands or equate general100%compensationcap with creditcap."
+  },
+  "award_letter": {
+    "path": "C:\\Users\\lmh\\Downloads\\LOA.pdf",
+    "sha256": "fc004ab429df3cb180c9181290ee70573387240586ec6718aab3a4e682d06670",
+    "pdf_pages": [
+      1
+    ],
+    "title": "AWARDING LETTER",
+    "date": "2026-07-02",
+    "issuer": "Digital Dubai Government Establishment (Dubai Digital Authority), Work Environment & Procurement Department",
+    "vendor": "VITRONIC MACHINE VISION MIDDLE EAST (L.L.C.)",
+    "subject": "Oyoon266 ANPR Data Management AMC",
+    "quote": "QU040000261",
+    "quoted_proposal_date_as_printed": "18/02/2025",
+    "awarded_aed": 528000,
+    "vat_basis": null,
+    "requisition_printed": null,
+    "security": "Original performance bond10%ofawardedvalue, maximum10workingdaysfromreceiptofawardletter, inDDGEfavour. This differs fromlater signedcontract2%; retainaspriorawardrequirement/conflict.",
+    "issuance": "Electronically generated/officially issued and approved; no manualsignature/stamprequired.",
+    "match_conclusion": "Matches5340 by title,value,quote andvendor. Appropriate as awardhistory/supportingdocument, not a replacementforlatercontractsecurityterms.",
+    "duplicate_check": "Exact Downloads/2023664.pdf notpresent; duplicateidentitynotestablished."
+  },
+  "replacement_main_fields": {
+    "support_notes": "P1/P2: response 1h, 24/7 (offer); workaround 8/24h, MTTR 24/48h. P3/P4: response 1h. P3 signed resolution 72h vs offer workaround 72h/MTTR 14d. P4 agreed timeline. RCA 48h after resolution.",
+    "service_coverage": "SIGNED CONTRACT pp35–36 + supporting offer (P=PDF page). Level A: VITIS 3.48.1, RRM 2.19.4, SDB 2.1.0; active support/maintenance/development. Signed Level B lists VITIS 1.4.4 and ANPRPool; offer P19 labels ANPRPool 1.4.4 under VITIS, with maintenance limited to P1/P2. Levels C/D have no named products; C best efforts for P1/P2, D as-is.\nOffer normal support: Mon–Thu 09:00–18:00, Fri 08:30–12:30, excluding UAE public holidays/nonworking days (P10,22; timezone unstated). P1/P2 include after-hours 24/7 (P15). Telephone/email/JIRA; ITD.Operation.ME@vitronic.com; required JIRA reporting and max 2 concurrent calls (P13–14).\nSigned scope: secured remote diagnostics; on-site if remote fails within agreed TAT (no numeric attendance time); quarterly administration/performance tuning/fault diagnosis/repair; bug fixes at no extra cost; scheduled remote configuration; training; negotiated administration. Audit/consultancy subject to fees; application development via PSR; explicit-request ad-hoc services outside agreement.\nOffer P10 promises resident support engineer/expert escalation; P22 prices 2x Dev/Operation Engineers for REMOTE support, plus 500 integration/enhancement development hours at AED 0 over 01-Jul-2026–30-Jun-2027. Deployment/count wording needs clarification; do not infer2 resident staff. Training on demand: overview, monitoring, troubleshooting, maintenance, escalation, JIRA/log/reporting (P12). Standard OS/SQL/Elasticsearch/MongoDB licenses excluded (P7).\nExclusions: Dubai Police software except ANPRPool/supported list; unagreed hardware/software changes; installation/relocation; consumables; abnormal-use faults. Main contract prevails; offer template/version inconsistencies and fee qualifications are recorded in Obligations and attached supplement.",
+    "obligations": "C=36-page signed contract 5340/2026; P=24-page offer QU040000261 v1.3; L=award letter. C/Arabic precedence applies; preserve conflicting offer terms without silently replacing signed terms.\nIDENTITY/HISTORY: Oyoon 266 ANPR Data Management AMC, req. 12600246; C dated 22-Jul-2026, term 01-Jul-2026–30-Jun-2027. DDGE (Digital Dubai Authority affiliate)/VITRONIC MACHINE VISION ME LLC. C p33 signatures: Matar AlHumairi 29-Sep-2026 09:48 UTC+4; Youssef El Hansali literally 03-08-2018 (year anomaly). P24 shows Dubai Police/OYOON approval signature+stamp dated 07/05/2026 and Abdulhamid Tork signature, vendor date blank. Cover Jul 2026, history 18-Feb-2025 Draft and glossary SEWAR references require version clarification. L 2-Jul-2026 awards matching title/quote/AED 528,000; no requisition printed. 29-Sep countersigned-copy email had LPO pending then; current status unverified.\nFEES/SECURITY: C AED528,000 fixed exVAT; planned132,000/25% invoices01-Oct-2026,01-Jan/01-Apr/30-Jun-2027. Preserve schedule/no settlement inference. C BG 2% (10,560 derived), local-bank irrevocable/unconditional, start through 90 days after term; release after completion certificate. L instead demanded 10% within 10 working days of receipt: historical conflict. P22 says quarterly basic fees due≤30-days from quarter first day; reconcile with C invoice schedule. P21 outside-scope rates: prepaid AED4,395.62/business day; standard AED5,548.69/business day. P11 lists travel/manpower/travel-time/necessary expenses for on-site visits unless agreed otherwise; no blanket addition to C fixed expenses/included service. P21 permits fee adjustment at renewal.\nSLA/PENALTIES: C P3 resolution 72h/MTTR14d; P15 calls 72h workaround, adds 1h responses for P3/P4 and 24/7 P2; retain conflict. Workaround/MTTR remain notes. RCA all incidents ≤48h after resolution. P16–18 adds monthly-average ARL = 1−(MTTRactual−MTTRtarget)/MTTRtarget; MTTR=total restoration durations/TT count for tier/severity. Deduct next monthly/quarterly invoice: ARL ≥98%: 0%;90≤ARL<98:0.5%;85≤ARL<89:2%;80≤ARL<84:5%;65≤ARL<79:10%;<65:subject to cancellation. Printed band gaps remain. Final-quarter credit deducted last invoice/payment deferred to quarter end. This is offer support absent from signed SLA appendix, not copied from 5341. P17 response clock ticket-open→Verification-to-Open; resolution starts after Verification→Open; reclassification changes deadline; out-of-scope calls require valid categorization/MTTR overrun for penalties. C general Law 12/2020 remedies and 100% compensation wording remain; not an express SLA-credit cap.\nRENEWAL/ESCALATION: C intention-to-renew written notice 30 days before expiry; P21 automatic annual renewal/90 days or 3 months cancellation, outstanding amounts due on customer cancellation: conflict. C immediate P1 L2→L3 prevails over P18 response-overrun table: Laith P1/P2/P3 +5/17/36h; Abdalrhman +10/34/72h. C contacts: DDGE Huda→Shaikha→Abdulla; VITRONIC Abdalrhman→Laith→Youssef (C31–32). P23 operational contact Rashid AlHameli, R.AlHameli@DubaiPolice.gov.ae.\nGENERAL: Written acceptance/rectification at no cost; signed amendments; pre-approved staff/replacements/records. Breach cure 30 working days; DDGE early termination 30 days written notice/pay services rendered. Subcontract/assignment need consent; supplier liable. Confidentiality survives; ISR/DESC/ISO27001/22301; cyber notice ≤24h. Cloud/AI prior approval; UAE residency unless approved; protect/return/delete data and support exit. DDGE audits without added cost; force-majeure notice 7 working days. Dubai/UAE law;30-day amicable dispute then senior management/Dubai Courts. Full attached sources govern."
+  },
+  "character_counts": {
+    "support_notes": 189,
+    "service_coverage": 1785,
+    "obligations": 3672
+  },
+  "limits": {
+    "support_notes": 200,
+    "service_coverage": 2000,
+    "obligations": 4000
+  },
+  "recommended_sla_rows": [
+    {
+      "priority": "P1",
+      "response_hours": 1,
+      "resolution_hours": null,
+      "clock": "CalendarHours",
+      "action": "Keep",
+      "notes": "Signed C36:P1 critical majorimpact,24/7;workaround8h/MTTR24h. OfferP15confirms. Do not insertMTTRasresolution."
+    },
+    {
+      "priority": "P2",
+      "response_hours": 1,
+      "resolution_hours": null,
+      "clock": "CalendarHours",
+      "action": "Update clock fromUnknown with offer source annotation",
+      "notes": "OfferP15 explicitlyincludesafter-hours24/7 forP2. Workaround24h/MTTR48h. SignedC36doesnotprintcalendarbutdoesnotcontradictthissupplement."
+    },
+    {
+      "priority": "P3",
+      "response_hours": 1,
+      "resolution_hours": 72,
+      "clock": "Unknown",
+      "action": "Add response;retain signedresolution",
+      "notes": "Response1h fromofferP15 duringcoveredhours. SignedC36resolution72h/MTTR14days;offerP15calls72hworkaround. Clockunknownpendingconfiguredsupportcalendar."
+    },
+    {
+      "priority": "P4",
+      "response_hours": 1,
+      "resolution_hours": null,
+      "clock": "Unknown",
+      "action": "New validrow basedonactualprintedresponse",
+      "notes": "OfferP15response1h duringcoveredhours; enhancement/nooperationalimpact;resolutionbyagreedtimeline. No inventedfixedresolution."
+    }
+  ],
+  "preserve_existing": {
+    "amount_exvat": 528000,
+    "planned_four_payments_aed": 132000,
+    "signed_term": "2026-07-01–2027-06-30",
+    "signed_contract_pdf_attachment": "Keep"
+  },
+  "attach_supporting_documents": [
+    "C:\\Users\\lmh\\Downloads\\DDGE 12600246 -ANPR Pool SLA Commercial Prop.pdf",
+    "C:\\Users\\lmh\\Downloads\\LOA.pdf"
+  ],
+  "mutation_note": "Read-onlylocalreview;noHubmutation;CT-1009/5341notreadorchangedforthissupplement."
+}

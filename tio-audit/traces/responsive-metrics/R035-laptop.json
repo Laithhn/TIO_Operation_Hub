@@ -1,0 +1,15 @@
+{
+  "id": "R035-laptop",
+  "route": "/admin/integrations/jira/review",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Jira import review"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 1118,
+  "title": "Jira import review · TIO Operations Hub",
+  "width": 1366
+}

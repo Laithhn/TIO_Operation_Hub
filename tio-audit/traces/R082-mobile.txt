@@ -1,0 +1,89 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Products":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Products
+- navigation "Breadcrumb":
+  - link "Products":
+    - /url: /products
+- heading "New product" [level=1]
+- generic: A product is a software application TIO delivers and supports. Add modules, features and versions on the product page after saving.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products (current section)":
+      - /url: /products
+      - text: Products
+      - generic: (current section)
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Product code *
+  - textbox "Product code *"
+  - generic: Short and permanent, e.g. PSOP or ViRRM.
+  - generic: Product name *
+  - textbox "Product name *"
+  - generic: Also known as
+  - textbox "Also known as"
+  - generic: Other names people use, separated by semicolons.
+  - generic: Category
+  - textbox "Category"
+  - generic: e.g. Back office, ANPR, Big data.
+  - generic: Product owner
+  - textbox "Product owner"
+  - generic: Any name; the product owner does not need a hub account.
+  - generic: Description
+  - textbox "Description"
+  - generic: What the product does, for whom, and anything a new engineer should know.
+  - generic: Technology
+  - textbox "Technology"
+  - generic: Platform and stack, e.g. .NET 8, SQL Server 2019, Docker, Windows Server.
+  - checkbox "Active (untick to retire the product)" [checked]
+  - text: Active (untick to retire the product)
+  - group "Application developers":
+    - generic: Application developers
+    - paragraph: No developers listed yet.
+    - button "+ Developer"
+  - button "Cancel"
+  - button "Save product"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

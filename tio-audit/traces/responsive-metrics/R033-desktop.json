@@ -1,0 +1,15 @@
+{
+  "id": "R033-desktop",
+  "route": "/admin/archived",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Archived records"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 161,
+  "title": "Archived records · TIO Operations Hub",
+  "width": 1920
+}

@@ -1,0 +1,156 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "R2":
+    - /url: /regions/2
+  - generic: ›
+  - generic: Production
+- heading "Production" [level=1]
+- text: Production · Region R2 ·
+- text: Critical
+- link "Edit":
+  - /url: /environments/3/edit
+- button "Report condition"
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "Ownership and coverage" [level=2]
+  - term: Technical owner
+  - definition: Ahmed Awadalla
+  - term: Operation engineer
+  - definition: Ahmed Awadalla
+  - term: Backup operation engineer
+  - definition: Moataz Al Khaldi
+  - term: Hosting
+  - definition: On-prem
+  - term: Location
+  - definition: Riyadh
+  - term: Project link
+  - definition: None
+  - heading "Condition and freshness (separately scoped)" [level=2]
+  - term: Reported condition
+  - definition:
+    - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+      - text: Degraded
+      - text: Needs verification
+  - term: Reason
+  - definition: Slowness Issue
+  - term: Observed
+  - definition: 22 Oct 2026, 14:11
+  - term: Inventory review
+  - definition:
+    - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+      - text: Current
+      - generic: Current
+  - term: Firewall rules review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Record review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Last reviewed
+  - definition: —
+  - paragraph: Condition is manually reported, not live monitoring. A condition report never refreshes the inventory review.
+  - tablist:
+    - tab "Applications (1)":
+      - generic: Applications (1)
+    - tab "Servers & assets (13)":
+      - generic: Servers & assets (13)
+    - tab "Work" [selected]:
+      - generic: Work
+    - tab "Firewall rules (0)":
+      - generic: Firewall rules (0)
+    - tab "Condition history":
+      - generic: Condition history
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Data quality":
+      - generic: Data quality
+    - tab "History":
+      - generic: History
+  - heading "Open tickets affecting this environment" [level=2]
+  - generic: No records entered.
+  - heading "Related open commitments" [level=2]
+  - generic: No records entered.
+  - heading "Responsibility boundaries" [level=2]
+  - list:
+    - text: "Database:"
+    - text: Saleh Abdullah Sharadqah
+    - generic: · Senior Data Engineer
+    - generic: TAHAKOM Computing and Big Data
+    - link "ssharadqah@tahakom.com":
+      - /url: mailto:ssharadqah@tahakom.com
+    - link "☎ +966542347232":
+      - /url: tel:+966542347232
+    - text: TIO · TAHAKOM Computing and Big Data · coordinator Ahmed Awadalla
+    - generic: Whole client
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

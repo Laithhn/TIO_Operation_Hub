@@ -1,0 +1,15 @@
+{
+  "id": "R054-desktop",
+  "route": "/microservices/2",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "PSOP.Service.Anpr.Carmen"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 1001,
+  "title": "PSOP.Service.Anpr.Carmen · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

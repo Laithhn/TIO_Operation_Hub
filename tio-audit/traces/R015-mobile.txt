@@ -1,0 +1,287 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Projects & contracts":
+    - /url: /projects
+  - generic: ›
+  - generic: Contract register
+- heading "Projects & contracts" [level=1]
+- generic: "Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; tickets linked to a contract are measured against them."
+- button "Export CSV"
+- link "+ New contract":
+  - /url: /contracts/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - tablist:
+    - tab "Projects":
+      - generic: Projects
+    - tab "Contract register" [selected]:
+      - generic: Contract register
+  - button "Scroll tabs right":
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Renewal
+  - combobox "Renewal":
+    - option "Any" [selected]
+    - option "Needs attention"
+    - option "Expired, still Active"
+    - option "Renewal due (≤ 90 days)"
+    - option "End date unknown"
+    - option "Current"
+  - generic: Type
+  - combobox "Type":
+    - option "Any" [selected]
+    - option "SLA & support"
+    - option "Implementation"
+    - option "Maintenance"
+    - option "Subscription"
+    - option "Other"
+  - region "Contracts":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Contracts: scroll sideways for more columns"':
+      - table "Contracts":
+        - caption: Contracts
+        - rowgroup:
+          - row "Details Ref Contract Status Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Ref":
+              - button "Ref":
+                - generic: Ref
+            - columnheader "Contract":
+              - button "Contract":
+                - generic: Contract
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for CT-1006 CT-1006 2025 Vitronic Software Service Level Agreement CW16622 Ended Actions for contract CT-1006":
+            - cell "Details for CT-1006":
+              - button "Details for CT-1006":
+            - cell "CT-1006":
+              - link "CT-1006":
+                - /url: /contracts/6
+            - cell "2025 Vitronic Software Service Level Agreement CW16622":
+              - link "2025 Vitronic Software Service Level Agreement":
+                - /url: /contracts/6
+              - generic: CW16622
+            - cell "Ended":
+              - generic: Ended
+            - cell "Actions for contract CT-1006":
+              - button "Actions for contract CT-1006": ⋯
+          - row "Details for CT-1013 CT-1013 BPA 42500353 — OYOON 174 Zabeel System AMC (2025–2026) 42500353 revision 0 Ended Actions for contract CT-1013":
+            - cell "Details for CT-1013":
+              - button "Details for CT-1013":
+            - cell "CT-1013":
+              - link "CT-1013":
+                - /url: /contracts/13
+            - cell "BPA 42500353 — OYOON 174 Zabeel System AMC (2025–2026) 42500353 revision 0":
+              - link "BPA 42500353 — OYOON 174 Zabeel System AMC (2025–2026)":
+                - /url: /contracts/13
+              - generic: 42500353 revision 0
+            - text: OC
+            - cell "Ended":
+              - generic: Ended
+            - cell "Actions for contract CT-1013":
+              - button "Actions for contract CT-1013": ⋯
+          - row "Details for CT-1012 CT-1012 OYOON 159 ANPR Data Management Solution 5196 of 2025 Ended Actions for contract CT-1012":
+            - cell "Details for CT-1012":
+              - button "Details for CT-1012":
+            - cell "CT-1012":
+              - link "CT-1012":
+                - /url: /contracts/12
+            - cell "OYOON 159 ANPR Data Management Solution 5196 of 2025":
+              - link "OYOON 159 ANPR Data Management Solution":
+                - /url: /contracts/12
+              - generic: 5196 of 2025
+            - text: OC
+            - cell "Ended":
+              - generic: Ended
+            - cell "Actions for contract CT-1012":
+              - button "Actions for contract CT-1012": ⋯
+          - row "Details for CT-1011 CT-1011 OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH 5194 of 2025 Active Actions for contract CT-1011":
+            - cell "Details for CT-1011":
+              - button "Details for CT-1011":
+            - cell "CT-1011":
+              - link "CT-1011":
+                - /url: /contracts/11
+            - cell "OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH 5194 of 2025":
+              - link "OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH":
+                - /url: /contracts/11
+              - generic: 5194 of 2025
+            - text: OC
+            - cell "Active":
+              - text: Active
+            - cell "Actions for contract CT-1011":
+              - button "Actions for contract CT-1011": ⋯
+          - row "Details for CT-1009 CT-1009 OYOON 174 Zabeel System AMC Renewal 5341 of 2026 Active Actions for contract CT-1009":
+            - cell "Details for CT-1009":
+              - button "Details for CT-1009":
+            - cell "CT-1009":
+              - link "CT-1009":
+                - /url: /contracts/9
+            - cell "OYOON 174 Zabeel System AMC Renewal 5341 of 2026":
+              - link "OYOON 174 Zabeel System AMC Renewal":
+                - /url: /contracts/9
+              - generic: 5341 of 2026
+            - text: OC
+            - cell "Active":
+              - text: Active
+            - cell "Actions for contract CT-1009":
+              - button "Actions for contract CT-1009": ⋯
+          - row "Details for CT-1010 CT-1010 OYOON 266 ANPR Data Management AMC 5340 of 2026 Active Actions for contract CT-1010":
+            - cell "Details for CT-1010":
+              - button "Details for CT-1010":
+            - cell "CT-1010":
+              - link "CT-1010":
+                - /url: /contracts/10
+            - cell "OYOON 266 ANPR Data Management AMC 5340 of 2026":
+              - link "OYOON 266 ANPR Data Management AMC":
+                - /url: /contracts/10
+              - generic: 5340 of 2026
+            - text: OC
+            - cell "Active":
+              - text: Active
+            - cell "Actions for contract CT-1010":
+              - button "Actions for contract CT-1010": ⋯
+          - row "Details for CT-1001 CT-1001 2026_Vitronic Software Service Level Agreement CW16622, QU040000265 Active Actions for contract CT-1001":
+            - cell "Details for CT-1001":
+              - button "Details for CT-1001":
+            - cell "CT-1001":
+              - link "CT-1001":
+                - /url: /contracts/1
+            - cell "2026_Vitronic Software Service Level Agreement CW16622, QU040000265":
+              - link "2026_Vitronic Software Service Level Agreement":
+                - /url: /contracts/1
+              - generic: CW16622, QU040000265
+            - cell "Active":
+              - text: Active
+            - cell "Actions for contract CT-1001":
+              - button "Actions for contract CT-1001": ⋯
+          - row "Details for CT-1004 CT-1004 PI2026_134_ViTIP_Lite_Contract PI2026_134 Active Actions for contract CT-1004":
+            - cell "Details for CT-1004":
+              - button "Details for CT-1004":
+            - cell "CT-1004":
+              - link "CT-1004":
+                - /url: /contracts/4
+            - cell "PI2026_134_ViTIP_Lite_Contract PI2026_134":
+              - link "PI2026_134_ViTIP_Lite_Contract":
+                - /url: /contracts/4
+              - generic: PI2026_134
+            - text: MI
+            - cell "Active":
+              - text: Active
+            - cell "Actions for contract CT-1004":
+              - button "Actions for contract CT-1004": ⋯
+          - row "Details for CT-1008 CT-1008 Kurdistan BackOffice – Software Support & Maintenance SLA QU2024_191 Active Actions for contract CT-1008":
+            - cell "Details for CT-1008":
+              - button "Details for CT-1008":
+            - cell "CT-1008":
+              - link "CT-1008":
+                - /url: /contracts/8
+            - cell "Kurdistan BackOffice – Software Support & Maintenance SLA QU2024_191":
+              - link "Kurdistan BackOffice – Software Support & Maintenance SLA":
+                - /url: /contracts/8
+              - generic: QU2024_191
+            - cell "Active":
+              - text: Active
+            - cell "Actions for contract CT-1008":
+              - button "Actions for contract CT-1008": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 9 OF 9
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 9 OF 9
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

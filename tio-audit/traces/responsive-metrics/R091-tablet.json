@@ -1,0 +1,15 @@
+{
+  "id": "R091-tablet",
+  "route": "/dashboards/project?projectId=1",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Project dashboard"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 5017,
+  "title": "Project dashboard · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

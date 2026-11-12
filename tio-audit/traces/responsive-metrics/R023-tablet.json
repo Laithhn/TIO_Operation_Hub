@@ -1,0 +1,15 @@
+{
+  "id": "R023-tablet",
+  "route": "/data-quality",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Data quality"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 3862,
+  "title": "Data quality · TIO Operations Hub",
+  "width": 768
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R090-mobile",
+  "route": "/login",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Sign in"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 134,
+  "title": "Sign in · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

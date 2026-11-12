@@ -1,0 +1,221 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Products & Installations":
+    - /url: /admin/config/category/products-installations
+  - generic: ›
+  - generic: Component roles
+- heading "Component roles" [level=1]
+- generic: Roles of the components of an installation, for example Application, Database or Workflow.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Component roles":
+    - searchbox "Filter rows"
+    - generic: 10 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Component roles":
+      - caption: Component roles
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move Web up Move Web down Web Active Actions for Web":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Web up Move Web down":
+            - button "Move Web up" [disabled]: ▲
+            - button "Move Web down": ▼
+          - cell "Web":
+            - button "Web"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Web":
+            - button "Actions for Web": ⋯
+        - row "Details for ▲ ▼ Move Application up Move Application down Application Active Actions for Application":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Application up Move Application down":
+            - button "Move Application up": ▲
+            - button "Move Application down": ▼
+          - cell "Application":
+            - button "Application"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Application":
+            - button "Actions for Application": ⋯
+        - row "Details for ▲ ▼ Move Database up Move Database down Database Active Actions for Database":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Database up Move Database down":
+            - button "Move Database up": ▲
+            - button "Move Database down": ▼
+          - cell "Database":
+            - button "Database"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Database":
+            - button "Actions for Database": ⋯
+        - row "Details for ▲ ▼ Move Import up Move Import down Import Active Actions for Import":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Import up Move Import down":
+            - button "Move Import up": ▲
+            - button "Move Import down": ▼
+          - cell "Import":
+            - button "Import"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Import":
+            - button "Actions for Import": ⋯
+        - row "Details for ▲ ▼ Move Workflow up Move Workflow down Workflow Active Actions for Workflow":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Workflow up Move Workflow down":
+            - button "Move Workflow up": ▲
+            - button "Move Workflow down": ▼
+          - cell "Workflow":
+            - button "Workflow"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Workflow":
+            - button "Actions for Workflow": ⋯
+        - row "Details for ▲ ▼ Move ANPR up Move ANPR down ANPR Active Actions for ANPR":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move ANPR up Move ANPR down":
+            - button "Move ANPR up": ▲
+            - button "Move ANPR down": ▼
+          - cell "ANPR":
+            - button "ANPR"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for ANPR":
+            - button "Actions for ANPR": ⋯
+        - row "Details for ▲ ▼ Move Media up Move Media down Media Active Actions for Media":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Media up Move Media down":
+            - button "Move Media up": ▲
+            - button "Move Media down": ▼
+          - cell "Media":
+            - button "Media"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Media":
+            - button "Actions for Media": ⋯
+        - row "Details for ▲ ▼ Move Reporting up Move Reporting down Reporting Active Actions for Reporting":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Reporting up Move Reporting down":
+            - button "Move Reporting up": ▲
+            - button "Move Reporting down": ▼
+          - cell "Reporting":
+            - button "Reporting"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Reporting":
+            - button "Actions for Reporting": ⋯
+        - row "Details for ▲ ▼ Move Monitoring up Move Monitoring down Monitoring Active Actions for Monitoring":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Monitoring up Move Monitoring down":
+            - button "Move Monitoring up": ▲
+            - button "Move Monitoring down": ▼
+          - cell "Monitoring":
+            - button "Monitoring"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Monitoring":
+            - button "Actions for Monitoring": ⋯
+        - row "Details for ▲ ▼ Move Other up Move Other down Other Active Actions for Other":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,188 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: ·
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview"
+    - button "Operational"
+    - button "Technical"
+    - button "Commercial" [active] [pressed]
+    - button "Records"
+  - tablist:
+    - tab "Organizations":
+      - generic: Organizations
+    - tab "Contracts & SLAs" [selected]:
+      - generic: Contracts & SLAs
+    - tab "Projects":
+      - generic: Projects
+  - heading "Contracts & SLAs" [level=2]
+  - link "Open list":
+    - /url: /contracts?clientId=1
+  - link "+ Contract":
+    - /url: /contracts/new?clientId=1
+  - region "Client contracts":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Client contracts":
+      - caption: Client contracts
+      - rowgroup:
+        - row "Select all rows shown Contract Project Type Status Term Renewal Support SLA targets Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Contract":
+            - button "Contract":
+              - generic: Contract
+          - columnheader "Project":
+            - button "Project":
+              - generic: Project
+          - columnheader "Type":
+            - button "Type":
+              - generic: Type
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Term":
+            - button "Term":
+              - generic: Term
+          - columnheader "Renewal":
+            - button "Renewal":
+              - generic: Renewal
+          - columnheader "Support":
+            - button "Support":
+              - generic: Support
+          - columnheader "SLA targets":
+            - button "SLA targets":
+              - generic: SLA targets
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622 CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622 117992-AE SLA & support Ended 01 Jan 2025 – 14 Oct 2025 Ended On site · 3 on site 4 Actions for contract CT-1006":
+          - cell "Select CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622":
+            - checkbox "Select CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622"
+          - cell "CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622":
+            - link "CT-1006 · 2025 Vitronic Software Service Level Agreement":
+              - /url: /contracts/6
+            - generic: CW16622
+          - cell "117992-AE":
+            - link "117992-AE":
+              - /url: /projects/1
+          - cell "SLA & support":
+            - generic: SLA & support
+          - cell "Ended":
+            - generic: Ended
+          - cell "01 Jan 2025 – 14 Oct 2025":
+            - generic: 01 Jan 2025 – 14 Oct 2025
+          - cell "Ended":
+            - generic: Ended
+          - cell "On site · 3 on site":
+            - generic: On site · 3 on site
+          - cell "4":
+            - generic: "4"
+          - cell "Actions for contract CT-1006":
+            - button "Actions for contract CT-1006": ⋯
+        - row "Select CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265 CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265 117992-AE SLA & support Active 15 Oct 2025 – 14 Oct 2027 Current On site · 8 on site 4 Actions for contract CT-1001":
+          - cell "Select CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265":
+            - checkbox "Select CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265"
+          - cell "CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265":
+            - link "CT-1001 · 2026_Vitronic Software Service Level Agreement":
+              - /url: /contracts/1
+            - generic: CW16622, QU040000265
+          - cell "117992-AE":
+            - link "117992-AE":
+              - /url: /projects/1
+          - cell "SLA & support":
+            - generic: SLA & support
+          - cell "Active":
+            - text: Active
+          - cell "15 Oct 2025 – 14 Oct 2027":
+            - generic: 15 Oct 2025 – 14 Oct 2027
+          - cell "Current":
+            - text: Current
+          - cell "On site · 8 on site":
+            - generic: On site · 8 on site
+          - cell "4":
+            - generic: "4"
+          - cell "Actions for contract CT-1001":
+            - button "Actions for contract CT-1001": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

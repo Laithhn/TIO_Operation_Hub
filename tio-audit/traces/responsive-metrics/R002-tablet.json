@@ -1,0 +1,15 @@
+{
+  "id": "R002-tablet",
+  "route": "/dashboards/operational",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Operational dashboard"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 3943,
+  "title": "Operational dashboard · TIO Operations Hub",
+  "width": 768
+}

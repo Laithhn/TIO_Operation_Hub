@@ -1,0 +1,592 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+    - generic: Administration
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Jira Connections":
+    - /url: /admin/integrations/jira
+- heading "Jira synchronization monitoring" [level=1]
+- generic: Status, history and error details of every run.
+- link "Open conflicts":
+  - /url: /admin/integrations/jira/conflicts
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - region "Synchronization status":
+    - text: "Next:"
+    - link "review 2 pending conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - generic: "Failed records (24 h): 0"
+    - text: "Pending conflicts:"
+    - link "2":
+      - /url: /admin/integrations/jira/conflicts
+    - generic: "Last success: 10 Nov 2026, 16:51"
+    - text: Issues
+    - text: Healthy
+    - text: · Comments
+    - text: Healthy
+    - text: · Activity
+    - text: Warning
+    - text: "· 24 h: 143 created, 109 updated · Full reconciliation 10 Nov 2026, 13:45 · 2.3 s per run"
+  - generic: Connection
+  - combobox "Connection":
+    - option "All connections" [selected]
+    - option "Poliscan Cloud Jira"
+  - generic: Client
+  - combobox "Client":
+    - option "All clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Status
+  - combobox "Status":
+    - option "Any" [selected]
+    - option "Running"
+    - option "Success"
+    - option "Warning"
+    - option "Failed"
+  - region "Jira synchronization runs":
+    - searchbox "Filter rows"
+    - generic: 25 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Jira synchronization runs: scroll sideways for more columns"':
+      - table "Jira synchronization runs":
+        - caption: Jira synchronization runs
+        - rowgroup:
+          - row "Details Select all rows shown Status Started Space Outcome Error Duration":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Started":
+              - button "Started":
+                - generic: Started
+            - columnheader "Space":
+              - button "Space":
+                - generic: Space
+            - columnheader "Outcome":
+              - button "Outcome":
+                - generic: Outcome
+            - columnheader "Error":
+              - button "Error":
+                - generic: Error
+            - columnheader "Duration":
+              - button "Duration":
+                - generic: Duration
+        - rowgroup:
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:51 TAB 0 created · 0 updated — 1.5 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:51":
+              - generic: 10 Nov 2026, 16:51
+            - cell "TAB":
+              - generic: TAB
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.5 s":
+              - generic: 1.5 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:51 TAH 0 created · 0 updated — 2.4 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:51":
+              - generic: 10 Nov 2026, 16:51
+            - cell "TAH":
+              - generic: TAH
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.4 s":
+              - generic: 2.4 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:51 TAD 0 created · 0 updated — 3 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:51":
+              - generic: 10 Nov 2026, 16:51
+            - cell "TAD":
+              - generic: TAD
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "3 s":
+              - generic: 3 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 VEV 0 created · 0 updated — 1.4 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "VEV":
+              - generic: VEV
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.4 s":
+              - generic: 1.4 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 TWT 0 created · 0 updated — 2.3 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "TWT":
+              - generic: TWT
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.3 s":
+              - generic: 2.3 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 DPO 0 created · 0 updated — 1.8 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "DPO":
+              - generic: DPO
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.8 s":
+              - generic: 1.8 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 SEW 0 created · 0 updated — 1.7 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "SEW":
+              - generic: SEW
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.7 s":
+              - generic: 1.7 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 TAB 0 created · 0 updated — 1.8 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "TAB":
+              - generic: TAB
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.8 s":
+              - generic: 1.8 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 TAH 0 created · 0 updated — 2.3 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "TAH":
+              - generic: TAH
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.3 s":
+              - generic: 2.3 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:45 TAD 0 created · 0 updated — 2.1 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "TAD":
+              - generic: TAD
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.1 s":
+              - generic: 2.1 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:40 TAB 0 created · 0 updated — 2.2 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:40":
+              - generic: 10 Nov 2026, 16:40
+            - cell "TAB":
+              - generic: TAB
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.2 s":
+              - generic: 2.2 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:40 TAH 0 created · 0 updated — 2.4 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:40":
+              - generic: 10 Nov 2026, 16:40
+            - cell "TAH":
+              - generic: TAH
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.4 s":
+              - generic: 2.4 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:40 TAD 0 created · 0 updated — 2.9 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:40":
+              - generic: 10 Nov 2026, 16:40
+            - cell "TAD":
+              - generic: TAD
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.9 s":
+              - generic: 2.9 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:35 TAB 0 created · 0 updated — 2.2 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:35":
+              - generic: 10 Nov 2026, 16:35
+            - cell "TAB":
+              - generic: TAB
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.2 s":
+              - generic: 2.2 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:35 TAH 0 created · 0 updated — 2.4 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:35":
+              - generic: 10 Nov 2026, 16:35
+            - cell "TAH":
+              - generic: TAH
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.4 s":
+              - generic: 2.4 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:35 TAD 0 created · 0 updated — 5.9 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:35":
+              - generic: 10 Nov 2026, 16:35
+            - cell "TAD":
+              - generic: TAD
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "5.9 s":
+              - generic: 5.9 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 VEV 0 created · 0 updated — 2.4 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "VEV":
+              - generic: VEV
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.4 s":
+              - generic: 2.4 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 TWT 0 created · 0 updated — 1.8 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "TWT":
+              - generic: TWT
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.8 s":
+              - generic: 1.8 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 DPO 0 created · 0 updated — 1.3 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "DPO":
+              - generic: DPO
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.3 s":
+              - generic: 1.3 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 SEW 0 created · 0 updated — 1.9 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "SEW":
+              - generic: SEW
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.9 s":
+              - generic: 1.9 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 TAB 0 created · 0 updated — 1.5 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "TAB":
+              - generic: TAB
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.5 s":
+              - generic: 1.5 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 TAH 0 created · 0 updated — 2.4 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "TAH":
+              - generic: TAH
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "2.4 s":
+              - generic: 2.4 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 16:30 TAD 0 created · 0 updated — 3.2 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 16:30":
+              - generic: 10 Nov 2026, 16:30
+            - cell "TAD":
+              - generic: TAD
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "3.2 s":
+              - generic: 3.2 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 15:56 TAB 0 created · 0 updated — 6.1 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 15:56":
+              - generic: 10 Nov 2026, 15:56
+            - cell "TAB":
+              - generic: TAB
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "6.1 s":
+              - generic: 6.1 s
+          - row "Select Success Details for Success Success 10 Nov 2026, 15:55 TAH 0 created · 0 updated — 1.9 s":
+            - cell "Select Success":
+              - checkbox "Select Success"
+            - cell "Details for Success":
+              - button "Details for Success":
+            - cell "Success":
+              - text: Success
+            - cell "10 Nov 2026, 15:55":
+              - generic: 10 Nov 2026, 15:55
+            - cell "TAH":
+              - generic: TAH
+            - cell "0 created · 0 updated":
+              - generic: 0 created · 0 updated
+            - cell "—":
+              - generic: —
+            - cell "1.9 s":
+              - generic: 1.9 s
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 5790
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 5790
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

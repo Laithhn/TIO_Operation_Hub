@@ -1,0 +1,15 @@
+{
+  "id": "R053-tablet",
+  "route": "/components/27",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "PSOP.Service.Anpr.Carmen"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 675,
+  "title": "PSOP.Service.Anpr.Carmen · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

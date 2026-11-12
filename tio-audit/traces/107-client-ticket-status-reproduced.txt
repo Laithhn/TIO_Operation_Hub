@@ -1,0 +1,651 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: ·
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview"
+    - button "Operational" [pressed]
+    - button "Technical"
+    - button "Commercial"
+    - button "Records"
+  - tablist:
+    - tab "Tickets" [selected]:
+      - generic: Tickets
+    - tab "Commitments":
+      - generic: Commitments
+    - tab "Escalations":
+      - generic: Escalations
+    - tab "Contacts & responsibilities":
+      - generic: Contacts & responsibilities
+  - heading "Open tickets (91)" [level=2]
+  - link "Open list":
+    - /url: /cases?clientId=1
+  - list:
+    - link "CS-2534":
+      - /url: /cases/10734
+    - text: Monitor copy status of Archive service of Traffic Services Portal
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1786":
+      - /url: /cases/9986
+    - text: OBJ/EFA API Release 1.1
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1777":
+      - /url: /cases/9977
+    - text: OBJ pagination - sorting
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1694":
+      - /url: /cases/9894
+    - text: Support Function Automation
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1721":
+      - /url: /cases/9921
+    - text: Integration of Idemia Camera Monitoring Functionality into RRM Platform
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1691":
+      - /url: /cases/9891
+    - text: New API Endpoint Modify Current Location
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2567":
+      - /url: /cases/10767
+    - text: Deployment | Autoreject and archive bus under allowed speed
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1714":
+      - /url: /cases/9914
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA)"
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1710":
+      - /url: /cases/9910
+    - text: "BO PT March 2026: Missing CAPTCHA Protection"
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1711":
+      - /url: /cases/9911
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SMS"
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1712":
+      - /url: /cases/9912
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SSO"
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1713":
+      - /url: /cases/9913
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): Email"
+    - generic: Open
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1754":
+      - /url: /cases/9954
+    - text: SD Release 1.4
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1829":
+      - /url: /cases/10029
+    - text: BO Release 18.1
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-2584":
+      - /url: /cases/10784
+    - text: Deployment | Integrating Idemia into RRM Platform
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1834":
+      - /url: /cases/10034
+    - text: BO Release 18.0
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-1821":
+      - /url: /cases/10021
+    - text: Vehicle Speed Reverted After Vehicle Type Change
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-1815":
+      - /url: /cases/10015
+    - text: Idemia integration in RRM monitoring
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1747":
+      - /url: /cases/9947
+    - text: BO Release 18.2
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1830":
+      - /url: /cases/10030
+    - text: High Response Time when Watermark activated
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-1769":
+      - /url: /cases/9969
+    - text: Reflect Idemia data in RRM UI
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1833":
+      - /url: /cases/10033
+    - text: BackOffice Kubernetes
+    - text: In progress
+    - text: Overdue
+    - generic: "Ansil Ansar2 · next: Review the ticket imported from Jira."
+    - link "CS-1832":
+      - /url: /cases/10032
+    - text: BackOffice React
+    - text: In progress
+    - text: Overdue
+    - generic: "Ansil Ansar2 · next: Review the ticket imported from Jira."
+    - link "CS-1831":
+      - /url: /cases/10031
+    - text: TrafficStatistics Release 1.4
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1795":
+      - /url: /cases/9995
+    - text: Database Migration - Schema & Data seeder
+    - text: In progress
+    - text: Overdue
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-2586":
+      - /url: /cases/10786
+    - text: Deployment | TrafficStatistics Release 1.4
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1836":
+      - /url: /cases/10036
+    - text: Adding Record For Violation XML In DB
+    - generic: Open
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-2585":
+      - /url: /cases/10785
+    - text: Centralized Multiclient
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Tareq Abdul Jabar · next: Tareq to provide the detailed requirements requested by Laith; Laith/product owner to confirm scope and estimate through Change Management after requirements are agreed. No delivery deadline confirmed."
+    - link "CS-2589":
+      - /url: /cases/10789
+    - text: BO | Fresh Cases State Change
+    - text: In progress
+    - text: Overdue
+    - generic: "Tareq Abdul Jabar · next: Review the ticket imported from Jira."
+    - link "CS-2587":
+      - /url: /cases/10787
+    - text: Deployment | BO Release 18.0
+    - text: In progress
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1835":
+      - /url: /cases/10035
+    - text: Incorrect Reject Reason in Failed MVIR State-R2
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-1807":
+      - /url: /cases/10007
+    - text: Service.Psop Migration - Backend Services and Business Logic
+    - text: In progress
+    - text: Overdue
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-1806":
+      - /url: /cases/10006
+    - text: Service.Trafficlegal Migration - Backend Services and Background Processing
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-1801":
+      - /url: /cases/10001
+    - text: Service.Platelookup Migration - Lookup Services and Integrations
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1802":
+      - /url: /cases/10002
+    - text: Service.Media Migration - Media Handling and Retrieval
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1803":
+      - /url: /cases/10003
+    - text: Service.Import Migration - Import Pipelines and Processing Jobs
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1804":
+      - /url: /cases/10004
+    - text: Plugins Migration - CurrentBO Plugin Components
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1805":
+      - /url: /cases/10005
+    - text: NIC Project Migration - Broker, Adapter, Tasks, and RabbitMQ Integration
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1827":
+      - /url: /cases/10027
+    - text: Slow Device List Retrieval
+    - text: In progress
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1841":
+      - /url: /cases/10041
+    - text: BackOffice React | Project Setup and Core Application Scaffold
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-1840":
+      - /url: /cases/10040
+    - text: BackOffice React | Main Navigation and Layout Components
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-1839":
+      - /url: /cases/10039
+    - text: BackOffice React | Core Business Screens Implementation
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-1814":
+      - /url: /cases/10014
+    - text: BackOffice React | Search, Filtering, and Pagination UX
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1808":
+      - /url: /cases/10008
+    - text: BackOffice React | API Integration Layer for BackOffice Services
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1813":
+      - /url: /cases/10013
+    - text: BackOffice React | File and Media Handling UI
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1812":
+      - /url: /cases/10012
+    - text: BackOffice React | Authentication and Role-Based Access Control UI
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1811":
+      - /url: /cases/10011
+    - text: BackOffice React | Deployment and Environment Configuration
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1828":
+      - /url: /cases/10028
+    - text: RRM Hotfix 1.4.1
+    - text: In progress
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-1822":
+      - /url: /cases/10022
+    - text: Existing Devices Being Overwritten
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1823":
+      - /url: /cases/10023
+    - text: Data Inconsistency
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1824":
+      - /url: /cases/10024
+    - text: Rear display loading delay
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1825":
+      - /url: /cases/10025
+    - text: Server List page delay
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1826":
+      - /url: /cases/10026
+    - text: Filters/Pagination Missing
+    - generic: New
+    - text: Overdue
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1838":
+      - /url: /cases/10038
+    - text: BO | Stuck User Session Removal
+    - generic: New
+    - text: Overdue
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-2593":
+      - /url: /cases/10793
+    - text: R1 Backoffice Slowess issue
+    - text: In progress
+    - text: Overdue
+    - generic: "Moataz Al Khaldi · next: Review the ticket imported from Jira."
+    - link "CS-2588":
+      - /url: /cases/10788
+    - text: SFRS Portal | Network Segmentation Not Applied
+    - generic: New
+    - text: Overdue
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2595":
+      - /url: /cases/10795
+    - text: R3 Backoffice Slowess issue
+    - generic: New
+    - text: Overdue
+    - generic: "Moataz Al Khaldi · next: Review the ticket imported from Jira."
+    - link "CS-2590":
+      - /url: /cases/10790
+    - text: R3 Violation Assignment Issue
+    - text: In progress
+    - text: Overdue
+    - generic: "Moataz Al Khaldi · next: Review the ticket imported from Jira."
+    - link "CS-2594":
+      - /url: /cases/10794
+    - text: Kafka Integration BO | Site Information Not Being Sent
+    - text: In progress
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-4004":
+      - /url: /cases/12204
+    - text: RRM JSON file
+    - generic: New
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-4005":
+      - /url: /cases/12205
+    - text: BackOffice | Device record
+    - generic: New
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-4006":
+      - /url: /cases/12206
+    - text: BackOffice | Site Record
+    - generic: New
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-2591":
+      - /url: /cases/10791
+    - text: Kafka Integration BO | Media Retrieval Issue
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-2592":
+      - /url: /cases/10792
+    - text: Kafka Integration BO | Resending Data Starting 1st Sep
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-4003":
+      - /url: /cases/12203
+    - text: "CCC: RRM Integration"
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-3998" [active]:
+      - /url: /cases/12198
+    - text: CCC Integration
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-4149":
+      - /url: /cases/12349
+    - text: Importer 1.7
+    - generic: New
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-2754":
+      - /url: /cases/10954
+    - text: Site Status
+    - text: In progress
+    - generic: "Naveed Ur Rehman · next: Review the ticket imported from Jira."
+    - link "CS-2717":
+      - /url: /cases/10917
+    - text: SD API Update For The Violation Code Field
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1762":
+      - /url: /cases/9962
+    - text: Web | Operational Data | Adding last action datetime filter
+    - generic: New
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1763":
+      - /url: /cases/9963
+    - text: Web | Reject Reason | Offence type dropdown
+    - generic: Open
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-1755":
+      - /url: /cases/9955
+    - text: PSOP DB | Upgrade index data type
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Ahmed Awadalla · next: Review the ticket imported from Jira."
+    - link "CS-2718":
+      - /url: /cases/10918
+    - text: Ensure Valid Cases Only
+    - text: In progress
+    - generic: "Abdulhamid Tork · next: Review the ticket imported from Jira."
+    - link "CS-2719":
+      - /url: /cases/10919
+    - text: Auto Archive for Cases with Issues on Upload Stage
+    - text: In progress
+    - generic: "Abdulhamid Tork · next: Review the ticket imported from Jira."
+    - link "CS-2726":
+      - /url: /cases/10926
+    - text: Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2731":
+      - /url: /cases/10931
+    - text: Adding New Fields in The Device Profile
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2738":
+      - /url: /cases/10938
+    - text: Support Function Automation
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2739":
+      - /url: /cases/10939
+    - text: Adding User Section Attributes to PSOP
+    - generic: New
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2740":
+      - /url: /cases/10940
+    - text: Multi Violation Code Field in The Place Profile (Importer)
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2742":
+      - /url: /cases/10942
+    - text: Enhance the Validation Logic During the XML Import Process
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2744":
+      - /url: /cases/10944
+    - text: Enhancement on the Importer to Validate the Operation Date for Place
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2747":
+      - /url: /cases/10947
+    - text: Double Spaces from the input Plate string
+    - text: In progress
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2748":
+      - /url: /cases/10948
+    - text: Vehicle Type Filter Back Office
+    - text: In progress
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2749":
+      - /url: /cases/10949
+    - text: Bus Stop - Park Time addition
+    - text: In progress
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2750":
+      - /url: /cases/10950
+    - text: Rejection Reason Sub-Fields Enhancement
+    - text: In progress
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2751":
+      - /url: /cases/10951
+    - text: Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed
+    - generic: New
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2752":
+      - /url: /cases/10952
+    - text: PSOP Assignment Rule Enhancement
+    - text: In progress
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2753":
+      - /url: /cases/10953
+    - text: Support for Hikvision P2P Violation Format in Vitronic Importer
+    - generic: New
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2757":
+      - /url: /cases/10957
+    - text: MVIR & MVVR Retry Process Automation
+    - text: In progress
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2758":
+      - /url: /cases/10958
+    - text: Illogical Vehicle Speed
+    - text: In progress
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+    - link "CS-2759":
+      - /url: /cases/10959
+    - text: Enhancing the Overall Investigation Process
+    - generic: New
+    - text: "Waiting: Customer"
+    - generic: "Unassigned · next: Review the ticket imported from Jira."
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

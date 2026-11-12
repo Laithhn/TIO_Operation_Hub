@@ -1,0 +1,15 @@
+{
+  "id": "R030-tablet",
+  "route": "/admin/access",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Access review"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 17265,
+  "title": "Access review · TIO Operations Hub",
+  "width": 768
+}

@@ -1,0 +1,168 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Commitments":
+    - generic: Commitments
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Commitments":
+    - /url: /commitments
+  - generic: ›
+  - generic: CM-1006
+- heading "CM-1006 · Hire a new DevOps engineer to fulfill the SLA commitment" [level=1]
+- generic: Open
+- text: Delivery · Open — overdue
+- button "Revise deadline"
+- button "Complete"
+- button "Cancel"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments (current section)":
+      - /url: /commitments
+      - text: Commitments
+      - generic: (current section)
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Promise" [level=2]
+  - term: Description
+  - definition: Hire a new DevOps engineer to fulfill the SLA commitment
+  - term: Scope
+  - definition:
+    - link "TAH · Tahakom":
+      - /url: /clients/1
+  - term: Owner
+  - definition: Laith Hamdan
+  - term: Type
+  - definition: Delivery
+  - term: Linked ticket
+  - definition: None
+  - term: Project
+  - definition: 117992-AE · SLA _ IT Application & Platform Licenses – 2026
+  - term: Next review
+  - definition: 25 Oct 2026, 09:00
+  - term: Last reviewed
+  - definition: 22 Oct 2026, 18:21
+  - heading "Deadlines and outcome" [level=2]
+  - term: Original deadline
+  - definition: 2026-07-31 17:00 +04:00 (Asia/Dubai)
+  - term: Current deadline
+  - definition:
+    - text: 2026-07-31 17:00 +04:00 (Asia/Dubai)
+    - text: Overdue
+  - term: Revisions
+  - definition: "0"
+  - term: Status
+  - definition:
+    - generic: Open
+  - term: Timeliness (derived)
+  - definition: Open — overdue
+  - term: Completed
+  - definition: Unknown
+  - term: Evidence
+  - definition: Unknown
+  - term: Deadline in force at completion
+  - definition: Unknown
+  - term: Against original deadline
+  - definition: Unknown
+  - term: Cancellation reason
+  - definition: Unknown
+  - heading "Deadline and status history (kept)" [level=2]
+  - list:
+    - text: Created deadline 31 Jul 2026, 17:00
+    - generic: 22 Oct 2026, 18:21 · Laith Hamdan
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this commitment yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When By Action Reason Changes (before → after)":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - generic: When
+          - columnheader "By":
+            - generic: By
+          - columnheader "Action":
+            - generic: Action
+          - columnheader "Reason":
+            - generic: Reason
+          - columnheader "Changes (before → after)":
+            - generic: Changes (before → after)
+      - rowgroup:
+        - row "Select 22 Oct 2026, 18:21 22 Oct 2026, 18:21 lmh Create":
+          - cell "Select 22 Oct 2026, 18:21":
+            - checkbox "Select 22 Oct 2026, 18:21"
+          - cell "22 Oct 2026, 18:21":
+            - generic: 22 Oct 2026, 18:21
+          - cell "lmh":
+            - generic: lmh
+          - cell "Create":
+            - generic: Create
+          - cell
+          - cell:
+            - 'generic "Client id: — → 1 Current due at: — → 31 Jul 2026, 17:00 Show all 15 changes"':
+              - generic: "Client id: — → 1"
+              - generic: "Current due at: — → 31 Jul 2026, 17:00"
+              - generic: Show all 15 changes
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,15 @@
+{
+  "id": "R066-laptop",
+  "route": "/admin/config/server-types",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Server types"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 482,
+  "title": "Server types · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

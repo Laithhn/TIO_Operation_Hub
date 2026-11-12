@@ -67,8 +67,9 @@ test('ticket reporting uses configured status labels and submits an explicit not
     await report(page, 'Tickets report');
     await page.getByLabel('Client', { exact: true }).selectOption(String(client.id));
     const status = page.getByLabel('Status', { exact: true });
-    await expect(status.locator('option[value="New"]')).toHaveText(renamed);
-    await status.selectOption('New');
+    // A111 (TIO-BUG-006): the catalog offers configured statuses as code:<StatusCode>, as the ticket list does.
+    await expect(status.locator('option[value="code:New"]')).toHaveText(renamed);
+    await status.selectOption('code:New');
     await page.locator('details.rc-advanced > summary').click();
     const waitingFilter = page.getByLabel('Waiting', { exact: true });
     await expect(waitingFilter.locator('option')).toHaveText(['All', 'Waiting only', 'Not waiting']);
@@ -76,7 +77,7 @@ test('ticket reporting uses configured status labels and submits an explicit not
     await expect(page.getByLabel('Filters in force')).toContainText(renamed);
     await expect(page.getByLabel('Filters in force').getByText(/^no$/i)).toBeVisible();
     const request = await preview(page, 'cases');
-    expect(request.filters).toMatchObject({ clientId: String(client.id), status: 'New', waiting: 'false' });
+    expect(request.filters).toMatchObject({ clientId: String(client.id), status: 'code:New', waiting: 'false' });
     const table = page.getByRole('region', { name: 'Preview of Tickets report', exact: true });
     await expect(table).toContainText(includedTitle);
     await expect(table).not.toContainText(excludedTitle);

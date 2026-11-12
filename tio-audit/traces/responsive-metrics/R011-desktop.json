@@ -1,0 +1,15 @@
+{
+  "id": "R011-desktop",
+  "route": "/teams",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Teams and coverage"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 294,
+  "title": "Teams and coverage · TIO Operations Hub",
+  "width": 1920
+}

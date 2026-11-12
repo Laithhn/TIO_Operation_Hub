@@ -1,0 +1,122 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Environment":
+    - /url: /environments/3
+  - generic: ›
+  - link "PSOP · PSOP":
+    - /url: /installations/3
+  - generic: ›
+  - generic: PSOP.Service.Anpr.Carmen
+- heading "PSOP.Service.Anpr.Carmen" [level=1]
+- generic: Component · Application
+- button "Edit"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Component" [level=2]
+  - term: Role
+  - definition: Application
+  - term: Component version
+  - definition: Not recorded
+  - term: Owner
+  - definition:
+    - text: Not assigned
+    - text: The environment owner coordinates it until one is assigned; Data quality lists it as missing an owner.
+  - term: Supporting servers
+  - definition:
+    - link "PSOP-R2PRO-APP1":
+      - /url: /assets/27
+    - text: (Virtual machine (VM))
+    - link "PSOP-R2PRO-APP2":
+      - /url: /assets/28
+    - text: (Virtual machine (VM))
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this component yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details When By":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "When":
+            - generic: When
+          - columnheader "By":
+            - generic: By
+      - rowgroup:
+        - row "Details for 22 Oct 2026, 13:58 22 Oct 2026, 13:58 lmh":
+          - cell "Details for 22 Oct 2026, 13:58":
+            - button "Details for 22 Oct 2026, 13:58":
+          - cell "22 Oct 2026, 13:58":
+            - generic: 22 Oct 2026, 13:58
+          - cell "lmh":
+            - generic: lmh
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

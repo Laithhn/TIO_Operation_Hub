@@ -1,0 +1,616 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Teams":
+    - /url: /teams
+  - generic: ›
+  - generic: KSA_OPERATION
+- heading "KSA Operation Team" [level=1]
+- generic: Lead Ahmed Awadalla · Manager Laith Hamdan
+- button "+ Member"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "Teams & coverage":
+      - /url: /teams
+    - link "Handovers":
+      - /url: /handovers
+    - link "Reassignment queue":
+      - /url: /reassignment
+  - button "Expand menu":
+- main:
+  - heading "Members (skills are not performance scores)" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 5 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Person Team role Skills Product familiarity Working time zone Membership Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Person":
+            - button "Person":
+              - generic: Person
+          - columnheader "Team role":
+            - button "Team role":
+              - generic: Team role
+          - columnheader "Skills":
+            - button "Skills":
+              - generic: Skills
+          - columnheader "Product familiarity":
+            - button "Product familiarity":
+              - generic: Product familiarity
+          - columnheader "Working time zone":
+            - button "Working time zone":
+              - generic: Working time zone
+          - columnheader "Membership":
+            - button "Membership":
+              - generic: Membership
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Ahmed Awadalla Ahmed Awadalla Team lead PSOP, ViTIS Asia/Dubai Active Edit Ahmed Awadalla Remove Ahmed Awadalla":
+          - cell "Select Ahmed Awadalla":
+            - checkbox "Select Ahmed Awadalla"
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Team lead":
+            - generic: Team lead
+          - cell
+          - cell "PSOP, ViTIS":
+            - generic: PSOP, ViTIS
+          - cell "Asia/Dubai":
+            - generic: Asia/Dubai
+          - cell "Active":
+            - generic: Active
+          - cell "Edit Ahmed Awadalla Remove Ahmed Awadalla":
+            - button "Edit Ahmed Awadalla": Edit
+            - button "Remove Ahmed Awadalla": Remove
+        - row "Select Moataz Al Khaldi Moataz Al Khaldi OperationEngineer Asia/Riyadh Active Edit Moataz Al Khaldi Remove Moataz Al Khaldi":
+          - cell "Select Moataz Al Khaldi":
+            - checkbox "Select Moataz Al Khaldi"
+          - cell "Moataz Al Khaldi":
+            - generic: Moataz Al Khaldi
+          - cell "OperationEngineer":
+            - generic: OperationEngineer
+          - cell
+          - cell
+          - cell "Asia/Riyadh":
+            - generic: Asia/Riyadh
+          - cell "Active":
+            - generic: Active
+          - cell "Edit Moataz Al Khaldi Remove Moataz Al Khaldi":
+            - button "Edit Moataz Al Khaldi": Edit
+            - button "Remove Moataz Al Khaldi": Remove
+        - row "Select Tareq Abdul Jabar Tareq Abdul Jabar OperationEngineer Asia/Riyadh Active Edit Tareq Abdul Jabar Remove Tareq Abdul Jabar":
+          - cell "Select Tareq Abdul Jabar":
+            - checkbox "Select Tareq Abdul Jabar"
+          - cell "Tareq Abdul Jabar":
+            - generic: Tareq Abdul Jabar
+          - cell "OperationEngineer":
+            - generic: OperationEngineer
+          - cell
+          - cell
+          - cell "Asia/Riyadh":
+            - generic: Asia/Riyadh
+          - cell "Active":
+            - generic: Active
+          - cell "Edit Tareq Abdul Jabar Remove Tareq Abdul Jabar":
+            - button "Edit Tareq Abdul Jabar": Edit
+            - button "Remove Tareq Abdul Jabar": Remove
+        - row "Select Waleed Alharthi Waleed Alharthi SrOperationEnigneer Asia/Riyadh Active Edit Waleed Alharthi Remove Waleed Alharthi":
+          - cell "Select Waleed Alharthi":
+            - checkbox "Select Waleed Alharthi"
+          - cell "Waleed Alharthi":
+            - generic: Waleed Alharthi
+          - cell "SrOperationEnigneer":
+            - generic: SrOperationEnigneer
+          - cell
+          - cell
+          - cell "Asia/Riyadh":
+            - generic: Asia/Riyadh
+          - cell "Active":
+            - generic: Active
+          - cell "Edit Waleed Alharthi Remove Waleed Alharthi":
+            - button "Edit Waleed Alharthi": Edit
+            - button "Remove Waleed Alharthi": Remove
+        - row "Select Ziyad Bu Dukhi Ziyad Bu Dukhi DevOpsEngineer Asia/Dubai Active Edit Ziyad Bu Dukhi Remove Ziyad Bu Dukhi":
+          - cell "Select Ziyad Bu Dukhi":
+            - checkbox "Select Ziyad Bu Dukhi"
+          - cell "Ziyad Bu Dukhi":
+            - generic: Ziyad Bu Dukhi
+          - cell "DevOpsEngineer":
+            - generic: DevOpsEngineer
+          - cell
+          - cell
+          - cell "Asia/Dubai":
+            - generic: Asia/Dubai
+          - cell "Active":
+            - generic: Active
+          - cell "Edit Ziyad Bu Dukhi Remove Ziyad Bu Dukhi":
+            - button "Edit Ziyad Bu Dukhi": Edit
+            - button "Remove Ziyad Bu Dukhi": Remove
+    - status
+  - heading "Assignments and coverage" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 5 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Engineer Open tickets Waiting Overdue items Backup for Open commitments":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Engineer":
+            - button "Engineer":
+              - generic: Engineer
+          - columnheader "Open tickets":
+            - button "Open tickets":
+              - generic: Open tickets
+          - columnheader "Waiting":
+            - button "Waiting":
+              - generic: Waiting
+          - columnheader "Overdue items":
+            - button "Overdue items":
+              - generic: Overdue items
+          - columnheader "Backup for":
+            - button "Backup for":
+              - generic: Backup for
+          - columnheader "Open commitments":
+            - button "Open commitments":
+              - generic: Open commitments
+      - rowgroup:
+        - row "Select Ahmed Awadalla Ahmed Awadalla 9 6 5 0 0":
+          - cell "Select Ahmed Awadalla":
+            - checkbox "Select Ahmed Awadalla"
+          - cell "Ahmed Awadalla":
+            - link "Ahmed Awadalla":
+              - /url: /cases?ownerId=2
+          - cell "9":
+            - generic: "9"
+          - cell "6":
+            - generic: "6"
+          - cell "5":
+            - text: "5"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+        - row "Select Moataz Al Khaldi Moataz Al Khaldi 3 0 3 0 0":
+          - cell "Select Moataz Al Khaldi":
+            - checkbox "Select Moataz Al Khaldi"
+          - cell "Moataz Al Khaldi":
+            - link "Moataz Al Khaldi":
+              - /url: /cases?ownerId=5
+          - cell "3":
+            - generic: "3"
+          - cell "0":
+            - generic: "0"
+          - cell "3":
+            - text: "3"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+        - row "Select Tareq Abdul Jabar Tareq Abdul Jabar 2 1 2 0 0":
+          - cell "Select Tareq Abdul Jabar":
+            - checkbox "Select Tareq Abdul Jabar"
+          - cell "Tareq Abdul Jabar":
+            - link "Tareq Abdul Jabar":
+              - /url: /cases?ownerId=4
+          - cell "2":
+            - generic: "2"
+          - cell "1":
+            - generic: "1"
+          - cell "2":
+            - text: "2"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+        - row "Select Waleed Alharthi Waleed Alharthi 0 0 0 0 0":
+          - cell "Select Waleed Alharthi":
+            - checkbox "Select Waleed Alharthi"
+          - cell "Waleed Alharthi":
+            - link "Waleed Alharthi":
+              - /url: /cases?ownerId=3
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+        - row "Select Ziyad Bu Dukhi Ziyad Bu Dukhi 0 0 0 0 0":
+          - cell "Select Ziyad Bu Dukhi":
+            - checkbox "Select Ziyad Bu Dukhi"
+          - cell "Ziyad Bu Dukhi":
+            - link "Ziyad Bu Dukhi":
+              - /url: /cases?ownerId=6
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+          - cell "0":
+            - generic: "0"
+    - status
+  - paragraph: Capacity and planned hours arrive in the Next release; no utilization or performance score is shown.
+  - heading "Unassigned team tickets (59)" [level=2]
+  - list:
+    - link "CS-1691":
+      - /url: /cases/9891
+    - text: New API Endpoint Modify Current Location
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1694":
+      - /url: /cases/9894
+    - text: Support Function Automation
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1710":
+      - /url: /cases/9910
+    - text: "BO PT March 2026: Missing CAPTCHA Protection"
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1711":
+      - /url: /cases/9911
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SMS"
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1712":
+      - /url: /cases/9912
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SSO"
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1713":
+      - /url: /cases/9913
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): Email"
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1714":
+      - /url: /cases/9914
+    - text: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA)"
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1721":
+      - /url: /cases/9921
+    - text: Integration of Idemia Camera Monitoring Functionality into RRM Platform
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1747":
+      - /url: /cases/9947
+    - text: BO Release 18.2
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1754":
+      - /url: /cases/9954
+    - text: SD Release 1.4
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1762":
+      - /url: /cases/9962
+    - text: Web | Operational Data | Adding last action datetime filter
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1763":
+      - /url: /cases/9963
+    - text: Web | Reject Reason | Offence type dropdown
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1769":
+      - /url: /cases/9969
+    - text: Reflect Idemia data in RRM UI
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1777":
+      - /url: /cases/9977
+    - text: OBJ pagination - sorting
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1786":
+      - /url: /cases/9986
+    - text: OBJ/EFA API Release 1.1
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1801":
+      - /url: /cases/10001
+    - text: Service.Platelookup Migration - Lookup Services and Integrations
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1802":
+      - /url: /cases/10002
+    - text: Service.Media Migration - Media Handling and Retrieval
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1803":
+      - /url: /cases/10003
+    - text: Service.Import Migration - Import Pipelines and Processing Jobs
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1804":
+      - /url: /cases/10004
+    - text: Plugins Migration - CurrentBO Plugin Components
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1805":
+      - /url: /cases/10005
+    - text: NIC Project Migration - Broker, Adapter, Tasks, and RabbitMQ Integration
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1808":
+      - /url: /cases/10008
+    - text: BackOffice React | API Integration Layer for BackOffice Services
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1811":
+      - /url: /cases/10011
+    - text: BackOffice React | Deployment and Environment Configuration
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1812":
+      - /url: /cases/10012
+    - text: BackOffice React | Authentication and Role-Based Access Control UI
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1813":
+      - /url: /cases/10013
+    - text: BackOffice React | File and Media Handling UI
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1814":
+      - /url: /cases/10014
+    - text: BackOffice React | Search, Filtering, and Pagination UX
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1815":
+      - /url: /cases/10015
+    - text: Idemia integration in RRM monitoring
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1822":
+      - /url: /cases/10022
+    - text: Existing Devices Being Overwritten
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1823":
+      - /url: /cases/10023
+    - text: Data Inconsistency
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1824":
+      - /url: /cases/10024
+    - text: Rear display loading delay
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1825":
+      - /url: /cases/10025
+    - text: Server List page delay
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1826":
+      - /url: /cases/10026
+    - text: Filters/Pagination Missing
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1827":
+      - /url: /cases/10027
+    - text: Slow Device List Retrieval
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-1831":
+      - /url: /cases/10031
+    - text: TrafficStatistics Release 1.4
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2534":
+      - /url: /cases/10734
+    - text: Monitor copy status of Archive service of Traffic Services Portal
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2567":
+      - /url: /cases/10767
+    - text: Deployment | Autoreject and archive bus under allowed speed
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2584":
+      - /url: /cases/10784
+    - text: Deployment | Integrating Idemia into RRM Platform
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2586":
+      - /url: /cases/10786
+    - text: Deployment | TrafficStatistics Release 1.4
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2587":
+      - /url: /cases/10787
+    - text: Deployment | BO Release 18.0
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2588":
+      - /url: /cases/10788
+    - text: SFRS Portal | Network Segmentation Not Applied
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2717":
+      - /url: /cases/10917
+    - text: SD API Update For The Violation Code Field
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2726":
+      - /url: /cases/10926
+    - text: Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2731":
+      - /url: /cases/10931
+    - text: Adding New Fields in The Device Profile
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2738":
+      - /url: /cases/10938
+    - text: Support Function Automation
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2739":
+      - /url: /cases/10939
+    - text: Adding User Section Attributes to PSOP
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2740":
+      - /url: /cases/10940
+    - text: Multi Violation Code Field in The Place Profile (Importer)
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2742":
+      - /url: /cases/10942
+    - text: Enhance the Validation Logic During the XML Import Process
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2744":
+      - /url: /cases/10944
+    - text: Enhancement on the Importer to Validate the Operation Date for Place
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2747":
+      - /url: /cases/10947
+    - text: Double Spaces from the input Plate string
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2748":
+      - /url: /cases/10948
+    - text: Vehicle Type Filter Back Office
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2749":
+      - /url: /cases/10949
+    - text: Bus Stop - Park Time addition
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2750":
+      - /url: /cases/10950
+    - text: Rejection Reason Sub-Fields Enhancement
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2751":
+      - /url: /cases/10951
+    - text: Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2752":
+      - /url: /cases/10952
+    - text: PSOP Assignment Rule Enhancement
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2753":
+      - /url: /cases/10953
+    - text: Support for Hikvision P2P Violation Format in Vitronic Importer
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2757":
+      - /url: /cases/10957
+    - text: MVIR & MVVR Retry Process Automation
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2758":
+      - /url: /cases/10958
+    - text: Illogical Vehicle Speed
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-2759":
+      - /url: /cases/10959
+    - text: Enhancing the Overall Investigation Process
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-3998":
+      - /url: /cases/12198
+    - text: CCC Integration
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+    - link "CS-4003":
+      - /url: /cases/12203
+    - text: "CCC: RRM Integration"
+    - generic: Normal
+    - generic: Review the ticket imported from Jira.
+  - heading "Coverage gaps (2)" [level=2]
+  - list:
+    - link "CS-2593":
+      - /url: /cases/10793
+    - text: R1 Backoffice Slowess issue
+    - text: Critical
+    - text: — no active backup owner
+    - link "CS-2595":
+      - /url: /cases/10795
+    - text: R3 Backoffice Slowess issue
+    - text: Critical
+    - text: — no active backup owner
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this team yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

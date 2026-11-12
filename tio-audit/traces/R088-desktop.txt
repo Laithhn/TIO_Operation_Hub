@@ -1,0 +1,89 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Directory group mappings" [level=1]
+- generic: Members of a mapped group are admitted at sign-in and inherit these roles and this data scope.
+- button "+ New mapping"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Table":
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Group Roles Scope":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Group":
+            - generic: Group
+          - columnheader "Roles":
+            - generic: Roles
+          - columnheader "Scope":
+            - generic: Scope
+      - rowgroup
+    - status
+    - generic: No records entered.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

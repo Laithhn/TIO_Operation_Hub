@@ -1,0 +1,84 @@
+{
+  "preparedAt": "2026-11-10",
+  "purpose": "Evidence-backed historical OYOON contract-register entry; no acceptance or execution implied",
+  "targetClient": {
+    "label": "OYOON Center",
+    "relationshipBasis": "26 October 2025 forwarding message states: This is related to the SLA of ViTIP Oyoon.",
+    "projectMappingVerified": false
+  },
+  "record": {
+    "reference": "42500353",
+    "revision": "0",
+    "type": "Blanket Purchase Agreement",
+    "title": "BPA 42500353 revision 0 - OYOON 174 Zabeel System AMC",
+    "descriptionExact": "OYOON 174 Zabeel System AMC",
+    "orderDate": "2025-10-22",
+    "orderDateSource": "22-OCT-2025",
+    "effectivityStart": "2025-06-03",
+    "effectivityStartSource": "03-JUN-2025",
+    "effectivityEnd": "2026-06-03",
+    "effectivityEndSource": "03-JUN-2026",
+    "issuerHeadingExact": "Smart Dubai Government",
+    "issuerEntityExact": "Digital Dubai Government Establishment",
+    "billToExact": "Dubai Smart Government Establishment, Corporate Support Services Dept",
+    "shipToExact": "Digital Dubai Government Establishment",
+    "supplierExact": "VITRONIC MACHINE VISION MIDDLE EAST (L.L.C)",
+    "supplierNumber": "72567",
+    "amountAgreed": 488000,
+    "currency": "AED",
+    "currencyBasis": "The line unit-price field explicitly displays (AED)488000; Amount Agreed displays 488000.",
+    "vatBasis": "Unknown: no readable VAT rate, VAT amount, tax value, or statement that the agreed amount includes or excludes VAT.",
+    "vatRate": null,
+    "vatAmount": null,
+    "amountExcludingVat": null,
+    "amountIncludingVat": null,
+    "quantity": 1,
+    "unitOfMeasureExact": "Each",
+    "unitPrice": 488000,
+    "paymentTermsExact": "Immediate",
+    "freightTermsExact": "OTHER",
+    "sourceStatus": "Requires acceptance",
+    "acceptanceVerified": false,
+    "executionVerified": false,
+    "renewalOrExtensionVerified": false,
+    "serviceCompletionVerified": false,
+    "paymentOrOutstandingBalanceVerified": false,
+    "statusNote": "Historical source effectivity period ends 3 June 2026. The reviewed notification requests acceptance and the forwarding email asks colleagues to respond Yes; neither proves acceptance, execution, renewal, or service completion."
+  },
+  "source": {
+    "file": "outputs/dda-contract-search-2026-11-10/search-evidence.json",
+    "threadLabel": "BPA42500353 quoted notification",
+    "subjectExact": "Blanket Purchase Agreement 42500353,0 requires your acceptance",
+    "outlookUrl": "https://outlook.cloud.microsoft/mail/id/AAQkADUwOTNlYzdhLTdmOTItNDZlNS04MTNhLTEwZDk0M2MxYzI0YwAQAFO8D67ND%2BtLhAgT4lClMa4%3D",
+    "forwardedBy": "Abdalrhman (Aboud) Asaad",
+    "forwardedTimestampDisplayed": "26 October 2025 13:34",
+    "originalNotificationSender": "GRP Notification",
+    "originalNotificationTimestampDisplayed": "25 October 2025 21:04:23",
+    "timestampTimezoneVerified": false,
+    "evidenceType": "Quoted purchase-agreement notification in Outlook email body",
+    "attachmentsListedInEmail": [
+      {
+        "nameExact": "Notification Detail.html",
+        "sizeDisplayed": "771 bytes"
+      },
+      {
+        "nameDisplayed": "Blanket Purchase Agreement 42500353,0 requires your acceptance",
+        "typeDisplayed": "Outlook Item",
+        "sizeDisplayed": "38 KB"
+      }
+    ]
+  },
+  "localAttachmentSearch": {
+    "scope": "outputs directory filenames only; rg --files",
+    "bpaFilenamePatterns": ["42500353", "blanket", "bpa"],
+    "matchingExistingBpaContractFiles": [],
+    "note": "No existing output filename matched this BPA reference or blanket/BPA terms before this JSON was created. The listed email attachments were not inspected or downloaded in this task. Other contract evidence and DDGE-signed-contracts.zip exist; their contents were not inspected for this BPA."
+  },
+  "importNotes": [
+    "Retain the exact 3 June 2025 to 3 June 2026 effectivity dates; do not substitute the 2026-2027 dates of the existing OYOON SLA.",
+    "Check for an existing contract with reference 42500353 before creating another record.",
+    "Do not infer that this BPA maps to a particular Hub project or is the same agreement as the current OYOON SLA.",
+    "The amount is an agreed contract value in the notification, not an invoice, payment, current receivable, or verified amount including VAT.",
+    "No Hub record was created or changed by this extraction task."
+  ]
+}

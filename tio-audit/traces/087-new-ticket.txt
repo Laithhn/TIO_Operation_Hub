@@ -1,0 +1,134 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Tickets":
+    - /url: /cases
+- heading "New ticket" [level=1]
+- complementary "Section menu":
+  - navigation:
+    - link "All tickets":
+      - /url: /cases
+    - link "New ticket":
+      - /url: /cases/new
+  - button "Expand menu":
+- main:
+  - generic: Title *
+  - textbox "Title *"
+  - generic: Ticket type *
+  - combobox "Ticket type *":
+    - option "— Select —" [selected]
+    - option "Task"
+    - option "Improvement"
+    - option "Bug"
+    - option "Epic"
+    - option "Deployment"
+  - generic: Work scope *
+  - combobox "Work scope *":
+    - option "Client-related" [selected]
+    - option "Internal"
+  - generic: Client *
+  - combobox "Client *":
+    - option "— Select —" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Responsible team *
+  - combobox "Responsible team *":
+    - option "— Select —" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Priority *
+  - combobox "Priority *":
+    - option "Critical"
+    - option "High"
+    - option "Normal" [selected]
+    - option "Low"
+  - generic: Impact summary *
+  - textbox "Impact summary *"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Unassigned" [selected]
+  - generic: Backup owner
+  - combobox "Backup owner":
+    - option "None" [selected]
+  - generic: Responsible party
+  - combobox "Responsible party":
+    - option "TIO" [selected]
+    - option "Other ITD division"
+    - option "Customer IT"
+    - option "Vendor"
+    - option "Unknown"
+  - generic: Internal coordinator
+  - combobox "Internal coordinator":
+    - option "None" [selected]
+  - generic: Next action (optional)
+  - textbox "Next action (optional)"
+  - generic: Next review (Asia/Dubai) *
+  - textbox "Next review (Asia/Dubai) *": 2026-11-12T09:00
+  - generic: Due (optional)
+  - textbox "Due (optional)"
+  - generic: Without a deadline the ticket is listed separately, never as overdue.
+  - generic: Internal work need not name an environment.
+  - paragraph: Jira tickets are created and updated in Jira by staff; the hub never writes to Jira.
+  - button "Cancel"
+  - button "Create ticket"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

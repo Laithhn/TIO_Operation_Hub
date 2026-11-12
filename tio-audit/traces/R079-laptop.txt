@@ -1,0 +1,131 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Administration":
+      - /url: /admin
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "System":
+    - /url: /admin/config/category/system
+  - generic: ›
+  - generic: Jira instances
+- heading "Jira instances" [level=1]
+- generic: The two Jira systems. Only the approved HTTPS host is stored here, for validating manual ticket links; these entries never call Jira. Synchronization is configured under Jira Connections.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Name Kind Approved host Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Kind":
+            - button "Kind":
+              - generic: Kind
+          - columnheader "Approved host":
+            - button "Approved host":
+              - generic: Approved host
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Customer Cloud Jira Customer Cloud Jira Customer Cloud Not configured Edit":
+          - cell "Select Customer Cloud Jira":
+            - checkbox "Select Customer Cloud Jira"
+          - cell "Customer Cloud Jira":
+            - generic: Customer Cloud Jira
+          - cell "Customer Cloud":
+            - generic: Customer Cloud
+          - cell "Not configured":
+            - text: Not configured
+          - cell "Edit":
+            - button "Edit"
+        - row "Select Internal On-prem Jira Internal On-prem Jira Internal On-prem Not configured Edit":
+          - cell "Select Internal On-prem Jira":
+            - checkbox "Select Internal On-prem Jira"
+          - cell "Internal On-prem Jira":
+            - generic: Internal On-prem Jira
+          - cell "Internal On-prem":
+            - generic: Internal On-prem
+          - cell "Not configured":
+            - text: Not configured
+          - cell "Edit":
+            - button "Edit"
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

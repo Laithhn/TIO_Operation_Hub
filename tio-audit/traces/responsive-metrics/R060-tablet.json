@@ -1,0 +1,15 @@
+{
+  "id": "R060-tablet",
+  "route": "/admin/config/category/system",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "System"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 250,
+  "title": "System · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

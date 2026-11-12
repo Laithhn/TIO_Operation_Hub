@@ -1,0 +1,107 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - generic: Clients & Environments
+- heading "Clients & Environments" [level=1]
+- generic: Conditions, environment types, responsibilities and project roles.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - list "Clients & Environments pages":
+    - link "Reported conditions":
+      - /url: /admin/config/reported-conditions
+    - generic: Display labels of the built-in reported conditions.
+    - generic: 4 fixed values
+    - generic: Fixed values, labels only
+    - link "Organization relationship types":
+      - /url: /admin/config/organization-relationship-types
+    - generic: Business roles such as Contractor, Supplier or Partner.
+    - generic: 10 active
+    - generic: Editable list
+    - link "Environment types":
+      - /url: /admin/config/environment-types
+    - generic: Types offered when creating an environment.
+    - generic: 6 active
+    - generic: Editable list
+    - link "Responsibility areas":
+      - /url: /admin/config/responsibility-areas
+    - generic: Areas of work used in responsibility boundaries.
+    - generic: 6 active
+    - generic: Editable list
+    - link "Project team roles":
+      - /url: /admin/config/team-roles
+    - generic: Roles of the members of a client's project team.
+    - generic: 6 active
+    - generic: Editable list
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

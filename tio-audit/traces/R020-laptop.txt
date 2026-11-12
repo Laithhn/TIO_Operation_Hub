@@ -1,0 +1,108 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Teams":
+      - /url: /teams
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Handovers" [level=1]
+- generic: Ownership transfers need the receiving owner's acknowledgment, or a TIO Manager exception with reason, follow-up owner and date. Prior ownership is kept.
+- button "+ New Handover"
+- complementary "Section menu":
+  - navigation:
+    - link "Teams & coverage":
+      - /url: /teams
+    - link "Handovers":
+      - /url: /handovers
+    - link "Reassignment queue":
+      - /url: /reassignment
+  - button "Expand menu":
+- main:
+  - generic: Status
+  - combobox "Status":
+    - option "All" [selected]
+    - option "Awaiting acknowledgment"
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Ref Status From To Effective Records Summary":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Ref":
+            - generic: Ref
+          - columnheader "Status":
+            - generic: Status
+          - columnheader "From":
+            - generic: From
+          - columnheader "To":
+            - generic: To
+          - columnheader "Effective":
+            - generic: Effective
+          - columnheader "Records":
+            - generic: Records
+          - columnheader "Summary":
+            - generic: Summary
+      - rowgroup:
+        - row "Select HO-101 HO-101 Cancelled Laith Hamdan Abdulhamid Tork 05 Nov 2026, 09:00 1 I will be in vacation next week and this commitment should be completed":
+          - cell "Select HO-101":
+            - checkbox "Select HO-101"
+          - cell "HO-101":
+            - link "HO-101":
+              - /url: /handovers/1
+          - cell "Cancelled":
+            - generic: Cancelled
+          - cell "Laith Hamdan":
+            - generic: Laith Hamdan
+          - cell "Abdulhamid Tork":
+            - generic: Abdulhamid Tork
+          - cell "05 Nov 2026, 09:00":
+            - generic: 05 Nov 2026, 09:00
+          - cell "1":
+            - generic: "1"
+          - cell "I will be in vacation next week and this commitment should be completed":
+            - generic: I will be in vacation next week and this commitment should be completed
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

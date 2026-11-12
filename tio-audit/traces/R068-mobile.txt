@@ -1,0 +1,197 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Servers":
+    - /url: /admin/config/category/servers
+  - generic: ›
+  - generic: Network zones
+- heading "Network zones" [level=1]
+- generic: Network zones offered on the server form.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Network zones":
+    - searchbox "Filter rows"
+    - generic: 8 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Network zones":
+      - caption: Network zones
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move DMZ up Move DMZ down DMZ Active Actions for DMZ":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move DMZ up Move DMZ down":
+            - button "Move DMZ up" [disabled]: ▲
+            - button "Move DMZ down": ▼
+          - cell "DMZ":
+            - button "DMZ"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for DMZ":
+            - button "Actions for DMZ": ⋯
+        - row "Details for ▲ ▼ Move Internal up Move Internal down Internal Active Actions for Internal":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Internal up Move Internal down":
+            - button "Move Internal up": ▲
+            - button "Move Internal down": ▼
+          - cell "Internal":
+            - button "Internal"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Internal":
+            - button "Actions for Internal": ⋯
+        - row "Details for ▲ ▼ Move APP up Move APP down APP Active Actions for APP":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move APP up Move APP down":
+            - button "Move APP up": ▲
+            - button "Move APP down": ▼
+          - cell "APP":
+            - button "APP"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for APP":
+            - button "Actions for APP": ⋯
+        - row "Details for ▲ ▼ Move WEB up Move WEB down WEB Active Actions for WEB":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move WEB up Move WEB down":
+            - button "Move WEB up": ▲
+            - button "Move WEB down": ▼
+          - cell "WEB":
+            - button "WEB"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for WEB":
+            - button "Actions for WEB": ⋯
+        - row "Details for ▲ ▼ Move Management up Move Management down Management Active Actions for Management":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Management up Move Management down":
+            - button "Move Management up": ▲
+            - button "Move Management down": ▼
+          - cell "Management":
+            - button "Management"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Management":
+            - button "Actions for Management": ⋯
+        - row "Details for ▲ ▼ Move Client LAN up Move Client LAN down Client LAN Active Actions for Client LAN":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Client LAN up Move Client LAN down":
+            - button "Move Client LAN up": ▲
+            - button "Move Client LAN down": ▼
+          - cell "Client LAN":
+            - button "Client LAN"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Client LAN":
+            - button "Actions for Client LAN": ⋯
+        - row "Details for ▲ ▼ Move DB up Move DB down DB Active Actions for DB":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move DB up Move DB down":
+            - button "Move DB up": ▲
+            - button "Move DB down": ▼
+          - cell "DB":
+            - button "DB"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for DB":
+            - button "Actions for DB": ⋯
+        - row "Details for ▲ ▼ Move External up Move External down External Active Actions for External":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move External up Move External down":
+            - button "Move External up": ▲
+            - button "Move External down" [disabled]: ▼
+          - cell "External":
+            - button "External"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for External":
+            - button "Actions for External": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,15 @@
+{
+  "id": "R022-laptop",
+  "route": "/actions",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Action list"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 5344,
+  "title": "Action list · TIO Operations Hub",
+  "width": 1366
+}

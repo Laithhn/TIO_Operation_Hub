@@ -1,0 +1,92 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - generic: Clients & Environments
+- heading "Clients & Environments" [level=1]
+- generic: Conditions, environment types, responsibilities and project roles.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - list "Clients & Environments pages":
+    - link "Reported conditions":
+      - /url: /admin/config/reported-conditions
+    - generic: Display labels of the built-in reported conditions.
+    - generic: 4 fixed values
+    - generic: Fixed values, labels only
+    - link "Organization relationship types":
+      - /url: /admin/config/organization-relationship-types
+    - generic: Business roles such as Contractor, Supplier or Partner.
+    - generic: 10 active
+    - generic: Editable list
+    - link "Environment types":
+      - /url: /admin/config/environment-types
+    - generic: Types offered when creating an environment.
+    - generic: 6 active
+    - generic: Editable list
+    - link "Responsibility areas":
+      - /url: /admin/config/responsibility-areas
+    - generic: Areas of work used in responsibility boundaries.
+    - generic: 6 active
+    - generic: Editable list
+    - link "Project team roles":
+      - /url: /admin/config/team-roles
+    - generic: Roles of the members of a client's project team.
+    - generic: 6 active
+    - generic: Editable list
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

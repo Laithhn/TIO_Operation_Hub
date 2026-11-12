@@ -1,0 +1,15 @@
+{
+  "id": "R004-desktop",
+  "route": "/dashboards/management",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Management dashboard"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 4823,
+  "title": "Management dashboard · TIO Operations Hub",
+  "width": 1920
+}

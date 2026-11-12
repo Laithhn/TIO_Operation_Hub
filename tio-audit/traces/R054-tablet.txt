@@ -1,0 +1,233 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Products":
+    - generic: Products
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Products":
+    - /url: /products
+  - generic: ›
+  - link "PSOP":
+    - /url: /products/1
+  - generic: ›
+  - generic: Microservice
+- heading "PSOP.Service.Anpr.Carmen" [level=1]
+- text: Active
+- generic: · microservice of PSOP · Poliscan Office Pro
+- button "Edit"
+- button "+ Version"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products (current section)":
+      - /url: /products
+      - text: Products
+      - generic: (current section)
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Microservice" [level=2]
+  - term: Product
+  - definition:
+    - link "PSOP · Poliscan Office Pro":
+      - /url: /products/1
+  - term: Module
+  - definition: —
+  - term: Role
+  - definition: —
+  - term: Description
+  - definition: —
+  - term: Latest version
+  - definition: No versions yet
+  - heading "Versions and release notes (0)" [level=2]
+  - generic: No versions recorded yet. Use + Version to add the first one with its release notes.
+  - heading "Where it runs (6)" [level=2]
+  - region "Deployments":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Deployments":
+      - caption: Deployments
+      - rowgroup:
+        - row "Select all rows shown Client Environment Installation Servers and deployed version":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Environment":
+            - button "Environment":
+              - generic: Environment
+          - columnheader "Installation":
+            - button "Installation":
+              - generic: Installation
+          - columnheader "Servers and deployed version":
+            - button "Servers and deployed version":
+              - generic: Servers and deployed version
+      - rowgroup:
+        - row "Select TAH TAH R1 / Production PSOP PSOP-R1PRO-APP1 version not recorded PSOP-R1PRO-APP2 version not recorded":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R1 / Production":
+            - link "R1 / Production":
+              - /url: /environments/1
+          - cell "PSOP":
+            - link "PSOP":
+              - /url: /installations/1
+          - cell "PSOP-R1PRO-APP1 version not recorded PSOP-R1PRO-APP2 version not recorded":
+            - link "PSOP-R1PRO-APP1":
+              - /url: /assets/1
+            - text: version not recorded
+            - link "PSOP-R1PRO-APP2":
+              - /url: /assets/2
+            - text: version not recorded
+        - row "Select TAH TAH R1 / Staging PSOP PSOP-R1STG-APP1 version not recorded PSOP-R1STG-APP2 version not recorded":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R1 / Staging":
+            - link "R1 / Staging":
+              - /url: /environments/2
+          - cell "PSOP":
+            - link "PSOP":
+              - /url: /installations/2
+          - cell "PSOP-R1STG-APP1 version not recorded PSOP-R1STG-APP2 version not recorded":
+            - link "PSOP-R1STG-APP1":
+              - /url: /assets/14
+            - text: version not recorded
+            - link "PSOP-R1STG-APP2":
+              - /url: /assets/15
+            - text: version not recorded
+        - row "Select TAH TAH R2 / Production PSOP PSOP-R2PRO-APP1 version not recorded PSOP-R2PRO-APP2 version not recorded":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R2 / Production":
+            - link "R2 / Production":
+              - /url: /environments/3
+          - cell "PSOP":
+            - link "PSOP":
+              - /url: /installations/3
+          - cell "PSOP-R2PRO-APP1 version not recorded PSOP-R2PRO-APP2 version not recorded":
+            - link "PSOP-R2PRO-APP1":
+              - /url: /assets/27
+            - text: version not recorded
+            - link "PSOP-R2PRO-APP2":
+              - /url: /assets/28
+            - text: version not recorded
+        - row "Select TAH TAH R3 / Production PSOP PSOP-R3PRO-APP1 version not recorded PSOP-R3PRO-APP2 version not recorded":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R3 / Production":
+            - link "R3 / Production":
+              - /url: /environments/4
+          - cell "PSOP":
+            - link "PSOP":
+              - /url: /installations/4
+          - cell "PSOP-R3PRO-APP1 version not recorded PSOP-R3PRO-APP2 version not recorded":
+            - link "PSOP-R3PRO-APP1":
+              - /url: /assets/40
+            - text: version not recorded
+            - link "PSOP-R3PRO-APP2":
+              - /url: /assets/41
+            - text: version not recorded
+        - row "Select TAH TAH R2 / Staging PSOP PSOP-R2STG-APP1 version not recorded PSOP-R2STG-APP2 version not recorded":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R2 / Staging":
+            - link "R2 / Staging":
+              - /url: /environments/5
+          - cell "PSOP":
+            - link "PSOP":
+              - /url: /installations/5
+          - cell "PSOP-R2STG-APP1 version not recorded PSOP-R2STG-APP2 version not recorded":
+            - link "PSOP-R2STG-APP1":
+              - /url: /assets/53
+            - text: version not recorded
+            - link "PSOP-R2STG-APP2":
+              - /url: /assets/54
+            - text: version not recorded
+        - row "Select TAH TAH R3 / Staging PSOP PSOP-R3STG-APP1 version not recorded PSOP-R3STG-APP2 version not recorded":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R3 / Staging":
+            - link "R3 / Staging":
+              - /url: /environments/6
+          - cell "PSOP":
+            - link "PSOP":
+              - /url: /installations/6
+          - cell "PSOP-R3STG-APP1 version not recorded PSOP-R3STG-APP2 version not recorded":
+            - link "PSOP-R3STG-APP1":
+              - /url: /assets/66
+            - text: version not recorded
+            - link "PSOP-R3STG-APP2":
+              - /url: /assets/67
+            - text: version not recorded
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

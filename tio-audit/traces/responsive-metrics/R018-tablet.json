@@ -1,0 +1,15 @@
+{
+  "id": "R018-tablet",
+  "route": "/assets",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Infrastructure assets"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 4287,
+  "title": "Infrastructure assets · TIO Operations Hub",
+  "width": 768
+}

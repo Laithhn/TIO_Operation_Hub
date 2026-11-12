@@ -1,0 +1,464 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+    - generic: Clients
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: Environments
+- heading "Environments" [level=1]
+- generic: Production in two regions are two distinct environments. Direct-client environments have no region by design.
+- button "Export CSV"
+- link "+ New Environment":
+  - /url: /environments/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Placement
+  - combobox "Placement":
+    - option "Regional and direct" [selected]
+    - option "Direct under client"
+  - generic: Reported condition
+  - combobox "Reported condition":
+    - option "Any" [selected]
+    - option "Unknown"
+    - option "Healthy"
+    - option "Degraded"
+    - option "Unavailable"
+  - generic: Review state
+  - combobox "Review state":
+    - option "Any" [selected]
+    - option "Inventory stale"
+    - option "Condition needs verification"
+  - region "Table":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Select all rows shown Client Region Environment Type Criticality Reported condition Inventory review Installations Assets Open tickets Owner / backup Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Region":
+              - button "Region":
+                - generic: Region
+            - columnheader "Environment":
+              - button "Environment":
+                - generic: Environment
+            - columnheader "Type":
+              - button "Type":
+                - generic: Type
+            - columnheader "Criticality":
+              - button "Criticality":
+                - generic: Criticality
+            - columnheader "Reported condition":
+              - button "Reported condition":
+                - generic: Reported condition
+            - columnheader "Inventory review":
+              - button "Inventory review":
+                - generic: Inventory review
+            - columnheader "Installations":
+              - button "Installations":
+                - generic: Installations
+            - columnheader "Assets":
+              - button "Assets":
+                - generic: Assets
+            - columnheader "Open tickets":
+              - button "Open tickets":
+                - generic: Open tickets
+            - columnheader "Owner / backup":
+              - button "Owner / backup":
+                - generic: Owner / backup
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select MADAR_DIJLA MADAR_DIJLA Direct 113506-AE – ViTIP Production (Proposed) Production Normal Unknown Current Current 1 16 0 No owner (gap) No backup Actions for environment 113506-AE – ViTIP Production (Proposed)":
+            - cell "Select MADAR_DIJLA":
+              - checkbox "Select MADAR_DIJLA"
+            - cell "MADAR_DIJLA":
+              - generic: MA
+              - link "MADAR_DIJLA":
+                - /url: /clients/9
+            - cell "Direct":
+              - generic: Direct
+            - cell "113506-AE – ViTIP Production (Proposed)":
+              - link "113506-AE – ViTIP Production (Proposed)":
+                - /url: /environments/13
+            - cell "Production":
+              - generic: Production
+            - cell "Normal":
+              - generic: Normal
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 10 Nov 2026, 11:51 · due 10 Dec 2026, 11:51":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "16":
+              - generic: "16"
+            - cell "0":
+              - generic: "0"
+            - cell "No owner (gap) No backup":
+              - text: No owner (gap)
+              - text: No backup
+            - cell "Actions for environment 113506-AE – ViTIP Production (Proposed)":
+              - button "Actions for environment 113506-AE – ViTIP Production (Proposed)": ⋯
+          - row "Select SEW SEW Direct MOI_ViTIP_Production Production High Unknown Current Current 1 45 0 Mohammed Alqaruoti No backup Actions for environment MOI_ViTIP_Production":
+            - cell "Select SEW":
+              - checkbox "Select SEW"
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Direct":
+              - generic: Direct
+            - cell "MOI_ViTIP_Production":
+              - link "MOI_ViTIP_Production":
+                - /url: /environments/11
+            - cell "Production":
+              - generic: Production
+            - cell "High":
+              - text: High
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 06 Nov 2026, 11:08 · due 06 Dec 2026, 11:08":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "45":
+              - generic: "45"
+            - cell "0":
+              - generic: "0"
+            - cell "Mohammed Alqaruoti No backup":
+              - text: Mohammed Alqaruoti
+              - text: No backup
+            - cell "Actions for environment MOI_ViTIP_Production":
+              - button "Actions for environment MOI_ViTIP_Production": ⋯
+          - row "Select SEW SEW Direct MOI_ViTIP_Staging Staging High Unknown Current Current 0 13 0 Mohammed Alqaruoti No backup Actions for environment MOI_ViTIP_Staging":
+            - cell "Select SEW":
+              - checkbox "Select SEW"
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Direct":
+              - generic: Direct
+            - cell "MOI_ViTIP_Staging":
+              - link "MOI_ViTIP_Staging":
+                - /url: /environments/12
+            - cell "Staging":
+              - generic: Staging
+            - cell "High":
+              - text: High
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 06 Nov 2026, 10:42 · due 06 Dec 2026, 10:42":
+                - text: Current
+                - generic: Current
+            - cell "0":
+              - generic: "0"
+            - cell "13":
+              - generic: "13"
+            - cell "0":
+              - generic: "0"
+            - cell "Mohammed Alqaruoti No backup":
+              - text: Mohammed Alqaruoti
+              - text: No backup
+            - cell "Actions for environment MOI_ViTIP_Staging":
+              - button "Actions for environment MOI_ViTIP_Staging": ⋯
+          - row "Select TAH TAH R1 Production Production Critical Healthy Needs verification Current Current 1 14 0 Ahmed Awadalla / Moataz Al Khaldi Actions for environment Production":
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R1":
+              - generic: R1
+            - cell "Production":
+              - link "Production":
+                - /url: /environments/1
+            - cell "Production":
+              - generic: Production
+            - cell "Critical":
+              - text: Critical
+            - cell "Healthy Needs verification":
+              - generic "Manually reported 22 Oct 2026, 20:07 — not live monitoring":
+                - text: Healthy
+                - text: Needs verification
+            - cell "Current Current":
+              - generic "Review every 30 days · last 22 Oct 2026, 20:06 · due 21 Nov 2026, 20:06":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "14":
+              - generic: "14"
+            - cell "0":
+              - generic: "0"
+            - cell "Ahmed Awadalla / Moataz Al Khaldi":
+              - text: Ahmed Awadalla
+              - generic: / Moataz Al Khaldi
+            - cell "Actions for environment Production":
+              - button "Actions for environment Production": ⋯
+          - row "Select TAH TAH R1 Staging Production Normal Unknown Current Current 1 13 0 Ahmed Awadalla / Moataz Al Khaldi Actions for environment Staging":
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R1":
+              - generic: R1
+            - cell "Staging":
+              - link "Staging":
+                - /url: /environments/2
+            - cell "Production":
+              - generic: Production
+            - cell "Normal":
+              - generic: Normal
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "13":
+              - generic: "13"
+            - cell "0":
+              - generic: "0"
+            - cell "Ahmed Awadalla / Moataz Al Khaldi":
+              - text: Ahmed Awadalla
+              - generic: / Moataz Al Khaldi
+            - cell "Actions for environment Staging":
+              - button "Actions for environment Staging": ⋯
+          - row "Select TAH TAH R2 Production Production Critical Degraded Needs verification Current Current 1 13 0 Ahmed Awadalla / Moataz Al Khaldi Actions for environment Production":
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R2":
+              - generic: R2
+            - cell "Production":
+              - link "Production":
+                - /url: /environments/3
+            - cell "Production":
+              - generic: Production
+            - cell "Critical":
+              - text: Critical
+            - cell "Degraded Needs verification":
+              - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+                - text: Degraded
+                - text: Needs verification
+            - cell "Current Current":
+              - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "13":
+              - generic: "13"
+            - cell "0":
+              - generic: "0"
+            - cell "Ahmed Awadalla / Moataz Al Khaldi":
+              - text: Ahmed Awadalla
+              - generic: / Moataz Al Khaldi
+            - cell "Actions for environment Production":
+              - button "Actions for environment Production": ⋯
+          - row "Select TAH TAH R3 Production Production Critical Unknown Current Current 1 13 0 Ahmed Awadalla / Moataz Al Khaldi Actions for environment Production":
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R3":
+              - generic: R3
+            - cell "Production":
+              - link "Production":
+                - /url: /environments/4
+            - cell "Production":
+              - generic: Production
+            - cell "Critical":
+              - text: Critical
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 22 Oct 2026, 13:59 · due 21 Nov 2026, 13:59":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "13":
+              - generic: "13"
+            - cell "0":
+              - generic: "0"
+            - cell "Ahmed Awadalla / Moataz Al Khaldi":
+              - text: Ahmed Awadalla
+              - generic: / Moataz Al Khaldi
+            - cell "Actions for environment Production":
+              - button "Actions for environment Production": ⋯
+          - row "Select TAH TAH R2 Staging Production Normal Unknown Current Current 1 13 0 Ahmed Awadalla / Moataz Al Khaldi Actions for environment Staging":
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R2":
+              - generic: R2
+            - cell "Staging":
+              - link "Staging":
+                - /url: /environments/5
+            - cell "Production":
+              - generic: Production
+            - cell "Normal":
+              - generic: Normal
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 22 Oct 2026, 13:59 · due 21 Nov 2026, 13:59":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "13":
+              - generic: "13"
+            - cell "0":
+              - generic: "0"
+            - cell "Ahmed Awadalla / Moataz Al Khaldi":
+              - text: Ahmed Awadalla
+              - generic: / Moataz Al Khaldi
+            - cell "Actions for environment Staging":
+              - button "Actions for environment Staging": ⋯
+          - row "Select TAH TAH R3 Staging Production Normal Unknown Current Current 1 13 0 Ahmed Awadalla / Moataz Al Khaldi Actions for environment Staging":
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R3":
+              - generic: R3
+            - cell "Staging":
+              - link "Staging":
+                - /url: /environments/6
+            - cell "Production":
+              - generic: Production
+            - cell "Normal":
+              - generic: Normal
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Current Current":
+              - generic "Review every 30 days · last 22 Oct 2026, 13:59 · due 21 Nov 2026, 13:59":
+                - text: Current
+                - generic: Current
+            - cell "1":
+              - generic: "1"
+            - cell "13":
+              - generic: "13"
+            - cell "0":
+              - generic: "0"
+            - cell "Ahmed Awadalla / Moataz Al Khaldi":
+              - text: Ahmed Awadalla
+              - generic: / Moataz Al Khaldi
+            - cell "Actions for environment Staging":
+              - button "Actions for environment Staging": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 9 OF 9
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 9 OF 9
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,538 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Tickets" [level=1]
+- generic: Synchronized tickets follow their Jira status. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time.
+- button "Export CSV"
+- link "+ New Ticket":
+  - /url: /cases/new
+- complementary "Section menu":
+  - navigation:
+    - link "All tickets":
+      - /url: /cases
+    - link "New ticket":
+      - /url: /cases/new
+  - button "Expand menu":
+- main:
+  - group "Quick views":
+    - button "All open183" [pressed]
+    - button "My tickets0"
+    - button "Overdue73"
+    - button "Unassigned104"
+    - button "Waiting for customer88"
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+    - option "Unassigned"
+  - generic: Status
+  - combobox "Status":
+    - option "Open" [selected]
+    - option "All"
+    - option "Closed or cancelled"
+    - option "New"
+    - option "Open"
+    - option "In progress"
+    - option "Waiting for customer"
+    - option "Resolved"
+    - option "Closed"
+    - option "Re-opened"
+  - generic: Priority
+  - combobox "Priority":
+    - option "Any" [selected]
+    - option "Critical or high"
+    - option "Critical"
+    - option "High"
+    - option "Normal"
+    - option "Low"
+  - generic: Deadline
+  - combobox "Deadline":
+    - option "Any" [selected]
+    - option "Overdue"
+    - option "Due within 24 hours"
+    - option "Due soon"
+    - option "No deadline"
+  - button "Advanced filters":
+    - text: Advanced filters
+    - generic: ▾
+  - region "Tickets":
+    - searchbox "Search all tickets"
+    - generic: 183 rows
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Tickets":
+      - caption: Tickets
+      - rowgroup:
+        - row "Details Select all rows shown Ticket Client Priority Status Owner Deadline Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Ticket":
+            - button "Ticket" [active]:
+              - generic: Ticket
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Priority":
+            - button "Priority":
+              - generic: Priority
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Owner":
+            - button "Owner":
+              - generic: Owner
+          - columnheader "Deadline":
+            - button "Deadline":
+              - generic: Deadline
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select CS-2987 Wrong TimeStamp calculated in P2P systems Details for CS-2987 Wrong TimeStamp calculated in P2P systems CS-2987 Wrong TimeStamp calculated in P2P systems SEW High New Mohammed Alqaruoti 14 May 2026, 13:54 · overdue Actions for ticket CS-2987":
+          - cell "Select CS-2987 Wrong TimeStamp calculated in P2P systems":
+            - checkbox "Select CS-2987 Wrong TimeStamp calculated in P2P systems"
+          - cell "Details for CS-2987 Wrong TimeStamp calculated in P2P systems":
+            - button "Details for CS-2987 Wrong TimeStamp calculated in P2P systems":
+          - cell "CS-2987 Wrong TimeStamp calculated in P2P systems":
+            - generic "Incident":
+              - link "CS-2987":
+                - /url: /cases/11187
+              - text: Wrong TimeStamp calculated in P2P systems
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "High":
+            - text: High
+          - cell "New":
+            - generic: New
+          - cell "Mohammed Alqaruoti":
+            - generic: MA
+            - generic: Mohammed Alqaruoti
+          - cell "14 May 2026, 13:54 · overdue":
+            - generic: 14 May 2026, 13:54 · overdue
+          - cell "Actions for ticket CS-2987":
+            - button "Actions for ticket CS-2987": ⋯
+        - row "Select CS-4141 Whitelist Improvment Details for CS-4141 Whitelist Improvment CS-4141 Whitelist Improvment RNP Normal New Ala AlBarghouthi None Actions for ticket CS-4141":
+          - cell "Select CS-4141 Whitelist Improvment":
+            - checkbox "Select CS-4141 Whitelist Improvment"
+          - cell "Details for CS-4141 Whitelist Improvment":
+            - button "Details for CS-4141 Whitelist Improvment":
+          - cell "CS-4141 Whitelist Improvment":
+            - generic "Improvement":
+              - link "CS-4141":
+                - /url: /cases/12341
+              - text: Whitelist Improvment
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "Ala AlBarghouthi":
+            - generic: AA
+            - generic: Ala AlBarghouthi
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4141":
+            - button "Actions for ticket CS-4141": ⋯
+        - row "Select CS-2995 Web monitorig RRM and Nginx behavior Details for CS-2995 Web monitorig RRM and Nginx behavior CS-2995 Web monitorig RRM and Nginx behavior SEW Normal Open Mohammed Alqaruoti 02 Aug 2026, 18:00 · overdue Actions for ticket CS-2995":
+          - cell "Select CS-2995 Web monitorig RRM and Nginx behavior":
+            - checkbox "Select CS-2995 Web monitorig RRM and Nginx behavior"
+          - cell "Details for CS-2995 Web monitorig RRM and Nginx behavior":
+            - button "Details for CS-2995 Web monitorig RRM and Nginx behavior":
+          - cell "CS-2995 Web monitorig RRM and Nginx behavior":
+            - generic "Task":
+              - link "CS-2995":
+                - /url: /cases/11195
+              - text: Web monitorig RRM and Nginx behavior
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "Normal":
+            - generic: Normal
+          - cell "Open":
+            - generic: Open
+          - cell "Mohammed Alqaruoti":
+            - generic: MA
+            - generic: Mohammed Alqaruoti
+          - cell "02 Aug 2026, 18:00 · overdue":
+            - generic: 02 Aug 2026, 18:00 · overdue
+          - cell "Actions for ticket CS-2995":
+            - button "Actions for ticket CS-2995": ⋯
+        - row "Select CS-1763 Web | Reject Reason | Offence type dropdown Details for CS-1763 Web | Reject Reason | Offence type dropdown CS-1763 Web | Reject Reason | Offence type dropdown TAH Normal Open Unassigned None Actions for ticket CS-1763":
+          - cell "Select CS-1763 Web | Reject Reason | Offence type dropdown":
+            - checkbox "Select CS-1763 Web | Reject Reason | Offence type dropdown"
+          - cell "Details for CS-1763 Web | Reject Reason | Offence type dropdown":
+            - button "Details for CS-1763 Web | Reject Reason | Offence type dropdown":
+          - cell "CS-1763 Web | Reject Reason | Offence type dropdown":
+            - generic "Improvement":
+              - link "CS-1763":
+                - /url: /cases/9963
+              - text: Web | Reject Reason | Offence type dropdown
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "Open":
+            - generic: Open
+          - cell "Unassigned":
+            - generic: Unassigned
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-1763":
+            - button "Actions for ticket CS-1763": ⋯
+        - row "Select CS-1762 Web | Operational Data | Adding last action datetime filter Details for CS-1762 Web | Operational Data | Adding last action datetime filter CS-1762 Web | Operational Data | Adding last action datetime filter TAH Normal New Unassigned None Actions for ticket CS-1762":
+          - cell "Select CS-1762 Web | Operational Data | Adding last action datetime filter":
+            - checkbox "Select CS-1762 Web | Operational Data | Adding last action datetime filter"
+          - cell "Details for CS-1762 Web | Operational Data | Adding last action datetime filter":
+            - button "Details for CS-1762 Web | Operational Data | Adding last action datetime filter":
+          - cell "CS-1762 Web | Operational Data | Adding last action datetime filter":
+            - generic "Incident":
+              - link "CS-1762":
+                - /url: /cases/9962
+              - text: Web | Operational Data | Adding last action datetime filter
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "Unassigned":
+            - generic: Unassigned
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-1762":
+            - button "Actions for ticket CS-1762": ⋯
+        - row "Select CS-4014 Waterproofing material labelled “Ditto” Details for CS-4014 Waterproofing material labelled “Ditto” CS-4014 Waterproofing material labelled “Ditto” RNP Normal New car None Actions for ticket CS-4014":
+          - cell "Select CS-4014 Waterproofing material labelled “Ditto”":
+            - checkbox "Select CS-4014 Waterproofing material labelled “Ditto”"
+          - cell "Details for CS-4014 Waterproofing material labelled “Ditto”":
+            - button "Details for CS-4014 Waterproofing material labelled “Ditto”":
+          - cell "CS-4014 Waterproofing material labelled “Ditto”":
+            - generic "Task":
+              - link "CS-4014":
+                - /url: /cases/12214
+              - text: Waterproofing material labelled “Ditto”
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "car":
+            - generic: CA
+            - generic: car
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4014":
+            - button "Actions for ticket CS-4014": ⋯
+        - row "Select CS-4089 Waterproofing material labelled “Ditto” Details for CS-4089 Waterproofing material labelled “Ditto” CS-4089 Waterproofing material labelled “Ditto” RNP Normal Open amai None Actions for ticket CS-4089":
+          - cell "Select CS-4089 Waterproofing material labelled “Ditto”":
+            - checkbox "Select CS-4089 Waterproofing material labelled “Ditto”"
+          - cell "Details for CS-4089 Waterproofing material labelled “Ditto”":
+            - button "Details for CS-4089 Waterproofing material labelled “Ditto”":
+          - cell "CS-4089 Waterproofing material labelled “Ditto”":
+            - generic "Task":
+              - link "CS-4089":
+                - /url: /cases/12289
+              - text: Waterproofing material labelled “Ditto”
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "Open":
+            - generic: Open
+          - cell "amai":
+            - generic: AM
+            - generic: amai
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4089":
+            - button "Actions for ticket CS-4089": ⋯
+        - row "Select CS-4018 VES Planned Maintenance jobs master Details for CS-4018 VES Planned Maintenance jobs master CS-4018 VES Planned Maintenance jobs master RNP Normal Waiting for customer Sannan Khan Client contact None Actions for ticket CS-4018":
+          - cell "Select CS-4018 VES Planned Maintenance jobs master":
+            - checkbox "Select CS-4018 VES Planned Maintenance jobs master"
+          - cell "Details for CS-4018 VES Planned Maintenance jobs master":
+            - button "Details for CS-4018 VES Planned Maintenance jobs master":
+          - cell "CS-4018 VES Planned Maintenance jobs master":
+            - generic "Task":
+              - link "CS-4018":
+                - /url: /cases/12218
+              - text: VES Planned Maintenance jobs master
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Sannan Khan Client contact":
+            - generic: SK
+            - text: Sannan Khan
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4018":
+            - button "Actions for ticket CS-4018": ⋯
+        - row "Select CS-4042 VES maintenance system Details for CS-4042 VES maintenance system CS-4042 VES maintenance system RNP Normal Waiting for customer Sannan Khan Client contact None Actions for ticket CS-4042":
+          - cell "Select CS-4042 VES maintenance system":
+            - checkbox "Select CS-4042 VES maintenance system"
+          - cell "Details for CS-4042 VES maintenance system":
+            - button "Details for CS-4042 VES maintenance system":
+          - cell "CS-4042 VES maintenance system":
+            - generic "Task":
+              - link "CS-4042":
+                - /url: /cases/12242
+              - text: VES maintenance system
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Sannan Khan Client contact":
+            - generic: SK
+            - text: Sannan Khan
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4042":
+            - button "Actions for ticket CS-4042": ⋯
+        - row "Select CS-2748 Vehicle Type Filter Back Office Details for CS-2748 Vehicle Type Filter Back Office CS-2748 Vehicle Type Filter Back Office TAH Normal In progress Unassigned None Actions for ticket CS-2748":
+          - cell "Select CS-2748 Vehicle Type Filter Back Office":
+            - checkbox "Select CS-2748 Vehicle Type Filter Back Office"
+          - cell "Details for CS-2748 Vehicle Type Filter Back Office":
+            - button "Details for CS-2748 Vehicle Type Filter Back Office":
+          - cell "CS-2748 Vehicle Type Filter Back Office":
+            - generic "Incident":
+              - link "CS-2748":
+                - /url: /cases/10948
+              - text: Vehicle Type Filter Back Office
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "In progress":
+            - text: In progress
+          - cell "Unassigned":
+            - generic: Unassigned
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-2748":
+            - button "Actions for ticket CS-2748": ⋯
+        - row "Select CS-1821 Vehicle Speed Reverted After Vehicle Type Change Details for CS-1821 Vehicle Speed Reverted After Vehicle Type Change CS-1821 Vehicle Speed Reverted After Vehicle Type Change TAH High Waiting for customer Ahmed Awadalla 15 Jun 2026, 10:30 · overdue Actions for ticket CS-1821":
+          - cell "Select CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+            - checkbox "Select CS-1821 Vehicle Speed Reverted After Vehicle Type Change"
+          - cell "Details for CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+            - button "Details for CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+          - cell "CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+            - generic "Incident":
+              - link "CS-1821":
+                - /url: /cases/10021
+              - text: Vehicle Speed Reverted After Vehicle Type Change
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "High":
+            - text: High
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Ahmed Awadalla":
+            - generic: AA
+            - generic: Ahmed Awadalla
+          - cell "15 Jun 2026, 10:30 · overdue":
+            - generic: 15 Jun 2026, 10:30 · overdue
+          - cell "Actions for ticket CS-1821":
+            - button "Actions for ticket CS-1821": ⋯
+        - row "Select CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work Details for CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work RNP Normal New car None Actions for ticket CS-4020":
+          - cell "Select CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work":
+            - checkbox "Select CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work"
+          - cell "Details for CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work":
+            - button "Details for CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work":
+          - cell "CS-4020 URBAN CATALYST_ Consultant _ supervise on \"Dong-IL\" work":
+            - generic "Epic":
+              - link "CS-4020":
+                - /url: /cases/12220
+              - text: URBAN CATALYST_ Consultant _ supervise on "Dong-IL" work
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "car":
+            - generic: CA
+            - generic: car
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4020":
+            - button "Actions for ticket CS-4020": ⋯
+        - row "Select CS-4078 URBAN CATALYST DC Consultancy Details for CS-4078 URBAN CATALYST DC Consultancy CS-4078 URBAN CATALYST DC Consultancy RNP Normal New amai None Actions for ticket CS-4078":
+          - cell "Select CS-4078 URBAN CATALYST DC Consultancy":
+            - checkbox "Select CS-4078 URBAN CATALYST DC Consultancy"
+          - cell "Details for CS-4078 URBAN CATALYST DC Consultancy":
+            - button "Details for CS-4078 URBAN CATALYST DC Consultancy":
+          - cell "CS-4078 URBAN CATALYST DC Consultancy":
+            - generic "Epic":
+              - link "CS-4078":
+                - /url: /cases/12278
+              - text: URBAN CATALYST DC Consultancy
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "amai":
+            - generic: AM
+            - generic: amai
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4078":
+            - button "Actions for ticket CS-4078": ⋯
+        - row "Select CS-4147 Update whitelist system to enforce rejection of delayed cases Details for CS-4147 Update whitelist system to enforce rejection of delayed cases CS-4147 Update whitelist system to enforce rejection of delayed cases RNP Normal In progress Ala AlBarghouthi None Actions for ticket CS-4147":
+          - cell "Select CS-4147 Update whitelist system to enforce rejection of delayed cases":
+            - checkbox "Select CS-4147 Update whitelist system to enforce rejection of delayed cases"
+          - cell "Details for CS-4147 Update whitelist system to enforce rejection of delayed cases":
+            - button "Details for CS-4147 Update whitelist system to enforce rejection of delayed cases":
+          - cell "CS-4147 Update whitelist system to enforce rejection of delayed cases":
+            - generic "Task":
+              - link "CS-4147":
+                - /url: /cases/12347
+              - text: Update whitelist system to enforce rejection of delayed cases
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "In progress":
+            - text: In progress
+          - cell "Ala AlBarghouthi":
+            - generic: AA
+            - generic: Ala AlBarghouthi
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4147":
+            - button "Actions for ticket CS-4147": ⋯
+        - row "Select CS-4142 Update Traffic Law in PSOP Details for CS-4142 Update Traffic Law in PSOP CS-4142 Update Traffic Law in PSOP RNP Normal New Ala AlBarghouthi None Actions for ticket CS-4142":
+          - cell "Select CS-4142 Update Traffic Law in PSOP":
+            - checkbox "Select CS-4142 Update Traffic Law in PSOP"
+          - cell "Details for CS-4142 Update Traffic Law in PSOP":
+            - button "Details for CS-4142 Update Traffic Law in PSOP":
+          - cell "CS-4142 Update Traffic Law in PSOP":
+            - generic "Improvement":
+              - link "CS-4142":
+                - /url: /cases/12342
+              - text: Update Traffic Law in PSOP
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "Ala AlBarghouthi":
+            - generic: AA
+            - generic: Ala AlBarghouthi
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4142":
+            - button "Actions for ticket CS-4142": ⋯
+    - status: Sorted by Ticket, descending.
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 183
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 183
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

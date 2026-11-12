@@ -1,0 +1,1148 @@
+[
+  {
+    "id": "001-executive-dashboard",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:42:03.535Z",
+    "screenshot": true
+  },
+  {
+    "id": "002-expanded-navigation",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:42:22.516Z",
+    "screenshot": false
+  },
+  {
+    "id": "003-dashboard-desktop",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:42:22.849Z",
+    "screenshot": true
+  },
+  {
+    "id": "004-operational",
+    "url": "https://nb01994.vitronic.de/dashboards/operational",
+    "time": "2026-11-10T12:42:23.806Z",
+    "screenshot": true
+  },
+  {
+    "id": "005-operational-settled",
+    "url": "https://nb01994.vitronic.de/dashboards/operational",
+    "time": "2026-11-10T12:42:33.015Z",
+    "screenshot": true
+  },
+  {
+    "id": "006-sla-dashboard",
+    "url": "https://nb01994.vitronic.de/dashboards/sla",
+    "time": "2026-11-10T12:42:44.892Z",
+    "screenshot": true
+  },
+  {
+    "id": "007-management-dashboard",
+    "url": "https://nb01994.vitronic.de/dashboards/management",
+    "time": "2026-11-10T12:42:45.257Z",
+    "screenshot": true
+  },
+  {
+    "id": "008-project-dashboard",
+    "url": "https://nb01994.vitronic.de/dashboards/project",
+    "time": "2026-11-10T12:42:45.673Z",
+    "screenshot": true
+  },
+  {
+    "id": "009-my-dashboard",
+    "url": "https://nb01994.vitronic.de/my-dashboard",
+    "time": "2026-11-10T12:42:46.087Z",
+    "screenshot": true
+  },
+  {
+    "id": "010-sla-settled",
+    "url": "https://nb01994.vitronic.de/dashboards/sla",
+    "time": "2026-11-10T12:42:59.534Z",
+    "screenshot": true
+  },
+  {
+    "id": "011-management-settled",
+    "url": "https://nb01994.vitronic.de/dashboards/management",
+    "time": "2026-11-10T12:43:00.653Z",
+    "screenshot": true
+  },
+  {
+    "id": "012-project-settled",
+    "url": "https://nb01994.vitronic.de/dashboards/project?projectId=1",
+    "time": "2026-11-10T12:43:01.478Z",
+    "screenshot": true
+  },
+  {
+    "id": "013-my-dashboard-settled",
+    "url": "https://nb01994.vitronic.de/my-dashboard",
+    "time": "2026-11-10T12:43:02.087Z",
+    "screenshot": true
+  },
+  {
+    "id": "014-clients",
+    "url": "https://nb01994.vitronic.de/clients",
+    "time": "2026-11-10T12:43:07.012Z",
+    "screenshot": true
+  },
+  {
+    "id": "015-products",
+    "url": "https://nb01994.vitronic.de/products",
+    "time": "2026-11-10T12:43:07.746Z",
+    "screenshot": true
+  },
+  {
+    "id": "016-tickets-settled",
+    "url": "https://nb01994.vitronic.de/cases",
+    "time": "2026-11-10T12:43:16.204Z",
+    "screenshot": true
+  },
+  {
+    "id": "018-ticket-overdue-filter",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue",
+    "time": "2026-11-10T12:43:27.695Z",
+    "screenshot": true
+  },
+  {
+    "id": "019-ticket-exact-search",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue&q=CS-2963",
+    "time": "2026-11-10T12:43:34.557Z",
+    "screenshot": true
+  },
+  {
+    "id": "020-ticket-partial-search",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue&q=CS-2963",
+    "time": "2026-11-10T12:43:40.748Z",
+    "screenshot": false
+  },
+  {
+    "id": "021-ticket-empty-search",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue&q=TIO-AUDIT-NO-MATCH-20261110",
+    "time": "2026-11-10T12:43:52.646Z",
+    "screenshot": true
+  },
+  {
+    "id": "022-ticket-pagination",
+    "url": "https://nb01994.vitronic.de/cases?page=2",
+    "time": "2026-11-10T12:43:54.337Z",
+    "screenshot": false
+  },
+  {
+    "id": "023-ticket-sort-ascending",
+    "url": "https://nb01994.vitronic.de/cases?sort=title",
+    "time": "2026-11-10T12:43:55.022Z",
+    "screenshot": false
+  },
+  {
+    "id": "024-ticket-sort-descending",
+    "url": "https://nb01994.vitronic.de/cases?sort=-title",
+    "time": "2026-11-10T12:43:55.523Z",
+    "screenshot": false
+  },
+  {
+    "id": "025-commitments",
+    "url": "https://nb01994.vitronic.de/commitments",
+    "time": "2026-11-10T12:44:08.517Z",
+    "screenshot": true
+  },
+  {
+    "id": "026-escalations",
+    "url": "https://nb01994.vitronic.de/escalations",
+    "time": "2026-11-10T12:44:09.428Z",
+    "screenshot": true
+  },
+  {
+    "id": "027-teams",
+    "url": "https://nb01994.vitronic.de/teams",
+    "time": "2026-11-10T12:44:10.334Z",
+    "screenshot": true
+  },
+  {
+    "id": "028-reporting-center",
+    "url": "https://nb01994.vitronic.de/reporting-center",
+    "time": "2026-11-10T12:44:11.359Z",
+    "screenshot": true
+  },
+  {
+    "id": "029-administration",
+    "url": "https://nb01994.vitronic.de/admin/users",
+    "time": "2026-11-10T12:44:12.231Z",
+    "screenshot": true
+  },
+  {
+    "id": "030-projects",
+    "url": "https://nb01994.vitronic.de/projects",
+    "time": "2026-11-10T12:44:40.195Z",
+    "screenshot": true
+  },
+  {
+    "id": "031-contracts",
+    "url": "https://nb01994.vitronic.de/contracts",
+    "time": "2026-11-10T12:44:41.171Z",
+    "screenshot": true
+  },
+  {
+    "id": "032-environments",
+    "url": "https://nb01994.vitronic.de/environments",
+    "time": "2026-11-10T12:44:42.197Z",
+    "screenshot": true
+  },
+  {
+    "id": "033-version-matrix",
+    "url": "https://nb01994.vitronic.de/versions",
+    "time": "2026-11-10T12:44:43.056Z",
+    "screenshot": true
+  },
+  {
+    "id": "034-assets",
+    "url": "https://nb01994.vitronic.de/assets",
+    "time": "2026-11-10T12:44:44.117Z",
+    "screenshot": true
+  },
+  {
+    "id": "035-firewall-rules",
+    "url": "https://nb01994.vitronic.de/firewall-rules",
+    "time": "2026-11-10T12:44:45.527Z",
+    "screenshot": true
+  },
+  {
+    "id": "036-handovers",
+    "url": "https://nb01994.vitronic.de/handovers",
+    "time": "2026-11-10T12:45:03.746Z",
+    "screenshot": true
+  },
+  {
+    "id": "037-reassignment",
+    "url": "https://nb01994.vitronic.de/reassignment",
+    "time": "2026-11-10T12:45:04.526Z",
+    "screenshot": true
+  },
+  {
+    "id": "038-actions",
+    "url": "https://nb01994.vitronic.de/actions",
+    "time": "2026-11-10T12:45:05.505Z",
+    "screenshot": true
+  },
+  {
+    "id": "039-data-quality",
+    "url": "https://nb01994.vitronic.de/data-quality",
+    "time": "2026-11-10T12:45:06.436Z",
+    "screenshot": true
+  },
+  {
+    "id": "040-client-map",
+    "url": "https://nb01994.vitronic.de/map",
+    "time": "2026-11-10T12:45:07.407Z",
+    "screenshot": true
+  },
+  {
+    "id": "041-client-map-settled",
+    "url": "https://nb01994.vitronic.de/map",
+    "time": "2026-11-10T12:45:12.476Z",
+    "screenshot": true
+  },
+  {
+    "id": "042-map-country-selection",
+    "url": "https://nb01994.vitronic.de/map?country=Saudi+Arabia",
+    "time": "2026-11-10T12:45:18.879Z",
+    "screenshot": true
+  },
+  {
+    "id": "043-client-detail",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:45:27.623Z",
+    "screenshot": true
+  },
+  {
+    "id": "044-client-operational",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:45:40.132Z",
+    "screenshot": true
+  },
+  {
+    "id": "044-client-technical",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:45:40.712Z",
+    "screenshot": true
+  },
+  {
+    "id": "044-client-commercial",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:45:41.169Z",
+    "screenshot": true
+  },
+  {
+    "id": "044-client-records",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:45:41.653Z",
+    "screenshot": true
+  },
+  {
+    "id": "045-client-commercial-settled",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:46:07.921Z",
+    "screenshot": true
+  },
+  {
+    "id": "046-client-contracts",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:46:15.873Z",
+    "screenshot": true
+  },
+  {
+    "id": "047-client-projects",
+    "url": "https://nb01994.vitronic.de/clients/1",
+    "time": "2026-11-10T12:46:16.604Z",
+    "screenshot": true
+  },
+  {
+    "id": "048-project-detail",
+    "url": "https://nb01994.vitronic.de/projects/1",
+    "time": "2026-11-10T12:46:17.559Z",
+    "screenshot": true
+  },
+  {
+    "id": "049-contract-detail",
+    "url": "https://nb01994.vitronic.de/contracts/1",
+    "time": "2026-11-10T12:46:19.097Z",
+    "screenshot": true
+  },
+  {
+    "id": "050-admin-roles",
+    "url": "https://nb01994.vitronic.de/admin/roles",
+    "time": "2026-11-10T12:46:33.621Z",
+    "screenshot": true
+  },
+  {
+    "id": "051-admin-rights",
+    "url": "https://nb01994.vitronic.de/admin/rights",
+    "time": "2026-11-10T12:46:34.773Z",
+    "screenshot": true
+  },
+  {
+    "id": "052-admin-access-review",
+    "url": "https://nb01994.vitronic.de/admin/access",
+    "time": "2026-11-10T12:46:36.540Z",
+    "screenshot": true
+  },
+  {
+    "id": "053-admin-configuration",
+    "url": "https://nb01994.vitronic.de/admin/config",
+    "time": "2026-11-10T12:46:37.271Z",
+    "screenshot": true
+  },
+  {
+    "id": "054-admin-audit",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T12:46:38.475Z",
+    "screenshot": true
+  },
+  {
+    "id": "055-admin-archived",
+    "url": "https://nb01994.vitronic.de/admin/archived",
+    "time": "2026-11-10T12:46:39.339Z",
+    "screenshot": true
+  },
+  {
+    "id": "056-jira-connections",
+    "url": "https://nb01994.vitronic.de/admin/integrations/jira",
+    "time": "2026-11-10T12:46:54.904Z",
+    "screenshot": true
+  },
+  {
+    "id": "057-jira-import-review",
+    "url": "https://nb01994.vitronic.de/admin/integrations/jira/review",
+    "time": "2026-11-10T12:46:55.786Z",
+    "screenshot": true
+  },
+  {
+    "id": "058-jira-conflicts",
+    "url": "https://nb01994.vitronic.de/admin/integrations/jira/conflicts",
+    "time": "2026-11-10T12:46:56.642Z",
+    "screenshot": true
+  },
+  {
+    "id": "059-jira-monitor",
+    "url": "https://nb01994.vitronic.de/admin/integrations/jira/monitoring",
+    "time": "2026-11-10T12:46:57.624Z",
+    "screenshot": true
+  },
+  {
+    "id": "060-report-library",
+    "url": "https://nb01994.vitronic.de/reporting-center/library",
+    "time": "2026-11-10T12:47:04.603Z",
+    "screenshot": true
+  },
+  {
+    "id": "061-ticket-report-builder",
+    "url": "https://nb01994.vitronic.de/reporting-center/builder/cases",
+    "time": "2026-11-10T12:47:06.074Z",
+    "screenshot": true
+  },
+  {
+    "id": "062-my-reports",
+    "url": "https://nb01994.vitronic.de/reporting-center/my-reports",
+    "time": "2026-11-10T12:47:06.762Z",
+    "screenshot": true
+  },
+  {
+    "id": "063-scheduled-reports",
+    "url": "https://nb01994.vitronic.de/reporting-center/schedules",
+    "time": "2026-11-10T12:47:07.647Z",
+    "screenshot": true
+  },
+  {
+    "id": "064-export-history",
+    "url": "https://nb01994.vitronic.de/reporting-center/history",
+    "time": "2026-11-10T12:47:08.462Z",
+    "screenshot": true
+  },
+  {
+    "id": "065-report-templates",
+    "url": "https://nb01994.vitronic.de/reporting-center/templates",
+    "time": "2026-11-10T12:47:09.166Z",
+    "screenshot": true
+  },
+  {
+    "id": "066-export-details",
+    "url": "https://nb01994.vitronic.de/reporting-center/history",
+    "time": "2026-11-10T12:47:16.244Z",
+    "screenshot": true
+  },
+  {
+    "id": "067-ticket-detail",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T12:47:41.865Z",
+    "screenshot": true
+  },
+  {
+    "id": "068-commitment-detail",
+    "url": "https://nb01994.vitronic.de/commitments/6",
+    "time": "2026-11-10T12:47:42.885Z",
+    "screenshot": true
+  },
+  {
+    "id": "069-handover-detail",
+    "url": "https://nb01994.vitronic.de/handovers/1",
+    "time": "2026-11-10T12:47:43.804Z",
+    "screenshot": true
+  },
+  {
+    "id": "070-environment-detail",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T12:47:45.001Z",
+    "screenshot": true
+  },
+  {
+    "id": "071-product-detail",
+    "url": "https://nb01994.vitronic.de/products/1",
+    "time": "2026-11-10T12:47:46.437Z",
+    "screenshot": true
+  },
+  {
+    "id": "072-team-detail",
+    "url": "https://nb01994.vitronic.de/teams/1",
+    "time": "2026-11-10T12:47:47.427Z",
+    "screenshot": true
+  },
+  {
+    "id": "073-tickets-mobile",
+    "url": "https://nb01994.vitronic.de/cases",
+    "time": "2026-11-10T12:48:04.397Z",
+    "screenshot": true
+  },
+  {
+    "id": "074-dashboard-mobile",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:48:13.670Z",
+    "screenshot": true
+  },
+  {
+    "id": "075-builder-mobile",
+    "url": "https://nb01994.vitronic.de/reporting-center/builder/cases",
+    "time": "2026-11-10T12:48:14.858Z",
+    "screenshot": true
+  },
+  {
+    "id": "076-report-template-critical-high",
+    "url": "https://nb01994.vitronic.de/reporting-center/builder/cases?template=open-critical-high",
+    "time": "2026-11-10T12:48:58.255Z",
+    "screenshot": true
+  },
+  {
+    "id": "077-notifications",
+    "url": "https://nb01994.vitronic.de/notifications",
+    "time": "2026-11-10T12:49:00.095Z",
+    "screenshot": true
+  },
+  {
+    "id": "078-asset-detail",
+    "url": "https://nb01994.vitronic.de/assets/27",
+    "time": "2026-11-10T12:49:01.434Z",
+    "screenshot": true
+  },
+  {
+    "id": "079-installation-detail",
+    "url": "https://nb01994.vitronic.de/installations/3",
+    "time": "2026-11-10T12:49:02.628Z",
+    "screenshot": true
+  },
+  {
+    "id": "080-component-detail",
+    "url": "https://nb01994.vitronic.de/components/27",
+    "time": "2026-11-10T12:49:03.430Z",
+    "screenshot": true
+  },
+  {
+    "id": "081-microservice-detail",
+    "url": "https://nb01994.vitronic.de/microservices/2",
+    "time": "2026-11-10T12:49:04.335Z",
+    "screenshot": true
+  },
+  {
+    "id": "082-config-clients-environments",
+    "url": "https://nb01994.vitronic.de/admin/config/category/clients-environments",
+    "time": "2026-11-10T12:49:18.227Z",
+    "screenshot": true
+  },
+  {
+    "id": "082-config-servers",
+    "url": "https://nb01994.vitronic.de/admin/config/category/servers",
+    "time": "2026-11-10T12:49:18.928Z",
+    "screenshot": true
+  },
+  {
+    "id": "082-config-products-installations",
+    "url": "https://nb01994.vitronic.de/admin/config/category/products-installations",
+    "time": "2026-11-10T12:49:19.610Z",
+    "screenshot": true
+  },
+  {
+    "id": "082-config-contracts-cases",
+    "url": "https://nb01994.vitronic.de/admin/config/category/contracts-cases",
+    "time": "2026-11-10T12:49:20.293Z",
+    "screenshot": true
+  },
+  {
+    "id": "082-config-teams",
+    "url": "https://nb01994.vitronic.de/admin/config/category/teams",
+    "time": "2026-11-10T12:49:20.956Z",
+    "screenshot": true
+  },
+  {
+    "id": "082-config-system",
+    "url": "https://nb01994.vitronic.de/admin/config/category/system",
+    "time": "2026-11-10T12:49:21.647Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-reported-conditions",
+    "url": "https://nb01994.vitronic.de/admin/config/reported-conditions",
+    "time": "2026-11-10T12:49:27.934Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-organization-relationship-types",
+    "url": "https://nb01994.vitronic.de/admin/config/organization-relationship-types",
+    "time": "2026-11-10T12:49:28.781Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-environment-types",
+    "url": "https://nb01994.vitronic.de/admin/config/environment-types",
+    "time": "2026-11-10T12:49:29.535Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-responsibility-areas",
+    "url": "https://nb01994.vitronic.de/admin/config/responsibility-areas",
+    "time": "2026-11-10T12:49:30.227Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-team-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/team-roles",
+    "time": "2026-11-10T12:49:31.034Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-server-types",
+    "url": "https://nb01994.vitronic.de/admin/config/server-types",
+    "time": "2026-11-10T12:49:31.745Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-server-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/server-roles",
+    "time": "2026-11-10T12:49:32.559Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-network-zones",
+    "url": "https://nb01994.vitronic.de/admin/config/network-zones",
+    "time": "2026-11-10T12:49:33.372Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-operating-systems",
+    "url": "https://nb01994.vitronic.de/admin/config/operating-systems",
+    "time": "2026-11-10T12:49:34.076Z",
+    "screenshot": true
+  },
+  {
+    "id": "083-project-phases",
+    "url": "https://nb01994.vitronic.de/admin/config/project-phases",
+    "time": "2026-11-10T12:49:34.782Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-component-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/component-roles",
+    "time": "2026-11-10T12:49:52.742Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-contract-types",
+    "url": "https://nb01994.vitronic.de/admin/config/contract-types",
+    "time": "2026-11-10T12:49:53.509Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-case-types",
+    "url": "https://nb01994.vitronic.de/admin/config/case-types",
+    "time": "2026-11-10T12:49:54.233Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-case-statuses",
+    "url": "https://nb01994.vitronic.de/admin/config/case-statuses",
+    "time": "2026-11-10T12:49:55.032Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-escalation-channels",
+    "url": "https://nb01994.vitronic.de/admin/config/escalation-channels",
+    "time": "2026-11-10T12:49:55.769Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-priority-guidance",
+    "url": "https://nb01994.vitronic.de/admin/config/priority-guidance",
+    "time": "2026-11-10T12:49:56.579Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-team-member-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/team-member-roles",
+    "time": "2026-11-10T12:49:57.539Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-policies",
+    "url": "https://nb01994.vitronic.de/admin/policies",
+    "time": "2026-11-10T12:49:58.267Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-jira",
+    "url": "https://nb01994.vitronic.de/admin/jira",
+    "time": "2026-11-10T12:49:58.969Z",
+    "screenshot": true
+  },
+  {
+    "id": "084-settings",
+    "url": "https://nb01994.vitronic.de/admin/settings",
+    "time": "2026-11-10T12:49:59.834Z",
+    "screenshot": true
+  },
+  {
+    "id": "085-new-client",
+    "url": "https://nb01994.vitronic.de/clients/new",
+    "time": "2026-11-10T12:50:31.368Z",
+    "screenshot": true
+  },
+  {
+    "id": "086-new-product",
+    "url": "https://nb01994.vitronic.de/products/new",
+    "time": "2026-11-10T12:50:32.054Z",
+    "screenshot": true
+  },
+  {
+    "id": "087-new-ticket",
+    "url": "https://nb01994.vitronic.de/cases/new",
+    "time": "2026-11-10T12:50:32.805Z",
+    "screenshot": true
+  },
+  {
+    "id": "088-new-commitment",
+    "url": "https://nb01994.vitronic.de/commitments/new",
+    "time": "2026-11-10T12:50:33.604Z",
+    "screenshot": true
+  },
+  {
+    "id": "089-new-escalation",
+    "url": "https://nb01994.vitronic.de/escalations/new",
+    "time": "2026-11-10T12:50:34.312Z",
+    "screenshot": true
+  },
+  {
+    "id": "090-new-contract",
+    "url": "https://nb01994.vitronic.de/contracts/new",
+    "time": "2026-11-10T12:50:35.198Z",
+    "screenshot": true
+  },
+  {
+    "id": "091-new-environment",
+    "url": "https://nb01994.vitronic.de/environments/new",
+    "time": "2026-11-10T12:50:35.946Z",
+    "screenshot": true
+  },
+  {
+    "id": "092-group-mappings",
+    "url": "https://nb01994.vitronic.de/admin/groups",
+    "time": "2026-11-10T12:51:15.727Z",
+    "screenshot": true
+  },
+  {
+    "id": "093-password-form",
+    "url": "https://nb01994.vitronic.de/account/password",
+    "time": "2026-11-10T12:51:16.378Z",
+    "screenshot": true
+  },
+  {
+    "id": "094-login-with-existing-session",
+    "url": "https://nb01994.vitronic.de/login",
+    "time": "2026-11-10T12:51:17.003Z",
+    "screenshot": true
+  },
+  {
+    "id": "095-dashboard-return",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:51:23.861Z",
+    "screenshot": true
+  },
+  {
+    "id": "096-global-search-open",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:51:24.854Z",
+    "screenshot": true
+  },
+  {
+    "id": "097-global-search-result",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:51:30.142Z",
+    "screenshot": true
+  },
+  {
+    "id": "098-global-search-settled",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T12:51:35.642Z",
+    "screenshot": true
+  },
+  {
+    "id": "099-global-search-navigation",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T12:51:55.058Z",
+    "screenshot": false
+  },
+  {
+    "id": "100-mobile-menu-open",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T12:51:55.665Z",
+    "screenshot": true
+  },
+  {
+    "id": "101-mobile-menu-closed-keyboard",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T12:51:56.164Z",
+    "screenshot": true
+  },
+  {
+    "id": "102-notifications-mobile-overlap",
+    "url": "https://nb01994.vitronic.de/notifications",
+    "time": "2026-11-10T13:00:30.379Z",
+    "screenshot": true
+  },
+  {
+    "id": "103-notifications-tablet-comparison",
+    "url": "https://nb01994.vitronic.de/notifications",
+    "time": "2026-11-10T13:00:41.173Z",
+    "screenshot": true
+  },
+  {
+    "id": "104-notifications-mobile-reproduced",
+    "url": "https://nb01994.vitronic.de/notifications",
+    "time": "2026-11-10T13:00:41.433Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-affected-records-",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:06.324Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-jira-references-",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:06.981Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-documented-impact",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:07.579Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-commitments-",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:08.118Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-escalations",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:08.764Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-attachments",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:09.326Z",
+    "screenshot": true
+  },
+  {
+    "id": "105-ticket-tab-field-history",
+    "url": "https://nb01994.vitronic.de/cases/12203",
+    "time": "2026-11-10T13:01:10.861Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-servers-assets-",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:21.655Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-work",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:22.241Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-firewall-rules-",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:22.781Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-condition-history",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:23.278Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-attachments",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:23.748Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-data-quality",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:24.419Z",
+    "screenshot": true
+  },
+  {
+    "id": "106-env-tab-history",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T13:01:24.985Z",
+    "screenshot": true
+  },
+  {
+    "id": "107-client-ticket-status-reproduced",
+    "url": "https://nb01994.vitronic.de/clients/1?tab=cases",
+    "time": "2026-11-10T13:01:36.121Z",
+    "screenshot": true
+  },
+  {
+    "id": "108-register-ticket-status-comparison",
+    "url": "https://nb01994.vitronic.de/cases?status=all&q=CS-4003",
+    "time": "2026-11-10T13:01:37.298Z",
+    "screenshot": true
+  },
+  {
+    "id": "109-ticket-table-header-alignment",
+    "url": "https://nb01994.vitronic.de/cases?status=all&q=CS-4003",
+    "time": "2026-11-10T13:01:59.735Z",
+    "screenshot": true
+  },
+  {
+    "id": "110-audit-invalid-user-identifiers",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:00.801Z",
+    "screenshot": true
+  },
+  {
+    "id": "111-audit-invalid-user-identifiers-settled",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:16.668Z",
+    "screenshot": true
+  },
+  {
+    "id": "112-audit-negative-identifiers-filtered",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:25.338Z",
+    "screenshot": true
+  },
+  {
+    "id": "113-audit-user-mapping-evidence",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:33.585Z",
+    "screenshot": true
+  },
+  {
+    "id": "R032-desktop-settled",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:45.602Z",
+    "screenshot": true
+  },
+  {
+    "id": "R032-laptop-settled",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:46.220Z",
+    "screenshot": true
+  },
+  {
+    "id": "R032-tablet-settled",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:46.848Z",
+    "screenshot": true
+  },
+  {
+    "id": "R032-mobile-settled",
+    "url": "https://nb01994.vitronic.de/admin/audit",
+    "time": "2026-11-10T13:02:47.314Z",
+    "screenshot": true
+  },
+  {
+    "id": "R024-desktop-settled",
+    "url": "https://nb01994.vitronic.de/map",
+    "time": "2026-11-10T13:02:48.983Z",
+    "screenshot": true
+  },
+  {
+    "id": "R024-laptop-settled",
+    "url": "https://nb01994.vitronic.de/map",
+    "time": "2026-11-10T13:02:49.413Z",
+    "screenshot": true
+  },
+  {
+    "id": "R024-tablet-settled",
+    "url": "https://nb01994.vitronic.de/map",
+    "time": "2026-11-10T13:02:49.713Z",
+    "screenshot": true
+  },
+  {
+    "id": "R024-mobile-settled",
+    "url": "https://nb01994.vitronic.de/map",
+    "time": "2026-11-10T13:02:49.977Z",
+    "screenshot": true
+  },
+  {
+    "id": "114-report-configure-dialog",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=cases",
+    "time": "2026-11-10T13:03:55.503Z",
+    "screenshot": true
+  },
+  {
+    "id": "115-tickets-catalog-preview",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=cases",
+    "time": "2026-11-10T13:04:02.327Z",
+    "screenshot": true
+  },
+  {
+    "id": "116-catalog-pending-validation-filter",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=cases",
+    "time": "2026-11-10T13:05:48.390Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-01",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=commitments",
+    "time": "2026-11-10T13:06:21.212Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-02",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=actions",
+    "time": "2026-11-10T13:06:23.091Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-03",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=environments",
+    "time": "2026-11-10T13:06:24.625Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-04",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=versions",
+    "time": "2026-11-10T13:06:26.093Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-05",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=assets",
+    "time": "2026-11-10T13:06:27.939Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-06",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=data-quality",
+    "time": "2026-11-10T13:06:29.872Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-07",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=contracts",
+    "time": "2026-11-10T13:06:33.131Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-08",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=sla-compliance",
+    "time": "2026-11-10T13:06:45.395Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-09",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=commitment-performance",
+    "time": "2026-11-10T13:06:47.040Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-10",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=case-aging",
+    "time": "2026-11-10T13:06:49.024Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-11",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=team-kpis",
+    "time": "2026-11-10T13:06:50.848Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-12",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=team-workload",
+    "time": "2026-11-10T13:06:52.492Z",
+    "screenshot": true
+  },
+  {
+    "id": "117-catalog-preview-13",
+    "url": "https://nb01994.vitronic.de/reporting-center/library?report=client-health",
+    "time": "2026-11-10T13:06:54.150Z",
+    "screenshot": true
+  },
+  {
+    "id": "R057-mobile-recapture",
+    "url": "https://nb01994.vitronic.de/admin/config/category/products-installations",
+    "time": "2026-11-10T18:04:26.369Z",
+    "screenshot": true
+  },
+  {
+    "id": "R057-tablet-recapture",
+    "url": "https://nb01994.vitronic.de/admin/config/category/products-installations",
+    "time": "2026-11-10T18:04:28.417Z",
+    "screenshot": true
+  },
+  {
+    "id": "R060-tablet-recapture",
+    "url": "https://nb01994.vitronic.de/admin/config/category/system",
+    "time": "2026-11-10T18:04:30.493Z",
+    "screenshot": true
+  },
+  {
+    "id": "R087-tablet-recapture",
+    "url": "https://nb01994.vitronic.de/environments/new",
+    "time": "2026-11-10T18:04:32.522Z",
+    "screenshot": true
+  },
+  {
+    "id": "R088-tablet-recapture",
+    "url": "https://nb01994.vitronic.de/admin/groups",
+    "time": "2026-11-10T18:04:34.525Z",
+    "screenshot": true
+  },
+  {
+    "id": "118-journey-dashboard",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T18:04:44.908Z",
+    "screenshot": true
+  },
+  {
+    "id": "119-journey-overdue-drilldown",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue",
+    "time": "2026-11-10T18:05:07.026Z",
+    "screenshot": true
+  },
+  {
+    "id": "120-journey-ticket-detail",
+    "url": "https://nb01994.vitronic.de/cases/10795",
+    "time": "2026-11-10T18:05:15.365Z",
+    "screenshot": true
+  },
+  {
+    "id": "121-journey-ticket-refresh",
+    "url": "https://nb01994.vitronic.de/cases/10795",
+    "time": "2026-11-10T18:05:16.853Z",
+    "screenshot": false
+  },
+  {
+    "id": "122-journey-return-overdue-list",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue",
+    "time": "2026-11-10T18:05:17.090Z",
+    "screenshot": false
+  },
+  {
+    "id": "123-journey-return-dashboard",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T18:05:17.455Z",
+    "screenshot": true
+  },
+  {
+    "id": "123b-journey-dashboard-settled",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T18:06:49.202Z",
+    "screenshot": true
+  },
+  {
+    "id": "122b-journey-overdue-back-settled",
+    "url": "https://nb01994.vitronic.de/cases?due=overdue",
+    "time": "2026-11-10T18:06:51.832Z",
+    "screenshot": false
+  },
+  {
+    "id": "123c-journey-dashboard-back-settled",
+    "url": "https://nb01994.vitronic.de/",
+    "time": "2026-11-10T18:06:53.789Z",
+    "screenshot": true
+  },
+  {
+    "id": "106b-env-firewall-settled",
+    "url": "https://nb01994.vitronic.de/environments/3",
+    "time": "2026-11-10T18:07:17.046Z",
+    "screenshot": true
+  },
+  {
+    "id": "R057-mobile-settled2",
+    "url": "https://nb01994.vitronic.de/admin/config/category/products-installations",
+    "time": "2026-11-10T18:07:19.083Z",
+    "screenshot": true
+  },
+  {
+    "id": "R057-tablet-settled2",
+    "url": "https://nb01994.vitronic.de/admin/config/category/products-installations",
+    "time": "2026-11-10T18:07:19.341Z",
+    "screenshot": true
+  }
+]

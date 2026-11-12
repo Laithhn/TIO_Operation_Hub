@@ -1,0 +1,15 @@
+{
+  "id": "R069-mobile",
+  "route": "/admin/config/operating-systems",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Operating systems"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 332,
+  "title": "Operating systems · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

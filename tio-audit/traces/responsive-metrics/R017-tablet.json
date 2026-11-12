@@ -1,0 +1,15 @@
+{
+  "id": "R017-tablet",
+  "route": "/versions",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Product version matrix"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 1791,
+  "title": "Product version matrix · TIO Operations Hub",
+  "width": 768
+}

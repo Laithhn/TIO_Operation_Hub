@@ -1,0 +1,4 @@
+{
+  "scope": "Captured warning/error messages available at final checkpoint only; not a full-session console or network log",
+  "entries": []
+}

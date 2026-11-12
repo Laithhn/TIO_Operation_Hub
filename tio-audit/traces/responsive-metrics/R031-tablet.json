@@ -1,0 +1,15 @@
+{
+  "id": "R031-tablet",
+  "route": "/admin/config",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Configuration"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 524,
+  "title": "Configuration · TIO Operations Hub",
+  "width": 768
+}

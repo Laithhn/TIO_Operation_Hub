@@ -1,0 +1,15 @@
+{
+  "id": "R067-mobile",
+  "route": "/admin/config/server-roles",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Server roles"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 471,
+  "title": "Server roles · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

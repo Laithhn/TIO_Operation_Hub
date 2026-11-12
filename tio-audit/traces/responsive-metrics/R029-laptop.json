@@ -1,0 +1,15 @@
+{
+  "id": "R029-laptop",
+  "route": "/admin/rights",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Rights"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 5951,
+  "title": "Rights · TIO Operations Hub",
+  "width": 1366
+}

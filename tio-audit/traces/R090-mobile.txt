@@ -1,0 +1,15 @@
+- banner:
+- main:
+  - region "Sign in":
+    - generic: TIO Operations Hub
+    - heading "Sign in" [level=1]
+    - generic: Account name
+    - textbox "Account name" [active]
+    - generic: Password
+    - textbox "Password"
+    - button "Sign in" [disabled]:
+      - text: Sign in
+    - paragraph: Forgot your password? Ask the System Administrator to issue a temporary one.
+- contentinfo:
+  - generic: © VITRONIC
+- status

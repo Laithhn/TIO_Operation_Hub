@@ -1,0 +1,322 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Dashboard":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Dashboard
+- heading "Project dashboard" [level=1]
+- text: What is the status of this project?
+- generic: As of 10 Nov 2026, 16:59 (Asia/Dubai).
+- button "Refresh"
+- link "Project record":
+  - /url: /projects/1
+- button "Update status"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard (current section)":
+      - /url: /
+      - text: Dashboard
+      - generic: (current section)
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Project
+  - combobox "Project":
+    - option "117992-AE · SLA _ IT Application & Platform Licenses – 2026 (TAH)" [selected]
+    - option "OYOON-182-AMC-2026 · OYOON 182 Al Qudra Bluscan SSPX and CCH AMC (OYOON)"
+    - 'option "115101-AE · VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE (OYOON)"'
+    - option "115307-AE · TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So (MULTICOM)"
+    - option "KU105375 · KU105375 - Kurdistan BackOffice Support (SEW)"
+    - option "116938-AE · OYOON ANPR Data Management and AMC (OYOON)"
+    - option "104723-DE · SAPOL Australia back-office delivery and support (SAPOL)"
+    - option "113506-AE · Iraq 100x Enforcement Bar Smart Traffic Project (MADAR_DIJLA)"
+    - option "115510-AE · Morocco National Gendarmerie enforcement-bar delivery (DGSN)"
+    - option "DGSN-VIITS-POC · ViITS POC – NARSA integration and DGSN deployment readiness (DGSN)"
+    - option "QATAR-MOI-POC · Qatar MOI centralized traffic-radar management POC (QATAR_MOI)"
+    - option "TAK-VITIP-POC · TAK Ethiopia ViTIP Lite certification POC (TAK)"
+  - region "Project status":
+    - generic: Project status — recorded by the project manager
+    - generic: ○
+    - text: Not recorded
+    - generic: Nobody has recorded a status for this project yet. The signals on the right are worked out from its records; they do not replace a recorded status.
+    - heading "Signals behind the status" [level=2]
+    - generic: Rule-based and explainable — hover a signal for its rule, click for its records
+    - link "Delivery Unknown No dated milestone is recorded on an Active contract.":
+      - /url: /projects/1
+      - generic: Delivery
+      - generic: Unknown
+      - generic: No dated milestone is recorded on an Active contract.
+    - link "Service / SLA Off track Response 21.2 % · resolution 20.3 % · 61 open ticket(s) breached.":
+      - /url: /cases?projectId=1&sla=withContract&status=all
+      - generic: Service / SLA
+      - text: Off track
+      - generic: Response 21.2 % · resolution 20.3 % · 61 open ticket(s) breached.
+    - link "Escalations On track No active escalation.":
+      - /url: /escalations?clientId=1
+      - generic: Escalations
+      - text: On track
+      - generic: No active escalation.
+    - link "Commitments Off track 1 of 1 open commitment(s) overdue.":
+      - /url: /commitments?clientId=1
+      - generic: Commitments
+      - text: Off track
+      - generic: 1 of 1 open commitment(s) overdue.
+    - link "Commercial Off track 2 payment(s) overdue, the oldest by 254 days.":
+      - /url: /contracts?projectId=1
+      - generic: Commercial
+      - text: Off track
+      - generic: 2 payment(s) overdue, the oldest by 254 days.
+    - link "Environments Unknown No environment is linked to this project.":
+      - /url: /projects/1
+      - generic: Environments
+      - generic: Unknown
+      - generic: No environment is linked to this project.
+    - link "Status review Unknown No status has been recorded yet.":
+      - /url: /dashboards/project?projectId=1
+      - generic: Status review
+      - generic: Unknown
+      - generic: No status has been recorded yet.
+    - status: "○ No status has been recorded for this project. Signals: 3 off track, 0 watch, 1 on track, 2 unknown."
+  - region "Project facts":
+    - generic: Project
+    - text: 117992-AE · SLA _ IT Application & Platform Licenses – 2026
+    - generic: Client
+    - link "TAH":
+      - /url: /clients/1
+    - text: · Tahakom
+    - generic: Project manager
+    - text: Laith Hamdan
+    - generic: Record status · service dates
+    - text: Active · Unknown → Unknown
+    - generic: Products
+    - text: PSOP
+    - generic: Contracts
+    - link "CT-1001":
+      - /url: /contracts/1
+    - text: Active
+    - text: ·
+    - link "CT-1006":
+      - /url: /contracts/6
+    - text: Ended
+  - region "Delivery":
+    - heading "Delivery" [level=2]
+    - generic: Milestones and payment terms recorded on the project's contracts
+    - heading "Milestone timeline" [level=2]
+    - button "Table view"
+    - paragraph: Planned dates and recorded completion. Late = the planned date passed and completion is below 100 %.
+    - generic: No dated milestone is recorded on the project's contracts.
+    - region "Payment schedule":
+      - heading "Payment schedule" [level=2]
+      - paragraph: Recorded contract payment terms — not invoicing or accounting.
+      - table:
+        - rowgroup:
+          - row "First Payment - Every 6 Months CT-1006 Paid 1,166,250.00 SAR paid 15 Apr 2025":
+            - cell "First Payment - Every 6 Months CT-1006":
+              - link "First Payment - Every 6 Months":
+                - /url: /contracts/6
+              - generic: CT-1006
+            - cell "Paid":
+              - text: Paid
+            - cell "1,166,250.00 SAR"
+            - cell "paid 15 Apr 2025"
+          - row "Second Payment - Every 6 Months CT-1006 Paid 1,166,250.00 SAR paid 15 Oct 2025":
+            - cell "Second Payment - Every 6 Months CT-1006":
+              - link "Second Payment - Every 6 Months":
+                - /url: /contracts/6
+              - generic: CT-1006
+            - cell "Paid":
+              - text: Paid
+            - cell "1,166,250.00 SAR"
+            - cell "paid 15 Oct 2025"
+          - row "Fisrt Paymet - Every 6 Months CT-1001 Overdue 2,430,000.00 SAR due 01 Mar 2026":
+            - cell "Fisrt Paymet - Every 6 Months CT-1001":
+              - link "Fisrt Paymet - Every 6 Months":
+                - /url: /contracts/1
+              - generic: CT-1001
+            - cell "Overdue":
+              - text: Overdue
+            - cell "2,430,000.00 SAR"
+            - cell "due 01 Mar 2026"
+          - row "Second Payment - Every 6 Months CT-1001 Overdue 2,430,000.00 SAR due 15 Sept 2026":
+            - cell "Second Payment - Every 6 Months CT-1001":
+              - link "Second Payment - Every 6 Months":
+                - /url: /contracts/1
+              - generic: CT-1001
+            - cell "Overdue":
+              - text: Overdue
+            - cell "2,430,000.00 SAR"
+            - cell "due 15 Sept 2026"
+          - row "Third Payment - Every 6 Months CT-1001 Upcoming 2,430,000.00 SAR due 01 Mar 2027":
+            - cell "Third Payment - Every 6 Months CT-1001":
+              - link "Third Payment - Every 6 Months":
+                - /url: /contracts/1
+              - generic: CT-1001
+            - cell "Upcoming":
+              - generic: Upcoming
+            - cell "2,430,000.00 SAR"
+            - cell "due 01 Mar 2027"
+          - row "Fourth Payment - Every 6 Months CT-1001 Upcoming 2,430,000.00 SAR due 31 Aug 2027":
+            - cell "Fourth Payment - Every 6 Months CT-1001":
+              - link "Fourth Payment - Every 6 Months":
+                - /url: /contracts/1
+              - generic: CT-1001
+            - cell "Upcoming":
+              - generic: Upcoming
+            - cell "2,430,000.00 SAR"
+            - cell "due 31 Aug 2027"
+  - region "Service":
+    - heading "Service" [level=2]
+    - generic: Tickets linked to the project's contracts or affecting its environments
+    - heading "Open tickets by priority" [level=2]
+    - link "All tickets":
+      - /url: /cases?projectId=1
+    - button "Table view"
+    - paragraph:
+      - text: 67 open,
+      - generic: 58 overdue
+      - text: . Darker = more urgent. Click a bar for the tickets.
+    - list:
+      - generic "Critical"
+      - 'link "Critical: 2 open ticket(s). Open list"':
+        - generic: "2"
+      - generic "High"
+      - 'link "High: 4 open ticket(s). Open list"':
+        - generic: "4"
+      - generic "Normal"
+      - 'link "Normal: 61 open ticket(s). Open list"':
+        - generic: "61"
+      - generic "Low"
+      - 'link "Low: 0 open ticket(s). Open list"':
+        - generic: "0"
+    - region "Contractual SLA — last 90 days":
+      - heading "Contractual SLA — last 90 days" [level=2]
+      - link "Tickets":
+        - /url: /cases?projectId=1&sla=withContract&status=all
+      - paragraph: Measured compliance of the project's tickets against the 90 % objective.
+      - generic: First response
+      - generic: 21.2 %
+      - 'img "First response: 21.2 %"'
+      - generic: 17 met · 63 breached · 3 pending · 0 not measurable
+      - generic: Resolution
+      - generic: 20.3 %
+      - 'img "Resolution: 20.3 %"'
+      - generic: 15 met · 59 breached · 9 pending · 0 not measurable
+      - paragraph:
+        - generic: ▲ 61 open ticket(s) have breached a target.
+      - heading "Active escalations" [level=3]
+      - paragraph: None.
+    - region "Open commitments":
+      - heading "Open commitments" [level=2]
+      - paragraph: Commitments linked to this project, the earliest first.
+      - table:
+        - rowgroup:
+          - row "102 d 0 h overdue CM-1006 Hire a new DevOps engineer to fulfill the SLA commitment Laith Hamdan":
+            - cell "102 d 0 h overdue":
+              - generic: 102 d 0 h overdue
+            - cell "CM-1006 Hire a new DevOps engineer to fulfill the SLA commitment":
+              - link "CM-1006":
+                - /url: /commitments/6
+              - text: Hire a new DevOps engineer to fulfill the SLA commitment
+            - cell "Laith Hamdan"
+  - region "Environments, team and activity":
+    - heading "Environments, team and activity" [level=2]
+    - region "Environments":
+      - heading "Environments" [level=2]
+      - paragraph: Manually reported condition and installed versions.
+      - generic: No environment is linked to this project.
+    - region "Team":
+      - heading "Team" [level=2]
+      - paragraph: "The project team is recorded per client (A29): everyone on this client's team is shown."
+      - table:
+        - rowgroup:
+          - row "Ahmed Awadalla Operation engineer":
+            - cell "Ahmed Awadalla"
+            - cell "Operation engineer"
+          - row "Moataz Al Khaldi Operation engineer":
+            - cell "Moataz Al Khaldi"
+            - cell "Operation engineer"
+          - row "Tareq Abdul Jabar Operation engineer":
+            - cell "Tareq Abdul Jabar"
+            - cell "Operation engineer"
+          - row "Waleed Alharthi Operation engineer":
+            - cell "Waleed Alharthi"
+            - cell "Operation engineer"
+          - row "Ziyad Bu Dukhi Operation engineer":
+            - cell "Ziyad Bu Dukhi"
+            - cell "Operation engineer"
+    - region "Recent activity":
+      - heading "Recent activity" [level=2]
+      - paragraph: Worked out from the project's records, newest first.
+      - list:
+        - generic: 10 Nov 2026, 14:30
+        - link "CS-4149 opened (Normal) — Importer 1.7":
+          - /url: /cases/12349
+        - generic: 09 Nov 2026, 12:45
+        - link "CS-4006 opened (Normal) — BackOffice | Site Record":
+          - /url: /cases/12206
+        - generic: 09 Nov 2026, 12:40
+        - link "CS-4005 opened (Normal) — BackOffice | Device record":
+          - /url: /cases/12205
+        - generic: 09 Nov 2026, 12:34
+        - link "CS-4004 opened (Normal) — RRM JSON file":
+          - /url: /cases/12204
+        - generic: 09 Nov 2026, 12:27
+        - 'link "CS-4003 opened (Normal) — CCC: RRM Integration"':
+          - /url: /cases/12203
+        - generic: 08 Nov 2026, 16:17
+        - link "CS-3999 opened (High) — Backoffice Objection API issue in R2":
+          - /url: /cases/12199
+        - generic: 08 Nov 2026, 11:35
+        - link "CS-3998 opened (Normal) — CCC Integration":
+          - /url: /cases/12198
+        - generic: 05 Nov 2026, 14:33
+        - link "CS-2595 opened (Critical) — R3 Backoffice Slowess issue":
+          - /url: /cases/10795
+        - generic: 05 Nov 2026, 13:27
+        - link "CS-2594 opened (Normal) — Kafka Integration BO | Site Information Not Being Sent":
+          - /url: /cases/10794
+        - generic: 05 Nov 2026, 13:26
+        - link "CS-2592 opened (Normal) — Kafka Integration BO | Resending Data Starting 1st Sep":
+          - /url: /cases/10792
+  - paragraph: The status is a person's recorded judgement, never a calculated score. Signals are rules over the project's records; missing data is Unknown, never On track. A status older than 14 days is flagged for review (setting Dashboard.ProjectStatusMaxAgeDays).
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

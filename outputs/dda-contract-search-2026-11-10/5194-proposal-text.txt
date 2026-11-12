@@ -1,0 +1,1784 @@
+
+=== PAGE 1 ===
+  
+January 2025 
+Service Level Agreement 
+Quotation n. QU040000173
+
+=== PAGE 2 ===
+   
+Confidential 
+SLA  2 
+TABLE OF CONTENTS  
+ 
+1. LEGAL NOTES ................................ ................................ ......................... 5 
+2. GENERAL ................................ ................................ ................................  6 
+2.1 DOCUMENT OBJECTIVES ................................ ................................ ...... 6 
+2.2 SCOPE OF SERVICE PROVIDED ................................ ............................ 6 
+2.3 SUPPORT WARRANTY ................................ ................................ ........... 6 
+2.4 FORCE MAJEUR ................................ ................................ ..................... 7 
+2.5 SOFTWARE LICENSES ................................ ................................ ........... 7 
+2.6 PERSONNEL ................................ ................................ ............................ 7 
+2.7 CONFIDENTIALITY ................................ ................................ .................. 8 
+3. SERVICE AND MAINTENANCE................................ .............................. 10 
+3.1 INTRODUCTION ................................ ................................ ......................10 
+3.2 TERMS AND DEFINITIONS ................................ ................................ ....10 
+3.3 MAINTENANCE ASSETS................................ ................................ ........11 
+3.4 MAINTAINABILITY ................................ ................................ ..................11 
+3.5 CORRECTIVE MAINTENANCE ................................ .............................. 12 
+3.6 MAINTENANCE PLAN ................................ ................................ ............13 
+3.7 MAINTENANCE ACTIVITIES ................................ ................................ ..16 
+3.7.1 Corrective maintenance ................................ ................................ ................16 
+3.7.2 Preventive maintenance ................................ ................................ ...............17 
+3.8 SERVICE ACTIVITIES RELATING TO PRODUCTS ............................... 18 
+3.9 SERVICE ACTIVITIES RELATING TO ROLLOUT ................................ ..19 
+3.10 DEFINITION AND MEASUREMENT OF MTBF ................................ .......20 
+3.11 INITIAL SPARE PART INVENTORY ................................ .......................20 
+3.12 VANDALISM AND DISASTER RECOVERY ................................ ...........21 
+3.13 WARRANTY ................................ ................................ ............................21 
+3.14 SERVICES PROVIDED BY THE CUSTOMER ................................ ........21 
+4. ADDITIONAL SERVICES ................................ ................................ ........23 
+4.1 EXTENDED TELEPHONE SUPPORT COVERAGE ................................ 23 
+4.2 PREVENTIVE MAINTENANCE ................................ ............................... 23 
+4.3 ON-SITE CONSULTANCY / SUPPORT SERVICES................................ 23 
+4.4 TRAINING ................................ ................................ ................................ 24 
+5. CALL PROCEDURES ................................ ................................ .............25 
+
+=== PAGE 3 ===
+   
+Confidential 
+SLA  3 
+5.1 CALL REPORTING ................................ ................................ .................25 
+5.2 CALL PROGRESS ................................ ................................ ..................26 
+5.3 CALL CLOSURE ................................ ................................ .....................26 
+6. CALL PRIORITIES ................................ ................................ ..................27 
+6.1 PRIORITY P1 (CRITICAL) ................................ ................................ .......27 
+6.2 PRIORITY P2 (URGENT) ................................ ................................ ........27 
+6.3 PRIORITY P3 (STANDARD) ................................ ................................ ....27 
+6.4 PRIORITY P4 (ENHANCEMENT REQUESTS) ................................ ........27 
+7. RESPONSE TIMES ................................ ................................ .................28 
+7.1 RESPONSE DEFINITIONS ................................ ................................ ......28 
+7.2 RESPONSE TARGETS ................................ ................................ ...........28 
+8. ESCALATION PROCEDURES ................................ ................................ 29 
+8.1 ESCALATION TIMES ................................ ................................ ..............29 
+8.2 GENERAL ESCALATION NOTES ................................ ..........................29 
+9. SUPPORTED PRODUCTS ................................ ................................ ......30 
+10. CUSTOMER REQUIREMENTS ................................ ............................... 31 
+10.1 REQUESTED BY THE COMPANY ................................ ..........................31 
+10.2 REQUESTED BY THE CUSTOMER ................................ ........................31 
+11. SERVICE REVIEW ................................ ................................ ..................33 
+11.1 REVIEW MEETINGS ................................ ................................ ...............33 
+11.2 FAULT INVESTIGATION ................................ ................................ .........33 
+12. OPERATIONAL HOURS ................................ ................................ .........34 
+12.1 COMPANY SERVICES ................................ ................................ ............34 
+13. EXCLUSIONS ................................ ................................ ..........................35 
+14. LOCATION ................................ ................................ .............................. 36 
+15. SERVICE FEE SCHEDULE ................................ ................................ .....37 
+15.1 CHANGES AND CANCELLATIONS ................................ .......................37 
+16. PAYMENTS ................................ ................................ .............................38 
+17. APPENDIX ................................ ................................ ............................... 39 
+17.1 APPENDIX A – BANK AND ADDITIONAL HOLIDAYS ..........................39 
+17.2 APPENDIX C - SERVICE FEES ................................ .............................. 39 
+17.3 Summary prices per year from 2025 to 2029 ................................ ........40 
+18. ENTIRE AGREEMENT ................................ ................................ ............41 
+19. GENERAL TERMS AND CONDITIONS ................................ ..................42 
+
+=== PAGE 4 ===
+   
+Confidential 
+SLA  4 
+I General ................................ ................................ ................................ ..... 1 
+II Conclusion of Contract ................................ ................................ .............. 1 
+III Subject of the Contract ................................ ................................ .............. 1 
+IV Payment Terms ................................ ................................ ......................... 1 
+V Delivery Terms ................................ ................................ .......................... 1 
+VI Retention of Title ................................ ................................ ....................... 2 
+VII Warranty ................................ ................................ ................................ ... 2 
+VIII Limitation of Liability ................................ ................................ .................. 3 
+IX Periods of limitation for material defects and defects of title..................... 3 
+X Termination of a continuing obligation ................................ ....................... 3 
+XI Industrial Property Rights ................................ ................................ .......... 3 
+XII Rights to Software ................................ ................................ ..................... 3 
+XIII Confidentiality ................................ ................................ ........................... 4 
+XIV Force Majeure ................................ ................................ ........................... 4 
+XV Export Control ................................ ................................ ........................... 4 
+XVI Sustainability, Compliance and Anti-Corruption ................................ ......... 4 
+XVII Miscellaneous ................................ ................................ ........................... 4 
+XVIII Applicable Law, Place of Jurisdiction, Place of Performance ..................... 4 
+ 
+  
+
+=== PAGE 5 ===
+   
+Confidential 
+SLA  5 
+1. LEGAL NOTES 
+VITRONIC Dr.-Ing. Stein   
+Bildverarbeitungssysteme GmbH   
+Hasengartenstraße 14   
+D-65189 Wiesbaden   
+ 
+Copy right/industrial property rights   
+Copyright in this document is held by VITRONIC Dr. -Ing. Stein Bildverarbeitungssysteme  
+GmbH. Separation into sections and unauthorized reproduction are prohibited . 
+This document contains confidential information and may not be disclosed to any third party 
+without the express written permission of VITRONIC Dr.-Ing. Stein Bildverarbeitungssysteme 
+GmbH  . 
+The person or organization to which this document is issued is responsible for storing it 
+securely and preventing any unauthorized access, copying or distribution. 
+ 
+ 
+ 
+ 
+  
+
+=== PAGE 6 ===
+   
+Confidential 
+SLA  6 
+2. GENERAL  
+2.1 DOCUMENT OBJECTIVES 
+The objective of this Agreement is to document the procedures used by the Company for 
+providing services to the Customer and the cost of those services. The Agreement also 
+documents the process for ensuring that calls are dealt with on a priority basis and  that there 
+are agreed levels of escalation and review. Specifically, this document addresses:  
+ 
+2.2 SCOPE OF SERVICE PROVIDED 
+The service is undertaken by the Company’s personnel, who are conversant with the systems 
+to be supported. Support services provided by the Company to the Customer will be in 
+accordance with any agreed procedures. 
+Support services may be carried out by: 
+• Company will visit site if any site issues cannot be solved remotely. 
+• Remote diagnostics and support by the Company, via a remote connection link to the 
+Customer’s systems. 
+• Remote telephone and/or e-mail support by the Company. 
+• Local technical support. 
+• Repair/replacement of faulty equipment’s. 
+2.3 SUPPORT WARRANTY  
+The Company will give the Customer support under the terms of this Agreement for System 
+Software running on the Customer’s systems as defined within the Supported Products 
+section.  
+The Company will provide services under the terms of this Agreement using competent staff 
+to provide such services. However, the following also applies:  
+
+
+=== PAGE 7 ===
+   
+Confidential 
+SLA  7 
+• The Company cannot guarantee particular staff being used on any Assignment. The 
+Company will take all reasonable steps to ensure that staff supplied is best suited to 
+deal with each Assignment.  
+• The Company cannot supply staff having a specific familiarity with the Customer’s 
+Applications Software.  
+• It may be necessary for other Company personnel to become involved in a particular 
+Assignment on an escalation basis.  
+• No specific time constraints can apply to the provision of a solution to an assignment, 
+especially when changes to any System or Application Software programs become 
+necessary.  
+ 
+If the Customer/ Company recognizes that some System Software may have design 
+limitations, which should not be considered a fault condition. The Company in such instances 
+will attempt to provide an alternative solution to minimize the impact of such design 
+limitations, if possible. 
+ 
+The Company will ensure on all Assignments that the re-establishment of a working system is 
+of first importance. 
+ 
+2.4 FORCE MAJEUR 
+The Company shall not be liable for any failure to comply with, or for any delay in, the 
+performance of its obligations hereunder where such failure or delay is indirectly caused by, or 
+in any manner arises or results from, events beyond the control of the Company. These events 
+shall include, but not be restricted to, governmental action, industrial dispute, labor shortage, 
+delay or failure of any supplier or contractor. If any such event shall continue for more than 90 
+days, either party may terminate the contract in respect of Services not yet delivered. 
+2.5 SOFTWARE LICENSES  
+The Company will provide all licenses and associated software required to enable the 
+Customer to use the Software in accordance with the terms and conditions set out in the Main 
+Contract. This includes no other License as Windows Licenses or other operatin g System 
+Software. 
+2.6 PERSONNEL 
+Both parties undertake not to make any offers of employment to each other's employees that 
+work on the system during the implementation of this Agreement and within twelve months 
+after completion thereof. 
+
+=== PAGE 8 ===
+   
+Confidential 
+SLA  8 
+2.7 CONFIDENTIALITY 
+The Company/ Customer shall not (and shall use its best endeavors to require that its 
+employees shall not) during this Agreement or any time thereafter divulge or communicate to 
+any person other than to officers or employees of the Customer/ Company whose province it 
+is to know the same or on the written instructions of the Customer/ Company information 
+concerning the Customer’s/ Company´s trade secrets, manufacturing processes or the 
+business accounts finance or contractual arrangements of the Customer/ Company or its other 
+dealings, transactions or affairs which may come to its knowledge during this Agreement. 
+All records tapes and documents, and any copies thereof relating to the business of the 
+Customer in the possession of the Company’s employees or under its control shall be and 
+remain the property of the Customer and shall be delivered to it upon request fr om the 
+Customer or upon termination of this Agreement. The Company undertakes that its employees 
+shall take all reasonable steps to ensure the security of the Customer’s systems and premises 
+is not compromised and will comply with all security directives m ade known to them by the 
+Customer. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 9 ===
+   
+Confidential 
+SLA  9 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+=== PAGE 10 ===
+   
+Confidential 
+SLA  10 
+3. SERVICE AND MAINTENANCE 
+3.1 INTRODUCTION 
+Thinking and action of VITRONIC Services are focused on ensuring the ongoing operational 
+satisfaction of the customer. In order to achieve this goal, VITRONIC provides services that 
+are tailored to our specific technical solutions. In order to assure quality, our services are based 
+on international standards in the same manner as our technical solutions. When providing and 
+describing services we are guided by the European Standard EN 13306:2001as well the 
+Information Technology Infrastructure Library (ITIL)  for IT -Services of the British Office of 
+Government Commerce (OGC).  
+VITRONIC PoliScan systems are proven photo enforcement systems incorporated within a 
+full-service package to deliver both secure and reliable operation under the conditions 
+specified in the tender documents. The services offered here include 2nd and 3rd level support, 
+according to the annexed Service Level Agreement (SLA). 
+ 
+3.2 TERMS AND DEFINITIONS 
+The definitions are on the basis of the European Standard EN13306:2001 and the Information 
+Technology Infrastructure Library (ITIL) for IT -Services of the British Office of Government 
+Commerce (OGC). 
+ 
+Disabled State 
+is characterized by the inability to perform a required function, 
+for any reason (definition EN-Standard). 
+Disabled States 
+ 
+is any event that is not part of the standard operation of a 
+service and that causes, or may cause, an interruption to, or a 
+reduction in, the quality of service (definition ITIL). 
+Incident 
+may occur by sudden failures, wear -out-failures, aging 
+failures, or degradation. 
+Failure 
+the event that an item or asset terminates its ability to perform 
+a required function 
+Failure Cause 
+the state of an item or asset after the occurrence of a failure 
+reason leading up to a failure  
+ 
+Problem 
+Unknown underlying failure cause of one or more incidents. 
+An incident may be rectified without knowing the failure cause 
+by using a Workaround. 
+
+=== PAGE 11 ===
+   
+Confidential 
+SLA  11 
+Known Error 
+An Incident or a Problem for which the failure cause is known 
+and for which a temporary Workaround has been identified. 
+Workaround 
+Method of avoiding an incident or a problem by using a 
+temporary repair (i.e. a patch). 
+Patch 
+Temporary repair or Workaround without change of source 
+code. 
+Update/Emergency Fix 
+Rectification of faults or known errors relating to hardware or 
+source codes of standard software inclusive documentation, 
+also in the context of a Workaround. 
+Upgrade/Minor Release 
+Minor functional modifications relating to hardware or source 
+codes of standard software inclusive documentation. 
+Major Release 
+Major modification of required functions relating to hardware 
+or source codes of standard software inclusive 
+documentation. 
+Refresh with overhaul or 
+rebuilding 
+Examinations and/or actions carried out in order to maintain 
+assets at prescribed intervals of time or number of operations 
+for items that might approaching the end of useful life. 
+Rebuilding may include modifications and/or improvements. 
+ 
+3.3 MAINTENANCE ASSETS 
+Maintenance-Assets are classified as follows:  
+A Line Replaceable Unit (LRU) classifies an item that will be swapped out as a whole. A Shop 
+Replaceable Unit (SRU) classifies an item that will be swapped in a repair center shop or repair 
+center. Besides LRUs and SRUs there are also, Wear and Tear Parts (WTP), Infrastructure 
+Elements (ISE), Consumables and unclassified Articles, which h ave to be swapped either at 
+site or in a repair center. The total classification of items will be detailed in a Product Breakdown 
+Structure. 
+3.4 MAINTAINABILITY  
+Basically, the maintainability of VITRONIC items will be supported by service interfaces. The 
+service interfaces allow remote maintenance as well as maintenance at site by swapping of 
+LRU-assets. 
+ 
+
+=== PAGE 12 ===
+   
+Confidential 
+SLA  12 
+3.5 CORRECTIVE MAINTENANCE  
+  
+
+
+=== PAGE 13 ===
+   
+Confidential 
+SLA  13 
+3.6 MAINTENANCE PLAN 
+The generic maintenance plan indicates the following types of maintenance:  
+Corrective Maintenance: 
+  
+
+
+=== PAGE 14 ===
+   
+Confidential 
+SLA  14 
+  
+  
+
+
+=== PAGE 15 ===
+   
+Confidential 
+SLA  15 
+  
+
+
+=== PAGE 16 ===
+   
+Confidential 
+SLA  16 
+3.7 MAINTENANCE ACTIVITIES 
+3.7.1 Corrective maintenance 
+ 
+
+
+=== PAGE 17 ===
+   
+Confidential 
+SLA  17 
+ 
+3.7.2 Preventive maintenance  
+ 
+
+
+=== PAGE 18 ===
+   
+Confidential 
+SLA  18 
+3.8 SERVICE ACTIVITIES RELATING TO PRODUCTS 
+Beside our maintenance activities VITRONIC offers the following service activities relating to 
+products: 
+ 
+  
+
+
+=== PAGE 19 ===
+   
+Confidential 
+SLA  19 
+3.9 SERVICE ACTIVITIES RELATING TO ROLLOUT 
+Beside our maintenance and product related service activities VITRONIC offers the following 
+rollout related service activities:  
+ 
+  
+
+
+=== PAGE 20 ===
+   
+Confidential 
+SLA  20 
+3.10 DEFINITION AND MEASUREMENT OF MTBF 
+As a failure rate degree for an item (LRU or SRU) during the period of useful life of this item 
+the MTBF (Mean Time Between Failure) will be chosen. Phases of early failures or late 
+failures at end of life are not included in the period of useful life and there for not reflected by 
+the MTBF. 
+The MTBF is a statistical average value that indicates a period without a failure during a 
+period of normal use under normal functional and environmental conditions.  
+Measuring a MTBF during real conditions shall follow the subsequent rules:  
+• For a MTBF examination items can be observed that are used within the 
+VITRONIC functional specification only.  
+• As a MTBF relevant failure all events will be counted, where the failure cause 
+can be clearly attributed to an item and also be reproduced.  
+• The following failures are not counted as MTBF relevant failures:  
+o Failures as a result of preventive maintenance  
+o Degradation failures  
+o Aging failures  
+o Wear-out-failures and all failures in conjunction with a swap of a wear 
+and tear part or a consumable.  
+o Failures as a result of not realized preventive maintenance  
+o Failures as a result of not realized rebuilding and/or refresh 
+ 
+3.11 INITIAL SPARE PART INVENTORY 
+The initial dimensioning of a spare part inventory will be based on the estimated minimal MTBF 
+of assets. Because of different MTBF -values for LRUs and SRUs, different spare part 
+inventories will result. The intent is that the initial spare part inventory will be adequate for Go-
+Live-Phases with normal operation. For dimensioning of the spare part inventory, we assume 
+furthermore that there are two repair cycles. On the one hand there will be a repair cycle 
+between customer and VITRONIC and on the other, a repair cycle between VITRONIC and 
+our suppliers. In addition, we expect that during the period of useful life of an asset the average 
+repair time per involved supply chain will be four (4) weeks without transport and six (6) weeks 
+including transport. For equipment with special needs regarding the availability and/or repair 
+time we recommend on average basis an initial spare part inventory of 2% LRUs for swap 
+purposes on site and 2% SRUs for repair purposes in a repair Centre as well as an operation 
+conditions adequate number of consumables and wear and tear parts. To retain an operational 
+spare part inventory, it will be necessary to carry out recommended preventive maintenance 
+and to dispatch and transport defect items to VITRONIC repair center facility immediately after 
+swap on site.  
+If the number of spare parts will be lower as recommended or if there will be a need of 
+additional spare parts in case of numerous failures, the spare part inventory will need to be 
+
+=== PAGE 21 ===
+   
+Confidential 
+SLA  21 
+increased. Such needs will occur during periods of aging failures, obsolescence, vandalism, 
+or disaster recovery. This is also valid for the warranty period.  
+3.12 VANDALISM AND DISASTER RECOVERY  
+Vandalism and disaster recovery are not considered by VITRONIC as failures that are treated 
+under maintenance and agreed service levels. In such circumstances, special processes are 
+necessary that shall be agreed and set into operation.  
+In general, such circumstances require customer clarification and permission regarding service 
+action. This will entail, for instance, includes clarification with responsible insurance companies 
+and separate orders for each circumstance. 
+3.13 WARRANTY 
+The warranty during the defined warranty period covers: 
+• Free of charge repair of faulty hardware (LRUs and SRUs) which are not 
+qualified as consumable or “wear and tear” parts at a VITRONIC Repair 
+Centre.  
+• Software rectification, which will be validated by the Customer at a test and 
+staging site at customer’s premises.  
+ 
+All customer corrective maintenance levels are provided by The Customer also to support 
+warranty cases. All corrective and preventive maintenance levels utilize the recommended 
+initial inventory of spare- parts to be held by The Customer for swap-out actions of faulty 
+hardware, including consumables and “wear and tear” parts. 
+ 
+3.14 SERVICES PROVIDED BY THE CUSTOMER 
+Customer obligations and cooperation for service and maintenance: 
+• Site drawings and information  
+• Site with operational infrastructure  
+• Site safety  
+• Rectification of external disabled states and incidents  
+• Standardized disabled state or incident report  
+• Agreed remote service connection including security certificates  
+• Free access to all relevant maintenance assets  
+• Contact person at relevant maintenance asset at site  
+• In case of training: participants detail and clearance  
+• Standardized failure and fault description completed via RMA-form (RMA: 
+Return Merchandise Authorization)  
+• Coordination and provision of all necessary Third-Party work and material  
+
+=== PAGE 22 ===
+   
+Confidential 
+SLA  22 
+  
+
+
+=== PAGE 23 ===
+   
+Confidential 
+SLA  23 
+4. ADDITIONAL SERVICES 
+For each of the services listed within this section, an annotation will follow to indicate the 
+service level to be provided within the scope of the Agreement. If the Customer desires a 
+service not listed within this section, the Company will review the Customer’s requirements 
+and advise if the desired services can be provided. 
+4.1 EXTENDED TELEPHONE SUPPORT COVERAGE 
+The Company may provide extended telephone support coverage beyond the normal 
+operational hours. If this service is selected, the Company will define within the Agreement 
+the hours of the extended telephone support coverage, and the process to be used when 
+requesting these services. 
+Service Level: This service is not covered within the scope of this Agreement. 
+An example of extended telephone support coverage follows: 
+Day of week Hours (Local Time) Priority Levels Allowed 
+Monday-Friday 09:00-18:00 Any Priority Level 
+All Other days other timesAll  Only P1 
+ 
+The above schedule defines when the Customer may contact the Support Services group for 
+reporting of issues to the Company. For telephone calls not immediately answered, the 
+Customer will be requested to send an email to the support team. The Company will provide 
+the initial call back within one hour of placement of the call by the Customer. 
+4.2 PREVENTIVE MAINTENANCE 
+While most current systems provided by the Company require little, or no, preventative 
+maintenance - a program of Preventative Maintenance activities may be carried out by a 
+Customer representative for the installed equipment as indicated by the manufactur er. 
+However, it should be noted that some routine maintenance can carried out during site visits 
+for corrective maintenance or other purposes. 
+4.3 ON-SITE CONSULTANCY / SUPPORT SERVICES 
+On-site consultancy and/or support services can be provided. The nature of these services 
+can be flexible and are to be agreed by the Customer and Company. The services provided 
+could address such topics as fault analysis, system optimization system re-engineering. 
+
+=== PAGE 24 ===
+   
+Confidential 
+SLA  24 
+Additionally, the Company is able to provide business consultancy on a wide range of 
+systems related topics.  
+Service Level: Unless agreed to in advance, on-site visits undertaken as part of this 
+Agreement may be subject to charges using the rates identified in the Service Fee Schedule 
+section of this Agreement. Reimbursable expenses would include:  
+• Actual travel expenses incurred for airfare, hotel, meals, and local 
+transportation.  
+• Cost of manpower for all time spent on-site, plus travel time. Service rates 
+would be at the Pre-booked rate (where pre-booked or where the visit relates 
+to the resolution of a Support Call previously placed) or at the Company’s 
+standard published rate (all other visits). 
+• Other necessary and appropriate business expenses, as incurred. 
+4.4 TRAINING 
+The Company is able to provide tailored courses based upon specific requirements of the 
+Customer. These courses can cover all aspects of operation, and administration in respect to 
+the solutions provided by the Company. These courses can be delivered either on site or at 
+the Company’s offices, covering all aspects of system operation and administration. Quotes 
+for training services will be provided as per Agreement. 
+  
+
+=== PAGE 25 ===
+   
+Confidential 
+SLA  25 
+5. CALL PROCEDURES 
+In order that the Company may provide the highest possible level of service to resolve an 
+issue, in a timely and appropriate fashion, it is essential that the Customer observe the correct 
+procedures in respect to reporting an issue. This section describes the procedures relating to 
+the reporting of support calls to the Company. 
+5.1 CALL REPORTING 
+Service calls may be reported to the Company using the attached contact information for any 
+issues which cannot be solved after performing 1st Level Support Steps by Customer. If the 
+issue resolved by Customer a fault report will be provided to Company for future tracking.  
+Or through an On -Site Support Engineer. A call back should be received within one hour of 
+placing the service call during the hours of support covered by this Agreement.  
+In order to respond to a fault call in a timely and appropriate fashion, when placing a service 
+call, the Customer will be asked for the following information: 
+ 
+On placing a service call, the Company’s Support Services group will allocate a unique tracking 
+number which will be given to the Customer and this should be quoted on any future 
+communication regarding the fault.  
+The Company’s Support Services group should be used as a central contact point for fault 
+progression and escalation. 
+
+
+=== PAGE 26 ===
+   
+Confidential 
+SLA  26 
+5.2 CALL PROGRESS 
+Once a call has been received by the Company from the Customer, the Company will contact 
+the Customer to establish the exact nature of the problem and begin the fault resolution 
+process.  
+The Customer will be kept informed of progress on the call, including what action has been 
+taken to resolve the problem and the time the call was closed.  
+A Service Call activity is generally a serial work process. This agreement allows to work on a 
+maximum of 2 Service Calls in parallel. 
+5.3 CALL CLOSURE 
+When the problem has been resolved, the call will be closed on the Company’s call tracking 
+system and the Customer will be informed of the following:  
+• The time and date the call was closed by the Company  
+• A brief description of the action taken  
+ 
+  
+
+=== PAGE 27 ===
+   
+Confidential 
+SLA  27 
+6. CALL PRIORITIES  
+A system of service call priorities is used by the Company. Any of the call priorities defined 
+below can be set by the Customer when reporting a fault. However, the default used is as 
+follows:  
+When placing the service call, the Customer will be asked if there is a major system impact. If 
+the answer is YES, a P1 will be allocated. If the answer is NO, a default P2 will be allocated, 
+or if more appropriate, a P3 or P4 as defined below:  
+6.1 PRIORITY P1 (CRITICAL)  
+A Priority ONE call is used for system faults where there is a major impact on normal operation 
+of all the systems. The Company will immediately begin work on a P1 call, with the immediate 
+goal of restoring normal operation to the system via a fault correction or a satisfactory work -
+around. Misuse of this priority affects the ability of the Company to respond to genui ne P1 
+calls.  
+6.2 PRIORITY P2 (URGENT)  
+Priority TWO calls are used for system faults where normal system operation is affected to 
+some degree and a satisfactory work -around is not available. The Company will use best 
+endeavors to respond to the call in the times stated in Response Times section  of this 
+document. In most cases, it is normal for the Company to respond in faster times than those 
+stated.  
+6.3 PRIORITY P3 (STANDARD)  
+Priority THREE calls are used for system faults where a fault was detected, but normal 
+operation is not affected. This priority of call is the default for all service calls which do not 
+involve a hardware related fault. For software related issues, this priority allows for work to be 
+scheduled as part of a planned maintenance update.  
+6.4 PRIORITY P4 (ENHANCEMENT REQUESTS)  
+Priority FOUR calls are used when an enhancement request is made for potential modifications 
+to System Software. 
+ 
+ 
+ 
+
+=== PAGE 28 ===
+   
+Confidential 
+SLA  28 
+7. RESPONSE TIMES  
+The priority of the call will, to some degree, dictate the most appropriate action for any given 
+fault call, ensuring the minimum of disruption to the user and providing the early involvement 
+of the Company’s management where problems are of a more serious nature.  
+7.1 RESPONSE DEFINITIONS  
+The Company will use its best endeavors to achieve the target resolution times shown in the 
+table below. Note that resolutions may involve a “workaround” to an issue that will allow 
+continued use of the affected component.  
+The software responses are for the Support Services group to return a call to the Customer’s 
+support contact to start diagnosis of the problem. 
+7.2 RESPONSE TARGETS 
+Priority Response during working Hours 
+P1 1 hour 
+P2 8 hours 
+P3 16 hours 
+P4 72 hours 
+ 
+Notes : 
+• Above table is based on the Service Catalogue, please refer to Appendix D for 
+more information about this package. Irrespective of the response targets 
+mentioned in the Service Catalogue the response targets as stated under 
+chapter 8.2 will be applicable. 
+• All the times shown in the table above are from the time the call is logged with 
+the Company’s Support Services group . 
+• The target times apply to normal operational hours only . 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 29 ===
+   
+Confidential 
+SLA  29 
+8. ESCALATION PROCEDURES 
+The Company will use all reasonable endeavors to ensure that calls are cleared within the 
+specified timescales in this Agreement. If the event that calls remain outstanding beyond the 
+agreed times, the Company’s Support staff will escalate the call to Senior Management at the 
+Company, who will contact his counterpart within the Customer’s organization to agree a 
+course of action to be taken. 
+8.1 ESCALATION TIMES 
+As a call is escalated, regular contact will be maintained at between the Company and a 
+nominated member of the Customer’s organization. 
+The Company’s 
+Management Contact  Target Exceeded by Call Priority 
+Head of Technical 
+Department  8 hours P1 
+Head of Technical 
+Department  24 hours P2 
+n/a – Issue will be moved 
+to P2 status  N/A P3 
+ 
+The target times apply to normal operational hours only. 
+8.2 GENERAL ESCALATION NOTES 
+The Company will notify the Customer if it is apparent that resolution of a call may result in a 
+protracted timescale. The Company may also escalate calls of a repetitive nature.  
+The Customer may escalate any call at any time should they deem it to be appropriate in any 
+specific instance. 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 30 ===
+   
+Confidential 
+SLA  30 
+9. SUPPORTED PRODUCTS 
+The Agreement applies to the following components that are identified by a Company assigned 
+name. The Supported Product list will also identify the level of support services to be provided 
+by the Company with regard to a fault condition reported by Customer. If a specific component 
+is normally released as part of a larger product group but is specifically listed within a Product 
+Support Level group that provides for a lower level of support and/or maintenance activities, 
+the lower level classification shall apply.  
+Product Support Level A : Products listed are under active support, maintenance, and 
+development by the Company. Reported fault conditions will be worked by the Company using 
+the guidelines within the Agreement. 
+Description Release level Product Name 
+All FM1-based POLISCAN 
+SPEED & SSPX Systems 
+ 
+FM1 & SSPX 
+ PoliScan speed & SSPX 
+ 
+Product Support Level B: Products listed are under active support. Maintenance efforts will be 
+limited to fault conditions classified as Priority P1 or P2, which will be worked on by the 
+Company using the guidelines within the Agreement . 
+Description Release level Product Name 
+All FM1-based POLISCAN 
+SPEED & SSPX 
+Accessories 
+ 
+FM1 & SSPX PoliScanspeed  
+Accessories 
+ 
+Product Support Level C: Products that are under limited support and maintenance by the 
+Company. Support and maintenance of the product would be limited to ‘best -efforts’ in an 
+attempt to provide a work-around or maintenance updates to a fault condition encountered that 
+is consi dered a Priority level P1 or P2 issue. If a resolution cannot be identified, the fault 
+condition would be considered a limitation of the product. No future maintenance updates, or 
+development efforts are anticipated by the Company for products at this Product Support Level . 
+Description Release level Product Name 
+Specific products have not 
+been defined for this Product 
+Support classification.  
+ 
+N/A N/A 
+ 
+ 
+ 
+
+=== PAGE 31 ===
+   
+Confidential 
+SLA  31 
+ 
+10. CUSTOMER REQUIREMENTS 
+The Company’s ability to meet its obligations under the terms of this Agreement depends upon 
+the Customer meeting certain requirements. Inability to meet these requirements may prolong 
+the final resolution to any given fault. 
+10.1 REQUESTED BY THE COMPANY 
+• The Company requires all faults to be reported to the Company’s Support 
+Services group in accordance with Call Procedures section of this document.  
+• When appropriate, the Company requires free and immediate access to all 
+areas where the software to be maintained is located.  
+• The Customer should respond to requests for additional information regarding 
+the fault in a timely manner.  
+• Fault isolation efforts by the Company may result in a request for the addition 
+of debug software and/or trace statements within the affected component. 
+Whenever possible, the Customer should allow use of the additional fault 
+isolation efforts requested by the Company.  
+• When appropriate, the Company will be informed of all passwords or other 
+security measures used by the Customer which control or may prohibit access 
+to the systems.  
+• The Customer will provide remote connectivity to all systems as required by the 
+Company to allow remote access to the systems as required to investigate a 
+fault condition. All remote access will comply with the Customer’s security 
+requirements.  
+• The Customer should provide contact names and numbers for escalation 
+procedures.  
+• The Customer is responsible for informing users of potential outages which may 
+occur during problem isolation.  
+• The Customer should be satisfied that faults have been fully rectified to their 
+satisfaction before agreeing to close calls.  
+• The Customer shall provide the Company with all needed documents and 
+information to enable the Company to process the services as mutual agreed 
+in the Service Level Agreement. 
+10.2 REQUESTED BY THE CUSTOMER 
+• In respect of any work requiring Time and Materials (T&M) charges, or any other 
+miscellaneous charges not specified within the Agreement, or costs arising from 
+any other minor system enhancement(s), the Customer may require that the 
+Company only accept orders up to a maximum value specified by the Customer, 
+and then, only if correctly approved by an authorized representative of the 
+
+=== PAGE 32 ===
+   
+Confidential 
+SLA  32 
+Customer. The Company will not expend additional efforts or obtain additional 
+materials above the specified limits without prior approval by an authorized 
+representative of the Customer.  
+• When undertaking any maintenance or other operation on any Customer 
+system, or as part of any meeting or discussion, the Customer will be informed 
+of any situation that may adversely affect the efficient and effective operation of 
+any of their systems.  
+• The Customer may request that the fault originator be regularly updated as to 
+the status of faults, if the fault has reached any point at which it has been 
+escalated.  
+• The Company will not install or modify System Software on the Customer’s 
+system without the Customer’s knowledge and approval.  
+ 
+ 
+  
+
+=== PAGE 33 ===
+   
+Confidential 
+SLA  33 
+11. SERVICE REVIEW 
+The services provided by the Company under the terms of this Agreement are subject to review 
+and/or change as required by either party at any time. However, any such change must be 
+documented and approved by both parties.  
+11.1 REVIEW MEETINGS  
+As appropriate, the Company will participate in review meetings, to discuss the effectiveness 
+and quality of the service provided. The participants of these meetings would normally 
+comprise a representative of the Company’s Management and the Customer’s Management.  
+11.2 FAULT INVESTIGATION  
+If requested by the Customer, the Company will carry out a detailed investigation of specific 
+calls or situations to determine the most likely course of events associated with any particular 
+problem that reaches a P1 or P2 priority level. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 34 ===
+   
+Confidential 
+SLA  34 
+12. OPERATIONAL HOURS 
+12.1 COMPANY SERVICES 
+The normal operational hours for all services provided by the Company are shown in the 
+table below. 
+Type of Service Day of Week Hours Time Zone 
+Remote 
+Monday to Friday 
+(excluding Company 
+Holidays) 
+09.00 – 18.00 
+United Arab 
+Emirates (GMT + 
+4:00) 
+ 
+* More information about Company Holidays for 2022 can be found in Appendix A. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 35 ===
+   
+Confidential 
+SLA  35 
+ 
+13. EXCLUSIONS 
+The following items are excluded from this Service Level Agreement : 
+• All items of hardware or software provided by the Customer not identified on 
+the supported products section . 
+• Changes and/or alterations in the hardware or software specification or 
+configuration provided by the Customer where these have not been mutually 
+agreed in advance . 
+• Installation or moving of systems or equipment . 
+• Repair or renewal of consumable supplies or accessories . 
+• Any maintenance work required to repair faults not caused by normal usage . 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 36 ===
+   
+Confidential 
+SLA  36 
+ 
+ 
+14. LOCATION 
+This Agreement relates to all locations where the Customer has installed systems under the 
+terms of its License Agreement using the System Software.  
+ 
+  
+
+=== PAGE 37 ===
+   
+Confidential 
+SLA  37 
+15. SERVICE FEE SCHEDULE 
+The services as discussed within this Agreement will be subject to annual payments based 
+upon the products and services used by the Customer. If additional services or product 
+licenses are provided prior to the renewal date of this Agreement, additional fees may apply.  
+Company reserves the right to adjust the fees associated with this Agreement for the services 
+provided at renewal time. This Agreement will automatically renew each year unless cancelled 
+in writing.  
+Additionally, for services outside the scope of this Agreement, the following rates will apply:  
+Pre-booked Service Rate: 4,300 AED per day per business day. This rate will be used when 
+service fees are paid in advance.  
+Standard Service Rate: 5,400 AED per business day. This rate will be used when service fees 
+are not paid in advance. 
+15.1 CHANGES AND CANCELLATIONS 
+Customer or Company may cancel the automatic renewal of this Agreement provided that a 
+90-day notice period is given in writing of such intention. If cancellation is by Customer, all 
+outstanding payments are immediately due.  
+Additional levels of service contracted may be varied by Agreement between the Customer 
+and the Company (by mutual consent) and may be subject to suitable adjustments in the 
+service fees.  
+Failure to comply with the above may render the Customer liable to a cancellation or 
+amendment charge, to include any additional time and expenses incurred by the Company up 
+to the point of cancellation or change. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 38 ===
+   
+Confidential 
+SLA  38 
+16. PAYMENTS 
+All payments should be made within 30 days of the invoice date, unless alternative billing 
+arrangements have been agreed to in advance. Payments by the Customer will be made to 
+the Company in AED, in the form of a financial instrument accepted by most bank ing 
+institutions within the United Arab Emirates. Failure to comply may result in a 
+suspended/curtailed Support services to the Customer. 
+  
+
+=== PAGE 39 ===
+   
+Confidential 
+SLA  39 
+17. APPENDIX 
+17.1 APPENDIX A – BANK AND ADDITIONAL HOLIDAYS 
+Public holidays and non-working days for UAE 
+https://u.ae/en/information-and-services/public-holidays-and-religious-affairs/public-holidays  
+17.2 APPENDIX C - SERVICE FEES 
+المبلغ السنوي المبلغ الشهري  الكمية  الصنف 
+154,999.68 د.إ 12,916.64 د.إ 8 صيانة أجهزة ضبط السرعة نوع بلوسكان وSSPX من01.01.2025 إلى
+31.12.2025 
+327,558.00 د.إ 27,296.50 د.إ 10 صيانة أجهزة ضبط السرعة نوع بلوسكانCCH) من01.01.2025 إلى
+31.12.2025 
+5,544.00 د.إ 462.00 د.إ 14 تنظيف صناديق أجهزة الرادار نوع بلوسكانCCH) من01.01.2025 إلى
+31.12.2025 
+488,101.68 د.إ     الإجمال   
+    
+المبلغ السنوي  المبلغ الشهري  الكمية  الصنف 
+162,749.66 د.إ 13,562.47 د.إ 8 صيانةأجهزة ضبط السرعة نوع بلوسكان من 01.01.2026 إلى31.12.2026 
+343,935.90 د.إ 28,661.33 د.إ 10 صيانة أجهزة ضبط السرعة نوع بلوسكانCCH) من01.01.2026 إلى
+31.12.2026 
+5,821.20 د.إ 485.10 د.إ 14 تنظيف صناديق أجهزة الرادار نوع بلوسكانCCH) من01.01.2026 إلى
+31.12.2026 
+512,506.76 د.إ     الإجمال   
+  
+المبلغ السنوي  المبلغ الشهري  الكمية  الصنف 
+162,749.66 د.إ 13,562.47 د.إ 8 صيانة أجهزة ضبط السرعة نوع بلوسكان وSSPX من01.01.2027 إلى
+31.12.2027 
+343,935.90 د.إ 28,661.33 د.إ 10 صيانةأجهزة ضبط السرعة نوع بلوسكان (CCH) من01.01.2027 إلى
+31.12.2027 
+5,821.20 د.إ 485.10 د.إ 14 تنظيف صناديق أجهزة الرادار نوع بلوسكانCCH) من01.01.2027 إلى
+31.12.2027 
+512,506.76 د.إ     الإجمال   
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+=== PAGE 40 ===
+   
+Confidential 
+SLA  40 
+  
+المبلغ السنوي المبلغ الشهري  الكمية  الصنف 
+170,499.65 د.إ 14,208.30 د.إ 8 صيانة أجهزة ضبط السرعة نوع بلوسكان وSSPX  01.01.2028 إلى
+31.12.2028 
+360,313.80 د.إ 30,026.15 د.إ 10 صيانة أجهزة ضبط السرعة نوع بلوسكانCCH) من01.01.2028 إلى
+31.12.2028 
+6,098.40 د.إ 508.20 د.إ 14 تنظيف صناديق أجهزة الرادار نوع بلوسكانCCH) من01.01.2028 إلى
+31.12.2028 
+536,911.85 د.إ     الإجمال   
+  
+المبلغ السنوي  المبلغ الشهري  الكمية  الصنف 
+170,499.65 د.إ 14,208.30 د.إ 8 صيانة أجهزة ضبط السرعة نوع بلوسكان وSSPX من01.01.2028 إلى
+31.12.2028 
+360,313.80 د.إ 30,026.15 د.إ 10 صيانة أجهزة ضبط السرعة نوع بلوسكانCCH) من01.01.2028 إلى
+31.12.2028 
+5,821.20 د.إ 485.10 د.إ 14 تنظيف صناديق أجهزة الرادار نوع بلوسكانCCH )من01.01.2028 إلى
+31.12.2028 
+536,634.65 د.إ     الإجمال   
+ 
+ 
+17.3 Summary of Service and Maintenance prices per year from 2025 to 2029. 
+Service for the upcoming 5 years 
+ 
+Year 2025 2026 2027 2028 2029  
+ Total 
+Price 
+488,101.68 
+د.إ 
+512,506.76 
+د.إ 
+512,506.76 
+د.إ 
+536,911.85 
+د.إ 
+536,634.65 
+د.إ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+
+=== PAGE 41 ===
+   
+Confidential 
+SLA  41 
+18. ENTIRE AGREEMENT 
+Except as provided within the termination and remedies section herein, this agreement shall 
+not be modified or terminated other than by a written document signed by an authorized officer 
+or agent of each of Company and Customer. the provisions of this agreement shall control the 
+use of software by Customer. Customer agrees to return all copies of any software from 
+whoever received if delivery of that software was outside the legal authority of the delivering 
+party to grant a valid license. Acceptance by Cus tomer of any software from Company shall 
+be deemed conclusive evidence of Customer's agreement that the license for such software 
+is governed by this agreement.  
+The minimum contract period for this SLA is twelve (12) months and will be extended for a 
+further 12 months upon approval of new proposal, if not canceled in writing by the Customer 
+or the Company, adhering to a period of notice of six (6) months before the minimum contract 
+period ends. 
+ 
+ 
+VITRONIC Machine Vision Middle East LLC  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+_________________________________  
+Dr. Youssef El Hansali / CEO  
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+=== PAGE 42 ===
+   
+Confidential 
+SLA  42 
+19. GENERAL TERMS AD CONDITIONS 
+ 
+
+=== PAGE 43 ===
+I General 
+1. These General Terms and Conditions ("GTC") shall apply to 
+all contracts for which VITRONIC Dr.-Ing. Stein 
+Bildverarbeitungssysteme GmbH or a group company affiliated 
+with it is the seller or supplier. These  GTC apply to purchase 
+contracts and are applicable accordingly to contracts for work and 
+services, contracts for work and materials, service contracts and  
+mixed-type contracts. They shall also apply to all future contracts 
+of a related nature with the buyer that VITRONIC concludes on the 
+seller's side. 
+2. These GTC shall apply exclusively to all contracts concluded 
+with the seller (hereinafter "VITRONIC") and the buyer (hereinafter 
+"Buyer"), even in the absence of an express agreement. Any terms 
+and conditions of the Buyer that conflict with or deviate from these 
+GTC shall not become part of the contract even by acceptance of 
+the order. The terms and conditions of the  Buyer are hereby 
+rejected. These GTC shall also apply if VITRONIC fulfils its 
+contractual obligations without reservation in the knowledge of 
+deviating terms and conditions of the Buyer. 
+3. These GTC shall only apply if the Buyer is (i) an 
+entrepreneur, (ii) a  legal entity under public law or (iii) a special 
+fund under public law. An entrepreneur is a natural or legal person 
+who, when concluding a legal  transaction, acts in the exercise of 
+his commercial or independent professional activity. 
+4. Individual agreements, including subsidiary agreements, 
+supplements and amendments, with the Buyer shall take 
+precedence over these GTC. For the validity of such agreements, 
+subject to proof to the contrary, an agreement or confirmation by 
+VITRONIC is required which has been recorded at least in text 
+form. The requirement of text form can only be  waived at least in 
+text form. 
+ 
+II Conclusion of Contract 
+1. All agreements relating to the conclusion of the contract shall 
+require at least text form. VITRONIC's offer shall be decisive for 
+the scope of delivery  and/or service. Deviations, amendments and 
+supplements shall only become  effective if they are expressly 
+confirmed by VITRONIC. Offers of VITRONIC  which are not 
+expressly marked as binding or which do not contain a specific 
+acceptance period are non-binding offers. 
+2. A contract will only be concluded upon VITRONIC's order 
+confirmation. If the Buyer and VITRONIC  have jointly signed a written 
+document containing  all the terms of the contract, this shall be 
+equivalent to an order confirmation. 
+3. If the Buyer's order is to be qualified as a new binding offer, 
+VITRONIC may accept this offer within fourteen (14) calendar days 
+after its receipt,  unless the Buyer has specified a different  
+acceptance period. 
+4. VITRONIC reserves the right to make changes to the agreed 
+contractual performance of its services insofar as (i) VITRONIC is 
+obliged to make such changes due to statutory provisions, (ii) such 
+changes are necessary to ensure product safety or (iii) such 
+changes are advantageous for the Buyer. 
+5. If an export licence is required for the execution or 
+performance of the  contract, the conclusion of the contract shall 
+be subject to the condition precedent of the granting of such export 
+licence. 
+6. VITRONIC retains ownership and all copyright and 
+protectable exploitation rights to documents and records as well 
+as information provided  to the Buyer. They shall be returned to 
+VITRONIC after completion or in case of non-award of an order and 
+may not be made accessible to third parties  unless VITRONIC 
+gives its written consent. 
+ 
+III Subject of the Contract 
+1. VITRONIC shall deliver the hardware and/or software 
+designated in the order confirmation (" Goods") with the 
+specifications described therein. The  Goods shall  be delivered 
+including the documentation provided for this  purpose (e.g. 
+operating or assembly instructions). Installations, configurations, 
+training or similar services must be expressly agreed in order to 
+become part of the contract. 
+2. Software shall always be delivered in executable form 
+(object code).  The source code is not  the subject matter of  the 
+contract or delivery. 
+3. Technical information and consulting services - unless they 
+are expressly agreed to be part of the scope of services and to be 
+contractually owed - are not part of the contract and are therefore 
+provided free of charge. 
+4. The details of the offer and the order confirmation do not 
+contain any  agreement or guarantee on quality, unless this has 
+been expressly and separately agreed. 
+5. The Buyer shall name a contact person vis-à-vis VITRONIC 
+at the latest upon conclusion of the contract who is authorised to 
+make the declarations  required for the performance of the 
+contract, to perform actions and to act as a receiving agent. 
+ 
+IV Payment Terms 
+1. The prices stated in accordance with the order confirmation 
+shall be  deemed to have been agreed and shall be including 
+loading at the factory but  excluding packaging. Costs of 
+packaging and other additional services shall be  charged 
+separately. Value added tax at the statutory rate and, in the case 
+of export deliveries, customs duties and other public charges shall 
+be added to the prices and shall be listed separately on the date 
+of invoicing. 
+2. Unless stated otherwise in the  order confirmation, the 
+consideration will be due for  payment without deduction, as 
+follows: 
+30% of the total invoice amount as a down payment after 
+receipt of the order confirmation, 
+60% of the total invoice amount as soon as the Buyer has 
+been notified that the goods are ready for dispatch, 
+and the balance in the amount of 10% within fourteen (14) 
+days of the invoice date. 
+3. Upon expiry of the payment deadlines, the Buyer shall be in 
+default. He  shall then pay interest on arrears of nine (9) 
+percentage points above the base  interest rate to VITRONIC 
+without any further reminder being required. VITRONIC may 
+grant the Buyer a reasonable grace period for payment and, if  
+this period expires to no avail, withdraw from the contract or claim 
+damages. 
+4. The Buyer shall have the right to withhold payments or to 
+offset them  against counterclaims only to the extent that his 
+counterclaims are undisputed or have been finally determined by 
+a court of law. The Buyer is only permitted  to exercise a right of 
+retention insofar as his counterclaim is based on the same 
+contractual relationship. 
+5. Unless a fixed price agreement has been made, VITRONIC 
+reserves the  right to make reasonable price changes due to 
+changes in labour, material or  distribution costs for deliveries 
+occurring at least 3 (three) months after conclusion of the 
+contract. 
+ 
+6. If, after conclusion of the contract, VITRONIC becomes 
+aware of circumstances that are likely to jeopardise the 
+settlement of VITRONIC's outstanding claims, VITRONIC reserves 
+the right to render outstanding services  only against advance 
+payment or after provision of an increased advance  payment 
+and/or further securities. If due payments remain unpaid, 
+VITRONIC may declare the remaining debt due immediately. 
+ 
+V Delivery Terms 
+1. The delivery date results from the order confirmation and/or 
+other agreements between the contracting parties. VITRONIC’s 
+compliance with the  delivery date is subject to the condition that 
+all commercial and technical details of the order have been 
+clarified between the contracting parties and that the  Buyer has 
+
+=== PAGE 44 ===
+   
+Confidential 
+SLA  2 
+duly and timely fulfilled all his obligations to cooperate (e.g. 
+provision of the required official certificates or permits) and has 
+made down payments  and provided securities. The defence of 
+non-performance of the contract remains reserved. Delays which 
+lie within the sphere of control of the Buyer  shall extend  the 
+delivery period accordingly. 
+ 
+2. Compliance with a  delivery date is  subject to correct  and 
+timely delivery to VITRONIC. 
+ 
+3. Unless expressly agreed otherwise, the Goods shall be 
+delivered FCA  (Incoterms 2020) to the address of VITRONIC 
+stated in the order confirmation. With the (partial) delivery, the risk 
+shall pass to the Buyer. 
+ 
+4. The delivery date shall be deemed to have been met if the 
+Goods have left the warehouse or notification of readiness for 
+dispatch has been given by the  time the delivery date expires. 
+Partial deliveries and services are permissible  insofar as (i) the 
+partial delivery or service is usable for the Buyer, (ii) the  
+remaining delivery or service is ensured and (iii) the partial 
+delivery or service is reasonable for the Buyer. 
+ 
+5. If the delivery of the Goods is delayed due to a circumstance 
+for which the Buyer is responsible (in particular due to default of 
+acceptance or non -fulfilled obligations to cooperate), the risk of 
+accidental loss or accidental deterioration  of the Goods shall 
+pass to the Buyer from the day on which VITRONIC has  notified 
+the Buyer that the Goods are ready for delivery. This shall not 
+apply if the Goods were not actually ready for delivery on that 
+day. If the prerequisites  of sentence 1 are met, VITRONIC shall 
+also be entitled to claim compensation  for the damage incurred 
+in this respect, including any additional expenses.  VITRONIC 
+reserves the right to assert further claims. 
+ 
+6. If the Goods are shipped to the Buyer at the Buyer's request, 
+the risk of accidental loss or accidental deterioration of the Goods 
+shall pass to the  Buyer upon dispatch of the Goods to the Buyer, 
+at the latest upon leaving the factory. This applies irrespective of 
+whether the Goods are dispatched from the place of performance 
+or who bears the freight costs. 
+7. If an acceptance is required due to the subject matter 
+of the contract, this shall generally take place formally. In addition, 
+a delivery or service of VITRONIC shall be deemed to have been 
+accepted if (i) the  delivery or service has been completed, (ii) 
+VITRONIC has notified the Buyer of this and requested him to 
+accept, (iii) fourteen (14) calendar days have  elapsed since the 
+delivery or service or the Buyer has taken the Goods or service(s) 
+into use and seven (7) calendar days have elapsed since this time 
+and (iv) the Buyer has failed to accept despite being requested to 
+do so by this time. The Buyer may not refuse to accept the Goods 
+due to an insignificant defect. This shall not apply if VITRONIC 
+expressly refuses the  obligation to remedy the non -substantial 
+defect. A significant defect is a  shortcoming that is so serious in 
+terms of its nature, scope and effects that  the buyer, taking into 
+account objective aspects in relation to the use assumed in 
+accordance with the purpose of the contract and the success  
+achieved, as well as taking into account the mutual interests of the 
+contracting parties (inter alia, actual impairment of use, cost of 
+remedying the defect, degree of fault), cannot reasonably be 
+expected to be ultimately referred to warranty claims. 
+ 
+VI Retention of Title 
+1. The Goods will remain the property of VITRONIC until the 
+invoice amount has been paid in full (" Reserved Goods "). 
+Pledging or transfer by  way of security are prohibited. In case of 
+access of third parties to VITRONIC's property, the Buyer shall 
+point out this property and inform  VITRONIC immediately. The 
+Buyer shall be liable for all damages and costs  incurred in this 
+connection. 
+2. In the event of the Buyer’s breach of the contract, in 
+particular in the  event of default of payment, VITRONIC shall be 
+entitled to withdraw from the contract and/or to demand the return 
+of the Reserved Goods. In this case,  the Buyer is obliged to 
+surrender the Reserved Goods immediately. 
+3. An application for the opening of insolvency proceedings of 
+the Buyer  shall entitle VITRONIC to withdraw from the contract 
+and to demand the immediate return of the Reserved Goods. 
+4. Until payment of the full invoice amount, the Buyer is obliged 
+to treat the Reserved Goods with care; in particular, he is obliged 
+to insure them  adequately against the usual risks at his own 
+expense. If maintenance and  inspection work have to be carried 
+out, the Buyer shall perform such work in a timely and professional 
+manner at his own expense. 
+5. Any combination, mixing, treatment or processing of the 
+Reserved Goods shall always be in the name and on behalf of 
+VITRONIC as manufacturer. In this case, the remainder of the 
+Buyer to the object of sale shall continue in the transformed object. 
+If VITRONIC's (co-)ownership expires due to combination, mixing 
+or processing of the Reserved Goods, it  is already agreed now 
+that the (co -)ownership of the new item shall pass to  VITRONIC 
+on a pro rata basis in proportion to the objective value of the  
+combined, mixed or processed Reserved Goods at the time of the 
+combination. The Buyer shall keep the (co -)ownership for 
+VITRONIC free of  charge. The conditions applicable to the 
+Reserved Goods shall apply to the  new item created by 
+combining, mixing or processing. 
+ 
+VII Warranty 
+1. Goods delivered by VITRONIC shall be inspected carefully 
+immediately after delivery. Any defects shall be reported to 
+VITRONIC without delay. The Buyer's warranty rights shall be 
+subject to the condition that the Buyer has  fulfilled his inspection 
+and complaint obligations mentioned before in due  time. 
+2. If, despite all due care, the delivered Goods show a defect 
+which was  already present at the time of the transfer of risk, 
+VITRONIC shall - subject to the provision in clause 7.1 - at its own 
+discretion either remedy the defect  (rectification) or deliver a 
+defect-free item (subsequent delivery). A rectification shall only be 
+deemed to have failed if the rectification of the same defect has 
+been attempted at least twice without success. VITRONIC's right  
+to refuse subsequent performance under the statutory conditions 
+shall remain unaffected. VITRONIC shall always be given the  
+opportunity to remedy the defect within a reasonable period of 
+time and, in particular, be  granted access to the premises where 
+the defective item is located. Otherwise, VITRONIC shall be 
+released from liability for any consequential  damages resulting 
+therefrom. Ownership of a defective replaced item or  replaced 
+components shall pass to VITRONIC. 
+3. The supplementary performance shall neither include the 
+installation nor the de-installation of the Goods, unless VITRONIC 
+was initially obliged to install it. Expenses for the purpose of 
+inspection and subsequent performance, in  particular transport, 
+travel, labour and material costs, shall be borne by VITRONIC if 
+the goods prove to be actually defective or if the Buyer could not 
+have been able to recognize the lack of defectiveness. In all other 
+cases, VITRONIC shall be entitled to demand reimbursement of 
+costs incurred due to unjustified requests to remedy defects from 
+the Buyer. Furthermore, the Buyer  shall bear the increased 
+expenses incurred by the Buyer within the scope  of subsequent 
+performance due to the fact that the Goods were subsequently  
+transported to a place other than the original place of delivery. Any 
+obligation to bear the costs of installation and de-installation shall 
+remain unaffected. 
+4. If the supplementary performance has failed or a reasonable 
+deadline to be set by the Buyer has expired unsuccessfully, the 
+Buyer shall be entitled to withdraw from the contract or to reduce 
+the purchase price. A right of withdrawal is excluded in case of an 
+insignificant defect. If the Buyer exercises his right of withdrawal, 
+VITRONIC shall refund the purchase price paid less reasonable  
+compensation for the use made of the Goods until the contract is 
+rescinded. Claims for damages and reimbursement of expenses 
+of the Buyer shall only  exist in accordance with clause  8 
+(Limitation of Liability). 
+5. The assignment of warranty rights of the Buyer to third 
+parties requires the written consent of VITRONIC. If defects occur 
+in co-sold components of other  manufacturers, VITRONIC shall 
+either assert its own warranty rights against this manufacturer for 
+
+=== PAGE 45 ===
+   
+Confidential 
+SLA  3 
+the account of the Buyer or assign them to the Buyer. In this case, 
+the assertion of warranty rights against VITRONIC shall be 
+excluded unless a judicial assertion of warranty rights against the 
+other manufacturer was unsuccessful or is initially futile. Any  
+warranty rights of the Buyer against  VITRONIC shall be 
+suspended for the duration of any proceedings against the  other 
+manufacturer. 
+6. Parts subject to wear and tear (e.g. batteries or 
+rechargeable batteries,  hard disks, illuminants) and 
+consumables shall be excluded from the warranty insofar as their 
+defect, wear and tear or consumption are inherent in the product 
+in the course of its intended use and are therefore usual and 
+typical for the product. Furthermore, VITRONIC shall not assume 
+any warranty for defects or  faults that occur after the passing of 
+risk as a result of unsuitable or improper  use, excessive stress, 
+faulty assembly or commissioning by the Buyer or third  parties 
+contrary to the specifications of an assembly manual, unsuitable 
+operating materials, negligent handling and defective 
+construction work, use  contrary to the operating instructions or 
+other specifications or due to special external influences that are 
+not assumed under the contract, as well as continued use 
+despite the occurrence of a defect. The same shall apply in the  
+event that parts have been replaced or changes have been made 
+to sof tware without VITRONIC's consent which do not comply 
+with the original specifications or if the Buyer or commissioned 
+third parties carry out improper rectifications or conversions. The 
+provisions of the preceding sentences 2 and  3 shall not apply if 
+the Buyer proves that the asserted defect did not result from  the 
+aforementioned circumstances. 
+ 
+VIII Limitation of Liability 
+1. VITRONIC's liability for damages - irrespective of the legal 
+grounds, in  particular impossibility, delay, defective delivery, 
+breach of contract, breach of pre-contractual obligations or tort - 
+shall only arise if the damage has been  caused by culpable 
+breach of an essential contractual obligation in a manner  
+jeopardising the achievement of the purpose of the contract or is 
+attributable to gross negligence or intent on the part of VITRONIC 
+or one of its organs, legal  representatives, employees or 
+vicarious agents - insofar as they have acted in the performance 
+of their duties. Material contractual obligations in the 
+aforementioned sense are obligations which VITRONIC has to 
+fulfill vis-à-vis the customer  according to the content  and purpose 
+of the contract, the fulfilment  of which characterises the contract 
+and on the observance of which the customer regularly relies and 
+may rely. In the event of simple negligence, the  liability for the 
+breach of material contractual obligations shall be limited to the  
+amount of the damage foreseeable at the time of conclusion of 
+the contract and typical for the contract. 
+2. If VITRONC is responsible for loss of the Buyer's data, 
+VITRONIC's liability shall be limited to the costs of duplicating the 
+data (backup copies) for the Buyer and restoring those data that 
+would have been lost even if the data had been  backed up 
+regularly and in a manner commensurate with the risk. If the 
+Buyer has failed to ensure a proper, industry-standard and risk-
+adequate data backup that corresponds to the state of the art, 
+VITRONIC shall not be liable for the  damage resulting from the 
+loss of data. 
+3. The limitations and exclusions of liability of this clause 8 shall 
+apply equally in favour of VITRONIC's organs, legal representatives, 
+employees and vicarious  agents. The limitations of liability of this 
+clause 8 shall not apply to breaches of  duty committed 
+intentionally or by gross negligence, claims due to fraudulent  
+concealment of defects, assumption of a guarantee or a 
+procurement risk, injury to life, body or health, pursuant to 
+mandatory statutory liability. 
+4. VITRONIC shall only be liable for a violation of the General 
+Data Protection Regulation (GDPR) in cases of intentional or 
+grossly negligent breach of duty, unless it is a violation of a material 
+contractual duty within the meaning of clause 8.1 sentence 2. 
+5. VITRONIC's liability is otherwise excluded. 
+ 
+IX Periods of limitation for material defects 
+and defects of title 
+1. The limitation period for claims of the Buyer arising from 
+material defects and defects of title is twelve (12) months from 
+delivery. Shorter limitation periods may be agreed for the delivery 
+of used goods. 
+2. The limitation periods of clause 9.1 shall also apply to 
+contractual and non-contractual claims for damages of the Buyer 
+which are based on a defect of the goods, unless  the statutory 
+limitation period is shorter. 
+3. Clause 9.1 shall not apply to claims based on intentional or 
+grossly negligent breach of duty, fraudulent misrepresentation, 
+assumption of a  guarantee or a procurement risk, injury to life, 
+body or health, breach of  material contractual  obligations and in 
+the event of a right of recourse pursuant to § 445b German Civil 
+Code and other mandatory statutory liability. 
+ 
+X Termination of a continuing obligation 
+1. Continuing obligations may be terminated by the parties at 
+any time for good cause. Good cause is given if the continuation 
+of the contract or the  continuation of a condition can no longer 
+reasonably be expected of the party concerned, taking into account 
+all circumstances in good faith. 
+2. Good cause shall be assumed in particular if (i) the Buyer fails 
+to comply with its material contractual obligations, (ii) one party 
+intends to file for  insolvency and fails to notify the other party 
+thereof without undue delay, or 
+(iii) the Buyer repeatedly violates VITRONIC's software licence 
+terms. 
+ 
+XI Industrial Property Rights 
+1. Notwithstanding the provisions of clause 2.6, VITRONIC will 
+not transfer any industrial property rights, licences, rights of use, 
+rights equivalent to industrial property rights or other rights to the 
+intellectual property of VITRONIC or third parties with the delivery 
+and sale of the Goods, with the  exception of the rights which are 
+compulsorily associated with every purchase transaction and the 
+rights pursuant to clause 12. This shall apply  irrespective of 
+whether the delivery or service is made to the Buyer or a third party. 
+The Buyer is not entitled to use  VITRONIC's brands and 
+trademarks. 
+2. If the Buyer becomes aware of the assertion of claims by third 
+parties due to the alleged infringement of industrial property rights, 
+the Buyer shall  inform VITRONIC without delay and support it in 
+the judicial or extrajudicial  defence against these claims. 
+VITRONIC shall be responsible for all legal defence measures. 
+3. The Buyer shall be entitled to claims for the infringement of 
+industrial property rights or copyrights of third parties and VITRONIC 
+shall only be liable  for these infringements if the third party is 
+entitled to the rights in question for the territory of the Federal 
+Republic of Germany or the country to which the delivery is made 
+as agreed. 
+ 
+XII Rights to Software 
+1. If the delivery or transfer of software has become a 
+contractual content, the Buyer shall - unless otherwise agreed - be 
+granted a non- exclusive right, unlimited in time and place, to use the 
+software in accordance  with the contractual agreements and the 
+specifications of the accompanying  documentation. If the Buyer 
+delivers the software to a third party (“ End Customer”), only the 
+End Customer shall be entitled to this right of use. 
+2. The Buyer shall be entitled to transfer the purchased software 
+to third  parties, provided that this transfer (i) is permanent, not 
+merely temporary, (ii) the Buyer completely abandons the use of 
+the software including documentation and (iii) irretrievably deletes 
+all copies installed at the Buyer's premises, including the backup 
+copy. The Buyer shall confirm this to VITRONIC upon request and 
+name the End Customer. The Buyer is obliged  to oblige the End 
+
+=== PAGE 46 ===
+   
+Confidential 
+SLA  4 
+Customer to comply with these provisions accordingly. 
+3. With the exception of clause 12.2, the Buyer is not entitled to 
+lease, sublicense, make publicly available or otherwise make 
+available the acquired software to third parties. 
+4. Th buyer may not modify, copy, translate, otherwise 
+reproduce or reverse engineer the purchased software. The Buyer 
+is entitled to create a  backup copy, provided that he marks it as 
+such and affixes a clearly visible  copyright notice of the 
+manufacturer. The Buyer undertakes not to remove or  change 
+manufacturer's markings - in particular copyright notices. 
+5. If VITRONIC delivers software already installed on hardware 
+and designated as OEM software, this software may only be 
+transferred to third  parties together with the hardware and in 
+compliance with clause 12.2. OEM  software may not be 
+transferred independently. 
+ 
+6. If third -party software is part of the scope of delivery of 
+VITRONIC, the licence conditions of the third-party manufacturer 
+will apply to this software and its use. If the Buyer does not accept 
+the licence conditions of the third-party manufacturer, VITRONIC 
+shall be entitled to withdraw from the contract. 
+ 
+7. In all other respects, VITRONIC's General Terms and 
+Conditions for Software shall apply. 
+ 
+XIII Confidentiality 
+The Buyer is obliged to maintain secrecy about all information 
+marked as  confidential or about information for which 
+confidentiality results from the circumstances. This does not 
+apply to information which is already in the public domain. The 
+obligation to maintain confidentiality shall continue beyond the 
+end of the contract term for a further five (5) years. 
+ 
+XIV Force Majeure 
+1. Neither party shall be liable for the non -performance of its 
+contractual delivery or performance obligations if such non -
+performance is  due to an unforeseeable, unavoidable event 
+beyond the control of the party concerned  and for which it is not 
+responsible ("Force Majeure"). This shall also apply if  
+circumstances of Force  Majeure occur at  a vicarious  agent or 
+subcontractor. 
+2. Force Majeure shall be deemed to exist in particular in the 
+event of natural  disasters (floods, earthquakes, epidemics, fire), 
+in the event of strikes, labour  disputes or lockouts, in the event 
+of legal restrictions, in particular travel restrictions as well as 
+export or foreign exchange restrictions, riots, insurrection, acts of 
+terrorism, armed conflicts, demonstrations or accidents, 
+amendment of laws, suspension of export or import licences as 
+well as in the event of viruses  or other malware on VITRONIC's 
+IT systems, insofar as these occur despite  compliance with the 
+protective measures customary in the industry. Force  Majeure 
+shall also be deemed to exist if one of the aforementioned 
+reasons or another circumstance for which the affected party is 
+not responsible results in  raw materials or other components of 
+the Goods not being able to be procured in a reasonable manner. 
+3. If one party invokes the existence of  Force Majeure and 
+immediately notifies the other party of this circumstance, agreed 
+deadlines and dates shall  be suspended for the duration of the 
+disruption. VITRONIC shall be granted a  reasonable restart 
+period, if required, after the disruption has ceased. 
+4. Events of Force Majeure within the meaning of clauses 14.1 
+and 14.2 shall entitle VITRONIC to rescind or terminate the 
+contract without granting the Buyer any claim for damages. If an 
+event of Force Majeure lasts for a period of more  than three (3) 
+months, both parties shall be entitled to withdraw from the contract  
+without the other party being entitled to compensation. 
+5. If VITRONIC cannot fulfil agreed contractual obligations or 
+cannot fulfil them in time due to lack of availability of personnel or 
+material resources, official  directives or other restrictions by law or 
+regulation and if this failure is due to the SarS-CoV2 pandemic, 
+clause 14.3 sentence 1 shall apply accordingly for the duration of 
+the impediment as well as clause 14.4 sentence 2. 
+ 
+XV Export Control 
+1. VITRONIC's performance of the contract is subject to the 
+condition precedent that it is not prevented by any obstacles 
+resulting from legal or official export restrictions, in particular 
+export control regulations, embargoes or other  restrictions. The 
+contracting parties undertake to provide in due time all 
+information and documents required for the export, transfer 
+and/or import of the Goods. 
+2. Delays caused by export inspections or licensing procedures 
+shall suspend agreed deadlines and delivery times for the 
+duration of the delay. If approvals  are not granted, the contract 
+shall be deemed not to have been concluded with  regard to the 
+parts affected by the refusal of approval. 
+3. Furthermore, VITRONIC has the right to withdraw from the 
+contract concluded with the Buyer if, after conclusion of the 
+contract, performance  problems occur as a result of export 
+restrictions. Claims for damages, in particular compensation for 
+financial losses, shall be excluded in this respect 
+unless VITRONIC acted intentionally or grossly negligently at the 
+time of  conclusion of the contract. The same shall apply to 
+pecuniary loss resulting  from the fact that spare parts or 
+accessories cannot be delivered or cannot  be delivered on time 
+as a consequence of export restrictions. 
+4. The Buyer is obliged to comply with the applicable provisions 
+of national and/or international (re -)export control law at all times  
+in connection with the  purchase or resale of the Goods to third 
+parties and shall indemnify VITRONIC against all damages arising 
+from a breach of this obligation. 
+ 
+XVI Sustainability, Compliance and Anti-
+Corruption 
+1. The Buyer undertakes to dispose of the Goods properly at 
+his own expense in accordance with the statutory provisions and 
+in compliance with  VITRONIC's information accompanying the 
+Goods. 
+2. The Buyer assures to comply with all applicable national and 
+international laws and regulations, in particular the provisions of 
+criminal law, social security law, tax law and anti-trust law, in 
+connection with the contractual relationship with VITRONIC. In 
+addition to the provisions of 
+German law, this applies in particular to the relevant provisions of 
+the country in which the contractual services are rendered. 
+3. Upon conclusion of the contract, the Buyer also undertakes 
+to comply with the Code of Conduct for Business Partners of 
+VITRONIC, which is an integral part of these GTC and is 
+available for download at https://www.vitronic.com/en-
+us/corporation/what-we-stand-for/our- promise/compliance. 
+4. Any violation of the Code of Conduct for Business Partners of 
+VITRONIC  by the Buyer shall be deemed a breach of contract and 
+entitles VITRONIC, without prejudice to other rights, to terminate 
+existing contracts without  notice, to break off all contractual 
+negotiations and to discontinue the business relationship. 
+ 
+XVII Miscellaneous 
+1. VITRONIC shall be entitled to pass on to its affiliated 
+companies’ information that has become known to it in the course 
+of the customer  relationship with the Buyer, taking into account 
+the applicable provisions of data protection law. 
+2. Other duties to cooperate shall be performed by VITRONIC 
+only if they have been agreed in writing. 
+ 
+XVIII Applicable Law, Place of Jurisdiction, 
+Place of Performance 
+
+=== PAGE 47 ===
+   
+Confidential 
+SLA  5 
+1. All legal relations between VITRONIC and the Buyer shall be 
+governed by the laws of the Federal Republic of Germany, excluding 
+the conflict of laws  rules and the UN Convention on Contracts for the 
+International Sale  of Goods of 11 April 1980 (CISG). 
+2. Place of performance and exclusive place of jurisdiction for 
+all disputes arising directly or indirectly from the legal relationship 
+between VITRONIC  and the Buyer shall be the respective 
+company seat of VITRONIC, unless expressly stated otherwise in 
+the order confirmation. VITRONIC may choose to file a lawsuit 
+against the Buyer before the courts of the general place of  
+jurisdiction or the place of performance. 
+3. Should individual provisions of the contract or of these GTC 
+be wholly or partially invalid or unenforceable or become so after 
+the conclusion of the contract, the validity of the remainder of the 
+contract shall not be affected thereby. The invalid or unenforceable 
+provision shall be replaced by the legal provision that would have 
+been agreed between the parties in accordance with the economic 
+objectives of the contract and the purpose of the GTC if  they had 
+known the invalidity or loophole beforehand. 
+Status: March 2021 
+ 
+VITRONIC Dr.-Ing. Stein  Bildverarbeitungssysteme GmbH 
+Hasengartenstr. 14 
+65189 Wiesbaden 
+Germany 
+ 
+Phone +49 611 7152 0 
+Fax +49 611 7152 133 
+sales@vitronic.com 
+www.vitronic.com 
+ 
+                                                                                                          
+Management-Board 
+Dr.-Ing. Norbert Stein, Gerhard Bär, Dr. Heiko Frohn, Birgitt Stein, Matthias 
+Pörner, Daniel Scholz-Stein Headquarters:  Wiesbaden; HRB Wiesbaden 
+6119 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

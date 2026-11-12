@@ -1,0 +1,65 @@
+REFERENCE: 5194 of 2025
+TITLE: OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH
+CLIENT: OYOON Center (3)
+PROJECT: OYOON-182-AMC-2026 (15)
+OWNER: Laith Hamdan (1)
+TERM: 2026-01-01 to 2026-12-31; active within the stated term as of 2026-11-10.
+VALUE: AED 512,506.76 excluding VAT. Final fixed value includes expenses; applicable VAT/statutory fees excluded.
+CUSTOMER: Digital Dubai Government Establishment, affiliated with Dubai Digital Authority.
+SUPPLIER: VITRONIC MACHINE VISION MIDDLE EAST (L.L.C).
+REQUISITION: 12500433.
+
+SLA / COVERAGE
+P1 Critical: major system impact; immediate action; response target 1 hour.
+P2 Urgent: significant impact; response target 8 hours.
+P3 Standard: minor issues; response target 16 hours.
+P4 Enhancement: non-critical requests; response target 72 hours.
+Numeric resolution targets and availability targets are not specified; do not enter invented values.
+Coverage: Monday to Friday, 09:00–18:00 UAE time (Asia/Dubai); public holidays excluded. The PDF does not expressly state how the response clock runs outside coverage hours.
+Scope: secure remote diagnostics and support; telephone/email support during operational hours; on-site visits when remote resolution is unavailable; repair/replacement of faulty equipment; corrective maintenance restoring normal operation; preventive inspections/upkeep according to manufacturer recommendations.
+Customer provides remote access, site safety, documentation and initial spare-parts inventory for corrective action.
+Exclusions: vandalism, disaster recovery, consumables and non-standard hardware/software changes not mutually agreed.
+Escalation procedures apply when resolution exceeds agreed timelines; no numeric resolution limit or named escalation chain is given.
+Source: PDF pp23–24, Appendix 4.
+
+DELIVERY
+Recurring maintenance from 1 January through 31 December 2026. Monthly service completion evidence is required for payment. No separate fixed delivery milestones are specified in the PDF.
+Technical/financial offer reference QU040000173, Jan-2025; file referenced as 12500433 proposal.pdf. That separate proposal is not embedded in the countersigned PDF, so its additional specifications remain unverified.
+
+FEES (printed values, AED, excluding VAT; all cover 2026-01-01 through 2026-12-31)
+1. Maintenance of Bluscan speed enforcement devices: quantity 8; monthly 13,562.47; annual 162,749.66.
+2. Maintenance of Bluscan (CCH) speed enforcement devices: quantity 10; monthly 28,661.33; annual 343,935.90.
+3. Cleaning of Bluscan (CCH) radar equipment cabinets: quantity 14; monthly 485.10; annual 5,821.20.
+Printed annual lines total 512,506.76. Printed monthly lines total 42,708.90, which annualizes to 512,506.80 (AED 0.04 difference). Preserve the printed figures and flag the rounding difference; do not silently rebalance.
+Source: PDF p23, Appendix 3 image table (Arabic descriptions translated).
+
+PAYMENTS
+Monthly payment within 30 days of invoice submission, accompanied by an approved and duly signed Service Completion Form confirming satisfactory service delivery. Actual invoice issuance, payment or completion is not evidenced by the contract; do not mark paid or completed.
+Source: PDF p23, Appendix 3.
+
+PENALTIES / OTHER OBLIGATIONS
+Failure to supply contracted services/materials or delay beyond the granted period is subject to measures under Dubai Law No. 12 of 2020 and relevant laws. No numeric daily/monthly penalty, service credit or penalty cap is specified in the PDF. Store the statutory rule as text rather than inventing a formula.
+Supplier may seek delay exemption with proof for emergency, force majeure, customer-caused delay or other cause beyond supplier control; exemption requires customer consent under its legal procedures. Source: pp3–4,16, clauses 4 and 12.16.
+Compensation/liability paragraph states a 100% contract-value limit, excludes indirect/consequential losses and lost profits, with stated exceptions for gross negligence, fraud or confidentiality breach. This is a liability cap and must not be entered as a delay-penalty cap. Supplier remains responsible for subcontractor performance. Source: pp13–14, clause12.9.
+Final unconditional irrevocable bank guarantee: 10% of total contract value, issued by a bank operating in the State; effective from start and valid for 90 days after contract end; revocation requires customer consent. Actual guarantee provision is unverified. Source: p4, clause5.3.
+Renewal: customer written notice of intention to renew 30 days before expiry; no unconditional automatic renewal specified. Source: p3, clause2.
+Customer may terminate unrectified breach following written notice and 15 working days; early termination on at least 30 days written notice with compensation for supplied materials/services rendered. Source: pp9–10, clause9.
+Force-majeure notice within seven working days, with supporting information and mitigation; timeline extension by agreement. Source: pp18–19, clause14.
+Changes require mutual written agreement through an authorized signed addendum. Prior written consent is required for subcontracting/assignment, use of customer IP, names or logos. Confidentiality and security requirements survive expiry/termination; return customer confidential materials on request or contract end. Relevant security controls: ISO/IEC27001, ISO/IEC22301, ISR/DESC including applicable cloud standards; PCI DSS where payment data is involved. HSE compliance and service continuity apply. Customer may audit statements/reports/records. Arabic prevails if the language versions differ. Source: clauses3,6–8,12–16.
+
+CONTACTS / NOTICES
+Customer representative: Huda Salim AlHashmi, Principal Project Manager; hudasalim.alhashmi@digitaldubai.ae; 04-5599559.
+Supplier representative: Mohammed Ahmed Abdo Al Omari, Customer Experience Products Lead; mohammad.alomari@vitronic.com; 04-3290009.
+Notices: in person, registered mail, email or mutually agreed means; representative changes by email. Source: pp20–21, clause17.
+
+SOURCE HISTORY (record as source narrative; do not fabricate Hub audit dates)
+2025-12-05: Supplier CEO Dr Youssef El Hansali signed (PDF p22).
+2026-01-01: Stated service period began (p3).
+2026-01-09 11:47 UTC+4: DDGE CEO H.E. Matar AlHumairi countersigned (p22).
+2026-12-31: Stated contract expiry (p3).
+Source email on 9 January 2026 explicitly supplied the countersigned copy (parent agent has Outlook link).
+Actual completion, acceptance, invoices, payments and guarantee issue/return remain unverified.
+
+DOCUMENT TO UPLOAD (unchanged original)
+C:\Users\lmh\Downloads\DDGE Contract OYOON 182 AMC 2026 Al Qudra Bluscan SSPX-Print-CEsigned.pdf
+24 pages. Verify attachment name, size and availability after upload.

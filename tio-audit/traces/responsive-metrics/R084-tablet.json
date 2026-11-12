@@ -1,0 +1,15 @@
+{
+  "id": "R084-tablet",
+  "route": "/commitments/new",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "New commitment"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 13152,
+  "title": "New commitment · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R001-mobile",
+  "route": "/",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Operations Command Center"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 11573,
+  "title": "Operations Command Center · TIO Operations Hub",
+  "width": 390
+}

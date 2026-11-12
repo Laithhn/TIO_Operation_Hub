@@ -1,0 +1,165 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Products":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Products
+- navigation "Breadcrumb":
+  - link "Products":
+    - /url: /products
+  - generic: ›
+  - link "PSOP":
+    - /url: /products/1
+  - generic: ›
+  - generic: Microservice
+- heading "PSOP.Service.Anpr.Carmen" [level=1]
+- text: Active
+- generic: · microservice of PSOP · Poliscan Office Pro
+- button "Edit"
+- button "+ Version"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products (current section)":
+      - /url: /products
+      - text: Products
+      - generic: (current section)
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Microservice" [level=2]
+  - term: Product
+  - definition:
+    - link "PSOP · Poliscan Office Pro":
+      - /url: /products/1
+  - term: Module
+  - definition: —
+  - term: Role
+  - definition: —
+  - term: Description
+  - definition: —
+  - term: Latest version
+  - definition: No versions yet
+  - heading "Versions and release notes (0)" [level=2]
+  - generic: No versions recorded yet. Use + Version to add the first one with its release notes.
+  - heading "Where it runs (6)" [level=2]
+  - region "Deployments":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Deployments":
+      - caption: Deployments
+      - rowgroup:
+        - row "Details Client Environment":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Environment":
+            - button "Environment":
+              - generic: Environment
+      - rowgroup:
+        - row "Details for TAH TAH R1 / Production":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R1 / Production":
+            - link "R1 / Production":
+              - /url: /environments/1
+        - row "Details for TAH TAH R1 / Staging":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R1 / Staging":
+            - link "R1 / Staging":
+              - /url: /environments/2
+        - row "Details for TAH TAH R2 / Production":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R2 / Production":
+            - link "R2 / Production":
+              - /url: /environments/3
+        - row "Details for TAH TAH R3 / Production":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R3 / Production":
+            - link "R3 / Production":
+              - /url: /environments/4
+        - row "Details for TAH TAH R2 / Staging":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R2 / Staging":
+            - link "R2 / Staging":
+              - /url: /environments/5
+        - row "Details for TAH TAH R3 / Staging":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R3 / Staging":
+            - link "R3 / Staging":
+              - /url: /environments/6
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

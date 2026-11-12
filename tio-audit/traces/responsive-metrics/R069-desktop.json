@@ -1,0 +1,15 @@
+{
+  "id": "R069-desktop",
+  "route": "/admin/config/operating-systems",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Operating systems"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 383,
+  "title": "Operating systems · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -285,7 +285,7 @@ type Overview = {
   client: { id: number; code: string; name: string; status: string; owner?: UserRef };
   structure: string; regions: { id: number; code: string; name: string; owner?: string; environments: EnvCard[] }[]; directEnvironments: EnvCard[];
   counts: { environments: number; installations: number; environmentsWithInstallations: number; openCases: number; overdueCases: number; openCommitments: number; overdueCommitments: number };
-  infrastructure: Infra | null; cases: { id: number; ref: string; title: string; status: string; priority: string; owner: string; dueAt?: string; overdue: boolean; waitingReason?: string; nextAction: string }[];
+  infrastructure: Infra | null; cases: { id: number; ref: string; title: string; /** Internal stage. */ status: string; /** Configured status (TIO-BUG-001). */ statusCode: string; priority: string; owner: string; dueAt?: string; overdue: boolean; waitingReason?: string; nextAction: string }[];
   commitments: { id: number; ref: string; description: string; type: string; currentDueAt: string; timeZone: string; overdue: boolean; owner?: string }[];
   projects: { id: number; code: string; name: string; status: string; owner?: string; serviceStart?: string; serviceEnd?: string }[];
   contacts?: { id: number; name: string; role?: string; organization?: string; email?: string; phone?: string; authorizedSupport: boolean }[];

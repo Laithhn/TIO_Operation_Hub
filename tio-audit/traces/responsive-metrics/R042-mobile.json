@@ -1,0 +1,15 @@
+{
+  "id": "R042-mobile",
+  "route": "/reporting-center/history",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 1054,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

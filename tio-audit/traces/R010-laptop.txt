@@ -1,0 +1,158 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Escalations" [level=1]
+- generic: Client matters raised above normal handling, by e-mail, formal letter, verbally, through Jira or any other configured channel. Each has an accountable owner, a level and response and resolution targets.
+- link "+ New escalation":
+  - /url: /escalations/new
+- complementary "Section menu":
+  - navigation:
+    - link "All escalations":
+      - /url: /escalations
+    - link "New escalation":
+      - /url: /escalations/new
+    - link "Escalation channels":
+      - /url: /admin/config/escalation-channels
+  - button "Expand menu":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Status
+  - combobox "Status":
+    - option "Active (open, acknowledged, in progress)" [selected]
+    - option "All"
+    - option "Open"
+    - option "Acknowledged"
+    - option "In progress"
+    - option "Resolved"
+    - option "Closed"
+    - option "Withdrawn"
+  - generic: Channel
+  - combobox "Channel":
+    - option "Any channel" [selected]
+    - option "E-mail"
+    - option "Formal letter"
+    - option "Verbal (call or meeting)"
+    - option "Jira"
+  - generic: Level
+  - combobox "Level":
+    - option "Any level" [selected]
+    - option "Level 1"
+    - option "Level 2"
+    - option "Level 3"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+  - generic: Targets
+  - combobox "Targets":
+    - option "Any" [selected]
+    - option "Overdue only"
+  - generic: Search
+  - textbox "Search":
+    - /placeholder: Ref, title, channel reference or contact
+  - region "Escalations":
+    - table "Escalations":
+      - caption: Escalations
+      - rowgroup:
+        - row "Select all rows shown Ref Escalation Client Channel Priority Level Status Received Resolution target Owner Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Ref":
+            - button "Ref":
+              - generic: Ref
+          - columnheader "Escalation":
+            - generic: Escalation
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Channel":
+            - button "Channel":
+              - generic: Channel
+          - columnheader "Priority":
+            - button "Priority":
+              - generic: Priority
+          - columnheader "Level":
+            - button "Level":
+              - generic: Level
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Received":
+            - button "Received":
+              - generic: Received
+          - columnheader "Resolution target":
+            - button "Resolution target":
+              - generic: Resolution target
+          - columnheader "Owner":
+            - button "Owner":
+              - generic: Owner
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - text: No active escalations.
+    - button "View all"
+  - navigation "Pagination":
+    - generic: 0 records
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

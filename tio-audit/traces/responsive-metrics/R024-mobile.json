@@ -1,0 +1,14 @@
+{
+  "id": "R024-mobile",
+  "route": "/map",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [],
+  "height": 844,
+  "loadingOnly": false,
+  "title": "TIO Operations Hub",
+  "width": 390,
+  "recheckId": "R024-mobile-settled",
+  "readinessRecheck": "Settled map Zoom in control visible"
+}

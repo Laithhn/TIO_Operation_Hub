@@ -1,0 +1,15 @@
+{
+  "id": "R086-tablet",
+  "route": "/contracts/new",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "New contract"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 15339,
+  "title": "New contract · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R088-mobile",
+  "route": "/admin/groups",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Directory group mappings"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 35,
+  "title": "Directory group mappings · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,138 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Environment":
+    - /url: /environments/3
+  - generic: ›
+  - link "PSOP · PSOP":
+    - /url: /installations/3
+  - generic: ›
+  - generic: PSOP.Service.Anpr.Carmen
+- heading "PSOP.Service.Anpr.Carmen" [level=1]
+- generic: Component · Application
+- button "Edit"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "Component" [level=2]
+  - term: Role
+  - definition: Application
+  - term: Component version
+  - definition: Not recorded
+  - term: Owner
+  - definition:
+    - text: Not assigned
+    - text: The environment owner coordinates it until one is assigned; Data quality lists it as missing an owner.
+  - term: Supporting servers
+  - definition:
+    - link "PSOP-R2PRO-APP1":
+      - /url: /assets/27
+    - text: (Virtual machine (VM))
+    - link "PSOP-R2PRO-APP2":
+      - /url: /assets/28
+    - text: (Virtual machine (VM))
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this component yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When By Action Reason Changes (before → after)":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - generic: When
+          - columnheader "By":
+            - generic: By
+          - columnheader "Action":
+            - generic: Action
+          - columnheader "Reason":
+            - generic: Reason
+          - columnheader "Changes (before → after)":
+            - generic: Changes (before → after)
+      - rowgroup:
+        - row "Select 22 Oct 2026, 13:58 22 Oct 2026, 13:58 lmh Create Copied from R1 / Production":
+          - cell "Select 22 Oct 2026, 13:58":
+            - checkbox "Select 22 Oct 2026, 13:58"
+          - cell "22 Oct 2026, 13:58":
+            - generic: 22 Oct 2026, 13:58
+          - cell "lmh":
+            - generic: lmh
+          - cell "Create":
+            - generic: Create
+          - cell "Copied from R1 / Production":
+            - generic: Copied from R1 / Production
+          - cell:
+            - 'generic "Client id: — → 1 Environment id: — → 3 Show all 7 changes"':
+              - generic: "Client id: — → 1"
+              - generic: "Environment id: — → 3"
+              - generic: Show all 7 changes
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

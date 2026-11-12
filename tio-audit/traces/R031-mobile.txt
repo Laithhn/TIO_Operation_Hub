@@ -1,0 +1,100 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - generic: Configuration
+- heading "Configuration" [level=1]
+- generic: What the forms offer and how the hub behaves. Changes apply at once; retired values stay on the records that use them.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - list "Configuration categories":
+    - heading "Clients & Environments" [level=2]:
+      - link "Clients & Environments":
+        - /url: /admin/config/category/clients-environments
+    - generic: 5 pages
+    - paragraph: Conditions, environment types, responsibilities and project roles.
+    - text: Open
+    - heading "Servers" [level=2]:
+      - link "Servers":
+        - /url: /admin/config/category/servers
+    - generic: 5 pages
+    - paragraph: Server types, roles, network zones, operating systems and phases.
+    - text: Open
+    - heading "Products & Installations" [level=2]:
+      - link "Products & Installations":
+        - /url: /admin/config/category/products-installations
+    - generic: 1 page
+    - paragraph: Roles of the components of an installation.
+    - text: Open
+    - heading "Contracts & Tickets" [level=2]:
+      - link "Contracts & Tickets":
+        - /url: /admin/config/category/contracts-cases
+    - generic: 5 pages
+    - paragraph: Contract and ticket types, statuses, escalation channels and priorities.
+    - text: Open
+    - heading "Teams" [level=2]:
+      - link "Teams":
+        - /url: /admin/config/category/teams
+    - generic: 1 page
+    - paragraph: Roles of the members of internal teams.
+    - text: Open
+    - heading "System" [level=2]:
+      - link "System":
+        - /url: /admin/config/category/system
+    - generic: 3 pages
+    - paragraph: Review policies, Jira instances and application settings.
+    - text: Open
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

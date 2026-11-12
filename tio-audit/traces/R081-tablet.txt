@@ -1,0 +1,339 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+    - generic: Clients
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+- heading "New client" [level=1]
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Main client
+  - combobox "Main client":
+    - option "None — this is a main client" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+  - generic: Choose one to make this a sub-client, for example Traffic Department under Dubai Police. It keeps its own environments, regions, servers, products and team.
+  - generic: Client alias *
+  - textbox "Client alias *"
+  - generic: Short name used across the hub, e.g. DP or TAH. Unique and permanent; reserved even after archiving.
+  - generic: Client name *
+  - textbox "Client name *"
+  - generic: Status *
+  - combobox "Status *":
+    - option "Opportunity" [selected]
+    - option "Active"
+  - generic: Country *
+  - combobox "Country *":
+    - option "— Select the country —" [selected]
+    - option "Afghanistan"
+    - option "Albania"
+    - option "Algeria"
+    - option "Andorra"
+    - option "Angola"
+    - option "Antigua and Barbuda"
+    - option "Argentina"
+    - option "Armenia"
+    - option "Australia"
+    - option "Austria"
+    - option "Azerbaijan"
+    - option "Bahamas"
+    - option "Bahrain"
+    - option "Bangladesh"
+    - option "Barbados"
+    - option "Belarus"
+    - option "Belgium"
+    - option "Belize"
+    - option "Benin"
+    - option "Bhutan"
+    - option "Bolivia"
+    - option "Bosnia and Herzegovina"
+    - option "Botswana"
+    - option "Brazil"
+    - option "Brunei"
+    - option "Bulgaria"
+    - option "Burkina Faso"
+    - option "Burundi"
+    - option "Cabo Verde"
+    - option "Cambodia"
+    - option "Cameroon"
+    - option "Canada"
+    - option "Central African Republic"
+    - option "Chad"
+    - option "Chile"
+    - option "China"
+    - option "Colombia"
+    - option "Comoros"
+    - option "Congo"
+    - option "Costa Rica"
+    - option "Côte d'Ivoire"
+    - option "Croatia"
+    - option "Cuba"
+    - option "Cyprus"
+    - option "Czechia"
+    - option "Democratic Republic of the Congo"
+    - option "Denmark"
+    - option "Djibouti"
+    - option "Dominica"
+    - option "Dominican Republic"
+    - option "Ecuador"
+    - option "Egypt"
+    - option "El Salvador"
+    - option "Equatorial Guinea"
+    - option "Eritrea"
+    - option "Estonia"
+    - option "Eswatini"
+    - option "Ethiopia"
+    - option "Fiji"
+    - option "Finland"
+    - option "France"
+    - option "Gabon"
+    - option "Gambia"
+    - option "Georgia"
+    - option "Germany"
+    - option "Ghana"
+    - option "Greece"
+    - option "Greenland"
+    - option "Grenada"
+    - option "Guatemala"
+    - option "Guinea"
+    - option "Guinea-Bissau"
+    - option "Guyana"
+    - option "Haiti"
+    - option "Honduras"
+    - option "Hong Kong"
+    - option "Hungary"
+    - option "Iceland"
+    - option "India"
+    - option "Indonesia"
+    - option "Iran"
+    - option "Iraq"
+    - option "Ireland"
+    - option "Israel"
+    - option "Italy"
+    - option "Jamaica"
+    - option "Japan"
+    - option "Jordan"
+    - option "Kazakhstan"
+    - option "Kenya"
+    - option "Kiribati"
+    - option "Kosovo"
+    - option "Kuwait"
+    - option "Kyrgyzstan"
+    - option "Laos"
+    - option "Latvia"
+    - option "Lebanon"
+    - option "Lesotho"
+    - option "Liberia"
+    - option "Libya"
+    - option "Liechtenstein"
+    - option "Lithuania"
+    - option "Luxembourg"
+    - option "Macao"
+    - option "Madagascar"
+    - option "Malawi"
+    - option "Malaysia"
+    - option "Maldives"
+    - option "Mali"
+    - option "Malta"
+    - option "Marshall Islands"
+    - option "Mauritania"
+    - option "Mauritius"
+    - option "Mexico"
+    - option "Micronesia"
+    - option "Moldova"
+    - option "Monaco"
+    - option "Mongolia"
+    - option "Montenegro"
+    - option "Morocco"
+    - option "Mozambique"
+    - option "Myanmar"
+    - option "Namibia"
+    - option "Nauru"
+    - option "Nepal"
+    - option "Netherlands"
+    - option "New Zealand"
+    - option "Nicaragua"
+    - option "Niger"
+    - option "Nigeria"
+    - option "North Korea"
+    - option "North Macedonia"
+    - option "Norway"
+    - option "Oman"
+    - option "Pakistan"
+    - option "Palau"
+    - option "Palestine"
+    - option "Panama"
+    - option "Papua New Guinea"
+    - option "Paraguay"
+    - option "Peru"
+    - option "Philippines"
+    - option "Poland"
+    - option "Portugal"
+    - option "Puerto Rico"
+    - option "Qatar"
+    - option "Romania"
+    - option "Russia"
+    - option "Rwanda"
+    - option "Saint Kitts and Nevis"
+    - option "Saint Lucia"
+    - option "Saint Vincent and the Grenadines"
+    - option "Samoa"
+    - option "San Marino"
+    - option "São Tomé and Príncipe"
+    - option "Saudi Arabia"
+    - option "Senegal"
+    - option "Serbia"
+    - option "Seychelles"
+    - option "Sierra Leone"
+    - option "Singapore"
+    - option "Slovakia"
+    - option "Slovenia"
+    - option "Solomon Islands"
+    - option "Somalia"
+    - option "South Africa"
+    - option "South Korea"
+    - option "South Sudan"
+    - option "Spain"
+    - option "Sri Lanka"
+    - option "Sudan"
+    - option "Suriname"
+    - option "Sweden"
+    - option "Switzerland"
+    - option "Syria"
+    - option "Taiwan"
+    - option "Tajikistan"
+    - option "Tanzania"
+    - option "Thailand"
+    - option "Timor-Leste"
+    - option "Togo"
+    - option "Tonga"
+    - option "Trinidad and Tobago"
+    - option "Tunisia"
+    - option "Türkiye"
+    - option "Turkmenistan"
+    - option "Tuvalu"
+    - option "Uganda"
+    - option "Ukraine"
+    - option "United Arab Emirates"
+    - option "United Kingdom"
+    - option "United States"
+    - option "Uruguay"
+    - option "Uzbekistan"
+    - option "Vanuatu"
+    - option "Vatican City"
+    - option "Venezuela"
+    - option "Vietnam"
+    - option "Western Sahara"
+    - option "Yemen"
+    - option "Zambia"
+    - option "Zimbabwe"
+  - generic: Project manager *
+  - combobox "Project manager *":
+    - option "— Select —" [selected]
+    - option "Abdalrhman (Aboud) Asaad"
+    - option "Abdulhamid Tork"
+    - option "Ahmed Awadalla"
+    - option "Laith Hamdan"
+    - option "LMH OPR"
+    - option "Moataz Al Khaldi"
+    - option "Mohammad Al Omari"
+    - option "Mohammed Alqaruoti"
+    - option "Naveed Ur Rehman"
+    - option "Ousama Didouqen"
+    - option "Reda Moulouki"
+    - option "Reem Hamid"
+    - option "Shiju Unnithan"
+    - option "Tareq Abdul Jabar"
+    - option "Waleed Alharthi"
+    - option "Ziyad Bu Dukhi"
+  - generic: The team member managing this client. Only a Team Lead or the TIO Manager can change it.
+  - generic: Client logo (optional)
+  - img "New client":
+    - generic: NC
+  - button
+  - button "Upload logo…"
+  - generic: PNG, JPG or WebP, at most 2 MB. A square or wide logo on a transparent or white background works best. SVG is not accepted.
+  - group "Project team":
+    - generic: Project team
+    - paragraph: No team members yet.
+    - button "+ Team member"
+    - generic: "or add a whole team:"
+    - generic: Team from Teams
+    - combobox "Team from Teams":
+      - option "— Select a team —" [selected]
+      - option "Dubai Office Operation Team"
+      - option "KSA Operation Team"
+    - button "Add team members" [disabled]
+  - generic "Organizational Structure (optional)":
+    - text: Organizational Structure
+    - generic: (optional)
+  - paragraph: Regions are optional. Add them on the client page only if this client organizes operations into regions; once a client has regions, every environment belongs to one.
+  - button "Cancel"
+  - button "Save client"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

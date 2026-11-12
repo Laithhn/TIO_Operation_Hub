@@ -1,0 +1,181 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Reporting Center":
+    - generic: Reporting Center
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Report library
+- heading "Reporting Center" [level=1]
+- generic: "All reports by category: configure, preview and export (CSV or Excel); the Tickets report also has the Report Builder."
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center (current section)":
+      - /url: /reporting-center
+      - text: Reporting Center
+      - generic: (current section)
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Search reports
+  - searchbox "Search reports"
+  - group "Category":
+    - button "All 14" [pressed]
+    - button "Operations 3"
+    - button "Technical 3"
+    - button "Governance 2"
+    - button "Operational intelligence 6"
+  - region "Operations":
+    - heading "Operations" [level=2]
+    - generic: "Day-to-day work: tickets, commitments and what needs attention."
+    - article:
+      - heading "Tickets report" [level=3]
+      - paragraph: Tickets with status, priority, owner, next action, due date and Jira references — the same rows as the Tickets list.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - generic: PDF (builder)
+      - button "Configure Tickets report": Configure
+      - 'link "Build report: Tickets report"':
+        - /url: /reporting-center/builder/cases
+        - text: Build report
+    - article:
+      - heading "Commitments report" [level=3]
+      - paragraph: Promises with their original and current deadlines, revisions and completion — the same rows as the Commitments list.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Commitments report": Configure
+    - article:
+      - heading "Action list report" [level=3]
+      - paragraph: Everything that needs attention now — overdue and due work, renewals, payments, coverage gaps — with severity and reason.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Action list report": Configure
+  - region "Technical":
+    - heading "Technical" [level=2]
+    - generic: Environments, installed versions and infrastructure.
+    - article:
+      - heading "Environments report" [level=3]
+      - paragraph: Environments with type, criticality, hosting, owners, coverage gaps and the last reported condition.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Environments report": Configure
+    - article:
+      - heading "Version matrix report" [level=3]
+      - paragraph: Installed product versions per client and environment, with deployment date and the last confirmation.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Version matrix report": Configure
+    - article:
+      - heading "Assets inventory report" [level=3]
+      - paragraph: Servers and other assets with type, role, lifecycle and recorded CPU, RAM and operating system. Network zones need the Technical detail right.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Assets inventory report": Configure
+  - region "Governance":
+    - heading "Governance" [level=2]
+    - generic: Data quality and contracts.
+    - article:
+      - heading "Data quality report" [level=3]
+      - paragraph: Records that fail a data-quality rule, with the accountable coordinator and next action.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Data quality report": Configure
+    - article:
+      - heading "Contracts report" [level=3]
+      - paragraph: Contracts with dates, notice period, renewal state and support terms.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Contracts report": Configure
+  - region:
+    - heading "Operational intelligence" [level=2]
+    - generic: "KPIs computed on the server: SLA, delivery, backlog, workload and client health."
+    - article:
+      - heading "SLA compliance report" [level=3]
+      - paragraph: Contractual first-response and resolution compliance of client tickets linked to a contract (A61), with breached and at-risk tickets and performance by client, team and owner.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure SLA compliance report": Configure
+    - article:
+      - heading "Commitment performance report" [level=3]
+      - paragraph: "Commitments due in a period: completed, completed on time, overdue and cancelled, with on-time completion by team and client."
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Commitment performance report": Configure
+    - article:
+      - heading "Ticket aging & backlog report" [level=3]
+      - paragraph: Open tickets by age bucket, overdue tickets, priority distribution and the backlog by owner and client.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Ticket aging & backlog report": Configure
+    - article:
+      - heading "Team KPI report" [level=3]
+      - paragraph: "How each person works their Jira tickets: first response and resolution times, SLA breaches, replies written, reopened and overdue tickets."
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Team KPI report": Configure
+    - article:
+      - heading "Team workload report" [level=3]
+      - paragraph: Open tickets and commitments per team and owner, with overdue and critical/high work — the current workload distribution.
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Team workload report": Configure
+    - article:
+      - heading "Client health report" [level=3]
+      - paragraph: "Per client: open and overdue tickets, overdue commitments, active and overdue escalations, open data-quality items and contractual SLA compliance."
+      - generic: CSV
+      - generic: Excel (.xlsx)
+      - button "Configure Client health report": Configure
+  - paragraph:
+    - text: Need a report that is not listed? Report definitions live in one place on the server (
+    - link "ask the application team":
+      - /url: /admin
+    - text: ); a new definition appears here automatically.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

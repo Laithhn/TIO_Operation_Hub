@@ -1,0 +1,15 @@
+{
+  "id": "R071-mobile",
+  "route": "/admin/config/component-roles",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Component roles"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 537,
+  "title": "Component roles · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,422 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: · Regional
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview"
+    - button "Operational"
+    - button "Technical" [active] [pressed]
+    - button "Commercial"
+    - button "Records"
+  - tablist:
+    - tab "Regions & environments" [selected]:
+      - generic: Regions & environments
+    - tab "Infrastructure":
+      - generic: Infrastructure
+    - tab "Jira integration":
+      - generic: Jira integration
+  - generic: Filter by region (optional)
+  - combobox "Filter by region (optional)":
+    - option "All regions and direct" [selected]
+    - option "R1 · Riyadh"
+    - option "R2 · Jeddah"
+    - option "R3 · Dammam"
+  - heading "R1 · Riyadh · region owner Ahmed Awadalla" [level=2]:
+    - link "R1 · Riyadh":
+      - /url: /regions/1
+    - generic: · region owner Ahmed Awadalla
+  - region "Environments":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Environments":
+      - caption: Environments
+      - rowgroup:
+        - row "Select all rows shown Environment Type Criticality Applications Assets Open tickets Reported condition Inventory review Owner / backup Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Environment":
+            - button "Environment":
+              - generic: Environment
+          - columnheader "Type":
+            - button "Type":
+              - generic: Type
+          - columnheader "Criticality":
+            - button "Criticality":
+              - generic: Criticality
+          - columnheader "Applications":
+            - button "Applications":
+              - generic: Applications
+          - columnheader "Assets":
+            - button "Assets":
+              - generic: Assets
+          - columnheader "Open tickets":
+            - button "Open tickets":
+              - generic: Open tickets
+          - columnheader "Reported condition":
+            - button "Reported condition":
+              - generic: Reported condition
+          - columnheader "Inventory review":
+            - button "Inventory review":
+              - generic: Inventory review
+          - columnheader "Owner / backup":
+            - button "Owner / backup":
+              - generic: Owner / backup
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Production Production Production Critical PSOP · PSOP V17.8 14 0 Healthy Needs verification Current Current Ahmed Awadalla Actions for environment Production":
+          - cell "Select Production":
+            - checkbox "Select Production"
+          - cell "Production":
+            - link "Production":
+              - /url: /environments/1
+          - cell "Production":
+            - generic: Production
+          - cell "Critical":
+            - text: Critical
+          - cell "PSOP · PSOP V17.8":
+            - link "PSOP · PSOP":
+              - /url: /installations/1
+            - generic: V17.8
+          - cell "14":
+            - generic: "14"
+          - cell "0":
+            - generic: "0"
+          - cell "Healthy Needs verification":
+            - generic "Manually reported 22 Oct 2026, 20:07 — not live monitoring":
+              - text: Healthy
+              - text: Needs verification
+          - cell "Current Current":
+            - generic "Review every 30 days · last 22 Oct 2026, 20:06 · due 21 Nov 2026, 20:06":
+              - text: Current
+              - generic: Current
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Actions for environment Production":
+            - button "Actions for environment Production": ⋯
+        - row "Select Staging Staging Production Normal PSOP · PSOP Unknown version 13 0 Unknown Current Current Ahmed Awadalla Actions for environment Staging":
+          - cell "Select Staging":
+            - checkbox "Select Staging"
+          - cell "Staging":
+            - link "Staging":
+              - /url: /environments/2
+          - cell "Production":
+            - generic: Production
+          - cell "Normal":
+            - generic: Normal
+          - cell "PSOP · PSOP Unknown version":
+            - link "PSOP · PSOP":
+              - /url: /installations/2
+            - generic: Unknown version
+          - cell "13":
+            - generic: "13"
+          - cell "0":
+            - generic: "0"
+          - cell "Unknown":
+            - generic: Unknown
+          - cell "Current Current":
+            - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+              - text: Current
+              - generic: Current
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Actions for environment Staging":
+            - button "Actions for environment Staging": ⋯
+    - status
+  - heading "R2 · Jeddah · region owner Waleed Alharthi" [level=2]:
+    - link "R2 · Jeddah":
+      - /url: /regions/2
+    - generic: · region owner Waleed Alharthi
+  - region "Environments":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Environments":
+      - caption: Environments
+      - rowgroup:
+        - row "Select all rows shown Environment Type Criticality Applications Assets Open tickets Reported condition Inventory review Owner / backup Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Environment":
+            - button "Environment":
+              - generic: Environment
+          - columnheader "Type":
+            - button "Type":
+              - generic: Type
+          - columnheader "Criticality":
+            - button "Criticality":
+              - generic: Criticality
+          - columnheader "Applications":
+            - button "Applications":
+              - generic: Applications
+          - columnheader "Assets":
+            - button "Assets":
+              - generic: Assets
+          - columnheader "Open tickets":
+            - button "Open tickets":
+              - generic: Open tickets
+          - columnheader "Reported condition":
+            - button "Reported condition":
+              - generic: Reported condition
+          - columnheader "Inventory review":
+            - button "Inventory review":
+              - generic: Inventory review
+          - columnheader "Owner / backup":
+            - button "Owner / backup":
+              - generic: Owner / backup
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Production Production Production Critical PSOP · PSOP Unknown version 13 0 Degraded Needs verification Current Current Ahmed Awadalla Actions for environment Production":
+          - cell "Select Production":
+            - checkbox "Select Production"
+          - cell "Production":
+            - link "Production":
+              - /url: /environments/3
+          - cell "Production":
+            - generic: Production
+          - cell "Critical":
+            - text: Critical
+          - cell "PSOP · PSOP Unknown version":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+            - generic: Unknown version
+          - cell "13":
+            - generic: "13"
+          - cell "0":
+            - generic: "0"
+          - cell "Degraded Needs verification":
+            - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+              - text: Degraded
+              - text: Needs verification
+          - cell "Current Current":
+            - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+              - text: Current
+              - generic: Current
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Actions for environment Production":
+            - button "Actions for environment Production": ⋯
+        - row "Select Staging Staging Production Normal PSOP · PSOP Unknown version 13 0 Unknown Current Current Ahmed Awadalla Actions for environment Staging":
+          - cell "Select Staging":
+            - checkbox "Select Staging"
+          - cell "Staging":
+            - link "Staging":
+              - /url: /environments/5
+          - cell "Production":
+            - generic: Production
+          - cell "Normal":
+            - generic: Normal
+          - cell "PSOP · PSOP Unknown version":
+            - link "PSOP · PSOP":
+              - /url: /installations/5
+            - generic: Unknown version
+          - cell "13":
+            - generic: "13"
+          - cell "0":
+            - generic: "0"
+          - cell "Unknown":
+            - generic: Unknown
+          - cell "Current Current":
+            - generic "Review every 30 days · last 22 Oct 2026, 13:59 · due 21 Nov 2026, 13:59":
+              - text: Current
+              - generic: Current
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Actions for environment Staging":
+            - button "Actions for environment Staging": ⋯
+    - status
+  - heading "R3 · Dammam · region owner Tareq Abdul Jabar" [level=2]:
+    - link "R3 · Dammam":
+      - /url: /regions/3
+    - generic: · region owner Tareq Abdul Jabar
+  - region "Environments":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Environments":
+      - caption: Environments
+      - rowgroup:
+        - row "Select all rows shown Environment Type Criticality Applications Assets Open tickets Reported condition Inventory review Owner / backup Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Environment":
+            - button "Environment":
+              - generic: Environment
+          - columnheader "Type":
+            - button "Type":
+              - generic: Type
+          - columnheader "Criticality":
+            - button "Criticality":
+              - generic: Criticality
+          - columnheader "Applications":
+            - button "Applications":
+              - generic: Applications
+          - columnheader "Assets":
+            - button "Assets":
+              - generic: Assets
+          - columnheader "Open tickets":
+            - button "Open tickets":
+              - generic: Open tickets
+          - columnheader "Reported condition":
+            - button "Reported condition":
+              - generic: Reported condition
+          - columnheader "Inventory review":
+            - button "Inventory review":
+              - generic: Inventory review
+          - columnheader "Owner / backup":
+            - button "Owner / backup":
+              - generic: Owner / backup
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Production Production Production Critical PSOP · PSOP Unknown version 13 0 Unknown Current Current Ahmed Awadalla Actions for environment Production":
+          - cell "Select Production":
+            - checkbox "Select Production"
+          - cell "Production":
+            - link "Production":
+              - /url: /environments/4
+          - cell "Production":
+            - generic: Production
+          - cell "Critical":
+            - text: Critical
+          - cell "PSOP · PSOP Unknown version":
+            - link "PSOP · PSOP":
+              - /url: /installations/4
+            - generic: Unknown version
+          - cell "13":
+            - generic: "13"
+          - cell "0":
+            - generic: "0"
+          - cell "Unknown":
+            - generic: Unknown
+          - cell "Current Current":
+            - generic "Review every 30 days · last 22 Oct 2026, 13:59 · due 21 Nov 2026, 13:59":
+              - text: Current
+              - generic: Current
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Actions for environment Production":
+            - button "Actions for environment Production": ⋯
+        - row "Select Staging Staging Production Normal PSOP · PSOP Unknown version 13 0 Unknown Current Current Ahmed Awadalla Actions for environment Staging":
+          - cell "Select Staging":
+            - checkbox "Select Staging"
+          - cell "Staging":
+            - link "Staging":
+              - /url: /environments/6
+          - cell "Production":
+            - generic: Production
+          - cell "Normal":
+            - generic: Normal
+          - cell "PSOP · PSOP Unknown version":
+            - link "PSOP · PSOP":
+              - /url: /installations/6
+            - generic: Unknown version
+          - cell "13":
+            - generic: "13"
+          - cell "0":
+            - generic: "0"
+          - cell "Unknown":
+            - generic: Unknown
+          - cell "Current Current":
+            - generic "Review every 30 days · last 22 Oct 2026, 13:59 · due 21 Nov 2026, 13:59":
+              - text: Current
+              - generic: Current
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Actions for environment Staging":
+            - button "Actions for environment Staging": ⋯
+    - status
+  - heading "Direct client environments (no region)" [level=2]
+  - generic: No environments recorded here.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

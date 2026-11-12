@@ -1,0 +1,15 @@
+{
+  "id": "R063-laptop",
+  "route": "/admin/config/environment-types",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Environment types"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 586,
+  "title": "Environment types · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

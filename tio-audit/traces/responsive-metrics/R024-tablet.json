@@ -1,0 +1,14 @@
+{
+  "id": "R024-tablet",
+  "route": "/map",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [],
+  "height": 1024,
+  "loadingOnly": false,
+  "title": "TIO Operations Hub",
+  "width": 768,
+  "recheckId": "R024-tablet-settled",
+  "readinessRecheck": "Settled map Zoom in control visible"
+}

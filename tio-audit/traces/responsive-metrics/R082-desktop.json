@@ -1,0 +1,15 @@
+{
+  "id": "R082-desktop",
+  "route": "/products/new",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "New product"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 535,
+  "title": "New product · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

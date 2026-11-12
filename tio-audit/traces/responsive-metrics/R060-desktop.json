@@ -1,0 +1,15 @@
+{
+  "id": "R060-desktop",
+  "route": "/admin/config/category/system",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "System"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 250,
+  "title": "System · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

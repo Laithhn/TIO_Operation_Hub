@@ -1,0 +1,15 @@
+{
+  "id": "R057-mobile",
+  "route": "/admin/config/category/products-installations",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Products & Installations"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 103,
+  "title": "Products & Installations · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

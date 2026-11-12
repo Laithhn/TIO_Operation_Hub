@@ -1,0 +1,15 @@
+{
+  "id": "R006-mobile",
+  "route": "/clients",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Clients"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 816,
+  "title": "Clients · TIO Operations Hub",
+  "width": 390
+}

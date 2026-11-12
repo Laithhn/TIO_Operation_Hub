@@ -1,0 +1,15 @@
+{
+  "id": "R025-desktop",
+  "route": "/clients/1",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Tahakom"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 2353,
+  "title": "Tahakom · TIO Operations Hub",
+  "width": 1920
+}

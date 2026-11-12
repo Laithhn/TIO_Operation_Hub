@@ -1,0 +1,157 @@
+{
+  "preparedAt": "2026-11-10",
+  "purpose": "Final evidence reference merging quoted BPA terms with the observed supplier acceptance-response email; no Hub changes performed by this extraction task",
+  "targetClient": {
+    "label": "OYOON Center",
+    "relationshipBasis": "26 October 2025 forwarding message states: This is related to the SLA of ViTIP Oyoon.",
+    "projectMappingVerified": false
+  },
+  "record": {
+    "reference": "42500353",
+    "revision": "0",
+    "type": "Blanket Purchase Agreement",
+    "title": "BPA 42500353 revision 0 - OYOON 174 Zabeel System AMC",
+    "descriptionExact": "OYOON 174 Zabeel System AMC",
+    "orderDate": "2025-10-22",
+    "orderDateSource": "22-OCT-2025",
+    "effectivityStart": "2025-06-03",
+    "effectivityStartSource": "03-JUN-2025",
+    "effectivityEnd": "2026-06-03",
+    "effectivityEndSource": "03-JUN-2026",
+    "issuerHeadingExact": "Smart Dubai Government",
+    "issuerEntityExact": "Digital Dubai Government Establishment",
+    "billToExact": "Dubai Smart Government Establishment, Corporate Support Services Dept",
+    "shipToExact": "Digital Dubai Government Establishment",
+    "supplierExact": "VITRONIC MACHINE VISION MIDDLE EAST (L.L.C)",
+    "supplierNumber": "72567",
+    "amountAgreed": 488000,
+    "currency": "AED",
+    "currencyBasis": "The line unit-price field explicitly displays (AED)488000; Amount Agreed displays 488000.",
+    "vatBasis": "Unknown: no readable VAT rate, VAT amount, tax value, or statement that the agreed amount includes or excludes VAT.",
+    "vatRate": null,
+    "vatAmount": null,
+    "amountExcludingVat": null,
+    "amountIncludingVat": null,
+    "quantity": 1,
+    "unitOfMeasureExact": "Each",
+    "unitPrice": 488000,
+    "paymentTermsExact": "Immediate",
+    "freightTermsExact": "OTHER",
+    "sourceStatus": "Supplier acceptance response observed; government electronic workflow processing remains unverified",
+    "acceptanceVerified": null,
+    "executionVerified": false,
+    "renewalOrExtensionVerified": false,
+    "serviceCompletionVerified": false,
+    "paymentOrOutstandingBalanceVerified": false,
+    "statusNote": "Historical source effectivity period ends 3 June 2026. A supplier email dated 25 October 2025 at 17:05:34 UTC (21:05:34 Dubai) contains Response: Accept. Government electronic acceptance processing, renewal, actual service completion, invoice issuance, payment and current balances remain unverified.",
+    "acceptanceVerificationScope": "Supplier Accept response is observed. Completion of government electronic acceptance processing is not verified.",
+    "supplierAcceptanceResponseObserved": true,
+    "electronicAcceptanceProcessingVerified": false
+  },
+  "source": {
+    "file": "outputs/dda-contract-search-2026-11-10/search-evidence.json",
+    "threadLabel": "BPA42500353 quoted notification",
+    "subjectExact": "Blanket Purchase Agreement 42500353,0 requires your acceptance",
+    "outlookUrl": "https://outlook.cloud.microsoft/mail/id/AAQkADUwOTNlYzdhLTdmOTItNDZlNS04MTNhLTEwZDk0M2MxYzI0YwAQAFO8D67ND%2BtLhAgT4lClMa4%3D",
+    "forwardedBy": "Abdalrhman (Aboud) Asaad",
+    "forwardedTimestampDisplayed": "26 October 2025 13:34",
+    "originalNotificationSender": "GRP Notification",
+    "originalNotificationTimestampDisplayed": "25 October 2025 21:04:23",
+    "timestampTimezoneVerified": false,
+    "evidenceType": "Quoted purchase-agreement notification in Outlook email body",
+    "attachmentsListedInEmail": [
+      {
+        "nameExact": "Notification Detail.html",
+        "sizeDisplayed": "771 bytes"
+      },
+      {
+        "nameDisplayed": "Blanket Purchase Agreement 42500353,0 requires your acceptance",
+        "typeDisplayed": "Outlook Item",
+        "sizeDisplayed": "38 KB"
+      }
+    ]
+  },
+  "localAttachmentSearch": {
+    "scope": "outputs directory filenames only; rg --files",
+    "bpaFilenamePatterns": [
+      "42500353",
+      "blanket",
+      "bpa"
+    ],
+    "matchingExistingBpaContractFiles": [],
+    "note": "The earlier filename-only scan found no BPA-named contract file in outputs before the initial snapshot. The supplier acceptance-response EML is now present at acceptanceResponseEvidence.sourceFile in Downloads and was parsed locally. It does not contain PO terms. This final reference does not infer archive contents."
+  },
+  "importNotes": [
+    "Retain the exact 3 June 2025 to 3 June 2026 effectivity dates; do not substitute the 2026-2027 dates of the existing OYOON SLA.",
+    "Check for an existing contract with reference 42500353 before creating another record.",
+    "Do not infer that this BPA maps to a particular Hub project or is the same agreement as the current OYOON SLA.",
+    "The amount is an agreed contract value in the notification, not an invoice, payment, current receivable, or verified amount including VAT.",
+    "No Hub record was created or changed by this extraction task.",
+    "The prior snapshot statement that supplier acceptance was unverified is superseded by the observed Accept response. This does not prove electronic workflow completion, final acceptance of services or payment."
+  ],
+  "priorSnapshot": {
+    "file": "C:\\Data\\D\\MyWorkSpace\\05.Others\\TIO Operations Hub\\outputs\\dda-contract-search-2026-11-10\\import-bpa42500353.json",
+    "originalSourceStatus": "Requires acceptance",
+    "originalAcceptanceVerified": false,
+    "note": "Prior snapshot remains unchanged; the new response evidence below supersedes its supplier-acceptance uncertainty only."
+  },
+  "acceptanceResponseEvidence": {
+    "sourceFile": "C:\\Users\\lmh\\Downloads\\Blanket Purchase Agreement 42500353,0 requires your acceptance.eml",
+    "filename": "Blanket Purchase Agreement 42500353,0 requires your acceptance.eml",
+    "bytes": 8262,
+    "sha256": "27eae8a1bc1644974bbe11fcea22215ce7511842871d719c360f1fec5b7f7cba",
+    "dateHeader": "Sat, 25 Oct 2025 17:05:34 +0000",
+    "dateUtc": "2025-10-25T17:05:34+00:00",
+    "dateDubai": "2025-10-25T21:05:34+04:00",
+    "from": "Youssef El_Hansali <Youssef.El_Hansali@vitronic.com>",
+    "to": "\"grp.notification@dubai.gov.ae\" <grp.notification@dubai.gov.ae>",
+    "subject": "Blanket Purchase Agreement 42500353,0 requires your acceptance",
+    "observedResponse": "Accept",
+    "messageIdHeaderPresent": true,
+    "receivedHeaderCount": 3,
+    "xUnsentHeaderPresent": false,
+    "containsQuotedPoTerms": false,
+    "termsSourceNote": "This 8,262-byte EML is the supplier response, not the PO terms document. Terms remain sourced from the parent email quoted notification recorded in source.outlookUrl.",
+    "electronicProcessingVerified": false,
+    "sensitiveWorkflowTokensIncluded": false,
+    "headerHandling": "Full workflow IDs, message ID contents, Received contents and response-workflow tokens are intentionally not copied into this reference."
+  },
+  "history": [
+    {
+      "event": "Effectivity start as printed in quoted notification",
+      "date": "2025-06-03"
+    },
+    {
+      "event": "Order date as printed in quoted notification",
+      "date": "2025-10-22"
+    },
+    {
+      "event": "GRP notification displayed in parent forwarded email",
+      "dateDisplayed": "25 October 2025 21:04:23",
+      "timezoneVerified": false
+    },
+    {
+      "event": "Supplier Accept response observed in EML",
+      "date": "2025-10-25T17:05:34+00:00",
+      "dateDubai": "2025-10-25T21:05:34+04:00",
+      "sender": "Youssef El_Hansali",
+      "electronicProcessingVerified": false
+    },
+    {
+      "event": "Abdalrhman Asaad forwards the notification and relates it to ViTIP Oyoon SLA",
+      "dateDisplayed": "26 October 2025 13:34",
+      "timezoneVerified": false
+    },
+    {
+      "event": "Effectivity end as printed in quoted notification",
+      "date": "2026-06-03"
+    },
+    {
+      "event": "Local source evidence reconciled for Hub reference",
+      "date": "2026-11-10",
+      "note": "No Hub mutation by this extraction task"
+    }
+  ],
+  "hubReadyStatusText": "Historical term ended 3 June 2026. Supplier acceptance response observed: Youssef El_Hansali emailed Response: Accept to GRP Notification on 25 October 2025 at 17:05:34 UTC (21:05:34 Dubai). Government electronic processing, service completion, renewal and payment remain unverified.",
+  "hubReadyHistoryText": "25 October 2025 17:05:34 UTC / 21:05:34 Dubai: supplier response email from Youssef El_Hansali to GRP Notification contains Response: Accept; Message-ID and three Received headers present, no X-Unsent header. The downloaded EML contains the response rather than PO terms; retain parent quoted-notification email for agreement terms. No electronic-workflow completion receipt was verified."
+}

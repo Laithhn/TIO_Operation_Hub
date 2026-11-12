@@ -1,0 +1,15 @@
+{
+  "id": "R071-laptop",
+  "route": "/admin/config/component-roles",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Component roles"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 654,
+  "title": "Component roles · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

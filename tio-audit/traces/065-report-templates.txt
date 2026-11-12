@@ -1,0 +1,129 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Templates
+- heading "Reporting Center" [level=1]
+- generic: Ready-made Tickets Report Builder configurations to start from.
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Section menu":
+  - navigation:
+    - link "Overview":
+      - /url: /reporting-center
+    - link "Report library":
+      - /url: /reporting-center/library
+    - link "Tickets report builder":
+      - /url: /reporting-center/builder/cases
+    - link "My reports":
+      - /url: /reporting-center/my-reports
+    - link "Scheduled reports":
+      - /url: /reporting-center/schedules
+    - link "Export history":
+      - /url: /reporting-center/history
+    - link "Templates":
+      - /url: /reporting-center/templates
+  - button "Expand menu":
+- main:
+  - paragraph: Ready-made starting points for the Cases Report Builder. A template opens as a new, unsaved report on your authorized data; adjust it and save it as your own.
+  - article:
+    - heading "Open critical and high tickets" [level=3]
+    - paragraph: Open tickets of priority Critical or High, most urgent first, with owner, SLA status and due date.
+    - generic: Tickets
+    - generic: Excel
+    - generic: PDF
+    - link "Use template Open critical and high tickets":
+      - /url: /reporting-center/builder/cases?template=open-critical-high
+      - text: Use template
+  - article:
+    - heading "SLA breaches, last 30 days" [level=3]
+    - paragraph: Tickets opened in the last 30 days whose contractual response or resolution SLA is breached, by client.
+    - generic: Tickets
+    - generic: Excel
+    - generic: PDF
+    - link "Use template SLA breaches, last 30 days":
+      - /url: /reporting-center/builder/cases?template=sla-breached-30
+      - text: Use template
+  - article:
+    - heading "Overdue tickets by owner" [level=3]
+    - paragraph: Open tickets whose due time has passed, grouped by owner, oldest due first.
+    - generic: Tickets
+    - generic: Excel
+    - generic: PDF
+    - link "Use template Overdue tickets by owner":
+      - /url: /reporting-center/builder/cases?template=overdue-by-owner
+      - text: Use template
+  - article:
+    - heading "Tickets opened this month by client" [level=3]
+    - paragraph: Everything opened this calendar month (report time zone), grouped by client.
+    - generic: Tickets
+    - generic: Excel
+    - generic: PDF
+    - link "Use template Tickets opened this month by client":
+      - /url: /reporting-center/builder/cases?template=created-this-month
+      - text: Use template
+  - article:
+    - heading "Waiting for the customer" [level=3]
+    - paragraph: Open tickets waiting for the customer for more than 7 days (advanced condition on the waiting reason and age).
+    - generic: Tickets
+    - generic: Excel
+    - generic: PDF
+    - link "Use template Waiting for the customer":
+      - /url: /reporting-center/builder/cases?template=waiting-customer
+      - text: Use template
+  - article:
+    - heading "Closed last month" [level=3]
+    - paragraph: Tickets closed in the previous calendar month with resolution SLA outcome and Jira references.
+    - generic: Tickets
+    - generic: Excel
+    - generic: PDF
+    - link "Use template Closed last month":
+      - /url: /reporting-center/builder/cases?template=closed-last-month
+      - text: Use template
+  - paragraph: "Templates for the other twelve catalog reports are a later stage: those reports keep their own filters and CSV/Excel export in the library."
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

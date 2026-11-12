@@ -1,0 +1,106 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Products":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Products
+- heading "Products" [level=1]
+- generic: "The software products (applications) TIO delivers and supports: what each one is, its modules and features, its versions and where it is installed."
+- link "+ New product":
+  - /url: /products/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products (current section)":
+      - /url: /products
+      - text: Products
+      - generic: (current section)
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - region "Products":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Products":
+      - caption: Products
+      - rowgroup:
+        - row "Details Product Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Product":
+            - button "Product":
+              - generic: Product
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - 'row "Details for PSOP · Poliscan Office Pro Also known as: Case Processing PSOP · Poliscan Office Pro Also known as: Case Processing Active Actions for product PSOP"':
+          - 'cell "Details for PSOP · Poliscan Office Pro Also known as: Case Processing"':
+            - 'button "Details for PSOP · Poliscan Office Pro Also known as: Case Processing"':
+          - 'cell "PSOP · Poliscan Office Pro Also known as: Case Processing"':
+            - link "PSOP · Poliscan Office Pro":
+              - /url: /products/1
+            - generic: "Also known as: Case Processing"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for product PSOP":
+            - button "Actions for product PSOP": ⋯
+        - row "Details for ViTIP · Vitronic Intelligent Traffic Platfrom ViTIP · Vitronic Intelligent Traffic Platfrom Active Actions for product ViTIP":
+          - cell "Details for ViTIP · Vitronic Intelligent Traffic Platfrom":
+            - button "Details for ViTIP · Vitronic Intelligent Traffic Platfrom":
+          - cell "ViTIP · Vitronic Intelligent Traffic Platfrom":
+            - link "ViTIP · Vitronic Intelligent Traffic Platfrom":
+              - /url: /products/4
+          - cell "Active":
+            - text: Active
+          - cell "Actions for product ViTIP":
+            - button "Actions for product ViTIP": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

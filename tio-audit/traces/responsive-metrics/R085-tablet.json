@@ -1,0 +1,15 @@
+{
+  "id": "R085-tablet",
+  "route": "/escalations/new",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "New escalation"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 1481,
+  "title": "New escalation · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

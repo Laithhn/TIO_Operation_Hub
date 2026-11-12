@@ -1,0 +1,15 @@
+{
+  "id": "R081-mobile",
+  "route": "/clients/new",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "New client"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 3628,
+  "title": "New client · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

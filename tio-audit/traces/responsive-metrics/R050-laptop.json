@@ -1,0 +1,15 @@
+{
+  "id": "R050-laptop",
+  "route": "/notifications",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Notifications"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 893,
+  "title": "Notifications · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

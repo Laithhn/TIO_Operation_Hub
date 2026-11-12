@@ -1,0 +1,21 @@
+- banner:
+- main:
+  - region "Change password":
+    - generic: TIO Operations Hub
+    - heading "Change password" [level=1]
+    - paragraph: Signed in as lmh.
+    - generic: Current password *
+    - textbox "Current password *"
+    - generic: New password *
+    - textbox "New password *"
+    - generic: At least 12 characters (a passphrase works well), not containing the account name.
+    - generic: Repeat the password *
+    - textbox "Repeat the password *"
+    - button "Change password"
+    - link "Back to the hub":
+      - /url: /
+    - button "Sign out"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: TIO Operations Hub
+- status

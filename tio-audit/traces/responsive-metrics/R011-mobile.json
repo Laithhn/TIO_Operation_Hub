@@ -1,0 +1,15 @@
+{
+  "id": "R011-mobile",
+  "route": "/teams",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Teams and coverage"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 186,
+  "title": "Teams and coverage · TIO Operations Hub",
+  "width": 390
+}

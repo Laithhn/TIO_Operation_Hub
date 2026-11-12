@@ -1,0 +1,15 @@
+{
+  "id": "R051-tablet",
+  "route": "/assets/27",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "PSOP-R2PRO-APP1"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 2370,
+  "title": "PSOP-R2PRO-APP1 · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

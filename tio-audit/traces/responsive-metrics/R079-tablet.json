@@ -1,0 +1,15 @@
+{
+  "id": "R079-tablet",
+  "route": "/admin/jira",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Jira instances"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 206,
+  "title": "Jira instances · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

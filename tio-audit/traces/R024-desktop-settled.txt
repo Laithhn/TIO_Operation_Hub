@@ -1,0 +1,163 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- main:
+  - region "Client Map toolbar":
+    - heading "Client Map" [level=1]
+    - paragraph:
+      - text: 20 clients in 12 countries · as of
+      - time: 10 Nov 2026, 17:02
+      - text: (Asia/Dubai)
+    - radiogroup "Map layer":
+      - radio "Clients 20" [checked]:
+        - generic: Clients
+        - generic: "20"
+      - radio "Servers 138":
+        - generic: Servers
+        - generic: "138"
+      - radio "Open tickets 183":
+        - generic: Open tickets
+        - generic: "183"
+      - radio "Overdue 78":
+        - generic: Overdue
+        - generic: "78"
+      - radio "Contracts 6":
+        - generic: Contracts
+        - generic: "6"
+    - generic: Client
+    - combobox "Client":
+      - option "All authorized clients" [selected]
+      - option "ADP · Abu Dhabi Police"
+      - option "ADP-STC · Abu Dhabi Police STC"
+      - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+      - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+      - option "DUBAI_POLICE · Dubai Police"
+      - option "EIFFAGE · Eiffage Concessions"
+      - option "MADAR_DIJLA · Madar Dijla"
+      - option "MULTICOM · MULTICOM - IT Security"
+      - option "NARSA · NARSA"
+      - option "OYOON · OYOON Center"
+      - option "PESAPRINT · Pesa Print"
+      - option "QATAR_MOI · Qatar MOI"
+      - option "RNP · Rwanda National Ploce"
+      - option "ROP · Royal Oman Police (ROP)"
+      - option "SAPOL · South Australia Police"
+      - option "SEW · Sewar Tech"
+      - option "SHJ_POLICE · Sharjah Police"
+      - option "TAH · Tahakom"
+      - option "TAK · TAK Business Group"
+      - option "TRAFFIC · Dubai Traffic Department"
+    - generic: Region
+    - combobox "Region":
+      - option "All regions" [selected]
+      - option "Western Asia (Middle East) (12)"
+      - option "Africa (7)"
+      - option "Oceania (1)"
+    - generic: Team
+    - combobox "Team":
+      - option "All teams" [selected]
+      - option "Dubai Office Operation Team"
+      - option "KSA Operation Team"
+    - generic: Product
+    - combobox "Product":
+      - option "All products" [selected]
+      - option "PSOP"
+      - option "ViTIP"
+    - button "Reset filters" [disabled]:
+    - button "Refresh":
+    - link "Operations Command Center":
+      - /url: /
+  - region "Map":
+    - button "Countries":
+      - text: Countries
+    - generic "Clients per country":
+      - generic: Clients
+      - generic: 0 recorded
+      - generic: 1–1
+      - generic: 2–2
+      - generic: 3–4
+      - generic: 5–5
+      - generic: 6–7
+      - generic: has overdue work
+      - generic: Only countries with authorized clients are coloured
+    - group "OpenStreetMap of clients by country. The country list beside it has the same data.":
+      - 'button "United Arab Emirates: 7 clients. Show its clients"':
+        - generic: "7"
+      - 'button "Tunisia: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Senegal: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Saudi Arabia: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Rwanda: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Qatar: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Oman: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Morocco: 2 clients. Show its clients"':
+        - generic: "2"
+      - 'button "Kenya: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Iraq: 2 clients. Show its clients"':
+        - generic: "2"
+      - 'button "Ethiopia: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Australia: 1 clients. Show its clients"':
+        - generic: "1"
+      - button "Zoom in": +
+      - button "Zoom out": −
+      - button "Layers"
+      - generic: 5000 km
+      - generic: © OpenStreetMap contributors
+    - group "Map view":
+      - button "Show all client countries": ⤢
+      - button "Show the world": ◯
+      - button "Full screen": ⛶
+    - generic: Click the map to zoom with the mouse wheel; drag to move · open a country (or zoom in) to see each client
+  - complementary "Country details":
+    - heading "Select a country" [level=2]
+    - paragraph: Choose a country on the map or in the list to see its clients, servers, open tickets and active contracts.
+    - button "Hide this panel"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

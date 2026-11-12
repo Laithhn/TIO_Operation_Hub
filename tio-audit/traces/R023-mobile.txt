@@ -1,0 +1,338 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Dashboard":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Dashboard
+- heading "Data quality" [level=1]
+- generic: Missing owners, unknown environments and versions, and stale verification. Items open and resolve only by rule re-evaluation, so closing one can never falsely verify unknown data.
+- button "Re-evaluate now"
+- button "Export CSV"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard (current section)":
+      - /url: /
+      - text: Dashboard
+      - generic: (current section)
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Open items by rule" [level=2]
+  - link "2 Condition needs verification":
+    - /url: "?rule=ConditionNeedsVerification"
+    - generic: "2"
+    - generic: Condition needs verification
+  - link "231 Missing owner":
+    - /url: "?rule=MissingOwner"
+    - generic: "231"
+    - generic: Missing owner
+  - link "4 Missing review policy":
+    - /url: "?rule=MissingReviewPolicy"
+    - generic: "4"
+    - generic: Missing review policy
+  - link "19 Missing specification":
+    - /url: "?rule=MissingSpecification"
+    - generic: "19"
+    - generic: Missing specification
+  - link "7 Unknown installed version":
+    - /url: "?rule=UnknownVersion"
+    - generic: "7"
+    - generic: Unknown installed version
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Rule
+  - combobox "Rule":
+    - option "All rules" [selected]
+    - option "Condition needs verification"
+    - option "Missing owner"
+    - option "Missing review policy"
+    - option "Missing specification"
+    - option "Unknown installed version"
+  - generic: Status
+  - combobox "Status":
+    - option "Open" [selected]
+    - option "Resolved"
+    - option "All"
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 15 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Details Rule Record Status Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Rule":
+              - button "Rule":
+                - generic: Rule
+            - columnheader "Record":
+              - button "Record":
+                - generic: Record
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Condition needs verification Condition needs verification Environment · TAH · Production Open Coordinate":
+            - cell "Details for Condition needs verification":
+              - button "Details for Condition needs verification":
+            - cell "Condition needs verification":
+              - generic: Condition needs verification
+            - cell "Environment · TAH · Production":
+              - link "Environment · TAH · Production":
+                - /url: /environments/3
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Condition needs verification Condition needs verification Environment · TAH · Production Open Coordinate":
+            - cell "Details for Condition needs verification":
+              - button "Details for Condition needs verification":
+            - cell "Condition needs verification":
+              - generic: Condition needs verification
+            - cell "Environment · TAH · Production":
+              - link "Environment · TAH · Production":
+                - /url: /environments/1
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · Dahua ANPR Service Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · Dahua ANPR Service":
+              - link "Asset · Dahua ANPR Service":
+                - /url: /assets/259
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · HIKVision ANPR Service Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · HIKVision ANPR Service":
+              - link "Asset · HIKVision ANPR Service":
+                - /url: /assets/258
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Environment · MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed) Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Environment · MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed)":
+              - link "Environment · MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed)":
+                - /url: /environments/13
+            - text: MA
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · Map-Pro-APP1 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · Map-Pro-APP1":
+              - link "Asset · Map-Pro-APP1":
+                - /url: /assets/270
+            - text: MA
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-APP_Vip Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-APP_Vip":
+              - link "Asset · PAVS-PRO-APP_Vip":
+                - /url: /assets/253
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-APP1 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-APP1":
+              - link "Asset · PAVS-PRO-APP1":
+                - /url: /assets/235
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-APP2 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-APP2":
+              - link "Asset · PAVS-PRO-APP2":
+                - /url: /assets/236
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-DB1 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-DB1":
+              - link "Asset · PAVS-PRO-DB1":
+                - /url: /assets/239
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-DB2 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-DB2":
+              - link "Asset · PAVS-PRO-DB2":
+                - /url: /assets/240
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-LSNR Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-LSNR":
+              - link "Asset · PAVS-PRO-LSNR":
+                - /url: /assets/256
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-WEB1 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-WEB1":
+              - link "Asset · PAVS-PRO-WEB1":
+                - /url: /assets/237
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-PRO-WEB2 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-WEB2":
+              - link "Asset · PAVS-PRO-WEB2":
+                - /url: /assets/238
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Details for Missing owner Missing owner Asset · PAVS-STG-APP1 Open Coordinate":
+            - cell "Details for Missing owner":
+              - button "Details for Missing owner":
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-STG-APP1":
+              - link "Asset · PAVS-STG-APP1":
+                - /url: /assets/241
+            - cell "Open":
+              - generic: Open
+            - cell "Coordinate":
+              - button "Coordinate"
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 263
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 263
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

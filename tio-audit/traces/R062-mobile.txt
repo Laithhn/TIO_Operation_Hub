@@ -1,0 +1,221 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Organization relationship types
+- heading "Organization relationship types" [level=1]
+- generic: Optional business roles such as Contractor, Supplier or Partner. Roles belong to each relationship and never fix its hierarchy level.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Organization relationship types":
+    - searchbox "Filter rows"
+    - generic: 10 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Organization relationship types":
+      - caption: Organization relationship types
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move Client up Move Client down Client Active Actions for Client":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Client up Move Client down":
+            - button "Move Client up" [disabled]: ▲
+            - button "Move Client down": ▼
+          - cell "Client":
+            - button "Client"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Client":
+            - button "Actions for Client": ⋯
+        - row "Details for ▲ ▼ Move Contractor up Move Contractor down Contractor Active Actions for Contractor":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Contractor up Move Contractor down":
+            - button "Move Contractor up": ▲
+            - button "Move Contractor down": ▼
+          - cell "Contractor":
+            - button "Contractor"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Contractor":
+            - button "Actions for Contractor": ⋯
+        - row "Details for ▲ ▼ Move Subcontractor up Move Subcontractor down Subcontractor Active Actions for Subcontractor":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Subcontractor up Move Subcontractor down":
+            - button "Move Subcontractor up": ▲
+            - button "Move Subcontractor down": ▼
+          - cell "Subcontractor":
+            - button "Subcontractor"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Subcontractor":
+            - button "Actions for Subcontractor": ⋯
+        - row "Details for ▲ ▼ Move Sub-subcontractor up Move Sub-subcontractor down Sub-subcontractor Active Actions for Sub-subcontractor":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Sub-subcontractor up Move Sub-subcontractor down":
+            - button "Move Sub-subcontractor up": ▲
+            - button "Move Sub-subcontractor down": ▼
+          - cell "Sub-subcontractor":
+            - button "Sub-subcontractor"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Sub-subcontractor":
+            - button "Actions for Sub-subcontractor": ⋯
+        - row "Details for ▲ ▼ Move Supplier up Move Supplier down Supplier Active Actions for Supplier":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Supplier up Move Supplier down":
+            - button "Move Supplier up": ▲
+            - button "Move Supplier down": ▼
+          - cell "Supplier":
+            - button "Supplier"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Supplier":
+            - button "Actions for Supplier": ⋯
+        - row "Details for ▲ ▼ Move Partner up Move Partner down Partner Active Actions for Partner":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Partner up Move Partner down":
+            - button "Move Partner up": ▲
+            - button "Move Partner down": ▼
+          - cell "Partner":
+            - button "Partner"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Partner":
+            - button "Actions for Partner": ⋯
+        - row "Details for ▲ ▼ Move Consultant up Move Consultant down Consultant Active Actions for Consultant":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Consultant up Move Consultant down":
+            - button "Move Consultant up": ▲
+            - button "Move Consultant down": ▼
+          - cell "Consultant":
+            - button "Consultant"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Consultant":
+            - button "Actions for Consultant": ⋯
+        - row "Details for ▲ ▼ Move Vendor up Move Vendor down Vendor Active Actions for Vendor":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Vendor up Move Vendor down":
+            - button "Move Vendor up": ▲
+            - button "Move Vendor down": ▼
+          - cell "Vendor":
+            - button "Vendor"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Vendor":
+            - button "Actions for Vendor": ⋯
+        - row "Details for ▲ ▼ Move Service Provider up Move Service Provider down Service Provider Active Actions for Service Provider":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Service Provider up Move Service Provider down":
+            - button "Move Service Provider up": ▲
+            - button "Move Service Provider down": ▼
+          - cell "Service Provider":
+            - button "Service Provider"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Service Provider":
+            - button "Actions for Service Provider": ⋯
+        - row "Details for ▲ ▼ Move Other up Move Other down Other Active Actions for Other":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

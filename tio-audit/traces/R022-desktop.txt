@@ -1,0 +1,681 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Dashboard":
+    - /url: /
+  - generic: ›
+  - generic: Action list
+- heading "Action list" [level=1]
+- generic: Records that need someone to act, by reason. Counts include only records you are authorized to see.
+- button "Export action list"
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Team
+  - combobox "Team":
+    - option "All teams" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - heading "Action list" [level=2]
+  - group "Action categories":
+    - generic: Deadlines 80
+    - button "Overdue tickets 73":
+      - generic: Overdue tickets
+      - generic: "73"
+    - button "Due within 24 h 1":
+      - generic: Due within 24 h
+      - generic: "1"
+    - button "Overdue commitments 5":
+      - generic: Overdue commitments
+      - generic: "5"
+    - button "Approaching 1":
+      - generic: Approaching
+      - generic: "1"
+    - button "Escalations past target 0":
+      - generic: Escalations past target
+      - generic: "0"
+    - generic: Ownership and follow-up 424
+    - button "Unassigned 104" [pressed]:
+      - generic: Unassigned
+      - generic: "104"
+    - button "Waiting / blocked 88":
+      - generic: Waiting / blocked
+      - generic: "88"
+    - button "Review overdue 113":
+      - generic: Review overdue
+      - generic: "113"
+    - button "Stale reviews 119":
+      - generic: Stale reviews
+      - generic: "119"
+    - generic: Environments and data 271
+    - button "Environments down 1":
+      - generic: Environments down
+      - generic: "1"
+    - button "Coverage gaps 7":
+      - generic: Coverage gaps
+      - generic: "7"
+    - button "Data quality 263":
+      - generic: Data quality
+      - generic: "263"
+    - generic: Contracts 5
+    - button "Contract renewals 1":
+      - generic: Contract renewals
+      - generic: "1"
+    - button "Payments due 4":
+      - generic: Payments due
+      - generic: "4"
+  - region "Action list":
+    - searchbox "Filter rows"
+    - generic: 104 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Action list":
+      - caption: Action list
+      - rowgroup:
+        - row "Details Select all rows shown Record Title Reason Due / review Next action Owner":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Record":
+            - button "Record":
+              - generic: Record
+          - columnheader "Title":
+            - button "Title":
+              - generic: Title
+          - columnheader "Reason":
+            - button "Reason":
+              - generic: Reason
+          - columnheader "Due / review":
+            - button "Due / review":
+              - generic: Due / review
+          - columnheader "Next action":
+            - button "Next action":
+              - generic: Next action
+          - columnheader "Owner":
+            - button "Owner":
+              - generic: Owner
+      - rowgroup:
+        - row "Select CS-1691 Ticket Details for CS-1691 Ticket CS-1691 Ticket New API Endpoint Modify Current Location No owner assigned 21 Jan 2026, 11:52 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1691 Ticket":
+            - checkbox "Select CS-1691 Ticket"
+          - cell "Details for CS-1691 Ticket":
+            - button "Details for CS-1691 Ticket":
+          - cell "CS-1691 Ticket":
+            - link "CS-1691":
+              - /url: /cases/9891
+            - generic: Ticket
+          - cell "New API Endpoint Modify Current Location":
+            - generic: New API Endpoint Modify Current Location
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Jan 2026, 11:52":
+            - generic: 21 Jan 2026, 11:52
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1694 Ticket Details for CS-1694 Ticket CS-1694 Ticket Support Function Automation No owner assigned 20 Oct 2025, 13:43 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1694 Ticket":
+            - checkbox "Select CS-1694 Ticket"
+          - cell "Details for CS-1694 Ticket":
+            - button "Details for CS-1694 Ticket":
+          - cell "CS-1694 Ticket":
+            - link "CS-1694":
+              - /url: /cases/9894
+            - generic: Ticket
+          - cell "Support Function Automation":
+            - generic: Support Function Automation
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "20 Oct 2025, 13:43":
+            - generic: 20 Oct 2025, 13:43
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - 'row "Select CS-1710 Ticket Details for CS-1710 Ticket CS-1710 Ticket BO PT March 2026: Missing CAPTCHA Protection No owner assigned 29 Mar 2026, 15:00 Review the ticket imported from Jira. Unassigned"':
+          - cell "Select CS-1710 Ticket":
+            - checkbox "Select CS-1710 Ticket"
+          - cell "Details for CS-1710 Ticket":
+            - button "Details for CS-1710 Ticket":
+          - cell "CS-1710 Ticket":
+            - link "CS-1710":
+              - /url: /cases/9910
+            - generic: Ticket
+          - 'cell "BO PT March 2026: Missing CAPTCHA Protection"':
+            - generic: "BO PT March 2026: Missing CAPTCHA Protection"
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "29 Mar 2026, 15:00":
+            - generic: 29 Mar 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - 'row "Select CS-1711 Ticket Details for CS-1711 Ticket CS-1711 Ticket BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SMS No owner assigned 12 Apr 2026, 11:40 Review the ticket imported from Jira. Unassigned"':
+          - cell "Select CS-1711 Ticket":
+            - checkbox "Select CS-1711 Ticket"
+          - cell "Details for CS-1711 Ticket":
+            - button "Details for CS-1711 Ticket":
+          - cell "CS-1711 Ticket":
+            - link "CS-1711":
+              - /url: /cases/9911
+            - generic: Ticket
+          - 'cell "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SMS"':
+            - generic: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SMS"
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "12 Apr 2026, 11:40":
+            - generic: 12 Apr 2026, 11:40
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - 'row "Select CS-1712 Ticket Details for CS-1712 Ticket CS-1712 Ticket BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SSO No owner assigned 12 Apr 2026, 11:42 Review the ticket imported from Jira. Unassigned"':
+          - cell "Select CS-1712 Ticket":
+            - checkbox "Select CS-1712 Ticket"
+          - cell "Details for CS-1712 Ticket":
+            - button "Details for CS-1712 Ticket":
+          - cell "CS-1712 Ticket":
+            - link "CS-1712":
+              - /url: /cases/9912
+            - generic: Ticket
+          - 'cell "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SSO"':
+            - generic: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): SSO"
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "12 Apr 2026, 11:42":
+            - generic: 12 Apr 2026, 11:42
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - 'row "Select CS-1713 Ticket Details for CS-1713 Ticket CS-1713 Ticket BO PT March 2026: Lack of Multi-Factor Authentication (MFA): Email No owner assigned 12 Apr 2026, 11:43 Review the ticket imported from Jira. Unassigned"':
+          - cell "Select CS-1713 Ticket":
+            - checkbox "Select CS-1713 Ticket"
+          - cell "Details for CS-1713 Ticket":
+            - button "Details for CS-1713 Ticket":
+          - cell "CS-1713 Ticket":
+            - link "CS-1713":
+              - /url: /cases/9913
+            - generic: Ticket
+          - 'cell "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): Email"':
+            - generic: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA): Email"
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "12 Apr 2026, 11:43":
+            - generic: 12 Apr 2026, 11:43
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - 'row "Select CS-1714 Ticket Details for CS-1714 Ticket CS-1714 Ticket BO PT March 2026: Lack of Multi-Factor Authentication (MFA) No owner assigned 29 Mar 2026, 15:00 Review the ticket imported from Jira. Unassigned"':
+          - cell "Select CS-1714 Ticket":
+            - checkbox "Select CS-1714 Ticket"
+          - cell "Details for CS-1714 Ticket":
+            - button "Details for CS-1714 Ticket":
+          - cell "CS-1714 Ticket":
+            - link "CS-1714":
+              - /url: /cases/9914
+            - generic: Ticket
+          - 'cell "BO PT March 2026: Lack of Multi-Factor Authentication (MFA)"':
+            - generic: "BO PT March 2026: Lack of Multi-Factor Authentication (MFA)"
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "29 Mar 2026, 15:00":
+            - generic: 29 Mar 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1721 Ticket Details for CS-1721 Ticket CS-1721 Ticket Integration of Idemia Camera Monitoring Functionality into RRM Platform No owner assigned 10 Nov 2025, 12:13 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1721 Ticket":
+            - checkbox "Select CS-1721 Ticket"
+          - cell "Details for CS-1721 Ticket":
+            - button "Details for CS-1721 Ticket":
+          - cell "CS-1721 Ticket":
+            - link "CS-1721":
+              - /url: /cases/9921
+            - generic: Ticket
+          - cell "Integration of Idemia Camera Monitoring Functionality into RRM Platform":
+            - generic: Integration of Idemia Camera Monitoring Functionality into RRM Platform
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "10 Nov 2025, 12:13":
+            - generic: 10 Nov 2025, 12:13
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1747 Ticket Details for CS-1747 Ticket CS-1747 Ticket BO Release 18.2 No owner assigned 21 Jun 2026, 12:43 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1747 Ticket":
+            - checkbox "Select CS-1747 Ticket"
+          - cell "Details for CS-1747 Ticket":
+            - button "Details for CS-1747 Ticket":
+          - cell "CS-1747 Ticket":
+            - link "CS-1747":
+              - /url: /cases/9947
+            - generic: Ticket
+          - cell "BO Release 18.2":
+            - generic: BO Release 18.2
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Jun 2026, 12:43":
+            - generic: 21 Jun 2026, 12:43
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1754 Ticket Details for CS-1754 Ticket CS-1754 Ticket SD Release 1.4 No owner assigned 26 Apr 2026, 09:27 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1754 Ticket":
+            - checkbox "Select CS-1754 Ticket"
+          - cell "Details for CS-1754 Ticket":
+            - button "Details for CS-1754 Ticket":
+          - cell "CS-1754 Ticket":
+            - link "CS-1754":
+              - /url: /cases/9954
+            - generic: Ticket
+          - cell "SD Release 1.4":
+            - generic: SD Release 1.4
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "26 Apr 2026, 09:27":
+            - generic: 26 Apr 2026, 09:27
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1762 Ticket Details for CS-1762 Ticket CS-1762 Ticket Web | Operational Data | Adding last action datetime filter No owner assigned — Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1762 Ticket":
+            - checkbox "Select CS-1762 Ticket"
+          - cell "Details for CS-1762 Ticket":
+            - button "Details for CS-1762 Ticket":
+          - cell "CS-1762 Ticket":
+            - link "CS-1762":
+              - /url: /cases/9962
+            - generic: Ticket
+          - cell "Web | Operational Data | Adding last action datetime filter":
+            - generic: Web | Operational Data | Adding last action datetime filter
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "—":
+            - generic: —
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1763 Ticket Details for CS-1763 Ticket CS-1763 Ticket Web | Reject Reason | Offence type dropdown No owner assigned — Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1763 Ticket":
+            - checkbox "Select CS-1763 Ticket"
+          - cell "Details for CS-1763 Ticket":
+            - button "Details for CS-1763 Ticket":
+          - cell "CS-1763 Ticket":
+            - link "CS-1763":
+              - /url: /cases/9963
+            - generic: Ticket
+          - cell "Web | Reject Reason | Offence type dropdown":
+            - generic: Web | Reject Reason | Offence type dropdown
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "—":
+            - generic: —
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1769 Ticket Details for CS-1769 Ticket CS-1769 Ticket Reflect Idemia data in RRM UI No owner assigned 22 Jul 2026, 09:14 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1769 Ticket":
+            - checkbox "Select CS-1769 Ticket"
+          - cell "Details for CS-1769 Ticket":
+            - button "Details for CS-1769 Ticket":
+          - cell "CS-1769 Ticket":
+            - link "CS-1769":
+              - /url: /cases/9969
+            - generic: Ticket
+          - cell "Reflect Idemia data in RRM UI":
+            - generic: Reflect Idemia data in RRM UI
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Jul 2026, 09:14":
+            - generic: 22 Jul 2026, 09:14
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1777 Ticket Details for CS-1777 Ticket CS-1777 Ticket OBJ pagination - sorting No owner assigned 21 Apr 2025, 13:55 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1777 Ticket":
+            - checkbox "Select CS-1777 Ticket"
+          - cell "Details for CS-1777 Ticket":
+            - button "Details for CS-1777 Ticket":
+          - cell "CS-1777 Ticket":
+            - link "CS-1777":
+              - /url: /cases/9977
+            - generic: Ticket
+          - cell "OBJ pagination - sorting":
+            - generic: OBJ pagination - sorting
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Apr 2025, 13:55":
+            - generic: 21 Apr 2025, 13:55
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1786 Ticket Details for CS-1786 Ticket CS-1786 Ticket OBJ/EFA API Release 1.1 No owner assigned 21 Apr 2025, 13:49 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1786 Ticket":
+            - checkbox "Select CS-1786 Ticket"
+          - cell "Details for CS-1786 Ticket":
+            - button "Details for CS-1786 Ticket":
+          - cell "CS-1786 Ticket":
+            - link "CS-1786":
+              - /url: /cases/9986
+            - generic: Ticket
+          - cell "OBJ/EFA API Release 1.1":
+            - generic: OBJ/EFA API Release 1.1
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Apr 2025, 13:49":
+            - generic: 21 Apr 2025, 13:49
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1801 Ticket Details for CS-1801 Ticket CS-1801 Ticket Service.Platelookup Migration - Lookup Services and Integrations No owner assigned 15 Oct 2026, 14:51 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1801 Ticket":
+            - checkbox "Select CS-1801 Ticket"
+          - cell "Details for CS-1801 Ticket":
+            - button "Details for CS-1801 Ticket":
+          - cell "CS-1801 Ticket":
+            - link "CS-1801":
+              - /url: /cases/10001
+            - generic: Ticket
+          - cell "Service.Platelookup Migration - Lookup Services and Integrations":
+            - generic: Service.Platelookup Migration - Lookup Services and Integrations
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 14:51":
+            - generic: 15 Oct 2026, 14:51
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1802 Ticket Details for CS-1802 Ticket CS-1802 Ticket Service.Media Migration - Media Handling and Retrieval No owner assigned 15 Oct 2026, 14:52 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1802 Ticket":
+            - checkbox "Select CS-1802 Ticket"
+          - cell "Details for CS-1802 Ticket":
+            - button "Details for CS-1802 Ticket":
+          - cell "CS-1802 Ticket":
+            - link "CS-1802":
+              - /url: /cases/10002
+            - generic: Ticket
+          - cell "Service.Media Migration - Media Handling and Retrieval":
+            - generic: Service.Media Migration - Media Handling and Retrieval
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 14:52":
+            - generic: 15 Oct 2026, 14:52
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1803 Ticket Details for CS-1803 Ticket CS-1803 Ticket Service.Import Migration - Import Pipelines and Processing Jobs No owner assigned 15 Oct 2026, 14:57 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1803 Ticket":
+            - checkbox "Select CS-1803 Ticket"
+          - cell "Details for CS-1803 Ticket":
+            - button "Details for CS-1803 Ticket":
+          - cell "CS-1803 Ticket":
+            - link "CS-1803":
+              - /url: /cases/10003
+            - generic: Ticket
+          - cell "Service.Import Migration - Import Pipelines and Processing Jobs":
+            - generic: Service.Import Migration - Import Pipelines and Processing Jobs
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 14:57":
+            - generic: 15 Oct 2026, 14:57
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1804 Ticket Details for CS-1804 Ticket CS-1804 Ticket Plugins Migration - CurrentBO Plugin Components No owner assigned 15 Oct 2026, 15:00 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1804 Ticket":
+            - checkbox "Select CS-1804 Ticket"
+          - cell "Details for CS-1804 Ticket":
+            - button "Details for CS-1804 Ticket":
+          - cell "CS-1804 Ticket":
+            - link "CS-1804":
+              - /url: /cases/10004
+            - generic: Ticket
+          - cell "Plugins Migration - CurrentBO Plugin Components":
+            - generic: Plugins Migration - CurrentBO Plugin Components
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 15:00":
+            - generic: 15 Oct 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1805 Ticket Details for CS-1805 Ticket CS-1805 Ticket NIC Project Migration - Broker, Adapter, Tasks, and RabbitMQ Integration No owner assigned 15 Oct 2026, 15:00 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1805 Ticket":
+            - checkbox "Select CS-1805 Ticket"
+          - cell "Details for CS-1805 Ticket":
+            - button "Details for CS-1805 Ticket":
+          - cell "CS-1805 Ticket":
+            - link "CS-1805":
+              - /url: /cases/10005
+            - generic: Ticket
+          - cell "NIC Project Migration - Broker, Adapter, Tasks, and RabbitMQ Integration":
+            - generic: NIC Project Migration - Broker, Adapter, Tasks, and RabbitMQ Integration
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 15:00":
+            - generic: 15 Oct 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1808 Ticket Details for CS-1808 Ticket CS-1808 Ticket BackOffice React | API Integration Layer for BackOffice Services No owner assigned 22 Oct 2026, 11:54 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1808 Ticket":
+            - checkbox "Select CS-1808 Ticket"
+          - cell "Details for CS-1808 Ticket":
+            - button "Details for CS-1808 Ticket":
+          - cell "CS-1808 Ticket":
+            - link "CS-1808":
+              - /url: /cases/10008
+            - generic: Ticket
+          - cell "BackOffice React | API Integration Layer for BackOffice Services":
+            - generic: BackOffice React | API Integration Layer for BackOffice Services
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:54":
+            - generic: 22 Oct 2026, 11:54
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1811 Ticket Details for CS-1811 Ticket CS-1811 Ticket BackOffice React | Deployment and Environment Configuration No owner assigned 22 Oct 2026, 11:56 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1811 Ticket":
+            - checkbox "Select CS-1811 Ticket"
+          - cell "Details for CS-1811 Ticket":
+            - button "Details for CS-1811 Ticket":
+          - cell "CS-1811 Ticket":
+            - link "CS-1811":
+              - /url: /cases/10011
+            - generic: Ticket
+          - cell "BackOffice React | Deployment and Environment Configuration":
+            - generic: BackOffice React | Deployment and Environment Configuration
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:56":
+            - generic: 22 Oct 2026, 11:56
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1812 Ticket Details for CS-1812 Ticket CS-1812 Ticket BackOffice React | Authentication and Role-Based Access Control UI No owner assigned 22 Oct 2026, 11:56 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1812 Ticket":
+            - checkbox "Select CS-1812 Ticket"
+          - cell "Details for CS-1812 Ticket":
+            - button "Details for CS-1812 Ticket":
+          - cell "CS-1812 Ticket":
+            - link "CS-1812":
+              - /url: /cases/10012
+            - generic: Ticket
+          - cell "BackOffice React | Authentication and Role-Based Access Control UI":
+            - generic: BackOffice React | Authentication and Role-Based Access Control UI
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:56":
+            - generic: 22 Oct 2026, 11:56
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1813 Ticket Details for CS-1813 Ticket CS-1813 Ticket BackOffice React | File and Media Handling UI No owner assigned 22 Oct 2026, 11:54 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1813 Ticket":
+            - checkbox "Select CS-1813 Ticket"
+          - cell "Details for CS-1813 Ticket":
+            - button "Details for CS-1813 Ticket":
+          - cell "CS-1813 Ticket":
+            - link "CS-1813":
+              - /url: /cases/10013
+            - generic: Ticket
+          - cell "BackOffice React | File and Media Handling UI":
+            - generic: BackOffice React | File and Media Handling UI
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:54":
+            - generic: 22 Oct 2026, 11:54
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+        - row "Select CS-1814 Ticket Details for CS-1814 Ticket CS-1814 Ticket BackOffice React | Search, Filtering, and Pagination UX No owner assigned 22 Oct 2026, 11:53 Review the ticket imported from Jira. Unassigned":
+          - cell "Select CS-1814 Ticket":
+            - checkbox "Select CS-1814 Ticket"
+          - cell "Details for CS-1814 Ticket":
+            - button "Details for CS-1814 Ticket":
+          - cell "CS-1814 Ticket":
+            - link "CS-1814":
+              - /url: /cases/10014
+            - generic: Ticket
+          - cell "BackOffice React | Search, Filtering, and Pagination UX":
+            - generic: BackOffice React | Search, Filtering, and Pagination UX
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:53":
+            - generic: 22 Oct 2026, 11:53
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+          - cell "Unassigned":
+            - generic: Unassigned
+    - status
+    - navigation "Action list pages":
+      - generic: 1 – 25 of 104
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "10"
+        - option "25" [selected]
+        - option "50"
+        - option "100"
+      - button "Prev" [disabled]
+      - generic: Page 1 of 5
+      - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

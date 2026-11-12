@@ -1,0 +1,15 @@
+{
+  "id": "R070-mobile",
+  "route": "/admin/config/project-phases",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Project phases"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 330,
+  "title": "Project phases · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

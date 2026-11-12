@@ -1,0 +1,1557 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- heading "Rights" [level=1]
+- generic: Choose a role and assign rights from the catalog. Nothing changes until you review and save.
+- link "Access history":
+  - /url: /admin/audit?category=Access
+- link "Manage roles":
+  - /url: /admin/roles
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - text: Role
+  - combobox "Role":
+    - option "TIO Manager · protected"
+    - option "Operation Engineer" [selected]
+    - option "ITD Manager"
+  - text: Compare with role
+  - combobox "Compare with role":
+    - option "No comparison" [selected]
+    - option "TIO Manager"
+    - option "ITD Manager"
+  - paragraph: Day-to-day operations work on every client.
+  - term: Status
+  - definition:
+    - text: Active
+  - term: Rights assigned
+  - definition:
+    - img "145 of 249 assigned":
+      - generic: 145 / 249
+  - term: Sensitive rights
+  - definition: "11"
+  - term: People holding it directly
+  - definition: "13"
+  - term: Missing prerequisites
+  - definition: "24"
+  - generic "How rights combine"
+  - strong: 24 assigned rights have a missing prerequisite
+  - button "Show them"
+  - button "Add the missing prerequisites"
+  - paragraph: Assigning a right does not add its prerequisites. Without them it works only for people who get them from another role.
+  - text: Search rights
+  - searchbox "Search rights"
+  - text: Module
+  - combobox "Module":
+    - option "All modules" [selected]
+    - option "Platform-wide controls"
+    - option "Clients"
+    - option "Products"
+    - option "Tickets"
+    - option "Commitments"
+    - option "Teams"
+    - option "Escalations"
+    - option "Dashboard"
+    - option "Reporting Center"
+    - option "Notes"
+    - option "Administration"
+  - text: Feature
+  - combobox "Feature":
+    - option "All features" [selected]
+    - option "Platform-wide controls"
+    - option "Client structure"
+    - option "Projects"
+    - option "Contracts"
+    - option "Environments"
+    - option "Servers"
+    - option "Installations"
+    - option "Products"
+    - option "Tickets"
+    - option "Commitments"
+    - option "Teams and handovers"
+    - option "Other operations"
+    - option "Operations dashboard"
+    - option "Notifications"
+    - option "Reporting center"
+    - option "Personal notes"
+    - option "My dashboard"
+    - option "Client map"
+    - option "Action list"
+    - option "Data quality"
+    - option "Operational dashboard"
+    - option "SLA & Contracts dashboard"
+    - option "Management dashboard"
+    - option "Project dashboard"
+    - option "Handovers"
+    - option "Reassignment queue"
+    - option "Overview"
+    - option "Report library"
+    - option "Tickets report builder"
+    - option "My reports"
+    - option "Scheduled reports"
+    - option "Export history"
+    - option "Templates"
+    - option "Users"
+    - option "Roles and rights"
+    - option "Directory group mappings"
+    - option "Configuration"
+    - option "Settings"
+    - option "Change history"
+    - option "Integrations"
+  - text: Kind
+  - combobox "Kind":
+    - option "Access and action" [selected]
+    - option "Access"
+    - option "Action"
+  - text: Sensitivity
+  - combobox "Sensitivity":
+    - option "All sensitivity levels" [selected]
+    - option "High"
+    - option "Normal"
+  - text: Assignment
+  - combobox "Assignment":
+    - option "All rights" [selected]
+    - option "Assigned"
+    - option "Not assigned"
+    - option "Staged changes"
+    - option "Missing a prerequisite"
+  - status: Showing 249 of 249 rights
+  - button "Clear filters" [disabled]
+  - group "How to show the rights":
+    - button "Grid" [pressed]
+    - button "List"
+  - navigation "Go to a module":
+    - 'button "Platform-wide controls Platform-wide controls: 1 of 4 assigned"':
+      - text: Platform-wide controls
+      - 'img "Platform-wide controls: 1 of 4 assigned"':
+        - generic: 1 / 4
+    - 'button "Clients Clients: 70 of 108 assigned"':
+      - text: Clients
+      - 'img "Clients: 70 of 108 assigned"':
+        - generic: 70 / 108
+    - 'button "Products Products: 10 of 13 assigned"':
+      - text: Products
+      - 'img "Products: 10 of 13 assigned"':
+        - generic: 10 / 13
+    - 'button "Tickets Tickets: 19 of 21 assigned"':
+      - text: Tickets
+      - 'img "Tickets: 19 of 21 assigned"':
+        - generic: 19 / 21
+    - 'button "Commitments Commitments: 10 of 13 assigned"':
+      - text: Commitments
+      - 'img "Commitments: 10 of 13 assigned"':
+        - generic: 10 / 13
+    - 'button "Teams Teams: 14 of 17 assigned"':
+      - text: Teams
+      - 'img "Teams: 14 of 17 assigned"':
+        - generic: 14 / 17
+    - 'button "Escalations Escalations: 10 of 13 assigned"':
+      - text: Escalations
+      - 'img "Escalations: 10 of 13 assigned"':
+        - generic: 10 / 13
+    - 'button "Dashboard Dashboard: 6 of 13 assigned"':
+      - text: Dashboard
+      - 'img "Dashboard: 6 of 13 assigned"':
+        - generic: 6 / 13
+    - 'button "Reporting Center Reporting Center: 0 of 21 assigned"':
+      - text: Reporting Center
+      - 'img "Reporting Center: 0 of 21 assigned"':
+        - generic: 0 / 21
+    - 'button "Notes Notes: 5 of 5 assigned"':
+      - text: Notes
+      - 'img "Notes: 5 of 5 assigned"':
+        - generic: 5 / 5
+    - 'button "Administration Administration: 0 of 21 assigned"':
+      - text: Administration
+      - 'img "Administration: 0 of 21 assigned"':
+        - generic: 0 / 21
+  - paragraph:
+    - generic: Hover over a box to read what the right allows, or use the List view.
+    - generic: ▲ sensitive
+    - generic: "! missing a prerequisite"
+    - generic: ● staged, not saved
+  - generic "Rights catalog":
+    - heading "Platform-wide controls" [level=3]
+    - 'img "Platform-wide controls: 1 of 4 assigned"':
+      - generic: 1 / 4
+    - button "Grant shown rights in Platform-wide controls": Grant all shown
+    - button "Revoke shown rights in Platform-wide controls": Revoke all shown
+    - paragraph: These apply across every module. Technical detail shows network zones, server IP addresses and firewall rules; Export files and Change history unlock the per-module Export and history rights.
+    - region "Platform-wide controls rights":
+      - table:
+        - rowgroup:
+          - row "Feature Export Enter Technical detail Change history":
+            - columnheader "Feature"
+            - columnheader "Export"
+            - columnheader "Enter"
+            - columnheader "Technical detail"
+            - columnheader "Change history"
+        - rowgroup:
+          - 'row "Platform-wide controls Platform-wide controls: Export files for Operation Engineer Platform-wide controls: Administration for Operation Engineer Platform-wide controls: Technical detail for Operation Engineer Platform-wide controls: Change history for Operation Engineer"':
+            - rowheader "Platform-wide controls"
+            - 'cell "Platform-wide controls: Export files for Operation Engineer"':
+              - 'checkbox "Platform-wide controls: Export files for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Platform-wide controls: Administration for Operation Engineer"':
+              - 'checkbox "Platform-wide controls: Administration for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Platform-wide controls: Technical detail for Operation Engineer"':
+              - 'checkbox "Platform-wide controls: Technical detail for Operation Engineer" [checked]'
+              - generic: ▲
+            - 'cell "Platform-wide controls: Change history for Operation Engineer"':
+              - 'checkbox "Platform-wide controls: Change history for Operation Engineer"'
+              - generic: ▲
+    - heading "Clients" [level=3]
+    - 'img "Clients: 70 of 108 assigned"':
+      - generic: 70 / 108
+    - button "Grant shown rights in Clients": Grant all shown
+    - button "Revoke shown rights in Clients": Revoke all shown
+    - region "Clients rights":
+      - table:
+        - rowgroup:
+          - row "Feature Open View Create Edit Coordinate Archive Delete Details History View files Upload files Delete own files Delete any file Export":
+            - columnheader "Feature"
+            - columnheader "Open"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Coordinate"
+            - columnheader "Archive"
+            - columnheader "Delete"
+            - columnheader "Details"
+            - columnheader "History"
+            - columnheader "View files"
+            - columnheader "Upload files"
+            - columnheader "Delete own files"
+            - columnheader "Delete any file"
+            - columnheader "Export"
+        - rowgroup:
+          - row:
+            - rowheader "Client structure"
+            - 'cell "Client structure: Open the clients page for Operation Engineer"':
+              - 'checkbox "Client structure: Open the clients page for Operation Engineer" [checked]'
+            - 'cell "Client structure: View pages and records for Operation Engineer"':
+              - 'checkbox "Client structure: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Client structure: Create for Operation Engineer"':
+              - 'checkbox "Client structure: Create for Operation Engineer"'
+            - 'cell "Client structure: Edit existing records for Operation Engineer"':
+              - 'checkbox "Client structure: Edit existing records for Operation Engineer"'
+            - 'cell "Client structure: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Client structure: Coordinate workflow and assignment for Operation Engineer"'
+            - 'cell "Client structure: Archive and restore for Operation Engineer"':
+              - 'checkbox "Client structure: Archive and restore for Operation Engineer"'
+            - 'cell "Client structure: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Client structure: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Client structure: View record details for Operation Engineer"':
+              - 'checkbox "Client structure: View record details for Operation Engineer" [checked]'
+            - 'cell "Client structure: View record history for Operation Engineer"':
+              - 'checkbox "Client structure: View record history for Operation Engineer"'
+            - 'cell "Client structure: View and download attachments for Operation Engineer"':
+              - 'checkbox "Client structure: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Client structure: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Client structure: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Client structure: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Client structure: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Client structure: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Client structure: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Client structure: Export module data for Operation Engineer"':
+              - 'checkbox "Client structure: Export module data for Operation Engineer"'
+              - generic: ▲
+          - 'row "Projects Projects: View pages and records for Operation Engineer Projects: Create for Operation Engineer Projects: Edit existing records for Operation Engineer Projects: Coordinate workflow and assignment for Operation Engineer Projects: Archive and restore for Operation Engineer Projects: Permanently delete unused records for Operation Engineer Projects: View record details for Operation Engineer Projects: View record history for Operation Engineer Projects: View and download attachments for Operation Engineer Projects: Upload and describe attachments for Operation Engineer Projects: Delete own attachments for Operation Engineer Projects: Delete any attachment for Operation Engineer Projects: Export module data for Operation Engineer"':
+            - rowheader "Projects"
+            - cell
+            - 'cell "Projects: View pages and records for Operation Engineer"':
+              - 'checkbox "Projects: View pages and records for Operation Engineer"'
+            - 'cell "Projects: Create for Operation Engineer"':
+              - 'checkbox "Projects: Create for Operation Engineer"'
+            - 'cell "Projects: Edit existing records for Operation Engineer"':
+              - 'checkbox "Projects: Edit existing records for Operation Engineer"'
+            - 'cell "Projects: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Projects: Coordinate workflow and assignment for Operation Engineer"'
+            - 'cell "Projects: Archive and restore for Operation Engineer"':
+              - 'checkbox "Projects: Archive and restore for Operation Engineer"'
+            - 'cell "Projects: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Projects: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Projects: View record details for Operation Engineer"':
+              - 'checkbox "Projects: View record details for Operation Engineer"'
+            - 'cell "Projects: View record history for Operation Engineer"':
+              - 'checkbox "Projects: View record history for Operation Engineer"'
+            - 'cell "Projects: View and download attachments for Operation Engineer"':
+              - 'checkbox "Projects: View and download attachments for Operation Engineer"'
+            - 'cell "Projects: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Projects: Upload and describe attachments for Operation Engineer"'
+            - 'cell "Projects: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Projects: Delete own attachments for Operation Engineer"'
+            - 'cell "Projects: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Projects: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Projects: Export module data for Operation Engineer"':
+              - 'checkbox "Projects: Export module data for Operation Engineer"'
+              - generic: ▲
+          - 'row "Contracts Contracts: View pages and records for Operation Engineer Contracts: Create for Operation Engineer Contracts: Edit existing records for Operation Engineer Contracts: Coordinate workflow and assignment for Operation Engineer Contracts: Archive and restore for Operation Engineer Contracts: Permanently delete unused records for Operation Engineer Contracts: View record details for Operation Engineer Contracts: View record history for Operation Engineer Contracts: View and download attachments for Operation Engineer Contracts: Upload and describe attachments for Operation Engineer Contracts: Delete own attachments for Operation Engineer Contracts: Delete any attachment for Operation Engineer Contracts: Export module data for Operation Engineer"':
+            - rowheader "Contracts"
+            - cell
+            - 'cell "Contracts: View pages and records for Operation Engineer"':
+              - 'checkbox "Contracts: View pages and records for Operation Engineer"'
+            - 'cell "Contracts: Create for Operation Engineer"':
+              - 'checkbox "Contracts: Create for Operation Engineer"'
+            - 'cell "Contracts: Edit existing records for Operation Engineer"':
+              - 'checkbox "Contracts: Edit existing records for Operation Engineer"'
+            - 'cell "Contracts: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Contracts: Coordinate workflow and assignment for Operation Engineer"'
+            - 'cell "Contracts: Archive and restore for Operation Engineer"':
+              - 'checkbox "Contracts: Archive and restore for Operation Engineer"'
+            - 'cell "Contracts: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Contracts: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Contracts: View record details for Operation Engineer"':
+              - 'checkbox "Contracts: View record details for Operation Engineer"'
+            - 'cell "Contracts: View record history for Operation Engineer"':
+              - 'checkbox "Contracts: View record history for Operation Engineer"'
+            - 'cell "Contracts: View and download attachments for Operation Engineer"':
+              - 'checkbox "Contracts: View and download attachments for Operation Engineer"'
+            - 'cell "Contracts: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Contracts: Upload and describe attachments for Operation Engineer"'
+            - 'cell "Contracts: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Contracts: Delete own attachments for Operation Engineer"'
+            - 'cell "Contracts: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Contracts: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Contracts: Export module data for Operation Engineer"':
+              - 'checkbox "Contracts: Export module data for Operation Engineer"'
+              - generic: ▲
+          - 'row "Environments Environments: View pages and records for Operation Engineer Environments: Create for Operation Engineer Environments: Edit existing records for Operation Engineer Environments: Coordinate workflow and assignment for Operation Engineer Environments: Archive and restore for Operation Engineer Environments: Permanently delete unused records for Operation Engineer Environments: View record details for Operation Engineer Environments: View record history for Operation Engineer Environments: View and download attachments for Operation Engineer Environments: Upload and describe attachments for Operation Engineer Environments: Delete own attachments for Operation Engineer Environments: Delete any attachment for Operation Engineer Environments: Export module data for Operation Engineer"':
+            - rowheader "Environments"
+            - cell
+            - 'cell "Environments: View pages and records for Operation Engineer"':
+              - 'checkbox "Environments: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Environments: Create for Operation Engineer"':
+              - 'checkbox "Environments: Create for Operation Engineer" [checked]'
+            - 'cell "Environments: Edit existing records for Operation Engineer"':
+              - 'checkbox "Environments: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Environments: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Environments: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Environments: Archive and restore for Operation Engineer"':
+              - 'checkbox "Environments: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Environments: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Environments: Permanently delete unused records for Operation Engineer" [checked]'
+              - generic: ▲
+            - 'cell "Environments: View record details for Operation Engineer"':
+              - 'checkbox "Environments: View record details for Operation Engineer" [checked]'
+            - 'cell "Environments: View record history for Operation Engineer"':
+              - 'checkbox "Environments: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Environments: View and download attachments for Operation Engineer"':
+              - 'checkbox "Environments: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Environments: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Environments: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Environments: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Environments: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Environments: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Environments: Delete any attachment for Operation Engineer" [checked]'
+              - generic: ▲
+            - 'cell "Environments: Export module data for Operation Engineer"':
+              - 'checkbox "Environments: Export module data for Operation Engineer" [checked]'
+              - generic: ▲
+              - generic: "!"
+          - 'row "Servers Servers: View pages and records for Operation Engineer Servers: Create for Operation Engineer Servers: Edit existing records for Operation Engineer Servers: Coordinate workflow and assignment for Operation Engineer Servers: Archive and restore for Operation Engineer Servers: Permanently delete unused records for Operation Engineer Servers: View record details for Operation Engineer Servers: View record history for Operation Engineer Servers: View and download attachments for Operation Engineer Servers: Upload and describe attachments for Operation Engineer Servers: Delete own attachments for Operation Engineer Servers: Delete any attachment for Operation Engineer Servers: Export module data for Operation Engineer"':
+            - rowheader "Servers"
+            - cell
+            - 'cell "Servers: View pages and records for Operation Engineer"':
+              - 'checkbox "Servers: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Servers: Create for Operation Engineer"':
+              - 'checkbox "Servers: Create for Operation Engineer" [checked]'
+            - 'cell "Servers: Edit existing records for Operation Engineer"':
+              - 'checkbox "Servers: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Servers: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Servers: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Servers: Archive and restore for Operation Engineer"':
+              - 'checkbox "Servers: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Servers: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Servers: Permanently delete unused records for Operation Engineer" [checked]'
+              - generic: ▲
+            - 'cell "Servers: View record details for Operation Engineer"':
+              - 'checkbox "Servers: View record details for Operation Engineer" [checked]'
+            - 'cell "Servers: View record history for Operation Engineer"':
+              - 'checkbox "Servers: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Servers: View and download attachments for Operation Engineer"':
+              - 'checkbox "Servers: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Servers: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Servers: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Servers: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Servers: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Servers: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Servers: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Servers: Export module data for Operation Engineer"':
+              - 'checkbox "Servers: Export module data for Operation Engineer" [checked]'
+              - generic: ▲
+              - generic: "!"
+          - 'row "Installations Installations: View pages and records for Operation Engineer Installations: Create for Operation Engineer Installations: Edit existing records for Operation Engineer Installations: Coordinate workflow and assignment for Operation Engineer Installations: Archive and restore for Operation Engineer Installations: Permanently delete unused records for Operation Engineer Installations: View record details for Operation Engineer Installations: View record history for Operation Engineer Installations: View and download attachments for Operation Engineer Installations: Upload and describe attachments for Operation Engineer Installations: Delete own attachments for Operation Engineer Installations: Delete any attachment for Operation Engineer Installations: Export module data for Operation Engineer"':
+            - rowheader "Installations"
+            - cell
+            - 'cell "Installations: View pages and records for Operation Engineer"':
+              - 'checkbox "Installations: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Installations: Create for Operation Engineer"':
+              - 'checkbox "Installations: Create for Operation Engineer" [checked]'
+            - 'cell "Installations: Edit existing records for Operation Engineer"':
+              - 'checkbox "Installations: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Installations: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Installations: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Installations: Archive and restore for Operation Engineer"':
+              - 'checkbox "Installations: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Installations: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Installations: Permanently delete unused records for Operation Engineer" [checked]'
+              - generic: ▲
+            - 'cell "Installations: View record details for Operation Engineer"':
+              - 'checkbox "Installations: View record details for Operation Engineer" [checked]'
+            - 'cell "Installations: View record history for Operation Engineer"':
+              - 'checkbox "Installations: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Installations: View and download attachments for Operation Engineer"':
+              - 'checkbox "Installations: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Installations: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Installations: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Installations: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Installations: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Installations: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Installations: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Installations: Export module data for Operation Engineer"':
+              - 'checkbox "Installations: Export module data for Operation Engineer" [checked]'
+              - generic: ▲
+              - generic: "!"
+          - 'row "Regions & environments tab Client structure Client structure: Regions & environments tab for Operation Engineer Client structure: Regions & environments: create for Operation Engineer Client structure: Regions & environments: edit for Operation Engineer Client structure: Regions & environments: archive and restore for Operation Engineer Client structure: Regions & environments: delete for Operation Engineer"':
+            - rowheader "Regions & environments tab Client structure":
+              - text: Regions & environments tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Regions & environments tab for Operation Engineer"':
+              - 'checkbox "Client structure: Regions & environments tab for Operation Engineer" [checked]'
+            - 'cell "Client structure: Regions & environments: create for Operation Engineer"':
+              - 'checkbox "Client structure: Regions & environments: create for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Client structure: Regions & environments: edit for Operation Engineer"':
+              - 'checkbox "Client structure: Regions & environments: edit for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - 'cell "Client structure: Regions & environments: archive and restore for Operation Engineer"':
+              - 'checkbox "Client structure: Regions & environments: archive and restore for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Client structure: Regions & environments: delete for Operation Engineer"':
+              - 'checkbox "Client structure: Regions & environments: delete for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Organizations tab Client structure Client structure: Organizations tab for Operation Engineer Client structure: Organizations: create for Operation Engineer Client structure: Organizations: edit for Operation Engineer Client structure: Organizations: delete for Operation Engineer"':
+            - rowheader "Organizations tab Client structure":
+              - text: Organizations tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Organizations tab for Operation Engineer"':
+              - 'checkbox "Client structure: Organizations tab for Operation Engineer" [checked]'
+            - 'cell "Client structure: Organizations: create for Operation Engineer"':
+              - 'checkbox "Client structure: Organizations: create for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Client structure: Organizations: edit for Operation Engineer"':
+              - 'checkbox "Client structure: Organizations: edit for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+            - 'cell "Client structure: Organizations: delete for Operation Engineer"':
+              - 'checkbox "Client structure: Organizations: delete for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Contracts & SLAs tab Client structure Client structure: Contracts & SLAs tab for Operation Engineer"':
+            - rowheader "Contracts & SLAs tab Client structure":
+              - text: Contracts & SLAs tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Contracts & SLAs tab for Operation Engineer"':
+              - 'checkbox "Client structure: Contracts & SLAs tab for Operation Engineer"'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Tickets tab Client structure Client structure: Tickets tab for Operation Engineer"':
+            - rowheader "Tickets tab Client structure":
+              - text: Tickets tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Tickets tab for Operation Engineer"':
+              - 'checkbox "Client structure: Tickets tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Commitments tab Client structure Client structure: Commitments tab for Operation Engineer"':
+            - rowheader "Commitments tab Client structure":
+              - text: Commitments tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Commitments tab for Operation Engineer"':
+              - 'checkbox "Client structure: Commitments tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Escalations tab Client structure Client structure: Escalations tab for Operation Engineer"':
+            - rowheader "Escalations tab Client structure":
+              - text: Escalations tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Escalations tab for Operation Engineer"':
+              - 'checkbox "Client structure: Escalations tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Infrastructure tab Client structure Client structure: Infrastructure tab for Operation Engineer"':
+            - rowheader "Infrastructure tab Client structure":
+              - text: Infrastructure tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Infrastructure tab for Operation Engineer"':
+              - 'checkbox "Client structure: Infrastructure tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Projects tab Client structure Client structure: Projects tab for Operation Engineer"':
+            - rowheader "Projects tab Client structure":
+              - text: Projects tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Projects tab for Operation Engineer"':
+              - 'checkbox "Client structure: Projects tab for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Jira integration tab Client structure Client structure: Jira integration tab for Operation Engineer"':
+            - rowheader "Jira integration tab Client structure":
+              - text: Jira integration tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Jira integration tab for Operation Engineer"':
+              - 'checkbox "Client structure: Jira integration tab for Operation Engineer"'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Contacts & responsibilities tab Client structure Client structure: Contacts & responsibilities tab for Operation Engineer Client structure: Contacts & responsibilities: create for Operation Engineer Client structure: Contacts & responsibilities: edit for Operation Engineer Client structure: Contacts & responsibilities: archive and restore for Operation Engineer Client structure: Contacts & responsibilities: delete for Operation Engineer"':
+            - rowheader "Contacts & responsibilities tab Client structure":
+              - text: Contacts & responsibilities tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: Contacts & responsibilities tab for Operation Engineer"':
+              - 'checkbox "Client structure: Contacts & responsibilities tab for Operation Engineer" [checked]'
+            - 'cell "Client structure: Contacts & responsibilities: create for Operation Engineer"':
+              - 'checkbox "Client structure: Contacts & responsibilities: create for Operation Engineer" [checked]'
+            - 'cell "Client structure: Contacts & responsibilities: edit for Operation Engineer"':
+              - 'checkbox "Client structure: Contacts & responsibilities: edit for Operation Engineer" [checked]'
+            - cell
+            - 'cell "Client structure: Contacts & responsibilities: archive and restore for Operation Engineer"':
+              - 'checkbox "Client structure: Contacts & responsibilities: archive and restore for Operation Engineer" [checked]'
+            - 'cell "Client structure: Contacts & responsibilities: delete for Operation Engineer"':
+              - 'checkbox "Client structure: Contacts & responsibilities: delete for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "My notes tab Client structure Client structure: My notes tab for Operation Engineer"':
+            - rowheader "My notes tab Client structure":
+              - text: My notes tab
+              - generic: Client structure
+            - cell
+            - 'cell "Client structure: My notes tab for Operation Engineer"':
+              - 'checkbox "Client structure: My notes tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Applications tab Environments Environments: Applications tab for Operation Engineer"':
+            - rowheader "Applications tab Environments":
+              - text: Applications tab
+              - generic: Environments
+            - cell
+            - 'cell "Environments: Applications tab for Operation Engineer"':
+              - 'checkbox "Environments: Applications tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Servers & assets tab Environments Environments: Servers & assets tab for Operation Engineer"':
+            - rowheader "Servers & assets tab Environments":
+              - text: Servers & assets tab
+              - generic: Environments
+            - cell
+            - 'cell "Environments: Servers & assets tab for Operation Engineer"':
+              - 'checkbox "Environments: Servers & assets tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Work tab Environments Environments: Work tab for Operation Engineer"':
+            - rowheader "Work tab Environments":
+              - text: Work tab
+              - generic: Environments
+            - cell
+            - 'cell "Environments: Work tab for Operation Engineer"':
+              - 'checkbox "Environments: Work tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Firewall rules tab Environments Environments: Firewall rules tab for Operation Engineer"':
+            - rowheader "Firewall rules tab Environments":
+              - text: Firewall rules tab
+              - generic: Environments
+            - cell
+            - 'cell "Environments: Firewall rules tab for Operation Engineer"':
+              - 'checkbox "Environments: Firewall rules tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Condition history tab Environments Environments: Condition history tab for Operation Engineer Environments: Condition history: create for Operation Engineer"':
+            - rowheader "Condition history tab Environments":
+              - text: Condition history tab
+              - generic: Environments
+            - cell
+            - 'cell "Environments: Condition history tab for Operation Engineer"':
+              - 'checkbox "Environments: Condition history tab for Operation Engineer" [checked]'
+            - 'cell "Environments: Condition history: create for Operation Engineer"':
+              - 'checkbox "Environments: Condition history: create for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Data quality tab Environments Environments: Data quality tab for Operation Engineer"':
+            - rowheader "Data quality tab Environments":
+              - text: Data quality tab
+              - generic: Environments
+            - cell
+            - 'cell "Environments: Data quality tab for Operation Engineer"':
+              - 'checkbox "Environments: Data quality tab for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+    - heading "Products" [level=3]
+    - 'img "Products: 10 of 13 assigned"':
+      - generic: 10 / 13
+    - button "Grant shown rights in Products": Grant all shown
+    - button "Revoke shown rights in Products": Revoke all shown
+    - region "Products rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Coordinate Archive Delete Details History View files Upload files Delete own files Delete any file Export":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Coordinate"
+            - columnheader "Archive"
+            - columnheader "Delete"
+            - columnheader "Details"
+            - columnheader "History"
+            - columnheader "View files"
+            - columnheader "Upload files"
+            - columnheader "Delete own files"
+            - columnheader "Delete any file"
+            - columnheader "Export"
+        - rowgroup:
+          - 'row "Products Products: View pages and records for Operation Engineer Products: Create for Operation Engineer Products: Edit existing records for Operation Engineer Products: Coordinate workflow and assignment for Operation Engineer Products: Archive and restore for Operation Engineer Products: Permanently delete unused records for Operation Engineer Products: View record details for Operation Engineer Products: View record history for Operation Engineer Products: View and download attachments for Operation Engineer Products: Upload and describe attachments for Operation Engineer Products: Delete own attachments for Operation Engineer Products: Delete any attachment for Operation Engineer Products: Export module data for Operation Engineer"':
+            - rowheader "Products"
+            - 'cell "Products: View pages and records for Operation Engineer"':
+              - 'checkbox "Products: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Products: Create for Operation Engineer"':
+              - 'checkbox "Products: Create for Operation Engineer" [checked]'
+            - 'cell "Products: Edit existing records for Operation Engineer"':
+              - 'checkbox "Products: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Products: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Products: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Products: Archive and restore for Operation Engineer"':
+              - 'checkbox "Products: Archive and restore for Operation Engineer"'
+            - 'cell "Products: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Products: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Products: View record details for Operation Engineer"':
+              - 'checkbox "Products: View record details for Operation Engineer" [checked]'
+            - 'cell "Products: View record history for Operation Engineer"':
+              - 'checkbox "Products: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Products: View and download attachments for Operation Engineer"':
+              - 'checkbox "Products: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Products: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Products: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Products: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Products: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Products: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Products: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Products: Export module data for Operation Engineer"':
+              - 'checkbox "Products: Export module data for Operation Engineer" [checked]'
+              - generic: ▲
+              - generic: "!"
+    - heading "Tickets" [level=3]
+    - 'img "Tickets: 19 of 21 assigned"':
+      - generic: 19 / 21
+    - button "Grant shown rights in Tickets": Grant all shown
+    - button "Revoke shown rights in Tickets": Revoke all shown
+    - region "Tickets rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Coordinate Archive Delete Details History View files Upload files Delete own files Delete any file Export":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Coordinate"
+            - columnheader "Archive"
+            - columnheader "Delete"
+            - columnheader "Details"
+            - columnheader "History"
+            - columnheader "View files"
+            - columnheader "Upload files"
+            - columnheader "Delete own files"
+            - columnheader "Delete any file"
+            - columnheader "Export"
+        - rowgroup:
+          - 'row "Tickets Tickets: View pages and records for Operation Engineer Tickets: Create for Operation Engineer Tickets: Edit existing records for Operation Engineer Tickets: Coordinate workflow and assignment for Operation Engineer Tickets: Archive and restore for Operation Engineer Tickets: Permanently delete unused records for Operation Engineer Tickets: View record details for Operation Engineer Tickets: View record history for Operation Engineer Tickets: View and download attachments for Operation Engineer Tickets: Upload and describe attachments for Operation Engineer Tickets: Delete own attachments for Operation Engineer Tickets: Delete any attachment for Operation Engineer Tickets: Export module data for Operation Engineer"':
+            - rowheader "Tickets"
+            - 'cell "Tickets: View pages and records for Operation Engineer"':
+              - 'checkbox "Tickets: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Tickets: Create for Operation Engineer"':
+              - 'checkbox "Tickets: Create for Operation Engineer" [checked]'
+            - 'cell "Tickets: Edit existing records for Operation Engineer"':
+              - 'checkbox "Tickets: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Tickets: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Tickets: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Tickets: Archive and restore for Operation Engineer"':
+              - 'checkbox "Tickets: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Tickets: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Tickets: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Tickets: View record details for Operation Engineer"':
+              - 'checkbox "Tickets: View record details for Operation Engineer" [checked]'
+            - 'cell "Tickets: View record history for Operation Engineer"':
+              - 'checkbox "Tickets: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Tickets: View and download attachments for Operation Engineer"':
+              - 'checkbox "Tickets: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Tickets: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Tickets: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Tickets: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Tickets: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Tickets: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Tickets: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Tickets: Export module data for Operation Engineer"':
+              - 'checkbox "Tickets: Export module data for Operation Engineer" [checked]'
+              - generic: ▲
+              - generic: "!"
+          - 'row "Timeline tab Tickets Tickets: Timeline tab for Operation Engineer"':
+            - rowheader "Timeline tab Tickets":
+              - text: Timeline tab
+              - generic: Tickets
+            - 'cell "Tickets: Timeline tab for Operation Engineer"':
+              - 'checkbox "Tickets: Timeline tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Affected records tab Tickets Tickets: Affected records tab for Operation Engineer"':
+            - rowheader "Affected records tab Tickets":
+              - text: Affected records tab
+              - generic: Tickets
+            - 'cell "Tickets: Affected records tab for Operation Engineer"':
+              - 'checkbox "Tickets: Affected records tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Jira references tab Tickets Tickets: Jira references tab for Operation Engineer Tickets: Jira references: create for Operation Engineer Tickets: Jira references: delete for Operation Engineer"':
+            - rowheader "Jira references tab Tickets":
+              - text: Jira references tab
+              - generic: Tickets
+            - 'cell "Tickets: Jira references tab for Operation Engineer"':
+              - 'checkbox "Tickets: Jira references tab for Operation Engineer" [checked]'
+            - 'cell "Tickets: Jira references: create for Operation Engineer"':
+              - 'checkbox "Tickets: Jira references: create for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - 'cell "Tickets: Jira references: delete for Operation Engineer"':
+              - 'checkbox "Tickets: Jira references: delete for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Documented impact tab Tickets Tickets: Documented impact tab for Operation Engineer"':
+            - rowheader "Documented impact tab Tickets":
+              - text: Documented impact tab
+              - generic: Tickets
+            - 'cell "Tickets: Documented impact tab for Operation Engineer"':
+              - 'checkbox "Tickets: Documented impact tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Commitments tab Tickets Tickets: Commitments tab for Operation Engineer"':
+            - rowheader "Commitments tab Tickets":
+              - text: Commitments tab
+              - generic: Tickets
+            - 'cell "Tickets: Commitments tab for Operation Engineer"':
+              - 'checkbox "Tickets: Commitments tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Escalations tab Tickets Tickets: Escalations tab for Operation Engineer"':
+            - rowheader "Escalations tab Tickets":
+              - text: Escalations tab
+              - generic: Tickets
+            - 'cell "Tickets: Escalations tab for Operation Engineer"':
+              - 'checkbox "Tickets: Escalations tab for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+    - heading "Commitments" [level=3]
+    - 'img "Commitments: 10 of 13 assigned"':
+      - generic: 10 / 13
+    - button "Grant shown rights in Commitments": Grant all shown
+    - button "Revoke shown rights in Commitments": Revoke all shown
+    - region "Commitments rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Coordinate Archive Delete Details History View files Upload files Delete own files Delete any file Export":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Coordinate"
+            - columnheader "Archive"
+            - columnheader "Delete"
+            - columnheader "Details"
+            - columnheader "History"
+            - columnheader "View files"
+            - columnheader "Upload files"
+            - columnheader "Delete own files"
+            - columnheader "Delete any file"
+            - columnheader "Export"
+        - rowgroup:
+          - 'row "Commitments Commitments: View pages and records for Operation Engineer Commitments: Create for Operation Engineer Commitments: Edit existing records for Operation Engineer Commitments: Coordinate workflow and assignment for Operation Engineer Commitments: Archive and restore for Operation Engineer Commitments: Permanently delete unused records for Operation Engineer Commitments: View record details for Operation Engineer Commitments: View record history for Operation Engineer Commitments: View and download attachments for Operation Engineer Commitments: Upload and describe attachments for Operation Engineer Commitments: Delete own attachments for Operation Engineer Commitments: Delete any attachment for Operation Engineer Commitments: Export module data for Operation Engineer"':
+            - rowheader "Commitments"
+            - 'cell "Commitments: View pages and records for Operation Engineer"':
+              - 'checkbox "Commitments: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Commitments: Create for Operation Engineer"':
+              - 'checkbox "Commitments: Create for Operation Engineer" [checked]'
+            - 'cell "Commitments: Edit existing records for Operation Engineer"':
+              - 'checkbox "Commitments: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Commitments: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Commitments: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Commitments: Archive and restore for Operation Engineer"':
+              - 'checkbox "Commitments: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Commitments: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Commitments: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Commitments: View record details for Operation Engineer"':
+              - 'checkbox "Commitments: View record details for Operation Engineer" [checked]'
+            - 'cell "Commitments: View record history for Operation Engineer"':
+              - 'checkbox "Commitments: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Commitments: View and download attachments for Operation Engineer"':
+              - 'checkbox "Commitments: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Commitments: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Commitments: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Commitments: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Commitments: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Commitments: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Commitments: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Commitments: Export module data for Operation Engineer"':
+              - 'checkbox "Commitments: Export module data for Operation Engineer"'
+              - generic: ▲
+    - heading "Teams" [level=3]
+    - 'img "Teams: 14 of 17 assigned"':
+      - generic: 14 / 17
+    - button "Grant shown rights in Teams": Grant all shown
+    - button "Revoke shown rights in Teams": Revoke all shown
+    - region "Teams rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Coordinate Archive Delete Details History View files Upload files Delete own files Delete any file Export":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Coordinate"
+            - columnheader "Archive"
+            - columnheader "Delete"
+            - columnheader "Details"
+            - columnheader "History"
+            - columnheader "View files"
+            - columnheader "Upload files"
+            - columnheader "Delete own files"
+            - columnheader "Delete any file"
+            - columnheader "Export"
+        - rowgroup:
+          - 'row "Teams and handovers Teams and handovers: View pages and records for Operation Engineer Teams and handovers: Create for Operation Engineer Teams and handovers: Edit existing records for Operation Engineer Teams and handovers: Coordinate workflow and assignment for Operation Engineer Teams and handovers: Archive and restore for Operation Engineer Teams and handovers: Permanently delete unused records for Operation Engineer Teams and handovers: View record details for Operation Engineer Teams and handovers: View record history for Operation Engineer Teams and handovers: View and download attachments for Operation Engineer Teams and handovers: Upload and describe attachments for Operation Engineer Teams and handovers: Delete own attachments for Operation Engineer Teams and handovers: Delete any attachment for Operation Engineer Teams and handovers: Export module data for Operation Engineer"':
+            - rowheader "Teams and handovers"
+            - 'cell "Teams and handovers: View pages and records for Operation Engineer"':
+              - 'checkbox "Teams and handovers: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Create for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Create for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Edit existing records for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Archive and restore for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Teams and handovers: View record details for Operation Engineer"':
+              - 'checkbox "Teams and handovers: View record details for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: View record history for Operation Engineer"':
+              - 'checkbox "Teams and handovers: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Teams and handovers: View and download attachments for Operation Engineer"':
+              - 'checkbox "Teams and handovers: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Teams and handovers: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Teams and handovers: Export module data for Operation Engineer"':
+              - 'checkbox "Teams and handovers: Export module data for Operation Engineer"'
+              - generic: ▲
+          - 'row "Handovers Handovers: View for Operation Engineer Handovers: Create for Operation Engineer Handovers: Edit for Operation Engineer"':
+            - rowheader "Handovers"
+            - 'cell "Handovers: View for Operation Engineer"':
+              - 'checkbox "Handovers: View for Operation Engineer" [checked]'
+            - 'cell "Handovers: Create for Operation Engineer"':
+              - 'checkbox "Handovers: Create for Operation Engineer" [checked]'
+            - 'cell "Handovers: Edit for Operation Engineer"':
+              - 'checkbox "Handovers: Edit for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Reassignment queue Reassignment queue: View for Operation Engineer"':
+            - rowheader "Reassignment queue"
+            - 'cell "Reassignment queue: View for Operation Engineer"':
+              - 'checkbox "Reassignment queue: View for Operation Engineer" [checked]'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+    - heading "Escalations" [level=3]
+    - 'img "Escalations: 10 of 13 assigned"':
+      - generic: 10 / 13
+    - button "Grant shown rights in Escalations": Grant all shown
+    - button "Revoke shown rights in Escalations": Revoke all shown
+    - region "Escalations rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Coordinate Archive Delete Details History View files Upload files Delete own files Delete any file Export":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Coordinate"
+            - columnheader "Archive"
+            - columnheader "Delete"
+            - columnheader "Details"
+            - columnheader "History"
+            - columnheader "View files"
+            - columnheader "Upload files"
+            - columnheader "Delete own files"
+            - columnheader "Delete any file"
+            - columnheader "Export"
+        - rowgroup:
+          - 'row "Other operations Other operations: View pages and records for Operation Engineer Other operations: Create for Operation Engineer Other operations: Edit existing records for Operation Engineer Other operations: Coordinate workflow and assignment for Operation Engineer Other operations: Archive and restore for Operation Engineer Other operations: Permanently delete unused records for Operation Engineer Other operations: View record details for Operation Engineer Other operations: View record history for Operation Engineer Other operations: View and download attachments for Operation Engineer Other operations: Upload and describe attachments for Operation Engineer Other operations: Delete own attachments for Operation Engineer Other operations: Delete any attachment for Operation Engineer Other operations: Export module data for Operation Engineer"':
+            - rowheader "Other operations"
+            - 'cell "Other operations: View pages and records for Operation Engineer"':
+              - 'checkbox "Other operations: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Other operations: Create for Operation Engineer"':
+              - 'checkbox "Other operations: Create for Operation Engineer" [checked]'
+            - 'cell "Other operations: Edit existing records for Operation Engineer"':
+              - 'checkbox "Other operations: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Other operations: Coordinate workflow and assignment for Operation Engineer"':
+              - 'checkbox "Other operations: Coordinate workflow and assignment for Operation Engineer" [checked]'
+            - 'cell "Other operations: Archive and restore for Operation Engineer"':
+              - 'checkbox "Other operations: Archive and restore for Operation Engineer" [checked]'
+            - 'cell "Other operations: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Other operations: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Other operations: View record details for Operation Engineer"':
+              - 'checkbox "Other operations: View record details for Operation Engineer" [checked]'
+            - 'cell "Other operations: View record history for Operation Engineer"':
+              - 'checkbox "Other operations: View record history for Operation Engineer" [checked]'
+              - generic: "!"
+            - 'cell "Other operations: View and download attachments for Operation Engineer"':
+              - 'checkbox "Other operations: View and download attachments for Operation Engineer" [checked]'
+            - 'cell "Other operations: Upload and describe attachments for Operation Engineer"':
+              - 'checkbox "Other operations: Upload and describe attachments for Operation Engineer" [checked]'
+            - 'cell "Other operations: Delete own attachments for Operation Engineer"':
+              - 'checkbox "Other operations: Delete own attachments for Operation Engineer" [checked]'
+            - 'cell "Other operations: Delete any attachment for Operation Engineer"':
+              - 'checkbox "Other operations: Delete any attachment for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Other operations: Export module data for Operation Engineer"':
+              - 'checkbox "Other operations: Export module data for Operation Engineer"'
+              - generic: ▲
+    - heading "Dashboard" [level=3]
+    - 'img "Dashboard: 6 of 13 assigned"':
+      - generic: 6 / 13
+    - button "Grant shown rights in Dashboard": Grant all shown
+    - button "Revoke shown rights in Dashboard": Revoke all shown
+    - region "Dashboard rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Edit Delete":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Edit"
+            - columnheader "Delete"
+        - rowgroup:
+          - 'row "Operations dashboard Operations dashboard: View pages and records for Operation Engineer"':
+            - rowheader "Operations dashboard"
+            - 'cell "Operations dashboard: View pages and records for Operation Engineer"':
+              - 'checkbox "Operations dashboard: View pages and records for Operation Engineer" [checked]'
+              - generic: "!"
+            - cell
+            - cell
+          - 'row "Notifications Notifications: View pages and records for Operation Engineer Notifications: Edit existing records for Operation Engineer Notifications: Permanently delete unused records for Operation Engineer"':
+            - rowheader "Notifications"
+            - 'cell "Notifications: View pages and records for Operation Engineer"':
+              - 'checkbox "Notifications: View pages and records for Operation Engineer"'
+            - 'cell "Notifications: Edit existing records for Operation Engineer"':
+              - 'checkbox "Notifications: Edit existing records for Operation Engineer"'
+            - 'cell "Notifications: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Notifications: Permanently delete unused records for Operation Engineer"'
+              - generic: ▲
+          - 'row "My dashboard My dashboard: View for Operation Engineer"':
+            - rowheader "My dashboard"
+            - 'cell "My dashboard: View for Operation Engineer"':
+              - 'checkbox "My dashboard: View for Operation Engineer" [checked]'
+            - cell
+            - cell
+          - 'row "Client map Client map: View for Operation Engineer"':
+            - rowheader "Client map"
+            - 'cell "Client map: View for Operation Engineer"':
+              - 'checkbox "Client map: View for Operation Engineer"'
+            - cell
+            - cell
+          - 'row "Action list Action list: View for Operation Engineer"':
+            - rowheader "Action list"
+            - 'cell "Action list: View for Operation Engineer"':
+              - 'checkbox "Action list: View for Operation Engineer"'
+            - cell
+            - cell
+          - 'row "Data quality Data quality: View for Operation Engineer Data quality: Edit for Operation Engineer"':
+            - rowheader "Data quality"
+            - 'cell "Data quality: View for Operation Engineer"':
+              - 'checkbox "Data quality: View for Operation Engineer"'
+            - 'cell "Data quality: Edit for Operation Engineer"':
+              - 'checkbox "Data quality: Edit for Operation Engineer"'
+            - cell
+          - 'row "Operational dashboard Operational dashboard: View for Operation Engineer"':
+            - rowheader "Operational dashboard"
+            - 'cell "Operational dashboard: View for Operation Engineer"':
+              - 'checkbox "Operational dashboard: View for Operation Engineer" [checked]'
+            - cell
+            - cell
+          - 'row "SLA & Contracts dashboard SLA & Contracts dashboard: View for Operation Engineer"':
+            - rowheader "SLA & Contracts dashboard"
+            - 'cell "SLA & Contracts dashboard: View for Operation Engineer"':
+              - 'checkbox "SLA & Contracts dashboard: View for Operation Engineer" [checked]'
+            - cell
+            - cell
+          - 'row "Management dashboard Management dashboard: View for Operation Engineer"':
+            - rowheader "Management dashboard"
+            - 'cell "Management dashboard: View for Operation Engineer"':
+              - 'checkbox "Management dashboard: View for Operation Engineer" [checked]'
+            - cell
+            - cell
+          - 'row "Project dashboard Project dashboard: View for Operation Engineer"':
+            - rowheader "Project dashboard"
+            - 'cell "Project dashboard: View for Operation Engineer"':
+              - 'checkbox "Project dashboard: View for Operation Engineer" [checked]'
+            - cell
+            - cell
+    - heading "Reporting Center" [level=3]
+    - 'img "Reporting Center: 0 of 21 assigned"':
+      - generic: 0 / 21
+    - button "Grant shown rights in Reporting Center": Grant all shown
+    - button "Revoke shown rights in Reporting Center" [disabled]: Revoke all shown
+    - region "Reporting Center rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Delete Download Export":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Delete"
+            - columnheader "Download"
+            - columnheader "Export"
+        - rowgroup:
+          - 'row "Reporting center Reporting center: View pages and records for Operation Engineer"':
+            - rowheader "Reporting center"
+            - 'cell "Reporting center: View pages and records for Operation Engineer"':
+              - 'checkbox "Reporting center: View pages and records for Operation Engineer"'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Overview Overview: View for Operation Engineer"':
+            - rowheader "Overview"
+            - 'cell "Overview: View for Operation Engineer"':
+              - 'checkbox "Overview: View for Operation Engineer"'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - 'row "Report library Report library: View for Operation Engineer Report library: Create for Operation Engineer Report library: Delete for Operation Engineer Report library: Export for Operation Engineer"':
+            - rowheader "Report library"
+            - 'cell "Report library: View for Operation Engineer"':
+              - 'checkbox "Report library: View for Operation Engineer"'
+            - 'cell "Report library: Create for Operation Engineer"':
+              - 'checkbox "Report library: Create for Operation Engineer"'
+            - cell
+            - 'cell "Report library: Delete for Operation Engineer"':
+              - 'checkbox "Report library: Delete for Operation Engineer"'
+            - cell
+            - 'cell "Report library: Export for Operation Engineer"':
+              - 'checkbox "Report library: Export for Operation Engineer"'
+          - 'row "Tickets report builder Tickets report builder: View for Operation Engineer Tickets report builder: Export for Operation Engineer"':
+            - rowheader "Tickets report builder"
+            - 'cell "Tickets report builder: View for Operation Engineer"':
+              - 'checkbox "Tickets report builder: View for Operation Engineer"'
+            - cell
+            - cell
+            - cell
+            - cell
+            - 'cell "Tickets report builder: Export for Operation Engineer"':
+              - 'checkbox "Tickets report builder: Export for Operation Engineer"'
+          - 'row "My reports My reports: View for Operation Engineer My reports: Create for Operation Engineer My reports: Edit for Operation Engineer My reports: Delete for Operation Engineer"':
+            - rowheader "My reports"
+            - 'cell "My reports: View for Operation Engineer"':
+              - 'checkbox "My reports: View for Operation Engineer"'
+            - 'cell "My reports: Create for Operation Engineer"':
+              - 'checkbox "My reports: Create for Operation Engineer"'
+            - 'cell "My reports: Edit for Operation Engineer"':
+              - 'checkbox "My reports: Edit for Operation Engineer"'
+            - 'cell "My reports: Delete for Operation Engineer"':
+              - 'checkbox "My reports: Delete for Operation Engineer"'
+            - cell
+            - cell
+          - 'row "Scheduled reports Scheduled reports: View for Operation Engineer Scheduled reports: Create for Operation Engineer Scheduled reports: Edit for Operation Engineer Scheduled reports: Delete for Operation Engineer"':
+            - rowheader "Scheduled reports"
+            - 'cell "Scheduled reports: View for Operation Engineer"':
+              - 'checkbox "Scheduled reports: View for Operation Engineer"'
+            - 'cell "Scheduled reports: Create for Operation Engineer"':
+              - 'checkbox "Scheduled reports: Create for Operation Engineer"'
+            - 'cell "Scheduled reports: Edit for Operation Engineer"':
+              - 'checkbox "Scheduled reports: Edit for Operation Engineer"'
+            - 'cell "Scheduled reports: Delete for Operation Engineer"':
+              - 'checkbox "Scheduled reports: Delete for Operation Engineer"'
+            - cell
+            - cell
+          - 'row "Export history Export history: View for Operation Engineer Export history: Create for Operation Engineer Export history: Edit for Operation Engineer Export history: Download for Operation Engineer"':
+            - rowheader "Export history"
+            - 'cell "Export history: View for Operation Engineer"':
+              - 'checkbox "Export history: View for Operation Engineer"'
+            - 'cell "Export history: Create for Operation Engineer"':
+              - 'checkbox "Export history: Create for Operation Engineer"'
+            - 'cell "Export history: Edit for Operation Engineer"':
+              - 'checkbox "Export history: Edit for Operation Engineer"'
+            - cell
+            - 'cell "Export history: Download for Operation Engineer"':
+              - 'checkbox "Export history: Download for Operation Engineer"'
+            - cell
+          - 'row "Templates Templates: View for Operation Engineer"':
+            - rowheader "Templates"
+            - 'cell "Templates: View for Operation Engineer"':
+              - 'checkbox "Templates: View for Operation Engineer"'
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+    - heading "Notes" [level=3]
+    - 'img "Notes: 5 of 5 assigned"':
+      - generic: 5 / 5
+    - button "Grant shown rights in Notes" [disabled]: Grant all shown
+    - button "Revoke shown rights in Notes": Revoke all shown
+    - region "Notes rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Delete Download":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Delete"
+            - columnheader "Download"
+        - rowgroup:
+          - 'row "Personal notes Personal notes: View pages and records for Operation Engineer Personal notes: Create for Operation Engineer Personal notes: Edit existing records for Operation Engineer Personal notes: Permanently delete unused records for Operation Engineer Personal notes: Download for Operation Engineer"':
+            - rowheader "Personal notes"
+            - 'cell "Personal notes: View pages and records for Operation Engineer"':
+              - 'checkbox "Personal notes: View pages and records for Operation Engineer" [checked]'
+            - 'cell "Personal notes: Create for Operation Engineer"':
+              - 'checkbox "Personal notes: Create for Operation Engineer" [checked]'
+            - 'cell "Personal notes: Edit existing records for Operation Engineer"':
+              - 'checkbox "Personal notes: Edit existing records for Operation Engineer" [checked]'
+            - 'cell "Personal notes: Permanently delete unused records for Operation Engineer"':
+              - 'checkbox "Personal notes: Permanently delete unused records for Operation Engineer" [checked]'
+              - generic: ▲
+            - 'cell "Personal notes: Download for Operation Engineer"':
+              - 'checkbox "Personal notes: Download for Operation Engineer" [checked]'
+    - heading "Administration" [level=3]
+    - 'img "Administration: 0 of 21 assigned"':
+      - generic: 0 / 21
+    - button "Grant shown rights in Administration": Grant all shown
+    - button "Revoke shown rights in Administration" [disabled]: Revoke all shown
+    - region "Administration rights":
+      - table:
+        - rowgroup:
+          - row "Feature View Create Edit Delete":
+            - columnheader "Feature"
+            - columnheader "View"
+            - columnheader "Create"
+            - columnheader "Edit"
+            - columnheader "Delete"
+        - rowgroup:
+          - 'row "Users Users: View for Operation Engineer Users: Create for Operation Engineer Users: Edit for Operation Engineer Users: Delete for Operation Engineer"':
+            - rowheader "Users"
+            - 'cell "Users: View for Operation Engineer"':
+              - 'checkbox "Users: View for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Users: Create for Operation Engineer"':
+              - 'checkbox "Users: Create for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Users: Edit for Operation Engineer"':
+              - 'checkbox "Users: Edit for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Users: Delete for Operation Engineer"':
+              - 'checkbox "Users: Delete for Operation Engineer"'
+              - generic: ▲
+          - 'row "Roles and rights Roles and rights: View for Operation Engineer Roles and rights: Create for Operation Engineer Roles and rights: Edit for Operation Engineer Roles and rights: Delete for Operation Engineer"':
+            - rowheader "Roles and rights"
+            - 'cell "Roles and rights: View for Operation Engineer"':
+              - 'checkbox "Roles and rights: View for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Roles and rights: Create for Operation Engineer"':
+              - 'checkbox "Roles and rights: Create for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Roles and rights: Edit for Operation Engineer"':
+              - 'checkbox "Roles and rights: Edit for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Roles and rights: Delete for Operation Engineer"':
+              - 'checkbox "Roles and rights: Delete for Operation Engineer"'
+              - generic: ▲
+          - 'row "Directory group mappings Directory group mappings: View for Operation Engineer Directory group mappings: Create for Operation Engineer Directory group mappings: Edit for Operation Engineer"':
+            - rowheader "Directory group mappings"
+            - 'cell "Directory group mappings: View for Operation Engineer"':
+              - 'checkbox "Directory group mappings: View for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Directory group mappings: Create for Operation Engineer"':
+              - 'checkbox "Directory group mappings: Create for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Directory group mappings: Edit for Operation Engineer"':
+              - 'checkbox "Directory group mappings: Edit for Operation Engineer"'
+              - generic: ▲
+            - cell
+          - 'row "Configuration Configuration: View for Operation Engineer Configuration: Create for Operation Engineer Configuration: Edit for Operation Engineer Configuration: Delete for Operation Engineer"':
+            - rowheader "Configuration"
+            - 'cell "Configuration: View for Operation Engineer"':
+              - 'checkbox "Configuration: View for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Configuration: Create for Operation Engineer"':
+              - 'checkbox "Configuration: Create for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Configuration: Edit for Operation Engineer"':
+              - 'checkbox "Configuration: Edit for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Configuration: Delete for Operation Engineer"':
+              - 'checkbox "Configuration: Delete for Operation Engineer"'
+              - generic: ▲
+          - 'row "Settings Settings: View for Operation Engineer Settings: Edit for Operation Engineer"':
+            - rowheader "Settings"
+            - 'cell "Settings: View for Operation Engineer"':
+              - 'checkbox "Settings: View for Operation Engineer"'
+              - generic: ▲
+            - cell
+            - 'cell "Settings: Edit for Operation Engineer"':
+              - 'checkbox "Settings: Edit for Operation Engineer"'
+              - generic: ▲
+            - cell
+          - 'row "Change history Change history: View for Operation Engineer"':
+            - rowheader "Change history"
+            - 'cell "Change history: View for Operation Engineer"':
+              - 'checkbox "Change history: View for Operation Engineer"'
+              - generic: ▲
+            - cell
+            - cell
+            - cell
+          - 'row "Integrations Integrations: View for Operation Engineer Integrations: Create for Operation Engineer Integrations: Edit for Operation Engineer"':
+            - rowheader "Integrations"
+            - 'cell "Integrations: View for Operation Engineer"':
+              - 'checkbox "Integrations: View for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Integrations: Create for Operation Engineer"':
+              - 'checkbox "Integrations: Create for Operation Engineer"'
+              - generic: ▲
+            - 'cell "Integrations: Edit for Operation Engineer"':
+              - 'checkbox "Integrations: Edit for Operation Engineer"'
+              - generic: ▲
+            - cell
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

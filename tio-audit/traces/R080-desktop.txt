@@ -1,0 +1,331 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "System":
+    - /url: /admin/config/category/system
+  - generic: ›
+  - generic: Settings
+- heading "Settings" [level=1]
+- generic: Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "General" [level=2]
+  - region "General settings":
+    - table "General settings":
+      - caption: General settings
+      - rowgroup:
+        - row "Setting Value What it does Actions":
+          - columnheader "Setting":
+            - button "Setting":
+              - generic: Setting
+          - columnheader "Value":
+            - button "Value":
+              - generic: Value
+          - columnheader "What it does":
+            - button "What it does":
+              - generic: What it does
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Upcoming window for commitments (days) Dashboard.UpcomingDays 7 Upcoming window for commitments, in calendar days (Section 7 proposed default). Edit Upcoming window for commitments (days)":
+          - cell "Upcoming window for commitments (days) Dashboard.UpcomingDays":
+            - text: Upcoming window for commitments (days)
+            - generic "Stored key": Dashboard.UpcomingDays
+          - cell "7":
+            - generic: "7"
+          - cell "Upcoming window for commitments, in calendar days (Section 7 proposed default).":
+            - generic: Upcoming window for commitments, in calendar days (Section 7 proposed default).
+          - cell "Edit Upcoming window for commitments (days)":
+            - button "Edit Upcoming window for commitments (days)": Edit
+        - row "Default time zone for new users DefaultTimeZone (UTC+04:00) Asia/Dubai Default display time zone for new users. Edit Default time zone for new users":
+          - cell "Default time zone for new users DefaultTimeZone":
+            - text: Default time zone for new users
+            - generic "Stored key": DefaultTimeZone
+          - cell "(UTC+04:00) Asia/Dubai":
+            - generic: (UTC+04:00) Asia/Dubai
+          - cell "Default display time zone for new users.":
+            - generic: Default display time zone for new users.
+          - cell "Edit Default time zone for new users":
+            - button "Edit Default time zone for new users": Edit
+    - status
+  - heading "Links and security" [level=2]
+  - region "Links and security settings":
+    - table "Links and security settings":
+      - caption: Links and security settings
+      - rowgroup:
+        - row "Setting Value What it does Actions":
+          - columnheader "Setting":
+            - button "Setting":
+              - generic: Setting
+          - columnheader "Value":
+            - button "Value":
+              - generic: Value
+          - columnheader "What it does":
+            - button "What it does":
+              - generic: What it does
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Approved document link hosts ApprovedLinkHosts Empty (open decision) Comma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted). Edit Approved document link hosts":
+          - cell "Approved document link hosts ApprovedLinkHosts":
+            - text: Approved document link hosts
+            - generic "Stored key": ApprovedLinkHosts
+          - cell "Empty (open decision)":
+            - generic: Empty (open decision)
+          - cell "Comma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted).":
+            - generic: Comma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted).
+          - cell "Edit Approved document link hosts":
+            - button "Edit Approved document link hosts": Edit
+        - row "Vault reference prefix VaultReferencePrefix vault:// Required prefix of approved vault references. The hub stores references only, never secrets. Edit Vault reference prefix":
+          - cell "Vault reference prefix VaultReferencePrefix":
+            - text: Vault reference prefix
+            - generic "Stored key": VaultReferencePrefix
+          - cell "vault://":
+            - generic: vault://
+          - cell "Required prefix of approved vault references. The hub stores references only, never secrets.":
+            - generic: Required prefix of approved vault references. The hub stores references only, never secrets.
+          - cell "Edit Vault reference prefix":
+            - button "Edit Vault reference prefix": Edit
+    - status
+  - heading "Backup coverage" [level=2]
+  - region "Backup coverage settings":
+    - table "Backup coverage settings":
+      - caption: Backup coverage settings
+      - rowgroup:
+        - row "Setting Value What it does Actions":
+          - columnheader "Setting":
+            - button "Setting":
+              - generic: Setting
+          - columnheader "Value":
+            - button "Value":
+              - generic: Value
+          - columnheader "What it does":
+            - button "What it does":
+              - generic: What it does
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Ticket priorities that need a backup owner Coverage.CasePriorities Critical Case priorities that require an active backup owner (coverage policy). Edit Ticket priorities that need a backup owner":
+          - cell "Ticket priorities that need a backup owner Coverage.CasePriorities":
+            - text: Ticket priorities that need a backup owner
+            - generic "Stored key": Coverage.CasePriorities
+          - cell "Critical":
+            - generic: Critical
+          - cell "Case priorities that require an active backup owner (coverage policy).":
+            - generic: Case priorities that require an active backup owner (coverage policy).
+          - cell "Edit Ticket priorities that need a backup owner":
+            - button "Edit Ticket priorities that need a backup owner": Edit
+        - row "Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities Critical High Environment criticalities that require an active backup owner (coverage policy). Edit Environment criticalities that need a backup owner":
+          - cell "Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities":
+            - text: Environment criticalities that need a backup owner
+            - generic "Stored key": Coverage.EnvironmentCriticalities
+          - cell "Critical High":
+            - generic: Critical
+            - generic: High
+          - cell "Environment criticalities that require an active backup owner (coverage policy).":
+            - generic: Environment criticalities that require an active backup owner (coverage policy).
+          - cell "Edit Environment criticalities that need a backup owner":
+            - button "Edit Environment criticalities that need a backup owner": Edit
+    - status
+  - heading "Contracts" [level=2]
+  - region "Contracts settings":
+    - table "Contracts settings":
+      - caption: Contracts settings
+      - rowgroup:
+        - row "Setting Value What it does Actions":
+          - columnheader "Setting":
+            - generic: Setting
+          - columnheader "Value":
+            - generic: Value
+          - columnheader "What it does":
+            - generic: What it does
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Payment reminder (days before due) Contracts.PaymentReminderDays 14 Days before a contract payment is due that its owner and the managers are reminded (1–90). Edit Payment reminder (days before due)":
+          - cell "Payment reminder (days before due) Contracts.PaymentReminderDays":
+            - text: Payment reminder (days before due)
+            - generic "Stored key": Contracts.PaymentReminderDays
+          - cell "14":
+            - generic: "14"
+          - cell "Days before a contract payment is due that its owner and the managers are reminded (1–90).":
+            - generic: Days before a contract payment is due that its owner and the managers are reminded (1–90).
+          - cell "Edit Payment reminder (days before due)":
+            - button "Edit Payment reminder (days before due)": Edit
+    - status
+  - heading "Jira" [level=2]
+  - region "Jira settings":
+    - table "Jira settings":
+      - caption: Jira settings
+      - rowgroup:
+        - row "Setting Value What it does Actions":
+          - columnheader "Setting":
+            - button "Setting":
+              - generic: Setting
+          - columnheader "Value":
+            - button "Value":
+              - generic: Value
+          - columnheader "What it does":
+            - button "What it does":
+              - generic: What it does
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Jira tickets take their contract by creation date since Jira.ContractsByDateFrom 01 Jan 2017, 13:34 When tickets of Jira spaces began to take their contract from their creation date (A93).":
+          - cell "Jira tickets take their contract by creation date since Jira.ContractsByDateFrom":
+            - text: Jira tickets take their contract by creation date since
+            - generic "Stored key": Jira.ContractsByDateFrom
+          - cell "01 Jan 2017, 13:34":
+            - generic: 01 Jan 2017, 13:34
+          - cell "When tickets of Jira spaces began to take their contract from their creation date (A93).":
+            - generic: When tickets of Jira spaces began to take their contract from their creation date (A93).
+          - cell
+        - row "Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom 05 Nov 2026, 16:50 When synchronized tickets began to take their priority from Jira (A96).":
+          - cell "Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom":
+            - text: Jira tickets take their priority from Jira since
+            - generic "Stored key": Jira.PrioritiesFollowJiraFrom
+          - cell "05 Nov 2026, 16:50":
+            - generic: 05 Nov 2026, 16:50
+          - cell "When synchronized tickets began to take their priority from Jira (A96).":
+            - generic: When synchronized tickets began to take their priority from Jira (A96).
+          - cell
+    - status
+  - heading "Other" [level=2]
+  - region "Other settings":
+    - table "Other settings":
+      - caption: Other settings
+      - rowgroup:
+        - row "Setting Value What it does Actions":
+          - columnheader "Setting":
+            - button "Setting":
+              - generic: Setting
+          - columnheader "Value":
+            - button "Value":
+              - generic: Value
+          - columnheader "What it does":
+            - button "What it does":
+              - generic: What it does
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Project status max age days Dashboard.ProjectStatusMaxAgeDays 14 A recorded project status older than this many days is shown as needing review (1–90). Edit Project status max age days":
+          - cell "Project status max age days Dashboard.ProjectStatusMaxAgeDays":
+            - text: Project status max age days
+            - generic "Stored key": Dashboard.ProjectStatusMaxAgeDays
+          - cell "14":
+            - generic: "14"
+          - cell "A recorded project status older than this many days is shown as needing review (1–90).":
+            - generic: A recorded project status older than this many days is shown as needing review (1–90).
+          - cell "Edit Project status max age days":
+            - button "Edit Project status max age days": Edit
+        - row "Sla at risk percent Dashboard.SlaAtRiskPercent 25 Edit Sla at risk percent":
+          - cell "Sla at risk percent Dashboard.SlaAtRiskPercent":
+            - text: Sla at risk percent
+            - generic "Stored key": Dashboard.SlaAtRiskPercent
+          - cell "25":
+            - generic: "25"
+          - cell:
+            - generic "A running contractual SLA clock is shown as at risk when this percentage of its target time, or… More":
+              - text: A running contractual SLA clock is shown as at risk when this percentage of its target time, or…
+              - generic: More
+            - text: A running contractual SLA clock is shown as at risk when this percentage of its target time, or less, is left (5–50).
+          - cell "Edit Sla at risk percent":
+            - button "Edit Sla at risk percent": Edit
+        - row "Sla compliance target percent Dashboard.SlaComplianceTargetPercent 90 Edit Sla compliance target percent":
+          - cell "Sla compliance target percent Dashboard.SlaComplianceTargetPercent":
+            - text: Sla compliance target percent
+            - generic "Stored key": Dashboard.SlaComplianceTargetPercent
+          - cell "90":
+            - generic: "90"
+          - cell:
+            - generic "Compliance objective in percent that the SLA and project dashboards compare measured rates with… More":
+              - text: Compliance objective in percent that the SLA and project dashboards compare measured rates with…
+              - generic: More
+            - text: Compliance objective in percent that the SLA and project dashboards compare measured rates with (50–100). An internal objective, not a contract term.
+          - cell "Edit Sla compliance target percent":
+            - button "Edit Sla compliance target percent": Edit
+    - status
+  - heading "File attachments" [level=2]
+  - button "Edit"
+  - term: Storage folder
+  - definition: C:\Apps\TioHub\attachments (configuration default)
+  - term: Stored now
+  - definition: 49 file(s), 69.9 MB
+  - term: Limits
+  - definition: 25 MB per file, 10 files per upload
+  - term: Accepted types
+  - definition: .pdf, .doc, .docx, .xls, .xlsx, .csv, .ppt, .pptx, .vsd, .vsdx, .txt, .log, .md, .rtf, .odt, .ods, .odp, .png, .jpg, .jpeg, .gif, .bmp, .webp, .msg, .eml, .zip, .7z, .xml, .json
+  - paragraph: Files are saved on the server's disk in this folder, never in the database; the database keeps their name, size, checksum and who uploaded them. Include the folder in the server backups.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

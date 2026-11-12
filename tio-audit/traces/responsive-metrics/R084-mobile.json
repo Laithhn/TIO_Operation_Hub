@@ -1,0 +1,15 @@
+{
+  "id": "R084-mobile",
+  "route": "/commitments/new",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "New commitment"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 13152,
+  "title": "New commitment · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

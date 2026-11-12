@@ -1,0 +1,15 @@
+{
+  "id": "R012-tablet",
+  "route": "/reporting-center",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 1899,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 768
+}

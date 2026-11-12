@@ -1,0 +1,173 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Responsibility areas
+- heading "Responsibility areas" [level=1]
+- generic: Areas of work (application, database, network…) used when recording who is responsible for what at a client.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Responsibility areas":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Responsibility areas":
+      - caption: Responsibility areas
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move Application up Move Application down Application Active Actions for Application":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Application up Move Application down":
+            - button "Move Application up" [disabled]: ▲
+            - button "Move Application down": ▼
+          - cell "Application":
+            - button "Application"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Application":
+            - button "Actions for Application": ⋯
+        - row "Details for ▲ ▼ Move Database up Move Database down Database Active Actions for Database":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Database up Move Database down":
+            - button "Move Database up": ▲
+            - button "Move Database down": ▼
+          - cell "Database":
+            - button "Database"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Database":
+            - button "Actions for Database": ⋯
+        - row "Details for ▲ ▼ Move Operating system up Move Operating system down Operating system Active Actions for Operating system":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Operating system up Move Operating system down":
+            - button "Move Operating system up": ▲
+            - button "Move Operating system down": ▼
+          - cell "Operating system":
+            - button "Operating system"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Operating system":
+            - button "Actions for Operating system": ⋯
+        - row "Details for ▲ ▼ Move Network up Move Network down Network Active Actions for Network":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Network up Move Network down":
+            - button "Move Network up": ▲
+            - button "Move Network down": ▼
+          - cell "Network":
+            - button "Network"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Network":
+            - button "Actions for Network": ⋯
+        - row "Details for ▲ ▼ Move Backup up Move Backup down Backup Active Actions for Backup":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Backup up Move Backup down":
+            - button "Move Backup up": ▲
+            - button "Move Backup down": ▼
+          - cell "Backup":
+            - button "Backup"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Backup":
+            - button "Actions for Backup": ⋯
+        - row "Details for ▲ ▼ Move Monitoring up Move Monitoring down Monitoring Active Actions for Monitoring":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Monitoring up Move Monitoring down":
+            - button "Move Monitoring up": ▲
+            - button "Move Monitoring down" [disabled]: ▼
+          - cell "Monitoring":
+            - button "Monitoring"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Monitoring":
+            - button "Actions for Monitoring": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

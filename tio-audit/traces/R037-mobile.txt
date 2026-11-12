@@ -1,0 +1,325 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Jira Connections":
+    - /url: /admin/integrations/jira
+- heading "Jira synchronization monitoring" [level=1]
+- generic: Status, history and error details of every run.
+- link "Open conflicts":
+  - /url: /admin/integrations/jira/conflicts
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - region "Synchronization status":
+    - text: "Next:"
+    - link "review 2 pending conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - generic: "Failed records (24 h): 0"
+    - text: "Pending conflicts:"
+    - link "2":
+      - /url: /admin/integrations/jira/conflicts
+    - generic: "Last success: 10 Nov 2026, 16:51"
+    - text: Issues
+    - text: Healthy
+    - text: · Comments
+    - text: Healthy
+    - text: · Activity
+    - text: Warning
+    - text: "· 24 h: 143 created, 109 updated · Full reconciliation 10 Nov 2026, 13:45 · 2.3 s per run"
+  - generic: Connection
+  - combobox "Connection":
+    - option "All connections" [selected]
+    - option "Poliscan Cloud Jira"
+  - generic: Client
+  - combobox "Client":
+    - option "All clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Status
+  - combobox "Status":
+    - option "Any" [selected]
+    - option "Running"
+    - option "Success"
+    - option "Warning"
+    - option "Failed"
+  - region "Jira synchronization runs":
+    - searchbox "Filter rows"
+    - generic: 25 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Jira synchronization runs":
+      - caption: Jira synchronization runs
+      - rowgroup:
+        - row "Details Status Started":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Started":
+            - button "Started":
+              - generic: Started
+      - rowgroup:
+        - row "Details for Success Success 10 Nov 2026, 16:51":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:51":
+            - generic: 10 Nov 2026, 16:51
+        - row "Details for Success Success 10 Nov 2026, 16:51":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:51":
+            - generic: 10 Nov 2026, 16:51
+        - row "Details for Success Success 10 Nov 2026, 16:51":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:51":
+            - generic: 10 Nov 2026, 16:51
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:45":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:45":
+            - generic: 10 Nov 2026, 16:45
+        - row "Details for Success Success 10 Nov 2026, 16:40":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:40":
+            - generic: 10 Nov 2026, 16:40
+        - row "Details for Success Success 10 Nov 2026, 16:40":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:40":
+            - generic: 10 Nov 2026, 16:40
+        - row "Details for Success Success 10 Nov 2026, 16:40":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:40":
+            - generic: 10 Nov 2026, 16:40
+        - row "Details for Success Success 10 Nov 2026, 16:35":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:35":
+            - generic: 10 Nov 2026, 16:35
+        - row "Details for Success Success 10 Nov 2026, 16:35":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:35":
+            - generic: 10 Nov 2026, 16:35
+        - row "Details for Success Success 10 Nov 2026, 16:35":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:35":
+            - generic: 10 Nov 2026, 16:35
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 16:30":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 16:30":
+            - generic: 10 Nov 2026, 16:30
+        - row "Details for Success Success 10 Nov 2026, 15:56":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 15:56":
+            - generic: 10 Nov 2026, 15:56
+        - row "Details for Success Success 10 Nov 2026, 15:55":
+          - cell "Details for Success":
+            - button "Details for Success":
+          - cell "Success":
+            - text: Success
+          - cell "10 Nov 2026, 15:55":
+            - generic: 10 Nov 2026, 15:55
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 5790
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 5790
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

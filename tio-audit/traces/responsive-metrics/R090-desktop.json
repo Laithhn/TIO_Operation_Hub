@@ -1,0 +1,15 @@
+{
+  "id": "R090-desktop",
+  "route": "/login",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Sign in"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 134,
+  "title": "Sign in · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

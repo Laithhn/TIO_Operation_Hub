@@ -1,0 +1,387 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "Production":
+    - /url: /environments/3
+  - generic: ›
+  - generic: PSOP-R2PRO-APP1
+- heading "PSOP-R2PRO-APP1" [level=1]
+- text: Virtual machine (VM) · Application server ·
+- text: Active
+- button "Edit"
+- button "+ Volume"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Recorded specification" [level=2]
+  - term: CPU
+  - definition: 8 vCPU
+  - term: RAM
+  - definition: 16 GB
+  - term: OS
+  - definition: Windows Server 2022
+  - term: Network zone
+  - definition: APP
+  - term: IP address
+  - definition: Unknown
+  - term: VLAN
+  - definition: Unknown
+  - term: Project phase
+  - definition: Approved
+  - term: Technical owner
+  - definition: No owner (gap)
+  - term: Last verified
+  - definition: —
+  - paragraph: Recorded provisioning, not measured utilization.
+  - heading "Technical owner" [level=2]
+  - generic: No technical owner recorded (gap).
+  - term: Responsible party
+  - definition: TIO
+  - term: Organization
+  - definition: Unknown
+  - heading "Volumes" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Label Capacity Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Label":
+            - button "Label":
+              - generic: Label
+          - columnheader "Capacity":
+            - button "Capacity":
+              - generic: Capacity
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for D Drive D Drive 100 GB Actions for volume D Drive":
+          - cell "Details for D Drive":
+            - button "Details for D Drive":
+          - cell "D Drive":
+            - generic: D Drive
+          - cell "100 GB":
+            - generic: 100 GB
+          - cell "Actions for volume D Drive":
+            - button "Actions for volume D Drive": ⋯
+        - row "Details for E Drive E Drive 100 GB Actions for volume E Drive":
+          - cell "Details for E Drive":
+            - button "Details for E Drive":
+          - cell "E Drive":
+            - generic: E Drive
+          - cell "100 GB":
+            - generic: 100 GB
+          - cell "Actions for volume E Drive":
+            - button "Actions for volume E Drive": ⋯
+    - status
+  - heading "Hosted microservices" [level=2]
+  - button "Edit hosted microservices"
+  - region "Microservices deployed on this server":
+    - searchbox "Filter rows"
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Microservices deployed on this server: scroll sideways for more columns"':
+      - table "Microservices deployed on this server":
+        - caption: Microservices deployed on this server
+        - rowgroup:
+          - row "Details Microservice Deployed version":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Microservice":
+              - button "Microservice":
+                - generic: Microservice
+            - columnheader "Deployed version":
+              - button "Deployed version":
+                - generic: Deployed version
+        - rowgroup:
+          - row "Details for PSOP.Service.Anpr.Carmen PSOP.Service.Anpr.Carmen Not recorded":
+            - cell "Details for PSOP.Service.Anpr.Carmen":
+              - button "Details for PSOP.Service.Anpr.Carmen":
+            - cell "PSOP.Service.Anpr.Carmen":
+              - link "PSOP.Service.Anpr.Carmen":
+                - /url: /microservices/2
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.Broker PSOP.Service.Broker Not recorded":
+            - cell "Details for PSOP.Service.Broker":
+              - button "Details for PSOP.Service.Broker":
+            - cell "PSOP.Service.Broker":
+              - link "PSOP.Service.Broker":
+                - /url: /microservices/3
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.Core PSOP.Service.Core Not recorded":
+            - cell "Details for PSOP.Service.Core":
+              - button "Details for PSOP.Service.Core":
+            - cell "PSOP.Service.Core":
+              - link "PSOP.Service.Core":
+                - /url: /microservices/9
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.Export PSOP.Service.Export Not recorded":
+            - cell "Details for PSOP.Service.Export":
+              - button "Details for PSOP.Service.Export":
+            - cell "PSOP.Service.Export":
+              - link "PSOP.Service.Export":
+                - /url: /microservices/4
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.Logging PSOP.Service.Logging Not recorded":
+            - cell "Details for PSOP.Service.Logging":
+              - button "Details for PSOP.Service.Logging":
+            - cell "PSOP.Service.Logging":
+              - link "PSOP.Service.Logging":
+                - /url: /microservices/6
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.PlateLookup PSOP.Service.PlateLookup Not recorded":
+            - cell "Details for PSOP.Service.PlateLookup":
+              - button "Details for PSOP.Service.PlateLookup":
+            - cell "PSOP.Service.PlateLookup":
+              - link "PSOP.Service.PlateLookup":
+                - /url: /microservices/8
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.Topology PSOP.Service.Topology Not recorded":
+            - cell "Details for PSOP.Service.Topology":
+              - button "Details for PSOP.Service.Topology":
+            - cell "PSOP.Service.Topology":
+              - link "PSOP.Service.Topology":
+                - /url: /microservices/10
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.TrafficLegal PSOP.Service.TrafficLegal Not recorded":
+            - cell "Details for PSOP.Service.TrafficLegal":
+              - button "Details for PSOP.Service.TrafficLegal":
+            - cell "PSOP.Service.TrafficLegal":
+              - link "PSOP.Service.TrafficLegal":
+                - /url: /microservices/11
+            - cell "Not recorded":
+              - text: Not recorded
+          - row "Details for PSOP.Service.VehicleLookup PSOP.Service.VehicleLookup Not recorded":
+            - cell "Details for PSOP.Service.VehicleLookup":
+              - button "Details for PSOP.Service.VehicleLookup":
+            - cell "PSOP.Service.VehicleLookup":
+              - link "PSOP.Service.VehicleLookup":
+                - /url: /microservices/12
+            - cell "Not recorded":
+              - text: Not recorded
+    - status
+  - heading "Hosted components" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Component Role":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Component":
+            - button "Component":
+              - generic: Component
+          - columnheader "Role":
+            - button "Role":
+              - generic: Role
+      - rowgroup:
+        - row "Details for PSOP.Service.Anpr.Carmen PSOP.Service.Anpr.Carmen Application":
+          - cell "Details for PSOP.Service.Anpr.Carmen":
+            - button "Details for PSOP.Service.Anpr.Carmen":
+          - cell "PSOP.Service.Anpr.Carmen":
+            - link "PSOP.Service.Anpr.Carmen":
+              - /url: /components/27
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Broker PSOP.Service.Broker Application":
+          - cell "Details for PSOP.Service.Broker":
+            - button "Details for PSOP.Service.Broker":
+          - cell "PSOP.Service.Broker":
+            - link "PSOP.Service.Broker":
+              - /url: /components/28
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Export PSOP.Service.Export Application":
+          - cell "Details for PSOP.Service.Export":
+            - button "Details for PSOP.Service.Export":
+          - cell "PSOP.Service.Export":
+            - link "PSOP.Service.Export":
+              - /url: /components/29
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Logging PSOP.Service.Logging Application":
+          - cell "Details for PSOP.Service.Logging":
+            - button "Details for PSOP.Service.Logging":
+          - cell "PSOP.Service.Logging":
+            - link "PSOP.Service.Logging":
+              - /url: /components/30
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.PlateLookup PSOP.Service.PlateLookup Application":
+          - cell "Details for PSOP.Service.PlateLookup":
+            - button "Details for PSOP.Service.PlateLookup":
+          - cell "PSOP.Service.PlateLookup":
+            - link "PSOP.Service.PlateLookup":
+              - /url: /components/31
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Core PSOP.Service.Core Application":
+          - cell "Details for PSOP.Service.Core":
+            - button "Details for PSOP.Service.Core":
+          - cell "PSOP.Service.Core":
+            - link "PSOP.Service.Core":
+              - /url: /components/32
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Topology PSOP.Service.Topology Application":
+          - cell "Details for PSOP.Service.Topology":
+            - button "Details for PSOP.Service.Topology":
+          - cell "PSOP.Service.Topology":
+            - link "PSOP.Service.Topology":
+              - /url: /components/33
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.TrafficLegal PSOP.Service.TrafficLegal Application":
+          - cell "Details for PSOP.Service.TrafficLegal":
+            - button "Details for PSOP.Service.TrafficLegal":
+          - cell "PSOP.Service.TrafficLegal":
+            - link "PSOP.Service.TrafficLegal":
+              - /url: /components/34
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.VehicleLookup PSOP.Service.VehicleLookup Application":
+          - cell "Details for PSOP.Service.VehicleLookup":
+            - button "Details for PSOP.Service.VehicleLookup":
+          - cell "PSOP.Service.VehicleLookup":
+            - link "PSOP.Service.VehicleLookup":
+              - /url: /components/35
+          - cell "Application":
+            - generic: Application
+    - status
+  - heading "Firewall rules (from and to this server)" [level=2]
+  - button "+ New firewall rule"
+  - region "Firewall rules":
+    - table "Firewall rules":
+      - caption: Firewall rules
+      - rowgroup:
+        - row "Details Source server Direction Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Source server":
+            - generic: Source server
+          - columnheader "Direction":
+            - generic: Direction
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - generic: No records entered.
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this server yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details When By":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "When":
+            - generic: When
+          - columnheader "By":
+            - generic: By
+      - rowgroup:
+        - row "Details for 22 Oct 2026, 13:58 22 Oct 2026, 13:58 lmh":
+          - cell "Details for 22 Oct 2026, 13:58":
+            - button "Details for 22 Oct 2026, 13:58":
+          - cell "22 Oct 2026, 13:58":
+            - generic: 22 Oct 2026, 13:58
+          - cell "lmh":
+            - generic: lmh
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

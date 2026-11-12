@@ -1,0 +1,15 @@
+{
+  "id": "R025-laptop",
+  "route": "/clients/1",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Tahakom"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 2353,
+  "title": "Tahakom · TIO Operations Hub",
+  "width": 1366
+}

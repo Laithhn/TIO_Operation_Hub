@@ -1,0 +1,62 @@
+[
+  {
+    "inDrawer": false,
+    "label": "Sign out",
+    "tag": "BUTTON",
+    "text": ""
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "A",
+    "text": "Tickets"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "A",
+    "text": "TAH"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "A",
+    "text": "Edit"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "BUTTON",
+    "text": "Assign"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "BUTTON",
+    "text": "Record progress"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "BUTTON",
+    "text": "More ▾"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "BUTTON",
+    "text": "Jira details (imported)"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "BUTTON",
+    "text": "Sync with Jira"
+  },
+  {
+    "inDrawer": false,
+    "label": null,
+    "tag": "A",
+    "text": "TAD-956"
+  }
+]

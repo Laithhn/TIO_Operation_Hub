@@ -1,0 +1,589 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Users" [level=1]
+- generic: Create and edit accounts, assign roles and data scope. Rights come from roles; set them on the Rights page.
+- button "+ New User"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 44 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Select all rows shown Name Role Sign-in Scope Last sign-in Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Role":
+            - button "Role":
+              - generic: Role
+          - columnheader "Sign-in":
+            - button "Sign-in":
+              - generic: Sign-in
+          - columnheader "Scope":
+            - button "Scope":
+              - generic: Scope
+          - columnheader "Last sign-in":
+            - button "Last sign-in":
+              - generic: Last sign-in
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Abdalrhman (Aboud) Asaad aasa Details for Abdalrhman (Aboud) Asaad aasa Abdalrhman (Aboud) Asaad aasa ITD Manager Temporary password All clients and teams 22 Oct 2026, 16:23 Actions for Abdalrhman (Aboud) Asaad":
+          - cell "Select Abdalrhman (Aboud) Asaad aasa":
+            - checkbox "Select Abdalrhman (Aboud) Asaad aasa"
+          - cell "Details for Abdalrhman (Aboud) Asaad aasa":
+            - button "Details for Abdalrhman (Aboud) Asaad aasa":
+          - cell "Abdalrhman (Aboud) Asaad aasa":
+            - button "Abdalrhman (Aboud) Asaad"
+            - generic "aasa"
+          - cell "ITD Manager":
+            - generic: ITD Manager
+          - cell "Temporary password":
+            - generic: Temporary password
+          - cell "All clients and teams":
+            - generic: All clients and teams
+          - cell "22 Oct 2026, 16:23":
+            - generic: 22 Oct 2026, 16:23
+          - cell "Actions for Abdalrhman (Aboud) Asaad":
+            - button "Actions for Abdalrhman (Aboud) Asaad": ⋯
+        - row "Select Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025 Details for Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025 Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025 No role No sign-in Vitronic team member No data scope Never Actions for Abdulaziz Yousif Alghamdi":
+          - cell "Select Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+            - checkbox "Select Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025"
+          - cell "Details for Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+            - button "Details for Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+          - cell "Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+            - button "Abdulaziz Yousif Alghamdi"
+            - generic "jira-team-17c4e9d2fc4a4092b3ac9fb65c767025"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Abdulaziz Yousif Alghamdi":
+            - button "Actions for Abdulaziz Yousif Alghamdi": ⋯
+        - row "Select Abdulhamid Tork ator Details for Abdulhamid Tork ator Abdulhamid Tork ator TIO Manager Can sign in All clients and teams 23 Oct 2026, 09:54 Actions for Abdulhamid Tork":
+          - cell "Select Abdulhamid Tork ator":
+            - checkbox "Select Abdulhamid Tork ator"
+          - cell "Details for Abdulhamid Tork ator":
+            - button "Details for Abdulhamid Tork ator":
+          - cell "Abdulhamid Tork ator":
+            - button "Abdulhamid Tork"
+            - generic "ator"
+          - cell "TIO Manager":
+            - generic: TIO Manager
+          - cell "Can sign in":
+            - text: Can sign in
+          - cell "All clients and teams":
+            - generic: All clients and teams
+          - cell "23 Oct 2026, 09:54":
+            - generic: 23 Oct 2026, 09:54
+          - cell "Actions for Abdulhamid Tork":
+            - button "Actions for Abdulhamid Tork": ⋯
+        - row "Select Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8 Details for Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8 Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8 No role No sign-in Vitronic team member No data scope Never Actions for Abdullah AlZeghaibi":
+          - cell "Select Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+            - checkbox "Select Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8"
+          - cell "Details for Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+            - button "Details for Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+          - cell "Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+            - button "Abdullah AlZeghaibi"
+            - generic "jira-team-59be0dbdcec34c9ca6a652903841a8d8"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Abdullah AlZeghaibi":
+            - button "Actions for Abdullah AlZeghaibi": ⋯
+        - row "Select Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6 Details for Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6 Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6 No role No sign-in Vitronic team member No data scope Never Actions for Adnan Ahmed":
+          - cell "Select Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+            - checkbox "Select Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6"
+          - cell "Details for Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+            - button "Details for Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+          - cell "Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+            - button "Adnan Ahmed"
+            - generic "jira-team-5112e1b4b43043b2bf6aba6b3a7111b6"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Adnan Ahmed":
+            - button "Actions for Adnan Ahmed": ⋯
+        - row "Select Ahmed Awadalla aawd Details for Ahmed Awadalla aawd Ahmed Awadalla aawd Operation Engineer Temporary password All clients and teams Never Actions for Ahmed Awadalla":
+          - cell "Select Ahmed Awadalla aawd":
+            - checkbox "Select Ahmed Awadalla aawd"
+          - cell "Details for Ahmed Awadalla aawd":
+            - button "Details for Ahmed Awadalla aawd":
+          - cell "Ahmed Awadalla aawd":
+            - button "Ahmed Awadalla"
+            - generic "aawd"
+          - cell "Operation Engineer":
+            - generic: Operation Engineer
+          - cell "Temporary password":
+            - generic: Temporary password
+          - cell "All clients and teams":
+            - generic: All clients and teams
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ahmed Awadalla":
+            - button "Actions for Ahmed Awadalla": ⋯
+        - row "Select Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f Details for Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f No role No sign-in Vitronic team member No data scope Never Actions for Ahmed Elobaiad":
+          - cell "Select Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+            - checkbox "Select Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f"
+          - cell "Details for Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+            - button "Details for Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+          - cell "Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+            - button "Ahmed Elobaiad"
+            - generic "jira-team-f9513eb347354389a043df383284f44f"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ahmed Elobaiad":
+            - button "Actions for Ahmed Elobaiad": ⋯
+        - row "Select Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7 Details for Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7 Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7 No role No sign-in Vitronic team member No data scope Never Actions for Ajith Anto":
+          - cell "Select Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+            - checkbox "Select Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7"
+          - cell "Details for Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+            - button "Details for Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+          - cell "Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+            - button "Ajith Anto"
+            - generic "jira-team-15cfa80ea2284d789745dd01bdc0c4e7"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ajith Anto":
+            - button "Actions for Ajith Anto": ⋯
+        - row "Select Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689 Details for Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689 Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689 No role No sign-in Vitronic team member No data scope Never Actions for Ala AlBarghouthi":
+          - cell "Select Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+            - checkbox "Select Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689"
+          - cell "Details for Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+            - button "Details for Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+          - cell "Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+            - button "Ala AlBarghouthi"
+            - generic "jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ala AlBarghouthi":
+            - button "Actions for Ala AlBarghouthi": ⋯
+        - row "Select Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8 Details for Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8 Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8 No role No sign-in Vitronic team member No data scope Never Actions for Ali Alshehri":
+          - cell "Select Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+            - checkbox "Select Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8"
+          - cell "Details for Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+            - button "Details for Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+          - cell "Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+            - button "Ali Alshehri"
+            - generic "jira-team-941df9fb60c84058a001b570f377aae8"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ali Alshehri":
+            - button "Actions for Ali Alshehri": ⋯
+        - row "Select amai jira-team-41ce9617c6914b5997be24ddfc6ac980 Details for amai jira-team-41ce9617c6914b5997be24ddfc6ac980 amai jira-team-41ce9617c6914b5997be24ddfc6ac980 No role No sign-in Vitronic team member No data scope Never Actions for amai":
+          - cell "Select amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+            - checkbox "Select amai jira-team-41ce9617c6914b5997be24ddfc6ac980"
+          - cell "Details for amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+            - button "Details for amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+          - cell "amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+            - button "amai"
+            - generic "jira-team-41ce9617c6914b5997be24ddfc6ac980"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for amai":
+            - button "Actions for amai": ⋯
+        - row "Select Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a Details for Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a No role No sign-in Vitronic team member No data scope Never Actions for Ansil Ansar1":
+          - cell "Select Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+            - checkbox "Select Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a"
+          - cell "Details for Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+            - button "Details for Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+          - cell "Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+            - button "Ansil Ansar1"
+            - generic "jira-team-95dec06204a7461e96c1a43b40709d2a"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ansil Ansar1":
+            - button "Actions for Ansil Ansar1": ⋯
+        - row "Select Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2 Details for Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2 Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2 No role No sign-in Vitronic team member No data scope Never Actions for Ansil Ansar2":
+          - cell "Select Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+            - checkbox "Select Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2"
+          - cell "Details for Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+            - button "Details for Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+          - cell "Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+            - button "Ansil Ansar2"
+            - generic "jira-team-497970666fbe477e956694475f3d26f2"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ansil Ansar2":
+            - button "Actions for Ansil Ansar2": ⋯
+        - row "Select Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b Details for Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b No role No sign-in Vitronic team member No data scope Never Actions for Aymen A. Ameen":
+          - cell "Select Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+            - checkbox "Select Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b"
+          - cell "Details for Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+            - button "Details for Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+          - cell "Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+            - button "Aymen A. Ameen"
+            - generic "jira-team-0be4ee0d01e440009e21724e9271376b"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Aymen A. Ameen":
+            - button "Actions for Aymen A. Ameen": ⋯
+        - row "Select Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d Details for Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d No role No sign-in Vitronic team member No data scope Never Actions for Bassem Amiche":
+          - cell "Select Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+            - checkbox "Select Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d"
+          - cell "Details for Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+            - button "Details for Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+          - cell "Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+            - button "Bassem Amiche"
+            - generic "jira-team-1fc7a2c5fc23441496096eb21450ab9d"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Bassem Amiche":
+            - button "Actions for Bassem Amiche": ⋯
+        - row "Select car jira-team-4b12a08f9d9040d592613a7cf73ade36 Details for car jira-team-4b12a08f9d9040d592613a7cf73ade36 car jira-team-4b12a08f9d9040d592613a7cf73ade36 No role No sign-in Vitronic team member No data scope Never Actions for car":
+          - cell "Select car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+            - checkbox "Select car jira-team-4b12a08f9d9040d592613a7cf73ade36"
+          - cell "Details for car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+            - button "Details for car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+          - cell "car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+            - button "car"
+            - generic "jira-team-4b12a08f9d9040d592613a7cf73ade36"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for car":
+            - button "Actions for car": ⋯
+        - row "Select Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6 Details for Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6 Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6 No role No sign-in Vitronic team member No data scope Never Actions for Ehab Hawwash":
+          - cell "Select Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+            - checkbox "Select Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6"
+          - cell "Details for Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+            - button "Details for Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+          - cell "Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+            - button "Ehab Hawwash"
+            - generic "jira-team-144117433e19411fb7f8952827d35fe6"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ehab Hawwash":
+            - button "Actions for Ehab Hawwash": ⋯
+        - row "Select Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac Details for Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac No role No sign-in Vitronic team member No data scope Never Actions for Evgeny Gnevashev":
+          - cell "Select Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+            - checkbox "Select Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac"
+          - cell "Details for Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+            - button "Details for Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+          - cell "Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+            - button "Evgeny Gnevashev"
+            - generic "jira-team-7effe2cc05d0418b8954c518610f67ac"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Evgeny Gnevashev":
+            - button "Actions for Evgeny Gnevashev": ⋯
+        - row "Select Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a Details for Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a No role No sign-in Vitronic team member No data scope Never Actions for Faisal Alyami":
+          - cell "Select Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+            - checkbox "Select Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a"
+          - cell "Details for Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+            - button "Details for Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+          - cell "Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+            - button "Faisal Alyami"
+            - generic "jira-team-72ea74e8daff4701b6287996fefba03a"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Faisal Alyami":
+            - button "Actions for Faisal Alyami": ⋯
+        - row "Select Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f Details for Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f No role No sign-in Vitronic team member No data scope Never Actions for Ghaith Ahmed Al Omari":
+          - cell "Select Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+            - checkbox "Select Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f"
+          - cell "Details for Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+            - button "Details for Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+          - cell "Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+            - button "Ghaith Ahmed Al Omari"
+            - generic "jira-team-92d1574fef7340c3baff800a20b8348f"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Ghaith Ahmed Al Omari":
+            - button "Actions for Ghaith Ahmed Al Omari": ⋯
+        - row "Select Laith Hamdan lmh Details for Laith Hamdan lmh Laith Hamdan lmh TIO Manager Can sign in All clients and teams 10 Nov 2026, 16:29 Actions for Laith Hamdan":
+          - cell "Select Laith Hamdan lmh":
+            - checkbox "Select Laith Hamdan lmh"
+          - cell "Details for Laith Hamdan lmh":
+            - button "Details for Laith Hamdan lmh":
+          - cell "Laith Hamdan lmh":
+            - button "Laith Hamdan"
+            - generic "lmh"
+          - cell "TIO Manager":
+            - generic: TIO Manager
+          - cell "Can sign in":
+            - text: Can sign in
+          - cell "All clients and teams":
+            - generic: All clients and teams
+          - cell "10 Nov 2026, 16:29":
+            - generic: 10 Nov 2026, 16:29
+          - cell "Actions for Laith Hamdan":
+            - button "Actions for Laith Hamdan": ⋯
+        - row "Select LMH OPR OPR Details for LMH OPR OPR LMH OPR OPR Operation Engineer Can sign in All clients and teams 06 Nov 2026, 10:41 Actions for LMH OPR":
+          - cell "Select LMH OPR OPR":
+            - checkbox "Select LMH OPR OPR"
+          - cell "Details for LMH OPR OPR":
+            - button "Details for LMH OPR OPR":
+          - cell "LMH OPR OPR":
+            - button "LMH OPR"
+            - generic "OPR"
+          - cell "Operation Engineer":
+            - generic: Operation Engineer
+          - cell "Can sign in":
+            - text: Can sign in
+          - cell "All clients and teams":
+            - generic: All clients and teams
+          - cell "06 Nov 2026, 10:41":
+            - generic: 06 Nov 2026, 10:41
+          - cell "Actions for LMH OPR":
+            - button "Actions for LMH OPR": ⋯
+        - row "Select Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6 Details for Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6 Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6 No role No sign-in Vitronic team member No data scope Never Actions for Mahmoud Hussein":
+          - cell "Select Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+            - checkbox "Select Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6"
+          - cell "Details for Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+            - button "Details for Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+          - cell "Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+            - button "Mahmoud Hussein"
+            - generic "jira-team-f60c04680843460a803853a777ebb6a6"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Mahmoud Hussein":
+            - button "Actions for Mahmoud Hussein": ⋯
+        - row "Select Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff Details for Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff No role No sign-in Vitronic team member No data scope Never Actions for Mark Mico":
+          - cell "Select Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+            - checkbox "Select Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff"
+          - cell "Details for Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+            - button "Details for Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+          - cell "Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+            - button "Mark Mico"
+            - generic "jira-team-49139c63330640f7b3d9f403117a22ff"
+          - cell "No role":
+            - text: No role
+          - cell "No sign-in Vitronic team member":
+            - text: No sign-in
+            - generic: Vitronic team member
+          - cell "No data scope":
+            - generic: No data scope
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Mark Mico":
+            - button "Actions for Mark Mico": ⋯
+        - row "Select Moataz Al Khaldi mali Details for Moataz Al Khaldi mali Moataz Al Khaldi mali Operation Engineer Temporary password All clients and teams Never Actions for Moataz Al Khaldi":
+          - cell "Select Moataz Al Khaldi mali":
+            - checkbox "Select Moataz Al Khaldi mali"
+          - cell "Details for Moataz Al Khaldi mali":
+            - button "Details for Moataz Al Khaldi mali":
+          - cell "Moataz Al Khaldi mali":
+            - button "Moataz Al Khaldi"
+            - generic "mali"
+          - cell "Operation Engineer":
+            - generic: Operation Engineer
+          - cell "Temporary password":
+            - generic: Temporary password
+          - cell "All clients and teams":
+            - generic: All clients and teams
+          - cell "Never":
+            - generic: Never
+          - cell "Actions for Moataz Al Khaldi":
+            - button "Actions for Moataz Al Khaldi": ⋯
+    - status
+    - navigation "Table pages":
+      - generic: 1 – 25 of 44
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "10"
+        - option "25" [selected]
+        - option "50"
+        - option "100"
+      - button "Prev" [disabled]
+      - generic: Page 1 of 2
+      - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

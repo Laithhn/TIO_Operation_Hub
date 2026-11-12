@@ -1,0 +1,652 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Administration":
+      - /url: /admin
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Change history" [level=1]
+- generic: Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - generic: Activity
+  - combobox "Activity":
+    - option "Changes by people" [selected]
+    - option "Background work (Jira sync, scans)"
+    - option "All activity"
+  - generic: Person
+  - textbox "Person":
+    - /placeholder: Account name
+  - generic: Record type
+  - combobox "Record type"
+  - generic: Action
+  - combobox "Action":
+    - option "Any" [selected]
+    - option "Create"
+    - option "Update"
+    - option "Status change"
+    - option "Owner change"
+    - option "Archive"
+    - option "Restore"
+    - option "Access change"
+    - option "Access granted"
+    - option "Access revoked"
+    - option "Export"
+    - option "Remove"
+  - generic: Category
+  - combobox "Category":
+    - option "Any" [selected]
+    - option "Business records"
+    - option "Access administration"
+  - generic: From
+  - textbox "From"
+  - generic: To
+  - textbox "To"
+  - region "Table":
+    - searchbox "Filter rows" [active]
+    - generic: 25 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Select all rows shown When By Action Record Reason Changes (before → after)":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "When":
+              - button "When":
+                - generic: When
+            - columnheader "By":
+              - button "By":
+                - generic: By
+            - columnheader "Action":
+              - button "Action":
+                - generic: Action
+            - columnheader "Record":
+              - button "Record":
+                - generic: Record
+            - columnheader "Reason":
+              - button "Reason":
+                - generic: Reason
+            - columnheader "Changes (before → after)":
+              - button "Changes (before → after)":
+                - generic: Changes (before → after)
+        - rowgroup:
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira value mapping · 3928 Jira IssueType Sub-task mapped to Task Target code: — → Task"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira value mapping · 3928":
+              - generic: Jira value mapping · 3928
+            - cell "Jira IssueType Sub-task mapped to Task":
+              - generic: Jira IssueType Sub-task mapped to Task
+            - 'cell "Target code: — → Task"':
+              - generic: "Target code: — → Task"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira value mapping · 3929 Jira IssueType Story mapped to EPIC Target code: — → EPIC"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira value mapping · 3929":
+              - generic: Jira value mapping · 3929
+            - cell "Jira IssueType Story mapped to EPIC":
+              - generic: Jira IssueType Story mapped to EPIC
+            - 'cell "Target code: — → EPIC"':
+              - generic: "Target code: — → EPIC"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira workflow status mapping · 185 Target status code: — → WaitingForCustomer"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira workflow status mapping · 185":
+              - generic: Jira workflow status mapping · 185
+            - cell
+            - 'cell "Target status code: — → WaitingForCustomer"':
+              - generic: "Target status code: — → WaitingForCustomer"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira workflow status mapping · 183 Target status code: — → New"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira workflow status mapping · 183":
+              - generic: Jira workflow status mapping · 183
+            - cell
+            - 'cell "Target status code: — → New"':
+              - generic: "Target status code: — → New"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira workflow status mapping · 187 Target status code: — → Opened"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira workflow status mapping · 187":
+              - generic: Jira workflow status mapping · 187
+            - cell
+            - 'cell "Target status code: — → Opened"':
+              - generic: "Target status code: — → Opened"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira workflow status mapping · 184 Target status code: — → New"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira workflow status mapping · 184":
+              - generic: Jira workflow status mapping · 184
+            - cell
+            - 'cell "Target status code: — → New"':
+              - generic: "Target status code: — → New"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira workflow status mapping · 186 Target status code: — → InProgress"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira workflow status mapping · 186":
+              - generic: Jira workflow status mapping · 186
+            - cell
+            - 'cell "Target status code: — → InProgress"':
+              - generic: "Target status code: — → InProgress"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira workflow status mapping · 182 Target status code: — → Closed"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira workflow status mapping · 182":
+              - generic: Jira workflow status mapping · 182
+            - cell
+            - 'cell "Target status code: — → Closed"':
+              - generic: "Target status code: — → Closed"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira user mapping · 553 Jira user Sannan Khan (601919453b1af00069d205e3): mapped to new client contact 63 Client contact id: — → 63"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 553":
+              - generic: Jira user mapping · 553
+            - 'cell "Jira user Sannan Khan (601919453b1af00069d205e3): mapped to new client contact 63"':
+              - generic: "Jira user Sannan Khan (601919453b1af00069d205e3): mapped to new client contact 63"
+            - 'cell "Client contact id: — → 63"':
+              - generic: "Client contact id: — → 63"
+          - row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Create Contact · Sannan Khan Created from Jira user 601919453b1af00069d205e3":
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "Contact · Sannan Khan":
+              - generic: Contact · Sannan Khan
+            - cell "Created from Jira user 601919453b1af00069d205e3":
+              - generic: Created from Jira user 601919453b1af00069d205e3
+            - cell:
+              - 'generic "Authorized support: — → false Client id: — → 10 Show all 3 changes"':
+                - generic: "Authorized support: — → false"
+                - generic: "Client id: — → 10"
+                - generic: Show all 3 changes
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Ticket · CS-4052 · Unique and White list - Workflow Overview Jira user mapping changed: 60a361adb050a700691c0c4a First response at: 30 May 2021, 12:38 → 26 May 2021, 12:02"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Ticket · CS-4052 · Unique and White list - Workflow Overview":
+              - link "Ticket · CS-4052 · Unique and White list - Workflow Overview":
+                - /url: /cases/12252
+            - 'cell "Jira user mapping changed: 60a361adb050a700691c0c4a"':
+              - generic: "Jira user mapping changed: 60a361adb050a700691c0c4a"
+            - 'cell "First response at: 30 May 2021, 12:38 → 26 May 2021, 12:02"':
+              - generic: "First response at: 30 May 2021, 12:38 → 26 May 2021, 12:02"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Update Jira user mapping · 552 Jira user Ngirababo (60a361adb050a700691c0c4a): created as a Vitronic team member with no sign-in access Tio user id: — → -9223372036854775000"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 552":
+              - generic: Jira user mapping · 552
+            - 'cell "Jira user Ngirababo (60a361adb050a700691c0c4a): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user Ngirababo (60a361adb050a700691c0c4a): created as a Vitronic team member with no sign-in access"
+            - 'cell "Tio user id: — → -9223372036854775000"':
+              - generic: "Tio user id: — → -9223372036854775000"
+          - 'row "Select 10 Nov 2026, 13:45 10 Nov 2026, 13:45 lmh Create User · jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf Jira user Ngirababo (60a361adb050a700691c0c4a): created as a Vitronic team member with no sign-in access"':
+            - cell "Select 10 Nov 2026, 13:45":
+              - checkbox "Select 10 Nov 2026, 13:45"
+            - cell "10 Nov 2026, 13:45":
+              - generic: 10 Nov 2026, 13:45
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "User · jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf":
+              - generic: User · jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf
+            - 'cell "Jira user Ngirababo (60a361adb050a700691c0c4a): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user Ngirababo (60a361adb050a700691c0c4a): created as a Vitronic team member with no sign-in access"
+            - cell:
+              - 'generic "Account name: — → jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf All clients: — → false Show all 8 changes"':
+                - generic: "Account name: — → jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf"
+                - generic: "All clients: — → false"
+                - generic: Show all 8 changes
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Ticket · CS-4060 · Licenses: The Licenses to be provided by Pivot access Jira user mapping changed: 5a281355466b4a37eec618b5 First response at: 01 Jul 2021, 12:48 → 14 Jun 2021, 14:48"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - 'cell "Ticket · CS-4060 · Licenses: The Licenses to be provided by Pivot access"':
+              - 'link "Ticket · CS-4060 · Licenses: The Licenses to be provided by Pivot access"':
+                - /url: /cases/12260
+            - 'cell "Jira user mapping changed: 5a281355466b4a37eec618b5"':
+              - generic: "Jira user mapping changed: 5a281355466b4a37eec618b5"
+            - 'cell "First response at: 01 Jul 2021, 12:48 → 14 Jun 2021, 14:48"':
+              - generic: "First response at: 01 Jul 2021, 12:48 → 14 Jun 2021, 14:48"
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Jira user mapping · 559 Jira user Mark Mico (5a281355466b4a37eec618b5): created as a Vitronic team member with no sign-in access Tio user id: — → -9223372036854775000"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 559":
+              - generic: Jira user mapping · 559
+            - 'cell "Jira user Mark Mico (5a281355466b4a37eec618b5): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user Mark Mico (5a281355466b4a37eec618b5): created as a Vitronic team member with no sign-in access"
+            - 'cell "Tio user id: — → -9223372036854775000"':
+              - generic: "Tio user id: — → -9223372036854775000"
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Create User · jira-team-49139c63330640f7b3d9f403117a22ff Jira user Mark Mico (5a281355466b4a37eec618b5): created as a Vitronic team member with no sign-in access"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "User · jira-team-49139c63330640f7b3d9f403117a22ff":
+              - generic: User · jira-team-49139c63330640f7b3d9f403117a22ff
+            - 'cell "Jira user Mark Mico (5a281355466b4a37eec618b5): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user Mark Mico (5a281355466b4a37eec618b5): created as a Vitronic team member with no sign-in access"
+            - cell:
+              - 'generic "Account name: — → jira-team-49139c63330640f7b3d9f403117a22ff All clients: — → false Show all 8 changes"':
+                - generic: "Account name: — → jira-team-49139c63330640f7b3d9f403117a22ff"
+                - generic: "All clients: — → false"
+                - generic: Show all 8 changes
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Jira user mapping · 557 Jira user Fanny Colombe (5efc3e9a3683cd0bc10ccf59): mapped to new client contact 62 Client contact id: — → 62"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 557":
+              - generic: Jira user mapping · 557
+            - 'cell "Jira user Fanny Colombe (5efc3e9a3683cd0bc10ccf59): mapped to new client contact 62"':
+              - generic: "Jira user Fanny Colombe (5efc3e9a3683cd0bc10ccf59): mapped to new client contact 62"
+            - 'cell "Client contact id: — → 62"':
+              - generic: "Client contact id: — → 62"
+          - row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Create Contact · Fanny Colombe Created from Jira user 5efc3e9a3683cd0bc10ccf59":
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "Contact · Fanny Colombe":
+              - generic: Contact · Fanny Colombe
+            - cell "Created from Jira user 5efc3e9a3683cd0bc10ccf59":
+              - generic: Created from Jira user 5efc3e9a3683cd0bc10ccf59
+            - cell:
+              - 'generic "Authorized support: — → false Client id: — → 10 Show all 3 changes"':
+                - generic: "Authorized support: — → false"
+                - generic: "Client id: — → 10"
+                - generic: Show all 3 changes
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Jira user mapping · 554 Jira user car (5e48ecfafd328a0c9cebe223): created as a Vitronic team member with no sign-in access Tio user id: — → -9223372036854775000"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 554":
+              - generic: Jira user mapping · 554
+            - 'cell "Jira user car (5e48ecfafd328a0c9cebe223): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user car (5e48ecfafd328a0c9cebe223): created as a Vitronic team member with no sign-in access"
+            - 'cell "Tio user id: — → -9223372036854775000"':
+              - generic: "Tio user id: — → -9223372036854775000"
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Create User · jira-team-4b12a08f9d9040d592613a7cf73ade36 Jira user car (5e48ecfafd328a0c9cebe223): created as a Vitronic team member with no sign-in access"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "User · jira-team-4b12a08f9d9040d592613a7cf73ade36":
+              - generic: User · jira-team-4b12a08f9d9040d592613a7cf73ade36
+            - 'cell "Jira user car (5e48ecfafd328a0c9cebe223): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user car (5e48ecfafd328a0c9cebe223): created as a Vitronic team member with no sign-in access"
+            - cell:
+              - 'generic "Account name: — → jira-team-4b12a08f9d9040d592613a7cf73ade36 All clients: — → false Show all 8 changes"':
+                - generic: "Account name: — → jira-team-4b12a08f9d9040d592613a7cf73ade36"
+                - generic: "All clients: — → false"
+                - generic: Show all 8 changes
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Jira user mapping · 556 Jira user amai (60a35bc447ba02006f18b879): created as a Vitronic team member with no sign-in access Tio user id: — → -9223372036854775000"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 556":
+              - generic: Jira user mapping · 556
+            - 'cell "Jira user amai (60a35bc447ba02006f18b879): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user amai (60a35bc447ba02006f18b879): created as a Vitronic team member with no sign-in access"
+            - 'cell "Tio user id: — → -9223372036854775000"':
+              - generic: "Tio user id: — → -9223372036854775000"
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Create User · jira-team-41ce9617c6914b5997be24ddfc6ac980 Jira user amai (60a35bc447ba02006f18b879): created as a Vitronic team member with no sign-in access"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "User · jira-team-41ce9617c6914b5997be24ddfc6ac980":
+              - generic: User · jira-team-41ce9617c6914b5997be24ddfc6ac980
+            - 'cell "Jira user amai (60a35bc447ba02006f18b879): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user amai (60a35bc447ba02006f18b879): created as a Vitronic team member with no sign-in access"
+            - cell:
+              - 'generic "Account name: — → jira-team-41ce9617c6914b5997be24ddfc6ac980 All clients: — → false Show all 8 changes"':
+                - generic: "Account name: — → jira-team-41ce9617c6914b5997be24ddfc6ac980"
+                - generic: "All clients: — → false"
+                - generic: Show all 8 changes
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Jira user mapping · 558 Jira user Alain Manzi (5efc3e9a25cebd0bb6bee922): mapped to new client contact 61 Client contact id: — → 61"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 558":
+              - generic: Jira user mapping · 558
+            - 'cell "Jira user Alain Manzi (5efc3e9a25cebd0bb6bee922): mapped to new client contact 61"':
+              - generic: "Jira user Alain Manzi (5efc3e9a25cebd0bb6bee922): mapped to new client contact 61"
+            - 'cell "Client contact id: — → 61"':
+              - generic: "Client contact id: — → 61"
+          - row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Create Contact · Alain Manzi Created from Jira user 5efc3e9a25cebd0bb6bee922":
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Create":
+              - generic: Create
+            - cell "Contact · Alain Manzi":
+              - generic: Contact · Alain Manzi
+            - cell "Created from Jira user 5efc3e9a25cebd0bb6bee922":
+              - generic: Created from Jira user 5efc3e9a25cebd0bb6bee922
+            - cell:
+              - 'generic "Authorized support: — → false Client id: — → 10 Show all 3 changes"':
+                - generic: "Authorized support: — → false"
+                - generic: "Client id: — → 10"
+                - generic: Show all 3 changes
+          - 'row "Select 10 Nov 2026, 13:44 10 Nov 2026, 13:44 lmh Update Jira user mapping · 555 Jira user Adnan Ahmed (5f8fedd729bd8a006f721e7d): created as a Vitronic team member with no sign-in access Tio user id: — → -9223372036854775000"':
+            - cell "Select 10 Nov 2026, 13:44":
+              - checkbox "Select 10 Nov 2026, 13:44"
+            - cell "10 Nov 2026, 13:44":
+              - generic: 10 Nov 2026, 13:44
+            - cell "lmh":
+              - generic: lmh
+            - cell "Update":
+              - generic: Update
+            - cell "Jira user mapping · 555":
+              - generic: Jira user mapping · 555
+            - 'cell "Jira user Adnan Ahmed (5f8fedd729bd8a006f721e7d): created as a Vitronic team member with no sign-in access"':
+              - generic: "Jira user Adnan Ahmed (5f8fedd729bd8a006f721e7d): created as a Vitronic team member with no sign-in access"
+            - 'cell "Tio user id: — → -9223372036854775000"':
+              - generic: "Tio user id: — → -9223372036854775000"
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 3652
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 3652
+    - button "Next"
+  - heading "Recent exports" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When User Report Filters Rows":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - button "When":
+              - generic: When
+          - columnheader "User":
+            - button "User":
+              - generic: User
+          - columnheader "Report":
+            - button "Report":
+              - generic: Report
+          - columnheader "Filters":
+            - button "Filters":
+              - generic: Filters
+          - columnheader "Rows":
+            - button "Rows":
+              - generic: Rows
+      - rowgroup:
+        - row "Select 05 Nov 2026, 15:19 05 Nov 2026, 15:19 lmh cases-builder none 1459":
+          - cell "Select 05 Nov 2026, 15:19":
+            - checkbox "Select 05 Nov 2026, 15:19"
+          - cell "05 Nov 2026, 15:19":
+            - generic: 05 Nov 2026, 15:19
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "none":
+            - generic: none
+          - cell "1459":
+            - generic: "1459"
+        - row "Select 05 Nov 2026, 15:18 05 Nov 2026, 15:18 lmh cases-builder Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year) 302":
+          - cell "Select 05 Nov 2026, 15:18":
+            - checkbox "Select 05 Nov 2026, 15:18"
+          - cell "05 Nov 2026, 15:18":
+            - generic: 05 Nov 2026, 15:18
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)":
+            - generic: Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)
+          - cell "302":
+            - generic: "302"
+        - row "Select 05 Nov 2026, 15:17 05 Nov 2026, 15:17 lmh cases-builder Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year) 302":
+          - cell "Select 05 Nov 2026, 15:17":
+            - checkbox "Select 05 Nov 2026, 15:17"
+          - cell "05 Nov 2026, 15:17":
+            - generic: 05 Nov 2026, 15:17
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)":
+            - generic: Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)
+          - cell "302":
+            - generic: "302"
+        - row "Select 04 Nov 2026, 17:57 04 Nov 2026, 17:57 lmh cases-builder Search = \"CS-1296\" 1":
+          - cell "Select 04 Nov 2026, 17:57":
+            - checkbox "Select 04 Nov 2026, 17:57"
+          - cell "04 Nov 2026, 17:57":
+            - generic: 04 Nov 2026, 17:57
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Search = \"CS-1296\"":
+            - generic: Search = "CS-1296"
+          - cell "1":
+            - generic: "1"
+        - row "Select 28 Oct 2026, 13:22 28 Oct 2026, 13:22 lmh cases-builder Status = New, Triaged, InProgress, PendingValidation; Priority = Critical, High 1":
+          - cell "Select 28 Oct 2026, 13:22":
+            - checkbox "Select 28 Oct 2026, 13:22"
+          - cell "28 Oct 2026, 13:22":
+            - generic: 28 Oct 2026, 13:22
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Status = New, Triaged, InProgress, PendingValidation; Priority = Critical, High":
+            - generic: Status = New, Triaged, InProgress, PendingValidation; Priority = Critical, High
+          - cell "1":
+            - generic: "1"
+        - row "Select 23 Oct 2026, 11:51 23 Oct 2026, 11:51 lmh assets Client = TAH 79":
+          - cell "Select 23 Oct 2026, 11:51":
+            - checkbox "Select 23 Oct 2026, 11:51"
+          - cell "23 Oct 2026, 11:51":
+            - generic: 23 Oct 2026, 11:51
+          - cell "lmh":
+            - generic: lmh
+          - cell "assets":
+            - generic: assets
+          - cell "Client = TAH":
+            - generic: Client = TAH
+          - cell "79":
+            - generic: "79"
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

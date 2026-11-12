@@ -1,0 +1,91 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Teams":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Teams
+- heading "Handovers" [level=1]
+- generic: Ownership transfers need the receiving owner's acknowledgment, or a TIO Manager exception with reason, follow-up owner and date. Prior ownership is kept.
+- button "+ New Handover"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams (current section)":
+      - /url: /teams
+      - text: Teams
+      - generic: (current section)
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Status
+  - combobox "Status":
+    - option "All" [selected]
+    - option "Awaiting acknowledgment"
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Ref Status":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Ref":
+            - generic: Ref
+          - columnheader "Status":
+            - generic: Status
+      - rowgroup:
+        - row "Details for HO-101 HO-101 Cancelled":
+          - cell "Details for HO-101":
+            - button "Details for HO-101":
+          - cell "HO-101":
+            - link "HO-101":
+              - /url: /handovers/1
+          - cell "Cancelled":
+            - generic: Cancelled
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

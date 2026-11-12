@@ -1,0 +1,15 @@
+{
+  "id": "R049-tablet",
+  "route": "/teams/1",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "KSA Operation Team"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 7176,
+  "title": "KSA Operation Team · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

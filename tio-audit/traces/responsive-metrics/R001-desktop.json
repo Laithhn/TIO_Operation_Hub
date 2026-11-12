@@ -1,0 +1,15 @@
+{
+  "id": "R001-desktop",
+  "route": "/",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Operations Command Center"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 13903,
+  "title": "Operations Command Center · TIO Operations Hub",
+  "width": 1920
+}

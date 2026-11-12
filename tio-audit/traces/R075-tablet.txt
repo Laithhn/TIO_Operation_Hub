@@ -1,0 +1,174 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+    - generic: Administration
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Contracts & Tickets":
+    - /url: /admin/config/category/contracts-cases
+  - generic: ›
+  - generic: Escalation channels
+- heading "Escalation channels" [level=1]
+- generic: How escalations arrive or are raised and how replies go out, for example e-mail, formal letter, verbal or Jira. The hub records the channel and its reference; it never sends anything.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Escalation channels":
+    - searchbox "Filter rows"
+    - generic: 4 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Escalation channels: scroll sideways for more columns"':
+      - table "Escalation channels":
+        - caption: Escalation channels
+        - rowgroup:
+          - row "Select all rows shown Order Name Description In use (escalations and their logged communications) Status Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Order":
+              - button "Order":
+                - generic: Order
+            - columnheader "Name":
+              - button "Name":
+                - generic: Name
+            - columnheader "Description":
+              - button "Description":
+                - generic: Description
+            - columnheader "In use (escalations and their logged communications)":
+              - button "In use (escalations and their logged communications)":
+                - generic: In use (escalations and their logged communications)
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select ▲ ▼ Move E-mail up Move E-mail down E-mail — 1 Active Actions for E-mail":
+            - cell "Select ▲ ▼":
+              - checkbox "Select ▲ ▼"
+            - cell "Move E-mail up Move E-mail down":
+              - button "Move E-mail up" [disabled]: ▲
+              - button "Move E-mail down": ▼
+            - cell "E-mail":
+              - button "E-mail"
+            - cell "—":
+              - generic: —
+            - cell "1":
+              - generic: "1"
+            - cell "Active":
+              - text: Active
+            - cell "Actions for E-mail":
+              - button "Actions for E-mail": ⋯
+          - row "Select ▲ ▼ Move Formal letter up Move Formal letter down Formal letter — 0 Active Actions for Formal letter":
+            - cell "Select ▲ ▼":
+              - checkbox "Select ▲ ▼"
+            - cell "Move Formal letter up Move Formal letter down":
+              - button "Move Formal letter up": ▲
+              - button "Move Formal letter down": ▼
+            - cell "Formal letter":
+              - button "Formal letter"
+            - cell "—":
+              - generic: —
+            - cell "0":
+              - generic: "0"
+            - cell "Active":
+              - text: Active
+            - cell "Actions for Formal letter":
+              - button "Actions for Formal letter": ⋯
+          - row "Select ▲ ▼ Move Verbal (call or meeting) up Move Verbal (call or meeting) down Verbal (call or meeting) — 2 Active Actions for Verbal (call or meeting)":
+            - cell "Select ▲ ▼":
+              - checkbox "Select ▲ ▼"
+            - cell "Move Verbal (call or meeting) up Move Verbal (call or meeting) down":
+              - button "Move Verbal (call or meeting) up": ▲
+              - button "Move Verbal (call or meeting) down": ▼
+            - cell "Verbal (call or meeting)":
+              - button "Verbal (call or meeting)"
+            - cell "—":
+              - generic: —
+            - cell "2":
+              - generic: "2"
+            - cell "Active":
+              - text: Active
+            - cell "Actions for Verbal (call or meeting)":
+              - button "Actions for Verbal (call or meeting)": ⋯
+          - row "Select ▲ ▼ Move Jira up Move Jira down Jira — 0 Active Actions for Jira":
+            - cell "Select ▲ ▼":
+              - checkbox "Select ▲ ▼"
+            - cell "Move Jira up Move Jira down":
+              - button "Move Jira up": ▲
+              - button "Move Jira down" [disabled]: ▼
+            - cell "Jira":
+              - button "Jira"
+            - cell "—":
+              - generic: —
+            - cell "0":
+              - generic: "0"
+            - cell "Active":
+              - text: Active
+            - cell "Actions for Jira":
+              - button "Actions for Jira": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

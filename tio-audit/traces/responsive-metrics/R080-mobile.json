@@ -1,0 +1,15 @@
+{
+  "id": "R080-mobile",
+  "route": "/admin/settings",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Settings"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 1968,
+  "title": "Settings · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

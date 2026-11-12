@@ -1,0 +1,61 @@
+Use case: ui-mockup.
+Create ONE high-fidelity desktop web application mockup image for a proposed new "Project status" page in TIO Operations Hub. Landscape aspect ratio approximately 16:10, ideally 2560 x 1600 or similarly high resolution. The image is the crisp flat UI itself, edge to edge, no laptop, desk, perspective, photo treatment or decorative background. Prioritize legible accurate typography and a highly usable information hierarchy.
+
+Existing application styling: VITRONIC enterprise frame; dark navy #001e46 full-width 46px header with white VITRONIC wordmark at left; primary tabs Dashboard (active), Clients, Products, More; restrained search, notification and account outline icons on right, without notification counts. 180px pale gray sidebar titled "TIO Operations Hub", with My dashboard, Executive overview, Project status (active), Action list, Data quality, Notifications. White square-corner panels on #e8e9eb light-gray canvas. Open Sans-like humanist sans-serif. Dark navy titles, blue links, pale cyan selection, muted gray secondary text, amber warnings, soft green Active markers. Thin divider lines, square buttons and badges, no rounded cards, gradients, large shadows, illustrations, decorative charts or giant empty space. Footer navy: "© VITRONIC" and "TIO Operations Hub" left, "Times: Asia/Dubai" right. This is a proposed new page in the existing product, not an implemented screenshot.
+
+Main toolbar: breadcrumb "Dashboard / Project status"; large title "Project status"; subtitle "Where each project stands, what needs attention, and what happens next." Right action "OPEN PROJECT".
+Immediately below include a clearly visible blue-gray information band with this exact text: "DESIGN MOCKUP • Real project data from the verified 9 Nov 2026 review • Snapshot, not live". A small supplementary line: "Summaries are proposed wording; source uncertainties are retained." Do not portray this snapshot as current real-time information.
+
+Across the top of the content use three restrained compact KPI panels with exact figures and captions: "10" / "Registered projects", "8" / "Active", "2" / "Planned". Do not add any unsupported ticket, SLA, progress, completion, health-score, overdue total or risk-count statistics.
+Below: search box "Search project or client", dropdown "All clients", dropdown "All owners", dropdown "All statuses".
+
+Main work area two columns: left about 60% width holds the full project register with heading "Project overview" and small count "10 projects". Right 40% is the selected project's clear management summary. Align top edges. Keep all ten table rows visible and all right-panel contents visible. Table columns: "Project / client", "Status", "Current situation", "Project owner". Use compact two-line project cells; one or two lines of clear situation text; readable row spacing. Select first row using pale blue background and a slim cyan left edge. All text below is real source snapshot content and must be preserved accurately, with reasonable line wrapping.
+
+EXACT REGISTER CONTENT:
+1. "115510-AE" / "DGSN"; status "Active"; situation "Procurement and shipment unverified"; owner "Reda Moulouki".
+2. "DGSN-VIITS-POC" / "DGSN · descriptive code"; status "Planned"; situation "Approval and readiness unconfirmed"; owner "Reda Moulouki".
+3. "115102-AE · AgenticAI" / "OYOON"; status "Active"; situation "VIP request mapping unconfirmed"; owner "Abdulhamid Tork".
+4. "115101-AE · ViTIP / ITS SLA" / "OYOON"; status "Active"; situation "Finance mapping needs reconciliation"; owner "Abdalrhman (Aboud) Asaad".
+5. "113506-AE" / "MADAR_DIJLA"; status "Active"; situation "BoQ, sizing and shipments unresolved"; owner "Laith Hamdan".
+6. "115307-AE · Tunisia" / "MULTICOM"; status "Active"; situation "Dongle arrival and FAT unconfirmed"; owner "Laith Hamdan".
+7. "QATAR-MOI-POC" / "QATAR_MOI · descriptive code"; status "Active"; situation "Access-matrix sign-off pending"; owner "Laith Hamdan".
+8. "104723-DE" / "SAPOL"; status "Active"; situation "Effort period and allocation unresolved"; owner "Abdulhamid Tork".
+9. "KU105375" / "SEW"; status "Planned"; situation "Planned project / Active SLA mismatch"; owner "Abdalrhman (Aboud) Asaad".
+10. "117992-AE" / "TAH"; status "Active"; situation "3 overdue staffing commitments"; owner "Laith Hamdan".
+
+Selected project panel, highly readable:
+Eyebrow "SELECTED PROJECT"
+Large title "115510-AE"
+Subtitle "DGSN · Enforcement-bar delivery"
+Status badge "Active"
+Amber informational badge "Readiness unconfirmed"
+Small two-column facts:
+"PROJECT OWNER" / "Reda Moulouki"
+"OPERATIONAL TARGET" / "4 Dec 2026 · target"
+
+Section "Management summary"
+Exact paragraph: "10 enforcement bars were reported received on 3 Nov. A proceed instruction was recorded on 4 Nov. Procurement, shipment, installation and acceptance remain unverified."
+
+Section "What needs attention"
+Three restrained amber-icon rows:
+"Final server / tablet configuration and PO"
+"Shipping, customs and installation readiness"
+"Acceptance evidence against the operational target"
+
+Section "Next actions"
+Three numbered short rows:
+"1  Confirm final quotation and purchase order"
+"2  Confirm Dubai preparation and shipment plan"
+"3  Record installation and acceptance evidence"
+Below in muted small text "Action deadlines have not been confirmed."
+
+Section "Latest evidence"
+Compact two-entry timeline:
+"4 Nov 2026" — "Proceed with selected quotation"
+"3 Nov 2026" — "10 enforcement bars reported received"
+Small source line "Source: verified operations review · 9 Nov 2026"
+Bottom text-link button "View project 115510-AE →"
+
+Below the overview table a subtle full-width note within left column: "Client-only follow-ups remain separate until their project mapping is confirmed." Do not include TAK in the registered-project count because it is an unregistered candidate.
+
+Constraints: exact project identifiers and owners; faithfully show 8 Active and 2 Planned. Dates are historical source dates. Do not invent live updates, engineer availability, ownership, approvals, contract milestones, ticket figures, project completion percentages, calculated RAG health or fresh synchronization timestamps. This should look like a polished, realistic, restrained VITRONIC dashboard design proposal based on actual project evidence.

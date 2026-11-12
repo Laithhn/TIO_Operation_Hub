@@ -1,0 +1,15 @@
+{
+  "id": "R033-tablet",
+  "route": "/admin/archived",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Archived records"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 161,
+  "title": "Archived records · TIO Operations Hub",
+  "width": 768
+}

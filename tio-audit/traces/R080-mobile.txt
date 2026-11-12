@@ -1,0 +1,310 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "System":
+    - /url: /admin/config/category/system
+  - generic: ›
+  - generic: Settings
+- heading "Settings" [level=1]
+- generic: Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - heading "General" [level=2]
+  - region "General settings":
+    - 'group "General settings: scroll sideways for more columns"':
+      - table "General settings":
+        - caption: General settings
+        - rowgroup:
+          - row "Details Setting Value Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Setting":
+              - button "Setting":
+                - generic: Setting
+            - columnheader "Value":
+              - button "Value":
+                - generic: Value
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Upcoming window for commitments (days) Dashboard.UpcomingDays Upcoming window for commitments (days) Dashboard.UpcomingDays 7 Edit Upcoming window for commitments (days)":
+            - cell "Details for Upcoming window for commitments (days) Dashboard.UpcomingDays":
+              - button "Details for Upcoming window for commitments (days) Dashboard.UpcomingDays":
+            - cell "Upcoming window for commitments (days) Dashboard.UpcomingDays":
+              - text: Upcoming window for commitments (days)
+              - generic "Stored key": Dashboard.UpcomingDays
+            - cell "7":
+              - generic: "7"
+            - cell "Edit Upcoming window for commitments (days)":
+              - button "Edit Upcoming window for commitments (days)": Edit
+          - row "Details for Default time zone for new users DefaultTimeZone Default time zone for new users DefaultTimeZone (UTC+04:00) Asia/Dubai Edit Default time zone for new users":
+            - cell "Details for Default time zone for new users DefaultTimeZone":
+              - button "Details for Default time zone for new users DefaultTimeZone":
+            - cell "Default time zone for new users DefaultTimeZone":
+              - text: Default time zone for new users
+              - generic "Stored key": DefaultTimeZone
+            - cell "(UTC+04:00) Asia/Dubai":
+              - generic: (UTC+04:00) Asia/Dubai
+            - cell "Edit Default time zone for new users":
+              - button "Edit Default time zone for new users": Edit
+    - status
+  - heading "Links and security" [level=2]
+  - region "Links and security settings":
+    - table "Links and security settings":
+      - caption: Links and security settings
+      - rowgroup:
+        - row "Details Setting Value Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Setting":
+            - button "Setting":
+              - generic: Setting
+          - columnheader "Value":
+            - button "Value":
+              - generic: Value
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for Approved document link hosts ApprovedLinkHosts Approved document link hosts ApprovedLinkHosts Empty (open decision) Edit Approved document link hosts":
+          - cell "Details for Approved document link hosts ApprovedLinkHosts":
+            - button "Details for Approved document link hosts ApprovedLinkHosts":
+          - cell "Approved document link hosts ApprovedLinkHosts":
+            - text: Approved document link hosts
+            - generic "Stored key": ApprovedLinkHosts
+          - cell "Empty (open decision)":
+            - generic: Empty (open decision)
+          - cell "Edit Approved document link hosts":
+            - button "Edit Approved document link hosts": Edit
+        - row "Details for Vault reference prefix VaultReferencePrefix Vault reference prefix VaultReferencePrefix vault:// Edit Vault reference prefix":
+          - cell "Details for Vault reference prefix VaultReferencePrefix":
+            - button "Details for Vault reference prefix VaultReferencePrefix":
+          - cell "Vault reference prefix VaultReferencePrefix":
+            - text: Vault reference prefix
+            - generic "Stored key": VaultReferencePrefix
+          - cell "vault://":
+            - generic: vault://
+          - cell "Edit Vault reference prefix":
+            - button "Edit Vault reference prefix": Edit
+    - status
+  - heading "Backup coverage" [level=2]
+  - region "Backup coverage settings":
+    - 'group "Backup coverage settings: scroll sideways for more columns"':
+      - table "Backup coverage settings":
+        - caption: Backup coverage settings
+        - rowgroup:
+          - row "Details Setting Value Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Setting":
+              - button "Setting":
+                - generic: Setting
+            - columnheader "Value":
+              - button "Value":
+                - generic: Value
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Ticket priorities that need a backup owner Coverage.CasePriorities Ticket priorities that need a backup owner Coverage.CasePriorities Critical Edit Ticket priorities that need a backup owner":
+            - cell "Details for Ticket priorities that need a backup owner Coverage.CasePriorities":
+              - button "Details for Ticket priorities that need a backup owner Coverage.CasePriorities":
+            - cell "Ticket priorities that need a backup owner Coverage.CasePriorities":
+              - text: Ticket priorities that need a backup owner
+              - generic "Stored key": Coverage.CasePriorities
+            - cell "Critical":
+              - generic: Critical
+            - cell "Edit Ticket priorities that need a backup owner":
+              - button "Edit Ticket priorities that need a backup owner": Edit
+          - row "Details for Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities Critical High Edit Environment criticalities that need a backup owner":
+            - cell "Details for Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities":
+              - button "Details for Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities":
+            - cell "Environment criticalities that need a backup owner Coverage.EnvironmentCriticalities":
+              - text: Environment criticalities that need a backup owner
+              - generic "Stored key": Coverage.EnvironmentCriticalities
+            - cell "Critical High":
+              - generic: Critical
+              - generic: High
+            - cell "Edit Environment criticalities that need a backup owner":
+              - button "Edit Environment criticalities that need a backup owner": Edit
+    - status
+  - heading "Contracts" [level=2]
+  - region "Contracts settings":
+    - 'group "Contracts settings: scroll sideways for more columns"':
+      - table "Contracts settings":
+        - caption: Contracts settings
+        - rowgroup:
+          - row "Details Setting Value Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Setting":
+              - generic: Setting
+            - columnheader "Value":
+              - generic: Value
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Payment reminder (days before due) Contracts.PaymentReminderDays Payment reminder (days before due) Contracts.PaymentReminderDays 14 Edit Payment reminder (days before due)":
+            - cell "Details for Payment reminder (days before due) Contracts.PaymentReminderDays":
+              - button "Details for Payment reminder (days before due) Contracts.PaymentReminderDays":
+            - cell "Payment reminder (days before due) Contracts.PaymentReminderDays":
+              - text: Payment reminder (days before due)
+              - generic "Stored key": Contracts.PaymentReminderDays
+            - cell "14":
+              - generic: "14"
+            - cell "Edit Payment reminder (days before due)":
+              - button "Edit Payment reminder (days before due)": Edit
+    - status
+  - heading "Jira" [level=2]
+  - region "Jira settings":
+    - 'group "Jira settings: scroll sideways for more columns"':
+      - table "Jira settings":
+        - caption: Jira settings
+        - rowgroup:
+          - row "Details Setting Value Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Setting":
+              - button "Setting":
+                - generic: Setting
+            - columnheader "Value":
+              - button "Value":
+                - generic: Value
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Jira tickets take their contract by creation date since Jira.ContractsByDateFrom Jira tickets take their contract by creation date since Jira.ContractsByDateFrom 01 Jan 2017, 13:34":
+            - cell "Details for Jira tickets take their contract by creation date since Jira.ContractsByDateFrom":
+              - button "Details for Jira tickets take their contract by creation date since Jira.ContractsByDateFrom":
+            - cell "Jira tickets take their contract by creation date since Jira.ContractsByDateFrom":
+              - text: Jira tickets take their contract by creation date since
+              - generic "Stored key": Jira.ContractsByDateFrom
+            - cell "01 Jan 2017, 13:34":
+              - generic: 01 Jan 2017, 13:34
+            - cell
+          - row "Details for Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom 05 Nov 2026, 16:50":
+            - cell "Details for Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom":
+              - button "Details for Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom":
+            - cell "Jira tickets take their priority from Jira since Jira.PrioritiesFollowJiraFrom":
+              - text: Jira tickets take their priority from Jira since
+              - generic "Stored key": Jira.PrioritiesFollowJiraFrom
+            - cell "05 Nov 2026, 16:50":
+              - generic: 05 Nov 2026, 16:50
+            - cell
+    - status
+  - heading "Other" [level=2]
+  - region "Other settings":
+    - 'group "Other settings: scroll sideways for more columns"':
+      - table "Other settings":
+        - caption: Other settings
+        - rowgroup:
+          - row "Details Setting Value Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Setting":
+              - button "Setting":
+                - generic: Setting
+            - columnheader "Value":
+              - button "Value":
+                - generic: Value
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Project status max age days Dashboard.ProjectStatusMaxAgeDays Project status max age days Dashboard.ProjectStatusMaxAgeDays 14 Edit Project status max age days":
+            - cell "Details for Project status max age days Dashboard.ProjectStatusMaxAgeDays":
+              - button "Details for Project status max age days Dashboard.ProjectStatusMaxAgeDays":
+            - cell "Project status max age days Dashboard.ProjectStatusMaxAgeDays":
+              - text: Project status max age days
+              - generic "Stored key": Dashboard.ProjectStatusMaxAgeDays
+            - cell "14":
+              - generic: "14"
+            - cell "Edit Project status max age days":
+              - button "Edit Project status max age days": Edit
+          - row "Details for Sla at risk percent Dashboard.SlaAtRiskPercent Sla at risk percent Dashboard.SlaAtRiskPercent 25 Edit Sla at risk percent":
+            - cell "Details for Sla at risk percent Dashboard.SlaAtRiskPercent":
+              - button "Details for Sla at risk percent Dashboard.SlaAtRiskPercent":
+            - cell "Sla at risk percent Dashboard.SlaAtRiskPercent":
+              - text: Sla at risk percent
+              - generic "Stored key": Dashboard.SlaAtRiskPercent
+            - cell "25":
+              - generic: "25"
+            - cell "Edit Sla at risk percent":
+              - button "Edit Sla at risk percent": Edit
+          - row "Details for Sla compliance target percent Dashboard.SlaComplianceTargetPercent Sla compliance target percent Dashboard.SlaComplianceTargetPercent 90 Edit Sla compliance target percent":
+            - cell "Details for Sla compliance target percent Dashboard.SlaComplianceTargetPercent":
+              - button "Details for Sla compliance target percent Dashboard.SlaComplianceTargetPercent":
+            - cell "Sla compliance target percent Dashboard.SlaComplianceTargetPercent":
+              - text: Sla compliance target percent
+              - generic "Stored key": Dashboard.SlaComplianceTargetPercent
+            - cell "90":
+              - generic: "90"
+            - cell "Edit Sla compliance target percent":
+              - button "Edit Sla compliance target percent": Edit
+    - status
+  - heading "File attachments" [level=2]
+  - button "Edit"
+  - term: Storage folder
+  - definition: C:\Apps\TioHub\attachments (configuration default)
+  - term: Stored now
+  - definition: 49 file(s), 69.9 MB
+  - term: Limits
+  - definition: 25 MB per file, 10 files per upload
+  - term: Accepted types
+  - definition: .pdf, .doc, .docx, .xls, .xlsx, .csv, .ppt, .pptx, .vsd, .vsdx, .txt, .log, .md, .rtf, .odt, .ods, .odp, .png, .jpg, .jpeg, .gif, .bmp, .webp, .msg, .eml, .zip, .7z, .xml, .json
+  - paragraph: Files are saved on the server's disk in this folder, never in the database; the database keeps their name, size, checksum and who uploaded them. Include the folder in the server backups.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

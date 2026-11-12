@@ -1,0 +1,132 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Teams and coverage" [level=1]
+- generic: Assignments, waiting work, due dates and backup coverage. Capacity and absence planning arrive in the Next release.
+- button "+ New Team"
+- complementary "Section menu":
+  - navigation:
+    - link "Teams & coverage":
+      - /url: /teams
+    - link "Handovers":
+      - /url: /handovers
+    - link "Reassignment queue":
+      - /url: /reassignment
+  - button "Expand menu":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Code Team Lead Manager Active members Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Code":
+            - button "Code":
+              - generic: Code
+          - columnheader "Team":
+            - button "Team":
+              - generic: Team
+          - columnheader "Lead":
+            - button "Lead":
+              - generic: Lead
+          - columnheader "Manager":
+            - button "Manager":
+              - generic: Manager
+          - columnheader "Active members":
+            - button "Active members":
+              - generic: Active members
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select DXB_OPERATION DXB_OPERATION Dubai Office Operation Team Laith Hamdan Abdalrhman (Aboud) Asaad 3 Active Actions for team DXB_OPERATION":
+          - cell "Select DXB_OPERATION":
+            - checkbox "Select DXB_OPERATION"
+          - cell "DXB_OPERATION":
+            - link "DXB_OPERATION":
+              - /url: /teams/6
+          - cell "Dubai Office Operation Team":
+            - link "Dubai Office Operation Team":
+              - /url: /teams/6
+          - cell "Laith Hamdan":
+            - generic: Laith Hamdan
+          - cell "Abdalrhman (Aboud) Asaad":
+            - generic: Abdalrhman (Aboud) Asaad
+          - cell "3":
+            - generic: "3"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for team DXB_OPERATION":
+            - button "Actions for team DXB_OPERATION": ⋯
+        - row "Select KSA_OPERATION KSA_OPERATION KSA Operation Team Ahmed Awadalla Laith Hamdan 5 Active Actions for team KSA_OPERATION":
+          - cell "Select KSA_OPERATION":
+            - checkbox "Select KSA_OPERATION"
+          - cell "KSA_OPERATION":
+            - link "KSA_OPERATION":
+              - /url: /teams/1
+          - cell "KSA Operation Team":
+            - link "KSA Operation Team":
+              - /url: /teams/1
+          - cell "Ahmed Awadalla":
+            - generic: Ahmed Awadalla
+          - cell "Laith Hamdan":
+            - generic: Laith Hamdan
+          - cell "5":
+            - generic: "5"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for team KSA_OPERATION":
+            - button "Actions for team KSA_OPERATION": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,213 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Administration":
+      - /url: /admin
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Contracts & Tickets":
+    - /url: /admin/config/category/contracts-cases
+  - generic: ›
+  - generic: Ticket types
+- heading "Ticket types" [level=1]
+- generic: Offered when opening a ticket. Each type belongs to a category used in reports.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Ticket types":
+    - searchbox "Filter rows"
+    - generic: 5 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Ticket types":
+      - caption: Ticket types
+      - rowgroup:
+        - row "Select all rows shown Order Name Description Behaves as In use (cases) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Behaves as":
+            - button "Behaves as":
+              - generic: Behaves as
+          - columnheader "In use (cases)":
+            - button "In use (cases)":
+              - generic: In use (cases)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Task up Move Task down Task — Request 432 Active Actions for Task":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Task up Move Task down":
+            - button "Move Task up" [disabled]: ▲
+            - button "Move Task down": ▼
+          - cell "Task":
+            - button "Task"
+          - cell "—":
+            - generic: —
+          - cell "Request":
+            - generic: Request
+          - cell "432":
+            - generic: "432"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Task":
+            - button "Actions for Task": ⋯
+        - row "Select ▲ ▼ Move Improvement up Move Improvement down Improvement — Improvement 153 Active Actions for Improvement":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Improvement up Move Improvement down":
+            - button "Move Improvement up": ▲
+            - button "Move Improvement down": ▼
+          - cell "Improvement":
+            - button "Improvement"
+          - cell "—":
+            - generic: —
+          - cell "Improvement":
+            - generic: Improvement
+          - cell "153":
+            - generic: "153"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Improvement":
+            - button "Actions for Improvement": ⋯
+        - row "Select ▲ ▼ Move Bug up Move Bug down Bug — Incident 1132 Active Actions for Bug":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Bug up Move Bug down":
+            - button "Move Bug up": ▲
+            - button "Move Bug down": ▼
+          - cell "Bug":
+            - button "Bug"
+          - cell "—":
+            - generic: —
+          - cell "Incident":
+            - generic: Incident
+          - cell "1132":
+            - generic: "1132"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Bug":
+            - button "Actions for Bug": ⋯
+        - row "Select ▲ ▼ Move Epic up Move Epic down Epic — Request 170 Active Actions for Epic":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Epic up Move Epic down":
+            - button "Move Epic up": ▲
+            - button "Move Epic down": ▼
+          - cell "Epic":
+            - button "Epic"
+          - cell "—":
+            - generic: —
+          - cell "Request":
+            - generic: Request
+          - cell "170":
+            - generic: "170"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Epic":
+            - button "Actions for Epic": ⋯
+        - row "Select ▲ ▼ Move Deployment up Move Deployment down Deployment — Request 62 Active Actions for Deployment":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Deployment up Move Deployment down":
+            - button "Move Deployment up": ▲
+            - button "Move Deployment down" [disabled]: ▼
+          - cell "Deployment":
+            - button "Deployment"
+          - cell "—":
+            - generic: —
+          - cell "Request":
+            - generic: Request
+          - cell "62":
+            - generic: "62"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Deployment":
+            - button "Actions for Deployment": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

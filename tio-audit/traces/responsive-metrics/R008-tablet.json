@@ -1,0 +1,15 @@
+{
+  "id": "R008-tablet",
+  "route": "/cases",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Tickets"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 3049,
+  "title": "Tickets · TIO Operations Hub",
+  "width": 768
+}

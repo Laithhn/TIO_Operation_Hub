@@ -1,0 +1,374 @@
+TERM
+01 Jan 2026 – 31 Dec 2026
+Give notice by 01 Dec 2026
+RENEWAL
+Renewal due
+Notice deadline 2026-12-01 (ends 2026-12-31)
+SLA TARGETS
+4 priorities
+Critical: 1 h first response / — resolution
+PAYMENTS
+1 open, no due date
+Details
+SLA targets
+4
+Delivery
+3
+Fees and payments
+1
+Penalties
+0
+Coverage
+Documents
+History
+Contract
+Client
+OYOON · OYOON Center
+Contract reference
+5194 of 2025
+Type
+Maintenance
+Project
+OYOON-182-AMC-2026 · OYOON 182 Al Qudra Bluscan SSPX and CCH AMC
+Owner
+Laith Hamdan
+Term
+01 Jan 2026 – 31 Dec 2026
+Renewal terms
+Renewal by agreement
+Notice period
+30 days · give notice by 01 Dec 2026
+Last reviewed
+10 Nov 2026
+Service obligations
+Support model
+Hybrid
+Support hours
+Mon–Fri 09:00–18:00 (Asia/Dubai)
+Support notes
+Public holidays excluded; Mon–Fri 09:00–18:00 UAE. Targets count support hours from call logging (proposal p 28). No fixed resolution time (p 7); max 2 parallel calls (p 26).
+On-site engineers required
+Unknown
+Coverage
+
+2026 AMC:8 Bluscan speed-enforcement devices,10 Bluscan(CCH) devices,14 Bluscan(CCH) radar-cabinet cleaning units; signed p 23 annual fees unchanged. Secure remote diagnostics/telephone/email support, on-site visits when remote resolution is unavailable, faulty-equipment repair/replacement, corrective restoration and manufacturer-recommended preventive upkeep (signed pp 23–24).
+ProposalQU040000173, Jan-2025 supplements scope: FM 1-based POLISCAN SPEED/SSPX systems have active support/maintenance/development(LevelA); accessories are LevelB, maintenance effort limited toP 1/P 2; no named LevelC products (proposal p 30). Standard coverage Mon–Fri 09:00–18:00 UAE/GMT+4; target response 1/8/16/72 hours counts normal operational hours from logging, not 24 x 7 (pp 28,34). Extended telephone service outside normal hours is explicitly NOT included; the outside-hours P 1 schedule onp 23 is only an example.
+Customer provides operational infrastructure, site safety, documents, secure remote access, asset access/site contact, third-party work/material and initial spares for swap-out; follow incident/RMA reporting and first-level checks (pp 20–21,25,31–32). Vandalism/disaster recovery, consumables, unagreed changes, installation/moving equipment and non-normal-use faults are excluded (pp 21,35). Recommendations: initial spare inventory 2%LRUs+2%SRUs and adequate consumables;4-week repair expectation excluding transport/6 weeks including transport is a supply-chain estimate, not a resolution SLA (p 20). No fixed solution time or uptime percentage (p 7).
+
+Show more
+Obligations
+
+SIGNED TERMS — DDGE/VITRONIC, requisition 12500433; term 01-Jan–31-Dec-2026; fixed AED 512,506.76 excluding VAT (signed pp 1,3–4). Monthly payment within 30 days of invoice submission with approved, duly signed Service Completion Form (p 23). Printed monthly fee sum AED 42,708.90×12=512,506.80 versus stated annual 512,506.76: preserve 4-fils rounding difference. Actual invoices, payments, completion and bank-guarantee provision are unverified.
+SLA / CALL PROCESS — P 1/P 2/P 3/P 4 response 1/8/16/72 hours (signed p 24;proposal p 28). Proposal explicitly limits targets to normal operational hours, from call logging:SupportHours basis. No numeric resolution commitment; p 7 says no specific solution time constraints. Callback within 1 support hour after service call (p 25) is distinct from priority response targets. Maximum 2 parallel service calls; assign tracking number, provide progress/closure timestamp/action summary (pp 25–26). Customer first-level checks precede reporting. P 1 immediate work to restore via correction/workaround; P 2 affects operation without workaround; P 3 no operational impact; P 4 software enhancement request (p 27).
+ESCALATION — P 1 target exceeded by 8 working hours or P 2 by 24 working hours → Head of Technical Department; P 3 moves toP 2. Normal operational hours apply. Senior management contacts customer counterpart; customer may escalate at any time (p 29). These are escalation thresholds, NOT resolution targets. Detailed P 1/P 2 fault investigation on request and service review meetings as appropriate (p 33).
+PENALTIES / GUARANTEE — Failure/delay measures under Dubai Law 12/2020; no numeric SLA penalty rate/formula/cap (signed pp 3–4,16). Excusable-delay exemption requires proof and customer consent. Compensation paragraph states 100% contract-value liability cap with stated indirect-loss exclusions/exceptions; not a penalty cap (pp 13–14). Bank guarantee 10%, valid 90 days after end, revocable only with customer consent (p 4). Breach cure 15 working days; early termination notice 30 days with payment for supplied services/materials (pp 9–10). Force-majeure notice 7 working days (pp 18–19); amicable dispute period 30 days, then senior management/Dubai Courts (p 11).
+PRECEDENCE / PRICING — Signed cl 1(p 2) makes contract terms prevail. Keep signed renewal by written intention 30 days before expiry(p 3), monthly net 30+SCF, fixed 2026 fees, Dubai/UAE law. Proposal conflicting boilerplate: auto-renew/90-day cancellation(p 37),12-month extension/six-month cancellation(p 41), annual payments(p 37), generic 30%/60%/10%+14 day terms and arrears interest 9 points above base(p 43), German law/venue(p 47). Do not apply those as overrides. Proposal 2025–2029 fee tables(pp 39–40) are supporting quote history, not accepted renewals; final detailed table repeats 2028 dates although summary labels 2029. 2026 table matches signed fees.
+OUT-OF-SCOPE ONLY — Proposal p 37 quotes pre-booked AED 4,300/business day if paid in advance; standard AED 5,400/business day otherwise, plus agreed expenses(pp 24,37). Do not add conditional rates to annual contract total or charge signed included site visits automatically. T&M/additional spend needs authorized customer approval; no unapproved system-software modifications(pp 31–32).
+GOVERNANCE / HISTORY — Signed consent/addendum, IP, confidentiality/security, HSE, audit/offset and Arabic precedence remain(cl 3,6–8,12–16). Supplier CEO Dr Youssef El Hansali signed 05-Dec-2025; DDGE CEO H.E.Matar AlHumairi countersigned 09-Jan-2026 11:47 UTC+4(p 22). Contacts remain signed p 21. Proposal AppendixD/service catalogue referenced onp 28 is absent from this 47-page PDF; no extra target invented.
+
+Show more
+SLA targets (recorded)
+
+Targets as the contract states them. Tickets linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects tickets linked afterwards. The clock does not pause while a ticket waits on the customer. Tickets measured against this contract
+
+4 rows
+FILTER
+COLUMNS
+EXPORT CSV
+SLA targets
+	
+Priority
+	
+Response target
+	
+Resolution target
+	
+Clock
+	
+Notes
+
+
+	
+Critical
+	
+1 h
+	
+—
+	
+Support hours
+	
+P1: response target during normal operational hours from call logging (proposal p28); resolution not fixed (p7). Escalation thresholds in Obligations are separate.
+
+
+	
+High
+	
+8 h
+	
+—
+	
+Support hours
+	
+P2: response target during normal operational hours from call logging (proposal p28); resolution not fixed (p7). Escalation thresholds in Obligations are separate.
+
+
+	
+Normal
+	
+16 h
+	
+—
+	
+Support hours
+	
+P3: response target during normal operational hours from call logging (proposal p28); resolution not fixed (p7). Escalation thresholds in Obligations are separate.
+
+
+	
+Low
+	
+3 d
+	
+—
+	
+Support hours
+	
+P4: response target during normal operational hours from call logging (proposal p28); resolution not fixed (p7). Escalation thresholds in Obligations are separate.
+Delivery schedule · 0 % complete on average
+3 rows
+FILTER
+COLUMNS
+EXPORT CSV
+Contract delivery schedule
+	
+Phase
+	
+Description
+	
+Completion
+	
+Date
+
+
+	
+AMC service period start
+	
+Stated maintenance period begins; actual completion is not inferred (p3 cl 2).
+	
+Unknown
+	
+01 Jan 2026
+
+
+	
+Monthly service and completion evidence
+	
+Recurring maintenance throughout 2026; approved signed Service Completion Form accompanies each invoice. No fixed monthly day specified (p23 App3).
+	
+Unknown
+	
+Unknown
+
+
+	
+AMC service period end
+	
+Stated term expiry; renewal requires customer written intention 30 days before expiry (p3 cl 2).
+	
+Unknown
+	
+31 Dec 2026
+Fees and costs (AED)
+3 rows
+FILTER
+COLUMNS
+EXPORT CSV
+Contract fees and costs
+	
+Description
+	
+Unit
+	
+Qty
+	
+Unit price
+	
+Total
+
+
+	
+Maintenance of Bluscan speed enforcement devices; 8 units; 2026 annual package. Printed monthly AED 13,562.47; annual AED 162,749.66 (p23 App3).
+	
+year
+	
+1
+	
+162,749.66
+	
+162,749.66
+
+
+	
+Maintenance of Bluscan (CCH) speed enforcement devices; 10 units; 2026 annual package. Printed monthly AED 28,661.33; annual AED 343,935.90 (p23 App3).
+	
+year
+	
+1
+	
+343,935.90
+	
+343,935.90
+
+
+	
+Cleaning of Bluscan (CCH) radar equipment cabinets; 14 units; 2026 annual package. Printed monthly AED 485.10; annual AED 5,821.20 (p23 App3).
+	
+year
+	
+1
+	
+5,821.20
+	
+5,821.20
+
+Total: 512,506.76 AED
+
+Payment terms
+
+Open payments have no due date.
+
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract payment terms
+	
+Condition
+	
+%
+	
+Amount
+	
+Due
+	
+Status
+
+
+	
+Monthly payment within 30 days after invoice plus approved,duly signed Service Completion Form; actual invoice/payment status unknown (p23 App3).
+	
+	
+	
+Unknown
+	
+Pending
+Penalty assessments
+RECALCULATE
+
+Indicative contractual amounts only. Different recorded rates or caps are assessed separately and require review. Superseded assessments have no current charge; earlier values remain in change history. The hub does not issue credits or invoices.
+
+Reason for recalculation or confirmation
+No assessments have been calculated.
+Covered products (from the project)
+The project has no products recorded.
+Covered environments
+No records entered.
+Contract and SLA documents (4)
+UPLOAD FILES
+TOTAL FILES
+4
+DOCUMENT CATEGORIES
+2
+by file type
+UPLOADERS
+1
+LATEST UPLOAD
+10 Nov 2026
+Laith Hamdan
+All categories
+Data file
+PDF document
+All file types
+JSON
+PDF
+Sort
+Newest first
+Oldest first
+Name A–Z
+Name Z–A
+Size, smallest first
+Size, largest first
+RESET
+Attachments of this contract
+	FILE NAME	CATEGORY	TYPE	SIZE	UPLOADED ON	UPLOADED BY	
+ACTIONS
+
+	
+supplemental-5194-proposal.json
+Contract 5194: referenced QU040000173 January 2025 proposal (47 pages) and supplemental source facts. Signed 2026 terms prevail over generic proposal renewal/payment/legal boilerplate.
+	Data file	JSON	14 KB	10 Nov 2026, 12:07	Laith Hamdan	
+
+	
+12500433 proposal.pdf
+Contract 5194: referenced QU040000173 January 2025 proposal (47 pages) and supplemental source facts. Signed 2026 terms prevail over generic proposal renewal/payment/legal boilerplate.
+	PDF document	PDF	2.6 MB	10 Nov 2026, 12:07	Laith Hamdan	
+
+	
+5194-extracted-terms-reference.json
+Contract 5194 of 2025: original countersigned PDF and page-referenced extracted terms for reference. Signed PDF governs; source rounding discrepancy retained.
+	Data file	JSON	17 KB	10 Nov 2026, 11:51	Laith Hamdan	
+
+	
+DDGE Contract OYOON 182 AMC 2026 Al Qudra Bluscan SSPX-Print-CEsigned.pdf
+Contract 5194 of 2025: original countersigned PDF and page-referenced extracted terms for reference. Signed PDF governs; source rounding discrepancy retained.
+	PDF document	PDF	6.3 MB	10 Nov 2026, 11:51	Laith Hamdan	
+1–4 of 4 files
+Rows per page: 
+8
+15
+25
+50
+PREVIOUS
+1
+NEXT
+Change history
+2 rows
+FILTER
+COLUMNS
+EXPORT CSV
+	
+When
+	
+By
+	
+Action
+	
+Reason
+	
+Changes (before → after)
+
+
+	
+10 Nov 2026, 12:07
+	
+lmh
+	
+Update
+	
+	
+Coverage: AMC of Al Qudra Bluscan SSPX/CCH equipment during 01-Jan–31-Dec-2026. Appendix 3(p23):8 Bluscan speed enforcement devices,10 Bluscan(CCH) devices, and cleaning of 14 Bluscan(CCH) radar equipment cabinets. Appendix 4(pp23–24): secure remote diagnostics/support; telephone/email support within operational hours; on-site visits if remote resolution is unavailable; repair/replacement of faulty equipment; corrective maintenance restoring normal operation; preventive inspections/upkeep per manufacturer recommendations. Coverage Mon–Fri 09:00–18:00 UAE time, public holidays excluded. Excludes vandalism, disaster recovery, consumables and non-standard hardware/software changes not mutually agreed. Escalation applies if resolution exceeds agreed timelines; this PDF gives no numeric resolution target or named escalation chain. → 2026 AMC:8 Bluscan speed-enforcement devices,10 Bluscan(CCH) devices,14 Bluscan(CCH) radar-cabinet cleaning units; signed p 23 annual fees unchanged. Secure remote diagnostics/telephone/email support, on-site visits when remote resolution is unavailable, faulty-equipment repair/replacement, corrective restoration and manufacturer-recommended preventive upkeep (signed pp 23–24). ProposalQU040000173, Jan-2025 supplements scope: FM 1-based POLISCAN SPEED/SSPX systems have active support/maintenance/development(LevelA); accessories are LevelB, maintenance effort limited toP 1/P 2; no named LevelC products (proposal p 30). Standard coverage Mon–Fri 09:00–18:00 UAE/GMT+4; target response 1/8/16/72 hours counts normal operational hours from logging, not 24 x 7 (pp 28,34). Extended telephone service outside normal hours is explicitly NOT included; the outside-hours P 1 schedule onp 23 is only an example. Customer provides operational infrastructure, site safety, documents, secure remote access, asset access/site contact, third-party work/material and initial spares for swap-out; follow incident/RMA reporting and first-level checks (pp 20–21,25,31–32). Vandalism/disaster recovery, consumables, unagreed changes, installation/moving equipment and non-normal-use faults are excluded (pp 21,35). Recommendations: initial spare inventory 2%LRUs+2%SRUs and adequate consumables;4-week repair expectation excluding transport/6 weeks including transport is a supply-chain estimate, not a resolution SLA (p 20). No fixed solution time or uptime percentage (p 7).
+Last reviewed at: 10 Nov 2026, 11:50 → 10 Nov 2026, 12:07
+Show all 4 changes
+
+
+	
+10 Nov 2026, 11:50
+	
+lmh
+	
+Create
+	
+	
+Client id: — → 3
+Contract reference: — → 5194 of 2025
+Show all 25 changes

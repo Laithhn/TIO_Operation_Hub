@@ -1,0 +1,482 @@
+[
+  {
+    "id": "006-sla-dashboard",
+    "route": "/dashboards/sla",
+    "operationToSnapshotMs": 538
+  },
+  {
+    "id": "007-management-dashboard",
+    "route": "/dashboards/management",
+    "operationToSnapshotMs": 342
+  },
+  {
+    "id": "008-project-dashboard",
+    "route": "/dashboards/project",
+    "operationToSnapshotMs": 385
+  },
+  {
+    "id": "009-my-dashboard",
+    "route": "/my-dashboard",
+    "operationToSnapshotMs": 383
+  },
+  {
+    "id": "010-sla-settled",
+    "route": "/dashboards/sla",
+    "operationToSnapshotMs": 833
+  },
+  {
+    "id": "011-management-settled",
+    "route": "/dashboards/management",
+    "operationToSnapshotMs": 1095
+  },
+  {
+    "id": "012-project-settled",
+    "route": "/dashboards/project",
+    "operationToSnapshotMs": 813
+  },
+  {
+    "id": "013-my-dashboard-settled",
+    "route": "/my-dashboard",
+    "operationToSnapshotMs": 583
+  },
+  {
+    "id": "014-clients",
+    "route": "/clients",
+    "operationToSnapshotMs": 778
+  },
+  {
+    "id": "015-products",
+    "route": "/products",
+    "operationToSnapshotMs": 711
+  },
+  {
+    "id": "025-commitments",
+    "route": "/commitments",
+    "operationToSnapshotMs": 996
+  },
+  {
+    "id": "026-escalations",
+    "route": "/escalations",
+    "operationToSnapshotMs": 889
+  },
+  {
+    "id": "027-teams",
+    "route": "/teams",
+    "operationToSnapshotMs": 892
+  },
+  {
+    "id": "028-reporting-center",
+    "route": "/reporting-center",
+    "operationToSnapshotMs": 1015
+  },
+  {
+    "id": "029-administration",
+    "route": "/admin",
+    "operationToSnapshotMs": 858
+  },
+  {
+    "id": "030-projects",
+    "route": "/projects",
+    "operationToSnapshotMs": 1095
+  },
+  {
+    "id": "031-contracts",
+    "route": "/contracts",
+    "operationToSnapshotMs": 959
+  },
+  {
+    "id": "032-environments",
+    "route": "/environments",
+    "operationToSnapshotMs": 1013
+  },
+  {
+    "id": "033-version-matrix",
+    "route": "/versions",
+    "operationToSnapshotMs": 844
+  },
+  {
+    "id": "034-assets",
+    "route": "/assets",
+    "operationToSnapshotMs": 1050
+  },
+  {
+    "id": "035-firewall-rules",
+    "route": "/firewall-rules",
+    "operationToSnapshotMs": 1398
+  },
+  {
+    "id": "036-handovers",
+    "route": "/handovers",
+    "operationToSnapshotMs": 813
+  },
+  {
+    "id": "037-reassignment",
+    "route": "/reassignment",
+    "operationToSnapshotMs": 767
+  },
+  {
+    "id": "038-actions",
+    "route": "/actions",
+    "operationToSnapshotMs": 964
+  },
+  {
+    "id": "039-data-quality",
+    "route": "/data-quality",
+    "operationToSnapshotMs": 916
+  },
+  {
+    "id": "040-client-map",
+    "route": "/map",
+    "operationToSnapshotMs": 960
+  },
+  {
+    "id": "048-project-detail",
+    "route": "/projects/1",
+    "operationToSnapshotMs": 938
+  },
+  {
+    "id": "049-contract-detail",
+    "route": "/contracts/1",
+    "operationToSnapshotMs": 1522
+  },
+  {
+    "id": "050-admin-roles",
+    "route": "/admin/roles",
+    "operationToSnapshotMs": 1233
+  },
+  {
+    "id": "051-admin-rights",
+    "route": "/admin/rights",
+    "operationToSnapshotMs": 1139
+  },
+  {
+    "id": "052-admin-access-review",
+    "route": "/admin/access",
+    "operationToSnapshotMs": 1755
+  },
+  {
+    "id": "053-admin-configuration",
+    "route": "/admin/config",
+    "operationToSnapshotMs": 719
+  },
+  {
+    "id": "054-admin-audit",
+    "route": "/admin/audit",
+    "operationToSnapshotMs": 1186
+  },
+  {
+    "id": "055-admin-archived",
+    "route": "/admin/archived",
+    "operationToSnapshotMs": 852
+  },
+  {
+    "id": "056-jira-connections",
+    "route": "/admin/integrations/jira",
+    "operationToSnapshotMs": 1145
+  },
+  {
+    "id": "057-jira-import-review",
+    "route": "/admin/integrations/jira/review",
+    "operationToSnapshotMs": 869
+  },
+  {
+    "id": "058-jira-conflicts",
+    "route": "/admin/integrations/jira/conflicts",
+    "operationToSnapshotMs": 845
+  },
+  {
+    "id": "059-jira-monitor",
+    "route": "/admin/integrations/jira/monitoring",
+    "operationToSnapshotMs": 971
+  },
+  {
+    "id": "060-report-library",
+    "route": "/reporting-center/library",
+    "operationToSnapshotMs": 755
+  },
+  {
+    "id": "061-ticket-report-builder",
+    "route": "/reporting-center/builder/cases",
+    "operationToSnapshotMs": 1457
+  },
+  {
+    "id": "062-my-reports",
+    "route": "/reporting-center/my-reports",
+    "operationToSnapshotMs": 675
+  },
+  {
+    "id": "063-scheduled-reports",
+    "route": "/reporting-center/schedules",
+    "operationToSnapshotMs": 872
+  },
+  {
+    "id": "064-export-history",
+    "route": "/reporting-center/history",
+    "operationToSnapshotMs": 801
+  },
+  {
+    "id": "065-report-templates",
+    "route": "/reporting-center/templates",
+    "operationToSnapshotMs": 694
+  },
+  {
+    "id": "067-ticket-detail",
+    "route": "/cases/12203",
+    "operationToSnapshotMs": 1665
+  },
+  {
+    "id": "068-commitment-detail",
+    "route": "/commitments/6",
+    "operationToSnapshotMs": 972
+  },
+  {
+    "id": "069-handover-detail",
+    "route": "/handovers/1",
+    "operationToSnapshotMs": 903
+  },
+  {
+    "id": "070-environment-detail",
+    "route": "/environments/3",
+    "operationToSnapshotMs": 1184
+  },
+  {
+    "id": "071-product-detail",
+    "route": "/products/1",
+    "operationToSnapshotMs": 1424
+  },
+  {
+    "id": "072-team-detail",
+    "route": "/teams/1",
+    "operationToSnapshotMs": 977
+  },
+  {
+    "id": "073-tickets-mobile",
+    "route": "/cases",
+    "operationToSnapshotMs": 965
+  },
+  {
+    "id": "074-dashboard-mobile",
+    "route": "/",
+    "operationToSnapshotMs": 1528
+  },
+  {
+    "id": "075-builder-mobile",
+    "route": "/reporting-center/builder/cases",
+    "operationToSnapshotMs": 1127
+  },
+  {
+    "id": "076-report-template-critical-high",
+    "route": "/reporting-center/builder/cases?template=open-critical-high",
+    "operationToSnapshotMs": 1446
+  },
+  {
+    "id": "077-notifications",
+    "route": "/notifications",
+    "operationToSnapshotMs": 1817
+  },
+  {
+    "id": "078-asset-detail",
+    "route": "/assets/27",
+    "operationToSnapshotMs": 1328
+  },
+  {
+    "id": "079-installation-detail",
+    "route": "/installations/3",
+    "operationToSnapshotMs": 1181
+  },
+  {
+    "id": "080-component-detail",
+    "route": "/components/27",
+    "operationToSnapshotMs": 791
+  },
+  {
+    "id": "081-microservice-detail",
+    "route": "/microservices/2",
+    "operationToSnapshotMs": 894
+  },
+  {
+    "id": "082-config-clients-environments",
+    "route": "/admin/config/category/clients-environments",
+    "operationToSnapshotMs": 708
+  },
+  {
+    "id": "082-config-servers",
+    "route": "/admin/config/category/servers",
+    "operationToSnapshotMs": 693
+  },
+  {
+    "id": "082-config-products-installations",
+    "route": "/admin/config/category/products-installations",
+    "operationToSnapshotMs": 683
+  },
+  {
+    "id": "082-config-contracts-cases",
+    "route": "/admin/config/category/contracts-cases",
+    "operationToSnapshotMs": 683
+  },
+  {
+    "id": "082-config-teams",
+    "route": "/admin/config/category/teams",
+    "operationToSnapshotMs": 672
+  },
+  {
+    "id": "082-config-system",
+    "route": "/admin/config/category/system",
+    "operationToSnapshotMs": 682
+  },
+  {
+    "id": "083-reported-conditions",
+    "route": "/admin/config/reported-conditions",
+    "operationToSnapshotMs": 719
+  },
+  {
+    "id": "083-organization-relationship-types",
+    "route": "/admin/config/organization-relationship-types",
+    "operationToSnapshotMs": 846
+  },
+  {
+    "id": "083-environment-types",
+    "route": "/admin/config/environment-types",
+    "operationToSnapshotMs": 754
+  },
+  {
+    "id": "083-responsibility-areas",
+    "route": "/admin/config/responsibility-areas",
+    "operationToSnapshotMs": 690
+  },
+  {
+    "id": "083-team-roles",
+    "route": "/admin/config/team-roles",
+    "operationToSnapshotMs": 813
+  },
+  {
+    "id": "083-server-types",
+    "route": "/admin/config/server-types",
+    "operationToSnapshotMs": 705
+  },
+  {
+    "id": "083-server-roles",
+    "route": "/admin/config/server-roles",
+    "operationToSnapshotMs": 813
+  },
+  {
+    "id": "083-network-zones",
+    "route": "/admin/config/network-zones",
+    "operationToSnapshotMs": 812
+  },
+  {
+    "id": "083-operating-systems",
+    "route": "/admin/config/operating-systems",
+    "operationToSnapshotMs": 706
+  },
+  {
+    "id": "083-project-phases",
+    "route": "/admin/config/project-phases",
+    "operationToSnapshotMs": 704
+  },
+  {
+    "id": "084-component-roles",
+    "route": "/admin/config/component-roles",
+    "operationToSnapshotMs": 933
+  },
+  {
+    "id": "084-contract-types",
+    "route": "/admin/config/contract-types",
+    "operationToSnapshotMs": 764
+  },
+  {
+    "id": "084-case-types",
+    "route": "/admin/config/case-types",
+    "operationToSnapshotMs": 737
+  },
+  {
+    "id": "084-case-statuses",
+    "route": "/admin/config/case-statuses",
+    "operationToSnapshotMs": 785
+  },
+  {
+    "id": "084-escalation-channels",
+    "route": "/admin/config/escalation-channels",
+    "operationToSnapshotMs": 743
+  },
+  {
+    "id": "084-priority-guidance",
+    "route": "/admin/config/priority-guidance",
+    "operationToSnapshotMs": 803
+  },
+  {
+    "id": "084-team-member-roles",
+    "route": "/admin/config/team-member-roles",
+    "operationToSnapshotMs": 959
+  },
+  {
+    "id": "084-policies",
+    "route": "/admin/policies",
+    "operationToSnapshotMs": 729
+  },
+  {
+    "id": "084-jira",
+    "route": "/admin/jira",
+    "operationToSnapshotMs": 710
+  },
+  {
+    "id": "084-settings",
+    "route": "/admin/settings",
+    "operationToSnapshotMs": 854
+  },
+  {
+    "id": "085-new-client",
+    "route": "/clients/new",
+    "operationToSnapshotMs": 753
+  },
+  {
+    "id": "086-new-product",
+    "route": "/products/new",
+    "operationToSnapshotMs": 682
+  },
+  {
+    "id": "087-new-ticket",
+    "route": "/cases/new",
+    "operationToSnapshotMs": 754
+  },
+  {
+    "id": "088-new-commitment",
+    "route": "/commitments/new",
+    "operationToSnapshotMs": 799
+  },
+  {
+    "id": "089-new-escalation",
+    "route": "/escalations/new",
+    "operationToSnapshotMs": 707
+  },
+  {
+    "id": "090-new-contract",
+    "route": "/contracts/new",
+    "operationToSnapshotMs": 882
+  },
+  {
+    "id": "091-new-environment",
+    "route": "/environments/new",
+    "operationToSnapshotMs": 750
+  },
+  {
+    "id": "092-group-mappings",
+    "route": "/admin/groups",
+    "operationToSnapshotMs": 842
+  },
+  {
+    "id": "093-password-form",
+    "route": "/account/password",
+    "operationToSnapshotMs": 653
+  },
+  {
+    "id": "094-login-with-existing-session",
+    "route": "/login",
+    "operationToSnapshotMs": 617
+  },
+  {
+    "id": "095-dashboard-return",
+    "route": "/",
+    "operationToSnapshotMs": 1590
+  }
+]

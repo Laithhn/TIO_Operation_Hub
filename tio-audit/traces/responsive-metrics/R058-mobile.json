@@ -1,0 +1,15 @@
+{
+  "id": "R058-mobile",
+  "route": "/admin/config/category/contracts-cases",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Contracts & Tickets"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 408,
+  "title": "Contracts & Tickets · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

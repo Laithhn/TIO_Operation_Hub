@@ -1,0 +1,15 @@
+{
+  "id": "R073-desktop",
+  "route": "/admin/config/case-types",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Ticket types"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 518,
+  "title": "Ticket types · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

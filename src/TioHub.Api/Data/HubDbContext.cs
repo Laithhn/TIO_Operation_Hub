@@ -1582,7 +1582,9 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             var correlation = Activity.Current?.TraceId.ToString();
             foreach (var p in pending)
             {
-                var changes = p.State == EntityState.Added ? AddedValues(p.Entry) : p.Changes!;
+                // TIO-BUG-002: before-values were captured before the save; the after-values of a modified row are read now, once
+                // generated keys are fixed up, so a foreign key to a row added in the same save records its real id, not EF's temporary one.
+                var changes = p.State == EntityState.Added ? AddedValues(p.Entry) : p.State == EntityState.Modified ? WithSavedValues(p.Entry, p.Changes!) : p.Changes!;
                 AuditEntries.Add(new AuditEntry
                 {
                     At = now,
@@ -1647,6 +1649,19 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         return d;
     }
 
+    /// <summary>TIO-BUG-002: keeps the captured before-value of each changed property and takes its after-value as saved.</summary>
+    internal static Dictionary<string, object?[]> WithSavedValues(EntityEntry e, Dictionary<string, object?[]> captured)
+    {
+        var d = new Dictionary<string, object?[]>(captured.Count);
+        foreach (var (name, values) in captured)
+        {
+            var p = e.Property(name);
+            // A value that is still temporary was never written; keep what was captured rather than invent one.
+            d[name] = [values[0], p.IsTemporary ? values[1] : Plain(p.CurrentValue)];
+        }
+        return d;
+    }
+
     private static Dictionary<string, object?[]> AddedValues(EntityEntry e)
     {
         var d = new Dictionary<string, object?[]>();
@@ -1662,11 +1677,16 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         e.Properties.Where(p => !QuietProperties.Contains(p.Metadata.Name) && p.OriginalValue is not null)
             .ToDictionary(p => p.Metadata.Name, p => new[] { Plain(p.OriginalValue), null });
 
-    private static object? Plain(object? v) => v switch
+    /// <summary>Largest integer a browser reads exactly from JSON (2^53 - 1).</summary>
+    internal const long MaxExactJsonInteger = 9007199254740991;
+
+    internal static object? Plain(object? v) => v switch
     {
         null => null,
         Enum en => en.ToString(),
         byte[] => "(binary)",
+        // TIO-BUG-002: a 64-bit value beyond what JavaScript reads exactly is written as text, so it is shown as stored, not rounded.
+        long l when l > MaxExactJsonInteger || l < -MaxExactJsonInteger => l.ToString(System.Globalization.CultureInfo.InvariantCulture),
         _ => v
     };
 

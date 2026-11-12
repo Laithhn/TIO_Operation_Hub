@@ -1,0 +1,15 @@
+{
+  "id": "R050-desktop",
+  "route": "/notifications",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Notifications"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 893,
+  "title": "Notifications · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

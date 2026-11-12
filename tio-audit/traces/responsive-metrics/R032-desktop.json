@@ -1,0 +1,17 @@
+{
+  "id": "R032-desktop",
+  "route": "/admin/audit",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Change history"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 944,
+  "title": "Change history · TIO Operations Hub",
+  "width": 1920,
+  "recheckId": "R032-desktop-settled",
+  "readinessRecheck": "Settled audit table visible"
+}

@@ -1,0 +1,185 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Contracts & Tickets":
+    - /url: /admin/config/category/contracts-cases
+  - generic: ›
+  - generic: Ticket statuses
+- heading "Ticket statuses" [level=1]
+- generic: The statuses shown on tickets. Each one behaves in a fixed way, which decides the ticket actions, SLA clocks and open or closed counts.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Ticket statuses":
+    - searchbox "Filter rows"
+    - generic: 7 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Ticket statuses":
+      - caption: Ticket statuses
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move New up Move New down New Active Actions for New":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move New up Move New down":
+            - button "Move New up" [disabled]: ▲
+            - button "Move New down": ▼
+          - cell "New":
+            - button "New"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for New":
+            - button "Actions for New": ⋯
+        - row "Details for ▲ ▼ Move Open up Move Open down Open Active Actions for Open":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Open up Move Open down":
+            - button "Move Open up": ▲
+            - button "Move Open down": ▼
+          - cell "Open":
+            - button "Open"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Open":
+            - button "Actions for Open": ⋯
+        - row "Details for ▲ ▼ Move In progress up Move In progress down In progress Active Actions for In progress":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move In progress up Move In progress down":
+            - button "Move In progress up": ▲
+            - button "Move In progress down": ▼
+          - cell "In progress":
+            - button "In progress"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for In progress":
+            - button "Actions for In progress": ⋯
+        - row "Details for ▲ ▼ Move Waiting for customer up Move Waiting for customer down Waiting for customer Active Actions for Waiting for customer":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Waiting for customer up Move Waiting for customer down":
+            - button "Move Waiting for customer up": ▲
+            - button "Move Waiting for customer down": ▼
+          - cell "Waiting for customer":
+            - button "Waiting for customer"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Waiting for customer":
+            - button "Actions for Waiting for customer": ⋯
+        - row "Details for ▲ ▼ Move Resolved up Move Resolved down Resolved Active Actions for Resolved":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Resolved up Move Resolved down":
+            - button "Move Resolved up": ▲
+            - button "Move Resolved down": ▼
+          - cell "Resolved":
+            - button "Resolved"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Resolved":
+            - button "Actions for Resolved": ⋯
+        - row "Details for ▲ ▼ Move Closed up Move Closed down Closed Active Actions for Closed":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Closed up Move Closed down":
+            - button "Move Closed up": ▲
+            - button "Move Closed down": ▼
+          - cell "Closed":
+            - button "Closed"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Closed":
+            - button "Actions for Closed": ⋯
+        - row "Details for ▲ ▼ Move Re-opened up Move Re-opened down Re-opened Active Actions for Re-opened":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Re-opened up Move Re-opened down":
+            - button "Move Re-opened up": ▲
+            - button "Move Re-opened down" [disabled]: ▼
+          - cell "Re-opened":
+            - button "Re-opened"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Re-opened":
+            - button "Actions for Re-opened": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

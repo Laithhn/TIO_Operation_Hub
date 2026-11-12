@@ -1,0 +1,15 @@
+{
+  "id": "R065-tablet",
+  "route": "/admin/config/team-roles",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Project team roles"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 575,
+  "title": "Project team roles · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R007-mobile",
+  "route": "/products",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Products"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 216,
+  "title": "Products · TIO Operations Hub",
+  "width": 390
+}

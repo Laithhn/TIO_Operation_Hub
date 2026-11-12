@@ -1,0 +1,15 @@
+{
+  "id": "R059-desktop",
+  "route": "/admin/config/category/teams",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Teams"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 81,
+  "title": "Teams · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

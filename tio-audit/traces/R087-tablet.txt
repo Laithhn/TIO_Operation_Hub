@@ -1,0 +1,186 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+    - generic: Clients
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Environments":
+    - /url: /environments
+- heading "New environment" [level=1]
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client *
+  - combobox "Client *":
+    - option "— Select —" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Region
+  - combobox "Region" [disabled]:
+    - option "Select a client first" [selected]
+  - generic: The region choices depend on the client.
+  - generic: Project
+  - combobox "Project":
+    - option "None" [selected]
+  - generic: "Optional: link this environment to the client project it supports."
+  - generic: Environment name *
+  - textbox "Environment name *"
+  - generic: Unique within the client + region scope.
+  - generic: Type *
+  - combobox "Type *":
+    - option "— Select —" [selected]
+    - option "Production"
+    - option "Staging"
+    - option "UAT"
+    - option "Test"
+    - option "Disaster recovery"
+    - option "Other"
+  - generic: Criticality *
+  - combobox "Criticality *":
+    - option "Critical"
+    - option "High"
+    - option "Normal"
+    - option "Unknown" [selected]
+  - generic: Hosting
+  - combobox "Hosting":
+    - option "On-prem"
+    - option "Cloud"
+    - option "Unknown" [selected]
+  - generic: Location
+  - textbox "Location"
+  - generic: Leave empty if unknown.
+  - generic: Technical owner
+  - combobox "Technical owner":
+    - option "No owner — assignment gap" [selected]
+    - option "Abdalrhman (Aboud) Asaad"
+    - option "Abdulhamid Tork"
+    - option "Ahmed Awadalla"
+    - option "Laith Hamdan"
+    - option "LMH OPR"
+    - option "Moataz Al Khaldi"
+    - option "Mohammad Al Omari"
+    - option "Mohammed Alqaruoti"
+    - option "Naveed Ur Rehman"
+    - option "Ousama Didouqen"
+    - option "Reda Moulouki"
+    - option "Reem Hamid"
+    - option "Shiju Unnithan"
+    - option "Tareq Abdul Jabar"
+    - option "Waleed Alharthi"
+    - option "Ziyad Bu Dukhi"
+  - generic: Operation engineer
+  - combobox "Operation engineer":
+    - option "None" [selected]
+    - option "Abdalrhman (Aboud) Asaad"
+    - option "Abdulhamid Tork"
+    - option "Ahmed Awadalla"
+    - option "Laith Hamdan"
+    - option "LMH OPR"
+    - option "Moataz Al Khaldi"
+    - option "Mohammad Al Omari"
+    - option "Mohammed Alqaruoti"
+    - option "Naveed Ur Rehman"
+    - option "Ousama Didouqen"
+    - option "Reda Moulouki"
+    - option "Reem Hamid"
+    - option "Shiju Unnithan"
+    - option "Tareq Abdul Jabar"
+    - option "Waleed Alharthi"
+    - option "Ziyad Bu Dukhi"
+  - generic: Optional.
+  - generic: Backup operation engineer
+  - combobox "Backup operation engineer":
+    - option "None" [selected]
+    - option "Abdalrhman (Aboud) Asaad"
+    - option "Abdulhamid Tork"
+    - option "Ahmed Awadalla"
+    - option "Laith Hamdan"
+    - option "LMH OPR"
+    - option "Moataz Al Khaldi"
+    - option "Mohammad Al Omari"
+    - option "Mohammed Alqaruoti"
+    - option "Naveed Ur Rehman"
+    - option "Ousama Didouqen"
+    - option "Reda Moulouki"
+    - option "Reem Hamid"
+    - option "Shiju Unnithan"
+    - option "Tareq Abdul Jabar"
+    - option "Waleed Alharthi"
+    - option "Ziyad Bu Dukhi"
+  - generic: Optional. Critical and High environments without a backup still appear as coverage gaps on the action list.
+  - generic: Description
+  - textbox "Description"
+  - paragraph: Access, readiness and change windows arrive in the Next release; they are not needed to create a valid environment.
+  - button "Cancel"
+  - button "Save environment"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

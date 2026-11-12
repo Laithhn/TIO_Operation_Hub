@@ -1,0 +1,15 @@
+{
+  "id": "R019-mobile",
+  "route": "/firewall-rules",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Firewall rules"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 2259,
+  "title": "Firewall rules · TIO Operations Hub",
+  "width": 390
+}

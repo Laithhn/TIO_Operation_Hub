@@ -1,0 +1,15 @@
+{
+  "id": "R012-mobile",
+  "route": "/reporting-center",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 1751,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 390
+}

@@ -1,0 +1,345 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- heading "Users" [level=1]
+- generic: Create and edit accounts, assign roles and data scope. Rights come from roles; set them on the Rights page.
+- button "+ New User"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 44 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Details Name Role Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Name":
+              - button "Name":
+                - generic: Name
+            - columnheader "Role":
+              - button "Role":
+                - generic: Role
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for Abdalrhman (Aboud) Asaad aasa Abdalrhman (Aboud) Asaad aasa ITD Manager Actions for Abdalrhman (Aboud) Asaad":
+            - cell "Details for Abdalrhman (Aboud) Asaad aasa":
+              - button "Details for Abdalrhman (Aboud) Asaad aasa":
+            - cell "Abdalrhman (Aboud) Asaad aasa":
+              - button "Abdalrhman (Aboud) Asaad"
+              - generic "aasa"
+            - cell "ITD Manager":
+              - generic: ITD Manager
+            - cell "Actions for Abdalrhman (Aboud) Asaad":
+              - button "Actions for Abdalrhman (Aboud) Asaad": ⋯
+          - row "Details for Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025 Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025 No role Actions for Abdulaziz Yousif Alghamdi":
+            - cell "Details for Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+              - button "Details for Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+            - cell "Abdulaziz Yousif Alghamdi jira-team-17c4e9d2fc4a4092b3ac9fb65c767025":
+              - button "Abdulaziz Yousif Alghamdi"
+              - generic "jira-team-17c4e9d2fc4a4092b3ac9fb65c767025"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Abdulaziz Yousif Alghamdi":
+              - button "Actions for Abdulaziz Yousif Alghamdi": ⋯
+          - row "Details for Abdulhamid Tork ator Abdulhamid Tork ator TIO Manager Actions for Abdulhamid Tork":
+            - cell "Details for Abdulhamid Tork ator":
+              - button "Details for Abdulhamid Tork ator":
+            - cell "Abdulhamid Tork ator":
+              - button "Abdulhamid Tork"
+              - generic "ator"
+            - cell "TIO Manager":
+              - generic: TIO Manager
+            - cell "Actions for Abdulhamid Tork":
+              - button "Actions for Abdulhamid Tork": ⋯
+          - row "Details for Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8 Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8 No role Actions for Abdullah AlZeghaibi":
+            - cell "Details for Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+              - button "Details for Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+            - cell "Abdullah AlZeghaibi jira-team-59be0dbdcec34c9ca6a652903841a8d8":
+              - button "Abdullah AlZeghaibi"
+              - generic "jira-team-59be0dbdcec34c9ca6a652903841a8d8"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Abdullah AlZeghaibi":
+              - button "Actions for Abdullah AlZeghaibi": ⋯
+          - row "Details for Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6 Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6 No role Actions for Adnan Ahmed":
+            - cell "Details for Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+              - button "Details for Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+            - cell "Adnan Ahmed jira-team-5112e1b4b43043b2bf6aba6b3a7111b6":
+              - button "Adnan Ahmed"
+              - generic "jira-team-5112e1b4b43043b2bf6aba6b3a7111b6"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Adnan Ahmed":
+              - button "Actions for Adnan Ahmed": ⋯
+          - row "Details for Ahmed Awadalla aawd Ahmed Awadalla aawd Operation Engineer Actions for Ahmed Awadalla":
+            - cell "Details for Ahmed Awadalla aawd":
+              - button "Details for Ahmed Awadalla aawd":
+            - cell "Ahmed Awadalla aawd":
+              - button "Ahmed Awadalla"
+              - generic "aawd"
+            - cell "Operation Engineer":
+              - generic: Operation Engineer
+            - cell "Actions for Ahmed Awadalla":
+              - button "Actions for Ahmed Awadalla": ⋯
+          - row "Details for Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f No role Actions for Ahmed Elobaiad":
+            - cell "Details for Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+              - button "Details for Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+            - cell "Ahmed Elobaiad jira-team-f9513eb347354389a043df383284f44f":
+              - button "Ahmed Elobaiad"
+              - generic "jira-team-f9513eb347354389a043df383284f44f"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ahmed Elobaiad":
+              - button "Actions for Ahmed Elobaiad": ⋯
+          - row "Details for Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7 Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7 No role Actions for Ajith Anto":
+            - cell "Details for Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+              - button "Details for Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+            - cell "Ajith Anto jira-team-15cfa80ea2284d789745dd01bdc0c4e7":
+              - button "Ajith Anto"
+              - generic "jira-team-15cfa80ea2284d789745dd01bdc0c4e7"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ajith Anto":
+              - button "Actions for Ajith Anto": ⋯
+          - row "Details for Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689 Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689 No role Actions for Ala AlBarghouthi":
+            - cell "Details for Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+              - button "Details for Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+            - cell "Ala AlBarghouthi jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689":
+              - button "Ala AlBarghouthi"
+              - generic "jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ala AlBarghouthi":
+              - button "Actions for Ala AlBarghouthi": ⋯
+          - row "Details for Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8 Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8 No role Actions for Ali Alshehri":
+            - cell "Details for Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+              - button "Details for Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+            - cell "Ali Alshehri jira-team-941df9fb60c84058a001b570f377aae8":
+              - button "Ali Alshehri"
+              - generic "jira-team-941df9fb60c84058a001b570f377aae8"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ali Alshehri":
+              - button "Actions for Ali Alshehri": ⋯
+          - row "Details for amai jira-team-41ce9617c6914b5997be24ddfc6ac980 amai jira-team-41ce9617c6914b5997be24ddfc6ac980 No role Actions for amai":
+            - cell "Details for amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+              - button "Details for amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+            - cell "amai jira-team-41ce9617c6914b5997be24ddfc6ac980":
+              - button "amai"
+              - generic "jira-team-41ce9617c6914b5997be24ddfc6ac980"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for amai":
+              - button "Actions for amai": ⋯
+          - row "Details for Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a No role Actions for Ansil Ansar1":
+            - cell "Details for Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+              - button "Details for Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+            - cell "Ansil Ansar1 jira-team-95dec06204a7461e96c1a43b40709d2a":
+              - button "Ansil Ansar1"
+              - generic "jira-team-95dec06204a7461e96c1a43b40709d2a"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ansil Ansar1":
+              - button "Actions for Ansil Ansar1": ⋯
+          - row "Details for Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2 Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2 No role Actions for Ansil Ansar2":
+            - cell "Details for Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+              - button "Details for Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+            - cell "Ansil Ansar2 jira-team-497970666fbe477e956694475f3d26f2":
+              - button "Ansil Ansar2"
+              - generic "jira-team-497970666fbe477e956694475f3d26f2"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ansil Ansar2":
+              - button "Actions for Ansil Ansar2": ⋯
+          - row "Details for Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b No role Actions for Aymen A. Ameen":
+            - cell "Details for Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+              - button "Details for Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+            - cell "Aymen A. Ameen jira-team-0be4ee0d01e440009e21724e9271376b":
+              - button "Aymen A. Ameen"
+              - generic "jira-team-0be4ee0d01e440009e21724e9271376b"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Aymen A. Ameen":
+              - button "Actions for Aymen A. Ameen": ⋯
+          - row "Details for Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d No role Actions for Bassem Amiche":
+            - cell "Details for Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+              - button "Details for Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+            - cell "Bassem Amiche jira-team-1fc7a2c5fc23441496096eb21450ab9d":
+              - button "Bassem Amiche"
+              - generic "jira-team-1fc7a2c5fc23441496096eb21450ab9d"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Bassem Amiche":
+              - button "Actions for Bassem Amiche": ⋯
+          - row "Details for car jira-team-4b12a08f9d9040d592613a7cf73ade36 car jira-team-4b12a08f9d9040d592613a7cf73ade36 No role Actions for car":
+            - cell "Details for car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+              - button "Details for car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+            - cell "car jira-team-4b12a08f9d9040d592613a7cf73ade36":
+              - button "car"
+              - generic "jira-team-4b12a08f9d9040d592613a7cf73ade36"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for car":
+              - button "Actions for car": ⋯
+          - row "Details for Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6 Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6 No role Actions for Ehab Hawwash":
+            - cell "Details for Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+              - button "Details for Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+            - cell "Ehab Hawwash jira-team-144117433e19411fb7f8952827d35fe6":
+              - button "Ehab Hawwash"
+              - generic "jira-team-144117433e19411fb7f8952827d35fe6"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ehab Hawwash":
+              - button "Actions for Ehab Hawwash": ⋯
+          - row "Details for Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac No role Actions for Evgeny Gnevashev":
+            - cell "Details for Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+              - button "Details for Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+            - cell "Evgeny Gnevashev jira-team-7effe2cc05d0418b8954c518610f67ac":
+              - button "Evgeny Gnevashev"
+              - generic "jira-team-7effe2cc05d0418b8954c518610f67ac"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Evgeny Gnevashev":
+              - button "Actions for Evgeny Gnevashev": ⋯
+          - row "Details for Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a No role Actions for Faisal Alyami":
+            - cell "Details for Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+              - button "Details for Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+            - cell "Faisal Alyami jira-team-72ea74e8daff4701b6287996fefba03a":
+              - button "Faisal Alyami"
+              - generic "jira-team-72ea74e8daff4701b6287996fefba03a"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Faisal Alyami":
+              - button "Actions for Faisal Alyami": ⋯
+          - row "Details for Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f No role Actions for Ghaith Ahmed Al Omari":
+            - cell "Details for Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+              - button "Details for Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+            - cell "Ghaith Ahmed Al Omari jira-team-92d1574fef7340c3baff800a20b8348f":
+              - button "Ghaith Ahmed Al Omari"
+              - generic "jira-team-92d1574fef7340c3baff800a20b8348f"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Ghaith Ahmed Al Omari":
+              - button "Actions for Ghaith Ahmed Al Omari": ⋯
+          - row "Details for Laith Hamdan lmh Laith Hamdan lmh TIO Manager Actions for Laith Hamdan":
+            - cell "Details for Laith Hamdan lmh":
+              - button "Details for Laith Hamdan lmh":
+            - cell "Laith Hamdan lmh":
+              - button "Laith Hamdan"
+              - generic "lmh"
+            - cell "TIO Manager":
+              - generic: TIO Manager
+            - cell "Actions for Laith Hamdan":
+              - button "Actions for Laith Hamdan": ⋯
+          - row "Details for LMH OPR OPR LMH OPR OPR Operation Engineer Actions for LMH OPR":
+            - cell "Details for LMH OPR OPR":
+              - button "Details for LMH OPR OPR":
+            - cell "LMH OPR OPR":
+              - button "LMH OPR"
+              - generic "OPR"
+            - cell "Operation Engineer":
+              - generic: Operation Engineer
+            - cell "Actions for LMH OPR":
+              - button "Actions for LMH OPR": ⋯
+          - row "Details for Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6 Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6 No role Actions for Mahmoud Hussein":
+            - cell "Details for Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+              - button "Details for Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+            - cell "Mahmoud Hussein jira-team-f60c04680843460a803853a777ebb6a6":
+              - button "Mahmoud Hussein"
+              - generic "jira-team-f60c04680843460a803853a777ebb6a6"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Mahmoud Hussein":
+              - button "Actions for Mahmoud Hussein": ⋯
+          - row "Details for Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff No role Actions for Mark Mico":
+            - cell "Details for Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+              - button "Details for Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+            - cell "Mark Mico jira-team-49139c63330640f7b3d9f403117a22ff":
+              - button "Mark Mico"
+              - generic "jira-team-49139c63330640f7b3d9f403117a22ff"
+            - cell "No role":
+              - text: No role
+            - cell "Actions for Mark Mico":
+              - button "Actions for Mark Mico": ⋯
+          - row "Details for Moataz Al Khaldi mali Moataz Al Khaldi mali Operation Engineer Actions for Moataz Al Khaldi":
+            - cell "Details for Moataz Al Khaldi mali":
+              - button "Details for Moataz Al Khaldi mali":
+            - cell "Moataz Al Khaldi mali":
+              - button "Moataz Al Khaldi"
+              - generic "mali"
+            - cell "Operation Engineer":
+              - generic: Operation Engineer
+            - cell "Actions for Moataz Al Khaldi":
+              - button "Actions for Moataz Al Khaldi": ⋯
+    - status
+    - navigation "Table pages":
+      - generic: 1 – 25 of 44
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "10"
+        - option "25" [selected]
+        - option "50"
+        - option "100"
+      - button "Prev" [disabled]
+      - generic: Page 1 of 2
+      - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

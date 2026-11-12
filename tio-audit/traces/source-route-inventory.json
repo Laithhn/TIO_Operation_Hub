@@ -1,0 +1,3322 @@
+{
+  "title": "Local source route inventory; not evidence of deployed availability",
+  "local_commit": "3d6a6b5",
+  "review_date_local": "2026-11-10",
+  "source_domain_count": 29,
+  "nav_sections": [
+    "Dashboard",
+    "Clients",
+    "Products",
+    "Tickets",
+    "Commitments",
+    "Notes",
+    "Escalations",
+    "Teams",
+    "Reporting Center",
+    "Administration"
+  ],
+  "route_entry_count_including_aliases_patterns_and_expansions": 114,
+  "required_documents_reviewed": [
+    "README.md",
+    "docs/DECISIONS.md",
+    "docs/DESIGN-RULES.md",
+    "docs/IMPLEMENTATION-PLAN.md",
+    "docs/OPERATIONS.md"
+  ],
+  "domains": {
+    "Authentication": {
+      "persona": "All approved users; first administrator setup only on a new installation",
+      "read": [
+        "Sign-in mode and login screen",
+        "Validation labels and change-password screen"
+      ],
+      "write": [
+        "Submit credentials",
+        "First administrator setup",
+        "Change password",
+        "Sign out"
+      ],
+      "guard": "Sign-in routes are outside Root/Shell; Root resolves /me and redirects mandatory password change."
+    },
+    "Dashboard": {
+      "persona": "TIO managers and permitted business users",
+      "read": [
+        "Operations Command Center KPIs, current risks and record drilldowns",
+        "Client/team/product/country/show/period filters",
+        "Chart/table toggles and refresh"
+      ],
+      "write": [],
+      "guard": "Dashboard:View plus View of all 11 business resource groups; each audience dashboard adds its own View prerequisite."
+    },
+    "My dashboard": {
+      "persona": "Individual engineers and managers",
+      "read": [
+        "Own tickets and commitments",
+        "Prioritized personal work queue",
+        "Last 30 days results and latest ticket comments"
+      ],
+      "write": [],
+      "guard": "MyDashboard:View; commitments panel additionally requires Commitments:View."
+    },
+    "Operational dashboard": {
+      "persona": "Engineers and team leads",
+      "read": [
+        "My work/My team/Everything filters",
+        "At-risk SLA clocks and due/overdue work queue",
+        "Production environment board",
+        "Owner workload",
+        "Next seven days and personal hygiene",
+        "60-second refresh"
+      ],
+      "write": [],
+      "guard": "OperationalDashboard:View and prerequisites including Dashboard:View."
+    },
+    "SLA and Contracts dashboard": {
+      "persona": "Contract owners and service managers",
+      "read": [
+        "Period/client/contract/type/priority filters",
+        "SLA rates with previous-period change",
+        "Priority breaches and unmeasurable reasons",
+        "12-month rate trend",
+        "Active contract compliance",
+        "Renewal and notice timelines",
+        "Payments grouped per currency"
+      ],
+      "write": [],
+      "guard": "SlaContractsDashboard:View and Dashboard:View prerequisites."
+    },
+    "Management dashboard": {
+      "persona": "TIO managers",
+      "read": [
+        "Quarter/month/year-to-date comparison",
+        "Backlog, closure median, SLA, commitment timeliness",
+        "Monthly opened/closed trend",
+        "Team load and coverage gaps",
+        "Client portfolio with recorded statuses/signals",
+        "Risk follow-up, contract decisions, data-trust panel"
+      ],
+      "write": [],
+      "guard": "ManagementDashboard:View and Dashboard:View prerequisites."
+    },
+    "Client dashboard": {
+      "persona": "Client/project managers",
+      "read": [
+        "Client selection",
+        "Recorded client status and history",
+        "Seven rule-based operational signals",
+        "Project, milestone, payment, ticket, escalation, commitment, environment and team summaries"
+      ],
+      "write": [
+        "Update client status with reason and optional next review"
+      ],
+      "guard": "ClientDashboard:View and Dashboard:View prerequisites; recording currently needs Projects:Maintain in client scope (A109 business decision)."
+    },
+    "Client map": {
+      "persona": "TIO managers and permitted business users",
+      "read": [
+        "Five map layers",
+        "Client/region/team/product filters",
+        "Country/client explorer search and sort",
+        "Country details: Clients, Servers, Tickets, Contracts",
+        "Map zoom, overlays, full screen and filtered overview links"
+      ],
+      "write": [],
+      "guard": "ClientMap:View plus dashboard/business read prerequisites; source map tiles are configured HTTPS browser requests."
+    },
+    "Action list": {
+      "persona": "Engineers, leads and managers",
+      "read": [
+        "Grouped reason filters",
+        "Due/overdue, owner, environment and contract action queues",
+        "Search/sort/paging",
+        "Linked record drilldowns"
+      ],
+      "write": [
+        "Export action list (creates export/audit records)"
+      ],
+      "guard": "ActionList:View plus dashboard/business read prerequisites; export rights are checked separately."
+    },
+    "Notifications": {
+      "persona": "Assigned users and managers",
+      "read": [
+        "Bell popover and counts",
+        "All/Unread/Critical/Payments tabs",
+        "Severity/state/search/page filters",
+        "Grouped alerts",
+        "Payment watchlist and per-currency figures"
+      ],
+      "write": [
+        "Opening a notice marks it read",
+        "Mark read / mark all read",
+        "Delete notice",
+        "Payment CSV export"
+      ],
+      "guard": "Notifications:View; Maintain for read-state changes and Delete for deletion. Navigate directly to records to preserve existing notification state."
+    },
+    "Data quality": {
+      "persona": "Record coordinators and TIO managers",
+      "read": [
+        "Open items by rule",
+        "Affected record links",
+        "Client/owner/rule filters"
+      ],
+      "write": [
+        "Re-evaluate rules",
+        "Coordinate item: coordinator, next action, review date",
+        "Export report"
+      ],
+      "guard": "DataQuality:View plus dashboard/business prerequisites; coordinate and scan actions have separate rights. Items resolve by rules, not a manual close."
+    },
+    "Clients and regions": {
+      "persona": "Client/project managers; scoped business readers",
+      "read": [
+        "All-client search across pages",
+        "Status/country/structure filters",
+        "Client/sub-client hierarchy",
+        "Client 360 areas and tabs",
+        "Region facts and environment list",
+        "Contact and responsibility cards",
+        "Optional organization graph",
+        "Logo display"
+      ],
+      "write": [
+        "Create/edit client and logo",
+        "Add/edit region/project/contact/boundary",
+        "Edit client project team",
+        "Archive/delete/cascade",
+        "Organization graph changes",
+        "Attachments",
+        "Jira integration controls"
+      ],
+      "guard": "Client list/detail use ClientStructure:Access and at least one permitted tab; tab-specific rights and underlying resource rights; create/edit/detail/structure access has explicit route checks."
+    },
+    "Projects": {
+      "persona": "Project managers and scoped business users",
+      "read": [
+        "Project register with active contracts and renewal attention",
+        "Project facts, products, environments and contracts",
+        "Personal note link panel",
+        "Attachments and history"
+      ],
+      "write": [
+        "Add/edit project dialogs",
+        "New contract",
+        "Archive/delete project",
+        "Notes and files"
+      ],
+      "guard": "Projects:View; details need Projects:DetailsView; create and maintain separately. Contracts belong to one project; client team is shared across projects."
+    },
+    "Contracts": {
+      "persona": "Contract owners, engineers and managers",
+      "read": [
+        "Contract register with client/type/status/renewal filters",
+        "Terms and support calendar",
+        "Priority SLA targets",
+        "Delivery schedule",
+        "Fees and payments",
+        "Indicative penalty clauses/assessments",
+        "Covered products/environments",
+        "Attachments and history"
+      ],
+      "write": [
+        "Create/edit contract",
+        "Renew into draft form",
+        "Payment/milestone/fee changes",
+        "Penalty recalculation/confirmation",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard": "Contracts resource rights; monetary figures are business data. Recalculate/confirm/export create state; no separate four-eyes rule is required by recorded A75."
+    },
+    "Environments": {
+      "persona": "Operation engineers and environment owners",
+      "read": [
+        "Environment register and filters",
+        "Ownership/backup/operation engineer",
+        "Manually reported condition and review freshness",
+        "Applications, servers, work, firewall, condition history, quality, files and history tabs"
+      ],
+      "write": [
+        "Create/edit environment",
+        "Report condition",
+        "Add server/installation",
+        "Copy servers or environment",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard": "Environments resource and tab rights; detail requires DetailsView; condition reports do not constitute live monitoring or inventory review."
+    },
+    "Installations and versions": {
+      "persona": "Operation engineers and product support",
+      "read": [
+        "Installation facts and components/hosts",
+        "Explicit version history",
+        "Microservice deployment matrix",
+        "Version matrix and product coverage"
+      ],
+      "write": [
+        "Add/edit installation",
+        "Choose microservices/server deployment",
+        "Confirm version change",
+        "Add/edit/delete components",
+        "Copy/archive/delete",
+        "Attachments"
+      ],
+      "guard": "Installations:View and detail rights; version matrix uses Installations:View; components map to Servers rights."
+    },
+    "Servers and components": {
+      "persona": "Infrastructure engineers",
+      "read": [
+        "Asset register filters and aggregate CPU/RAM/storage totals",
+        "Server specification, volumes, technical owner",
+        "Hosted components/microservice versions",
+        "Firewall links",
+        "Component facts",
+        "Files and history"
+      ],
+      "write": [
+        "Add/edit server",
+        "Add/delete volume",
+        "Update hosted microservices",
+        "Copy/archive/delete",
+        "Edit components",
+        "Attachments"
+      ],
+      "guard": "Servers resource rights. Network zone/IP/VLAN/notes and restricted topology need Platform:TechnicalDetail; logical endpoints do not count as provisioned servers."
+    },
+    "Firewall rules": {
+      "persona": "Network/infrastructure engineers",
+      "read": [
+        "Client/environment/server-filtered rules",
+        "Source/destination/protocol/ports/direction/purpose",
+        "Rules embedded on server/environment pages"
+      ],
+      "write": [
+        "Add/edit/delete firewall rule",
+        "Export"
+      ],
+      "guard": "OtherOperations rights plus Platform:TechnicalDetail. This is recorded configuration, not a live firewall export."
+    },
+    "Products and microservices": {
+      "persona": "Product owners, developers and support engineers",
+      "read": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "write": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks."
+    },
+    "Tickets": {
+      "persona": "Operation engineers, incident coordinators and managers",
+      "read": [
+        "All-ticket search including client and Jira key",
+        "Quick views and multi-filter list",
+        "Column selection, sorting and paging",
+        "Management summary, next action, SLA/deadline/ownership",
+        "Activity, affected records, Jira references, documented impact, commitments, escalations, files, field history"
+      ],
+      "write": [
+        "Create/edit",
+        "Triage/assign/start/progress/wait/validate/return/close/reopen/cancel/status/due-date actions",
+        "First response and contract linking",
+        "Activity comments",
+        "Manual Jira references",
+        "Sync with Jira (external read and local writes)",
+        "Delete and attachments"
+      ],
+      "guard": "Cases and per-tab rights; detail rights separate. Jira-synchronized status/priority/due dates/first response follow Jira rules; do not expect manual incident lifecycle actions on those tickets."
+    },
+    "Commitments": {
+      "persona": "Accountable delivery/operation owners",
+      "read": [
+        "Client/internal-team filtered register",
+        "Owner/deadline/status/timeliness",
+        "Original and revised deadline history",
+        "Related record links",
+        "Files and history"
+      ],
+      "write": [
+        "Create",
+        "Revise deadline",
+        "Complete with completion time",
+        "Cancel/reopen",
+        "Delete",
+        "Attachments"
+      ],
+      "guard": "Commitments resource rights; waiting never pauses deadlines; late completion remains Completed with a separate timeliness result."
+    },
+    "Personal notes": {
+      "persona": "Signed-in permitted users; own notes only",
+      "read": [
+        "Notebook/section/page tree",
+        "Search and pinned/linked/personal/recycle-bin views",
+        "Rich page editor",
+        "Client/project links"
+      ],
+      "write": [
+        "GET /notes/tree creates starter notebook/section when absent",
+        "Autosave after typing",
+        "Create/rename/recolor/reorder/move notebook/section/page",
+        "Files/images/paste",
+        "Delete/restore/permanent delete/empty bin"
+      ],
+      "guard": "PersonalNotes rights; every record is owner-only. Avoid opening unprovisioned live accounts: nominal read has initialization writes."
+    },
+    "Escalations": {
+      "persona": "Client managers and escalation owners",
+      "read": [
+        "Register with search/channel/level/status/owner/overdue filters",
+        "Direction and contact details",
+        "Response/resolution targets",
+        "Linked client/project/contract/ticket",
+        "Communication/status timeline",
+        "Files and history"
+      ],
+      "write": [
+        "Create/edit escalation",
+        "Log communication",
+        "Change status",
+        "Raise level",
+        "Delete",
+        "Attachments"
+      ],
+      "guard": "OtherOperations resource rights; channels configurable; hub records communications and does not send them."
+    },
+    "Teams and handovers": {
+      "persona": "Team leads, managers and receiving owners",
+      "read": [
+        "Teams and coverage",
+        "Members, skills, product familiarity",
+        "Assignments, unassigned tickets, coverage gaps",
+        "Handover register/detail and affected records",
+        "Reassignment queue for inactive owners",
+        "Files and history"
+      ],
+      "write": [
+        "Create team",
+        "Add/edit/remove member",
+        "Create handover",
+        "Acknowledge and take ownership",
+        "Manager exception",
+        "Cancel handover",
+        "Delete and attachments"
+      ],
+      "guard": "Teams rights plus Handovers/Reassignment view rights. Capacity and absence planning explicitly remain future scope."
+    },
+    "Reporting Center": {
+      "persona": "Permitted report consumers and managers with Export",
+      "read": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "write": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read."
+    },
+    "Users, roles and access": {
+      "persona": "Authorized administrators",
+      "read": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "write": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode."
+    },
+    "Configuration and settings": {
+      "persona": "Authorized configuration administrators",
+      "read": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "write": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files."
+    },
+    "Jira integrations": {
+      "persona": "Authorized integration administrators",
+      "read": [
+        "Connections overview",
+        "Client space assignment view",
+        "Import review",
+        "Integration issues",
+        "Unmapped Jira users/mapping history",
+        "Workflow mappings",
+        "Sync monitoring/runs/failures"
+      ],
+      "write": [
+        "Add/edit connection and rotate credentials",
+        "Test connection/discover spaces/preview import (external calls)",
+        "Assign/reassign spaces/contracts",
+        "Import/sync/retry/recalculate",
+        "Enable/pause client integration",
+        "Map users/statuses/types/priorities",
+        "Resolve conflicts"
+      ],
+      "guard": "Administration plus AdminIntegrations rights. Connection tests/previews/sync contact Jira and may write local state. Do not trigger in live audit."
+    },
+    "Change history and archive": {
+      "persona": "Audit readers; scoped restore coordinators",
+      "read": [
+        "Business/access audit history",
+        "People/system/account/date filters",
+        "Expanded before/after changes",
+        "Archived register by type/client",
+        "Deletion dependency preview"
+      ],
+      "write": [
+        "Restore archived record",
+        "Delete/cascade operations via shared dialogs",
+        "Audit/export generation"
+      ],
+      "guard": "AdminAudit and Platform:Audit appropriately scoped; archived page needs any ArchiveRestore right and per-record API access. No production restore/delete testing."
+    }
+  },
+  "routes": [
+    {
+      "route": "/login",
+      "module": "Authentication",
+      "component": "LoginPage",
+      "source": "src/web/src/App.tsx:150",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "All approved users; first administrator setup only on a new installation",
+      "capabilities": [
+        "Sign-in mode and login screen",
+        "Validation labels and change-password screen"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Submit credentials",
+        "First administrator setup",
+        "Change password",
+        "Sign out"
+      ],
+      "guard_notes": "Sign-in routes are outside Root/Shell; Root resolves /me and redirects mandatory password change.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/account/password",
+      "module": "Authentication",
+      "component": "ChangePasswordPage",
+      "source": "src/web/src/App.tsx:151",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "All approved users; first administrator setup only on a new installation",
+      "capabilities": [
+        "Sign-in mode and login screen",
+        "Validation labels and change-password screen"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Submit credentials",
+        "First administrator setup",
+        "Change password",
+        "Sign out"
+      ],
+      "guard_notes": "Sign-in routes are outside Root/Shell; Root resolves /me and redirects mandatory password change.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/",
+      "module": "Dashboard",
+      "component": "Home",
+      "source": "src/web/src/App.tsx (index route)",
+      "source_type": "router declaration",
+      "redirect": "Engineers without ClientStructure:Coordinate may go to /my-dashboard",
+      "persona": "TIO managers and permitted business users",
+      "capabilities": [
+        "Operations Command Center KPIs, current risks and record drilldowns",
+        "Client/team/product/country/show/period filters",
+        "Chart/table toggles and refresh"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Dashboard:View plus View of all 11 business resource groups; each audience dashboard adds its own View prerequisite.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/overview",
+      "module": "Dashboard",
+      "component": "Overview",
+      "source": "src/web/src/App.tsx:155",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "TIO managers and permitted business users",
+      "capabilities": [
+        "Operations Command Center KPIs, current risks and record drilldowns",
+        "Client/team/product/country/show/period filters",
+        "Chart/table toggles and refresh"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Dashboard:View plus View of all 11 business resource groups; each audience dashboard adds its own View prerequisite.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/map",
+      "module": "Client map",
+      "component": "MapHome",
+      "source": "src/web/src/App.tsx:156",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "TIO managers and permitted business users",
+      "capabilities": [
+        "Five map layers",
+        "Client/region/team/product filters",
+        "Country/client explorer search and sort",
+        "Country details: Clients, Servers, Tickets, Contracts",
+        "Map zoom, overlays, full screen and filtered overview links"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "ClientMap:View plus dashboard/business read prerequisites; source map tiles are configured HTTPS browser requests.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards/*",
+      "module": "Dashboard",
+      "component": "Dashboards",
+      "source": "src/web/src/App.tsx:157",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "TIO managers and permitted business users",
+      "capabilities": [
+        "Operations Command Center KPIs, current risks and record drilldowns",
+        "Client/team/product/country/show/period filters",
+        "Chart/table toggles and refresh"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Dashboard:View plus View of all 11 business resource groups; each audience dashboard adds its own View prerequisite.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/actions",
+      "module": "Action list",
+      "component": "ActionList",
+      "source": "src/web/src/App.tsx:158",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Engineers, leads and managers",
+      "capabilities": [
+        "Grouped reason filters",
+        "Due/overdue, owner, environment and contract action queues",
+        "Search/sort/paging",
+        "Linked record drilldowns"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Export action list (creates export/audit records)"
+      ],
+      "guard_notes": "ActionList:View plus dashboard/business read prerequisites; export rights are checked separately.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/notifications",
+      "module": "Notifications",
+      "component": "NotificationsPage",
+      "source": "src/web/src/App.tsx:159",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Assigned users and managers",
+      "capabilities": [
+        "Bell popover and counts",
+        "All/Unread/Critical/Payments tabs",
+        "Severity/state/search/page filters",
+        "Grouped alerts",
+        "Payment watchlist and per-currency figures"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Opening a notice marks it read",
+        "Mark read / mark all read",
+        "Delete notice",
+        "Payment CSV export"
+      ],
+      "guard_notes": "Notifications:View; Maintain for read-state changes and Delete for deletion. Navigate directly to records to preserve existing notification state.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/data-quality",
+      "module": "Data quality",
+      "component": "DataQuality",
+      "source": "src/web/src/App.tsx:160",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Record coordinators and TIO managers",
+      "capabilities": [
+        "Open items by rule",
+        "Affected record links",
+        "Client/owner/rule filters"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Re-evaluate rules",
+        "Coordinate item: coordinator, next action, review date",
+        "Export report"
+      ],
+      "guard_notes": "DataQuality:View plus dashboard/business prerequisites; coordinate and scan actions have separate rights. Items resolve by rules, not a manual close.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/*",
+      "module": "Reporting Center",
+      "component": "Reports",
+      "source": "src/web/src/App.tsx:162",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reports",
+      "module": "Reporting Center",
+      "component": "LegacyReports",
+      "source": "src/web/src/App.tsx:163",
+      "source_type": "router declaration",
+      "redirect": true,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reports/*",
+      "module": "Reporting Center",
+      "component": "LegacyReports",
+      "source": "src/web/src/App.tsx:164",
+      "source_type": "router declaration",
+      "redirect": true,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/clients",
+      "module": "Clients and regions",
+      "component": "ClientList",
+      "source": "src/web/src/App.tsx:165",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client/project managers; scoped business readers",
+      "capabilities": [
+        "All-client search across pages",
+        "Status/country/structure filters",
+        "Client/sub-client hierarchy",
+        "Client 360 areas and tabs",
+        "Region facts and environment list",
+        "Contact and responsibility cards",
+        "Optional organization graph",
+        "Logo display"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit client and logo",
+        "Add/edit region/project/contact/boundary",
+        "Edit client project team",
+        "Archive/delete/cascade",
+        "Organization graph changes",
+        "Attachments",
+        "Jira integration controls"
+      ],
+      "guard_notes": "Client list/detail use ClientStructure:Access and at least one permitted tab; tab-specific rights and underlying resource rights; create/edit/detail/structure access has explicit route checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/clients/new",
+      "module": "Clients and regions",
+      "component": "ClientForm",
+      "source": "src/web/src/App.tsx:166",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client/project managers; scoped business readers",
+      "capabilities": [
+        "All-client search across pages",
+        "Status/country/structure filters",
+        "Client/sub-client hierarchy",
+        "Client 360 areas and tabs",
+        "Region facts and environment list",
+        "Contact and responsibility cards",
+        "Optional organization graph",
+        "Logo display"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit client and logo",
+        "Add/edit region/project/contact/boundary",
+        "Edit client project team",
+        "Archive/delete/cascade",
+        "Organization graph changes",
+        "Attachments",
+        "Jira integration controls"
+      ],
+      "guard_notes": "Client list/detail use ClientStructure:Access and at least one permitted tab; tab-specific rights and underlying resource rights; create/edit/detail/structure access has explicit route checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/clients/:id",
+      "module": "Clients and regions",
+      "component": "ClientDetail",
+      "source": "src/web/src/App.tsx:167",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client/project managers; scoped business readers",
+      "capabilities": [
+        "All-client search across pages",
+        "Status/country/structure filters",
+        "Client/sub-client hierarchy",
+        "Client 360 areas and tabs",
+        "Region facts and environment list",
+        "Contact and responsibility cards",
+        "Optional organization graph",
+        "Logo display"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit client and logo",
+        "Add/edit region/project/contact/boundary",
+        "Edit client project team",
+        "Archive/delete/cascade",
+        "Organization graph changes",
+        "Attachments",
+        "Jira integration controls"
+      ],
+      "guard_notes": "Client list/detail use ClientStructure:Access and at least one permitted tab; tab-specific rights and underlying resource rights; create/edit/detail/structure access has explicit route checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/clients/:id/edit",
+      "module": "Clients and regions",
+      "component": "ClientForm",
+      "source": "src/web/src/App.tsx:168",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client/project managers; scoped business readers",
+      "capabilities": [
+        "All-client search across pages",
+        "Status/country/structure filters",
+        "Client/sub-client hierarchy",
+        "Client 360 areas and tabs",
+        "Region facts and environment list",
+        "Contact and responsibility cards",
+        "Optional organization graph",
+        "Logo display"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit client and logo",
+        "Add/edit region/project/contact/boundary",
+        "Edit client project team",
+        "Archive/delete/cascade",
+        "Organization graph changes",
+        "Attachments",
+        "Jira integration controls"
+      ],
+      "guard_notes": "Client list/detail use ClientStructure:Access and at least one permitted tab; tab-specific rights and underlying resource rights; create/edit/detail/structure access has explicit route checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/regions/:id",
+      "module": "Clients and regions",
+      "component": "RegionDetail",
+      "source": "src/web/src/App.tsx:169",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client/project managers; scoped business readers",
+      "capabilities": [
+        "All-client search across pages",
+        "Status/country/structure filters",
+        "Client/sub-client hierarchy",
+        "Client 360 areas and tabs",
+        "Region facts and environment list",
+        "Contact and responsibility cards",
+        "Optional organization graph",
+        "Logo display"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit client and logo",
+        "Add/edit region/project/contact/boundary",
+        "Edit client project team",
+        "Archive/delete/cascade",
+        "Organization graph changes",
+        "Attachments",
+        "Jira integration controls"
+      ],
+      "guard_notes": "Client list/detail use ClientStructure:Access and at least one permitted tab; tab-specific rights and underlying resource rights; create/edit/detail/structure access has explicit route checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/projects",
+      "module": "Projects",
+      "component": "ProjectList",
+      "source": "src/web/src/App.tsx:170",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Project managers and scoped business users",
+      "capabilities": [
+        "Project register with active contracts and renewal attention",
+        "Project facts, products, environments and contracts",
+        "Personal note link panel",
+        "Attachments and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit project dialogs",
+        "New contract",
+        "Archive/delete project",
+        "Notes and files"
+      ],
+      "guard_notes": "Projects:View; details need Projects:DetailsView; create and maintain separately. Contracts belong to one project; client team is shared across projects.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/projects/:id",
+      "module": "Projects",
+      "component": "ProjectDetail",
+      "source": "src/web/src/App.tsx:171",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Project managers and scoped business users",
+      "capabilities": [
+        "Project register with active contracts and renewal attention",
+        "Project facts, products, environments and contracts",
+        "Personal note link panel",
+        "Attachments and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit project dialogs",
+        "New contract",
+        "Archive/delete project",
+        "Notes and files"
+      ],
+      "guard_notes": "Projects:View; details need Projects:DetailsView; create and maintain separately. Contracts belong to one project; client team is shared across projects.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/products",
+      "module": "Products and microservices",
+      "component": "ProductList",
+      "source": "src/web/src/App.tsx:172",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Product owners, developers and support engineers",
+      "capabilities": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard_notes": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/products/new",
+      "module": "Products and microservices",
+      "component": "ProductForm",
+      "source": "src/web/src/App.tsx:173",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Product owners, developers and support engineers",
+      "capabilities": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard_notes": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/products/:id",
+      "module": "Products and microservices",
+      "component": "ProductDetail",
+      "source": "src/web/src/App.tsx:174",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Product owners, developers and support engineers",
+      "capabilities": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard_notes": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/products/:id/edit",
+      "module": "Products and microservices",
+      "component": "ProductForm",
+      "source": "src/web/src/App.tsx:175",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Product owners, developers and support engineers",
+      "capabilities": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard_notes": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/microservices/:id",
+      "module": "Products and microservices",
+      "component": "MicroserviceDetail",
+      "source": "src/web/src/App.tsx:176",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Product owners, developers and support engineers",
+      "capabilities": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard_notes": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/contracts",
+      "module": "Contracts",
+      "component": "ContractList",
+      "source": "src/web/src/App.tsx:177",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Contract owners, engineers and managers",
+      "capabilities": [
+        "Contract register with client/type/status/renewal filters",
+        "Terms and support calendar",
+        "Priority SLA targets",
+        "Delivery schedule",
+        "Fees and payments",
+        "Indicative penalty clauses/assessments",
+        "Covered products/environments",
+        "Attachments and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit contract",
+        "Renew into draft form",
+        "Payment/milestone/fee changes",
+        "Penalty recalculation/confirmation",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Contracts resource rights; monetary figures are business data. Recalculate/confirm/export create state; no separate four-eyes rule is required by recorded A75.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/contracts/new",
+      "module": "Contracts",
+      "component": "ContractForm",
+      "source": "src/web/src/App.tsx:178",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Contract owners, engineers and managers",
+      "capabilities": [
+        "Contract register with client/type/status/renewal filters",
+        "Terms and support calendar",
+        "Priority SLA targets",
+        "Delivery schedule",
+        "Fees and payments",
+        "Indicative penalty clauses/assessments",
+        "Covered products/environments",
+        "Attachments and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit contract",
+        "Renew into draft form",
+        "Payment/milestone/fee changes",
+        "Penalty recalculation/confirmation",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Contracts resource rights; monetary figures are business data. Recalculate/confirm/export create state; no separate four-eyes rule is required by recorded A75.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/contracts/:id",
+      "module": "Contracts",
+      "component": "ContractDetail",
+      "source": "src/web/src/App.tsx:179",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Contract owners, engineers and managers",
+      "capabilities": [
+        "Contract register with client/type/status/renewal filters",
+        "Terms and support calendar",
+        "Priority SLA targets",
+        "Delivery schedule",
+        "Fees and payments",
+        "Indicative penalty clauses/assessments",
+        "Covered products/environments",
+        "Attachments and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit contract",
+        "Renew into draft form",
+        "Payment/milestone/fee changes",
+        "Penalty recalculation/confirmation",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Contracts resource rights; monetary figures are business data. Recalculate/confirm/export create state; no separate four-eyes rule is required by recorded A75.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/contracts/:id/edit",
+      "module": "Contracts",
+      "component": "ContractForm",
+      "source": "src/web/src/App.tsx:180",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Contract owners, engineers and managers",
+      "capabilities": [
+        "Contract register with client/type/status/renewal filters",
+        "Terms and support calendar",
+        "Priority SLA targets",
+        "Delivery schedule",
+        "Fees and payments",
+        "Indicative penalty clauses/assessments",
+        "Covered products/environments",
+        "Attachments and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit contract",
+        "Renew into draft form",
+        "Payment/milestone/fee changes",
+        "Penalty recalculation/confirmation",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Contracts resource rights; monetary figures are business data. Recalculate/confirm/export create state; no separate four-eyes rule is required by recorded A75.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/environments",
+      "module": "Environments",
+      "component": "EnvironmentList",
+      "source": "src/web/src/App.tsx:181",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers and environment owners",
+      "capabilities": [
+        "Environment register and filters",
+        "Ownership/backup/operation engineer",
+        "Manually reported condition and review freshness",
+        "Applications, servers, work, firewall, condition history, quality, files and history tabs"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit environment",
+        "Report condition",
+        "Add server/installation",
+        "Copy servers or environment",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Environments resource and tab rights; detail requires DetailsView; condition reports do not constitute live monitoring or inventory review.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/environments/new",
+      "module": "Environments",
+      "component": "EnvironmentForm",
+      "source": "src/web/src/App.tsx:182",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers and environment owners",
+      "capabilities": [
+        "Environment register and filters",
+        "Ownership/backup/operation engineer",
+        "Manually reported condition and review freshness",
+        "Applications, servers, work, firewall, condition history, quality, files and history tabs"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit environment",
+        "Report condition",
+        "Add server/installation",
+        "Copy servers or environment",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Environments resource and tab rights; detail requires DetailsView; condition reports do not constitute live monitoring or inventory review.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/environments/:id",
+      "module": "Environments",
+      "component": "EnvironmentDetail",
+      "source": "src/web/src/App.tsx:183",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers and environment owners",
+      "capabilities": [
+        "Environment register and filters",
+        "Ownership/backup/operation engineer",
+        "Manually reported condition and review freshness",
+        "Applications, servers, work, firewall, condition history, quality, files and history tabs"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit environment",
+        "Report condition",
+        "Add server/installation",
+        "Copy servers or environment",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Environments resource and tab rights; detail requires DetailsView; condition reports do not constitute live monitoring or inventory review.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/environments/:id/edit",
+      "module": "Environments",
+      "component": "EnvironmentForm",
+      "source": "src/web/src/App.tsx:184",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers and environment owners",
+      "capabilities": [
+        "Environment register and filters",
+        "Ownership/backup/operation engineer",
+        "Manually reported condition and review freshness",
+        "Applications, servers, work, firewall, condition history, quality, files and history tabs"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit environment",
+        "Report condition",
+        "Add server/installation",
+        "Copy servers or environment",
+        "Archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Environments resource and tab rights; detail requires DetailsView; condition reports do not constitute live monitoring or inventory review.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/installations/:id",
+      "module": "Installations and versions",
+      "component": "InstallationDetail",
+      "source": "src/web/src/App.tsx:185",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers and product support",
+      "capabilities": [
+        "Installation facts and components/hosts",
+        "Explicit version history",
+        "Microservice deployment matrix",
+        "Version matrix and product coverage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit installation",
+        "Choose microservices/server deployment",
+        "Confirm version change",
+        "Add/edit/delete components",
+        "Copy/archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Installations:View and detail rights; version matrix uses Installations:View; components map to Servers rights.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/components/:id",
+      "module": "Servers and components",
+      "component": "ComponentDetail",
+      "source": "src/web/src/App.tsx:186",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Infrastructure engineers",
+      "capabilities": [
+        "Asset register filters and aggregate CPU/RAM/storage totals",
+        "Server specification, volumes, technical owner",
+        "Hosted components/microservice versions",
+        "Firewall links",
+        "Component facts",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit server",
+        "Add/delete volume",
+        "Update hosted microservices",
+        "Copy/archive/delete",
+        "Edit components",
+        "Attachments"
+      ],
+      "guard_notes": "Servers resource rights. Network zone/IP/VLAN/notes and restricted topology need Platform:TechnicalDetail; logical endpoints do not count as provisioned servers.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/versions",
+      "module": "Installations and versions",
+      "component": "VersionMatrix",
+      "source": "src/web/src/App.tsx:187",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers and product support",
+      "capabilities": [
+        "Installation facts and components/hosts",
+        "Explicit version history",
+        "Microservice deployment matrix",
+        "Version matrix and product coverage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit installation",
+        "Choose microservices/server deployment",
+        "Confirm version change",
+        "Add/edit/delete components",
+        "Copy/archive/delete",
+        "Attachments"
+      ],
+      "guard_notes": "Installations:View and detail rights; version matrix uses Installations:View; components map to Servers rights.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/assets",
+      "module": "Servers and components",
+      "component": "AssetList",
+      "source": "src/web/src/App.tsx:188",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Infrastructure engineers",
+      "capabilities": [
+        "Asset register filters and aggregate CPU/RAM/storage totals",
+        "Server specification, volumes, technical owner",
+        "Hosted components/microservice versions",
+        "Firewall links",
+        "Component facts",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit server",
+        "Add/delete volume",
+        "Update hosted microservices",
+        "Copy/archive/delete",
+        "Edit components",
+        "Attachments"
+      ],
+      "guard_notes": "Servers resource rights. Network zone/IP/VLAN/notes and restricted topology need Platform:TechnicalDetail; logical endpoints do not count as provisioned servers.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/assets/:id",
+      "module": "Servers and components",
+      "component": "AssetDetail",
+      "source": "src/web/src/App.tsx:189",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Infrastructure engineers",
+      "capabilities": [
+        "Asset register filters and aggregate CPU/RAM/storage totals",
+        "Server specification, volumes, technical owner",
+        "Hosted components/microservice versions",
+        "Firewall links",
+        "Component facts",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit server",
+        "Add/delete volume",
+        "Update hosted microservices",
+        "Copy/archive/delete",
+        "Edit components",
+        "Attachments"
+      ],
+      "guard_notes": "Servers resource rights. Network zone/IP/VLAN/notes and restricted topology need Platform:TechnicalDetail; logical endpoints do not count as provisioned servers.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/firewall-rules",
+      "module": "Firewall rules",
+      "component": "FirewallRuleList",
+      "source": "src/web/src/App.tsx:190",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Network/infrastructure engineers",
+      "capabilities": [
+        "Client/environment/server-filtered rules",
+        "Source/destination/protocol/ports/direction/purpose",
+        "Rules embedded on server/environment pages"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit/delete firewall rule",
+        "Export"
+      ],
+      "guard_notes": "OtherOperations rights plus Platform:TechnicalDetail. This is recorded configuration, not a live firewall export.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/my-dashboard",
+      "module": "My dashboard",
+      "component": "MyDashboard",
+      "source": "src/web/src/App.tsx:191",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Individual engineers and managers",
+      "capabilities": [
+        "Own tickets and commitments",
+        "Prioritized personal work queue",
+        "Last 30 days results and latest ticket comments"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "MyDashboard:View; commitments panel additionally requires Commitments:View.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/cases",
+      "module": "Tickets",
+      "component": "CaseList",
+      "source": "src/web/src/App.tsx:192",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers, incident coordinators and managers",
+      "capabilities": [
+        "All-ticket search including client and Jira key",
+        "Quick views and multi-filter list",
+        "Column selection, sorting and paging",
+        "Management summary, next action, SLA/deadline/ownership",
+        "Activity, affected records, Jira references, documented impact, commitments, escalations, files, field history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit",
+        "Triage/assign/start/progress/wait/validate/return/close/reopen/cancel/status/due-date actions",
+        "First response and contract linking",
+        "Activity comments",
+        "Manual Jira references",
+        "Sync with Jira (external read and local writes)",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Cases and per-tab rights; detail rights separate. Jira-synchronized status/priority/due dates/first response follow Jira rules; do not expect manual incident lifecycle actions on those tickets.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/cases/new",
+      "module": "Tickets",
+      "component": "CaseForm",
+      "source": "src/web/src/App.tsx:193",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers, incident coordinators and managers",
+      "capabilities": [
+        "All-ticket search including client and Jira key",
+        "Quick views and multi-filter list",
+        "Column selection, sorting and paging",
+        "Management summary, next action, SLA/deadline/ownership",
+        "Activity, affected records, Jira references, documented impact, commitments, escalations, files, field history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit",
+        "Triage/assign/start/progress/wait/validate/return/close/reopen/cancel/status/due-date actions",
+        "First response and contract linking",
+        "Activity comments",
+        "Manual Jira references",
+        "Sync with Jira (external read and local writes)",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Cases and per-tab rights; detail rights separate. Jira-synchronized status/priority/due dates/first response follow Jira rules; do not expect manual incident lifecycle actions on those tickets.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/cases/:id",
+      "module": "Tickets",
+      "component": "CaseDetail",
+      "source": "src/web/src/App.tsx:194",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers, incident coordinators and managers",
+      "capabilities": [
+        "All-ticket search including client and Jira key",
+        "Quick views and multi-filter list",
+        "Column selection, sorting and paging",
+        "Management summary, next action, SLA/deadline/ownership",
+        "Activity, affected records, Jira references, documented impact, commitments, escalations, files, field history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit",
+        "Triage/assign/start/progress/wait/validate/return/close/reopen/cancel/status/due-date actions",
+        "First response and contract linking",
+        "Activity comments",
+        "Manual Jira references",
+        "Sync with Jira (external read and local writes)",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Cases and per-tab rights; detail rights separate. Jira-synchronized status/priority/due dates/first response follow Jira rules; do not expect manual incident lifecycle actions on those tickets.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/cases/:id/edit",
+      "module": "Tickets",
+      "component": "CaseForm",
+      "source": "src/web/src/App.tsx:195",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Operation engineers, incident coordinators and managers",
+      "capabilities": [
+        "All-ticket search including client and Jira key",
+        "Quick views and multi-filter list",
+        "Column selection, sorting and paging",
+        "Management summary, next action, SLA/deadline/ownership",
+        "Activity, affected records, Jira references, documented impact, commitments, escalations, files, field history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit",
+        "Triage/assign/start/progress/wait/validate/return/close/reopen/cancel/status/due-date actions",
+        "First response and contract linking",
+        "Activity comments",
+        "Manual Jira references",
+        "Sync with Jira (external read and local writes)",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Cases and per-tab rights; detail rights separate. Jira-synchronized status/priority/due dates/first response follow Jira rules; do not expect manual incident lifecycle actions on those tickets.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/commitments",
+      "module": "Commitments",
+      "component": "CommitmentList",
+      "source": "src/web/src/App.tsx:196",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Accountable delivery/operation owners",
+      "capabilities": [
+        "Client/internal-team filtered register",
+        "Owner/deadline/status/timeliness",
+        "Original and revised deadline history",
+        "Related record links",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create",
+        "Revise deadline",
+        "Complete with completion time",
+        "Cancel/reopen",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "Commitments resource rights; waiting never pauses deadlines; late completion remains Completed with a separate timeliness result.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/commitments/new",
+      "module": "Commitments",
+      "component": "CommitmentForm",
+      "source": "src/web/src/App.tsx:197",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Accountable delivery/operation owners",
+      "capabilities": [
+        "Client/internal-team filtered register",
+        "Owner/deadline/status/timeliness",
+        "Original and revised deadline history",
+        "Related record links",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create",
+        "Revise deadline",
+        "Complete with completion time",
+        "Cancel/reopen",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "Commitments resource rights; waiting never pauses deadlines; late completion remains Completed with a separate timeliness result.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/commitments/:id",
+      "module": "Commitments",
+      "component": "CommitmentDetail",
+      "source": "src/web/src/App.tsx:198",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Accountable delivery/operation owners",
+      "capabilities": [
+        "Client/internal-team filtered register",
+        "Owner/deadline/status/timeliness",
+        "Original and revised deadline history",
+        "Related record links",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create",
+        "Revise deadline",
+        "Complete with completion time",
+        "Cancel/reopen",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "Commitments resource rights; waiting never pauses deadlines; late completion remains Completed with a separate timeliness result.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/notes",
+      "module": "Personal notes",
+      "component": "NotesWorkspace",
+      "source": "src/web/src/App.tsx:199",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Signed-in permitted users; own notes only",
+      "capabilities": [
+        "Notebook/section/page tree",
+        "Search and pinned/linked/personal/recycle-bin views",
+        "Rich page editor",
+        "Client/project links"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "GET /notes/tree creates starter notebook/section when absent",
+        "Autosave after typing",
+        "Create/rename/recolor/reorder/move notebook/section/page",
+        "Files/images/paste",
+        "Delete/restore/permanent delete/empty bin"
+      ],
+      "guard_notes": "PersonalNotes rights; every record is owner-only. Avoid opening unprovisioned live accounts: nominal read has initialization writes.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/escalations",
+      "module": "Escalations",
+      "component": "EscalationList",
+      "source": "src/web/src/App.tsx:200",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client managers and escalation owners",
+      "capabilities": [
+        "Register with search/channel/level/status/owner/overdue filters",
+        "Direction and contact details",
+        "Response/resolution targets",
+        "Linked client/project/contract/ticket",
+        "Communication/status timeline",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit escalation",
+        "Log communication",
+        "Change status",
+        "Raise level",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "OtherOperations resource rights; channels configurable; hub records communications and does not send them.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/escalations/new",
+      "module": "Escalations",
+      "component": "EscalationForm",
+      "source": "src/web/src/App.tsx:201",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client managers and escalation owners",
+      "capabilities": [
+        "Register with search/channel/level/status/owner/overdue filters",
+        "Direction and contact details",
+        "Response/resolution targets",
+        "Linked client/project/contract/ticket",
+        "Communication/status timeline",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit escalation",
+        "Log communication",
+        "Change status",
+        "Raise level",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "OtherOperations resource rights; channels configurable; hub records communications and does not send them.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/escalations/:id",
+      "module": "Escalations",
+      "component": "EscalationDetail",
+      "source": "src/web/src/App.tsx:202",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client managers and escalation owners",
+      "capabilities": [
+        "Register with search/channel/level/status/owner/overdue filters",
+        "Direction and contact details",
+        "Response/resolution targets",
+        "Linked client/project/contract/ticket",
+        "Communication/status timeline",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit escalation",
+        "Log communication",
+        "Change status",
+        "Raise level",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "OtherOperations resource rights; channels configurable; hub records communications and does not send them.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/escalations/:id/edit",
+      "module": "Escalations",
+      "component": "EscalationForm",
+      "source": "src/web/src/App.tsx:203",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Client managers and escalation owners",
+      "capabilities": [
+        "Register with search/channel/level/status/owner/overdue filters",
+        "Direction and contact details",
+        "Response/resolution targets",
+        "Linked client/project/contract/ticket",
+        "Communication/status timeline",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit escalation",
+        "Log communication",
+        "Change status",
+        "Raise level",
+        "Delete",
+        "Attachments"
+      ],
+      "guard_notes": "OtherOperations resource rights; channels configurable; hub records communications and does not send them.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/teams",
+      "module": "Teams and handovers",
+      "component": "TeamList",
+      "source": "src/web/src/App.tsx:204",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Team leads, managers and receiving owners",
+      "capabilities": [
+        "Teams and coverage",
+        "Members, skills, product familiarity",
+        "Assignments, unassigned tickets, coverage gaps",
+        "Handover register/detail and affected records",
+        "Reassignment queue for inactive owners",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create team",
+        "Add/edit/remove member",
+        "Create handover",
+        "Acknowledge and take ownership",
+        "Manager exception",
+        "Cancel handover",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Teams rights plus Handovers/Reassignment view rights. Capacity and absence planning explicitly remain future scope.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/teams/:id",
+      "module": "Teams and handovers",
+      "component": "TeamDetail",
+      "source": "src/web/src/App.tsx:205",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Team leads, managers and receiving owners",
+      "capabilities": [
+        "Teams and coverage",
+        "Members, skills, product familiarity",
+        "Assignments, unassigned tickets, coverage gaps",
+        "Handover register/detail and affected records",
+        "Reassignment queue for inactive owners",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create team",
+        "Add/edit/remove member",
+        "Create handover",
+        "Acknowledge and take ownership",
+        "Manager exception",
+        "Cancel handover",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Teams rights plus Handovers/Reassignment view rights. Capacity and absence planning explicitly remain future scope.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/handovers",
+      "module": "Teams and handovers",
+      "component": "HandoverList",
+      "source": "src/web/src/App.tsx:206",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Team leads, managers and receiving owners",
+      "capabilities": [
+        "Teams and coverage",
+        "Members, skills, product familiarity",
+        "Assignments, unassigned tickets, coverage gaps",
+        "Handover register/detail and affected records",
+        "Reassignment queue for inactive owners",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create team",
+        "Add/edit/remove member",
+        "Create handover",
+        "Acknowledge and take ownership",
+        "Manager exception",
+        "Cancel handover",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Teams rights plus Handovers/Reassignment view rights. Capacity and absence planning explicitly remain future scope.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/handovers/:id",
+      "module": "Teams and handovers",
+      "component": "HandoverDetail",
+      "source": "src/web/src/App.tsx:207",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Team leads, managers and receiving owners",
+      "capabilities": [
+        "Teams and coverage",
+        "Members, skills, product familiarity",
+        "Assignments, unassigned tickets, coverage gaps",
+        "Handover register/detail and affected records",
+        "Reassignment queue for inactive owners",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create team",
+        "Add/edit/remove member",
+        "Create handover",
+        "Acknowledge and take ownership",
+        "Manager exception",
+        "Cancel handover",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Teams rights plus Handovers/Reassignment view rights. Capacity and absence planning explicitly remain future scope.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reassignment",
+      "module": "Teams and handovers",
+      "component": "ReassignmentQueue",
+      "source": "src/web/src/App.tsx:208",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Team leads, managers and receiving owners",
+      "capabilities": [
+        "Teams and coverage",
+        "Members, skills, product familiarity",
+        "Assignments, unassigned tickets, coverage gaps",
+        "Handover register/detail and affected records",
+        "Reassignment queue for inactive owners",
+        "Files and history"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create team",
+        "Add/edit/remove member",
+        "Create handover",
+        "Acknowledge and take ownership",
+        "Manager exception",
+        "Cancel handover",
+        "Delete and attachments"
+      ],
+      "guard_notes": "Teams rights plus Handovers/Reassignment view rights. Capacity and absence planning explicitly remain future scope.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin",
+      "module": "Users, roles and access",
+      "component": "Navigate",
+      "source": "src/web/src/App.tsx:209",
+      "source_type": "router declaration",
+      "redirect": true,
+      "persona": "Authorized administrators",
+      "capabilities": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard_notes": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/access",
+      "module": "Users, roles and access",
+      "component": "AccessControl",
+      "source": "src/web/src/App.tsx:210",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized administrators",
+      "capabilities": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard_notes": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/users",
+      "module": "Users, roles and access",
+      "component": "AdminUsers",
+      "source": "src/web/src/App.tsx:211",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized administrators",
+      "capabilities": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard_notes": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/groups",
+      "module": "Users, roles and access",
+      "component": "AdminGroups",
+      "source": "src/web/src/App.tsx:212",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized administrators",
+      "capabilities": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard_notes": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config",
+      "module": "Configuration and settings",
+      "component": "ConfigHome",
+      "source": "src/web/src/App.tsx:214",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/:category",
+      "module": "Configuration and settings",
+      "component": "ConfigCategoryPage",
+      "source": "src/web/src/App.tsx:215",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/:slug",
+      "module": "Configuration and settings",
+      "component": "ConfigListPage",
+      "source": "src/web/src/App.tsx:216",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/reference",
+      "module": "Configuration and settings",
+      "component": "Navigate",
+      "source": "src/web/src/App.tsx:217",
+      "source_type": "router declaration",
+      "redirect": true,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/network-zones",
+      "module": "Configuration and settings",
+      "component": "Navigate",
+      "source": "src/web/src/App.tsx:218",
+      "source_type": "router declaration",
+      "redirect": true,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/roles",
+      "module": "Users, roles and access",
+      "component": "AdminRoles",
+      "source": "src/web/src/App.tsx:219",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized administrators",
+      "capabilities": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard_notes": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/rights",
+      "module": "Users, roles and access",
+      "component": "AdminRights",
+      "source": "src/web/src/App.tsx:220",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized administrators",
+      "capabilities": [
+        "Users and lifecycle/sign-in state",
+        "Roles and comparison matrix",
+        "Rights catalog and grants",
+        "Effective user access and sources/scopes",
+        "Access checks",
+        "Individual exceptions",
+        "Incompatible roles",
+        "Windows group mappings"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/deactivate/reactivate/delete users",
+        "Issue/reset passwords",
+        "Grant/remove sign-in",
+        "Create/edit/delete/clone roles",
+        "Rights ticks save immediately",
+        "Scope/exception/incompatible-role changes",
+        "Group mapping edits"
+      ],
+      "guard_notes": "Platform:Administration plus area rights; AdminRoute wraps admin screens; audit/archived exceptions use dedicated rights. Group mappings hidden in Forms mode.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/products",
+      "module": "Products and microservices",
+      "component": "Navigate",
+      "source": "src/web/src/App.tsx:221",
+      "source_type": "router declaration",
+      "redirect": true,
+      "persona": "Product owners, developers and support engineers",
+      "capabilities": [
+        "Product register",
+        "Product overview/technology/developers",
+        "Versions and release notes",
+        "Microservices, modules, features",
+        "Installations/projects/contracts",
+        "Microservice versions and where deployed",
+        "Files"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Create/edit/delete product",
+        "Add/edit/delete versions/modules/features/microservices",
+        "Retire active entries",
+        "Developer changes",
+        "Attachments"
+      ],
+      "guard_notes": "Products resource rights; in-use entities are generally retired rather than deleted; UI canEdit/canDelete are hints backed by API checks.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/policies",
+      "module": "Configuration and settings",
+      "component": "AdminPolicies",
+      "source": "src/web/src/App.tsx:222",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/jira",
+      "module": "Configuration and settings",
+      "component": "AdminJira",
+      "source": "src/web/src/App.tsx:223",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/integrations/jira",
+      "module": "Jira integrations",
+      "component": "JiraConnections",
+      "source": "src/web/src/App.tsx:224",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized integration administrators",
+      "capabilities": [
+        "Connections overview",
+        "Client space assignment view",
+        "Import review",
+        "Integration issues",
+        "Unmapped Jira users/mapping history",
+        "Workflow mappings",
+        "Sync monitoring/runs/failures"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit connection and rotate credentials",
+        "Test connection/discover spaces/preview import (external calls)",
+        "Assign/reassign spaces/contracts",
+        "Import/sync/retry/recalculate",
+        "Enable/pause client integration",
+        "Map users/statuses/types/priorities",
+        "Resolve conflicts"
+      ],
+      "guard_notes": "Administration plus AdminIntegrations rights. Connection tests/previews/sync contact Jira and may write local state. Do not trigger in live audit.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/integrations/jira/review",
+      "module": "Jira integrations",
+      "component": "JiraImportReview",
+      "source": "src/web/src/App.tsx:225",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized integration administrators",
+      "capabilities": [
+        "Connections overview",
+        "Client space assignment view",
+        "Import review",
+        "Integration issues",
+        "Unmapped Jira users/mapping history",
+        "Workflow mappings",
+        "Sync monitoring/runs/failures"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit connection and rotate credentials",
+        "Test connection/discover spaces/preview import (external calls)",
+        "Assign/reassign spaces/contracts",
+        "Import/sync/retry/recalculate",
+        "Enable/pause client integration",
+        "Map users/statuses/types/priorities",
+        "Resolve conflicts"
+      ],
+      "guard_notes": "Administration plus AdminIntegrations rights. Connection tests/previews/sync contact Jira and may write local state. Do not trigger in live audit.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/integrations/jira/conflicts",
+      "module": "Jira integrations",
+      "component": "JiraConflicts",
+      "source": "src/web/src/App.tsx:226",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized integration administrators",
+      "capabilities": [
+        "Connections overview",
+        "Client space assignment view",
+        "Import review",
+        "Integration issues",
+        "Unmapped Jira users/mapping history",
+        "Workflow mappings",
+        "Sync monitoring/runs/failures"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit connection and rotate credentials",
+        "Test connection/discover spaces/preview import (external calls)",
+        "Assign/reassign spaces/contracts",
+        "Import/sync/retry/recalculate",
+        "Enable/pause client integration",
+        "Map users/statuses/types/priorities",
+        "Resolve conflicts"
+      ],
+      "guard_notes": "Administration plus AdminIntegrations rights. Connection tests/previews/sync contact Jira and may write local state. Do not trigger in live audit.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/integrations/jira/monitoring",
+      "module": "Jira integrations",
+      "component": "JiraMonitoring",
+      "source": "src/web/src/App.tsx:227",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized integration administrators",
+      "capabilities": [
+        "Connections overview",
+        "Client space assignment view",
+        "Import review",
+        "Integration issues",
+        "Unmapped Jira users/mapping history",
+        "Workflow mappings",
+        "Sync monitoring/runs/failures"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/edit connection and rotate credentials",
+        "Test connection/discover spaces/preview import (external calls)",
+        "Assign/reassign spaces/contracts",
+        "Import/sync/retry/recalculate",
+        "Enable/pause client integration",
+        "Map users/statuses/types/priorities",
+        "Resolve conflicts"
+      ],
+      "guard_notes": "Administration plus AdminIntegrations rights. Connection tests/previews/sync contact Jira and may write local state. Do not trigger in live audit.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/settings",
+      "module": "Configuration and settings",
+      "component": "AdminSettings",
+      "source": "src/web/src/App.tsx:228",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Authorized configuration administrators",
+      "capabilities": [
+        "Configuration home/category/list pages",
+        "Usage counts and labels/categories",
+        "Review policies",
+        "Approved Jira hosts",
+        "Settings groups including attachment storage"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/audit",
+      "module": "Change history and archive",
+      "component": "AdminAudit",
+      "source": "src/web/src/App.tsx:229",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Audit readers; scoped restore coordinators",
+      "capabilities": [
+        "Business/access audit history",
+        "People/system/account/date filters",
+        "Expanded before/after changes",
+        "Archived register by type/client",
+        "Deletion dependency preview"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Restore archived record",
+        "Delete/cascade operations via shared dialogs",
+        "Audit/export generation"
+      ],
+      "guard_notes": "AdminAudit and Platform:Audit appropriately scoped; archived page needs any ArchiveRestore right and per-record API access. No production restore/delete testing.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/archived",
+      "module": "Change history and archive",
+      "component": "AdminArchived",
+      "source": "src/web/src/App.tsx:230",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "Audit readers; scoped restore coordinators",
+      "capabilities": [
+        "Business/access audit history",
+        "People/system/account/date filters",
+        "Expanded before/after changes",
+        "Archived register by type/client",
+        "Deletion dependency preview"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Restore archived record",
+        "Delete/cascade operations via shared dialogs",
+        "Audit/export generation"
+      ],
+      "guard_notes": "AdminAudit and Platform:Audit appropriately scoped; archived page needs any ArchiveRestore right and per-record API access. No production restore/delete testing.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/*",
+      "module": "Dashboard",
+      "component": "NotFound",
+      "source": "src/web/src/App.tsx:231",
+      "source_type": "router declaration",
+      "redirect": false,
+      "persona": "TIO managers and permitted business users",
+      "capabilities": [
+        "Operations Command Center KPIs, current risks and record drilldowns",
+        "Client/team/product/country/show/period filters",
+        "Chart/table toggles and refresh"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Dashboard:View plus View of all 11 business resource groups; each audience dashboard adds its own View prerequisite.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards",
+      "module": "Dashboard",
+      "source": "src/web/src/pages/Dashboards.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "TIO managers and permitted business users",
+      "capabilities": [
+        "Operations Command Center KPIs, current risks and record drilldowns",
+        "Client/team/product/country/show/period filters",
+        "Chart/table toggles and refresh"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Dashboard:View plus View of all 11 business resource groups; each audience dashboard adds its own View prerequisite.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards/operational",
+      "module": "Operational dashboard",
+      "source": "src/web/src/pages/Dashboards.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Engineers and team leads",
+      "capabilities": [
+        "My work/My team/Everything filters",
+        "At-risk SLA clocks and due/overdue work queue",
+        "Production environment board",
+        "Owner workload",
+        "Next seven days and personal hygiene",
+        "60-second refresh"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "OperationalDashboard:View and prerequisites including Dashboard:View.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards/sla",
+      "module": "SLA and Contracts dashboard",
+      "source": "src/web/src/pages/Dashboards.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Contract owners and service managers",
+      "capabilities": [
+        "Period/client/contract/type/priority filters",
+        "SLA rates with previous-period change",
+        "Priority breaches and unmeasurable reasons",
+        "12-month rate trend",
+        "Active contract compliance",
+        "Renewal and notice timelines",
+        "Payments grouped per currency"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "SlaContractsDashboard:View and Dashboard:View prerequisites.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards/management",
+      "module": "Management dashboard",
+      "source": "src/web/src/pages/Dashboards.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "TIO managers",
+      "capabilities": [
+        "Quarter/month/year-to-date comparison",
+        "Backlog, closure median, SLA, commitment timeliness",
+        "Monthly opened/closed trend",
+        "Team load and coverage gaps",
+        "Client portfolio with recorded statuses/signals",
+        "Risk follow-up, contract decisions, data-trust panel"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "ManagementDashboard:View and Dashboard:View prerequisites.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards/client",
+      "module": "Client dashboard",
+      "source": "src/web/src/pages/Dashboards.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Client/project managers",
+      "capabilities": [
+        "Client selection",
+        "Recorded client status and history",
+        "Seven rule-based operational signals",
+        "Project, milestone, payment, ticket, escalation, commitment, environment and team summaries"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Update client status with reason and optional next review"
+      ],
+      "guard_notes": "ClientDashboard:View and Dashboard:View prerequisites; recording currently needs Projects:Maintain in client scope (A109 business decision).",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/dashboards/project",
+      "module": "Client dashboard",
+      "source": "src/web/src/pages/Dashboards.tsx",
+      "source_type": "expanded child route",
+      "redirect": true,
+      "persona": "Client/project managers",
+      "capabilities": [
+        "Client selection",
+        "Recorded client status and history",
+        "Seven rule-based operational signals",
+        "Project, milestone, payment, ticket, escalation, commitment, environment and team summaries"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Update client status with reason and optional next review"
+      ],
+      "guard_notes": "ClientDashboard:View and Dashboard:View prerequisites; recording currently needs Projects:Maintain in client scope (A109 business decision).",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/library",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/builder/cases",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/my-reports",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/schedules",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/history",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/reporting-center/templates",
+      "module": "Reporting Center",
+      "source": "src/web/src/pages/Reports.tsx",
+      "source_type": "expanded child route",
+      "redirect": false,
+      "persona": "Permitted report consumers and managers with Export",
+      "capabilities": [
+        "Overview",
+        "Server-defined report library and preview",
+        "Tickets builder filters/columns/sort/group/preview",
+        "Saved reports",
+        "Schedule and export history/details",
+        "Templates",
+        "Date/time-zone validation"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Generate/download exports (jobs/audit and files)",
+        "Save/delete presets",
+        "Create/update/delete/duplicate/favorite saved reports",
+        "Create/edit/pause/resume/delete schedules",
+        "Cancel export jobs"
+      ],
+      "guard_notes": "Platform:Export plus area-specific ReportOverview/Library/Builder/SavedReports/ReportSchedules/History/Templates View; report/data rights checked separately. Export itself is not a pure read.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/reported-conditions",
+      "module": "Configuration and settings",
+      "title": "Reported conditions",
+      "lookup_list": "ConditionLabel",
+      "category": "Clients & environments",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/organization-relationship-types",
+      "module": "Configuration and settings",
+      "title": "Organization relationship types",
+      "lookup_list": "OrganizationRelationshipType",
+      "category": "Clients & environments",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/environment-types",
+      "module": "Configuration and settings",
+      "title": "Environment types",
+      "lookup_list": "EnvironmentType",
+      "category": "Clients & environments",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/responsibility-areas",
+      "module": "Configuration and settings",
+      "title": "Responsibility areas",
+      "lookup_list": "BoundaryArea",
+      "category": "Clients & environments",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/team-roles",
+      "module": "Configuration and settings",
+      "title": "Project team roles",
+      "lookup_list": "TeamRole",
+      "category": "Clients & environments",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/server-types",
+      "module": "Configuration and settings",
+      "title": "Server types",
+      "lookup_list": "AssetType",
+      "category": "Servers",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/server-roles",
+      "module": "Configuration and settings",
+      "title": "Server roles",
+      "lookup_list": "AssetRole",
+      "category": "Servers",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/network-zones",
+      "module": "Configuration and settings",
+      "title": "Network zones",
+      "lookup_list": "NetworkZone",
+      "category": "Servers",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/operating-systems",
+      "module": "Configuration and settings",
+      "title": "Operating systems",
+      "lookup_list": "OsFamily",
+      "category": "Servers",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/project-phases",
+      "module": "Configuration and settings",
+      "title": "Project phases",
+      "lookup_list": "ProjectPhase",
+      "category": "Servers",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/component-roles",
+      "module": "Configuration and settings",
+      "title": "Component roles",
+      "lookup_list": "ComponentRole",
+      "category": "Products & installations",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/contract-types",
+      "module": "Configuration and settings",
+      "title": "Contract types",
+      "lookup_list": "ContractType",
+      "category": "Contracts & tickets",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/case-types",
+      "module": "Configuration and settings",
+      "title": "Ticket types",
+      "lookup_list": "CaseType",
+      "category": "Contracts & tickets",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/case-statuses",
+      "module": "Configuration and settings",
+      "title": "Ticket statuses",
+      "lookup_list": "CaseStatusLabel",
+      "category": "Contracts & tickets",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/escalation-channels",
+      "module": "Configuration and settings",
+      "title": "Escalation channels",
+      "lookup_list": "EscalationChannel",
+      "category": "Contracts & tickets",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/team-member-roles",
+      "module": "Configuration and settings",
+      "title": "Team member roles",
+      "lookup_list": "TeamMemberRole",
+      "category": "Teams",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/priority-guidance",
+      "module": "Configuration and settings",
+      "title": "Priority guidance",
+      "lookup_list": "PriorityGuidance",
+      "category": "Contracts & tickets",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration list",
+      "capabilities": [
+        "List values, order, usage and behavior/label metadata"
+      ],
+      "mutating_controls_do_not_execute_on_live": [
+        "Add/rename/describe/reorder/retire/delete configurable values",
+        "Edit fixed condition labels",
+        "Configure ticket statuses/behavior",
+        "Review policy changes",
+        "Jira instance changes",
+        "Settings and storage migration"
+      ],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/clients-environments",
+      "module": "Configuration and settings",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration category",
+      "capabilities": [
+        "Configuration page navigation within category"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/servers",
+      "module": "Configuration and settings",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration category",
+      "capabilities": [
+        "Configuration page navigation within category"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/products-installations",
+      "module": "Configuration and settings",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration category",
+      "capabilities": [
+        "Configuration page navigation within category"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/contracts-cases",
+      "module": "Configuration and settings",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration category",
+      "capabilities": [
+        "Configuration page navigation within category"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/teams",
+      "module": "Configuration and settings",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration category",
+      "capabilities": [
+        "Configuration page navigation within category"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    },
+    {
+      "route": "/admin/config/category/system",
+      "module": "Configuration and settings",
+      "source": "src/web/src/configRegistry.ts",
+      "source_type": "expanded configuration category",
+      "capabilities": [
+        "Configuration page navigation within category"
+      ],
+      "mutating_controls_do_not_execute_on_live": [],
+      "guard_notes": "Administration plus AdminConfig/AdminSettings rights. Never change any production setting for audit; settings may move stored attachment files.",
+      "live_status": "Not executed by source-review agent"
+    }
+  ],
+  "classification_caution": "Source capability is not live discovery, not a test pass, and not a confirmed deployed defect. Nested tab permissions and record scope may make routes inaccessible.",
+  "route_load_safety": {
+    "confirmed_opening_mutation": [
+      "GET /api/v1/notes/tree initializes notebook and section if none exist"
+    ],
+    "confirmed_other_get_mutations": [
+      "GET /api/v1/export/{report} generates/stores an export",
+      "GET /api/v1/reports/exports/{id}/download audits download; can expire/delete stored file",
+      "GET /api/v1/reporting/exports/{id}/download shares audited download implementation"
+    ],
+    "reviewed_read_only_candidates": [
+      "Report/template/saved-report opening (builder preview POST is query-only in reviewed handler)",
+      "Report schedule lists/details",
+      "Archive list",
+      "Global search",
+      "Client/product/detail route reads",
+      "Blank client/product/environment create form opening",
+      "Attachment download/preview"
+    ],
+    "caution": "Source-only; no assurance about unreviewed hooks, authentication/session bookkeeping, background services or deployed revision."
+  },
+  "source_followup_candidates": [
+    {
+      "topic": "Closed mobile drawer",
+      "classification": "Unconfirmed; DOM presence alone does not establish live failure",
+      "source": "ui/Shell.tsx:367–368; styles/frame.scss:235–241",
+      "reason": "Drawer is always mounted, offscreen transform, inert while closed",
+      "required_live_check": "Closed drawer omitted from keyboard Tab order and true accessibility tree; open drawer traps focus"
+    },
+    {
+      "topic": "Table selection/disclosure headers",
+      "classification": "Source-confirmed structural mismatch; pair with parent live evidence",
+      "source": "ui/kit.tsx:679–681 and :708–713; pages/Cases.tsx:126–128",
+      "reason": "TH order Details/Select while TD order Select/Details when both enabled",
+      "recommended_fix": "Swap leading header order to match rows"
+    }
+  ]
+}

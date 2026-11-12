@@ -1,0 +1,15 @@
+{
+  "id": "R083-mobile",
+  "route": "/cases/new",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "New ticket"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 1953,
+  "title": "New ticket · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

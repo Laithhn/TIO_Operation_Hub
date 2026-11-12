@@ -1,0 +1,15 @@
+{
+  "id": "R003-tablet",
+  "route": "/dashboards/sla",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "SLA & Contracts dashboard"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 5113,
+  "title": "SLA & Contracts dashboard · TIO Operations Hub",
+  "width": 768
+}

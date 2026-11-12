@@ -1,0 +1,15 @@
+{
+  "id": "R087-desktop",
+  "route": "/environments/new",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "New environment"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 2063,
+  "title": "New environment · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

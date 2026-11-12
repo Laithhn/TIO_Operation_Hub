@@ -1,0 +1,113 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Teams":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications":
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Teams
+- navigation "Breadcrumb":
+  - link "Handovers":
+    - /url: /handovers
+  - generic: ›
+  - generic: HO-101
+- heading "HO-101 · Handover" [level=1]
+- generic: Cancelled
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams (current section)":
+      - /url: /teams
+      - text: Teams
+      - generic: (current section)
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Transfer" [level=2]
+  - term: From
+  - definition: Laith Hamdan
+  - term: To
+  - definition: Abdulhamid Tork
+  - term: Effective
+  - definition: 05 Nov 2026, 09:00
+  - term: Summary
+  - definition: I will be in vacation next week and this commitment should be completed
+  - term: Outstanding actions
+  - definition: Unknown
+  - term: Documentation / cover
+  - definition: Unknown
+  - heading "Completion" [level=2]
+  - term: Acknowledged
+  - definition: Not yet
+  - term: Manager exception
+  - definition: None
+  - term: Completed
+  - definition: —
+  - term: Cancellation
+  - definition: vacation cancelled
+  - heading "Affected records" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Type Record":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Type":
+            - generic: Type
+          - columnheader "Record":
+            - generic: Record
+      - rowgroup:
+        - row "Details for Commitment Commitment CM-1003 · Agreed to have meeting with Client to agree on the POC scope":
+          - cell "Details for Commitment":
+            - button "Details for Commitment":
+          - cell "Commitment":
+            - generic: Commitment
+          - cell "CM-1003 · Agreed to have meeting with Client to agree on the POC scope":
+            - link "CM-1003 · Agreed to have meeting with Client to agree on the POC scope":
+              - /url: /commitments/3
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

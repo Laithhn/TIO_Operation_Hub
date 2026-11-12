@@ -1,0 +1,355 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Tickets":
+    - /url: /cases
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - generic: CS-4003
+- 'heading "CS-4003 · CCC: RRM Integration" [level=1]'
+- text: Waiting for customer
+- generic: Normal
+- text: Epic · Client-related
+- text: Waiting on Customer
+- link "Edit":
+  - /url: /cases/12203/edit
+- button "Assign"
+- button "Record progress"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All tickets":
+      - /url: /cases
+    - link "New ticket":
+      - /url: /cases/new
+  - button "Expand menu":
+- main:
+  - generic: This ticket's status follows Jira, so change it there. The due dates come from the Jira creation time and the contract SLA.
+  - generic: Assigned in Jira to Yousef al abdulrahim, representing the client. The ticket waits on the customer until Jira reassigns it.
+  - region "What matters now":
+    - generic: Latest activity
+    - generic: Started
+    - generic: System · 09 Nov 2026, 12:37
+    - generic: Next action
+    - generic: Review the ticket imported from Jira.
+    - generic: Next review 11 Nov 2026, 12:31
+    - generic: Owner
+    - generic: Unassigned
+    - generic: KSA Operation Team
+    - generic: SLA and deadline
+    - generic "First response":
+      - text: First response
+      - generic: Pending
+    - generic "Resolution":
+      - text: Resolution
+      - generic: Pending
+    - generic: Due 2026-11-15 12:41 +03:00 (Asia/Riyadh)
+  - heading "Jira details (imported)" [level=2]:
+    - button "Jira details (imported)" [expanded]: Jira details (imported)
+  - button "Sync with Jira"
+  - region "Jira integration":
+    - generic: Jira integration (Poliscan Cloud Jira)
+    - text: Synchronized
+    - generic: "Last sync: 10 Nov 2026, 14:32 · Next sync: 10 Nov 2026, 16:50"
+  - term: Jira issue
+  - definition:
+    - link "TAD-956":
+      - /url: https://poliscan.atlassian.net/browse/TAD-956
+  - term: Jira status
+  - definition:
+    - generic: In Progress
+  - term: Jira assignee
+  - definition: Yousef al abdulrahim
+  - term: Program
+  - definition: MOI
+  - term: Jira issue type
+  - definition: Epic
+  - term: Jira component
+  - definition: —
+  - term: Jira priority
+  - definition: P3 - Normal
+  - term: Jira due date
+  - definition: —
+  - term: Jira resolution
+  - definition: —
+  - term: Reporter
+  - definition: Kareem Shaheen
+  - term: Jira created
+  - definition: 09 Nov 2026, 12:27
+  - term: Jira URL
+  - definition:
+    - link "https://poliscan.atlassian.net/browse/TAD-956":
+      - /url: https://poliscan.atlassian.net/browse/TAD-956
+  - heading "Description (Jira)" [level=3]
+  - generic: Provide APIs on RRM for CCC integration
+  - tablist:
+    - tab "Activity" [selected]:
+      - generic: Activity
+    - tab "Affected records (0)":
+      - generic: Affected records (0)
+    - tab "Jira references (1)":
+      - generic: Jira references (1)
+    - tab "Documented impact":
+      - generic: Documented impact
+    - tab "Commitments (0)":
+      - generic: Commitments (0)
+    - tab "Escalations":
+      - generic: Escalations
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Field history":
+      - generic: Field history
+  - heading "Activity & comments" [level=2]
+  - group "Show activity":
+    - button "All activity (8)" [pressed]:
+      - text: All activity
+      - generic: (8)
+    - button "Jira comments (1)":
+      - text: Jira comments
+      - generic: (1)
+    - button "TIO comments (0)":
+      - text: TIO comments
+      - generic: (0)
+    - button "Workflow changes (4)":
+      - text: Workflow changes
+      - generic: (4)
+    - button "Assignments (0)":
+      - text: Assignments
+      - generic: (0)
+  - checkbox "Show system activity" [checked]
+  - text: Show system activity
+  - generic: LH
+  - text: Add a comment to this ticket (TIO only)
+  - textbox "Add a comment to this ticket (TIO only)":
+    - /placeholder: Write a comment for the team…
+  - generic: This comment is saved in TIO Operations Hub only and will not be sent to Jira.
+  - button "Add comment" [disabled]
+  - region "Yesterday · November 9, 2026":
+    - heading "Yesterday · November 9, 2026" [level=4]:
+      - generic: Yesterday · November 9, 2026
+    - list:
+      - text: Started
+      - generic: from
+      - generic: Triaged
+      - generic: →
+      - generic: to
+      - generic: InProgress
+      - text: System · 09 Nov 2026, 12:37
+      - generic: TIO
+      - generic: "From Jira TAD-956: In Progress"
+      - text: Triaged
+      - generic: from
+      - generic: New
+      - generic: →
+      - generic: to
+      - generic: Triaged
+      - text: System · 09 Nov 2026, 12:37
+      - generic: TIO
+      - generic: "From Jira TAD-956: In Progress"
+      - text: Jira workflow change
+      - generic: from
+      - generic: New
+      - generic: →
+      - generic: to
+      - generic: In Progress
+      - text: Kareem Shaheen · 09 Nov 2026, 12:33
+      - generic: Jira
+      - generic: · TAD-956
+      - text: Waiting started
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: Customer
+      - text: System · 09 Nov 2026, 12:31
+      - generic: TIO
+      - generic: "Assigned in Jira to Yousef al abdulrahim: TAD-956"
+      - text: Jira added
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: Poliscan Cloud Jira TAD-956
+      - text: System · 09 Nov 2026, 12:31
+      - generic: TIO
+      - generic: Source issue of the Jira synchronization
+      - text: Contract changed
+      - generic: from
+      - generic: No contract
+      - generic: →
+      - generic: to
+      - generic: CT-1001
+      - text: System · 09 Nov 2026, 12:31
+      - generic: TIO
+      - generic: The contract linked to Jira space TAD that covers the ticket's creation date
+      - text: Created
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: New
+      - text: System · 09 Nov 2026, 12:31
+      - generic: TIO
+      - generic: Imported from Jira TAD-956
+      - generic: KS
+      - text: Kareem Shaheen
+      - generic: Jira
+      - generic: 09 Nov 2026, 12:28
+      - generic: Dear @Yousef al abdulrahim Please add sub tickets as per planned scope
+      - generic: "Jira comment · TAD-956 · Comment #70717"
+  - complementary "Ticket details":
+    - heading "Management summary" [level=2]:
+      - button "Management summary" [expanded]: Management summary
+    - term: Owner
+    - definition: Unassigned
+    - term: Backup owner
+    - definition: None
+    - term: Responsible team
+    - definition: KSA Operation Team
+    - term: Coordinator
+    - definition: —
+    - term: Responsible party
+    - definition: Customer IT
+    - term: Impact
+    - definition: Not yet assessed. Imported from Jira TAD-956.
+    - term: Progress
+    - definition: No progress recorded
+    - term: Next action
+    - definition: Review the ticket imported from Jira.
+    - term: Next review
+    - definition: 11 Nov 2026, 12:31
+    - term: Due
+    - definition:
+      - text: 2026-11-15 12:41 +03:00
+      - generic: (Asia/Riyadh)
+    - term: Last progress update
+    - definition:
+      - text: 09 Nov 2026, 12:31
+      - generic "Review every 2 days or by next-review date · last 09 Nov 2026, 12:31 · due 11 Nov 2026, 12:31":
+        - text: Current
+        - generic: Current
+    - heading "Age and waiting" [level=2]:
+      - button "Age and waiting" [expanded]: Age and waiting
+    - term: Opened
+    - definition:
+      - text: 09 Nov 2026, 12:27
+      - generic: (Jira creation time)
+    - term: Added to the hub
+    - definition:
+      - text: 09 Nov 2026, 12:31
+      - generic: (import time; not used for age, deadlines or opened reporting)
+    - term: Age since opening
+    - definition: 1.2 days
+    - term: Reopened
+    - definition: 0 time(s)
+    - term: Recorded waiting
+    - definition:
+      - text: 28.3 h
+      - generic: (the operational due date is not paused; the contractual SLA pauses while waiting on the customer)
+    - term: Waiting now
+    - definition:
+      - text: On Customer
+      - generic: since 09 Nov 2026, 12:31
+    - term: Validation request
+    - definition: Unknown
+    - term: Outcome
+    - definition: Unknown
+    - term: Validation evidence
+    - definition: Unknown
+    - generic "Waiting periods (1)"
+    - heading "Contractual SLA" [level=2]:
+      - button "Contractual SLA" [expanded]: Contractual SLA
+    - term: Contract
+    - definition:
+      - link "CT-1001":
+        - /url: /contracts/1
+      - text: · 2026_Vitronic Software Service Level Agreement
+    - term: Applied target
+    - definition:
+      - text: Normal priority · support hours Sunday Monday Tuesday Wednesday Thursday 08:00–17:00 Asia/Riyadh · paused while waiting on the customer
+      - generic: Taken from CT-1001 on 09 Nov 2026, 12:31; later contract edits do not change it. This contract was valid when the ticket was created.
+    - term: Clock start
+    - definition:
+      - text: 09 Nov 2026, 12:27
+      - generic: (Jira creation time; deadlines and elapsed time count from here)
+    - term: Paused (waiting on the customer)
+    - definition: 28 h 13 min
+    - term: Operational due date
+    - definition:
+      - text: 15 Nov 2026, 13:41
+      - generic: (the contractual resolution deadline of this synchronized ticket)
+    - heading "SLA measurements" [level=2]:
+      - button "SLA measurements" [expanded]: SLA measurements
+    - group "Contractual SLA measurements":
+      - region "First response":
+        - heading "First response" [level=3]
+        - generic: Pending
+        - term: Target
+        - definition: 8 h
+        - term: Deadline
+        - definition: 11 Nov 2026, 15:41
+        - term: Actual
+        - definition:
+          - text: Not yet recorded
+          - generic: 4 min counted
+      - region "Resolution":
+        - heading "Resolution" [level=3]
+        - generic: Pending
+        - term: Target
+        - definition: 24 h
+        - term: Deadline
+        - definition: 15 Nov 2026, 13:41
+        - term: Actual
+        - definition:
+          - text: Not yet resolved
+          - generic: 4 min counted
+    - heading "Indicative penalties" [level=2]:
+      - button "Indicative penalties": Indicative penalties
+    - generic: 14 line(s)
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

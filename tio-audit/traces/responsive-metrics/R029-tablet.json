@@ -1,0 +1,15 @@
+{
+  "id": "R029-tablet",
+  "route": "/admin/rights",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Rights"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 5951,
+  "title": "Rights · TIO Operations Hub",
+  "width": 768
+}

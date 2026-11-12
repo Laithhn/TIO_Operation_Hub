@@ -1,0 +1,15 @@
+{
+  "id": "R011-tablet",
+  "route": "/teams",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Teams and coverage"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 294,
+  "title": "Teams and coverage · TIO Operations Hub",
+  "width": 768
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R006-tablet",
+  "route": "/clients",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Clients"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 1828,
+  "title": "Clients · TIO Operations Hub",
+  "width": 768
+}

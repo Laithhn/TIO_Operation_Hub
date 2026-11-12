@@ -1,0 +1,103 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: ·
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview"
+    - button "Operational"
+    - button "Technical"
+    - button "Commercial" [active] [pressed]
+    - button "Records"
+  - tablist:
+    - tab "Organizations" [selected]:
+      - generic: Organizations
+    - tab "Contracts & SLAs":
+      - generic: Contracts & SLAs
+    - tab "Projects":
+      - generic: Projects
+  - heading "Organizational Structure" [level=2]
+  - paragraph: Organizations are independent records. Relationships and roles belong only to the selected context; unlinking preserves the organization. Operational sub-clients remain separate.
+  - generic: Organization context
+  - combobox "Organization context":
+    - option "Client-wide structure (no project)" [selected]
+    - option "117992-AE · SLA _ IT Application & Platform Licenses – 2026"
+  - generic: Organization view
+  - combobox "Organization view":
+    - option "Hierarchy diagram" [selected]
+    - option "Organizations and relationships table"
+  - status: Loading…
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

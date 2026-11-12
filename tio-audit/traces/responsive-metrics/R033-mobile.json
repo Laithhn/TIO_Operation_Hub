@@ -1,0 +1,15 @@
+{
+  "id": "R033-mobile",
+  "route": "/admin/archived",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Archived records"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 149,
+  "title": "Archived records · TIO Operations Hub",
+  "width": 390
+}

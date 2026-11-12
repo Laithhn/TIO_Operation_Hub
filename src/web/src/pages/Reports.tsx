@@ -14,6 +14,7 @@ import { useClientOptions, useProductOptions, useTeamOptions } from './common';
 import { BuilderScheduleDialog, CasesBuilder } from './reporting/CasesBuilder';
 import { MyReports, Templates } from './reporting/MyReports';
 import { ReportingOverview } from './reporting/Overview';
+import { exportAvailability } from './reporting/exportAvailability';
 import { apiError, download, scheduleWhen, size, STATUS_TONE, useAssignable, useReportZone, WEEKDAYS, type ExportJob, type Schedule } from './reporting/shared';
 
 /* ---------------------------------------------------------------------------------------------------------------------------
@@ -43,6 +44,15 @@ const CATEGORY_HINT: Record<string, string> = {
 const reversedCalendarDays = (from?: string, to?: string) => !!from && !!to && /^\d{4}-\d{2}-\d{2}$/.test(from) && /^\d{4}-\d{2}-\d{2}$/.test(to) && from > to;
 const typeListForFilter = (report: string, key: string) => key === 'environmentType' && report === 'versions' ? 'EnvironmentType' : key === 'type' ? ({ environments: 'EnvironmentType', assets: 'AssetType' } as Record<string, string>)[report] : undefined;
 function optionText(report: string, key: string, value: string, caseName: (code: string) => string, conditionName: (code: string) => string) {
+  // TIO-BUG-006: the Tickets report's aggregates are named apart from configured statuses (such as "Opened" or "Closed"),
+  // a configured status is code:<StatusCode> with its configured label, and an older saved stage value says what it is.
+  if (report === 'cases' && key === 'status') {
+    if (value === 'open') return 'All open tickets';
+    if (value === 'all') return 'All tickets';
+    if (value === 'done') return 'All closed or cancelled tickets';
+    if (value.startsWith('code:')) return caseName(value.slice(5));
+    return `Stage: ${label(value)} (older saved filter)`;
+  }
   if (value === 'all') return 'All';
   if (value === 'open') return 'Open';
   if (value === 'done') return report === 'commitments' ? 'Completed or cancelled' : `${caseName('Closed')} or ${caseName('Cancelled')}`;
@@ -86,7 +96,12 @@ function FilterFields({ def, values, onChange, errors }: { def: ReportDef; value
       case 'Product': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={products} empty="All products" error={err} />;
       case 'Owner': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={userOptions} empty="Anyone" error={err} />;
       case 'Date': return <TextInput key={f.key} label={f.label} type="date" value={v} onChange={set} error={err} hint={f.hint ?? undefined} />;
-      case 'Select': return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={(f.options ?? []).map(o => ({ value: o, label: optionText(def.key, f.key, o, caseStatusLabel, conditionLabel) }))} empty="Any" error={err} hint={f.hint ?? undefined} />;
+      case 'Select': {
+        // A saved value that is no longer offered (an older stage value, a retired status) stays visible as chosen, not silently dropped.
+        const offered = f.options ?? [];
+        const opts = v && !offered.includes(v) ? [...offered, v] : offered;
+        return <SelectInput key={f.key} label={f.label} value={v} onChange={set} options={opts.map(o => ({ value: o, label: optionText(def.key, f.key, o, caseStatusLabel, conditionLabel) }))} empty={def.key === 'cases' && f.key === 'status' ? 'All open tickets (default)' : 'Any'} error={err} hint={f.hint ?? undefined} />;
+      }
       case 'Bool': return <div className="field" key={f.key}><span className="flabel">&nbsp;</span><label className="check"><input type="checkbox" checked={v === 'true'} onChange={e => set(e.target.checked ? 'true' : '')} /> {f.label}</label>{err && <div className="err">{err}</div>}</div>;
       default: return <TextInput key={f.key} label={f.label} value={v} onChange={set} error={err} hint={f.hint ?? undefined} maxLength={200} />;
     }
@@ -396,18 +411,23 @@ function ReportWorkspace({ def, onBack, onHistory, initial }: { def: ReportDef; 
 function ExportDetails({ id, onClose }: { id: number; onClose: () => void }) {
   const me = useMe().data;
   const toast = useToast();
-  const q = useQuery({ queryKey: ['report-export', id], queryFn: () => get<{ export: ExportJob; filters: Values; columns?: string[] | null; startedAt?: string }>(`/reports/exports/${id}`) });
+  const q = useQuery({ queryKey: ['report-export', id], queryFn: () => get<{ export: ExportJob; filters: Values; columns?: string[] | null; columnsAvailable?: boolean; startedAt?: string }>(`/reports/exports/${id}`) });
   const j = q.data?.export;
+  const avail = j ? exportAvailability(j, canExportReport(me, j.report)) : null;
+  // TIO-BUG-005: hidden columns are "Unavailable", not a known "all columns" choice (older servers send no columnsAvailable).
+  const columnsKnown = q.data?.columnsAvailable ?? !avail?.masked;
   return (
     <Dialog title="Export details" onClose={onClose}>
       {q.isLoading && <StateMessage kind="loading" />}
       {q.error && <StateMessage kind="error">{apiError(q.error)?.summary}</StateMessage>}
       {j && <>
+        {avail?.masked && <div className="notice warn" role="note"><p>{avail.message}</p>
+          {avail.regenerateTo && <p><Link to={avail.regenerateTo} onClick={onClose}>Configure a new report</Link> <span className="hint">(opens the report set-up; nothing is generated until you ask for it)</span></p>}</div>}
         <dl className="dl">
-          {([['Report', j.reportName], ['Status', <StatusBadge key="s" value={j.status} />], ['Generated by', j.user ?? '—'], ['Source', j.source], ['Requested', fmtDateTime(j.requestedAt)],
+          {([['Report', j.reportName], ['Generation status', <StatusBadge key="s" value={j.status} />], ...(avail?.masked ? [['Available to you', 'No: ' + avail.short.replace(/^Unavailable: /, '')] as [string, ReactNode]] : []), ['Generated by', j.user ?? '—'], ['Source', j.source], ['Requested', fmtDateTime(j.requestedAt)],
             ['Completed', fmtDateTime(j.completedAt) || '—'], ['Format', j.format.toUpperCase()], ['Rows', j.rowCount?.toLocaleString() ?? '—'], ['File', j.fileName ? `${j.fileName} (${size(j.fileSize)})` : '—'],
-            ['Kept until', j.status === 'Expired' ? 'Expired — the file was removed' : fmtDateTime(j.expiresAt) || '—'], ['Time zone', j.timeZone], ['Filters', j.filterSummary || 'none'],
-            ['Columns', q.data?.columns?.length ? q.data.columns.join(', ') : 'All, standard order'], ['Audit reference', <code key="a">{j.auditId}</code>], ...(j.error ? [['Error', j.error] as [string, ReactNode]] : [])] as [string, ReactNode][])
+            ['File kept until', j.status === 'Expired' ? 'Expired — the file was removed' : fmtDateTime(j.expiresAt) || '—'], ['Time zone', j.timeZone], ['Filters', j.filterSummary || 'none'],
+            ['Columns', !columnsKnown ? 'Unavailable' : q.data?.columns?.length ? q.data.columns.join(', ') : 'All, standard order'], ['Audit reference', <code key="a">{j.auditId}</code>], ...(j.error ? [['Error', j.error] as [string, ReactNode]] : [])] as [string, ReactNode][])
             .map(([k, v]) => <div key={k}><dt>{k}</dt><dd>{v}</dd></div>)}
         </dl>
         <div className="form-actions"><button className="btn" onClick={onClose}>Close</button>{j.canDownload && canDownloadReport(me, j.report) && <button className="btn btn-primary" onClick={() => download(j, toast)}>Download</button>}</div>
@@ -461,7 +481,8 @@ function History({ reports, focus }: { reports: ReportDef[]; focus?: number }) {
           { key: 'format', header: 'Format', render: r => <span className="chip">{r.format.toUpperCase()}</span> },
           { key: 'rows', header: 'Records', sort: 'rows', className: 'num', render: r => r.rowCount?.toLocaleString() ?? '—' },
           { key: 'status', header: 'Status', sort: 'status', render: r => <><Badge tone={STATUS_TONE[r.status] ?? 'neutral'}>{r.status}</Badge>{(r.status === 'Queued' || r.status === 'Processing') && <span className="spin" aria-hidden="true" />}
-            {(r.status === 'Failed' || r.status === 'Cancelled') && r.error && <div className="hint err rc-err">{r.error}</div>}</> },
+            {(r.status === 'Failed' || r.status === 'Cancelled') && r.error && <div className="hint err rc-err">{r.error}</div>}
+            {exportAvailability(r, false).masked && <div className="hint">{exportAvailability(r, false).short}</div>}</> },
           { key: 'expires', header: 'Expires', render: r => r.status === 'Completed' && r.expiresAt ? fmtDateTime(r.expiresAt) : <span className="muted">—</span> },
           { key: 'size', header: 'File size', className: 'num', render: r => size(r.fileSize) },
           { key: 'actions', header: 'Actions', className: 'row-actions', render: r => <span className="rc-row-actions">

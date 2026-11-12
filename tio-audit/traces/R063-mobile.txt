@@ -1,0 +1,173 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Environment types
+- heading "Environment types" [level=1]
+- generic: Offered when creating an environment. Each type behaves like its category, for example "Pre-production" behaves like Staging.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Environment types":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Environment types":
+      - caption: Environment types
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move Production up Move Production down Production Active Actions for Production":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Production up Move Production down":
+            - button "Move Production up" [disabled]: ▲
+            - button "Move Production down": ▼
+          - cell "Production":
+            - button "Production"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Production":
+            - button "Actions for Production": ⋯
+        - row "Details for ▲ ▼ Move Staging up Move Staging down Staging Active Actions for Staging":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Staging up Move Staging down":
+            - button "Move Staging up": ▲
+            - button "Move Staging down": ▼
+          - cell "Staging":
+            - button "Staging"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Staging":
+            - button "Actions for Staging": ⋯
+        - row "Details for ▲ ▼ Move UAT up Move UAT down UAT Active Actions for UAT":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move UAT up Move UAT down":
+            - button "Move UAT up": ▲
+            - button "Move UAT down": ▼
+          - cell "UAT":
+            - button "UAT"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for UAT":
+            - button "Actions for UAT": ⋯
+        - row "Details for ▲ ▼ Move Test up Move Test down Test Active Actions for Test":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Test up Move Test down":
+            - button "Move Test up": ▲
+            - button "Move Test down": ▼
+          - cell "Test":
+            - button "Test"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Test":
+            - button "Actions for Test": ⋯
+        - row "Details for ▲ ▼ Move Disaster recovery up Move Disaster recovery down Disaster recovery Active Actions for Disaster recovery":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Disaster recovery up Move Disaster recovery down":
+            - button "Move Disaster recovery up": ▲
+            - button "Move Disaster recovery down": ▼
+          - cell "Disaster recovery":
+            - button "Disaster recovery"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Disaster recovery":
+            - button "Actions for Disaster recovery": ⋯
+        - row "Details for ▲ ▼ Move Other up Move Other down Other Active Actions for Other":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

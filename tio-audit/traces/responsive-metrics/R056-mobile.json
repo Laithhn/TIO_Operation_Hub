@@ -1,0 +1,15 @@
+{
+  "id": "R056-mobile",
+  "route": "/admin/config/category/servers",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Servers"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 463,
+  "title": "Servers · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

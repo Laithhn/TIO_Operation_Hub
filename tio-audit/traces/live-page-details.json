@@ -1,0 +1,981 @@
+[
+  {
+    "id": "082-config-clients-environments",
+    "url": "https://nb01994.vitronic.de/admin/config/category/clients-environments",
+    "headings": [
+      "Clients & Environments"
+    ],
+    "links": [
+      {
+        "href": "/admin/config/reported-conditions",
+        "text": "Reported conditions"
+      },
+      {
+        "href": "/admin/config/organization-relationship-types",
+        "text": "Organization relationship types"
+      },
+      {
+        "href": "/admin/config/environment-types",
+        "text": "Environment types"
+      },
+      {
+        "href": "/admin/config/responsibility-areas",
+        "text": "Responsibility areas"
+      },
+      {
+        "href": "/admin/config/team-roles",
+        "text": "Project team roles"
+      }
+    ],
+    "main": "Reported conditions\nDisplay labels of the built-in reported conditions.\n4 fixed values\nFixed values, labels only\nOrganization relationship types\nBusiness roles such as Contractor, Supplier or Partner.\n10 active\nEditable list\nEnvironment types\nTypes offered when creating an environment.\n6 active\nEditable list\nResponsibility areas\nAreas of work used in responsibility boundaries.\n6 active\nEditable list\nProject team roles\nRoles of the members of a client's project team.\n6 active\nEditable list",
+    "title": "Clients & Environments · TIO Operations Hub"
+  },
+  {
+    "id": "082-config-servers",
+    "url": "https://nb01994.vitronic.de/admin/config/category/servers",
+    "headings": [
+      "Servers"
+    ],
+    "links": [
+      {
+        "href": "/admin/config/server-types",
+        "text": "Server types"
+      },
+      {
+        "href": "/admin/config/server-roles",
+        "text": "Server roles"
+      },
+      {
+        "href": "/admin/config/network-zones",
+        "text": "Network zones"
+      },
+      {
+        "href": "/admin/config/operating-systems",
+        "text": "Operating systems"
+      },
+      {
+        "href": "/admin/config/project-phases",
+        "text": "Project phases"
+      }
+    ],
+    "main": "Server types\nTypes on the server form; decide how servers are counted.\n3 active\nEditable list\nServer roles\nWhat a server is for, such as Application or Database server.\n7 active\nEditable list\nNetwork zones\nNetwork zones offered on the server form.\n8 active\nEditable list\nOperating systems\nOperating system families offered on the server form.\n3 active\nEditable list\nProject phases\nDelivery phases of a server, such as Requested or Deployed.\n3 active\nEditable list",
+    "title": "Servers · TIO Operations Hub"
+  },
+  {
+    "id": "082-config-products-installations",
+    "url": "https://nb01994.vitronic.de/admin/config/category/products-installations",
+    "headings": [
+      "Products & Installations"
+    ],
+    "links": [
+      {
+        "href": "/admin/config/component-roles",
+        "text": "Component roles"
+      }
+    ],
+    "main": "Component roles\nRoles of installation components, such as Database or Workflow.\n10 active\nEditable list",
+    "title": "Products & Installations · TIO Operations Hub"
+  },
+  {
+    "id": "082-config-contracts-cases",
+    "url": "https://nb01994.vitronic.de/admin/config/category/contracts-cases",
+    "headings": [
+      "Contracts & Tickets"
+    ],
+    "links": [
+      {
+        "href": "/admin/config/contract-types",
+        "text": "Contract types"
+      },
+      {
+        "href": "/admin/config/case-types",
+        "text": "Ticket types"
+      },
+      {
+        "href": "/admin/config/case-statuses",
+        "text": "Ticket statuses"
+      },
+      {
+        "href": "/admin/config/escalation-channels",
+        "text": "Escalation channels"
+      },
+      {
+        "href": "/admin/config/priority-guidance",
+        "text": "Priority guidance"
+      }
+    ],
+    "main": "Contract types\nTypes offered on the contract form.\n5 active\nEditable list\nTicket types\nTypes offered when opening a ticket.\n5 active\nEditable list\nTicket statuses\nDisplay labels of the built-in case statuses.\n7 active\nEditable list\nEscalation channels\nHow escalations arrive and how replies go out.\n4 active\nEditable list\nPriority guidance\nGuidance text shown for each ticket priority.\n4 active\nEditable list",
+    "title": "Contracts & Tickets · TIO Operations Hub"
+  },
+  {
+    "id": "082-config-teams",
+    "url": "https://nb01994.vitronic.de/admin/config/category/teams",
+    "headings": [
+      "Teams"
+    ],
+    "links": [
+      {
+        "href": "/admin/config/team-member-roles",
+        "text": "Team member roles"
+      }
+    ],
+    "main": "Team member roles\nRoles of the members of internal teams.\n11 active\nEditable list",
+    "title": "Teams · TIO Operations Hub"
+  },
+  {
+    "id": "082-config-system",
+    "url": "https://nb01994.vitronic.de/admin/config/category/system",
+    "headings": [
+      "System"
+    ],
+    "links": [
+      {
+        "href": "/admin/policies",
+        "text": "Review policies"
+      },
+      {
+        "href": "/admin/jira",
+        "text": "Jira instances"
+      },
+      {
+        "href": "/admin/settings",
+        "text": "Settings"
+      }
+    ],
+    "main": "Review policies\nHow often records must be reviewed before they show as stale.\nSystem setting\nJira instances\nJira sites that tickets may link to.\nSystem setting\nSettings\nApproved link hosts, coverage policy and other application values.\nSystem setting",
+    "title": "System · TIO Operations Hub"
+  },
+  {
+    "id": "083-reported-conditions",
+    "url": "https://nb01994.vitronic.de/admin/config/reported-conditions",
+    "headings": [
+      "Reported conditions"
+    ],
+    "links": [],
+    "main": "4 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nReported conditions\n\t\nWorkflow code\n\t\nDisplay label\n\t\nStatus\n\n\n\t\nUnknown\n\t\nUnknown\n\t\nFixed workflow value\n\n\n\t\nHealthy\n\t\nHealthy\n\t\nFixed workflow value\n\n\n\t\nDegraded\n\t\nDegraded\n\t\nFixed workflow value\n\n\n\t\nUnavailable\n\t\nUnavailable\n\t\nFixed workflow value\n\nOnly display labels can be changed. All built-in values remain available and keep their workflow meaning.",
+    "title": "Reported conditions · TIO Operations Hub"
+  },
+  {
+    "id": "083-organization-relationship-types",
+    "url": "https://nb01994.vitronic.de/admin/config/organization-relationship-types",
+    "headings": [
+      "Organization relationship types"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n10 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nOrganization relationship types\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (organization relationships)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nClient\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nContractor\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSubcontractor\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSub-subcontractor\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSupplier\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nPartner\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nConsultant\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nVendor\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nService Provider\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOther\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Organization relationship types · TIO Operations Hub"
+  },
+  {
+    "id": "083-environment-types",
+    "url": "https://nb01994.vitronic.de/admin/config/environment-types",
+    "headings": [
+      "Environment types"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n6 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nEnvironment types\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nBehaves as\n\t\nIn use (environments)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nProduction\n\t\n—\n\t\nProduction\n\t\n8\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nStaging\n\t\n—\n\t\nStaging\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nUAT\n\t\n—\n\t\nUAT\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nTest\n\t\n—\n\t\nTest\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDisaster recovery\n\t\n—\n\t\nDisaster recovery\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOther\n\t\n—\n\t\nOther\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Environment types · TIO Operations Hub"
+  },
+  {
+    "id": "083-responsibility-areas",
+    "url": "https://nb01994.vitronic.de/admin/config/responsibility-areas",
+    "headings": [
+      "Responsibility areas"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n6 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nResponsibility areas\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (responsibility boundaries)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nApplication\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDatabase\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOperating system\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nNetwork\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nBackup\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nMonitoring\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Responsibility areas · TIO Operations Hub"
+  },
+  {
+    "id": "083-team-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/team-roles",
+    "headings": [
+      "Project team roles"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n6 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nProject team roles\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (project team members)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nOperation engineer\n\t\n—\n\t\n13\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nBackup operation engineer\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDevOps engineer\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSupport engineer\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDeveloper\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nProject coordinator\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Project team roles · TIO Operations Hub"
+  },
+  {
+    "id": "083-server-types",
+    "url": "https://nb01994.vitronic.de/admin/config/server-types",
+    "headings": [
+      "Server types"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n3 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nServer types\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nBehaves as\n\t\nIn use (servers)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nVirtual machine (VM)\n\t\n—\n\t\nVirtual machine\n\t\n133\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nPhysical server\n\t\n—\n\t\nPhysical server\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nLogical endpoint\n\t\n—\n\t\nLogical endpoint\n\t\n20\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Server types · TIO Operations Hub"
+  },
+  {
+    "id": "083-server-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/server-roles",
+    "headings": [
+      "Server roles"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n7 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nServer roles\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (servers)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nApplication server\n\t\n—\n\t\n69\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nWeb server\n\t\n—\n\t\n31\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDatabase server\n\t\n—\n\t\n29\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nListener\n\t\n—\n\t\n8\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nLoad balancer\n\t\n—\n\t\n8\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nStorage\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOther\n\t\n—\n\t\n8\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Server roles · TIO Operations Hub"
+  },
+  {
+    "id": "083-network-zones",
+    "url": "https://nb01994.vitronic.de/admin/config/network-zones",
+    "headings": [
+      "Network zones"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n8 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nNetwork zones\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (servers)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nDMZ\n\t\n—\n\t\n7\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nInternal\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nAPP\n\t\n—\n\t\n73\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nWEB\n\t\n—\n\t\n32\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nManagement\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nClient LAN\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDB\n\t\n—\n\t\n37\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nExternal\n\t\n—\n\t\n4\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Network zones · TIO Operations Hub"
+  },
+  {
+    "id": "083-operating-systems",
+    "url": "https://nb01994.vitronic.de/admin/config/operating-systems",
+    "headings": [
+      "Operating systems"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n3 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nOperating systems\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (servers)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nWindows Server\n\t\n—\n\t\n72\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nLinux\n\t\n—\n\t\n46\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOther\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Operating systems · TIO Operations Hub"
+  },
+  {
+    "id": "083-project-phases",
+    "url": "https://nb01994.vitronic.de/admin/config/project-phases",
+    "headings": [
+      "Project phases"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n3 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nProject phases\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (servers)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nRequested\n\t\n—\n\t\n28\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nApproved\n\t\n—\n\t\n67\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDeployed\n\t\n—\n\t\n54\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Project phases · TIO Operations Hub"
+  },
+  {
+    "id": "084-component-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/component-roles",
+    "headings": [
+      "Component roles"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n10 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nComponent roles\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (components)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nWeb\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nApplication\n\t\n—\n\t\n78\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDatabase\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nImport\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nWorkflow\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nANPR\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nMedia\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nReporting\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nMonitoring\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOther\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Component roles · TIO Operations Hub"
+  },
+  {
+    "id": "084-contract-types",
+    "url": "https://nb01994.vitronic.de/admin/config/contract-types",
+    "headings": [
+      "Contract types"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n5 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nContract types\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nBehaves as\n\t\nIn use (contracts)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nSLA & support\n\t\n—\n\t\nSLA & support\n\t\n6\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nImplementation\n\t\n—\n\t\nImplementation\n\t\n2\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nMaintenance\n\t\n—\n\t\nMaintenance\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSubscription\n\t\n—\n\t\nSubscription\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOther\n\t\n—\n\t\nOther\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Contract types · TIO Operations Hub"
+  },
+  {
+    "id": "084-case-types",
+    "url": "https://nb01994.vitronic.de/admin/config/case-types",
+    "headings": [
+      "Ticket types"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n5 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nTicket types\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nBehaves as\n\t\nIn use (cases)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nTask\n\t\n—\n\t\nRequest\n\t\n432\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nImprovement\n\t\n—\n\t\nImprovement\n\t\n153\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nBug\n\t\n—\n\t\nIncident\n\t\n1132\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nEpic\n\t\n—\n\t\nRequest\n\t\n170\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDeployment\n\t\n—\n\t\nRequest\n\t\n62\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Ticket types · TIO Operations Hub"
+  },
+  {
+    "id": "084-case-statuses",
+    "url": "https://nb01994.vitronic.de/admin/config/case-statuses",
+    "headings": [
+      "Ticket statuses"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n7 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nTicket statuses\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nBehaves as\n\t\nIn use (cases)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nNew\n\t\n—\n\t\nInitial\n\t\n52\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOpen\n\t\n—\n\t\nOpened\n\t\n7\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nIn progress\n\t\n—\n\t\nActive\n\t\n36\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nWaiting for customer\n\t\n—\n\t\nWaiting for customer\n\t\n73\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nResolved\n\t\nVitronic Team Completed and waiting for Customer Confirmation\n\t\nWaiting for customer\n\t\n15\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nClosed\n\t\n—\n\t\nClosed\n\t\n1766\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nRe-opened\n\t\n—\n\t\nReopened\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Ticket statuses · TIO Operations Hub"
+  },
+  {
+    "id": "084-escalation-channels",
+    "url": "https://nb01994.vitronic.de/admin/config/escalation-channels",
+    "headings": [
+      "Escalation channels"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n4 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nEscalation channels\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (escalations and their logged communications)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nE-mail\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nFormal letter\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nVerbal (call or meeting)\n\t\n—\n\t\n2\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nJira\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Escalation channels · TIO Operations Hub"
+  },
+  {
+    "id": "084-priority-guidance",
+    "url": "https://nb01994.vitronic.de/admin/config/priority-guidance",
+    "headings": [
+      "Priority guidance"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n4 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nPriority guidance\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (the ticket form (guidance text))\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nCritical\n\t\nProposed: service down for a client; criteria to be agreed before the pilot.\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nHigh\n\t\nProposed: significant degradation; criteria to be agreed before the pilot.\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nNormal\n\t\nProposed: limited impact; criteria to be agreed before the pilot.\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nLow\n\t\nProposed: no customer impact; criteria to be agreed before the pilot.\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Priority guidance · TIO Operations Hub"
+  },
+  {
+    "id": "084-team-member-roles",
+    "url": "https://nb01994.vitronic.de/admin/config/team-member-roles",
+    "headings": [
+      "Team member roles"
+    ],
+    "links": [],
+    "main": "Show retired (0)\n11 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nTeam member roles\n\t\nOrder\n\t\nName\n\t\nDescription\n\t\nIn use (team members)\n\t\nStatus\n\t\nActions\n\n\n\t\n▲▼\n\t\nTeam lead\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nOperation Engineer\n\t\n—\n\t\n2\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSenior engineer\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nEngineer\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSr. Operation Enigneer\n\t\n—\n\t\n3\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nSupport engineer\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nAnalyst\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nProject Delivery Lead\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDeveloper\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nDevOps Engineer\n\t\n—\n\t\n1\n\t\nActive\n\t\n⋯\n\n\n\t\n▲▼\n\t\nIT Expert\n\t\n—\n\t\n0\n\t\nActive\n\t\n⋯\n\nRetiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.",
+    "title": "Team member roles · TIO Operations Hub"
+  },
+  {
+    "id": "084-policies",
+    "url": "https://nb01994.vitronic.de/admin/policies",
+    "headings": [
+      "Review policies"
+    ],
+    "links": [],
+    "main": "6 rows\nFILTER\nCOLUMNS\nEXPORT CSV\n\t\nRecord type\n\t\nScope\n\t\nMax age (days)\n\t\nUses next-review date\n\t\nEffective from\n\t\nNotes\n\t\nStatus\n\t\nActions\n\n\n\t\nTicket\n\t\nRecord\n\t\n2\n\t\nYes\n\t\n2026-10-16\n\t\nActive cases every 2 calendar days and by the explicit next-review time (pilot default).\n\t\nActive\n\t\nEdit\n\n\n\t\nClient\n\t\nRecord\n\t\n90\n\t\nYes\n\t\n2026-10-16\n\t\nClient records every 90 days and after material change (pilot default).\n\t\nActive\n\t\nEdit\n\n\n\t\nCommitment\n\t\nRecord\n\t\n—\n\t\nYes\n\t\n2026-10-16\n\t\nCommitments are reviewed on material change and by their next-review date.\n\t\nActive\n\t\nEdit\n\n\n\t\nContact\n\t\nRecord\n\t\n90\n\t\nNo\n\t\n2026-10-16\n\t\nContact records every 90 days (pilot default).\n\t\nActive\n\t\nEdit\n\n\n\t\nEnvironment\n\t\nCondition\n\t\n7\n\t\nNo\n\t\n2026-10-16\n\t\nCondition evidence older than 7 days shows Needs verification (assumption; confirm with owners).\n\t\nActive\n\t\nEdit\n\n\n\t\nEnvironment\n\t\nInventory\n\t\n30\n\t\nYes\n\t\n2026-10-16\n\t\nEnvironment inventory every 30 days and after material change (pilot default).\n\t\nActive\n\t\nEdit",
+    "title": "Review policies · TIO Operations Hub"
+  },
+  {
+    "id": "084-jira",
+    "url": "https://nb01994.vitronic.de/admin/jira",
+    "headings": [
+      "Jira instances"
+    ],
+    "links": [],
+    "main": "2 rows\nFILTER\nCOLUMNS\nEXPORT CSV\n\t\nName\n\t\nKind\n\t\nApproved host\n\t\nActions\n\n\n\t\nCustomer Cloud Jira\n\t\nCustomer Cloud\n\t\nNot configured\n\t\nEdit\n\n\n\t\nInternal On-prem Jira\n\t\nInternal On-prem\n\t\nNot configured\n\t\nEdit",
+    "title": "Jira instances · TIO Operations Hub"
+  },
+  {
+    "id": "084-settings",
+    "url": "https://nb01994.vitronic.de/admin/settings",
+    "headings": [
+      "Settings",
+      "General",
+      "Links and security",
+      "Backup coverage",
+      "Contracts",
+      "Jira",
+      "Other",
+      "File attachments"
+    ],
+    "links": [],
+    "main": "General\nGeneral settings\nSetting\n\t\nValue\n\t\nWhat it does\n\t\nActions\n\n\nUpcoming window for commitments (days)\nDashboard.UpcomingDays\n\t\n7\n\t\nUpcoming window for commitments, in calendar days (Section 7 proposed default).\n\t\nEdit\n\n\nDefault time zone for new users\nDefaultTimeZone\n\t\n(UTC+04:00) Asia/Dubai\n\t\nDefault display time zone for new users.\n\t\nEdit\nLinks and security\nLinks and security settings\nSetting\n\t\nValue\n\t\nWhat it does\n\t\nActions\n\n\nApproved document link hosts\nApprovedLinkHosts\n\t\nEmpty (open decision)\n\t\nComma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted).\n\t\nEdit\n\n\nVault reference prefix\nVaultReferencePrefix\n\t\nvault://\n\t\nRequired prefix of approved vault references. The hub stores references only, never secrets.\n\t\nEdit\nBackup coverage\nBackup coverage settings\nSetting\n\t\nValue\n\t\nWhat it does\n\t\nActions\n\n\nTicket priorities that need a backup owner\nCoverage.CasePriorities\n\t\nCritical\n\t\nCase priorities that require an active backup owner (coverage policy).\n\t\nEdit\n\n\nEnvironment criticalities that need a backup owner\nCoverage.EnvironmentCriticalities\n\t\nCriticalHigh\n\t\nEnvironment criticalities that require an active backup owner (coverage policy).\n\t\nEdit\nContracts\nContracts settings\nSetting\n\t\nValue\n\t\nWhat it does\n\t\nActions\n\n\nPayment reminder (days before due)\nContracts.PaymentReminderDays\n\t\n14\n\t\nDays before a contract payment is due that its owner and the managers are reminded (1–90).\n\t\nEdit\nJira\nJira settings\nSetting\n\t\nValue\n\t\nWhat it does\n\t\nActions\n\n\nJira tickets take their contract by creation date since\nJira.ContractsByDateFrom\n\t\n01 Jan 2017, 13:34\n\t\nWhen tickets of Jira spaces began to take their contract from their creation date (A93).\n\t\n\n\nJira tickets take their priority from Jira since\nJira.PrioritiesFollowJiraFrom\n\t\n05 Nov 2026, 16:50\n\t\nWhen synchronized tickets began to take their priority from Jira (A96).\n\t\nOther\nOther settings\nSetting\n\t\nValue\n\t\nWhat it does\n\t\nActions\n\n\nProject status max age days\nDashboard.ProjectStatusMaxAgeDays\n\t\n14\n\t\nA recorded project status older than this many days is shown as needing review (1–90).\n\t\nEdit\n\n\nSla at risk percent\nDashboard.SlaAtRiskPercent\n\t\n25\n\t\nA running contractual SLA clock is shown as at risk when this percentage of its target time, or… More\n\t\nEdit\n\n\nSla compliance target percent\nDashboard.SlaComplianceTargetPercent\n\t\n90\n\t\nCompliance objective in percent that the SLA and project dashboards compare measured rates with… More\n\t\nEdit\nFile attachments\nEDIT\nStorage folder\nC:\\Apps\\TioHub\\attachments (configuration default)\nStored now\n49 file(s), 69.9 MB\nLimits\n25 MB per file, 10 files per upload\nAccepted types\n.pdf, .doc, .docx, .xls, .xlsx, .csv, .ppt, .pptx, .vsd, .vsdx, .txt, .log, .md, .rtf, .odt, .ods, .odp, .png, .jpg, .jpeg, .gif, .bmp, .webp, .msg, .eml, .zip, .7z, .xml, .json\n\nFiles are saved on the server's disk in this folder, never in the database; the database keeps their name, size, checksum and who uploaded them. Include the folder in the server backups.",
+    "title": "Settings · TIO Operations Hub"
+  },
+  {
+    "id": "085-new-client",
+    "url": "https://nb01994.vitronic.de/clients/new",
+    "headings": [
+      "New client"
+    ],
+    "links": [],
+    "main": "Main client\nNone — this is a main client\nADP · Abu Dhabi Police\nDGSN · NATIONAL GENDARMERIE (DGSN)\nDUBAI_POLICE · Dubai Police\nEIFFAGE · Eiffage Concessions\nMADAR_DIJLA · Madar Dijla\nMULTICOM · MULTICOM - IT Security\nNARSA · NARSA\nPESAPRINT · Pesa Print\nQATAR_MOI · Qatar MOI\nRNP · Rwanda National Ploce\nROP · Royal Oman Police (ROP)\nSAPOL · South Australia Police\nSEW · Sewar Tech\nSHJ_POLICE · Sharjah Police\nTAH · Tahakom\nTAK · TAK Business Group\nChoose one to make this a sub-client, for example Traffic Department under Dubai Police. It keeps its own environments, regions, servers, products and team.\nClient alias\nShort name used across the hub, e.g. DP or TAH. Unique and permanent; reserved even after archiving.\nClient name\nStatus\nOpportunity\nActive\nCountry\n— Select the country —\nAfghanistan\nAlbania\nAlgeria\nAndorra\nAngola\nAntigua and Barbuda\nArgentina\nArmenia\nAustralia\nAustria\nAzerbaijan\nBahamas\nBahrain\nBangladesh\nBarbados\nBelarus\nBelgium\nBelize\nBenin\nBhutan\nBolivia\nBosnia and Herzegovina\nBotswana\nBrazil\nBrunei\nBulgaria\nBurkina Faso\nBurundi\nCabo Verde\nCambodia\nCameroon\nCanada\nCentral African Republic\nChad\nChile\nChina\nColombia\nComoros\nCongo\nCosta Rica\nCôte d'Ivoire\nCroatia\nCuba\nCyprus\nCzechia\nDemocratic Republic of the Congo\nDenmark\nDjibouti\nDominica\nDominican Republic\nEcuador\nEgypt\nEl Salvador\nEquatorial Guinea\nEritrea\nEstonia\nEswatini\nEthiopia\nFiji\nFinland\nFrance\nGabon\nGambia\nGeorgia\nGermany\nGhana\nGreece\nGreenland\nGrenada\nGuatemala\nGuinea\nGuinea-Bissau\nGuyana\nHaiti\nHonduras\nHong Kong\nHungary\nIceland\nIndia\nIndonesia\nIran\nIraq\nIreland\nIsrael\nItaly\nJamaica\nJapan\nJordan\nKazakhstan\nKenya\nKiribati\nKosovo\nKuwait\nKyrgyzstan\nLaos\nLatvia\nLebanon\nLesotho\nLiberia\nLibya\nLiechtenstein\nLithuania\nLuxembourg\nMacao\nMadagascar\nMalawi\nMalaysia\nMaldives\nMali\nMalta\nMarshall Islands\nMauritania\nMauritius\nMexico\nMicronesia\nMoldova\nMonaco\nMongolia\nMontenegro\nMorocco\nMozambique\nMyanmar\nNamibia\nNauru\nNepal\nNetherlands\nNew Zealand\nNicaragua\nNiger\nNigeria\nNorth Korea\nNorth Macedonia\nNorway\nOman\nPakistan\nPalau\nPalestine\nPanama\nPapua New Guinea\nParaguay\nPeru\nPhilippines\nPoland\nPortugal\nPuerto Rico\nQatar\nRomania\nRussia\nRwanda\nSaint Kitts and Nevis\nSaint Lucia\nSaint Vincent and the Grenadines\nSamoa\nSan Marino\nSão Tomé and Príncipe\nSaudi Arabia\nSenegal\nSerbia\nSeychelles\nSierra Leone\nSingapore\nSlovakia\nSlovenia\nSolomon Islands\nSomalia\nSouth Africa\nSouth Korea\nSouth Sudan\nSpain\nSri Lanka\nSudan\nSuriname\nSweden\nSwitzerland\nSyria\nTaiwan\nTajikistan\nTanzania\nThailand\nTimor-Leste\nTogo\nTonga\nTrinidad and Tobago\nTunisia\nTürkiye\nTurkmenistan\nTuvalu\nUganda\nUkraine\nUnited Arab Emirates\nUnited Kingdom\nUnited States\nUruguay\nUzbekistan\nVanuatu\nVatican City\nVenezuela\nVietnam\nWestern Sahara\nYemen\nZambia\nZimbabwe\nProject manager\n— Select —\nThe team member managing this client. Only a Team Lead or the TIO Manager can change it.\nClient logo (optional)\nUPLOAD LOGO…\nPNG, JPG or WebP, at most 2 MB. A square or wide logo on a transparent or white background works best. SVG is not accepted.\nProject team\n\nNo team members yet.\n\n+ TEAM MEMBER\nor add a whole team:\nTeam from Teams\n— Select a team —\nDubai Office Operation Team\nKSA Operation Team\nADD TEAM MEMBERS\nOrganizational Structure (optional)\n\nRegions are optional. Add them on the client page only if this client organizes operations into regions; once a client has regions, every environment belongs to one.\n\nCANCEL\nSAVE CLIENT",
+    "title": "New client · TIO Operations Hub"
+  },
+  {
+    "id": "086-new-product",
+    "url": "https://nb01994.vitronic.de/products/new",
+    "headings": [
+      "New product"
+    ],
+    "links": [],
+    "main": "Product code\nShort and permanent, e.g. PSOP or ViRRM.\nProduct name\nAlso known as\nOther names people use, separated by semicolons.\nCategory\ne.g. Back office, ANPR, Big data.\nProduct owner\nAny name; the product owner does not need a hub account.\nDescription\nWhat the product does, for whom, and anything a new engineer should know.\nTechnology\nPlatform and stack, e.g. .NET 8, SQL Server 2019, Docker, Windows Server.\nActive (untick to retire the product)\nApplication developers\n\nNo developers listed yet.\n\n+ DEVELOPER\nCANCEL\nSAVE PRODUCT",
+    "title": "New product · TIO Operations Hub"
+  },
+  {
+    "id": "087-new-ticket",
+    "url": "https://nb01994.vitronic.de/cases/new",
+    "headings": [
+      "New ticket"
+    ],
+    "links": [],
+    "main": "Title\nTicket type\n— Select —\nTask\nImprovement\nBug\nEpic\nDeployment\nWork scope\nClient-related\nInternal\nClient\n— Select —\nADP · Abu Dhabi Police\nADP-STC · Abu Dhabi Police STC\nADP-TRAFFIC · Abu Dhabi Traffic Department\nDGSN · NATIONAL GENDARMERIE (DGSN)\nDUBAI_POLICE · Dubai Police\nEIFFAGE · Eiffage Concessions\nMADAR_DIJLA · Madar Dijla\nMULTICOM · MULTICOM - IT Security\nNARSA · NARSA\nOYOON · OYOON Center\nPESAPRINT · Pesa Print\nQATAR_MOI · Qatar MOI\nRNP · Rwanda National Ploce\nROP · Royal Oman Police (ROP)\nSAPOL · South Australia Police\nSEW · Sewar Tech\nSHJ_POLICE · Sharjah Police\nTAH · Tahakom\nTAK · TAK Business Group\nTRAFFIC · Dubai Traffic Department\nResponsible team\n— Select —\nDubai Office Operation Team\nKSA Operation Team\nPriority\nCritical\nHigh\nNormal\nLow\nImpact summary\nOwner\nUnassigned\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nBackup owner\nNone\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nResponsible party\nTIO\nOther ITD division\nCustomer IT\nVendor\nUnknown\nInternal coordinator\nNone\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nNext action (optional)\nNext review (Asia/Dubai)\nDue (optional)\nWithout a deadline the ticket is listed separately, never as overdue.\nInternal work need not name an environment.\n\nJira tickets are created and updated in Jira by staff; the hub never writes to Jira.\n\nCANCEL\nCREATE TICKET",
+    "title": "New ticket · TIO Operations Hub"
+  },
+  {
+    "id": "088-new-commitment",
+    "url": "https://nb01994.vitronic.de/commitments/new",
+    "headings": [
+      "New commitment"
+    ],
+    "links": [],
+    "main": "Scope\nClient-related\nInternal\nClient\n— Select —\nADP · Abu Dhabi Police\nADP-STC · Abu Dhabi Police STC\nADP-TRAFFIC · Abu Dhabi Traffic Department\nDGSN · NATIONAL GENDARMERIE (DGSN)\nDUBAI_POLICE · Dubai Police\nEIFFAGE · Eiffage Concessions\nMADAR_DIJLA · Madar Dijla\nMULTICOM · MULTICOM - IT Security\nNARSA · NARSA\nOYOON · OYOON Center\nPESAPRINT · Pesa Print\nQATAR_MOI · Qatar MOI\nRNP · Rwanda National Ploce\nROP · Royal Oman Police (ROP)\nSAPOL · South Australia Police\nSEW · Sewar Tech\nSHJ_POLICE · Sharjah Police\nTAH · Tahakom\nTAK · TAK Business Group\nTRAFFIC · Dubai Traffic Department\nType\n— Select —\nCustomer update\nDelivery\nRenewal action\nMaintenance\nRecorded deadline\nOther\nRecorded deadlines are manual entries, never verified SLA calculations.\nDescription\nAccountable owner\n— Select —\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nDeadline (local wall-clock time)\nOriginal time zone\n— Select —\n(UTC−11:00) Pacific/Midway\n(UTC−11:00) Pacific/Niue\n(UTC−11:00) Pacific/Pago Pago\n(UTC−10:00) America/Adak\n(UTC−10:00) Pacific/Honolulu\n(UTC−10:00) Pacific/Rarotonga\n(UTC−10:00) Pacific/Tahiti\n(UTC−09:30) Pacific/Marquesas\n(UTC−09:00) America/Anchorage\n(UTC−09:00) America/Juneau\n(UTC−09:00) America/Metlakatla\n(UTC−09:00) America/Nome\n(UTC−09:00) America/Sitka\n(UTC−09:00) America/Yakutat\n(UTC−09:00) Pacific/Gambier\n(UTC−08:00) America/Los Angeles\n(UTC−08:00) America/Tijuana\n(UTC−08:00) Pacific/Pitcairn\n(UTC−07:00) America/Boise\n(UTC−07:00) America/Cambridge Bay\n(UTC−07:00) America/Ciudad Juarez\n(UTC−07:00) America/Creston\n(UTC−07:00) America/Dawson\n(UTC−07:00) America/Dawson Creek\n(UTC−07:00) America/Denver\n(UTC−07:00) America/Fort Nelson\n(UTC−07:00) America/Hermosillo\n(UTC−07:00) America/Inuvik\n(UTC−07:00) America/Mazatlan\n(UTC−07:00) America/Phoenix\n(UTC−07:00) America/Vancouver\n(UTC−07:00) America/Whitehorse\n(UTC−06:00) America/Bahia Banderas\n(UTC−06:00) America/Belize\n(UTC−06:00) America/Chicago\n(UTC−06:00) America/Chihuahua\n(UTC−06:00) America/Costa Rica\n(UTC−06:00) America/Edmonton\n(UTC−06:00) America/El Salvador\n(UTC−06:00) America/Guatemala\n(UTC−06:00) America/Indiana/Knox\n(UTC−06:00) America/Indiana/Tell City\n(UTC−06:00) America/Managua\n(UTC−06:00) America/Matamoros\n(UTC−06:00) America/Menominee\n(UTC−06:00) America/Merida\n(UTC−06:00) America/Mexico City\n(UTC−06:00) America/Monterrey\n(UTC−06:00) America/North Dakota/Beulah\n(UTC−06:00) America/North Dakota/Center\n(UTC−06:00) America/North Dakota/New Salem\n(UTC−06:00) America/Ojinaga\n(UTC−06:00) America/Rankin Inlet\n(UTC−06:00) America/Regina\n(UTC−06:00) America/Resolute\n(UTC−06:00) America/Swift Current\n(UTC−06:00) America/Tegucigalpa\n(UTC−06:00) America/Winnipeg\n(UTC−06:00) Pacific/Galapagos\n(UTC−05:00) America/Bogota\n(UTC−05:00) America/Cancun\n(UTC−05:00) America/Cayman\n(UTC−05:00) America/Coral Harbour\n(UTC−05:00) America/Detroit\n(UTC−05:00) America/Eirunepe\n(UTC−05:00) America/Grand Turk\n(UTC−05:00) America/Guayaquil\n(UTC−05:00) America/Havana\n(UTC−05:00) America/Indiana/Marengo\n(UTC−05:00) America/Indiana/Petersburg\n(UTC−05:00) America/Indiana/Vevay\n(UTC−05:00) America/Indiana/Vincennes\n(UTC−05:00) America/Indiana/Winamac\n(UTC−05:00) America/Indianapolis\n(UTC−05:00) America/Iqaluit\n(UTC−05:00) America/Jamaica\n(UTC−05:00) America/Kentucky/Monticello\n(UTC−05:00) America/Lima\n(UTC−05:00) America/Louisville\n(UTC−05:00) America/Nassau\n(UTC−05:00) America/New York\n(UTC−05:00) America/Panama\n(UTC−05:00) America/Port-au-Prince\n(UTC−05:00) America/Rio Branco\n(UTC−05:00) America/Toronto\n(UTC−05:00) Pacific/Easter\n(UTC−04:00) America/Anguilla\n(UTC−04:00) America/Antigua\n(UTC−04:00) America/Aruba\n(UTC−04:00) America/Barbados\n(UTC−04:00) America/Blanc-Sablon\n(UTC−04:00) America/Boa Vista\n(UTC−04:00) America/Campo Grande\n(UTC−04:00) America/Caracas\n(UTC−04:00) America/Cuiaba\n(UTC−04:00) America/Curacao\n(UTC−04:00) America/Dominica\n(UTC−04:00) America/Glace Bay\n(UTC−04:00) America/Goose Bay\n(UTC−04:00) America/Grenada\n(UTC−04:00) America/Guadeloupe\n(UTC−04:00) America/Guyana\n(UTC−04:00) America/Halifax\n(UTC−04:00) America/Kralendijk\n(UTC−04:00) America/La Paz\n(UTC−04:00) America/Lower Princes\n(UTC−04:00) America/Manaus\n(UTC−04:00) America/Marigot\n(UTC−04:00) America/Martinique\n(UTC−04:00) America/Moncton\n(UTC−04:00) America/Montserrat\n(UTC−04:00) America/Port of Spain\n(UTC−04:00) America/Porto Velho\n(UTC−04:00) America/Puerto Rico\n(UTC−04:00) America/Santo Domingo\n(UTC−04:00) America/St Barthelemy\n(UTC−04:00) America/St Kitts\n(UTC−04:00) America/St Lucia\n(UTC−04:00) America/St Thomas\n(UTC−04:00) America/St Vincent\n(UTC−04:00) America/Thule\n(UTC−04:00) America/Tortola\n(UTC−04:00) Atlantic/Bermuda\n(UTC−03:30) America/St Johns\n(UTC−03:00) America/Araguaina\n(UTC−03:00) America/Argentina/La Rioja\n(UTC−03:00) America/Argentina/Rio Gallegos\n(UTC−03:00) America/Argentina/Salta\n(UTC−03:00) America/Argentina/San Juan\n(UTC−03:00) America/Argentina/San Luis\n(UTC−03:00) America/Argentina/Tucuman\n(UTC−03:00) America/Argentina/Ushuaia\n(UTC−03:00) America/Asuncion\n(UTC−03:00) America/Bahia\n(UTC−03:00) America/Belem\n(UTC−03:00) America/Buenos Aires\n(UTC−03:00) America/Catamarca\n(UTC−03:00) America/Cayenne\n(UTC−03:00) America/Cordoba\n(UTC−03:00) America/Coyhaique\n(UTC−03:00) America/Fortaleza\n(UTC−03:00) America/Jujuy\n(UTC−03:00) America/Maceio\n(UTC−03:00) America/Mendoza\n(UTC−03:00) America/Miquelon\n(UTC−03:00) America/Montevideo\n(UTC−03:00) America/Paramaribo\n(UTC−03:00) America/Punta Arenas\n(UTC−03:00) America/Recife\n(UTC−03:00) America/Santarem\n(UTC−03:00) America/Santiago\n(UTC−03:00) America/Sao Paulo\n(UTC−03:00) Antarctica/Palmer\n(UTC−03:00) Antarctica/Rothera\n(UTC−03:00) Atlantic/Stanley\n(UTC−02:00) America/Godthab\n(UTC−02:00) America/Noronha\n(UTC−02:00) America/Scoresbysund\n(UTC−02:00) Atlantic/South Georgia\n(UTC−01:00) Atlantic/Azores\n(UTC−01:00) Atlantic/Cape Verde\n(UTC+00:00) Africa/Abidjan\n(UTC+00:00) Africa/Accra\n(UTC+00:00) Africa/Bamako\n(UTC+00:00) Africa/Banjul\n(UTC+00:00) Africa/Bissau\n(UTC+00:00) Africa/Casablanca\n(UTC+00:00) Africa/Conakry\n(UTC+00:00) Africa/Dakar\n(UTC+00:00) Africa/El Aaiun\n(UTC+00:00) Africa/Freetown\n(UTC+00:00) Africa/Lome\n(UTC+00:00) Africa/Monrovia\n(UTC+00:00) Africa/Nouakchott\n(UTC+00:00) Africa/Ouagadougou\n(UTC+00:00) Africa/Sao Tome\n(UTC+00:00) America/Danmarkshavn\n(UTC+00:00) Antarctica/Troll\n(UTC+00:00) Atlantic/Canary\n(UTC+00:00) Atlantic/Faeroe\n(UTC+00:00) Atlantic/Madeira\n(UTC+00:00) Atlantic/Reykjavik\n(UTC+00:00) Atlantic/St Helena\n(UTC+00:00) Europe/Dublin\n(UTC+00:00) Europe/Guernsey\n(UTC+00:00) Europe/Isle of Man\n(UTC+00:00) Europe/Jersey\n(UTC+00:00) Europe/Lisbon\n(UTC+00:00) Europe/London\n(UTC+00:00) UTC\n(UTC+01:00) Africa/Algiers\n(UTC+01:00) Africa/Bangui\n(UTC+01:00) Africa/Brazzaville\n(UTC+01:00) Africa/Ceuta\n(UTC+01:00) Africa/Douala\n(UTC+01:00) Africa/Kinshasa\n(UTC+01:00) Africa/Lagos\n(UTC+01:00) Africa/Libreville\n(UTC+01:00) Africa/Luanda\n(UTC+01:00) Africa/Malabo\n(UTC+01:00) Africa/Ndjamena\n(UTC+01:00) Africa/Niamey\n(UTC+01:00) Africa/Porto-Novo\n(UTC+01:00) Africa/Tunis\n(UTC+01:00) Arctic/Longyearbyen\n(UTC+01:00) Europe/Amsterdam\n(UTC+01:00) Europe/Andorra\n(UTC+01:00) Europe/Belgrade\n(UTC+01:00) Europe/Berlin\n(UTC+01:00) Europe/Bratislava\n(UTC+01:00) Europe/Brussels\n(UTC+01:00) Europe/Budapest\n(UTC+01:00) Europe/Busingen\n(UTC+01:00) Europe/Copenhagen\n(UTC+01:00) Europe/Gibraltar\n(UTC+01:00) Europe/Ljubljana\n(UTC+01:00) Europe/Luxembourg\n(UTC+01:00) Europe/Madrid\n(UTC+01:00) Europe/Malta\n(UTC+01:00) Europe/Monaco\n(UTC+01:00) Europe/Oslo\n(UTC+01:00) Europe/Paris\n(UTC+01:00) Europe/Podgorica\n(UTC+01:00) Europe/Prague\n(UTC+01:00) Europe/Rome\n(UTC+01:00) Europe/San Marino\n(UTC+01:00) Europe/Sarajevo\n(UTC+01:00) Europe/Skopje\n(UTC+01:00) Europe/Stockholm\n(UTC+01:00) Europe/Tirane\n(UTC+01:00) Europe/Vaduz\n(UTC+01:00) Europe/Vatican\n(UTC+01:00) Europe/Vienna\n(UTC+01:00) Europe/Warsaw\n(UTC+01:00) Europe/Zagreb\n(UTC+01:00) Europe/Zurich\n(UTC+02:00) Africa/Blantyre\n(UTC+02:00) Africa/Bujumbura\n(UTC+02:00) Africa/Cairo\n(UTC+02:00) Africa/Gaborone\n(UTC+02:00) Africa/Harare\n(UTC+02:00) Africa/Johannesburg\n(UTC+02:00) Africa/Juba\n(UTC+02:00) Africa/Khartoum\n(UTC+02:00) Africa/Kigali\n(UTC+02:00) Africa/Lubumbashi\n(UTC+02:00) Africa/Lusaka\n(UTC+02:00) Africa/Maputo\n(UTC+02:00) Africa/Maseru\n(UTC+02:00) Africa/Mbabane\n(UTC+02:00) Africa/Tripoli\n(UTC+02:00) Africa/Windhoek\n(UTC+02:00) Asia/Beirut\n(UTC+02:00) Asia/Famagusta\n(UTC+02:00) Asia/Gaza\n(UTC+02:00) Asia/Hebron\n(UTC+02:00) Asia/Jerusalem\n(UTC+02:00) Asia/Nicosia\n(UTC+02:00) Europe/Athens\n(UTC+02:00) Europe/Bucharest\n(UTC+02:00) Europe/Chisinau\n(UTC+02:00) Europe/Helsinki\n(UTC+02:00) Europe/Kaliningrad\n(UTC+02:00) Europe/Kiev\n(UTC+02:00) Europe/Mariehamn\n(UTC+02:00) Europe/Riga\n(UTC+02:00) Europe/Sofia\n(UTC+02:00) Europe/Tallinn\n(UTC+02:00) Europe/Vilnius\n(UTC+03:00) Africa/Addis Ababa\n(UTC+03:00) Africa/Asmera\n(UTC+03:00) Africa/Dar es Salaam\n(UTC+03:00) Africa/Djibouti\n(UTC+03:00) Africa/Kampala\n(UTC+03:00) Africa/Mogadishu\n(UTC+03:00) Africa/Nairobi\n(UTC+03:00) Antarctica/Syowa\n(UTC+03:00) Asia/Aden\n(UTC+03:00) Asia/Amman\n(UTC+03:00) Asia/Baghdad\n(UTC+03:00) Asia/Bahrain\n(UTC+03:00) Asia/Damascus\n(UTC+03:00) Asia/Kuwait\n(UTC+03:00) Asia/Qatar\n(UTC+03:00) Asia/Riyadh\n(UTC+03:00) Europe/Istanbul\n(UTC+03:00) Europe/Kirov\n(UTC+03:00) Europe/Minsk\n(UTC+03:00) Europe/Moscow\n(UTC+03:00) Europe/Simferopol\n(UTC+03:00) Europe/Volgograd\n(UTC+03:00) Indian/Antananarivo\n(UTC+03:00) Indian/Comoro\n(UTC+03:00) Indian/Mayotte\n(UTC+03:30) Asia/Tehran\n(UTC+04:00) Asia/Baku\n(UTC+04:00) Asia/Dubai\n(UTC+04:00) Asia/Muscat\n(UTC+04:00) Asia/Tbilisi\n(UTC+04:00) Asia/Yerevan\n(UTC+04:00) Europe/Astrakhan\n(UTC+04:00) Europe/Samara\n(UTC+04:00) Europe/Saratov\n(UTC+04:00) Europe/Ulyanovsk\n(UTC+04:00) Indian/Mahe\n(UTC+04:00) Indian/Mauritius\n(UTC+04:00) Indian/Reunion\n(UTC+04:30) Asia/Kabul\n(UTC+05:00) Antarctica/Mawson\n(UTC+05:00) Antarctica/Vostok\n(UTC+05:00) Asia/Almaty\n(UTC+05:00) Asia/Aqtau\n(UTC+05:00) Asia/Aqtobe\n(UTC+05:00) Asia/Ashgabat\n(UTC+05:00) Asia/Atyrau\n(UTC+05:00) Asia/Dushanbe\n(UTC+05:00) Asia/Karachi\n(UTC+05:00) Asia/Oral\n(UTC+05:00) Asia/Qostanay\n(UTC+05:00) Asia/Qyzylorda\n(UTC+05:00) Asia/Samarkand\n(UTC+05:00) Asia/Tashkent\n(UTC+05:00) Asia/Yekaterinburg\n(UTC+05:00) Indian/Kerguelen\n(UTC+05:00) Indian/Maldives\n(UTC+05:30) Asia/Calcutta\n(UTC+05:30) Asia/Colombo\n(UTC+05:45) Asia/Katmandu\n(UTC+06:00) Asia/Bishkek\n(UTC+06:00) Asia/Dhaka\n(UTC+06:00) Asia/Omsk\n(UTC+06:00) Asia/Thimphu\n(UTC+06:00) Asia/Urumqi\n(UTC+06:00) Indian/Chagos\n(UTC+06:30) Asia/Rangoon\n(UTC+06:30) Indian/Cocos\n(UTC+07:00) Antarctica/Davis\n(UTC+07:00) Asia/Bangkok\n(UTC+07:00) Asia/Barnaul\n(UTC+07:00) Asia/Hovd\n(UTC+07:00) Asia/Jakarta\n(UTC+07:00) Asia/Krasnoyarsk\n(UTC+07:00) Asia/Novokuznetsk\n(UTC+07:00) Asia/Novosibirsk\n(UTC+07:00) Asia/Phnom Penh\n(UTC+07:00) Asia/Pontianak\n(UTC+07:00) Asia/Saigon\n(UTC+07:00) Asia/Tomsk\n(UTC+07:00) Asia/Vientiane\n(UTC+07:00) Indian/Christmas\n(UTC+08:00) Antarctica/Casey\n(UTC+08:00) Asia/Brunei\n(UTC+08:00) Asia/Hong Kong\n(UTC+08:00) Asia/Irkutsk\n(UTC+08:00) Asia/Kuala Lumpur\n(UTC+08:00) Asia/Kuching\n(UTC+08:00) Asia/Macau\n(UTC+08:00) Asia/Makassar\n(UTC+08:00) Asia/Manila\n(UTC+08:00) Asia/Shanghai\n(UTC+08:00) Asia/Singapore\n(UTC+08:00) Asia/Taipei\n(UTC+08:00) Asia/Ulaanbaatar\n(UTC+08:00) Australia/Perth\n(UTC+08:45) Australia/Eucla\n(UTC+09:00) Asia/Chita\n(UTC+09:00) Asia/Dili\n(UTC+09:00) Asia/Jayapura\n(UTC+09:00) Asia/Khandyga\n(UTC+09:00) Asia/Pyongyang\n(UTC+09:00) Asia/Seoul\n(UTC+09:00) Asia/Tokyo\n(UTC+09:00) Asia/Yakutsk\n(UTC+09:00) Pacific/Palau\n(UTC+09:30) Australia/Darwin\n(UTC+10:00) Antarctica/DumontDUrville\n(UTC+10:00) Asia/Ust-Nera\n(UTC+10:00) Asia/Vladivostok\n(UTC+10:00) Australia/Brisbane\n(UTC+10:00) Australia/Lindeman\n(UTC+10:00) Pacific/Guam\n(UTC+10:00) Pacific/Port Moresby\n(UTC+10:00) Pacific/Saipan\n(UTC+10:00) Pacific/Truk\n(UTC+10:30) Australia/Adelaide\n(UTC+10:30) Australia/Broken Hill\n(UTC+11:00) Antarctica/Macquarie\n(UTC+11:00) Asia/Magadan\n(UTC+11:00) Asia/Sakhalin\n(UTC+11:00) Asia/Srednekolymsk\n(UTC+11:00) Australia/Hobart\n(UTC+11:00) Australia/Lord Howe\n(UTC+11:00) Australia/Melbourne\n(UTC+11:00) Australia/Sydney\n(UTC+11:00) Pacific/Bougainville\n(UTC+11:00) Pacific/Efate\n(UTC+11:00) Pacific/Guadalcanal\n(UTC+11:00) Pacific/Kosrae\n(UTC+11:00) Pacific/Noumea\n(UTC+11:00) Pacific/Ponape\n(UTC+12:00) Asia/Anadyr\n(UTC+12:00) Asia/Kamchatka\n(UTC+12:00) Pacific/Fiji\n(UTC+12:00) Pacific/Funafuti\n(UTC+12:00) Pacific/Kwajalein\n(UTC+12:00) Pacific/Majuro\n(UTC+12:00) Pacific/Nauru\n(UTC+12:00) Pacific/Norfolk\n(UTC+12:00) Pacific/Tarawa\n(UTC+12:00) Pacific/Wake\n(UTC+12:00) Pacific/Wallis\n(UTC+13:00) Antarctica/McMurdo\n(UTC+13:00) Pacific/Apia\n(UTC+13:00) Pacific/Auckland\n(UTC+13:00) Pacific/Enderbury\n(UTC+13:00) Pacific/Fakaofo\n(UTC+13:00) Pacific/Tongatapu\n(UTC+13:45) Pacific/Chatham\n(UTC+14:00) Pacific/Kiritimati\nThe deadline is kept in this zone. Ambiguous DST times need an explicit offset, e.g. 2026-10-25T02:30+02:00.\nNext review (Asia/Dubai)\nProject link (optional)\nNone\nCANCEL\nRECORD COMMITMENT",
+    "title": "New commitment · TIO Operations Hub"
+  },
+  {
+    "id": "089-new-escalation",
+    "url": "https://nb01994.vitronic.de/escalations/new",
+    "headings": [
+      "New escalation"
+    ],
+    "links": [],
+    "main": "Escalation\nClient\n— Select —\nADP · Abu Dhabi Police\nADP-STC · Abu Dhabi Police STC\nADP-TRAFFIC · Abu Dhabi Traffic Department\nDGSN · NATIONAL GENDARMERIE (DGSN)\nDUBAI_POLICE · Dubai Police\nEIFFAGE · Eiffage Concessions\nMADAR_DIJLA · Madar Dijla\nMULTICOM · MULTICOM - IT Security\nNARSA · NARSA\nOYOON · OYOON Center\nPESAPRINT · Pesa Print\nQATAR_MOI · Qatar MOI\nRNP · Rwanda National Ploce\nROP · Royal Oman Police (ROP)\nSAPOL · South Australia Police\nSEW · Sewar Tech\nSHJ_POLICE · Sharjah Police\nTAH · Tahakom\nTAK · TAK Business Group\nTRAFFIC · Dubai Traffic Department\nDirection\nReceived from the client\nRaised by TIO\nTitle\nDescription\nChannel\n— Select —\nE-mail\nFormal letter\nVerbal (call or meeting)\nJira\nChannels are configured under Administration → Configuration → Escalation channels.\nChannel reference\nPriority\nCritical\nHigh\nNormal\nLow\nLevel\nLevel 1\nLevel 2\nLevel 3\nRaise it later from the escalation page.\nReceived / raised at\nEscalated by\nFull name\nJob title\nOrganization\nEmail\nPhone\nMobile\nOwnership and targets\nAccountable owner\n— Select —\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nRespond by\nOptional. Overdue until the first reply or status change.\nResolve by\nOptional.\nRelated records (optional)\nProject\nNone\nContract\nNone\nTicket\nNone\nCANCEL\nRECORD ESCALATION",
+    "title": "New escalation · TIO Operations Hub"
+  },
+  {
+    "id": "090-new-contract",
+    "url": "https://nb01994.vitronic.de/contracts/new",
+    "headings": [
+      "New contract",
+      "Contract",
+      "Service obligations",
+      "SLA targets (recorded)",
+      "Penalties",
+      "Delivery schedule",
+      "Fees and costs",
+      "Payment terms"
+    ],
+    "links": [],
+    "main": "Contract\nProject\n— Select —\nMADAR_DIJLA · 113506-AE · Iraq 100x Enforcement Bar Smart Traffic Project\nSEW · KU105375 · KU105375 - Kurdistan BackOffice Support\nDGSN · 115510-AE · Morocco National Gendarmerie enforcement-bar delivery\nOYOON · OYOON-182-AMC-2026 · OYOON 182 Al Qudra Bluscan SSPX and CCH AMC\nOYOON · 116938-AE · OYOON ANPR Data Management and AMC\nQATAR_MOI · QATAR-MOI-POC · Qatar MOI centralized traffic-radar management POC\nSAPOL · 104723-DE · SAPOL Australia back-office delivery and support\nTAH · 117992-AE · SLA _ IT Application & Platform Licenses – 2026\nTAK · TAK-VITIP-POC · TAK Ethiopia ViTIP Lite certification POC\nMULTICOM · 115307-AE · TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So\nDGSN · DGSN-VIITS-POC · ViITS POC – NARSA integration and DGSN deployment readiness\nOYOON · 115101-AE · VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE\nThe contract belongs to this project and covers its products.\nTitle\nContract reference\nNumber on the contract document.\nType\nSLA & support\nImplementation\nMaintenance\nSubscription\nOther\nStatus\nDraft\nActive\nEnded\nTerminated\nContract owner\n— Select —\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nStart date\nEnd date\nEmpty = unknown (flagged for follow-up while Active).\nRenewal terms\nUnknown\nFixed term\nAuto renew\nRenewal by agreement\nNotice period (days)\nService obligations\nSupport model\nUnknown\nRemote\nOn site\nHybrid\nSupport hours\n24 × 7 (round the clock, every day)\nSun\nMon\nTue\nWed\nThu\nFri\nSat\nSun–Thu\nMon–Fri\nEvery day\nFrom\nto\nSupport time zone\nNot set\n(UTC−11:00) Pacific/Midway\n(UTC−11:00) Pacific/Niue\n(UTC−11:00) Pacific/Pago Pago\n(UTC−10:00) America/Adak\n(UTC−10:00) Pacific/Honolulu\n(UTC−10:00) Pacific/Rarotonga\n(UTC−10:00) Pacific/Tahiti\n(UTC−09:30) Pacific/Marquesas\n(UTC−09:00) America/Anchorage\n(UTC−09:00) America/Juneau\n(UTC−09:00) America/Metlakatla\n(UTC−09:00) America/Nome\n(UTC−09:00) America/Sitka\n(UTC−09:00) America/Yakutat\n(UTC−09:00) Pacific/Gambier\n(UTC−08:00) America/Los Angeles\n(UTC−08:00) America/Tijuana\n(UTC−08:00) Pacific/Pitcairn\n(UTC−07:00) America/Boise\n(UTC−07:00) America/Cambridge Bay\n(UTC−07:00) America/Ciudad Juarez\n(UTC−07:00) America/Creston\n(UTC−07:00) America/Dawson\n(UTC−07:00) America/Dawson Creek\n(UTC−07:00) America/Denver\n(UTC−07:00) America/Fort Nelson\n(UTC−07:00) America/Hermosillo\n(UTC−07:00) America/Inuvik\n(UTC−07:00) America/Mazatlan\n(UTC−07:00) America/Phoenix\n(UTC−07:00) America/Vancouver\n(UTC−07:00) America/Whitehorse\n(UTC−06:00) America/Bahia Banderas\n(UTC−06:00) America/Belize\n(UTC−06:00) America/Chicago\n(UTC−06:00) America/Chihuahua\n(UTC−06:00) America/Costa Rica\n(UTC−06:00) America/Edmonton\n(UTC−06:00) America/El Salvador\n(UTC−06:00) America/Guatemala\n(UTC−06:00) America/Indiana/Knox\n(UTC−06:00) America/Indiana/Tell City\n(UTC−06:00) America/Managua\n(UTC−06:00) America/Matamoros\n(UTC−06:00) America/Menominee\n(UTC−06:00) America/Merida\n(UTC−06:00) America/Mexico City\n(UTC−06:00) America/Monterrey\n(UTC−06:00) America/North Dakota/Beulah\n(UTC−06:00) America/North Dakota/Center\n(UTC−06:00) America/North Dakota/New Salem\n(UTC−06:00) America/Ojinaga\n(UTC−06:00) America/Rankin Inlet\n(UTC−06:00) America/Regina\n(UTC−06:00) America/Resolute\n(UTC−06:00) America/Swift Current\n(UTC−06:00) America/Tegucigalpa\n(UTC−06:00) America/Winnipeg\n(UTC−06:00) Pacific/Galapagos\n(UTC−05:00) America/Bogota\n(UTC−05:00) America/Cancun\n(UTC−05:00) America/Cayman\n(UTC−05:00) America/Coral Harbour\n(UTC−05:00) America/Detroit\n(UTC−05:00) America/Eirunepe\n(UTC−05:00) America/Grand Turk\n(UTC−05:00) America/Guayaquil\n(UTC−05:00) America/Havana\n(UTC−05:00) America/Indiana/Marengo\n(UTC−05:00) America/Indiana/Petersburg\n(UTC−05:00) America/Indiana/Vevay\n(UTC−05:00) America/Indiana/Vincennes\n(UTC−05:00) America/Indiana/Winamac\n(UTC−05:00) America/Indianapolis\n(UTC−05:00) America/Iqaluit\n(UTC−05:00) America/Jamaica\n(UTC−05:00) America/Kentucky/Monticello\n(UTC−05:00) America/Lima\n(UTC−05:00) America/Louisville\n(UTC−05:00) America/Nassau\n(UTC−05:00) America/New York\n(UTC−05:00) America/Panama\n(UTC−05:00) America/Port-au-Prince\n(UTC−05:00) America/Rio Branco\n(UTC−05:00) America/Toronto\n(UTC−05:00) Pacific/Easter\n(UTC−04:00) America/Anguilla\n(UTC−04:00) America/Antigua\n(UTC−04:00) America/Aruba\n(UTC−04:00) America/Barbados\n(UTC−04:00) America/Blanc-Sablon\n(UTC−04:00) America/Boa Vista\n(UTC−04:00) America/Campo Grande\n(UTC−04:00) America/Caracas\n(UTC−04:00) America/Cuiaba\n(UTC−04:00) America/Curacao\n(UTC−04:00) America/Dominica\n(UTC−04:00) America/Glace Bay\n(UTC−04:00) America/Goose Bay\n(UTC−04:00) America/Grenada\n(UTC−04:00) America/Guadeloupe\n(UTC−04:00) America/Guyana\n(UTC−04:00) America/Halifax\n(UTC−04:00) America/Kralendijk\n(UTC−04:00) America/La Paz\n(UTC−04:00) America/Lower Princes\n(UTC−04:00) America/Manaus\n(UTC−04:00) America/Marigot\n(UTC−04:00) America/Martinique\n(UTC−04:00) America/Moncton\n(UTC−04:00) America/Montserrat\n(UTC−04:00) America/Port of Spain\n(UTC−04:00) America/Porto Velho\n(UTC−04:00) America/Puerto Rico\n(UTC−04:00) America/Santo Domingo\n(UTC−04:00) America/St Barthelemy\n(UTC−04:00) America/St Kitts\n(UTC−04:00) America/St Lucia\n(UTC−04:00) America/St Thomas\n(UTC−04:00) America/St Vincent\n(UTC−04:00) America/Thule\n(UTC−04:00) America/Tortola\n(UTC−04:00) Atlantic/Bermuda\n(UTC−03:30) America/St Johns\n(UTC−03:00) America/Araguaina\n(UTC−03:00) America/Argentina/La Rioja\n(UTC−03:00) America/Argentina/Rio Gallegos\n(UTC−03:00) America/Argentina/Salta\n(UTC−03:00) America/Argentina/San Juan\n(UTC−03:00) America/Argentina/San Luis\n(UTC−03:00) America/Argentina/Tucuman\n(UTC−03:00) America/Argentina/Ushuaia\n(UTC−03:00) America/Asuncion\n(UTC−03:00) America/Bahia\n(UTC−03:00) America/Belem\n(UTC−03:00) America/Buenos Aires\n(UTC−03:00) America/Catamarca\n(UTC−03:00) America/Cayenne\n(UTC−03:00) America/Cordoba\n(UTC−03:00) America/Coyhaique\n(UTC−03:00) America/Fortaleza\n(UTC−03:00) America/Jujuy\n(UTC−03:00) America/Maceio\n(UTC−03:00) America/Mendoza\n(UTC−03:00) America/Miquelon\n(UTC−03:00) America/Montevideo\n(UTC−03:00) America/Paramaribo\n(UTC−03:00) America/Punta Arenas\n(UTC−03:00) America/Recife\n(UTC−03:00) America/Santarem\n(UTC−03:00) America/Santiago\n(UTC−03:00) America/Sao Paulo\n(UTC−03:00) Antarctica/Palmer\n(UTC−03:00) Antarctica/Rothera\n(UTC−03:00) Atlantic/Stanley\n(UTC−02:00) America/Godthab\n(UTC−02:00) America/Noronha\n(UTC−02:00) America/Scoresbysund\n(UTC−02:00) Atlantic/South Georgia\n(UTC−01:00) Atlantic/Azores\n(UTC−01:00) Atlantic/Cape Verde\n(UTC+00:00) Africa/Abidjan\n(UTC+00:00) Africa/Accra\n(UTC+00:00) Africa/Bamako\n(UTC+00:00) Africa/Banjul\n(UTC+00:00) Africa/Bissau\n(UTC+00:00) Africa/Casablanca\n(UTC+00:00) Africa/Conakry\n(UTC+00:00) Africa/Dakar\n(UTC+00:00) Africa/El Aaiun\n(UTC+00:00) Africa/Freetown\n(UTC+00:00) Africa/Lome\n(UTC+00:00) Africa/Monrovia\n(UTC+00:00) Africa/Nouakchott\n(UTC+00:00) Africa/Ouagadougou\n(UTC+00:00) Africa/Sao Tome\n(UTC+00:00) America/Danmarkshavn\n(UTC+00:00) Antarctica/Troll\n(UTC+00:00) Atlantic/Canary\n(UTC+00:00) Atlantic/Faeroe\n(UTC+00:00) Atlantic/Madeira\n(UTC+00:00) Atlantic/Reykjavik\n(UTC+00:00) Atlantic/St Helena\n(UTC+00:00) Europe/Dublin\n(UTC+00:00) Europe/Guernsey\n(UTC+00:00) Europe/Isle of Man\n(UTC+00:00) Europe/Jersey\n(UTC+00:00) Europe/Lisbon\n(UTC+00:00) Europe/London\n(UTC+00:00) UTC\n(UTC+01:00) Africa/Algiers\n(UTC+01:00) Africa/Bangui\n(UTC+01:00) Africa/Brazzaville\n(UTC+01:00) Africa/Ceuta\n(UTC+01:00) Africa/Douala\n(UTC+01:00) Africa/Kinshasa\n(UTC+01:00) Africa/Lagos\n(UTC+01:00) Africa/Libreville\n(UTC+01:00) Africa/Luanda\n(UTC+01:00) Africa/Malabo\n(UTC+01:00) Africa/Ndjamena\n(UTC+01:00) Africa/Niamey\n(UTC+01:00) Africa/Porto-Novo\n(UTC+01:00) Africa/Tunis\n(UTC+01:00) Arctic/Longyearbyen\n(UTC+01:00) Europe/Amsterdam\n(UTC+01:00) Europe/Andorra\n(UTC+01:00) Europe/Belgrade\n(UTC+01:00) Europe/Berlin\n(UTC+01:00) Europe/Bratislava\n(UTC+01:00) Europe/Brussels\n(UTC+01:00) Europe/Budapest\n(UTC+01:00) Europe/Busingen\n(UTC+01:00) Europe/Copenhagen\n(UTC+01:00) Europe/Gibraltar\n(UTC+01:00) Europe/Ljubljana\n(UTC+01:00) Europe/Luxembourg\n(UTC+01:00) Europe/Madrid\n(UTC+01:00) Europe/Malta\n(UTC+01:00) Europe/Monaco\n(UTC+01:00) Europe/Oslo\n(UTC+01:00) Europe/Paris\n(UTC+01:00) Europe/Podgorica\n(UTC+01:00) Europe/Prague\n(UTC+01:00) Europe/Rome\n(UTC+01:00) Europe/San Marino\n(UTC+01:00) Europe/Sarajevo\n(UTC+01:00) Europe/Skopje\n(UTC+01:00) Europe/Stockholm\n(UTC+01:00) Europe/Tirane\n(UTC+01:00) Europe/Vaduz\n(UTC+01:00) Europe/Vatican\n(UTC+01:00) Europe/Vienna\n(UTC+01:00) Europe/Warsaw\n(UTC+01:00) Europe/Zagreb\n(UTC+01:00) Europe/Zurich\n(UTC+02:00) Africa/Blantyre\n(UTC+02:00) Africa/Bujumbura\n(UTC+02:00) Africa/Cairo\n(UTC+02:00) Africa/Gaborone\n(UTC+02:00) Africa/Harare\n(UTC+02:00) Africa/Johannesburg\n(UTC+02:00) Africa/Juba\n(UTC+02:00) Africa/Khartoum\n(UTC+02:00) Africa/Kigali\n(UTC+02:00) Africa/Lubumbashi\n(UTC+02:00) Africa/Lusaka\n(UTC+02:00) Africa/Maputo\n(UTC+02:00) Africa/Maseru\n(UTC+02:00) Africa/Mbabane\n(UTC+02:00) Africa/Tripoli\n(UTC+02:00) Africa/Windhoek\n(UTC+02:00) Asia/Beirut\n(UTC+02:00) Asia/Famagusta\n(UTC+02:00) Asia/Gaza\n(UTC+02:00) Asia/Hebron\n(UTC+02:00) Asia/Jerusalem\n(UTC+02:00) Asia/Nicosia\n(UTC+02:00) Europe/Athens\n(UTC+02:00) Europe/Bucharest\n(UTC+02:00) Europe/Chisinau\n(UTC+02:00) Europe/Helsinki\n(UTC+02:00) Europe/Kaliningrad\n(UTC+02:00) Europe/Kiev\n(UTC+02:00) Europe/Mariehamn\n(UTC+02:00) Europe/Riga\n(UTC+02:00) Europe/Sofia\n(UTC+02:00) Europe/Tallinn\n(UTC+02:00) Europe/Vilnius\n(UTC+03:00) Africa/Addis Ababa\n(UTC+03:00) Africa/Asmera\n(UTC+03:00) Africa/Dar es Salaam\n(UTC+03:00) Africa/Djibouti\n(UTC+03:00) Africa/Kampala\n(UTC+03:00) Africa/Mogadishu\n(UTC+03:00) Africa/Nairobi\n(UTC+03:00) Antarctica/Syowa\n(UTC+03:00) Asia/Aden\n(UTC+03:00) Asia/Amman\n(UTC+03:00) Asia/Baghdad\n(UTC+03:00) Asia/Bahrain\n(UTC+03:00) Asia/Damascus\n(UTC+03:00) Asia/Kuwait\n(UTC+03:00) Asia/Qatar\n(UTC+03:00) Asia/Riyadh\n(UTC+03:00) Europe/Istanbul\n(UTC+03:00) Europe/Kirov\n(UTC+03:00) Europe/Minsk\n(UTC+03:00) Europe/Moscow\n(UTC+03:00) Europe/Simferopol\n(UTC+03:00) Europe/Volgograd\n(UTC+03:00) Indian/Antananarivo\n(UTC+03:00) Indian/Comoro\n(UTC+03:00) Indian/Mayotte\n(UTC+03:30) Asia/Tehran\n(UTC+04:00) Asia/Baku\n(UTC+04:00) Asia/Dubai\n(UTC+04:00) Asia/Muscat\n(UTC+04:00) Asia/Tbilisi\n(UTC+04:00) Asia/Yerevan\n(UTC+04:00) Europe/Astrakhan\n(UTC+04:00) Europe/Samara\n(UTC+04:00) Europe/Saratov\n(UTC+04:00) Europe/Ulyanovsk\n(UTC+04:00) Indian/Mahe\n(UTC+04:00) Indian/Mauritius\n(UTC+04:00) Indian/Reunion\n(UTC+04:30) Asia/Kabul\n(UTC+05:00) Antarctica/Mawson\n(UTC+05:00) Antarctica/Vostok\n(UTC+05:00) Asia/Almaty\n(UTC+05:00) Asia/Aqtau\n(UTC+05:00) Asia/Aqtobe\n(UTC+05:00) Asia/Ashgabat\n(UTC+05:00) Asia/Atyrau\n(UTC+05:00) Asia/Dushanbe\n(UTC+05:00) Asia/Karachi\n(UTC+05:00) Asia/Oral\n(UTC+05:00) Asia/Qostanay\n(UTC+05:00) Asia/Qyzylorda\n(UTC+05:00) Asia/Samarkand\n(UTC+05:00) Asia/Tashkent\n(UTC+05:00) Asia/Yekaterinburg\n(UTC+05:00) Indian/Kerguelen\n(UTC+05:00) Indian/Maldives\n(UTC+05:30) Asia/Calcutta\n(UTC+05:30) Asia/Colombo\n(UTC+05:45) Asia/Katmandu\n(UTC+06:00) Asia/Bishkek\n(UTC+06:00) Asia/Dhaka\n(UTC+06:00) Asia/Omsk\n(UTC+06:00) Asia/Thimphu\n(UTC+06:00) Asia/Urumqi\n(UTC+06:00) Indian/Chagos\n(UTC+06:30) Asia/Rangoon\n(UTC+06:30) Indian/Cocos\n(UTC+07:00) Antarctica/Davis\n(UTC+07:00) Asia/Bangkok\n(UTC+07:00) Asia/Barnaul\n(UTC+07:00) Asia/Hovd\n(UTC+07:00) Asia/Jakarta\n(UTC+07:00) Asia/Krasnoyarsk\n(UTC+07:00) Asia/Novokuznetsk\n(UTC+07:00) Asia/Novosibirsk\n(UTC+07:00) Asia/Phnom Penh\n(UTC+07:00) Asia/Pontianak\n(UTC+07:00) Asia/Saigon\n(UTC+07:00) Asia/Tomsk\n(UTC+07:00) Asia/Vientiane\n(UTC+07:00) Indian/Christmas\n(UTC+08:00) Antarctica/Casey\n(UTC+08:00) Asia/Brunei\n(UTC+08:00) Asia/Hong Kong\n(UTC+08:00) Asia/Irkutsk\n(UTC+08:00) Asia/Kuala Lumpur\n(UTC+08:00) Asia/Kuching\n(UTC+08:00) Asia/Macau\n(UTC+08:00) Asia/Makassar\n(UTC+08:00) Asia/Manila\n(UTC+08:00) Asia/Shanghai\n(UTC+08:00) Asia/Singapore\n(UTC+08:00) Asia/Taipei\n(UTC+08:00) Asia/Ulaanbaatar\n(UTC+08:00) Australia/Perth\n(UTC+08:45) Australia/Eucla\n(UTC+09:00) Asia/Chita\n(UTC+09:00) Asia/Dili\n(UTC+09:00) Asia/Jayapura\n(UTC+09:00) Asia/Khandyga\n(UTC+09:00) Asia/Pyongyang\n(UTC+09:00) Asia/Seoul\n(UTC+09:00) Asia/Tokyo\n(UTC+09:00) Asia/Yakutsk\n(UTC+09:00) Pacific/Palau\n(UTC+09:30) Australia/Darwin\n(UTC+10:00) Antarctica/DumontDUrville\n(UTC+10:00) Asia/Ust-Nera\n(UTC+10:00) Asia/Vladivostok\n(UTC+10:00) Australia/Brisbane\n(UTC+10:00) Australia/Lindeman\n(UTC+10:00) Pacific/Guam\n(UTC+10:00) Pacific/Port Moresby\n(UTC+10:00) Pacific/Saipan\n(UTC+10:00) Pacific/Truk\n(UTC+10:30) Australia/Adelaide\n(UTC+10:30) Australia/Broken Hill\n(UTC+11:00) Antarctica/Macquarie\n(UTC+11:00) Asia/Magadan\n(UTC+11:00) Asia/Sakhalin\n(UTC+11:00) Asia/Srednekolymsk\n(UTC+11:00) Australia/Hobart\n(UTC+11:00) Australia/Lord Howe\n(UTC+11:00) Australia/Melbourne\n(UTC+11:00) Australia/Sydney\n(UTC+11:00) Pacific/Bougainville\n(UTC+11:00) Pacific/Efate\n(UTC+11:00) Pacific/Guadalcanal\n(UTC+11:00) Pacific/Kosrae\n(UTC+11:00) Pacific/Noumea\n(UTC+11:00) Pacific/Ponape\n(UTC+12:00) Asia/Anadyr\n(UTC+12:00) Asia/Kamchatka\n(UTC+12:00) Pacific/Fiji\n(UTC+12:00) Pacific/Funafuti\n(UTC+12:00) Pacific/Kwajalein\n(UTC+12:00) Pacific/Majuro\n(UTC+12:00) Pacific/Nauru\n(UTC+12:00) Pacific/Norfolk\n(UTC+12:00) Pacific/Tarawa\n(UTC+12:00) Pacific/Wake\n(UTC+12:00) Pacific/Wallis\n(UTC+13:00) Antarctica/McMurdo\n(UTC+13:00) Pacific/Apia\n(UTC+13:00) Pacific/Auckland\n(UTC+13:00) Pacific/Enderbury\n(UTC+13:00) Pacific/Fakaofo\n(UTC+13:00) Pacific/Tongatapu\n(UTC+13:45) Pacific/Chatham\n(UTC+14:00) Pacific/Kiritimati\nThe zone the support hours are counted in. Use this computer's time zone (Asia/Dubai)\nSupport notes\nOn-site engineers required\nService coverage\nObligations\nReports, staffing, maintenance windows and other duties as written in the contract.\nCovered environments\nSelect the project first.\nSLA targets (recorded)\n+ TARGET\n\nOne row per priority, as written in the contract. Tickets linked to this contract are timed against the target for their priority; changes apply to tickets linked from now on.\n\nPause the SLA clock while a ticket waits on the customer\nNo SLA targets recorded.\nPenalties\n+ CLAUSE\n\nRecorded contractual terms. Breaches can be reviewed as indicative amounts; this does not issue credits or invoices. Currency is selected above.\n\nNo penalty clauses recorded.\nDelivery schedule\n+ PHASE\nNo delivery phases recorded.\nFees and costs\n+ LINE\nCurrency\n— Select —\nAED · United Arab Emirates Dirham\nSAR · Saudi Riyal\nOMR · Omani Rial\nQAR · Qatari Riyal\nKWD · Kuwaiti Dinar\nBHD · Bahraini Dinar\nUSD · US Dollar\nEUR · Euro\nGBP · British Pound\nCHF · Swiss Franc\nEGP · Egyptian Pound\nJOD · Jordanian Dinar\nIQD · Iraqi Dinar\nMAD · Moroccan Dirham\nDZD · Algerian Dinar\nTND · Tunisian Dinar\nLBP · Lebanese Pound\nTRY · Turkish Lira\nINR · Indian Rupee\nPKR · Pakistani Rupee\nCNY · Chinese Yuan\nJPY · Japanese Yen\nRWF · Rwandan Franc\nBIF · Burundian Franc\nKES · Kenyan Shilling\nNGN · Nigerian Naira\nZAR · South African Rand\nUsed for the fees and the payment amounts of this contract.\nNo fees recorded.\nPayment terms\n+ PAYMENT\n\nOpen payments with a due date are announced in the notifications ahead of time (Administration → Settings → Contracts.PaymentReminderDays) and again when overdue.\n\nNo payment terms recorded.\nSAVE CONTRACT\nCANCEL",
+    "title": "New contract · TIO Operations Hub"
+  },
+  {
+    "id": "091-new-environment",
+    "url": "https://nb01994.vitronic.de/environments/new",
+    "headings": [
+      "New environment"
+    ],
+    "links": [],
+    "main": "Client\n— Select —\nADP · Abu Dhabi Police\nADP-STC · Abu Dhabi Police STC\nADP-TRAFFIC · Abu Dhabi Traffic Department\nDGSN · NATIONAL GENDARMERIE (DGSN)\nDUBAI_POLICE · Dubai Police\nEIFFAGE · Eiffage Concessions\nMADAR_DIJLA · Madar Dijla\nMULTICOM · MULTICOM - IT Security\nNARSA · NARSA\nOYOON · OYOON Center\nPESAPRINT · Pesa Print\nQATAR_MOI · Qatar MOI\nRNP · Rwanda National Ploce\nROP · Royal Oman Police (ROP)\nSAPOL · South Australia Police\nSEW · Sewar Tech\nSHJ_POLICE · Sharjah Police\nTAH · Tahakom\nTAK · TAK Business Group\nTRAFFIC · Dubai Traffic Department\nRegion\nSelect a client first\nThe region choices depend on the client.\nProject\nNone\nOptional: link this environment to the client project it supports.\nEnvironment name\nUnique within the client + region scope.\nType\n— Select —\nProduction\nStaging\nUAT\nTest\nDisaster recovery\nOther\nCriticality\nCritical\nHigh\nNormal\nUnknown\nHosting\nOn-prem\nCloud\nUnknown\nLocation\nLeave empty if unknown.\nTechnical owner\nNo owner — assignment gap\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nOperation engineer\nNone\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nOptional.\nBackup operation engineer\nNone\nAbdalrhman (Aboud) Asaad\nAbdulhamid Tork\nAhmed Awadalla\nLaith Hamdan\nLMH OPR\nMoataz Al Khaldi\nMohammad Al Omari\nMohammed Alqaruoti\nNaveed Ur Rehman\nOusama Didouqen\nReda Moulouki\nReem Hamid\nShiju Unnithan\nTareq Abdul Jabar\nWaleed Alharthi\nZiyad Bu Dukhi\nOptional. Critical and High environments without a backup still appear as coverage gaps on the action list.\nDescription\n\nAccess, readiness and change windows arrive in the Next release; they are not needed to create a valid environment.\n\nCANCEL\nSAVE ENVIRONMENT",
+    "title": "New environment · TIO Operations Hub"
+  },
+  {
+    "id": "092-group-mappings",
+    "url": "https://nb01994.vitronic.de/admin/groups",
+    "headings": [
+      "Directory group mappings"
+    ],
+    "links": [],
+    "main": "\t\nGroup\n\t\nRoles\n\t\nScope\nNo records entered.",
+    "title": "Directory group mappings · TIO Operations Hub"
+  },
+  {
+    "id": "093-password-form",
+    "url": "https://nb01994.vitronic.de/account/password",
+    "headings": [
+      "Change password"
+    ],
+    "links": [
+      {
+        "href": "/",
+        "text": "Back to the hub"
+      }
+    ],
+    "main": "TIO Operations Hub\nChange password\n\nSigned in as lmh.\n\nCurrent password\nNew password\nAt least 12 characters (a passphrase works well), not containing the account name.\nRepeat the password\nCHANGE PASSWORD\nBack to the hub\nSign out",
+    "title": "TIO Operations Hub"
+  },
+  {
+    "id": "094-login-with-existing-session",
+    "url": "https://nb01994.vitronic.de/login",
+    "headings": [
+      "Sign in"
+    ],
+    "links": [],
+    "main": "TIO Operations Hub\nSign in\nAccount name\nPassword\nSIGN IN\n\nForgot your password? Ask the System Administrator to issue a temporary one.",
+    "title": "Sign in · TIO Operations Hub"
+  },
+  {
+    "id": "095-dashboard-return",
+    "url": "https://nb01994.vitronic.de/",
+    "headings": [
+      "Operations Command Center",
+      "At a glance",
+      "Needs immediate attention",
+      "Tickets and commitments",
+      "Deadline risk of open tickets",
+      "Open tickets by priority",
+      "Open tickets by status",
+      "Age of open tickets",
+      "Tickets opened and closed — the last 30 days",
+      "Open commitments by deadline",
+      "Contractual SLA compliance",
+      "First response",
+      "Resolution",
+      "Obligations met and breached — the last 30 days",
+      "By contract",
+      "By priority",
+      "Escalations",
+      "Escalation attention list",
+      "Active escalations by level",
+      "Escalations by status",
+      "Escalations received — the last 30 days",
+      "Contracts & SLAs",
+      "Contracts by status",
+      "Contracts by type",
+      "Renewal state",
+      "Active contracts ending, next 12 months",
+      "Support model of active contracts",
+      "On-site engineers required, by client",
+      "SLA targets by priority (configured contractual targets)",
+      "Measured SLA compliance",
+      "Contract payments",
+      "Open payments by month due",
+      "Amounts due by currency",
+      "Next payments",
+      "Overdue payments by client",
+      "Service & environment health",
+      "Environments by reported condition",
+      "Environments not reported healthy",
+      "Product coverage",
+      "Data quality"
+    ],
+    "links": [
+      {
+        "href": "/cases?due=overdue",
+        "text": "73 of 183 open tickets are past due"
+      },
+      {
+        "href": "/cases?due=24h",
+        "text": "1 more are due within 24 hours"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00",
+        "text": "Opened in the last 30 days50▲ 27 more than the previous period"
+      },
+      {
+        "href": "/cases?priority=Critical%2CHigh",
+        "text": "Critical or high, open23of 183 open"
+      },
+      {
+        "href": "/cases?sla=withContract&status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00",
+        "text": "SLA response met20%resolution 15.4%"
+      },
+      {
+        "href": "/cases/11163",
+        "text": "CS-2963"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/cases/11162",
+        "text": "CS-2962"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/cases/11165",
+        "text": "CS-2965"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/cases/11197",
+        "text": "CS-2997"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/cases/11187",
+        "text": "CS-2987"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/cases/10034",
+        "text": "CS-1834"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/cases/10021",
+        "text": "CS-1821"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/cases/11192",
+        "text": "CS-2992"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/actions",
+        "text": "Open the full action list"
+      },
+      {
+        "href": "#attention",
+        "text": "Attention"
+      },
+      {
+        "href": "#overview",
+        "text": "Figures"
+      },
+      {
+        "href": "#cases",
+        "text": "Tickets"
+      },
+      {
+        "href": "#escalations",
+        "text": "Escalations"
+      },
+      {
+        "href": "#sla",
+        "text": "Contractual SLA"
+      },
+      {
+        "href": "#contracts",
+        "text": "Contracts & SLAs"
+      },
+      {
+        "href": "#payments",
+        "text": "Payments"
+      },
+      {
+        "href": "#health",
+        "text": "Health"
+      },
+      {
+        "href": "#quality",
+        "text": "Data quality"
+      },
+      {
+        "href": "/cases?priority=Critical",
+        "text": "Critical"
+      },
+      {
+        "href": "/cases?priority=High",
+        "text": "High"
+      },
+      {
+        "href": "/cases?priority=Normal",
+        "text": "Normal"
+      },
+      {
+        "href": "/cases?priority=Low",
+        "text": "Low"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&sla=noContract",
+        "text": "1 without a contract"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&sla=responseBreached",
+        "text": "20 %Response compliance9 of 45 met · 3 pending · 0 not measurable"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&sla=resolutionBreached",
+        "text": "15.4 %Resolution compliance6 of 39 met · 9 pending · 0 not measurable"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&sla=withContract",
+        "text": "2.6 %Overall (both met)1 of 39 ticket(s) with both obligations completed"
+      },
+      {
+        "href": "/cases?sla=approaching",
+        "text": "4Approaching breachopen, a deadline within 24 hours"
+      },
+      {
+        "href": "/cases?sla=breached",
+        "text": "76Open and breachedopen now, any obligation breached"
+      },
+      {
+        "href": "/contracts/1",
+        "text": "CT-1001"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&contractId=1&sla=withContract",
+        "text": "46"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&contractId=1&sla=responseBreached",
+        "text": "39"
+      },
+      {
+        "href": "/contracts/8",
+        "text": "CT-1008"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&contractId=8&sla=withContract",
+        "text": "2"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&contractId=8&sla=responseBreached",
+        "text": "2"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&priority=Critical&sla=withContract",
+        "text": "2"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&priority=High&sla=withContract",
+        "text": "4"
+      },
+      {
+        "href": "/cases?status=all&createdFrom=2026-10-11T12%3A51%3A22.810424%2B00%3A00&createdTo=2026-11-10T12%3A51%3A22.810424%2B00%3A00&priority=Normal&sla=withContract",
+        "text": "42"
+      },
+      {
+        "href": "/escalations?status=Open",
+        "text": "Open"
+      },
+      {
+        "href": "/escalations?status=Acknowledged",
+        "text": "Acknowledged"
+      },
+      {
+        "href": "/escalations?status=InProgress",
+        "text": "In progress"
+      },
+      {
+        "href": "/escalations?status=Resolved",
+        "text": "Resolved"
+      },
+      {
+        "href": "/escalations?status=Closed",
+        "text": "Closed"
+      },
+      {
+        "href": "/escalations?status=Withdrawn",
+        "text": "Withdrawn"
+      },
+      {
+        "href": "/contracts?status=Active",
+        "text": "6active"
+      },
+      {
+        "href": "/contracts?renewal=due",
+        "text": "0ending within 30 days"
+      },
+      {
+        "href": "/contracts?renewal=due",
+        "text": "1ending in 31–60 days"
+      },
+      {
+        "href": "/contracts?renewal=due",
+        "text": "0ending in 61–90 days"
+      },
+      {
+        "href": "/contracts?renewal=expired",
+        "text": "0ended but still Active"
+      },
+      {
+        "href": "/contracts?renewal=unknownEnd",
+        "text": "0no end date recorded"
+      },
+      {
+        "href": "/contracts?status=Draft",
+        "text": "Draft"
+      },
+      {
+        "href": "/contracts?status=Active",
+        "text": "Active"
+      },
+      {
+        "href": "/contracts?status=Ended",
+        "text": "Ended"
+      },
+      {
+        "href": "/contracts?status=Terminated",
+        "text": "Terminated"
+      },
+      {
+        "href": "#sla",
+        "text": "Contractual SLA compliance"
+      },
+      {
+        "href": "/contracts/1",
+        "text": "CT-1001"
+      },
+      {
+        "href": "/contracts/4",
+        "text": "CT-1004"
+      },
+      {
+        "href": "/contracts/9",
+        "text": "CT-1009"
+      },
+      {
+        "href": "/contracts/1",
+        "text": "CT-1001"
+      },
+      {
+        "href": "/contracts/9",
+        "text": "CT-1009"
+      },
+      {
+        "href": "/contracts/1",
+        "text": "CT-1001"
+      },
+      {
+        "href": "/contracts/9",
+        "text": "CT-1009"
+      },
+      {
+        "href": "/contracts/9",
+        "text": "CT-1009"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/clients/3",
+        "text": "OYOON"
+      },
+      {
+        "href": "/clients/19",
+        "text": "MULTICOM"
+      },
+      {
+        "href": "/environments?condition=Healthy",
+        "text": "Healthy"
+      },
+      {
+        "href": "/environments?condition=Degraded",
+        "text": "Degraded"
+      },
+      {
+        "href": "/environments?condition=Unavailable",
+        "text": "Unavailable"
+      },
+      {
+        "href": "/environments?condition=Unknown",
+        "text": "Unknown"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/environments/3",
+        "text": "Production"
+      },
+      {
+        "href": "/environments/3",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/9",
+        "text": "MADAR_DIJLA"
+      },
+      {
+        "href": "/environments/13",
+        "text": "113506-AE – ViTIP Production (Proposed)"
+      },
+      {
+        "href": "/environments/13",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/environments/11",
+        "text": "MOI_ViTIP_Production"
+      },
+      {
+        "href": "/environments/11",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/20",
+        "text": "SEW"
+      },
+      {
+        "href": "/environments/12",
+        "text": "MOI_ViTIP_Staging"
+      },
+      {
+        "href": "/environments/12",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/environments/4",
+        "text": "Production"
+      },
+      {
+        "href": "/environments/4",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/environments/2",
+        "text": "Staging"
+      },
+      {
+        "href": "/environments/2",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/environments/5",
+        "text": "Staging"
+      },
+      {
+        "href": "/environments/5",
+        "text": "Open"
+      },
+      {
+        "href": "/clients/1",
+        "text": "TAH"
+      },
+      {
+        "href": "/environments/6",
+        "text": "Staging"
+      },
+      {
+        "href": "/environments/6",
+        "text": "Open"
+      },
+      {
+        "href": "/data-quality?rule=MissingOwner",
+        "text": "Missing owner"
+      },
+      {
+        "href": "/data-quality?rule=MissingOwner",
+        "text": "Open"
+      },
+      {
+        "href": "/data-quality?rule=UnknownVersion",
+        "text": "Unknown installed version"
+      },
+      {
+        "href": "/data-quality?rule=UnknownVersion",
+        "text": "Open"
+      },
+      {
+        "href": "/data-quality?rule=ConditionNeedsVerification",
+        "text": "Condition needs verification"
+      },
+      {
+        "href": "/data-quality?rule=ConditionNeedsVerification",
+        "text": "Open"
+      },
+      {
+        "href": "/data-quality?rule=MissingSpecification",
+        "text": "Missing specification"
+      },
+      {
+        "href": "/data-quality?rule=MissingSpecification",
+        "text": "Open"
+      },
+      {
+        "href": "/data-quality?rule=MissingReviewPolicy",
+        "text": "Missing review policy"
+      },
+      {
+        "href": "/data-quality?rule=MissingReviewPolicy",
+        "text": "Open"
+      }
+    ],
+    "main": "Reporting period\nToday\nLast 7 days\nLast 30 days\nThis quarter\nCustom range\nShow\nAll I can see\nMy work\nADVANCED FILTERS\n▾\nAt a glance\n\n73 of 183 open tickets are past due, and 1 more are due within 24 hours. The backlog grew by 18 in the last 30 days: more tickets opened than closed.\n\nOpened in the last 30 days\n50\n▲ 27 more than the previous period\nClosed in the last 30 days\n32\n▼ 9 fewer than the previous period\nCritical or high, open\n23\nof 183 open\nSLA response met\n20%\nresolution 15.4%\nNeeds immediate attention\n87 item(s) · 15 critical\nAll 87\nOverdue ticket 73\nTicket due within 24 h 1\nEnvironment degraded or down 1\nOverdue commitment 5\nPayment 3\nContract renewal 1\nUnassigned ticket 3\nNeeds immediate attention\nSeverity\n\t\nIssue\n\t\nClient\n\t\nOwner\n\t\nDeadline\n\t\nNext action\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-2963 Detect (Blocked or not clear) Plate Numbers by Vitronic Systems\n\t\nSEW\n\t\nMohammed Alqaruoti\n\t\n523 d 1 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2025-06-05 11:00 UTC\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-2962 Request to Resource utilizations for ViTiS production\n\t\nSEW\n\t\nUnassigned\n\t\n425 d 4 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2025-09-11 08:03 UTC · also: Unassigned ticket\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-2965 Big Data Smart Dashboard Resources Requirements\n\t\nSEW\n\t\nUnassigned\n\t\n425 d 1 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2025-09-11 11:00 UTC · also: Unassigned ticket\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-2997 ANPR stopped working and shwoing error\n\t\nSEW\n\t\nUnassigned\n\t\n190 d 23 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2026-05-03 12:54 UTC · also: Unassigned ticket\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-2987 Wrong TimeStamp calculated in P2P systems\n\t\nSEW\n\t\nMohammed Alqaruoti\n\t\n180 d 2 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2026-05-14 09:54 UTC\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-1834 BO Release 18.0\n\t\nTAH\n\t\nAhmed Awadalla\n\t\n152 d 2 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2026-06-11 10:38 UTC\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-1821 Vehicle Speed Reverted After Vehicle Type Change\n\t\nTAH\n\t\nAhmed Awadalla\n\t\n148 d 6 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2026-06-15 06:30 UTC\n\n\nCritical\nHigh priority\n\t\nOVERDUE TICKET\nCS-2992 Follow up the MOI requests from Vitronic\n\t\nSEW\n\t\nMohammed Alqaruoti\n\t\n110 d 7 h overdue\n\t\nReview the ticket imported from Jira.\nDue 2026-07-23 05:36 UTC\nShow all 87\nOpen the full action list\nSeverity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record.\nAttention\nFigures\nTickets\nEscalations\nContractual SLA\nContracts & SLAs\nPayments\nHealth\nData quality\nActive contracts\n›\n6\n●\nATTENTION\n1 due for renewal\nNone need review\nOverdue payments\n›\n4\n▲\nCRITICAL\n4,860,000.00 SAR + 146,400.00 AED + 100,000.00 EUR\n0 due within 14 days\nUpcoming commitments\n›\n1\n▲\nCRITICAL\n1 due in the next 14 days\n5 overdue\n6 open commitments in total\nActive escalations\n›\n0\n✓\nOK\nNone past a target\nNo active escalation\nOpen tickets\n›\n183\n▲\nCRITICAL\n73 overdue\n23 critical or high priority\nClients\n›\n20\n12 countries\nTargets met (period)\n›\n25 %\n●\nATTENTION\nEscalation response n/a · resolution 100 %\nContractual SLA met (period)\n›\n18 %\n▲\nCRITICAL\nResponse 20 % · resolution 15.4 %\nEnvironment health\n›\n1 / 9\n●\nATTENTION\n1 healthy · 1 degraded · 0 unavailable\nData quality\n›\n263\n●\nATTENTION\n231 high severity · 5 rules\n\nThe reporting period applies to opened, closed and received figures and to targets met; open, overdue and due figures are always as of now.\n\nTickets and commitments\n183 open now · 50 opened and 32 closed in the last 30 days\nHide\nDeadline risk of open tickets\nTable view\n\nBy the ticket due date (not a contractual SLA measurement). Due dates met by tickets closed in the period: 22 % (27 closed with a due date).\n\nPast due\n73\n40 %\nDue within 24 h\n1\n1 %\nDue later\n8\n4 %\nNo due date\n101\n55 %\nOpen tickets by priority\nTable view\n\nDarker = more urgent. Click a slice for the list.\n\n183\nopen tickets\nCritical\n5\n3 %\nHigh\n18\n10 %\nNormal\n159\n87 %\nLow\n1\n1 %\nOpen tickets by status\nTable view\n\nThe status shown on each ticket, as in the ticket list and the report builder. Waiting for customer is a status; other waiting reasons keep the ticket's status.\n\nNew\n52\nOpen\n7\nIn progress\n36\nWaiting for customer\n73\nResolved\n15\nRe-opened\n0\nAge of open tickets\nTable view\n\nSince opening: the Jira creation time of a synchronized ticket, otherwise the hub creation time. Average 793.9 days, oldest 2120.2 days.\n\n200\n100\n0\n6\n7\n27\n143\n0–2 days\n3–7 days\n8–30 days\nOver 30 days\nTickets opened and closed — the last 30 days\nTable view\n\nPer day, in your time zone. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time, so an import does not count as newly opened work.\n\nOpened\nClosed\n0\n2\n4\n6\n8\n10\n11 Oct\n13 Oct\n15 Oct\n17 Oct\n19 Oct\n21 Oct\n23 Oct\n25 Oct\n27 Oct\n29 Oct\n31 Oct\n02 Nov\n04 Nov\n06 Nov\n08 Nov\n10 Nov\nOpened 1\nClosed 0\nOpen commitments by deadline\nTable view\n\nDeadline in force compared with now.\n\n5\n4\n3\n2\n1\n0\n5\n0\n1\n0\nOverdue\nDue in 7 days\nDue in 8–30 days\nDue later\nContractual SLA compliance\n48 of 49 client ticket(s) opened in the last 30 days are linked to a contract · 1 without a contract (not measured)\nHide\nContract\nAll contracts\nCT-1001 · TAH\nCT-1008 · SEW\nPriority\nAll priorities\nCritical\nHigh\nNormal\nLow\n\nTickets opened in the period with a linked contract. A rate is met ÷ (met + breached); pending and not measurable obligations are excluded. Overall counts tickets whose response and resolution are both completed, compliant only when both were met. A pending obligation past its deadline counts as breached.\n\n20 %\nResponse compliance\n9 of 45 met · 3 pending · 0 not measurable\n15.4 %\nResolution compliance\n6 of 39 met · 9 pending · 0 not measurable\n2.6 %\nOverall (both met)\n1 of 39 ticket(s) with both obligations completed\n4\nApproaching breach\nopen, a deadline within 24 hours\n76\nOpen and breached\nopen now, any obligation breached\nFirst response\nTable view\n\nRate = met ÷ (met + breached) = 9 of 45. Click a part for the tickets.\n\nMet\n9\n19 %\nBreached\n36\n75 %\nPending (running)\n3\n6 %\nNot measurable\n0\n0 %\nResolution\nTable view\n\nRate = met ÷ (met + breached) = 6 of 39. Click a part for the tickets.\n\nMet\n6\n13 %\nBreached\n33\n69 %\nPending (running)\n9\n19 %\nNot measurable\n0\n0 %\nObligations met and breached — the last 30 days\nTable view\n\nBy the week, day or hour the ticket was opened; response and resolution together.\n\nMet\nBreached\n0\n10\n20\n11 Oct\n13 Oct\n15 Oct\n17 Oct\n19 Oct\n21 Oct\n23 Oct\n25 Oct\n27 Oct\n29 Oct\n31 Oct\n02 Nov\n04 Nov\n06 Nov\n08 Nov\n10 Nov\nBoth 0\nBy contract\nTable view\n\nContracts with the most breaches first (top 10).\n\nSLA results by contract\nContract\n\t\nClient\n\t\nTickets\n\t\nResponse\n\t\nResolution\n\t\nBreached\n\n\nCT-1001 2026_Vitronic Software Service Level Agreement\n\t\nTAH\n\t\n46\n\t\n18.6 % (8 of 43)\n\t\n16.2 % (6 of 37)\n\t\n39\n\n\nCT-1008 Kurdistan BackOffice – Software Support & Maintenance SLA\n\t\nSEW\n\t\n2\n\t\n50 % (1 of 2)\n\t\n0 % (0 of 2)\n\t\n2\nBy priority\nTable view\n\nEach ticket is measured against the target for its priority.\n\nSLA results by priority\nPriority\n\t\nTickets\n\t\nResponse\n\t\nResolution\n\n\nCritical\n\t\n2\n\t\n50 % (1 of 2)\n\t\n0 % (0 of 2)\n\n\nHigh\n\t\n4\n\t\n50 % (2 of 4)\n\t\n0 % (0 of 4)\n\n\nNormal\n\t\n42\n\t\n15.4 % (6 of 39)\n\t\n18.2 % (6 of 33)\n\n\nLow\n\t\n0\n\t\nnot available (0 of 0)\n\t\nnot available (0 of 0)\nEscalations\n0 active · 0 past a target · average age — · 1 received in the last 30 days\nHide\nEscalation attention list\nTargets met in the period — response not available (0 measured), resolution 100 % (1 measured)\nEscalation attention list\nEscalation\n\t\nClient\n\t\nRelated ticket\n\t\nLevel\n\t\nOwner\n\t\nRaised\n\t\nTarget\n\t\nStatus\nNo records entered.\nActive escalations by level\nTable view\n\nLevel 3 is the highest.\n\nNo records entered.\nEscalations by status\nTable view\n2\nescalations\nOpen\n0\n0 %\nAcknowledged\n0\n0 %\nIn progress\n0\n0 %\nResolved\n2\n100 %\nClosed\n0\n0 %\nWithdrawn\n0\n0 %\nEscalations received — the last 30 days\nAll escalations\nTable view\n\nPer day.\n\n1\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n0\n1\n0\n0\n0\n0\n0\n11 Oct\n12 Oct\n13 Oct\n14 Oct\n15 Oct\n16 Oct\n17 Oct\n18 Oct\n19 Oct\n20 Oct\n21 Oct\n22 Oct\n23 Oct\n24 Oct\n25 Oct\n26 Oct\n27 Oct\n28 Oct\n29 Oct\n30 Oct\n31 Oct\n01 Nov\n02 Nov\n03 Nov\n04 Nov\n05 Nov\n06 Nov\n07 Nov\n08 Nov\n09 Nov\n10 Nov\nContracts & SLAs\n9 contract(s) in view · 6 active · 5 with SLA targets (83 %)\nHide\n6\nactive\n0\nending within 30 days\n1\nending in 31–60 days\n0\nending in 61–90 days\n0\nended but still Active\n0\nno end date recorded\nContracts by status\nRegister\nTable view\n9\ncontracts\nDraft\n0\n0 %\nActive\n6\n67 %\nEnded\n3\n33 %\nTerminated\n0\n0 %\nContracts by type\nTable view\nSLA & support\n6\nImplementation\n2\nMaintenance\n1\nRenewal state\nTable view\n\nActive contracts only; renewal due = notice deadline (or end date) within 90 days. Recorded terms, not SLA compliance.\n\n5\n4\n3\n2\n1\n0\n0\n1\n0\n5\n0\nExpired, still Active\nRenewal due (≤ 90 days)\nEnd date unknown\nCurrent\nDraft / not signed\nActive contracts ending, next 12 months\nTable view\n\n4 active contract(s) reach their end date within a year.\n\n2\n1\n0\n0\n1\n0\n0\n0\n0\n0\n2\n0\n0\n0\n1\nNov 26\nDec 26\nJan 27\nFeb 27\nMar 27\nApr 27\nMay 27\nJun 27\nJul 27\nAug 27\nSep 27\nOct 27\nSupport model of active contracts\nTable view\n6\nactive\nUnknown\n1\n17 %\nRemote\n1\n17 %\nOn site\n1\n17 %\nHybrid\n3\n50 %\nOn-site engineers required, by client\nTable view\n\n9 on-site engineer(s) in total across active contracts.\n\nTAH\n8\nOYOON\n1\nSLA targets by priority (configured contractual targets)\nTable view\n\nConfigured targets of active contracts (median across contracts; the fastest is shown when it differs). These are contractual terms, not achieved results.\n\n4 rows\nFILTER\nCOLUMNS\nEXPORT CSV\nSLA targets per priority\n\t\nPriority\n\t\nContracts with a target\n\t\nResponse (median)\n\t\nResolution (median)\n\n\n\t\nCritical\n\t\n5 of 6\n\t\n1 h\n\t\n8 h\nfastest 4 h\n\n\n\t\nHigh\n\t\n5 of 6\n\t\n4 h\nfastest 1 h\n\t\n1 d\nfastest 8 h\n\n\n\t\nNormal\n\t\n5 of 6\n\t\n8 h\nfastest 1 h\n\t\n7 d\nfastest 3 d\n\n\n\t\nLow\n\t\n5 of 6\n\t\n2 d\nfastest 1 h\n\t\n15 d 5 h\nMeasured SLA compliance\n\nConfigured targets above are the contractual terms. What tickets achieved against them is measured in Contractual SLA compliance.\n\nResponse and resolution 20 % / 15.4 % for client tickets opened in the last 30 days.\n\nContract payments\n22 open payment(s) · 4 overdue · 0 due within 14 days (setting Contracts.PaymentReminderDays)\nHide\n\n3 of 22 open payment(s) have no amount recorded, so the amounts below are incomplete. Add them on the contracts' payment terms.\n\nOpen payments by month due\nAll open payments\nTable view\n\nPending or invoiced payments; overdue ones are shown first. Click Overdue for the list.\n\n4\n3\n2\n1\n0\n4\n0\n1\n0\n0\n2\n0\nOverdue\nNov 26\nDec 26\nJan 27\nFeb 27\nMar 27\nApr 27\nAmounts due by currency\nTable view\n\nOverdue and the next six months. Each currency is totalled on its own.\n\nAmounts due by currency\nCurrency\n\t\nOverdue\n\t\nDue within 14 days\n\t\nNext 6 months\n\n\nSAR\n\t\n4,860,000.00\n\t\n0.00\n\t\n2,430,000.00\n\n\nAED\n\t\n146,400.00\n\t\n0.00\n\t\n292,800.00\n\n\nEUR\n\t\n100,000.00\n\t\n0.00\n\t\n0.00\nNext payments\nTable view\n\nThe earliest open payments by due date.\n\n01 Mar 2026\nCT-1001 · TAH\nFisrt Paymet - Every 6 Months\n2,430,000.00 SAR\nOverdue\n26 Jun 2026\nCT-1004 · MULTICOM\nFull payment\n100,000.00 EUR\nOverdue\n04 Sept 2026\nCT-1009 · OYOON\nSystem Support and Monitoring – 1 payment\n146,400.00 AED\nOverdue\n15 Sept 2026\nCT-1001 · TAH\nSecond Payment - Every 6 Months\n2,430,000.00 SAR\nOverdue\n04 Dec 2026\nCT-1009 · OYOON\nSystem Support and Monitoring – 2 payment\n146,400.00 AED\nScheduled\n01 Mar 2027\nCT-1001 · TAH\nThird Payment - Every 6 Months\n2,430,000.00 SAR\nScheduled\n04 Mar 2027\nCT-1009 · OYOON\nSystem Support and Monitoring – 3 payment\n146,400.00 AED\nScheduled\n03 Jun 2027\nCT-1009 · OYOON\nSystem Support and Monitoring – 4 payment\n146,400.00 AED\nScheduled\nOverdue payments by client\nTable view\n\nAmounts per currency; never added across currencies.\n\nTAH\n2 overdue\n4,860,000.00 SAR\nOYOON\n1 overdue\n146,400.00 AED\nMULTICOM\n1 overdue\n100,000.00 EUR\nService & environment health\nManually reported condition — not live monitoring. Unknown is never counted as healthy.\nHide\nEnvironments by reported condition\nTable view\n\n2 report(s) need verification.\n\n9\nenvironments\n●\nHealthy\n1\n11 %\n▲\nDegraded\n1\n11 %\n✕\nUnavailable\n0\n0 %\n?\nUnknown\n7\n78 %\nEnvironments not reported healthy\nEnvironments not reported healthy\nClient\n\t\nProducts\n\t\nEnvironment\n\t\nReported health\n\t\nLast update\n\t\nOwner\n\t\nActions\n\n\nTAH\n\t\nPSOP\n\t\nProduction\n\t\n▲ DegradedSlowness Issue\n\t\n22 Oct 2026, 14:11\n\t\nAhmed Awadalla\n\t\nOPEN\n\n\nMADAR_DIJLA\n\t\nViTIP\n\t\n113506-AE – ViTIP Production (Proposed)\n\t\n? Unknown (no report)\n\t\nNever\n\t\nUnassigned\n\t\nOPEN\n\n\nSEW\n\t\nViTIP\n\t\nMOI_ViTIP_Production\n\t\n? Unknown (no report)\n\t\nNever\n\t\nMohammed Alqaruoti\n\t\nOPEN\n\n\nSEW\n\t\n—\n\t\nMOI_ViTIP_Staging\n\t\n? Unknown (no report)\n\t\nNever\n\t\nMohammed Alqaruoti\n\t\nOPEN\n\n\nTAH\n\t\nPSOP\n\t\nProduction\n\t\n? Unknown (no report)\n\t\nNever\n\t\nAhmed Awadalla\n\t\nOPEN\n\n\nTAH\n\t\nPSOP\n\t\nStaging\n\t\n? Unknown (no report)\n\t\nNever\n\t\nAhmed Awadalla\n\t\nOPEN\n\n\nTAH\n\t\nPSOP\n\t\nStaging\n\t\n? Unknown (no report)\n\t\nNever\n\t\nAhmed Awadalla\n\t\nOPEN\n\n\nTAH\n\t\nPSOP\n\t\nStaging\n\t\n? Unknown (no report)\n\t\nNever\n\t\nAhmed Awadalla\n\t\nOPEN\nProduct coverage\nVersion matrix\nTable view\n\nDistinct environments per product; unknown installed versions in brackets.\n\nPSOP (5 unknown version)\n6\nViTIP (2 unknown version)\n2\nData quality\nOpen items found by the data-quality rules; each count is the records the rule lists.\nHide\nOpen data-quality items by rule\nRule\n\t\nAffected records\n\t\nSeverity\n\t\nActions\n\n\nMissing owner\n\t\n231\n\t\nHigh\n\t\nOPEN\n\n\nUnknown installed version\n\t\n7\n\t\nMedium\n\t\nOPEN\n\n\nCondition needs verification\n\t\n2\n\t\nMedium\n\t\nOPEN\n\n\nMissing specification\n\t\n19\n\t\nLow\n\t\nOPEN\n\n\nMissing review policy\n\t\n4\n\t\nLow\n\t\nOPEN\n\nTasks, changes, capacity and on-time delivery rates are delivered in the Next release and are not shown. Comparison with the previous period is not shown: the hub keeps no history of these figures yet.",
+    "title": "Operations Command Center · TIO Operations Hub"
+  }
+]

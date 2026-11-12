@@ -1,0 +1,15 @@
+{
+  "id": "R028-mobile",
+  "route": "/admin/roles",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Roles"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 2793,
+  "title": "Roles · TIO Operations Hub",
+  "width": 390
+}

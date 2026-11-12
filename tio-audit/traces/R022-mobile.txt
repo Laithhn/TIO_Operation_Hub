@@ -1,0 +1,407 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Dashboard":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Dashboard
+- navigation "Breadcrumb":
+  - link "Dashboard":
+    - /url: /
+  - generic: ›
+  - generic: Action list
+- heading "Action list" [level=1]
+- generic: Records that need someone to act, by reason. Counts include only records you are authorized to see.
+- button "Export action list"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard (current section)":
+      - /url: /
+      - text: Dashboard
+      - generic: (current section)
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Team
+  - combobox "Team":
+    - option "All teams" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - heading "Action list" [level=2]
+  - group "Action categories":
+    - generic: Deadlines 80
+    - button "Overdue tickets 73":
+      - generic: Overdue tickets
+      - generic: "73"
+    - button "Due within 24 h 1":
+      - generic: Due within 24 h
+      - generic: "1"
+    - button "Overdue commitments 5":
+      - generic: Overdue commitments
+      - generic: "5"
+    - button "Approaching 1":
+      - generic: Approaching
+      - generic: "1"
+    - button "Escalations past target 0":
+      - generic: Escalations past target
+      - generic: "0"
+    - generic: Ownership and follow-up 424
+    - button "Unassigned 104" [pressed]:
+      - generic: Unassigned
+      - generic: "104"
+    - button "Waiting / blocked 88":
+      - generic: Waiting / blocked
+      - generic: "88"
+    - button "Review overdue 113":
+      - generic: Review overdue
+      - generic: "113"
+    - button "Stale reviews 119":
+      - generic: Stale reviews
+      - generic: "119"
+    - generic: Environments and data 271
+    - button "Environments down 1":
+      - generic: Environments down
+      - generic: "1"
+    - button "Coverage gaps 7":
+      - generic: Coverage gaps
+      - generic: "7"
+    - button "Data quality 263":
+      - generic: Data quality
+      - generic: "263"
+    - generic: Contracts 5
+    - button "Contract renewals 1":
+      - generic: Contract renewals
+      - generic: "1"
+    - button "Payments due 4":
+      - generic: Payments due
+      - generic: "4"
+  - region "Action list":
+    - searchbox "Filter rows"
+    - generic: 104 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Action list":
+      - caption: Action list
+      - rowgroup:
+        - row "Details Reason Due / review Next action":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Reason":
+            - button "Reason":
+              - generic: Reason
+          - columnheader "Due / review":
+            - button "Due / review":
+              - generic: Due / review
+          - columnheader "Next action":
+            - button "Next action":
+              - generic: Next action
+      - rowgroup:
+        - row "Details for CS-1691 Ticket No owner assigned 21 Jan 2026, 11:52 Review the ticket imported from Jira.":
+          - cell "Details for CS-1691 Ticket":
+            - button "Details for CS-1691 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Jan 2026, 11:52":
+            - generic: 21 Jan 2026, 11:52
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1694 Ticket No owner assigned 20 Oct 2025, 13:43 Review the ticket imported from Jira.":
+          - cell "Details for CS-1694 Ticket":
+            - button "Details for CS-1694 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "20 Oct 2025, 13:43":
+            - generic: 20 Oct 2025, 13:43
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1710 Ticket No owner assigned 29 Mar 2026, 15:00 Review the ticket imported from Jira.":
+          - cell "Details for CS-1710 Ticket":
+            - button "Details for CS-1710 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "29 Mar 2026, 15:00":
+            - generic: 29 Mar 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1711 Ticket No owner assigned 12 Apr 2026, 11:40 Review the ticket imported from Jira.":
+          - cell "Details for CS-1711 Ticket":
+            - button "Details for CS-1711 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "12 Apr 2026, 11:40":
+            - generic: 12 Apr 2026, 11:40
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1712 Ticket No owner assigned 12 Apr 2026, 11:42 Review the ticket imported from Jira.":
+          - cell "Details for CS-1712 Ticket":
+            - button "Details for CS-1712 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "12 Apr 2026, 11:42":
+            - generic: 12 Apr 2026, 11:42
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1713 Ticket No owner assigned 12 Apr 2026, 11:43 Review the ticket imported from Jira.":
+          - cell "Details for CS-1713 Ticket":
+            - button "Details for CS-1713 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "12 Apr 2026, 11:43":
+            - generic: 12 Apr 2026, 11:43
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1714 Ticket No owner assigned 29 Mar 2026, 15:00 Review the ticket imported from Jira.":
+          - cell "Details for CS-1714 Ticket":
+            - button "Details for CS-1714 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "29 Mar 2026, 15:00":
+            - generic: 29 Mar 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1721 Ticket No owner assigned 10 Nov 2025, 12:13 Review the ticket imported from Jira.":
+          - cell "Details for CS-1721 Ticket":
+            - button "Details for CS-1721 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "10 Nov 2025, 12:13":
+            - generic: 10 Nov 2025, 12:13
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1747 Ticket No owner assigned 21 Jun 2026, 12:43 Review the ticket imported from Jira.":
+          - cell "Details for CS-1747 Ticket":
+            - button "Details for CS-1747 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Jun 2026, 12:43":
+            - generic: 21 Jun 2026, 12:43
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1754 Ticket No owner assigned 26 Apr 2026, 09:27 Review the ticket imported from Jira.":
+          - cell "Details for CS-1754 Ticket":
+            - button "Details for CS-1754 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "26 Apr 2026, 09:27":
+            - generic: 26 Apr 2026, 09:27
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1762 Ticket No owner assigned — Review the ticket imported from Jira.":
+          - cell "Details for CS-1762 Ticket":
+            - button "Details for CS-1762 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "—":
+            - generic: —
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1763 Ticket No owner assigned — Review the ticket imported from Jira.":
+          - cell "Details for CS-1763 Ticket":
+            - button "Details for CS-1763 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "—":
+            - generic: —
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1769 Ticket No owner assigned 22 Jul 2026, 09:14 Review the ticket imported from Jira.":
+          - cell "Details for CS-1769 Ticket":
+            - button "Details for CS-1769 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Jul 2026, 09:14":
+            - generic: 22 Jul 2026, 09:14
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1777 Ticket No owner assigned 21 Apr 2025, 13:55 Review the ticket imported from Jira.":
+          - cell "Details for CS-1777 Ticket":
+            - button "Details for CS-1777 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Apr 2025, 13:55":
+            - generic: 21 Apr 2025, 13:55
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1786 Ticket No owner assigned 21 Apr 2025, 13:49 Review the ticket imported from Jira.":
+          - cell "Details for CS-1786 Ticket":
+            - button "Details for CS-1786 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "21 Apr 2025, 13:49":
+            - generic: 21 Apr 2025, 13:49
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1801 Ticket No owner assigned 15 Oct 2026, 14:51 Review the ticket imported from Jira.":
+          - cell "Details for CS-1801 Ticket":
+            - button "Details for CS-1801 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 14:51":
+            - generic: 15 Oct 2026, 14:51
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1802 Ticket No owner assigned 15 Oct 2026, 14:52 Review the ticket imported from Jira.":
+          - cell "Details for CS-1802 Ticket":
+            - button "Details for CS-1802 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 14:52":
+            - generic: 15 Oct 2026, 14:52
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1803 Ticket No owner assigned 15 Oct 2026, 14:57 Review the ticket imported from Jira.":
+          - cell "Details for CS-1803 Ticket":
+            - button "Details for CS-1803 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 14:57":
+            - generic: 15 Oct 2026, 14:57
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1804 Ticket No owner assigned 15 Oct 2026, 15:00 Review the ticket imported from Jira.":
+          - cell "Details for CS-1804 Ticket":
+            - button "Details for CS-1804 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 15:00":
+            - generic: 15 Oct 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1805 Ticket No owner assigned 15 Oct 2026, 15:00 Review the ticket imported from Jira.":
+          - cell "Details for CS-1805 Ticket":
+            - button "Details for CS-1805 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "15 Oct 2026, 15:00":
+            - generic: 15 Oct 2026, 15:00
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1808 Ticket No owner assigned 22 Oct 2026, 11:54 Review the ticket imported from Jira.":
+          - cell "Details for CS-1808 Ticket":
+            - button "Details for CS-1808 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:54":
+            - generic: 22 Oct 2026, 11:54
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1811 Ticket No owner assigned 22 Oct 2026, 11:56 Review the ticket imported from Jira.":
+          - cell "Details for CS-1811 Ticket":
+            - button "Details for CS-1811 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:56":
+            - generic: 22 Oct 2026, 11:56
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1812 Ticket No owner assigned 22 Oct 2026, 11:56 Review the ticket imported from Jira.":
+          - cell "Details for CS-1812 Ticket":
+            - button "Details for CS-1812 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:56":
+            - generic: 22 Oct 2026, 11:56
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1813 Ticket No owner assigned 22 Oct 2026, 11:54 Review the ticket imported from Jira.":
+          - cell "Details for CS-1813 Ticket":
+            - button "Details for CS-1813 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:54":
+            - generic: 22 Oct 2026, 11:54
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+        - row "Details for CS-1814 Ticket No owner assigned 22 Oct 2026, 11:53 Review the ticket imported from Jira.":
+          - cell "Details for CS-1814 Ticket":
+            - button "Details for CS-1814 Ticket":
+          - cell "No owner assigned":
+            - generic: No owner assigned
+          - cell "22 Oct 2026, 11:53":
+            - generic: 22 Oct 2026, 11:53
+          - cell "Review the ticket imported from Jira.":
+            - generic: Review the ticket imported from Jira.
+    - status
+    - navigation "Action list pages":
+      - generic: 1 – 25 of 104
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "10"
+        - option "25" [selected]
+        - option "50"
+        - option "100"
+      - button "Prev" [disabled]
+      - generic: Page 1 of 5
+      - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

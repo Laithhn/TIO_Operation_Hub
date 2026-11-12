@@ -1,0 +1,15 @@
+{
+  "id": "R005-mobile",
+  "route": "/my-dashboard",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "My dashboard"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 1815,
+  "title": "My dashboard · TIO Operations Hub",
+  "width": 390
+}

@@ -1,0 +1,262 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Change history" [level=1]
+- generic: Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - generic: Activity
+  - combobox "Activity":
+    - option "Changes by people" [selected]
+    - option "Background work (Jira sync, scans)"
+    - option "All activity"
+  - generic: Person
+  - textbox "Person":
+    - /placeholder: Account name
+  - generic: Record type
+  - combobox "Record type"
+  - generic: Action
+  - combobox "Action":
+    - option "Any" [selected]
+    - option "Create"
+    - option "Update"
+    - option "Status change"
+    - option "Owner change"
+    - option "Archive"
+    - option "Restore"
+    - option "Access change"
+    - option "Access granted"
+    - option "Access revoked"
+    - option "Export"
+    - option "Remove"
+  - generic: Category
+  - combobox "Category":
+    - option "Any" [selected]
+    - option "Business records"
+    - option "Access administration"
+  - generic: From
+  - textbox "From"
+  - generic: To
+  - textbox "To"
+  - region "Table":
+    - searchbox "Filter rows" [active]: "922337"
+    - generic: 0 of 25 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When By Action Record Reason Changes (before → after)":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - button "When":
+              - generic: When
+          - columnheader "By":
+            - button "By":
+              - generic: By
+          - columnheader "Action":
+            - button "Action":
+              - generic: Action
+          - columnheader "Record":
+            - button "Record":
+              - generic: Record
+          - columnheader "Reason":
+            - button "Reason":
+              - generic: Reason
+          - columnheader "Changes (before → after)":
+            - button "Changes (before → after)":
+              - generic: Changes (before → after)
+      - rowgroup
+    - status
+    - generic: No matching records. Change or clear the filters.
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 3652
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 3652
+    - button "Next"
+  - heading "Recent exports" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When User Report Filters Rows":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - button "When":
+              - generic: When
+          - columnheader "User":
+            - button "User":
+              - generic: User
+          - columnheader "Report":
+            - button "Report":
+              - generic: Report
+          - columnheader "Filters":
+            - button "Filters":
+              - generic: Filters
+          - columnheader "Rows":
+            - button "Rows":
+              - generic: Rows
+      - rowgroup:
+        - row "Select 05 Nov 2026, 15:19 05 Nov 2026, 15:19 lmh cases-builder none 1459":
+          - cell "Select 05 Nov 2026, 15:19":
+            - checkbox "Select 05 Nov 2026, 15:19"
+          - cell "05 Nov 2026, 15:19":
+            - generic: 05 Nov 2026, 15:19
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "none":
+            - generic: none
+          - cell "1459":
+            - generic: "1459"
+        - row "Select 05 Nov 2026, 15:18 05 Nov 2026, 15:18 lmh cases-builder Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year) 302":
+          - cell "Select 05 Nov 2026, 15:18":
+            - checkbox "Select 05 Nov 2026, 15:18"
+          - cell "05 Nov 2026, 15:18":
+            - generic: 05 Nov 2026, 15:18
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)":
+            - generic: Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)
+          - cell "302":
+            - generic: "302"
+        - row "Select 05 Nov 2026, 15:17 05 Nov 2026, 15:17 lmh cases-builder Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year) 302":
+          - cell "Select 05 Nov 2026, 15:17":
+            - checkbox "Select 05 Nov 2026, 15:17"
+          - cell "05 Nov 2026, 15:17":
+            - generic: 05 Nov 2026, 15:17
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)":
+            - generic: Opened = 2026-01-01 00:00 +04:00 – 2026-12-31 23:59 +04:00 (This year)
+          - cell "302":
+            - generic: "302"
+        - row "Select 04 Nov 2026, 17:57 04 Nov 2026, 17:57 lmh cases-builder Search = \"CS-1296\" 1":
+          - cell "Select 04 Nov 2026, 17:57":
+            - checkbox "Select 04 Nov 2026, 17:57"
+          - cell "04 Nov 2026, 17:57":
+            - generic: 04 Nov 2026, 17:57
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Search = \"CS-1296\"":
+            - generic: Search = "CS-1296"
+          - cell "1":
+            - generic: "1"
+        - row "Select 28 Oct 2026, 13:22 28 Oct 2026, 13:22 lmh cases-builder Status = New, Triaged, InProgress, PendingValidation; Priority = Critical, High 1":
+          - cell "Select 28 Oct 2026, 13:22":
+            - checkbox "Select 28 Oct 2026, 13:22"
+          - cell "28 Oct 2026, 13:22":
+            - generic: 28 Oct 2026, 13:22
+          - cell "lmh":
+            - generic: lmh
+          - cell "cases-builder":
+            - generic: cases-builder
+          - cell "Status = New, Triaged, InProgress, PendingValidation; Priority = Critical, High":
+            - generic: Status = New, Triaged, InProgress, PendingValidation; Priority = Critical, High
+          - cell "1":
+            - generic: "1"
+        - row "Select 23 Oct 2026, 11:51 23 Oct 2026, 11:51 lmh assets Client = TAH 79":
+          - cell "Select 23 Oct 2026, 11:51":
+            - checkbox "Select 23 Oct 2026, 11:51"
+          - cell "23 Oct 2026, 11:51":
+            - generic: 23 Oct 2026, 11:51
+          - cell "lmh":
+            - generic: lmh
+          - cell "assets":
+            - generic: assets
+          - cell "Client = TAH":
+            - generic: Client = TAH
+          - cell "79":
+            - generic: "79"
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

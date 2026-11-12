@@ -1,0 +1,15 @@
+{
+  "id": "R053-laptop",
+  "route": "/components/27",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "PSOP.Service.Anpr.Carmen"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 675,
+  "title": "PSOP.Service.Anpr.Carmen · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

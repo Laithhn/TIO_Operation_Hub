@@ -1,0 +1,163 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "System":
+    - /url: /admin/config/category/system
+  - generic: ›
+  - generic: Review policies
+- heading "Review policies" [level=1]
+- generic: Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments.
+- button "+ New Policy"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Record type Scope Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Record type":
+            - button "Record type":
+              - generic: Record type
+          - columnheader "Scope":
+            - button "Scope":
+              - generic: Scope
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for Ticket Ticket Record Active Edit":
+          - cell "Details for Ticket":
+            - button "Details for Ticket":
+          - cell "Ticket":
+            - generic: Ticket
+          - cell "Record":
+            - generic: Record
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Details for Client Client Record Active Edit":
+          - cell "Details for Client":
+            - button "Details for Client":
+          - cell "Client":
+            - generic: Client
+          - cell "Record":
+            - generic: Record
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Details for Commitment Commitment Record Active Edit":
+          - cell "Details for Commitment":
+            - button "Details for Commitment":
+          - cell "Commitment":
+            - generic: Commitment
+          - cell "Record":
+            - generic: Record
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Details for Contact Contact Record Active Edit":
+          - cell "Details for Contact":
+            - button "Details for Contact":
+          - cell "Contact":
+            - generic: Contact
+          - cell "Record":
+            - generic: Record
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Details for Environment Environment Condition Active Edit":
+          - cell "Details for Environment":
+            - button "Details for Environment":
+          - cell "Environment":
+            - generic: Environment
+          - cell "Condition":
+            - generic: Condition
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Details for Environment Environment Inventory Active Edit":
+          - cell "Details for Environment":
+            - button "Details for Environment":
+          - cell "Environment":
+            - generic: Environment
+          - cell "Inventory":
+            - generic: Inventory
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

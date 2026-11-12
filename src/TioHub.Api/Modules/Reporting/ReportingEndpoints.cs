@@ -35,17 +35,19 @@ public static class ReportingEndpoints
     {
         var g = api.MapGroup("/reports").WithTags("Reporting Center");
 
-        g.MapGet("/catalog", (UserContext me) =>
+        g.MapGet("/catalog", async (UserContext me, HubDbContext db, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var readable = RightChecks.ReadableReports(me);
+            // TIO-BUG-006: the Tickets report's Status choices are the configured statuses, as in the ticket list.
+            var caseStatuses = readable.Contains("cases") ? await CaseStatusFilter.OptionsAsync(db, ct) : [];
             return Results.Ok(ReportCatalog.All.Where(r => readable.Contains(r.Key)).Select(r => new
             {
                 r.Key, r.Name, r.Category, r.Description, r.Icon, r.Operational,
                 formats = new[] { new { key = "csv", label = "CSV", available = true, note = (string?)null }, new { key = "xlsx", label = "Excel (.xlsx)", available = true, note = (string?)null },
                     new { key = "pdf", label = "PDF", available = false, note = (string?)(r.Key == "cases" ? "PDF is available in the Tickets Report Builder (Build report)." : "A formatted PDF layout is available for the Tickets report only.") } },
                 builder = r.Key == "cases",
-                filters = r.Filters.Select(f => new { f.Key, f.Label, kind = f.Kind.ToString(), f.Advanced, f.Options, f.Hint, f.RangeEnd }),
+                filters = r.Filters.Select(f => new { f.Key, f.Label, kind = f.Kind.ToString(), f.Advanced, options = r.Key == "cases" && f.Key == "status" ? caseStatuses : f.Options, f.Hint, f.RangeEnd }),
                 columns = r.Columns
             }));
         });
@@ -134,7 +136,8 @@ public static class ReportingEndpoints
             var user = await db.Users.AsNoTracking().Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefaultAsync(ct);
             var details = BuilderEndpoints.CanSeeJobDetails(j, me);
             var columns = !details || j.ColumnsJson is null ? null : JsonSerializer.Deserialize<List<string>>(j.ColumnsJson);
-            return Results.Ok(new { export = Dto(j, me, user), filters = details ? JsonSerializer.Deserialize<Dictionary<string, string>>(j.FiltersJson) : null, columns, j.StartedAt });
+            // TIO-BUG-005: columnsAvailable tells "all columns, standard order" (columns null, details shown) from hidden (columns null, not shown).
+            return Results.Ok(new { export = Dto(j, me, user), filters = details ? JsonSerializer.Deserialize<Dictionary<string, string>>(j.FiltersJson) : null, columns, columnsAvailable = details, j.StartedAt });
         });
 
         g.MapGet("/exports/{id:long}/download", (long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct) => DownloadAsync(id, db, me, store, clock, ct));

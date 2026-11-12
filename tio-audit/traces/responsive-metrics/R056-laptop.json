@@ -1,0 +1,15 @@
+{
+  "id": "R056-laptop",
+  "route": "/admin/config/category/servers",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Servers"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 463,
+  "title": "Servers · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R074-mobile",
+  "route": "/admin/config/case-statuses",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Ticket statuses"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 459,
+  "title": "Ticket statuses · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

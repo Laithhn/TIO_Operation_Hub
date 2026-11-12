@@ -1,0 +1,15 @@
+{
+  "id": "R031-mobile",
+  "route": "/admin/config",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Configuration"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 524,
+  "title": "Configuration · TIO Operations Hub",
+  "width": 390
+}

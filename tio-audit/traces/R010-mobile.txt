@@ -1,0 +1,140 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Escalations":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Escalations
+- heading "Escalations" [level=1]
+- generic: Client matters raised above normal handling, by e-mail, formal letter, verbally, through Jira or any other configured channel. Each has an accountable owner, a level and response and resolution targets.
+- link "+ New escalation":
+  - /url: /escalations/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations (current section)":
+      - /url: /escalations
+      - text: Escalations
+      - generic: (current section)
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Status
+  - combobox "Status":
+    - option "Active (open, acknowledged, in progress)" [selected]
+    - option "All"
+    - option "Open"
+    - option "Acknowledged"
+    - option "In progress"
+    - option "Resolved"
+    - option "Closed"
+    - option "Withdrawn"
+  - generic: Channel
+  - combobox "Channel":
+    - option "Any channel" [selected]
+    - option "E-mail"
+    - option "Formal letter"
+    - option "Verbal (call or meeting)"
+    - option "Jira"
+  - generic: Level
+  - combobox "Level":
+    - option "Any level" [selected]
+    - option "Level 1"
+    - option "Level 2"
+    - option "Level 3"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+  - generic: Targets
+  - combobox "Targets":
+    - option "Any" [selected]
+    - option "Overdue only"
+  - generic: Search
+  - textbox "Search":
+    - /placeholder: Ref, title, channel reference or contact
+  - region "Escalations":
+    - table "Escalations":
+      - caption: Escalations
+      - rowgroup:
+        - row "Details Ref Escalation Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Ref":
+            - button "Ref":
+              - generic: Ref
+          - columnheader "Escalation":
+            - generic: Escalation
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - text: No active escalations.
+    - button "View all"
+  - navigation "Pagination":
+    - generic: 0 records
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,85 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- heading "Archived records" [level=1]
+- generic: Archived records keep their history and links. Restore needs Archive and restore permission for the record type within its scope; client aliases stay reserved.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Record type
+  - combobox "Record type":
+    - option "All" [selected]
+    - option "Client"
+    - option "Region"
+    - option "Project"
+    - option "Contract"
+    - option "Contact"
+    - option "Environment"
+    - option "Installation"
+    - option "Asset"
+    - option "Component"
+  - region "Table":
+    - table:
+      - rowgroup:
+        - row "Details Type Record Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Type":
+            - generic: Type
+          - columnheader "Record":
+            - generic: Record
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - generic: No records entered.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

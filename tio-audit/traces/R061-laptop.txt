@@ -1,0 +1,145 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Administration":
+      - /url: /admin
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Reported conditions
+- heading "Reported conditions" [level=1]
+- generic: Change the display labels of the built-in reported conditions. Their codes, order and operational meaning stay fixed.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Reported conditions":
+    - searchbox "Filter rows"
+    - generic: 4 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Reported conditions":
+      - caption: Reported conditions
+      - rowgroup:
+        - row "Select all rows shown Workflow code Display label Status":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Workflow code":
+            - button "Workflow code":
+              - generic: Workflow code
+          - columnheader "Display label":
+            - button "Display label":
+              - generic: Display label
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+      - rowgroup:
+        - row "Select Unknown Unknown Unknown Fixed workflow value":
+          - cell "Select Unknown":
+            - checkbox "Select Unknown"
+          - cell "Unknown":
+            - generic: Unknown
+          - cell "Unknown":
+            - button "Unknown"
+          - cell "Fixed workflow value":
+            - generic: Fixed workflow value
+        - row "Select Healthy Healthy Healthy Fixed workflow value":
+          - cell "Select Healthy":
+            - checkbox "Select Healthy"
+          - cell "Healthy":
+            - generic: Healthy
+          - cell "Healthy":
+            - button "Healthy"
+          - cell "Fixed workflow value":
+            - generic: Fixed workflow value
+        - row "Select Degraded Degraded Degraded Fixed workflow value":
+          - cell "Select Degraded":
+            - checkbox "Select Degraded"
+          - cell "Degraded":
+            - generic: Degraded
+          - cell "Degraded":
+            - button "Degraded"
+          - cell "Fixed workflow value":
+            - generic: Fixed workflow value
+        - row "Select Unavailable Unavailable Unavailable Fixed workflow value":
+          - cell "Select Unavailable":
+            - checkbox "Select Unavailable"
+          - cell "Unavailable":
+            - generic: Unavailable
+          - cell "Unavailable":
+            - button "Unavailable"
+          - cell "Fixed workflow value":
+            - generic: Fixed workflow value
+    - status
+  - paragraph: Only display labels can be changed. All built-in values remain available and keep their workflow meaning.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

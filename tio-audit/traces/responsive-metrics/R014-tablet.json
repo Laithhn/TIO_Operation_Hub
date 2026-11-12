@@ -1,0 +1,15 @@
+{
+  "id": "R014-tablet",
+  "route": "/projects",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Projects & contracts"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 2510,
+  "title": "Projects & contracts · TIO Operations Hub",
+  "width": 768
+}

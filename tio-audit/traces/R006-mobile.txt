@@ -1,0 +1,261 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- heading "Clients" [level=1]
+- generic: Countries group clients for reporting; regions are optional and shown only where a client has them.
+- link "+ New Client":
+  - /url: /clients/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - region "Clients":
+    - searchbox "Search all clients"
+    - generic: 20 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Clients":
+      - caption: Clients
+      - rowgroup:
+        - row "Details Client Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ADP Abu Dhabi Police 2 sub-client(s) Opportunity Actions for client ADP":
+          - cell "Details for ADP":
+            - button "Details for ADP":
+          - cell "Abu Dhabi Police 2 sub-client(s)":
+            - link "Abu Dhabi Police":
+              - /url: /clients/8
+            - generic: 2 sub-client(s)
+          - cell "Opportunity":
+            - generic: Opportunity
+          - cell "Actions for client ADP":
+            - button "Actions for client ADP": ⋯
+        - row "Details for ↳ ADP-STC Abu Dhabi Police STC Sub-client of ADP Active Actions for client ADP-STC":
+          - cell "Details for ↳ ADP-STC":
+            - button "Details for ↳ ADP-STC":
+          - cell "Abu Dhabi Police STC Sub-client of ADP":
+            - link "Abu Dhabi Police STC":
+              - /url: /clients/24
+            - generic: Sub-client of ADP
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client ADP-STC":
+            - button "Actions for client ADP-STC": ⋯
+        - row "Details for ↳ ADP-TRAFFIC Abu Dhabi Traffic Department Sub-client of ADP Active Actions for client ADP-TRAFFIC":
+          - cell "Details for ↳ ADP-TRAFFIC":
+            - button "Details for ↳ ADP-TRAFFIC":
+          - cell "Abu Dhabi Traffic Department Sub-client of ADP":
+            - link "Abu Dhabi Traffic Department":
+              - /url: /clients/23
+            - generic: Sub-client of ADP
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client ADP-TRAFFIC":
+            - button "Actions for client ADP-TRAFFIC": ⋯
+        - row "Details for DGSN NATIONAL GENDARMERIE (DGSN) Opportunity Actions for client DGSN":
+          - cell "Details for DGSN":
+            - button "Details for DGSN":
+          - cell "NATIONAL GENDARMERIE (DGSN)":
+            - link "NATIONAL GENDARMERIE (DGSN)":
+              - /url: /clients/12
+          - cell "Opportunity":
+            - generic: Opportunity
+          - cell "Actions for client DGSN":
+            - button "Actions for client DGSN": ⋯
+        - row "Details for DUBAI_POLICE Dubai Police 2 sub-client(s) Active Actions for client DUBAI_POLICE":
+          - cell "Details for DUBAI_POLICE":
+            - button "Details for DUBAI_POLICE":
+          - cell "Dubai Police 2 sub-client(s)":
+            - link "Dubai Police":
+              - /url: /clients/2
+            - generic: 2 sub-client(s)
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client DUBAI_POLICE":
+            - button "Actions for client DUBAI_POLICE": ⋯
+        - row "Details for ↳ OYOON OYOON Center Sub-client of DUBAI_POLICE Active Actions for client OYOON":
+          - cell "Details for ↳ OYOON":
+            - button "Details for ↳ OYOON":
+          - text: OC
+          - cell "OYOON Center Sub-client of DUBAI_POLICE":
+            - link "OYOON Center":
+              - /url: /clients/3
+            - generic: Sub-client of DUBAI_POLICE
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client OYOON":
+            - button "Actions for client OYOON": ⋯
+        - row "Details for ↳ TRAFFIC Dubai Traffic Department Sub-client of DUBAI_POLICE Active Actions for client TRAFFIC":
+          - cell "Details for ↳ TRAFFIC":
+            - button "Details for ↳ TRAFFIC":
+          - text: DT
+          - cell "Dubai Traffic Department Sub-client of DUBAI_POLICE":
+            - link "Dubai Traffic Department":
+              - /url: /clients/4
+            - generic: Sub-client of DUBAI_POLICE
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client TRAFFIC":
+            - button "Actions for client TRAFFIC": ⋯
+        - row "Details for EIFFAGE Eiffage Concessions Active Actions for client EIFFAGE":
+          - cell "Details for EIFFAGE":
+            - button "Details for EIFFAGE":
+          - cell "Eiffage Concessions":
+            - link "Eiffage Concessions":
+              - /url: /clients/18
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client EIFFAGE":
+            - button "Actions for client EIFFAGE": ⋯
+        - row "Details for MADAR_DIJLA Madar Dijla Active Actions for client MADAR_DIJLA":
+          - cell "Details for MADAR_DIJLA":
+            - button "Details for MADAR_DIJLA":
+          - text: MD
+          - cell "Madar Dijla":
+            - link "Madar Dijla":
+              - /url: /clients/9
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client MADAR_DIJLA":
+            - button "Actions for client MADAR_DIJLA": ⋯
+        - row "Details for MULTICOM MULTICOM - IT Security Active Actions for client MULTICOM":
+          - cell "Details for MULTICOM":
+            - button "Details for MULTICOM":
+          - text: MI
+          - cell "MULTICOM - IT Security":
+            - link "MULTICOM - IT Security":
+              - /url: /clients/19
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client MULTICOM":
+            - button "Actions for client MULTICOM": ⋯
+        - row "Details for NARSA NARSA Active Actions for client NARSA":
+          - cell "Details for NARSA":
+            - button "Details for NARSA":
+          - text: NA
+          - cell "NARSA":
+            - link "NARSA":
+              - /url: /clients/11
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client NARSA":
+            - button "Actions for client NARSA": ⋯
+        - row "Details for PESAPRINT Pesa Print Active Actions for client PESAPRINT":
+          - cell "Details for PESAPRINT":
+            - button "Details for PESAPRINT":
+          - text: PP
+          - cell "Pesa Print":
+            - link "Pesa Print":
+              - /url: /clients/16
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client PESAPRINT":
+            - button "Actions for client PESAPRINT": ⋯
+        - row "Details for QATAR_MOI Qatar MOI Opportunity Actions for client QATAR_MOI":
+          - cell "Details for QATAR_MOI":
+            - button "Details for QATAR_MOI":
+          - text: QM
+          - cell "Qatar MOI":
+            - link "Qatar MOI":
+              - /url: /clients/17
+          - cell "Opportunity":
+            - generic: Opportunity
+          - cell "Actions for client QATAR_MOI":
+            - button "Actions for client QATAR_MOI": ⋯
+        - row "Details for RNP Rwanda National Ploce Active Actions for client RNP":
+          - cell "Details for RNP":
+            - button "Details for RNP":
+          - text: RN
+          - cell "Rwanda National Ploce":
+            - link "Rwanda National Ploce":
+              - /url: /clients/10
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client RNP":
+            - button "Actions for client RNP": ⋯
+        - row "Details for ROP Royal Oman Police (ROP) Active Actions for client ROP":
+          - cell "Details for ROP":
+            - button "Details for ROP":
+          - text: RO
+          - cell "Royal Oman Police (ROP)":
+            - link "Royal Oman Police (ROP)":
+              - /url: /clients/15
+          - cell "Active":
+            - text: Active
+          - cell "Actions for client ROP":
+            - button "Actions for client ROP": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 20
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 20
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

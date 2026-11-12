@@ -1,0 +1,249 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Administration":
+      - /url: /admin
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Contracts & Tickets":
+    - /url: /admin/config/category/contracts-cases
+  - generic: ›
+  - generic: Ticket statuses
+- heading "Ticket statuses" [level=1]
+- generic: The statuses shown on tickets. Each one behaves in a fixed way, which decides the ticket actions, SLA clocks and open or closed counts.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Ticket statuses":
+    - searchbox "Filter rows"
+    - generic: 7 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Ticket statuses":
+      - caption: Ticket statuses
+      - rowgroup:
+        - row "Select all rows shown Order Name Description Behaves as In use (cases) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Behaves as":
+            - button "Behaves as":
+              - generic: Behaves as
+          - columnheader "In use (cases)":
+            - button "In use (cases)":
+              - generic: In use (cases)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move New up Move New down New — Initial 52 Active Actions for New":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move New up Move New down":
+            - button "Move New up" [disabled]: ▲
+            - button "Move New down": ▼
+          - cell "New":
+            - button "New"
+          - cell "—":
+            - generic: —
+          - cell "Initial":
+            - generic: Initial
+          - cell "52":
+            - generic: "52"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for New":
+            - button "Actions for New": ⋯
+        - row "Select ▲ ▼ Move Open up Move Open down Open — Opened 7 Active Actions for Open":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Open up Move Open down":
+            - button "Move Open up": ▲
+            - button "Move Open down": ▼
+          - cell "Open":
+            - button "Open"
+          - cell "—":
+            - generic: —
+          - cell "Opened":
+            - generic: Opened
+          - cell "7":
+            - generic: "7"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Open":
+            - button "Actions for Open": ⋯
+        - row "Select ▲ ▼ Move In progress up Move In progress down In progress — Active 36 Active Actions for In progress":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move In progress up Move In progress down":
+            - button "Move In progress up": ▲
+            - button "Move In progress down": ▼
+          - cell "In progress":
+            - button "In progress"
+          - cell "—":
+            - generic: —
+          - cell "Active":
+            - generic: Active
+          - cell "36":
+            - generic: "36"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for In progress":
+            - button "Actions for In progress": ⋯
+        - row "Select ▲ ▼ Move Waiting for customer up Move Waiting for customer down Waiting for customer — Waiting for customer 73 Active Actions for Waiting for customer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Waiting for customer up Move Waiting for customer down":
+            - button "Move Waiting for customer up": ▲
+            - button "Move Waiting for customer down": ▼
+          - cell "Waiting for customer":
+            - button "Waiting for customer"
+          - cell "—":
+            - generic: —
+          - cell "Waiting for customer":
+            - generic: Waiting for customer
+          - cell "73":
+            - generic: "73"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Waiting for customer":
+            - button "Actions for Waiting for customer": ⋯
+        - row "Select ▲ ▼ Move Resolved up Move Resolved down Resolved Vitronic Team Completed and waiting for Customer Confirmation Waiting for customer 15 Active Actions for Resolved":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Resolved up Move Resolved down":
+            - button "Move Resolved up": ▲
+            - button "Move Resolved down": ▼
+          - cell "Resolved":
+            - button "Resolved"
+          - cell "Vitronic Team Completed and waiting for Customer Confirmation":
+            - generic: Vitronic Team Completed and waiting for Customer Confirmation
+          - cell "Waiting for customer":
+            - generic: Waiting for customer
+          - cell "15":
+            - generic: "15"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Resolved":
+            - button "Actions for Resolved": ⋯
+        - row "Select ▲ ▼ Move Closed up Move Closed down Closed — Closed 1766 Active Actions for Closed":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Closed up Move Closed down":
+            - button "Move Closed up": ▲
+            - button "Move Closed down": ▼
+          - cell "Closed":
+            - button "Closed"
+          - cell "—":
+            - generic: —
+          - cell "Closed":
+            - generic: Closed
+          - cell "1766":
+            - generic: "1766"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Closed":
+            - button "Actions for Closed": ⋯
+        - row "Select ▲ ▼ Move Re-opened up Move Re-opened down Re-opened — Reopened 0 Active Actions for Re-opened":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Re-opened up Move Re-opened down":
+            - button "Move Re-opened up": ▲
+            - button "Move Re-opened down" [disabled]: ▼
+          - cell "Re-opened":
+            - button "Re-opened"
+          - cell "—":
+            - generic: —
+          - cell "Reopened":
+            - generic: Reopened
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Re-opened":
+            - button "Actions for Re-opened": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

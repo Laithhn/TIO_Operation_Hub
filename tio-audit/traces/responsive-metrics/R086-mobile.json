@@ -1,0 +1,15 @@
+{
+  "id": "R086-mobile",
+  "route": "/contracts/new",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "New contract"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 15339,
+  "title": "New contract · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,282 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Products & Installations":
+    - /url: /admin/config/category/products-installations
+  - generic: ›
+  - generic: Component roles
+- heading "Component roles" [level=1]
+- generic: Roles of the components of an installation, for example Application, Database or Workflow.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Component roles":
+    - searchbox "Filter rows"
+    - generic: 10 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Component roles":
+      - caption: Component roles
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (components) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (components)":
+            - button "In use (components)":
+              - generic: In use (components)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Web up Move Web down Web — 0 Active Actions for Web":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Web up Move Web down":
+            - button "Move Web up" [disabled]: ▲
+            - button "Move Web down": ▼
+          - cell "Web":
+            - button "Web"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Web":
+            - button "Actions for Web": ⋯
+        - row "Select ▲ ▼ Move Application up Move Application down Application — 78 Active Actions for Application":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Application up Move Application down":
+            - button "Move Application up": ▲
+            - button "Move Application down": ▼
+          - cell "Application":
+            - button "Application"
+          - cell "—":
+            - generic: —
+          - cell "78":
+            - generic: "78"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Application":
+            - button "Actions for Application": ⋯
+        - row "Select ▲ ▼ Move Database up Move Database down Database — 0 Active Actions for Database":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Database up Move Database down":
+            - button "Move Database up": ▲
+            - button "Move Database down": ▼
+          - cell "Database":
+            - button "Database"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Database":
+            - button "Actions for Database": ⋯
+        - row "Select ▲ ▼ Move Import up Move Import down Import — 0 Active Actions for Import":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Import up Move Import down":
+            - button "Move Import up": ▲
+            - button "Move Import down": ▼
+          - cell "Import":
+            - button "Import"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Import":
+            - button "Actions for Import": ⋯
+        - row "Select ▲ ▼ Move Workflow up Move Workflow down Workflow — 0 Active Actions for Workflow":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Workflow up Move Workflow down":
+            - button "Move Workflow up": ▲
+            - button "Move Workflow down": ▼
+          - cell "Workflow":
+            - button "Workflow"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Workflow":
+            - button "Actions for Workflow": ⋯
+        - row "Select ▲ ▼ Move ANPR up Move ANPR down ANPR — 0 Active Actions for ANPR":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move ANPR up Move ANPR down":
+            - button "Move ANPR up": ▲
+            - button "Move ANPR down": ▼
+          - cell "ANPR":
+            - button "ANPR"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for ANPR":
+            - button "Actions for ANPR": ⋯
+        - row "Select ▲ ▼ Move Media up Move Media down Media — 0 Active Actions for Media":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Media up Move Media down":
+            - button "Move Media up": ▲
+            - button "Move Media down": ▼
+          - cell "Media":
+            - button "Media"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Media":
+            - button "Actions for Media": ⋯
+        - row "Select ▲ ▼ Move Reporting up Move Reporting down Reporting — 0 Active Actions for Reporting":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Reporting up Move Reporting down":
+            - button "Move Reporting up": ▲
+            - button "Move Reporting down": ▼
+          - cell "Reporting":
+            - button "Reporting"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Reporting":
+            - button "Actions for Reporting": ⋯
+        - row "Select ▲ ▼ Move Monitoring up Move Monitoring down Monitoring — 0 Active Actions for Monitoring":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Monitoring up Move Monitoring down":
+            - button "Move Monitoring up": ▲
+            - button "Move Monitoring down": ▼
+          - cell "Monitoring":
+            - button "Monitoring"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Monitoring":
+            - button "Actions for Monitoring": ⋯
+        - row "Select ▲ ▼ Move Other up Move Other down Other — 0 Active Actions for Other":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

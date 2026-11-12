@@ -1,0 +1,15 @@
+{
+  "id": "R078-desktop",
+  "route": "/admin/policies",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Review policies"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 972,
+  "title": "Review policies · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

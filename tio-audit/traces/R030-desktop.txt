@@ -1,0 +1,523 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Access review" [level=1]
+- generic: See what a person can do and why, check one right, and manage individual exceptions and incompatible roles.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - navigation "Access review sections":
+    - link "Overview":
+      - /url: "#access-overview"
+    - link "A person's access":
+      - /url: "#access-person"
+    - link "Check access":
+      - /url: "#access-simulation"
+    - link "Incompatible roles":
+      - /url: "#access-conflicts"
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access history":
+      - /url: /admin/audit?category=Access
+  - region "Overview":
+    - heading "Overview" [level=2]
+    - paragraph: Current account and role assignments.
+    - generic: Active users
+    - strong: "44"
+    - generic: Accounts currently active
+    - generic: Active roles
+    - strong: "3"
+    - generic: Roles available for assignment
+    - generic: Rights in the catalog
+    - strong: "249"
+    - generic: Defined by the application
+    - generic: Unused roles
+    - strong: "0"
+    - generic: Roles with no active users
+    - heading "Manage access" [level=3]
+    - paragraph: Users hold roles, roles hold rights.
+    - link "Users Accounts, roles and data scope":
+      - /url: /admin/users
+      - strong: Users
+      - generic: Accounts, roles and data scope
+      - generic: →
+    - link "Roles Create, clone, compare and see who holds a role":
+      - /url: /admin/roles
+      - strong: Roles
+      - generic: Create, clone, compare and see who holds a role
+      - generic: →
+    - link "Rights The catalog, and what each role may do":
+      - /url: /admin/rights
+      - strong: Rights
+      - generic: The catalog, and what each role may do
+      - generic: →
+    - heading "Recent access changes" [level=3]
+    - link "View history":
+      - /url: /admin/audit?category=Access
+    - list:
+      - strong: Create
+      - generic: AppSetting · Dashboard.SlaAtRiskPercent
+      - generic: system · 10 Nov 2026, 15:29
+      - strong: Create
+      - generic: AppSetting · Dashboard.SlaComplianceTargetPercent
+      - generic: system · 10 Nov 2026, 15:29
+      - strong: Create
+      - generic: AppSetting · Dashboard.ProjectStatusMaxAgeDays
+      - generic: system · 10 Nov 2026, 15:29
+      - strong: Update
+      - generic: RightDefinition
+      - generic: system · 10 Nov 2026, 15:29
+      - strong: Update
+      - generic: RightDefinition
+      - generic: system · 10 Nov 2026, 15:29
+  - region "Incompatible roles":
+    - heading "Incompatible roles" [level=2]
+    - paragraph: Prevent a user from holding both roles in a pair. The server checks existing assignments, directory groups and the recovery administrator before accepting a policy.
+    - list
+    - paragraph: No incompatible role pairs are configured.
+    - text: First role
+    - combobox "First role":
+      - option "Select a role" [selected]
+      - option "Operation Engineer"
+      - option "ITD Manager"
+    - text: Second role
+    - combobox "Second role":
+      - option "Select a role" [selected]
+      - option "Operation Engineer"
+      - option "ITD Manager"
+    - button "Add incompatible pair" [disabled]
+    - button "Review policy" [disabled]
+    - button "Discard policy changes" [disabled]
+  - region "A person's effective rights":
+    - heading "A person's effective rights" [level=2]
+    - paragraph: Select a person to see their rights as the server resolves them, and where each comes from.
+    - link "Manage users":
+      - /url: /admin/users
+    - text: Find a user
+    - searchbox "Find a user"
+    - text: User
+    - combobox "User":
+      - option "Select a user" [selected]
+      - option "Abdalrhman (Aboud) Asaad (aasa)"
+      - option "Abdulaziz Yousif Alghamdi (jira-team-17c4e9d2fc4a4092b3ac9fb65c767025)"
+      - option "Abdulhamid Tork (ator)"
+      - option "Abdullah AlZeghaibi (jira-team-59be0dbdcec34c9ca6a652903841a8d8)"
+      - option "Adnan Ahmed (jira-team-5112e1b4b43043b2bf6aba6b3a7111b6)"
+      - option "Ahmed Awadalla (aawd)"
+      - option "Ahmed Elobaiad (jira-team-f9513eb347354389a043df383284f44f)"
+      - option "Ajith Anto (jira-team-15cfa80ea2284d789745dd01bdc0c4e7)"
+      - option "Ala AlBarghouthi (jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689)"
+      - option "Ali Alshehri (jira-team-941df9fb60c84058a001b570f377aae8)"
+      - option "amai (jira-team-41ce9617c6914b5997be24ddfc6ac980)"
+      - option "Ansil Ansar1 (jira-team-95dec06204a7461e96c1a43b40709d2a)"
+      - option "Ansil Ansar2 (jira-team-497970666fbe477e956694475f3d26f2)"
+      - option "Aymen A. Ameen (jira-team-0be4ee0d01e440009e21724e9271376b)"
+      - option "Bassem Amiche (jira-team-1fc7a2c5fc23441496096eb21450ab9d)"
+      - option "car (jira-team-4b12a08f9d9040d592613a7cf73ade36)"
+      - option "Ehab Hawwash (jira-team-144117433e19411fb7f8952827d35fe6)"
+      - option "Evgeny Gnevashev (jira-team-7effe2cc05d0418b8954c518610f67ac)"
+      - option "Faisal Alyami (jira-team-72ea74e8daff4701b6287996fefba03a)"
+      - option "Ghaith Ahmed Al Omari (jira-team-92d1574fef7340c3baff800a20b8348f)"
+      - option "Laith Hamdan (lmh)"
+      - option "LMH OPR (OPR)"
+      - option "Mahmoud Hussein (jira-team-f60c04680843460a803853a777ebb6a6)"
+      - option "Mark Mico (jira-team-49139c63330640f7b3d9f403117a22ff)"
+      - option "Moataz Al Khaldi (mali)"
+      - option "Moath Zayed (jira-team-1202addc2e3e464bbb9ca5a5497f5021)"
+      - option "Mohammad Al Omari (maa)"
+      - option "Mohammad Al-Omari (jira-team-5ad3a2b791c94bd6ac832126c4e0074f)"
+      - option "Mohammed Alqaruoti (malq)"
+      - option "Mohammed Rabeeh (jira-team-43de6e389fdf4a5e8034c8d5e437a0e2)"
+      - option "Mohammed Wasay (jira-team-30eb68ab6f8b4e33b4e33eeff572d4fa)"
+      - option "Naveed Ur Rehman (nre)"
+      - option "Ngirababo (jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf)"
+      - option "Ousama Didouqen (dq)"
+      - option "Qamar Takwa (jira-team-f45c8c31486d4792a2db6db9bed92f32)"
+      - option "Reda Moulouki (rml)"
+      - option "Reem Hamid (ryah)"
+      - option "Salam Almaghaslah (jira-team-75a4d262634e47298b7df712e61669fb)"
+      - option "Shabraz Ahmed (jira-team-0f1dd53013f04f80affb3e5bff63116c)"
+      - option "Shiju Unnithan (sui)"
+      - option "Sumayya Tasneem (jira-team-5042abc47a274433b98bf66e03f53331)"
+      - option "Tareq Abdul Jabar (atar)"
+      - option "Waleed Alharthi (wamh)"
+      - option "Ziyad Bu Dukhi (zbud)"
+    - paragraph: Select a user to inspect their access.
+  - region "Check access":
+    - heading "Check access" [level=2]
+    - paragraph: Check a saved user’s effective right and, optionally, a client, project or team scope. This does not run an action; ownership, workflow and other operation-specific checks still apply. Directory group memberships reflect the last observed sign-in unless live lookup is configured. Permissions that accept limited exceptions are evaluated for the selected client, project or team.
+    - text: User
+    - combobox "User":
+      - option "Select a user" [selected]
+      - option "Abdalrhman (Aboud) Asaad (aasa)"
+      - option "Abdulaziz Yousif Alghamdi (jira-team-17c4e9d2fc4a4092b3ac9fb65c767025)"
+      - option "Abdulhamid Tork (ator)"
+      - option "Abdullah AlZeghaibi (jira-team-59be0dbdcec34c9ca6a652903841a8d8)"
+      - option "Adnan Ahmed (jira-team-5112e1b4b43043b2bf6aba6b3a7111b6)"
+      - option "Ahmed Awadalla (aawd)"
+      - option "Ahmed Elobaiad (jira-team-f9513eb347354389a043df383284f44f)"
+      - option "Ajith Anto (jira-team-15cfa80ea2284d789745dd01bdc0c4e7)"
+      - option "Ala AlBarghouthi (jira-team-d71cc0c3cea7434d9a63bb0c9ad4d689)"
+      - option "Ali Alshehri (jira-team-941df9fb60c84058a001b570f377aae8)"
+      - option "amai (jira-team-41ce9617c6914b5997be24ddfc6ac980)"
+      - option "Ansil Ansar1 (jira-team-95dec06204a7461e96c1a43b40709d2a)"
+      - option "Ansil Ansar2 (jira-team-497970666fbe477e956694475f3d26f2)"
+      - option "Aymen A. Ameen (jira-team-0be4ee0d01e440009e21724e9271376b)"
+      - option "Bassem Amiche (jira-team-1fc7a2c5fc23441496096eb21450ab9d)"
+      - option "car (jira-team-4b12a08f9d9040d592613a7cf73ade36)"
+      - option "Ehab Hawwash (jira-team-144117433e19411fb7f8952827d35fe6)"
+      - option "Evgeny Gnevashev (jira-team-7effe2cc05d0418b8954c518610f67ac)"
+      - option "Faisal Alyami (jira-team-72ea74e8daff4701b6287996fefba03a)"
+      - option "Ghaith Ahmed Al Omari (jira-team-92d1574fef7340c3baff800a20b8348f)"
+      - option "Laith Hamdan (lmh)"
+      - option "LMH OPR (OPR)"
+      - option "Mahmoud Hussein (jira-team-f60c04680843460a803853a777ebb6a6)"
+      - option "Mark Mico (jira-team-49139c63330640f7b3d9f403117a22ff)"
+      - option "Moataz Al Khaldi (mali)"
+      - option "Moath Zayed (jira-team-1202addc2e3e464bbb9ca5a5497f5021)"
+      - option "Mohammad Al Omari (maa)"
+      - option "Mohammad Al-Omari (jira-team-5ad3a2b791c94bd6ac832126c4e0074f)"
+      - option "Mohammed Alqaruoti (malq)"
+      - option "Mohammed Rabeeh (jira-team-43de6e389fdf4a5e8034c8d5e437a0e2)"
+      - option "Mohammed Wasay (jira-team-30eb68ab6f8b4e33b4e33eeff572d4fa)"
+      - option "Naveed Ur Rehman (nre)"
+      - option "Ngirababo (jira-team-fb5b393ef049439d8ff80a6fd1c5b7bf)"
+      - option "Ousama Didouqen (dq)"
+      - option "Qamar Takwa (jira-team-f45c8c31486d4792a2db6db9bed92f32)"
+      - option "Reda Moulouki (rml)"
+      - option "Reem Hamid (ryah)"
+      - option "Salam Almaghaslah (jira-team-75a4d262634e47298b7df712e61669fb)"
+      - option "Shabraz Ahmed (jira-team-0f1dd53013f04f80affb3e5bff63116c)"
+      - option "Shiju Unnithan (sui)"
+      - option "Sumayya Tasneem (jira-team-5042abc47a274433b98bf66e03f53331)"
+      - option "Tareq Abdul Jabar (atar)"
+      - option "Waleed Alharthi (wamh)"
+      - option "Ziyad Bu Dukhi (zbud)"
+    - text: Right
+    - combobox "Right":
+      - option "Select a right" [selected]
+      - option "Administration — Platform:Administration"
+      - option "Export files — Platform:Export"
+      - option "Technical detail — Platform:TechnicalDetail"
+      - option "Change history — Platform:Audit"
+      - option "View — AdminUsers:View"
+      - option "Create — AdminUsers:Create"
+      - option "Edit — AdminUsers:Maintain"
+      - option "Delete — AdminUsers:Delete"
+      - option "View — AdminRoles:View"
+      - option "Create — AdminRoles:Create"
+      - option "Edit — AdminRoles:Maintain"
+      - option "Delete — AdminRoles:Delete"
+      - option "View — AdminGroups:View"
+      - option "Create — AdminGroups:Create"
+      - option "Edit — AdminGroups:Maintain"
+      - option "View — AdminConfig:View"
+      - option "Create — AdminConfig:Create"
+      - option "Edit — AdminConfig:Maintain"
+      - option "Delete — AdminConfig:Delete"
+      - option "View — AdminSettings:View"
+      - option "Edit — AdminSettings:Maintain"
+      - option "View — AdminAudit:View"
+      - option "View — AdminIntegrations:View"
+      - option "Create — AdminIntegrations:Create"
+      - option "Edit — AdminIntegrations:Maintain"
+      - option "Open the clients page — ClientStructure:Access"
+      - option "View pages and records — ClientStructure:View"
+      - option "Create — ClientStructure:Create"
+      - option "Edit existing records — ClientStructure:Maintain"
+      - option "Coordinate workflow and assignment — ClientStructure:Coordinate"
+      - option "Archive and restore — ClientStructure:ArchiveRestore"
+      - option "Permanently delete unused records — ClientStructure:Delete"
+      - option "View record details — ClientStructure:DetailsView"
+      - option "View record history — ClientStructure:HistoryView"
+      - option "View and download attachments — ClientStructure:AttachmentsView"
+      - option "Upload and describe attachments — ClientStructure:AttachmentsUpload"
+      - option "Delete own attachments — ClientStructure:AttachmentsDeleteOwn"
+      - option "Delete any attachment — ClientStructure:AttachmentsDelete"
+      - option "Export module data — ClientStructure:Export"
+      - option "View pages and records — Projects:View"
+      - option "Create — Projects:Create"
+      - option "Edit existing records — Projects:Maintain"
+      - option "Coordinate workflow and assignment — Projects:Coordinate"
+      - option "Archive and restore — Projects:ArchiveRestore"
+      - option "Permanently delete unused records — Projects:Delete"
+      - option "View record details — Projects:DetailsView"
+      - option "View record history — Projects:HistoryView"
+      - option "View and download attachments — Projects:AttachmentsView"
+      - option "Upload and describe attachments — Projects:AttachmentsUpload"
+      - option "Delete own attachments — Projects:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Projects:AttachmentsDelete"
+      - option "Export module data — Projects:Export"
+      - option "View pages and records — Contracts:View"
+      - option "Create — Contracts:Create"
+      - option "Edit existing records — Contracts:Maintain"
+      - option "Coordinate workflow and assignment — Contracts:Coordinate"
+      - option "Archive and restore — Contracts:ArchiveRestore"
+      - option "Permanently delete unused records — Contracts:Delete"
+      - option "View record details — Contracts:DetailsView"
+      - option "View record history — Contracts:HistoryView"
+      - option "View and download attachments — Contracts:AttachmentsView"
+      - option "Upload and describe attachments — Contracts:AttachmentsUpload"
+      - option "Delete own attachments — Contracts:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Contracts:AttachmentsDelete"
+      - option "Export module data — Contracts:Export"
+      - option "View pages and records — Environments:View"
+      - option "Create — Environments:Create"
+      - option "Edit existing records — Environments:Maintain"
+      - option "Coordinate workflow and assignment — Environments:Coordinate"
+      - option "Archive and restore — Environments:ArchiveRestore"
+      - option "Permanently delete unused records — Environments:Delete"
+      - option "View record details — Environments:DetailsView"
+      - option "View record history — Environments:HistoryView"
+      - option "View and download attachments — Environments:AttachmentsView"
+      - option "Upload and describe attachments — Environments:AttachmentsUpload"
+      - option "Delete own attachments — Environments:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Environments:AttachmentsDelete"
+      - option "Export module data — Environments:Export"
+      - option "View pages and records — Servers:View"
+      - option "Create — Servers:Create"
+      - option "Edit existing records — Servers:Maintain"
+      - option "Coordinate workflow and assignment — Servers:Coordinate"
+      - option "Archive and restore — Servers:ArchiveRestore"
+      - option "Permanently delete unused records — Servers:Delete"
+      - option "View record details — Servers:DetailsView"
+      - option "View record history — Servers:HistoryView"
+      - option "View and download attachments — Servers:AttachmentsView"
+      - option "Upload and describe attachments — Servers:AttachmentsUpload"
+      - option "Delete own attachments — Servers:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Servers:AttachmentsDelete"
+      - option "Export module data — Servers:Export"
+      - option "View pages and records — Installations:View"
+      - option "Create — Installations:Create"
+      - option "Edit existing records — Installations:Maintain"
+      - option "Coordinate workflow and assignment — Installations:Coordinate"
+      - option "Archive and restore — Installations:ArchiveRestore"
+      - option "Permanently delete unused records — Installations:Delete"
+      - option "View record details — Installations:DetailsView"
+      - option "View record history — Installations:HistoryView"
+      - option "View and download attachments — Installations:AttachmentsView"
+      - option "Upload and describe attachments — Installations:AttachmentsUpload"
+      - option "Delete own attachments — Installations:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Installations:AttachmentsDelete"
+      - option "Export module data — Installations:Export"
+      - option "Regions & environments tab — tab.ClientStructure.structure:View"
+      - option "Organizations tab — tab.ClientStructure.organizations:View"
+      - option "Contracts & SLAs tab — tab.ClientStructure.contracts:View"
+      - option "Tickets tab — tab.ClientStructure.cases:View"
+      - option "Commitments tab — tab.ClientStructure.commitments:View"
+      - option "Escalations tab — tab.ClientStructure.escalations:View"
+      - option "Infrastructure tab — tab.ClientStructure.infra:View"
+      - option "Projects tab — tab.ClientStructure.projects:View"
+      - option "Jira integration tab — tab.ClientStructure.jira:View"
+      - option "Contacts & responsibilities tab — tab.ClientStructure.contacts:View"
+      - option "My notes tab — tab.ClientStructure.notes:View"
+      - option "Applications tab — tab.Environments.apps:View"
+      - option "Servers & assets tab — tab.Environments.assets:View"
+      - option "Work tab — tab.Environments.work:View"
+      - option "Firewall rules tab — tab.Environments.network:View"
+      - option "Condition history tab — tab.Environments.conditions:View"
+      - option "Data quality tab — tab.Environments.quality:View"
+      - 'option "Regions & environments: create — tab.ClientStructure.structure:Create"'
+      - 'option "Regions & environments: edit — tab.ClientStructure.structure:Maintain"'
+      - 'option "Regions & environments: archive and restore — tab.ClientStructure.structure:ArchiveRestore"'
+      - 'option "Regions & environments: delete — tab.ClientStructure.structure:Delete"'
+      - 'option "Organizations: create — tab.ClientStructure.organizations:Create"'
+      - 'option "Organizations: edit — tab.ClientStructure.organizations:Maintain"'
+      - 'option "Organizations: delete — tab.ClientStructure.organizations:Delete"'
+      - 'option "Contacts & responsibilities: create — tab.ClientStructure.contacts:Create"'
+      - 'option "Contacts & responsibilities: edit — tab.ClientStructure.contacts:Maintain"'
+      - 'option "Contacts & responsibilities: archive and restore — tab.ClientStructure.contacts:ArchiveRestore"'
+      - 'option "Contacts & responsibilities: delete — tab.ClientStructure.contacts:Delete"'
+      - 'option "Condition history: create — tab.Environments.conditions:Create"'
+      - option "View pages and records — Commitments:View"
+      - option "Create — Commitments:Create"
+      - option "Edit existing records — Commitments:Maintain"
+      - option "Coordinate workflow and assignment — Commitments:Coordinate"
+      - option "Archive and restore — Commitments:ArchiveRestore"
+      - option "Permanently delete unused records — Commitments:Delete"
+      - option "View record details — Commitments:DetailsView"
+      - option "View record history — Commitments:HistoryView"
+      - option "View and download attachments — Commitments:AttachmentsView"
+      - option "Upload and describe attachments — Commitments:AttachmentsUpload"
+      - option "Delete own attachments — Commitments:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Commitments:AttachmentsDelete"
+      - option "Export module data — Commitments:Export"
+      - option "View pages and records — Dashboard:View"
+      - option "View pages and records — Notifications:View"
+      - option "Edit existing records — Notifications:Maintain"
+      - option "Permanently delete unused records — Notifications:Delete"
+      - option "View — MyDashboard:View"
+      - option "View — ClientMap:View"
+      - option "View — ActionList:View"
+      - option "View — DataQuality:View"
+      - option "Edit — DataQuality:Maintain"
+      - option "View — OperationalDashboard:View"
+      - option "View — SlaContractsDashboard:View"
+      - option "View — ManagementDashboard:View"
+      - option "View — ProjectDashboard:View"
+      - option "View pages and records — OtherOperations:View"
+      - option "Create — OtherOperations:Create"
+      - option "Edit existing records — OtherOperations:Maintain"
+      - option "Coordinate workflow and assignment — OtherOperations:Coordinate"
+      - option "Archive and restore — OtherOperations:ArchiveRestore"
+      - option "Permanently delete unused records — OtherOperations:Delete"
+      - option "View record details — OtherOperations:DetailsView"
+      - option "View record history — OtherOperations:HistoryView"
+      - option "View and download attachments — OtherOperations:AttachmentsView"
+      - option "Upload and describe attachments — OtherOperations:AttachmentsUpload"
+      - option "Delete own attachments — OtherOperations:AttachmentsDeleteOwn"
+      - option "Delete any attachment — OtherOperations:AttachmentsDelete"
+      - option "Export module data — OtherOperations:Export"
+      - option "View pages and records — PersonalNotes:View"
+      - option "Create — PersonalNotes:Create"
+      - option "Edit existing records — PersonalNotes:Maintain"
+      - option "Permanently delete unused records — PersonalNotes:Delete"
+      - option "Download — PersonalNotes:Download"
+      - option "View pages and records — Products:View"
+      - option "Create — Products:Create"
+      - option "Edit existing records — Products:Maintain"
+      - option "Coordinate workflow and assignment — Products:Coordinate"
+      - option "Archive and restore — Products:ArchiveRestore"
+      - option "Permanently delete unused records — Products:Delete"
+      - option "View record details — Products:DetailsView"
+      - option "View record history — Products:HistoryView"
+      - option "View and download attachments — Products:AttachmentsView"
+      - option "Upload and describe attachments — Products:AttachmentsUpload"
+      - option "Delete own attachments — Products:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Products:AttachmentsDelete"
+      - option "Export module data — Products:Export"
+      - option "View pages and records — Reporting:View"
+      - option "View — ReportOverview:View"
+      - option "View — ReportLibrary:View"
+      - option "Create — ReportLibrary:Create"
+      - option "Delete — ReportLibrary:Delete"
+      - option "Export — ReportLibrary:Export"
+      - option "View — ReportBuilder:View"
+      - option "Export — ReportBuilder:Export"
+      - option "View — SavedReports:View"
+      - option "Create — SavedReports:Create"
+      - option "Edit — SavedReports:Maintain"
+      - option "Delete — SavedReports:Delete"
+      - option "View — ReportSchedules:View"
+      - option "Create — ReportSchedules:Create"
+      - option "Edit — ReportSchedules:Maintain"
+      - option "Delete — ReportSchedules:Delete"
+      - option "View — ReportHistory:View"
+      - option "Create — ReportHistory:Create"
+      - option "Edit — ReportHistory:Maintain"
+      - option "Download — ReportHistory:Download"
+      - option "View — ReportTemplates:View"
+      - option "View pages and records — Teams:View"
+      - option "Create — Teams:Create"
+      - option "Edit existing records — Teams:Maintain"
+      - option "Coordinate workflow and assignment — Teams:Coordinate"
+      - option "Archive and restore — Teams:ArchiveRestore"
+      - option "Permanently delete unused records — Teams:Delete"
+      - option "View record details — Teams:DetailsView"
+      - option "View record history — Teams:HistoryView"
+      - option "View and download attachments — Teams:AttachmentsView"
+      - option "Upload and describe attachments — Teams:AttachmentsUpload"
+      - option "Delete own attachments — Teams:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Teams:AttachmentsDelete"
+      - option "Export module data — Teams:Export"
+      - option "View — Handovers:View"
+      - option "Create — Handovers:Create"
+      - option "Edit — Handovers:Maintain"
+      - option "View — Reassignment:View"
+      - option "View pages and records — Cases:View"
+      - option "Create — Cases:Create"
+      - option "Edit existing records — Cases:Maintain"
+      - option "Coordinate workflow and assignment — Cases:Coordinate"
+      - option "Archive and restore — Cases:ArchiveRestore"
+      - option "Permanently delete unused records — Cases:Delete"
+      - option "View record details — Cases:DetailsView"
+      - option "View record history — Cases:HistoryView"
+      - option "View and download attachments — Cases:AttachmentsView"
+      - option "Upload and describe attachments — Cases:AttachmentsUpload"
+      - option "Delete own attachments — Cases:AttachmentsDeleteOwn"
+      - option "Delete any attachment — Cases:AttachmentsDelete"
+      - option "Export module data — Cases:Export"
+      - option "Timeline tab — tab.Cases.timeline:View"
+      - option "Affected records tab — tab.Cases.affected:View"
+      - option "Jira references tab — tab.Cases.jira:View"
+      - option "Documented impact tab — tab.Cases.impact:View"
+      - option "Commitments tab — tab.Cases.commitments:View"
+      - option "Escalations tab — tab.Cases.escalations:View"
+      - 'option "Jira references: create — tab.Cases.jira:Create"'
+      - 'option "Jira references: delete — tab.Cases.jira:Delete"'
+    - text: Scope
+    - combobox "Scope":
+      - option "No specific scope" [selected]
+      - option "Client"
+      - option "Project"
+      - option "Internal team"
+    - button "Check access" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

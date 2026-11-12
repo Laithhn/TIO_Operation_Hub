@@ -1,0 +1,1700 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Operations Command Center" [level=1]
+- generic: Last refreshed 10 Nov 2026, 16:41 (Asia/Dubai) · only records you are authorized to see.
+- button "Refresh"
+- link "Client map":
+  - /url: /map
+- link "Action list":
+  - /url: /actions
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational" [active]:
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - generic: Reporting period
+  - combobox "Reporting period":
+    - option "Today"
+    - option "Last 7 days"
+    - option "Last 30 days" [selected]
+    - option "This quarter"
+    - option "Custom range"
+  - generic: Show
+  - group "Show":
+    - button "All I can see" [pressed]
+    - button "My work"
+  - button "Advanced filters":
+    - text: Advanced filters
+    - generic: ▾
+  - region "At a glance":
+    - heading "At a glance" [level=2]
+    - paragraph:
+      - link "73 of 183 open tickets are past due":
+        - /url: /cases?due=overdue
+      - text: ", and"
+      - link "1 more are due within 24 hours":
+        - /url: /cases?due=24h
+      - text: ". The backlog grew by 18 in the last 30 days: more tickets opened than closed."
+    - link "Opened in the last 30 days 50 ▲ 27 more than the previous period":
+      - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00
+      - generic: Opened in the last 30 days
+      - generic: "50"
+      - generic: ▲ 27 more than the previous period
+    - generic: Closed in the last 30 days
+    - generic: "32"
+    - generic: ▼ 9 fewer than the previous period
+    - link "Critical or high, open 23 of 183 open":
+      - /url: /cases?priority=Critical%2CHigh
+      - generic: Critical or high, open
+      - generic: "23"
+      - generic: of 183 open
+    - link "SLA response met 20% resolution 15.4%":
+      - /url: /cases?sla=withContract&status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00
+      - generic: SLA response met
+      - generic: 20%
+      - generic: resolution 15.4%
+  - region "Needs immediate attention":
+    - heading "Needs immediate attention" [level=2]
+    - generic: 87 item(s) · 15 critical
+    - group "Issue type":
+      - button "All 87" [pressed]
+      - button "Overdue ticket 73"
+      - button "Ticket due within 24 h 1"
+      - button "Environment degraded or down 1"
+      - button "Overdue commitment 5"
+      - button "Payment 3"
+      - button "Contract renewal 1"
+      - button "Unassigned ticket 3"
+    - region "Needs immediate attention":
+      - table "Needs immediate attention":
+        - caption: Needs immediate attention
+        - rowgroup:
+          - row "Severity Issue Client Owner Deadline Next action":
+            - columnheader "Severity":
+              - button "Severity":
+                - generic: Severity
+            - columnheader "Issue":
+              - button "Issue":
+                - generic: Issue
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Deadline":
+              - button "Deadline":
+                - generic: Deadline
+            - columnheader "Next action":
+              - button "Next action":
+                - generic: Next action
+        - rowgroup:
+          - row "Critical High priority Overdue ticket CS-2963 Detect (Blocked or not clear) Plate Numbers by Vitronic Systems SEW Mohammed Alqaruoti 523 d 1 h overdue Review the ticket imported from Jira. Due 2025-06-05 11:00 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2963 Detect (Blocked or not clear) Plate Numbers by Vitronic Systems":
+              - generic: Overdue ticket
+              - link "CS-2963":
+                - /url: /cases/11163
+              - text: Detect (Blocked or not clear) Plate Numbers by Vitronic Systems
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "523 d 1 h overdue":
+              - generic: 523 d 1 h overdue
+            - cell "Review the ticket imported from Jira. Due 2025-06-05 11:00 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2025-06-05 11:00 UTC
+          - 'row "Critical High priority Overdue ticket CS-2962 Request to Resource utilizations for ViTiS production SEW Unassigned 425 d 4 h overdue Review the ticket imported from Jira. Due 2025-09-11 08:03 UTC · also: Unassigned ticket"':
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2962 Request to Resource utilizations for ViTiS production":
+              - generic: Overdue ticket
+              - link "CS-2962":
+                - /url: /cases/11162
+              - text: Request to Resource utilizations for ViTiS production
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Unassigned":
+              - text: Unassigned
+            - cell "425 d 4 h overdue":
+              - generic: 425 d 4 h overdue
+            - 'cell "Review the ticket imported from Jira. Due 2025-09-11 08:03 UTC · also: Unassigned ticket"':
+              - text: Review the ticket imported from Jira.
+              - generic: "Due 2025-09-11 08:03 UTC · also: Unassigned ticket"
+          - 'row "Critical High priority Overdue ticket CS-2965 Big Data Smart Dashboard Resources Requirements SEW Unassigned 425 d 1 h overdue Review the ticket imported from Jira. Due 2025-09-11 11:00 UTC · also: Unassigned ticket"':
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2965 Big Data Smart Dashboard Resources Requirements":
+              - generic: Overdue ticket
+              - link "CS-2965":
+                - /url: /cases/11165
+              - text: Big Data Smart Dashboard Resources Requirements
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Unassigned":
+              - text: Unassigned
+            - cell "425 d 1 h overdue":
+              - generic: 425 d 1 h overdue
+            - 'cell "Review the ticket imported from Jira. Due 2025-09-11 11:00 UTC · also: Unassigned ticket"':
+              - text: Review the ticket imported from Jira.
+              - generic: "Due 2025-09-11 11:00 UTC · also: Unassigned ticket"
+          - 'row "Critical High priority Overdue ticket CS-2997 ANPR stopped working and shwoing error SEW Unassigned 190 d 23 h overdue Review the ticket imported from Jira. Due 2026-05-03 12:54 UTC · also: Unassigned ticket"':
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2997 ANPR stopped working and shwoing error":
+              - generic: Overdue ticket
+              - link "CS-2997":
+                - /url: /cases/11197
+              - text: ANPR stopped working and shwoing error
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Unassigned":
+              - text: Unassigned
+            - cell "190 d 23 h overdue":
+              - generic: 190 d 23 h overdue
+            - 'cell "Review the ticket imported from Jira. Due 2026-05-03 12:54 UTC · also: Unassigned ticket"':
+              - text: Review the ticket imported from Jira.
+              - generic: "Due 2026-05-03 12:54 UTC · also: Unassigned ticket"
+          - row "Critical High priority Overdue ticket CS-2987 Wrong TimeStamp calculated in P2P systems SEW Mohammed Alqaruoti 180 d 2 h overdue Review the ticket imported from Jira. Due 2026-05-14 09:54 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2987 Wrong TimeStamp calculated in P2P systems":
+              - generic: Overdue ticket
+              - link "CS-2987":
+                - /url: /cases/11187
+              - text: Wrong TimeStamp calculated in P2P systems
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "180 d 2 h overdue":
+              - generic: 180 d 2 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-05-14 09:54 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-05-14 09:54 UTC
+          - row "Critical High priority Overdue ticket CS-1834 BO Release 18.0 TAH Ahmed Awadalla 152 d 2 h overdue Review the ticket imported from Jira. Due 2026-06-11 10:38 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-1834 BO Release 18.0":
+              - generic: Overdue ticket
+              - link "CS-1834":
+                - /url: /cases/10034
+              - text: BO Release 18.0
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "152 d 2 h overdue":
+              - generic: 152 d 2 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-06-11 10:38 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-06-11 10:38 UTC
+          - row "Critical High priority Overdue ticket CS-1821 Vehicle Speed Reverted After Vehicle Type Change TAH Ahmed Awadalla 148 d 6 h overdue Review the ticket imported from Jira. Due 2026-06-15 06:30 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+              - generic: Overdue ticket
+              - link "CS-1821":
+                - /url: /cases/10021
+              - text: Vehicle Speed Reverted After Vehicle Type Change
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "148 d 6 h overdue":
+              - generic: 148 d 6 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-06-15 06:30 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-06-15 06:30 UTC
+          - row "Critical High priority Overdue ticket CS-2992 Follow up the MOI requests from Vitronic SEW Mohammed Alqaruoti 110 d 7 h overdue Review the ticket imported from Jira. Due 2026-07-23 05:36 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2992 Follow up the MOI requests from Vitronic":
+              - generic: Overdue ticket
+              - link "CS-2992":
+                - /url: /cases/11192
+              - text: Follow up the MOI requests from Vitronic
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "110 d 7 h overdue":
+              - generic: 110 d 7 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-07-23 05:36 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-07-23 05:36 UTC
+      - status
+    - button "Show all 87"
+    - link "Open the full action list":
+      - /url: /actions
+    - generic: "Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record."
+  - navigation "Dashboard sections":
+    - link "Attention":
+      - /url: "#attention"
+    - link "Figures":
+      - /url: "#overview"
+    - link "Tickets":
+      - /url: "#cases"
+    - link "Escalations":
+      - /url: "#escalations"
+    - link "Contractual SLA":
+      - /url: "#sla"
+    - link "Contracts & SLAs":
+      - /url: "#contracts"
+    - link "Payments":
+      - /url: "#payments"
+    - link "Health":
+      - /url: "#health"
+    - link "Data quality":
+      - /url: "#quality"
+  - region "Key figures":
+    - group "Main figures":
+      - 'link "Active contracts: 6. status Attention. 1 due for renewal. None need review. open the list"':
+        - generic: Active contracts
+        - generic: ›
+        - generic: "6"
+        - generic: ●
+        - text: Attention
+        - list:
+          - generic: 1 due for renewal
+          - generic: None need review
+      - 'link "Overdue payments: 4. status Critical. 4,860,000.00 SAR + 146,400.00 AED + 100,000.00 EUR. 0 due within 14 days. open the list"':
+        - generic: Overdue payments
+        - generic: ›
+        - generic: "4"
+        - generic: ▲
+        - text: Critical
+        - list:
+          - generic: 4,860,000.00 SAR + 146,400.00 AED + 100,000.00 EUR
+          - generic: 0 due within 14 days
+      - 'link "Upcoming commitments: 1. status Critical. 1 due in the next 14 days. 5 overdue. 6 open commitments in total. open the list"':
+        - generic: Upcoming commitments
+        - generic: ›
+        - generic: "1"
+        - generic: ▲
+        - text: Critical
+        - list:
+          - generic: 1 due in the next 14 days
+          - generic: 5 overdue
+          - generic: 6 open commitments in total
+      - 'link "Active escalations: 0. status OK. None past a target. No active escalation. open the list"':
+        - generic: Active escalations
+        - generic: ›
+        - generic: "0"
+        - generic: ✓
+        - text: OK
+        - list:
+          - generic: None past a target
+          - generic: No active escalation
+      - 'link "Open tickets: 183. status Critical. 73 overdue. 23 critical or high priority. open the list"':
+        - generic: Open tickets
+        - generic: ›
+        - generic: "183"
+        - generic: ▲
+        - text: Critical
+        - list:
+          - generic: 73 overdue
+          - generic: 23 critical or high priority
+    - group "More figures":
+      - 'link "Clients: 20. 12 countries. open the list"':
+        - generic: Clients
+        - generic: ›
+        - generic: "20"
+        - list:
+          - generic: 12 countries
+      - 'link "Targets met (period): 25 %. status Attention. Escalation response n/a · resolution 100 %. Ticket due dates met: 22 % · 1 ticket(s) due within 24 h. open the list"':
+        - generic: Targets met (period)
+        - generic: ›
+        - generic: 25 %
+        - generic: ●
+        - text: Attention
+        - list:
+          - generic: Escalation response n/a · resolution 100 %
+      - 'link "Contractual SLA met (period): 18 %. status Critical. Response 20 % · resolution 15.4 %. 84 obligation(s) measured · 76 open ticket(s) breached. open the list"':
+        - generic: Contractual SLA met (period)
+        - generic: ›
+        - generic: 18 %
+        - generic: ▲
+        - text: Critical
+        - list:
+          - generic: Response 20 % · resolution 15.4 %
+      - 'link "Environment health: 1 / 9. status Attention. 1 healthy · 1 degraded · 0 unavailable. open the list"':
+        - generic: Environment health
+        - generic: ›
+        - generic: 1 / 9
+        - generic: ●
+        - text: Attention
+        - list:
+          - generic: 1 healthy · 1 degraded · 0 unavailable
+      - 'link "Data quality: 263. status Attention. 231 high severity · 5 rules. open the list"':
+        - generic: Data quality
+        - generic: ›
+        - generic: "263"
+        - generic: ●
+        - text: Attention
+        - list:
+          - generic: 231 high severity · 5 rules
+    - paragraph: The reporting period applies to opened, closed and received figures and to targets met; open, overdue and due figures are always as of now.
+  - region "Tickets and commitments":
+    - heading "Tickets and commitments" [level=2]
+    - generic: 183 open now · 50 opened and 32 closed in the last 30 days
+    - button "Hide Tickets and commitments" [expanded]: Hide
+    - heading "Deadline risk of open tickets" [level=2]
+    - button "Table view"
+    - paragraph: "By the ticket due date (not a contractual SLA measurement). Due dates met by tickets closed in the period: 22 % (27 closed with a due date)."
+    - 'link "Past due: 73 of 183 open tickets"'
+    - 'link "Due within 24 h: 1 of 183 open tickets"'
+    - 'img "Due later: 8 of 183 open tickets"'
+    - 'link "No due date: 101 of 183 open tickets"'
+    - list:
+      - text: Past due
+      - generic: "73"
+      - generic: 40 %
+      - text: Due within 24 h
+      - generic: "1"
+      - generic: 1 %
+      - text: Due later
+      - generic: "8"
+      - generic: 4 %
+      - text: No due date
+      - generic: "101"
+      - generic: 55 %
+    - heading "Open tickets by priority" [level=2]
+    - button "Table view"
+    - paragraph: Darker = more urgent. Click a slice for the list.
+    - 'img "open tickets 183: Critical 5, High 18, Normal 159, Low 1"':
+      - generic: "183"
+      - generic: open tickets
+    - list:
+      - link "Critical":
+        - /url: /cases?priority=Critical
+      - generic: "5"
+      - generic: 3 %
+      - link "High":
+        - /url: /cases?priority=High
+      - generic: "18"
+      - generic: 10 %
+      - link "Normal":
+        - /url: /cases?priority=Normal
+      - generic: "159"
+      - generic: 87 %
+      - link "Low":
+        - /url: /cases?priority=Low
+      - generic: "1"
+      - generic: 1 %
+    - heading "Open tickets by status" [level=2]
+    - button "Table view"
+    - paragraph: The status shown on each ticket, as in the ticket list and the report builder. Waiting for customer is a status; other waiting reasons keep the ticket's status.
+    - list:
+      - generic "New"
+      - 'link "New: 52 ticket(s). Open list"':
+        - generic: "52"
+      - generic "Open"
+      - 'link "Open: 7 ticket(s). Open list"':
+        - generic: "7"
+      - generic "In progress"
+      - 'link "In progress: 36 ticket(s). Open list"':
+        - generic: "36"
+      - generic "Waiting for customer"
+      - 'link "Waiting for customer: 73 ticket(s). Open list"':
+        - generic: "73"
+      - generic "Resolved"
+      - 'link "Resolved: 15 ticket(s). Open list"':
+        - generic: "15"
+      - generic "Re-opened"
+      - 'link "Re-opened: 0 ticket(s). Open list"':
+        - generic: "0"
+    - heading "Age of open tickets" [level=2]
+    - button "Table view"
+    - paragraph: "Since opening: the Jira creation time of a synchronized ticket, otherwise the hub creation time. Average 793.9 days, oldest 2120.2 days."
+    - generic: "200"
+    - generic: "100"
+    - generic: "0"
+    - 'link "0–2 days: 6 ticket(s)"':
+      - generic: "6"
+    - 'link "3–7 days: 7 ticket(s)"':
+      - generic: "7"
+    - 'link "8–30 days: 27 ticket(s)"':
+      - generic: "27"
+    - 'link "Over 30 days: 143 ticket(s)"':
+      - generic: "143"
+    - generic: 0–2 days
+    - generic: 3–7 days
+    - generic: 8–30 days
+    - generic: Over 30 days
+    - heading "Tickets opened and closed — the last 30 days" [level=2]
+    - button "Table view"
+    - paragraph: Per day, in your time zone. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time, so an import does not count as newly opened work.
+    - generic: Opened
+    - generic: Closed
+    - img "Opened and Closed per week":
+      - generic: "0"
+      - generic: "2"
+      - generic: "4"
+      - generic: "6"
+      - generic: "8"
+      - generic: "10"
+      - generic: 11 Oct
+      - generic: 13 Oct
+      - generic: 15 Oct
+      - generic: 17 Oct
+      - generic: 19 Oct
+      - generic: 21 Oct
+      - generic: 23 Oct
+      - generic: 25 Oct
+      - generic: 27 Oct
+      - generic: 29 Oct
+      - generic: 31 Oct
+      - generic: 02 Nov
+      - generic: 04 Nov
+      - generic: 06 Nov
+      - generic: 08 Nov
+      - generic: 10 Nov
+      - generic: Opened 1
+      - generic: Closed 0
+    - heading "Open commitments by deadline" [level=2]
+    - button "Table view"
+    - paragraph: Deadline in force compared with now.
+    - generic: "5"
+    - generic: "4"
+    - generic: "3"
+    - generic: "2"
+    - generic: "1"
+    - generic: "0"
+    - 'link "Overdue: 5 commitment(s)"':
+      - generic: "5"
+    - 'link "Due in 7 days: 0 commitment(s)"':
+      - generic: "0"
+    - 'generic "Due in 8–30 days: 1 commitment(s)"':
+      - generic: "1"
+    - 'generic "Due later: 0 commitment(s)"':
+      - generic: "0"
+    - generic: Overdue
+    - generic: Due in 7 days
+    - generic: Due in 8–30 days
+    - generic: Due later
+  - region "Contractual SLA compliance":
+    - heading "Contractual SLA compliance" [level=2]
+    - text: 48 of 49 client ticket(s) opened in the last 30 days are linked to a contract ·
+    - link "1 without a contract":
+      - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&sla=noContract
+    - text: (not measured)
+    - button "Hide Contractual SLA compliance" [expanded]: Hide
+    - generic: Contract
+    - combobox "Contract":
+      - option "All contracts" [selected]
+      - option "CT-1001 · TAH"
+      - option "CT-1008 · SEW"
+    - generic: Priority
+    - combobox "Priority":
+      - option "All priorities" [selected]
+      - option "Critical"
+      - option "High"
+      - option "Normal"
+      - option "Low"
+    - paragraph: Tickets opened in the period with a linked contract. A rate is met ÷ (met + breached); pending and not measurable obligations are excluded. Overall counts tickets whose response and resolution are both completed, compliant only when both were met. A pending obligation past its deadline counts as breached.
+    - generic "Contractual SLA figures":
+      - link "20 % Response compliance 9 of 45 met · 3 pending · 0 not measurable":
+        - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&sla=responseBreached
+        - generic: 20 %
+        - generic: Response compliance
+        - generic: 9 of 45 met · 3 pending · 0 not measurable
+      - link "15.4 % Resolution compliance 6 of 39 met · 9 pending · 0 not measurable":
+        - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&sla=resolutionBreached
+        - generic: 15.4 %
+        - generic: Resolution compliance
+        - generic: 6 of 39 met · 9 pending · 0 not measurable
+      - link "2.6 % Overall (both met) 1 of 39 ticket(s) with both obligations completed":
+        - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&sla=withContract
+        - generic: 2.6 %
+        - generic: Overall (both met)
+        - generic: 1 of 39 ticket(s) with both obligations completed
+      - link "4 Approaching breach open, a deadline within 24 hours":
+        - /url: /cases?sla=approaching
+        - generic: "4"
+        - generic: Approaching breach
+        - generic: open, a deadline within 24 hours
+      - link "76 Open and breached open now, any obligation breached":
+        - /url: /cases?sla=breached
+        - generic: "76"
+        - generic: Open and breached
+        - generic: open now, any obligation breached
+    - heading "First response" [level=2]
+    - button "Table view"
+    - paragraph: Rate = met ÷ (met + breached) = 9 of 45. Click a part for the tickets.
+    - 'link "Met: 9 of 48 ticket(s)"'
+    - 'link "Breached: 36 of 48 ticket(s)"'
+    - 'link "Pending (running): 3 of 48 ticket(s)"'
+    - list:
+      - text: Met
+      - generic: "9"
+      - generic: 19 %
+      - text: Breached
+      - generic: "36"
+      - generic: 75 %
+      - text: Pending (running)
+      - generic: "3"
+      - generic: 6 %
+      - text: Not measurable
+      - generic: "0"
+      - generic: 0 %
+    - heading "Resolution" [level=2]
+    - button "Table view"
+    - paragraph: Rate = met ÷ (met + breached) = 6 of 39. Click a part for the tickets.
+    - 'link "Met: 6 of 48 ticket(s)"'
+    - 'link "Breached: 33 of 48 ticket(s)"'
+    - 'link "Pending (running): 9 of 48 ticket(s)"'
+    - list:
+      - text: Met
+      - generic: "6"
+      - generic: 13 %
+      - text: Breached
+      - generic: "33"
+      - generic: 69 %
+      - text: Pending (running)
+      - generic: "9"
+      - generic: 19 %
+      - text: Not measurable
+      - generic: "0"
+      - generic: 0 %
+    - heading "Obligations met and breached — the last 30 days" [level=2]
+    - button "Table view"
+    - paragraph: By the week, day or hour the ticket was opened; response and resolution together.
+    - generic: Met
+    - generic: Breached
+    - img "Met and Breached per week":
+      - generic: "0"
+      - generic: "10"
+      - generic: "20"
+      - generic: 11 Oct
+      - generic: 13 Oct
+      - generic: 15 Oct
+      - generic: 17 Oct
+      - generic: 19 Oct
+      - generic: 21 Oct
+      - generic: 23 Oct
+      - generic: 25 Oct
+      - generic: 27 Oct
+      - generic: 29 Oct
+      - generic: 31 Oct
+      - generic: 02 Nov
+      - generic: 04 Nov
+      - generic: 06 Nov
+      - generic: 08 Nov
+      - generic: 10 Nov
+      - generic: Both 0
+    - heading "By contract" [level=2]
+    - button "Table view"
+    - paragraph: Contracts with the most breaches first (top 10).
+    - region "SLA results by contract":
+      - 'group "SLA results by contract: scroll sideways for more columns"':
+        - table "SLA results by contract":
+          - caption: SLA results by contract
+          - rowgroup:
+            - row "Contract Client Tickets Response Resolution Breached":
+              - columnheader "Contract":
+                - button "Contract":
+                  - generic: Contract
+              - columnheader "Client":
+                - button "Client":
+                  - generic: Client
+              - columnheader "Tickets":
+                - button "Tickets":
+                  - generic: Tickets
+              - columnheader "Response":
+                - button "Response":
+                  - generic: Response
+              - columnheader "Resolution":
+                - button "Resolution":
+                  - generic: Resolution
+              - columnheader "Breached":
+                - button "Breached":
+                  - generic: Breached
+          - rowgroup:
+            - row "CT-1001 2026_Vitronic Software Service Level Agreement TAH 46 18.6 % (8 of 43) 16.2 % (6 of 37) 39":
+              - cell "CT-1001 2026_Vitronic Software Service Level Agreement":
+                - link "CT-1001":
+                  - /url: /contracts/1
+                - text: 2026_Vitronic Software Service Level Agreement
+              - cell "TAH":
+                - generic: TAH
+              - cell "46":
+                - link "46":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&contractId=1&sla=withContract
+              - cell "18.6 % (8 of 43)":
+                - text: 18.6 %
+                - generic: (8 of 43)
+              - cell "16.2 % (6 of 37)":
+                - text: 16.2 %
+                - generic: (6 of 37)
+              - cell "39":
+                - link "39":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&contractId=1&sla=responseBreached
+            - row "CT-1008 Kurdistan BackOffice – Software Support & Maintenance SLA SEW 2 50 % (1 of 2) 0 % (0 of 2) 2":
+              - cell "CT-1008 Kurdistan BackOffice – Software Support & Maintenance SLA":
+                - link "CT-1008":
+                  - /url: /contracts/8
+                - text: Kurdistan BackOffice – Software Support & Maintenance SLA
+              - cell "SEW":
+                - generic: SEW
+              - cell "2":
+                - link "2":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&contractId=8&sla=withContract
+              - cell "50 % (1 of 2)":
+                - text: 50 %
+                - generic: (1 of 2)
+              - cell "0 % (0 of 2)":
+                - text: 0 %
+                - generic: (0 of 2)
+              - cell "2":
+                - link "2":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&contractId=8&sla=responseBreached
+      - status
+    - heading "By priority" [level=2]
+    - button "Table view"
+    - paragraph: Each ticket is measured against the target for its priority.
+    - region "SLA results by priority":
+      - 'group "SLA results by priority: scroll sideways for more columns"':
+        - table "SLA results by priority":
+          - caption: SLA results by priority
+          - rowgroup:
+            - row "Priority Tickets Response Resolution":
+              - columnheader "Priority":
+                - button "Priority":
+                  - generic: Priority
+              - columnheader "Tickets":
+                - button "Tickets":
+                  - generic: Tickets
+              - columnheader "Response":
+                - button "Response":
+                  - generic: Response
+              - columnheader "Resolution":
+                - button "Resolution":
+                  - generic: Resolution
+          - rowgroup:
+            - row "Critical 2 50 % (1 of 2) 0 % (0 of 2)":
+              - cell "Critical":
+                - generic: Critical
+              - cell "2":
+                - link "2":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&priority=Critical&sla=withContract
+              - cell "50 % (1 of 2)":
+                - text: 50 %
+                - generic: (1 of 2)
+              - cell "0 % (0 of 2)":
+                - text: 0 %
+                - generic: (0 of 2)
+            - row "High 4 50 % (2 of 4) 0 % (0 of 4)":
+              - cell "High":
+                - generic: High
+              - cell "4":
+                - link "4":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&priority=High&sla=withContract
+              - cell "50 % (2 of 4)":
+                - text: 50 %
+                - generic: (2 of 4)
+              - cell "0 % (0 of 4)":
+                - text: 0 %
+                - generic: (0 of 4)
+            - row "Normal 42 15.4 % (6 of 39) 18.2 % (6 of 33)":
+              - cell "Normal":
+                - generic: Normal
+              - cell "42":
+                - link "42":
+                  - /url: /cases?status=all&createdFrom=2026-10-11T12%3A41%3A14.2909473%2B00%3A00&createdTo=2026-11-10T12%3A41%3A14.2909473%2B00%3A00&priority=Normal&sla=withContract
+              - cell "15.4 % (6 of 39)":
+                - text: 15.4 %
+                - generic: (6 of 39)
+              - cell "18.2 % (6 of 33)":
+                - text: 18.2 %
+                - generic: (6 of 33)
+            - row "Low 0 not available (0 of 0) not available (0 of 0)":
+              - cell "Low":
+                - generic: Low
+              - cell "0":
+                - generic: "0"
+              - cell "not available (0 of 0)":
+                - text: not available
+                - generic: (0 of 0)
+              - cell "not available (0 of 0)":
+                - text: not available
+                - generic: (0 of 0)
+      - status
+  - region "Escalations":
+    - heading "Escalations" [level=2]
+    - generic: 0 active · 0 past a target · average age — · 1 received in the last 30 days
+    - button "Hide Escalations" [expanded]: Hide
+    - region "Escalation attention list":
+      - heading "Escalation attention list" [level=2]
+      - generic: Targets met in the period — response not available (0 measured), resolution 100 % (1 measured)
+      - region "Escalation attention list":
+        - table "Escalation attention list":
+          - caption: Escalation attention list
+          - rowgroup:
+            - row "Escalation Client Related ticket Level Owner Raised Target Status":
+              - columnheader "Escalation":
+                - generic: Escalation
+              - columnheader "Client":
+                - generic: Client
+              - columnheader "Related ticket":
+                - generic: Related ticket
+              - columnheader "Level":
+                - generic: Level
+              - columnheader "Owner":
+                - generic: Owner
+              - columnheader "Raised":
+                - generic: Raised
+              - columnheader "Target":
+                - generic: Target
+              - columnheader "Status":
+                - generic: Status
+          - rowgroup
+        - status
+        - generic: No records entered.
+    - heading "Active escalations by level" [level=2]
+    - button "Table view"
+    - paragraph: Level 3 is the highest.
+    - generic: No records entered.
+    - heading "Escalations by status" [level=2]
+    - button "Table view"
+    - 'img "escalations 2: Open 0, Acknowledged 0, In progress 0, Resolved 2, Closed 0, Withdrawn 0"':
+      - generic: "2"
+      - generic: escalations
+    - list:
+      - link "Open":
+        - /url: /escalations?status=Open
+      - generic: "0"
+      - generic: 0 %
+      - link "Acknowledged":
+        - /url: /escalations?status=Acknowledged
+      - generic: "0"
+      - generic: 0 %
+      - link "In progress":
+        - /url: /escalations?status=InProgress
+      - generic: "0"
+      - generic: 0 %
+      - link "Resolved":
+        - /url: /escalations?status=Resolved
+      - generic: "2"
+      - generic: 100 %
+      - link "Closed":
+        - /url: /escalations?status=Closed
+      - generic: "0"
+      - generic: 0 %
+      - link "Withdrawn":
+        - /url: /escalations?status=Withdrawn
+      - generic: "0"
+      - generic: 0 %
+    - heading "Escalations received — the last 30 days" [level=2]
+    - button "All escalations"
+    - button "Table view"
+    - paragraph: Per day.
+    - generic: "1"
+    - generic: "0"
+    - 'generic "11 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "12 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "13 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "14 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "15 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "16 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "17 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "18 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "19 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "20 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "21 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "22 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "23 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "24 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "25 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "26 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "27 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "28 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "29 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "30 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "31 Oct: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "01 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "02 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "03 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "04 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "05 Nov: 1 escalation(s)"':
+      - generic: "1"
+    - 'generic "06 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "07 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "08 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "09 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - 'generic "10 Nov: 0 escalation(s)"':
+      - generic: "0"
+    - generic: 11 Oct
+    - generic: 12 Oct
+    - generic: 13 Oct
+    - generic: 14 Oct
+    - generic: 15 Oct
+    - generic: 16 Oct
+    - generic: 17 Oct
+    - generic: 18 Oct
+    - generic: 19 Oct
+    - generic: 20 Oct
+    - generic: 21 Oct
+    - generic: 22 Oct
+    - generic: 23 Oct
+    - generic: 24 Oct
+    - generic: 25 Oct
+    - generic: 26 Oct
+    - generic: 27 Oct
+    - generic: 28 Oct
+    - generic: 29 Oct
+    - generic: 30 Oct
+    - generic: 31 Oct
+    - generic: 01 Nov
+    - generic: 02 Nov
+    - generic: 03 Nov
+    - generic: 04 Nov
+    - generic: 05 Nov
+    - generic: 06 Nov
+    - generic: 07 Nov
+    - generic: 08 Nov
+    - generic: 09 Nov
+    - generic: 10 Nov
+  - region "Contracts & SLAs":
+    - heading "Contracts & SLAs" [level=2]
+    - generic: 9 contract(s) in view · 6 active · 5 with SLA targets (83 %)
+    - button "Hide Contracts & SLAs" [expanded]: Hide
+    - generic "Contract health":
+      - link "6 active":
+        - /url: /contracts?status=Active
+        - generic: "6"
+        - generic: active
+      - link "0 ending within 30 days":
+        - /url: /contracts?renewal=due
+        - generic: "0"
+        - generic: ending within 30 days
+      - link "1 ending in 31–60 days":
+        - /url: /contracts?renewal=due
+        - generic: "1"
+        - generic: ending in 31–60 days
+      - link "0 ending in 61–90 days":
+        - /url: /contracts?renewal=due
+        - generic: "0"
+        - generic: ending in 61–90 days
+      - link "0 ended but still Active":
+        - /url: /contracts?renewal=expired
+        - generic: "0"
+        - generic: ended but still Active
+      - link "0 no end date recorded":
+        - /url: /contracts?renewal=unknownEnd
+        - generic: "0"
+        - generic: no end date recorded
+    - heading "Contracts by status" [level=2]
+    - button "Register"
+    - button "Table view"
+    - 'img "contracts 9: Draft 0, Active 6, Ended 3, Terminated 0"':
+      - generic: "9"
+      - generic: contracts
+    - list:
+      - link "Draft":
+        - /url: /contracts?status=Draft
+      - generic: "0"
+      - generic: 0 %
+      - link "Active":
+        - /url: /contracts?status=Active
+      - generic: "6"
+      - generic: 67 %
+      - link "Ended":
+        - /url: /contracts?status=Ended
+      - generic: "3"
+      - generic: 33 %
+      - link "Terminated":
+        - /url: /contracts?status=Terminated
+      - generic: "0"
+      - generic: 0 %
+    - heading "Contracts by type" [level=2]
+    - button "Table view"
+    - list:
+      - generic "SLA & support"
+      - 'link "SLA & support: 6 contract(s). Open list"':
+        - generic: "6"
+      - generic "Implementation"
+      - 'link "Implementation: 2 contract(s). Open list"':
+        - generic: "2"
+      - generic "Maintenance"
+      - 'link "Maintenance: 1 contract(s). Open list"':
+        - generic: "1"
+    - heading "Renewal state" [level=2]
+    - button "Table view"
+    - paragraph: Active contracts only; renewal due = notice deadline (or end date) within 90 days. Recorded terms, not SLA compliance.
+    - generic: "5"
+    - generic: "4"
+    - generic: "3"
+    - generic: "2"
+    - generic: "1"
+    - generic: "0"
+    - 'link "Expired, still Active: 0 contract(s)"':
+      - generic: "0"
+    - 'link "Renewal due (≤ 90 days): 1 contract(s)"':
+      - generic: "1"
+    - 'link "End date unknown: 0 contract(s)"':
+      - generic: "0"
+    - 'link "Current: 5 contract(s)"':
+      - generic: "5"
+    - 'link "Draft / not signed: 0 contract(s)"':
+      - generic: "0"
+    - generic: Expired, still Active
+    - generic: Renewal due (≤ 90 days)
+    - generic: End date unknown
+    - generic: Current
+    - generic: Draft / not signed
+    - heading "Active contracts ending, next 12 months" [level=2]
+    - button "Table view"
+    - paragraph: 4 active contract(s) reach their end date within a year.
+    - generic: "2"
+    - generic: "1"
+    - generic: "0"
+    - 'generic "Nov 26: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Dec 26: 1 contract(s) ending"':
+      - generic: "1"
+    - 'generic "Jan 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Feb 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Mar 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Apr 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "May 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Jun 27: 2 contract(s) ending"':
+      - generic: "2"
+    - 'generic "Jul 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Aug 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Sep 27: 0 contract(s) ending"':
+      - generic: "0"
+    - 'generic "Oct 27: 1 contract(s) ending"':
+      - generic: "1"
+    - generic: Nov 26
+    - generic: Dec 26
+    - generic: Jan 27
+    - generic: Feb 27
+    - generic: Mar 27
+    - generic: Apr 27
+    - generic: May 27
+    - generic: Jun 27
+    - generic: Jul 27
+    - generic: Aug 27
+    - generic: Sep 27
+    - generic: Oct 27
+    - heading "Support model of active contracts" [level=2]
+    - button "Table view"
+    - 'img "active 6: Unknown 1, Remote 1, On site 1, Hybrid 3"':
+      - generic: "6"
+      - generic: active
+    - list:
+      - text: Unknown
+      - generic: "1"
+      - generic: 17 %
+      - text: Remote
+      - generic: "1"
+      - generic: 17 %
+      - text: On site
+      - generic: "1"
+      - generic: 17 %
+      - text: Hybrid
+      - generic: "3"
+      - generic: 50 %
+    - heading "On-site engineers required, by client" [level=2]
+    - button "Table view"
+    - paragraph: 9 on-site engineer(s) in total across active contracts.
+    - list:
+      - generic "TAH"
+      - 'link "TAH: 8 engineer(s). Open list"':
+        - generic: "8"
+      - generic "OYOON"
+      - 'link "OYOON: 1 engineer(s). Open list"':
+        - generic: "1"
+    - heading "SLA targets by priority (configured contractual targets)" [level=2]
+    - button "Table view"
+    - paragraph: Configured targets of active contracts (median across contracts; the fastest is shown when it differs). These are contractual terms, not achieved results.
+    - region "SLA targets per priority":
+      - searchbox "Filter rows"
+      - generic: 4 rows
+      - button "Filter":
+        - generic: Filter
+      - button "Columns":
+        - generic: Columns
+      - button "Export CSV":
+        - generic: Export CSV
+      - 'group "SLA targets per priority: scroll sideways for more columns"':
+        - table "SLA targets per priority":
+          - caption: SLA targets per priority
+          - rowgroup:
+            - row "Select all rows shown Priority Contracts with a target Response (median) Resolution (median)":
+              - columnheader "Select all rows shown":
+                - checkbox "Select all rows shown"
+              - columnheader "Priority":
+                - button "Priority":
+                  - generic: Priority
+              - columnheader "Contracts with a target":
+                - button "Contracts with a target":
+                  - generic: Contracts with a target
+              - columnheader "Response (median)":
+                - button "Response (median)":
+                  - generic: Response (median)
+              - columnheader "Resolution (median)":
+                - button "Resolution (median)":
+                  - generic: Resolution (median)
+          - rowgroup:
+            - row "Select Critical Critical 5 of 6 1 h 8 h fastest 4 h":
+              - cell "Select Critical":
+                - checkbox "Select Critical"
+              - cell "Critical":
+                - generic: Critical
+              - cell "5 of 6":
+                - text: "5"
+                - generic: of 6
+              - cell "1 h":
+                - generic: 1 h
+              - cell "8 h fastest 4 h":
+                - generic: 8 h
+                - generic: fastest 4 h
+            - row "Select High High 5 of 6 4 h fastest 1 h 1 d fastest 8 h":
+              - cell "Select High":
+                - checkbox "Select High"
+              - cell "High":
+                - generic: High
+              - cell "5 of 6":
+                - text: "5"
+                - generic: of 6
+              - cell "4 h fastest 1 h":
+                - generic: 4 h
+                - generic: fastest 1 h
+              - cell "1 d fastest 8 h":
+                - generic: 1 d
+                - generic: fastest 8 h
+            - row "Select Normal Normal 5 of 6 8 h fastest 1 h 7 d fastest 3 d":
+              - cell "Select Normal":
+                - checkbox "Select Normal"
+              - cell "Normal":
+                - generic: Normal
+              - cell "5 of 6":
+                - text: "5"
+                - generic: of 6
+              - cell "8 h fastest 1 h":
+                - generic: 8 h
+                - generic: fastest 1 h
+              - cell "7 d fastest 3 d":
+                - generic: 7 d
+                - generic: fastest 3 d
+            - row "Select Low Low 5 of 6 2 d fastest 1 h 15 d 5 h":
+              - cell "Select Low":
+                - checkbox "Select Low"
+              - cell "Low":
+                - generic: Low
+              - cell "5 of 6":
+                - text: "5"
+                - generic: of 6
+              - cell "2 d fastest 1 h":
+                - generic: 2 d
+                - generic: fastest 1 h
+              - cell "15 d 5 h":
+                - generic: 15 d 5 h
+      - status
+    - heading "Measured SLA compliance" [level=2]
+    - paragraph:
+      - text: Configured targets above are the contractual terms. What tickets achieved against them is measured in
+      - link "Contractual SLA compliance":
+        - /url: "#sla"
+      - text: .
+    - paragraph: Response and resolution 20 % / 15.4 % for client tickets opened in the last 30 days.
+  - region "Contract payments":
+    - heading "Contract payments" [level=2]
+    - generic: 22 open payment(s) · 4 overdue · 0 due within 14 days (setting Contracts.PaymentReminderDays)
+    - button "Hide Contract payments" [expanded]: Hide
+    - note:
+      - text: 3 of 22 open payment(s) have no amount recorded, so the amounts below are incomplete. Add them on the contracts' payment terms.
+    - heading "Open payments by month due" [level=2]
+    - button "All open payments"
+    - button "Table view"
+    - paragraph: Pending or invoiced payments; overdue ones are shown first. Click Overdue for the list.
+    - generic: "4"
+    - generic: "3"
+    - generic: "2"
+    - generic: "1"
+    - generic: "0"
+    - 'link "Overdue: 4 payment(s)"':
+      - generic: "4"
+    - 'generic "Nov 26: 0 payment(s)"':
+      - generic: "0"
+    - 'generic "Dec 26: 1 payment(s)"':
+      - generic: "1"
+    - 'generic "Jan 27: 0 payment(s)"':
+      - generic: "0"
+    - 'generic "Feb 27: 0 payment(s)"':
+      - generic: "0"
+    - 'generic "Mar 27: 2 payment(s)"':
+      - generic: "2"
+    - 'generic "Apr 27: 0 payment(s)"':
+      - generic: "0"
+    - generic: Overdue
+    - generic: Nov 26
+    - generic: Dec 26
+    - generic: Jan 27
+    - generic: Feb 27
+    - generic: Mar 27
+    - generic: Apr 27
+    - heading "Amounts due by currency" [level=2]
+    - button "Table view"
+    - paragraph: Overdue and the next six months. Each currency is totalled on its own.
+    - region "Amounts due by currency":
+      - 'group "Amounts due by currency: scroll sideways for more columns"':
+        - table "Amounts due by currency":
+          - caption: Amounts due by currency
+          - rowgroup:
+            - row "Currency Overdue Due within 14 days Next 6 months":
+              - columnheader "Currency":
+                - button "Currency":
+                  - generic: Currency
+              - columnheader "Overdue":
+                - button "Overdue":
+                  - generic: Overdue
+              - columnheader "Due within 14 days":
+                - button "Due within 14 days":
+                  - generic: Due within 14 days
+              - columnheader "Next 6 months":
+                - button "Next 6 months":
+                  - generic: Next 6 months
+          - rowgroup:
+            - row "SAR 4,860,000.00 0.00 2,430,000.00":
+              - cell "SAR":
+                - generic: SAR
+              - cell "4,860,000.00":
+                - generic: 4,860,000.00
+              - cell "0.00":
+                - generic: "0.00"
+              - cell "2,430,000.00":
+                - generic: 2,430,000.00
+            - row "AED 146,400.00 0.00 292,800.00":
+              - cell "AED":
+                - generic: AED
+              - cell "146,400.00":
+                - generic: 146,400.00
+              - cell "0.00":
+                - generic: "0.00"
+              - cell "292,800.00":
+                - generic: 292,800.00
+            - row "EUR 100,000.00 0.00 0.00":
+              - cell "EUR":
+                - generic: EUR
+              - cell "100,000.00":
+                - generic: 100,000.00
+              - cell "0.00":
+                - generic: "0.00"
+              - cell "0.00":
+                - generic: "0.00"
+      - status
+    - heading "Next payments" [level=2]
+    - button "Table view"
+    - paragraph: The earliest open payments by due date.
+    - list:
+      - generic: 01 Mar 2026
+      - link "CT-1001":
+        - /url: /contracts/1
+      - generic: · TAH
+      - generic: Fisrt Paymet - Every 6 Months
+      - text: 2,430,000.00 SAR
+      - text: Overdue
+      - generic: 26 Jun 2026
+      - link "CT-1004":
+        - /url: /contracts/4
+      - generic: · MULTICOM
+      - generic: Full payment
+      - text: 100,000.00 EUR
+      - text: Overdue
+      - generic: 04 Sept 2026
+      - link "CT-1009":
+        - /url: /contracts/9
+      - generic: · OYOON
+      - generic: System Support and Monitoring – 1 payment
+      - text: 146,400.00 AED
+      - text: Overdue
+      - generic: 15 Sept 2026
+      - link "CT-1001":
+        - /url: /contracts/1
+      - generic: · TAH
+      - generic: Second Payment - Every 6 Months
+      - text: 2,430,000.00 SAR
+      - text: Overdue
+      - generic: 04 Dec 2026
+      - link "CT-1009":
+        - /url: /contracts/9
+      - generic: · OYOON
+      - generic: System Support and Monitoring – 2 payment
+      - text: 146,400.00 AED
+      - generic: Scheduled
+      - generic: 01 Mar 2027
+      - link "CT-1001":
+        - /url: /contracts/1
+      - generic: · TAH
+      - generic: Third Payment - Every 6 Months
+      - text: 2,430,000.00 SAR
+      - generic: Scheduled
+      - generic: 04 Mar 2027
+      - link "CT-1009":
+        - /url: /contracts/9
+      - generic: · OYOON
+      - generic: System Support and Monitoring – 3 payment
+      - text: 146,400.00 AED
+      - generic: Scheduled
+      - generic: 03 Jun 2027
+      - link "CT-1009":
+        - /url: /contracts/9
+      - generic: · OYOON
+      - generic: System Support and Monitoring – 4 payment
+      - text: 146,400.00 AED
+      - generic: Scheduled
+    - heading "Overdue payments by client" [level=2]
+    - button "Table view"
+    - paragraph: Amounts per currency; never added across currencies.
+    - list:
+      - generic: TA
+      - link "TAH":
+        - /url: /clients/1
+      - generic: 2 overdue
+      - generic: 4,860,000.00 SAR
+      - generic: OY
+      - link "OYOON":
+        - /url: /clients/3
+      - generic: 1 overdue
+      - generic: 146,400.00 AED
+      - generic: MU
+      - link "MULTICOM":
+        - /url: /clients/19
+      - generic: 1 overdue
+      - generic: 100,000.00 EUR
+  - region "Service & environment health":
+    - heading "Service & environment health" [level=2]
+    - generic: Manually reported condition — not live monitoring. Unknown is never counted as healthy.
+    - button "Hide Service & environment health" [expanded]: Hide
+    - heading "Environments by reported condition" [level=2]
+    - button "Table view"
+    - paragraph:
+      - generic: 2 report(s) need verification.
+    - 'img "environments 9: Healthy 1, Degraded 1, Unavailable 0, Unknown 7"':
+      - generic: "9"
+      - generic: environments
+    - list:
+      - generic: ●
+      - link "Healthy":
+        - /url: /environments?condition=Healthy
+      - generic: "1"
+      - generic: 11 %
+      - generic: ▲
+      - link "Degraded":
+        - /url: /environments?condition=Degraded
+      - generic: "1"
+      - generic: 11 %
+      - generic: ✕
+      - link "Unavailable":
+        - /url: /environments?condition=Unavailable
+      - generic: "0"
+      - generic: 0 %
+      - generic: "?"
+      - link "Unknown":
+        - /url: /environments?condition=Unknown
+      - generic: "7"
+      - generic: 78 %
+    - region "Environments not reported healthy":
+      - heading "Environments not reported healthy" [level=2]
+      - region "Environments not reported healthy":
+        - 'group "Environments not reported healthy: scroll sideways for more columns"':
+          - table "Environments not reported healthy":
+            - caption: Environments not reported healthy
+            - rowgroup:
+              - row "Client Products Environment Reported health Last update Owner Actions":
+                - columnheader "Client":
+                  - button "Client":
+                    - generic: Client
+                - columnheader "Products":
+                  - button "Products":
+                    - generic: Products
+                - columnheader "Environment":
+                  - button "Environment":
+                    - generic: Environment
+                - columnheader "Reported health":
+                  - button "Reported health":
+                    - generic: Reported health
+                - columnheader "Last update":
+                  - button "Last update":
+                    - generic: Last update
+                - columnheader "Owner":
+                  - button "Owner":
+                    - generic: Owner
+                - columnheader "Actions":
+                  - generic: Actions
+            - rowgroup:
+              - row "TAH PSOP Production ▲ Degraded Slowness Issue 22 Oct 2026, 14:11 Ahmed Awadalla Open environment Production of TAH":
+                - cell "TAH":
+                  - generic: TA
+                  - link "TAH":
+                    - /url: /clients/1
+                - cell "PSOP":
+                  - generic: PSOP
+                - cell "Production":
+                  - link "Production":
+                    - /url: /environments/3
+                - cell "▲ Degraded Slowness Issue":
+                  - text: ▲ Degraded
+                  - text: Slowness Issue
+                - cell "22 Oct 2026, 14:11":
+                  - generic: 22 Oct 2026, 14:11
+                - cell "Ahmed Awadalla":
+                  - generic: Ahmed Awadalla
+                - cell "Open environment Production of TAH":
+                  - link "Open environment Production of TAH":
+                    - /url: /environments/3
+                    - text: Open
+              - row "MADAR_DIJLA ViTIP 113506-AE – ViTIP Production (Proposed) ? Unknown (no report) Never Unassigned Open environment 113506-AE – ViTIP Production (Proposed) of MADAR_DIJLA":
+                - cell "MADAR_DIJLA":
+                  - generic: MA
+                  - link "MADAR_DIJLA":
+                    - /url: /clients/9
+                - cell "ViTIP":
+                  - generic: ViTIP
+                - cell "113506-AE – ViTIP Production (Proposed)":
+                  - link "113506-AE – ViTIP Production (Proposed)":
+                    - /url: /environments/13
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Unassigned":
+                  - text: Unassigned
+                - cell "Open environment 113506-AE – ViTIP Production (Proposed) of MADAR_DIJLA":
+                  - link "Open environment 113506-AE – ViTIP Production (Proposed) of MADAR_DIJLA":
+                    - /url: /environments/13
+                    - text: Open
+              - row "SEW ViTIP MOI_ViTIP_Production ? Unknown (no report) Never Mohammed Alqaruoti Open environment MOI_ViTIP_Production of SEW":
+                - cell "SEW":
+                  - generic: SE
+                  - link "SEW":
+                    - /url: /clients/20
+                - cell "ViTIP":
+                  - generic: ViTIP
+                - cell "MOI_ViTIP_Production":
+                  - link "MOI_ViTIP_Production":
+                    - /url: /environments/11
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Mohammed Alqaruoti":
+                  - generic: Mohammed Alqaruoti
+                - cell "Open environment MOI_ViTIP_Production of SEW":
+                  - link "Open environment MOI_ViTIP_Production of SEW":
+                    - /url: /environments/11
+                    - text: Open
+              - row "SEW — MOI_ViTIP_Staging ? Unknown (no report) Never Mohammed Alqaruoti Open environment MOI_ViTIP_Staging of SEW":
+                - cell "SEW":
+                  - generic: SE
+                  - link "SEW":
+                    - /url: /clients/20
+                - cell "—":
+                  - generic: —
+                - cell "MOI_ViTIP_Staging":
+                  - link "MOI_ViTIP_Staging":
+                    - /url: /environments/12
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Mohammed Alqaruoti":
+                  - generic: Mohammed Alqaruoti
+                - cell "Open environment MOI_ViTIP_Staging of SEW":
+                  - link "Open environment MOI_ViTIP_Staging of SEW":
+                    - /url: /environments/12
+                    - text: Open
+              - row "TAH PSOP Production ? Unknown (no report) Never Ahmed Awadalla Open environment Production of TAH":
+                - cell "TAH":
+                  - generic: TA
+                  - link "TAH":
+                    - /url: /clients/1
+                - cell "PSOP":
+                  - generic: PSOP
+                - cell "Production":
+                  - link "Production":
+                    - /url: /environments/4
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Ahmed Awadalla":
+                  - generic: Ahmed Awadalla
+                - cell "Open environment Production of TAH":
+                  - link "Open environment Production of TAH":
+                    - /url: /environments/4
+                    - text: Open
+              - row "TAH PSOP Staging ? Unknown (no report) Never Ahmed Awadalla Open environment Staging of TAH":
+                - cell "TAH":
+                  - generic: TA
+                  - link "TAH":
+                    - /url: /clients/1
+                - cell "PSOP":
+                  - generic: PSOP
+                - cell "Staging":
+                  - link "Staging":
+                    - /url: /environments/2
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Ahmed Awadalla":
+                  - generic: Ahmed Awadalla
+                - cell "Open environment Staging of TAH":
+                  - link "Open environment Staging of TAH":
+                    - /url: /environments/2
+                    - text: Open
+              - row "TAH PSOP Staging ? Unknown (no report) Never Ahmed Awadalla Open environment Staging of TAH":
+                - cell "TAH":
+                  - generic: TA
+                  - link "TAH":
+                    - /url: /clients/1
+                - cell "PSOP":
+                  - generic: PSOP
+                - cell "Staging":
+                  - link "Staging":
+                    - /url: /environments/5
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Ahmed Awadalla":
+                  - generic: Ahmed Awadalla
+                - cell "Open environment Staging of TAH":
+                  - link "Open environment Staging of TAH":
+                    - /url: /environments/5
+                    - text: Open
+              - row "TAH PSOP Staging ? Unknown (no report) Never Ahmed Awadalla Open environment Staging of TAH":
+                - cell "TAH":
+                  - generic: TA
+                  - link "TAH":
+                    - /url: /clients/1
+                - cell "PSOP":
+                  - generic: PSOP
+                - cell "Staging":
+                  - link "Staging":
+                    - /url: /environments/6
+                - cell "? Unknown (no report)":
+                  - generic: "? Unknown (no report)"
+                - cell "Never":
+                  - generic: Never
+                - cell "Ahmed Awadalla":
+                  - generic: Ahmed Awadalla
+                - cell "Open environment Staging of TAH":
+                  - link "Open environment Staging of TAH":
+                    - /url: /environments/6
+                    - text: Open
+        - status
+    - heading "Product coverage" [level=2]
+    - button "Version matrix"
+    - button "Table view"
+    - paragraph: Distinct environments per product; unknown installed versions in brackets.
+    - list:
+      - generic "PSOP (5 unknown version)"
+      - 'link "PSOP (5 unknown version): 6 environment(s). Open list"':
+        - generic: "6"
+      - generic "ViTIP (2 unknown version)"
+      - 'link "ViTIP (2 unknown version): 2 environment(s). Open list"':
+        - generic: "2"
+  - region "Data quality":
+    - heading "Data quality" [level=2]
+    - generic: Open items found by the data-quality rules; each count is the records the rule lists.
+    - button "Hide Data quality" [expanded]: Hide
+    - region "Open data-quality items by rule":
+      - table "Open data-quality items by rule":
+        - caption: Open data-quality items by rule
+        - rowgroup:
+          - row "Rule Affected records Severity Actions":
+            - columnheader "Rule":
+              - button "Rule":
+                - generic: Rule
+            - columnheader "Affected records":
+              - button "Affected records":
+                - generic: Affected records
+            - columnheader "Severity":
+              - button "Severity":
+                - generic: Severity
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Missing owner 231 High Open Missing owner items":
+            - cell "Missing owner":
+              - link "Missing owner":
+                - /url: /data-quality?rule=MissingOwner
+            - cell "231":
+              - generic: "231"
+            - cell "High":
+              - text: High
+            - cell "Open Missing owner items":
+              - link "Open Missing owner items":
+                - /url: /data-quality?rule=MissingOwner
+                - text: Open
+          - row "Unknown installed version 7 Medium Open Unknown installed version items":
+            - cell "Unknown installed version":
+              - link "Unknown installed version":
+                - /url: /data-quality?rule=UnknownVersion
+            - cell "7":
+              - generic: "7"
+            - cell "Medium":
+              - generic: Medium
+            - cell "Open Unknown installed version items":
+              - link "Open Unknown installed version items":
+                - /url: /data-quality?rule=UnknownVersion
+                - text: Open
+          - row "Condition needs verification 2 Medium Open Condition needs verification items":
+            - cell "Condition needs verification":
+              - link "Condition needs verification":
+                - /url: /data-quality?rule=ConditionNeedsVerification
+            - cell "2":
+              - generic: "2"
+            - cell "Medium":
+              - generic: Medium
+            - cell "Open Condition needs verification items":
+              - link "Open Condition needs verification items":
+                - /url: /data-quality?rule=ConditionNeedsVerification
+                - text: Open
+          - row "Missing specification 19 Low Open Missing specification items":
+            - cell "Missing specification":
+              - link "Missing specification":
+                - /url: /data-quality?rule=MissingSpecification
+            - cell "19":
+              - generic: "19"
+            - cell "Low":
+              - generic: Low
+            - cell "Open Missing specification items":
+              - link "Open Missing specification items":
+                - /url: /data-quality?rule=MissingSpecification
+                - text: Open
+          - row "Missing review policy 4 Low Open Missing review policy items":
+            - cell "Missing review policy":
+              - link "Missing review policy":
+                - /url: /data-quality?rule=MissingReviewPolicy
+            - cell "4":
+              - generic: "4"
+            - cell "Low":
+              - generic: Low
+            - cell "Open Missing review policy items":
+              - link "Open Missing review policy items":
+                - /url: /data-quality?rule=MissingReviewPolicy
+                - text: Open
+      - status
+    - paragraph: "Tasks, changes, capacity and on-time delivery rates are delivered in the Next release and are not shown. Comparison with the previous period is not shown: the hub keeps no history of these figures yet."
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

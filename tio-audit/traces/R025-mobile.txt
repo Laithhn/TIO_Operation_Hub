@@ -1,0 +1,203 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: · Regional
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview" [pressed]
+    - button "Operational"
+    - button "Technical"
+    - button "Commercial"
+    - button "Records"
+  - region "Risks and outstanding work":
+    - heading "Risks and outstanding work" [level=2]
+    - generic: 64 item(s) · 6 critical
+    - group "Issue type":
+      - button "All 64" [pressed]
+      - button "Overdue ticket 58"
+      - button "Ticket due within 24 h 1"
+      - button "Environment degraded or down 1"
+      - button "Overdue commitment 3"
+      - button "Payment 1"
+    - region "Risks and outstanding work":
+      - table "Risks and outstanding work":
+        - caption: Risks and outstanding work
+        - rowgroup:
+          - row "Details Issue":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Issue":
+              - button "Issue":
+                - generic: Issue
+        - rowgroup:
+          - row "Details for Critical High priority Overdue ticket CS-1834 BO Release 18.0":
+            - cell "Details for Critical High priority":
+              - button "Details for Critical High priority":
+            - cell "Overdue ticket CS-1834 BO Release 18.0":
+              - generic: Overdue ticket
+              - link "CS-1834":
+                - /url: /cases/10034
+              - text: BO Release 18.0
+          - row "Details for Critical High priority Overdue ticket CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+            - cell "Details for Critical High priority":
+              - button "Details for Critical High priority":
+            - cell "Overdue ticket CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+              - generic: Overdue ticket
+              - link "CS-1821":
+                - /url: /cases/10021
+              - text: Vehicle Speed Reverted After Vehicle Type Change
+          - row "Details for Critical High priority Overdue ticket CS-1833 BackOffice Kubernetes":
+            - cell "Details for Critical High priority":
+              - button "Details for Critical High priority":
+            - cell "Overdue ticket CS-1833 BackOffice Kubernetes":
+              - generic: Overdue ticket
+              - link "CS-1833":
+                - /url: /cases/10033
+              - text: BackOffice Kubernetes
+          - row "Details for Critical Critical priority Overdue ticket CS-2593 R1 Backoffice Slowess issue":
+            - cell "Details for Critical Critical priority":
+              - button "Details for Critical Critical priority":
+            - cell "Overdue ticket CS-2593 R1 Backoffice Slowess issue":
+              - generic: Overdue ticket
+              - link "CS-2593":
+                - /url: /cases/10793
+              - text: R1 Backoffice Slowess issue
+          - row "Details for Critical Critical priority Overdue ticket CS-2595 R3 Backoffice Slowess issue":
+            - cell "Details for Critical Critical priority":
+              - button "Details for Critical Critical priority":
+            - cell "Overdue ticket CS-2595 R3 Backoffice Slowess issue":
+              - generic: Overdue ticket
+              - link "CS-2595":
+                - /url: /cases/10795
+              - text: R3 Backoffice Slowess issue
+          - row "Details for Critical High priority Overdue ticket CS-2590 R3 Violation Assignment Issue":
+            - cell "Details for Critical High priority":
+              - button "Details for Critical High priority":
+            - cell "Overdue ticket CS-2590 R3 Violation Assignment Issue":
+              - generic: Overdue ticket
+              - link "CS-2590":
+                - /url: /cases/10790
+              - text: R3 Violation Assignment Issue
+          - row "Details for High Normal priority Overdue ticket CS-2534 Monitor copy status of Archive service of Traffic Services Portal":
+            - cell "Details for High Normal priority":
+              - button "Details for High Normal priority":
+            - cell "Overdue ticket CS-2534 Monitor copy status of Archive service of Traffic Services Portal":
+              - generic: Overdue ticket
+              - link "CS-2534":
+                - /url: /cases/10734
+              - text: Monitor copy status of Archive service of Traffic Services Portal
+          - row "Details for High Normal priority Overdue ticket CS-1786 OBJ/EFA API Release 1.1":
+            - cell "Details for High Normal priority":
+              - button "Details for High Normal priority":
+            - cell "Overdue ticket CS-1786 OBJ/EFA API Release 1.1":
+              - generic: Overdue ticket
+              - link "CS-1786":
+                - /url: /cases/9986
+              - text: OBJ/EFA API Release 1.1
+      - status
+    - button "Show all 64"
+    - link "Open the full action list":
+      - /url: /actions?clientId=1
+    - generic: "Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record."
+  - heading "Management" [level=2]
+  - term: Project manager
+  - definition: Laith Hamdan
+  - term: Project team
+  - definition:
+    - list:
+      - text: Ahmed Awadalla
+      - generic: · Operation engineer
+      - text: Moataz Al Khaldi
+      - generic: · Operation engineer
+      - text: Tareq Abdul Jabar
+      - generic: · Operation engineer
+      - text: Waleed Alharthi
+      - generic: · Operation engineer
+      - text: Ziyad Bu Dukhi
+      - generic: · Operation engineer
+  - term: Last reviewed
+  - definition: 29 Oct 2026, 10:47
+  - term: Freshness
+  - definition:
+    - generic "Review every 90 days · last 29 Oct 2026, 10:47 · due 27 Jan 2027, 10:47":
+      - text: Current
+      - generic: Current
+  - term: Operational state
+  - definition:
+    - text: Active
+  - heading "At a glance" [level=2]
+  - term: Environments
+  - definition: 6 (6 with applications)
+  - term: Application installations
+  - definition: "6"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

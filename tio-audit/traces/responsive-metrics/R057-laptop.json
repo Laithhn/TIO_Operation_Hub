@@ -1,0 +1,15 @@
+{
+  "id": "R057-laptop",
+  "route": "/admin/config/category/products-installations",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Products & Installations"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 103,
+  "title": "Products & Installations · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

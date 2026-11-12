@@ -1,0 +1,15 @@
+{
+  "id": "R089-desktop",
+  "route": "/account/password",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Change password"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 228,
+  "title": "TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

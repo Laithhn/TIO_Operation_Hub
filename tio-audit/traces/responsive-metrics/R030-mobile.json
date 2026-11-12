@@ -1,0 +1,15 @@
+{
+  "id": "R030-mobile",
+  "route": "/admin/access",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Access review"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 17265,
+  "title": "Access review · TIO Operations Hub",
+  "width": 390
+}

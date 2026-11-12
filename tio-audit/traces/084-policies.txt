@@ -1,0 +1,238 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "System":
+    - /url: /admin/config/category/system
+  - generic: ›
+  - generic: Review policies
+- heading "Review policies" [level=1]
+- generic: Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments.
+- button "+ New Policy"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Record type Scope Max age (days) Uses next-review date Effective from Notes Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Record type":
+            - button "Record type":
+              - generic: Record type
+          - columnheader "Scope":
+            - button "Scope":
+              - generic: Scope
+          - columnheader "Max age (days)":
+            - button "Max age (days)":
+              - generic: Max age (days)
+          - columnheader "Uses next-review date":
+            - button "Uses next-review date":
+              - generic: Uses next-review date
+          - columnheader "Effective from":
+            - button "Effective from":
+              - generic: Effective from
+          - columnheader "Notes":
+            - button "Notes":
+              - generic: Notes
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select Ticket Ticket Record 2 Yes 2026-10-16 Active cases every 2 calendar days and by the explicit next-review time (pilot default). Active Edit":
+          - cell "Select Ticket":
+            - checkbox "Select Ticket"
+          - cell "Ticket":
+            - generic: Ticket
+          - cell "Record":
+            - generic: Record
+          - cell "2":
+            - generic: "2"
+          - cell "Yes":
+            - generic: "Yes"
+          - cell "2026-10-16":
+            - generic: 2026-10-16
+          - cell "Active cases every 2 calendar days and by the explicit next-review time (pilot default).":
+            - generic: Active cases every 2 calendar days and by the explicit next-review time (pilot default).
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Select Client Client Record 90 Yes 2026-10-16 Client records every 90 days and after material change (pilot default). Active Edit":
+          - cell "Select Client":
+            - checkbox "Select Client"
+          - cell "Client":
+            - generic: Client
+          - cell "Record":
+            - generic: Record
+          - cell "90":
+            - generic: "90"
+          - cell "Yes":
+            - generic: "Yes"
+          - cell "2026-10-16":
+            - generic: 2026-10-16
+          - cell "Client records every 90 days and after material change (pilot default).":
+            - generic: Client records every 90 days and after material change (pilot default).
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Select Commitment Commitment Record — Yes 2026-10-16 Commitments are reviewed on material change and by their next-review date. Active Edit":
+          - cell "Select Commitment":
+            - checkbox "Select Commitment"
+          - cell "Commitment":
+            - generic: Commitment
+          - cell "Record":
+            - generic: Record
+          - cell "—":
+            - generic: —
+          - cell "Yes":
+            - generic: "Yes"
+          - cell "2026-10-16":
+            - generic: 2026-10-16
+          - cell "Commitments are reviewed on material change and by their next-review date.":
+            - generic: Commitments are reviewed on material change and by their next-review date.
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Select Contact Contact Record 90 No 2026-10-16 Contact records every 90 days (pilot default). Active Edit":
+          - cell "Select Contact":
+            - checkbox "Select Contact"
+          - cell "Contact":
+            - generic: Contact
+          - cell "Record":
+            - generic: Record
+          - cell "90":
+            - generic: "90"
+          - cell "No":
+            - generic: "No"
+          - cell "2026-10-16":
+            - generic: 2026-10-16
+          - cell "Contact records every 90 days (pilot default).":
+            - generic: Contact records every 90 days (pilot default).
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Select Environment Environment Condition 7 No 2026-10-16 Condition evidence older than 7 days shows Needs verification (assumption; confirm with owners). Active Edit":
+          - cell "Select Environment":
+            - checkbox "Select Environment"
+          - cell "Environment":
+            - generic: Environment
+          - cell "Condition":
+            - generic: Condition
+          - cell "7":
+            - generic: "7"
+          - cell "No":
+            - generic: "No"
+          - cell "2026-10-16":
+            - generic: 2026-10-16
+          - cell "Condition evidence older than 7 days shows Needs verification (assumption; confirm with owners).":
+            - generic: Condition evidence older than 7 days shows Needs verification (assumption; confirm with owners).
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+        - row "Select Environment Environment Inventory 30 Yes 2026-10-16 Environment inventory every 30 days and after material change (pilot default). Active Edit":
+          - cell "Select Environment":
+            - checkbox "Select Environment"
+          - cell "Environment":
+            - generic: Environment
+          - cell "Inventory":
+            - generic: Inventory
+          - cell "30":
+            - generic: "30"
+          - cell "Yes":
+            - generic: "Yes"
+          - cell "2026-10-16":
+            - generic: 2026-10-16
+          - cell "Environment inventory every 30 days and after material change (pilot default).":
+            - generic: Environment inventory every 30 days and after material change (pilot default).
+          - cell "Active":
+            - text: Active
+          - cell "Edit":
+            - button "Edit"
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

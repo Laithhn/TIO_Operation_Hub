@@ -1,0 +1,15 @@
+{
+  "id": "R022-desktop",
+  "route": "/actions",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Action list"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 5344,
+  "title": "Action list · TIO Operations Hub",
+  "width": 1920
+}

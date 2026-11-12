@@ -1,0 +1,420 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Operational dashboard" [level=1]
+- text: What needs action today.
+- generic: As of 10 Nov 2026, 16:42 (Asia/Dubai) · refreshes every minute · only records you are authorized to see.
+- button "Refresh"
+- link "Action list":
+  - /url: /actions
+- link "+ New Ticket":
+  - /url: /cases/new
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational" [active]:
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - generic: Show
+  - group "Show":
+    - button "My work" [pressed]
+    - button "My team"
+    - button "Everything"
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - paragraph: Every figure is as of now; this page has no reporting period. Unassigned critical or high tickets are shown whatever “Show” is set to.
+  - 'link "My open tickets: 0. 0 critical or high. open the list"':
+    - generic: My open tickets
+    - generic: ›
+    - generic: "0"
+    - list:
+      - generic: 0 critical or high
+  - 'link "Unassigned critical / high: 6. status Critical. Oldest waiting 2018 d 4 h. open the list"':
+    - generic: Unassigned critical / high
+    - generic: ›
+    - generic: "6"
+    - generic: ▲
+    - text: Critical
+    - list:
+      - generic: Oldest waiting 2018 d 4 h
+  - 'link "SLA clocks at risk: 0. 25 % of the target or less is left. 0 clock(s) running. open the list"':
+    - generic: SLA clocks at risk
+    - generic: ›
+    - generic: "0"
+    - list:
+      - generic: 25 % of the target or less is left
+      - generic: 0 clock(s) running
+  - 'link "Due in the next 24 hours: 0. 0 ticket(s) · 0 commitment(s). open the list"':
+    - generic: Due in the next 24 hours
+    - generic: ›
+    - generic: "0"
+    - list:
+      - generic: 0 ticket(s) · 0 commitment(s)
+  - 'link "Overdue: 5. status Critical. 0 ticket(s) · 5 commitment(s). open the list"':
+    - generic: Overdue
+    - generic: ›
+    - generic: "5"
+    - generic: ▲
+    - text: Critical
+    - list:
+      - generic: 0 ticket(s) · 5 commitment(s)
+  - 'link "Waiting on the customer: 0. None longer than 5 days. open the list"':
+    - generic: Waiting on the customer
+    - generic: ›
+    - generic: "0"
+    - list:
+      - generic: None longer than 5 days
+  - 'link "Production environments: 1 / 8. status Attention. healthy · 1 degraded · 0 unavailable. 6 not reported · manually reported. open the list"':
+    - generic: Production environments
+    - generic: ›
+    - generic: 1 / 8
+    - generic: ●
+    - text: Attention
+    - list:
+      - generic: healthy · 1 degraded · 0 unavailable
+      - generic: 6 not reported · manually reported
+  - region "Work queue — what runs out first":
+    - heading "Work queue — what runs out first" [level=2]
+    - link "Full action list":
+      - /url: /actions
+    - paragraph: Tickets with an SLA clock at risk, breached or ending within 24 hours, and tickets and commitments due within 24 hours or overdue. The clock is the share of the contractual target already used, counted in the contract's support hours.
+    - region "Work queue":
+      - table "Work queue":
+        - caption: Work queue
+        - rowgroup:
+          - row "Ref Title Client Priority Owner Clock / deadline Next action":
+            - columnheader "Ref":
+              - button "Ref":
+                - generic: Ref
+            - columnheader "Title":
+              - button "Title":
+                - generic: Title
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Priority":
+              - button "Priority":
+                - generic: Priority
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Clock / deadline":
+              - button "Clock / deadline":
+                - generic: Clock / deadline
+            - columnheader "Next action":
+              - button "Next action":
+                - generic: Next action
+        - rowgroup:
+          - row "CM-1006 Hire a new DevOps engineer to fulfill the SLA commitment Commitment TAH — Laith Hamdan 101 d 23 h overdue due date —":
+            - cell "CM-1006":
+              - link "CM-1006":
+                - /url: /commitments/6
+            - cell "Hire a new DevOps engineer to fulfill the SLA commitment Commitment":
+              - text: Hire a new DevOps engineer to fulfill the SLA commitment
+              - generic: Commitment
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "—":
+              - generic: —
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "101 d 23 h overdue due date":
+              - generic: 101 d 23 h overdue
+              - generic: due date
+            - cell "—":
+              - generic: —
+          - row "CM-1004 Replacement Operation Engineer For Faisal Al Yami Commitment TAH — Laith Hamdan 70 d 23 h overdue due date —":
+            - cell "CM-1004":
+              - link "CM-1004":
+                - /url: /commitments/4
+            - cell "Replacement Operation Engineer For Faisal Al Yami Commitment":
+              - text: Replacement Operation Engineer For Faisal Al Yami
+              - generic: Commitment
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "—":
+              - generic: —
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "70 d 23 h overdue due date":
+              - generic: 70 d 23 h overdue
+              - generic: due date
+            - cell "—":
+              - generic: —
+          - row "CM-1003 Agreed to have meeting with Client to agree on the POC scope Commitment TAK — Laith Hamdan 8 d 1 h overdue due date —":
+            - cell "CM-1003":
+              - link "CM-1003":
+                - /url: /commitments/3
+            - cell "Agreed to have meeting with Client to agree on the POC scope Commitment":
+              - text: Agreed to have meeting with Client to agree on the POC scope
+              - generic: Commitment
+            - cell "TAK":
+              - link "TAK":
+                - /url: /clients/7
+            - cell "—":
+              - generic: —
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "8 d 1 h overdue due date":
+              - generic: 8 d 1 h overdue
+              - generic: due date
+            - cell "—":
+              - generic: —
+          - row "CM-1008 Minimum IT infrastructure requirement only for certificate purposes Commitment TAK — Laith Hamdan 7 d 23 h overdue due date —":
+            - cell "CM-1008":
+              - link "CM-1008":
+                - /url: /commitments/8
+            - cell "Minimum IT infrastructure requirement only for certificate purposes Commitment":
+              - text: Minimum IT infrastructure requirement only for certificate purposes
+              - generic: Commitment
+            - cell "TAK":
+              - link "TAK":
+                - /url: /clients/7
+            - cell "—":
+              - generic: —
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "7 d 23 h overdue due date":
+              - generic: 7 d 23 h overdue
+              - generic: due date
+            - cell "—":
+              - generic: —
+          - row "CM-1005 Replacement Operation Engineer For Abdullah Al Zugheibi Commitment TAH — Laith Hamdan 4 d 23 h overdue due date —":
+            - cell "CM-1005":
+              - link "CM-1005":
+                - /url: /commitments/5
+            - cell "Replacement Operation Engineer For Abdullah Al Zugheibi Commitment":
+              - text: Replacement Operation Engineer For Abdullah Al Zugheibi
+              - generic: Commitment
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "—":
+              - generic: —
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "4 d 23 h overdue due date":
+              - generic: 4 d 23 h overdue
+              - generic: due date
+            - cell "—":
+              - generic: —
+      - status
+  - region "Production environment condition":
+    - heading "Production environment condition" [level=2]
+    - paragraph: Last manually reported condition — not live monitoring. Old evidence shows “needs verification”.
+    - link "TAH · Production Degraded Needs verification Slowness Issue":
+      - /url: /environments/3
+      - generic: TAH · Production
+      - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+        - text: Degraded
+        - text: Needs verification
+      - generic: Slowness Issue
+    - link "MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed) Unknown No condition report":
+      - /url: /environments/13
+      - generic: MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed)
+      - generic: Unknown
+      - generic: No condition report
+    - link "SEW · MOI_ViTIP_Production Unknown No condition report":
+      - /url: /environments/11
+      - generic: SEW · MOI_ViTIP_Production
+      - generic: Unknown
+      - generic: No condition report
+    - link "TAH · Production Unknown No condition report":
+      - /url: /environments/4
+      - generic: TAH · Production
+      - generic: Unknown
+      - generic: No condition report
+    - link "TAH · Staging Unknown No condition report":
+      - /url: /environments/2
+      - generic: TAH · Staging
+      - generic: Unknown
+      - generic: No condition report
+    - link "TAH · Staging Unknown No condition report":
+      - /url: /environments/5
+      - generic: TAH · Staging
+      - generic: Unknown
+      - generic: No condition report
+    - link "TAH · Staging Unknown No condition report":
+      - /url: /environments/6
+      - generic: TAH · Staging
+      - generic: Unknown
+      - generic: No condition report
+    - link "TAH · Production Healthy Needs verification Daily Chekup completed":
+      - /url: /environments/1
+      - generic: TAH · Production
+      - generic "Manually reported 22 Oct 2026, 20:07 — not live monitoring":
+        - text: Healthy
+        - text: Needs verification
+      - generic: Daily Chekup completed
+  - heading "Workload by owner" [level=2]
+  - button "Table view"
+  - paragraph: Open tickets in the team, client and product chosen above — not narrowed to “My work”. Click a bar for the tickets.
+  - list:
+    - generic "Unassigned"
+    - 'link "Unassigned: 104 open — Critical 2, High 4, Normal 98, Low 0"':
+      - generic: "104"
+    - generic "Naveed Ur Rehman"
+    - 'link "Naveed Ur Rehman: 14 open — Critical 0, High 0, Normal 14, Low 0"':
+      - generic: "14"
+    - generic "Mohammed Alqaruoti"
+    - 'link "Mohammed Alqaruoti: 12 open — Critical 0, High 6, Normal 6, Low 0"':
+      - generic: "12"
+    - generic "Ahmed Awadalla"
+    - 'link "Ahmed Awadalla: 9 open — Critical 0, High 2, Normal 7, Low 0"':
+      - generic: "9"
+    - generic "amai"
+    - 'link "amai: 9 open — Critical 0, High 1, Normal 8, Low 0"':
+      - generic: "9"
+    - generic "Ala AlBarghouthi"
+    - 'link "Ala AlBarghouthi: 6 open — Critical 0, High 0, Normal 5, Low 1"':
+      - generic: "6"
+    - generic "car"
+    - 'link "car: 6 open — Critical 0, High 0, Normal 6, Low 0"':
+      - generic: "6"
+    - generic "Abdalrhman (Aboud) Asaad"
+    - 'link "Abdalrhman (Aboud) Asaad: 4 open — Critical 0, High 1, Normal 3, Low 0"':
+      - generic: "4"
+    - generic "Adnan Ahmed"
+    - 'link "Adnan Ahmed: 4 open — Critical 0, High 0, Normal 4, Low 0"':
+      - generic: "4"
+    - generic "Moataz Al Khaldi"
+    - 'link "Moataz Al Khaldi: 3 open — Critical 2, High 1, Normal 0, Low 0"':
+      - generic: "3"
+    - generic "Abdulhamid Tork"
+    - 'link "Abdulhamid Tork: 3 open — Critical 0, High 0, Normal 3, Low 0"':
+      - generic: "3"
+    - generic "Tareq Abdul Jabar"
+    - 'link "Tareq Abdul Jabar: 2 open — Critical 0, High 0, Normal 2, Low 0"':
+      - generic: "2"
+  - generic: Critical
+  - generic: High
+  - generic: Normal
+  - generic: Low
+  - region "Coming up — next 7 days":
+    - heading "Coming up — next 7 days" [level=2]
+    - paragraph: Commitments and maintenance-coordination tickets due in the next week.
+    - generic: Nothing is due in the next 7 days.
+  - region "Hygiene — mine":
+    - heading "Hygiene — mine" [level=2]
+    - paragraph: Small things that make tomorrow's figures wrong when ignored. Always your own, whatever “Show” is set to.
+    - table:
+      - rowgroup:
+        - row "Handovers awaiting my acknowledgment 0":
+          - cell "Handovers awaiting my acknowledgment":
+            - link "Handovers awaiting my acknowledgment":
+              - /url: /handovers
+          - cell "0"
+        - row "My tickets with the next review passed 0":
+          - cell "My tickets with the next review passed":
+            - link "My tickets with the next review passed":
+              - /url: /cases?ownerId=1&reviewOverdue=true
+          - cell "0"
+        - row "My tickets with a response clock still running 0":
+          - cell "My tickets with a response clock still running":
+            - link "My tickets with a response clock still running":
+              - /url: /cases?ownerId=1&sla=responsePending
+          - cell "0"
+        - row "My environments without an active backup owner 0":
+          - cell "My environments without an active backup owner":
+            - link "My environments without an active backup owner":
+              - /url: /actions?category=CoverageGap
+          - cell "0"
+        - row "Data-quality items I coordinate 32":
+          - cell "Data-quality items I coordinate":
+            - link "Data-quality items I coordinate":
+              - /url: /data-quality
+          - cell "32"
+        - row "Unread notifications 154":
+          - cell "Unread notifications":
+            - link "Unread notifications":
+              - /url: /notifications
+          - cell "154"
+  - paragraph: Everything is as of now. SLA clocks are counted in each contract's support calendar; environment condition is manually reported, not monitored. The at-risk threshold is the setting Dashboard.SlaAtRiskPercent.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

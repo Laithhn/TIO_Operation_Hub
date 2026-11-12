@@ -1,0 +1,505 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "R2":
+    - /url: /regions/2
+  - generic: ›
+  - generic: Production
+- heading "Production" [level=1]
+- text: Production · Region R2 ·
+- text: Critical
+- link "Edit":
+  - /url: /environments/3/edit
+- button "Report condition"
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "Ownership and coverage" [level=2]
+  - term: Technical owner
+  - definition: Ahmed Awadalla
+  - term: Operation engineer
+  - definition: Ahmed Awadalla
+  - term: Backup operation engineer
+  - definition: Moataz Al Khaldi
+  - term: Hosting
+  - definition: On-prem
+  - term: Location
+  - definition: Riyadh
+  - term: Project link
+  - definition: None
+  - heading "Condition and freshness (separately scoped)" [level=2]
+  - term: Reported condition
+  - definition:
+    - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+      - text: Degraded
+      - text: Needs verification
+  - term: Reason
+  - definition: Slowness Issue
+  - term: Observed
+  - definition: 22 Oct 2026, 14:11
+  - term: Inventory review
+  - definition:
+    - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+      - text: Current
+      - generic: Current
+  - term: Firewall rules review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Record review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Last reviewed
+  - definition: —
+  - paragraph: Condition is manually reported, not live monitoring. A condition report never refreshes the inventory review.
+  - tablist:
+    - tab "Applications (1)":
+      - generic: Applications (1)
+    - tab "Servers & assets (13)" [selected]:
+      - generic: Servers & assets (13)
+    - tab "Work":
+      - generic: Work
+    - tab "Firewall rules (0)":
+      - generic: Firewall rules (0)
+    - tab "Condition history":
+      - generic: Condition history
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Data quality":
+      - generic: Data quality
+    - tab "History":
+      - generic: History
+  - heading "Servers and assets (recorded provisioning)" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 13 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Asset Type Role Lifecycle Zone IP address CPU RAM Volumes Hosts components Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Asset":
+            - button "Asset":
+              - generic: Asset
+          - columnheader "Type":
+            - button "Type":
+              - generic: Type
+          - columnheader "Role":
+            - button "Role":
+              - generic: Role
+          - columnheader "Lifecycle":
+            - button "Lifecycle":
+              - generic: Lifecycle
+          - columnheader "Zone":
+            - button "Zone":
+              - generic: Zone
+          - columnheader "IP address":
+            - button "IP address":
+              - generic: IP address
+          - columnheader "CPU":
+            - button "CPU":
+              - generic: CPU
+          - columnheader "RAM":
+            - button "RAM":
+              - generic: RAM
+          - columnheader "Volumes":
+            - button "Volumes":
+              - generic: Volumes
+          - columnheader "Hosts components":
+            - button "Hosts components":
+              - generic: Hosts components
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select PSOP-R2PRO-APP1 PSOP-R2PRO-APP1 Virtual machine (VM) Application server Active APP 8 vCPU 16 GB D Drive 100 GB E Drive 100 GB PSOP.Service.Anpr.Carmen, PSOP.Service.Broker, PSOP.Service.Export, PSOP.Service.Logging, PSOP.Service.PlateLookup, PSOP.Service.Core, PSOP.Service.Topology, PSOP.Service.TrafficLegal, PSOP.Service.VehicleLookup Actions for server PSOP-R2PRO-APP1":
+          - cell "Select PSOP-R2PRO-APP1":
+            - checkbox "Select PSOP-R2PRO-APP1"
+          - cell "PSOP-R2PRO-APP1":
+            - link "PSOP-R2PRO-APP1":
+              - /url: /assets/27
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Application server":
+            - generic: Application server
+          - cell "Active":
+            - text: Active
+          - cell "APP":
+            - generic: APP
+          - cell
+          - cell "8 vCPU":
+            - generic: 8 vCPU
+          - cell "16 GB":
+            - generic: 16 GB
+          - cell "D Drive 100 GB E Drive 100 GB":
+            - generic: D Drive 100 GB
+            - generic: E Drive 100 GB
+          - cell "PSOP.Service.Anpr.Carmen, PSOP.Service.Broker, PSOP.Service.Export, PSOP.Service.Logging, PSOP.Service.PlateLookup, PSOP.Service.Core, PSOP.Service.Topology, PSOP.Service.TrafficLegal, PSOP.Service.VehicleLookup":
+            - generic: PSOP.Service.Anpr.Carmen, PSOP.Service.Broker, PSOP.Service.Export, PSOP.Service.Logging, PSOP.Service.PlateLookup, PSOP.Service.Core, PSOP.Service.Topology, PSOP.Service.TrafficLegal, PSOP.Service.VehicleLookup
+          - cell "Actions for server PSOP-R2PRO-APP1":
+            - button "Actions for server PSOP-R2PRO-APP1": ⋯
+        - row "Select PSOP-R2PRO-APP2 PSOP-R2PRO-APP2 Virtual machine (VM) Application server Active APP 8 vCPU 16 GB D Drive 100 GB E Drive 100 GB PSOP.Service.Anpr.Carmen, PSOP.Service.Broker, PSOP.Service.Export, PSOP.Service.Logging, PSOP.Service.PlateLookup, PSOP.Service.Core, PSOP.Service.Topology, PSOP.Service.TrafficLegal, PSOP.Service.VehicleLookup Actions for server PSOP-R2PRO-APP2":
+          - cell "Select PSOP-R2PRO-APP2":
+            - checkbox "Select PSOP-R2PRO-APP2"
+          - cell "PSOP-R2PRO-APP2":
+            - link "PSOP-R2PRO-APP2":
+              - /url: /assets/28
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Application server":
+            - generic: Application server
+          - cell "Active":
+            - text: Active
+          - cell "APP":
+            - generic: APP
+          - cell
+          - cell "8 vCPU":
+            - generic: 8 vCPU
+          - cell "16 GB":
+            - generic: 16 GB
+          - cell "D Drive 100 GB E Drive 100 GB":
+            - generic: D Drive 100 GB
+            - generic: E Drive 100 GB
+          - cell "PSOP.Service.Anpr.Carmen, PSOP.Service.Broker, PSOP.Service.Export, PSOP.Service.Logging, PSOP.Service.PlateLookup, PSOP.Service.Core, PSOP.Service.Topology, PSOP.Service.TrafficLegal, PSOP.Service.VehicleLookup":
+            - generic: PSOP.Service.Anpr.Carmen, PSOP.Service.Broker, PSOP.Service.Export, PSOP.Service.Logging, PSOP.Service.PlateLookup, PSOP.Service.Core, PSOP.Service.Topology, PSOP.Service.TrafficLegal, PSOP.Service.VehicleLookup
+          - cell "Actions for server PSOP-R2PRO-APP2":
+            - button "Actions for server PSOP-R2PRO-APP2": ⋯
+        - row "Select PSOP-R2PRO-DB1 PSOP-R2PRO-DB1 Virtual machine (VM) Database server Active DB 16 vCPU 124 GB None Actions for server PSOP-R2PRO-DB1":
+          - cell "Select PSOP-R2PRO-DB1":
+            - checkbox "Select PSOP-R2PRO-DB1"
+          - cell "PSOP-R2PRO-DB1":
+            - link "PSOP-R2PRO-DB1":
+              - /url: /assets/37
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Database server":
+            - generic: Database server
+          - cell "Active":
+            - text: Active
+          - cell "DB":
+            - generic: DB
+          - cell
+          - cell "16 vCPU":
+            - generic: 16 vCPU
+          - cell "124 GB":
+            - generic: 124 GB
+          - cell
+          - cell "None":
+            - generic: None
+          - cell "Actions for server PSOP-R2PRO-DB1":
+            - button "Actions for server PSOP-R2PRO-DB1": ⋯
+        - row "Select PSOP-R2PRO-DB2 PSOP-R2PRO-DB2 Virtual machine (VM) Database server Active DB 16 vCPU 124 GB None Actions for server PSOP-R2PRO-DB2":
+          - cell "Select PSOP-R2PRO-DB2":
+            - checkbox "Select PSOP-R2PRO-DB2"
+          - cell "PSOP-R2PRO-DB2":
+            - link "PSOP-R2PRO-DB2":
+              - /url: /assets/38
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Database server":
+            - generic: Database server
+          - cell "Active":
+            - text: Active
+          - cell "DB":
+            - generic: DB
+          - cell
+          - cell "16 vCPU":
+            - generic: 16 vCPU
+          - cell "124 GB":
+            - generic: 124 GB
+          - cell
+          - cell "None":
+            - generic: None
+          - cell "Actions for server PSOP-R2PRO-DB2":
+            - button "Actions for server PSOP-R2PRO-DB2": ⋯
+        - row "Select PSOP-R2PRO-IMPORT1 PSOP-R2PRO-IMPORT1 Virtual machine (VM) Application server Active APP 16 vCPU 32 GB PSOP.Service.Import Actions for server PSOP-R2PRO-IMPORT1":
+          - cell "Select PSOP-R2PRO-IMPORT1":
+            - checkbox "Select PSOP-R2PRO-IMPORT1"
+          - cell "PSOP-R2PRO-IMPORT1":
+            - link "PSOP-R2PRO-IMPORT1":
+              - /url: /assets/29
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Application server":
+            - generic: Application server
+          - cell "Active":
+            - text: Active
+          - cell "APP":
+            - generic: APP
+          - cell
+          - cell "16 vCPU":
+            - generic: 16 vCPU
+          - cell "32 GB":
+            - generic: 32 GB
+          - cell
+          - cell "PSOP.Service.Import":
+            - generic: PSOP.Service.Import
+          - cell "Actions for server PSOP-R2PRO-IMPORT1":
+            - button "Actions for server PSOP-R2PRO-IMPORT1": ⋯
+        - row "Select PSOP-R2PRO-IMPORT2 PSOP-R2PRO-IMPORT2 Virtual machine (VM) Application server Active APP 16 vCPU 32 GB PSOP.Service.Import Actions for server PSOP-R2PRO-IMPORT2":
+          - cell "Select PSOP-R2PRO-IMPORT2":
+            - checkbox "Select PSOP-R2PRO-IMPORT2"
+          - cell "PSOP-R2PRO-IMPORT2":
+            - link "PSOP-R2PRO-IMPORT2":
+              - /url: /assets/30
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Application server":
+            - generic: Application server
+          - cell "Active":
+            - text: Active
+          - cell "APP":
+            - generic: APP
+          - cell
+          - cell "16 vCPU":
+            - generic: 16 vCPU
+          - cell "32 GB":
+            - generic: 32 GB
+          - cell
+          - cell "PSOP.Service.Import":
+            - generic: PSOP.Service.Import
+          - cell "Actions for server PSOP-R2PRO-IMPORT2":
+            - button "Actions for server PSOP-R2PRO-IMPORT2": ⋯
+        - row "Select PSOP-R2PRO-LSN PSOP-R2PRO-LSN Logical endpoint Listener Active DB n/a n/a None Actions for server PSOP-R2PRO-LSN":
+          - cell "Select PSOP-R2PRO-LSN":
+            - checkbox "Select PSOP-R2PRO-LSN"
+          - cell "PSOP-R2PRO-LSN":
+            - link "PSOP-R2PRO-LSN":
+              - /url: /assets/39
+          - cell "Logical endpoint":
+            - generic: Logical endpoint
+          - cell "Listener":
+            - generic: Listener
+          - cell "Active":
+            - text: Active
+          - cell "DB":
+            - generic: DB
+          - cell
+          - cell "n/a":
+            - generic: n/a
+          - cell "n/a":
+            - generic: n/a
+          - cell
+          - cell "None":
+            - generic: None
+          - cell "Actions for server PSOP-R2PRO-LSN":
+            - button "Actions for server PSOP-R2PRO-LSN": ⋯
+        - row "Select PSOP-R2PRO-MW1 PSOP-R2PRO-MW1 Virtual machine (VM) Web server Active WEB 16 vCPU 128 GB PSOP.Service.Media.X64 Actions for server PSOP-R2PRO-MW1":
+          - cell "Select PSOP-R2PRO-MW1":
+            - checkbox "Select PSOP-R2PRO-MW1"
+          - cell "PSOP-R2PRO-MW1":
+            - link "PSOP-R2PRO-MW1":
+              - /url: /assets/31
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Web server":
+            - generic: Web server
+          - cell "Active":
+            - text: Active
+          - cell "WEB":
+            - generic: WEB
+          - cell
+          - cell "16 vCPU":
+            - generic: 16 vCPU
+          - cell "128 GB":
+            - generic: 128 GB
+          - cell
+          - cell "PSOP.Service.Media.X64":
+            - generic: PSOP.Service.Media.X64
+          - cell "Actions for server PSOP-R2PRO-MW1":
+            - button "Actions for server PSOP-R2PRO-MW1": ⋯
+        - row "Select PSOP-R2PRO-MW2 PSOP-R2PRO-MW2 Virtual machine (VM) Web server Active WEB 16 vCPU 128 GB PSOP.Service.Media.X64 Actions for server PSOP-R2PRO-MW2":
+          - cell "Select PSOP-R2PRO-MW2":
+            - checkbox "Select PSOP-R2PRO-MW2"
+          - cell "PSOP-R2PRO-MW2":
+            - link "PSOP-R2PRO-MW2":
+              - /url: /assets/32
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Web server":
+            - generic: Web server
+          - cell "Active":
+            - text: Active
+          - cell "WEB":
+            - generic: WEB
+          - cell
+          - cell "16 vCPU":
+            - generic: 16 vCPU
+          - cell "128 GB":
+            - generic: 128 GB
+          - cell
+          - cell "PSOP.Service.Media.X64":
+            - generic: PSOP.Service.Media.X64
+          - cell "Actions for server PSOP-R2PRO-MW2":
+            - button "Actions for server PSOP-R2PRO-MW2": ⋯
+        - row "Select PSOP-R2PRO-WEB1 PSOP-R2PRO-WEB1 Virtual machine (VM) Web server Active WEB 8 vCPU 16 GB PSOP.Web Actions for server PSOP-R2PRO-WEB1":
+          - cell "Select PSOP-R2PRO-WEB1":
+            - checkbox "Select PSOP-R2PRO-WEB1"
+          - cell "PSOP-R2PRO-WEB1":
+            - link "PSOP-R2PRO-WEB1":
+              - /url: /assets/35
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Web server":
+            - generic: Web server
+          - cell "Active":
+            - text: Active
+          - cell "WEB":
+            - generic: WEB
+          - cell
+          - cell "8 vCPU":
+            - generic: 8 vCPU
+          - cell "16 GB":
+            - generic: 16 GB
+          - cell
+          - cell "PSOP.Web":
+            - generic: PSOP.Web
+          - cell "Actions for server PSOP-R2PRO-WEB1":
+            - button "Actions for server PSOP-R2PRO-WEB1": ⋯
+        - row "Select PSOP-R2PRO-WEB2 PSOP-R2PRO-WEB2 Virtual machine (VM) Web server Active WEB 8 vCPU 16 GB PSOP.Web Actions for server PSOP-R2PRO-WEB2":
+          - cell "Select PSOP-R2PRO-WEB2":
+            - checkbox "Select PSOP-R2PRO-WEB2"
+          - cell "PSOP-R2PRO-WEB2":
+            - link "PSOP-R2PRO-WEB2":
+              - /url: /assets/36
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Web server":
+            - generic: Web server
+          - cell "Active":
+            - text: Active
+          - cell "WEB":
+            - generic: WEB
+          - cell
+          - cell "8 vCPU":
+            - generic: 8 vCPU
+          - cell "16 GB":
+            - generic: 16 GB
+          - cell
+          - cell "PSOP.Web":
+            - generic: PSOP.Web
+          - cell "Actions for server PSOP-R2PRO-WEB2":
+            - button "Actions for server PSOP-R2PRO-WEB2": ⋯
+        - row "Select PSOP-R2PRO-WF1 PSOP-R2PRO-WF1 Virtual machine (VM) Application server Active APP 8 vCPU 32 GB PSOP.Service.Workflow Actions for server PSOP-R2PRO-WF1":
+          - cell "Select PSOP-R2PRO-WF1":
+            - checkbox "Select PSOP-R2PRO-WF1"
+          - cell "PSOP-R2PRO-WF1":
+            - link "PSOP-R2PRO-WF1":
+              - /url: /assets/33
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Application server":
+            - generic: Application server
+          - cell "Active":
+            - text: Active
+          - cell "APP":
+            - generic: APP
+          - cell
+          - cell "8 vCPU":
+            - generic: 8 vCPU
+          - cell "32 GB":
+            - generic: 32 GB
+          - cell
+          - cell "PSOP.Service.Workflow":
+            - generic: PSOP.Service.Workflow
+          - cell "Actions for server PSOP-R2PRO-WF1":
+            - button "Actions for server PSOP-R2PRO-WF1": ⋯
+        - row "Select PSOP-R2PRO-WF2 PSOP-R2PRO-WF2 Virtual machine (VM) Application server Active APP 8 vCPU 32 GB PSOP.Service.Workflow Actions for server PSOP-R2PRO-WF2":
+          - cell "Select PSOP-R2PRO-WF2":
+            - checkbox "Select PSOP-R2PRO-WF2"
+          - cell "PSOP-R2PRO-WF2":
+            - link "PSOP-R2PRO-WF2":
+              - /url: /assets/34
+          - cell "Virtual machine (VM)":
+            - generic: Virtual machine (VM)
+          - cell "Application server":
+            - generic: Application server
+          - cell "Active":
+            - text: Active
+          - cell "APP":
+            - generic: APP
+          - cell
+          - cell "8 vCPU":
+            - generic: 8 vCPU
+          - cell "32 GB":
+            - generic: 32 GB
+          - cell
+          - cell "PSOP.Service.Workflow":
+            - generic: PSOP.Service.Workflow
+          - cell "Actions for server PSOP-R2PRO-WF2":
+            - button "Actions for server PSOP-R2PRO-WF2": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

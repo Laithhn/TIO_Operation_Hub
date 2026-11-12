@@ -1,0 +1,529 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Data quality" [level=1]
+- generic: Missing owners, unknown environments and versions, and stale verification. Items open and resolve only by rule re-evaluation, so closing one can never falsely verify unknown data.
+- button "Re-evaluate now"
+- button "Export CSV"
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - heading "Open items by rule" [level=2]
+  - link "2 Condition needs verification":
+    - /url: "?rule=ConditionNeedsVerification"
+    - generic: "2"
+    - generic: Condition needs verification
+  - link "231 Missing owner":
+    - /url: "?rule=MissingOwner"
+    - generic: "231"
+    - generic: Missing owner
+  - link "4 Missing review policy":
+    - /url: "?rule=MissingReviewPolicy"
+    - generic: "4"
+    - generic: Missing review policy
+  - link "19 Missing specification":
+    - /url: "?rule=MissingSpecification"
+    - generic: "19"
+    - generic: Missing specification
+  - link "7 Unknown installed version":
+    - /url: "?rule=UnknownVersion"
+    - generic: "7"
+    - generic: Unknown installed version
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Rule
+  - combobox "Rule":
+    - option "All rules" [selected]
+    - option "Condition needs verification"
+    - option "Missing owner"
+    - option "Missing review policy"
+    - option "Missing specification"
+    - option "Unknown installed version"
+  - generic: Status
+  - combobox "Status":
+    - option "Open" [selected]
+    - option "Resolved"
+    - option "All"
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 15 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Select all rows shown Rule Record Client Detail Coordinator Next action Status Opened Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Rule":
+              - button "Rule":
+                - generic: Rule
+            - columnheader "Record":
+              - button "Record":
+                - generic: Record
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Detail":
+              - button "Detail":
+                - generic: Detail
+            - columnheader "Coordinator":
+              - button "Coordinator":
+                - generic: Coordinator
+            - columnheader "Next action":
+              - button "Next action":
+                - generic: Next action
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Opened":
+              - button "Opened":
+                - generic: Opened
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select Condition needs verification Condition needs verification Environment · TAH · Production TAH Last reported Degraded on 2026-10-22; evidence is older than the condition review period. Ahmed Awadalla Record a current condition report with evidence. Open 29 Oct 2026, 14:15 Coordinate":
+            - cell "Select Condition needs verification":
+              - checkbox "Select Condition needs verification"
+            - cell "Condition needs verification":
+              - generic: Condition needs verification
+            - cell "Environment · TAH · Production":
+              - link "Environment · TAH · Production":
+                - /url: /environments/3
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Last reported Degraded on 2026-10-22; evidence is older than the condition review period.":
+              - generic: Last reported Degraded on 2026-10-22; evidence is older than the condition review period.
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "Record a current condition report with evidence.":
+              - generic: Record a current condition report with evidence.
+            - cell "Open":
+              - generic: Open
+            - cell "29 Oct 2026, 14:15":
+              - generic: 29 Oct 2026, 14:15
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Condition needs verification Condition needs verification Environment · TAH · Production TAH Last reported Healthy on 2026-10-22; evidence is older than the condition review period. Ahmed Awadalla Record a current condition report with evidence. Open 30 Oct 2026, 09:13 Coordinate":
+            - cell "Select Condition needs verification":
+              - checkbox "Select Condition needs verification"
+            - cell "Condition needs verification":
+              - generic: Condition needs verification
+            - cell "Environment · TAH · Production":
+              - link "Environment · TAH · Production":
+                - /url: /environments/1
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Last reported Healthy on 2026-10-22; evidence is older than the condition review period.":
+              - generic: Last reported Healthy on 2026-10-22; evidence is older than the condition review period.
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "Record a current condition report with evidence.":
+              - generic: Record a current condition report with evidence.
+            - cell "Open":
+              - generic: Open
+            - cell "30 Oct 2026, 09:13":
+              - generic: 30 Oct 2026, 09:13
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · Dahua ANPR Service SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · Dahua ANPR Service":
+              - link "Asset · Dahua ANPR Service":
+                - /url: /assets/259
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · HIKVision ANPR Service SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · HIKVision ANPR Service":
+              - link "Asset · HIKVision ANPR Service":
+                - /url: /assets/258
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - 'row "Select Missing owner Missing owner Environment · MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed) MADAR_DIJLA No technical owner: recorded as an assignment gap. Laith Hamdan Assign the technical owner. Open 09 Nov 2026, 13:59 Coordinate"':
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Environment · MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed)":
+              - link "Environment · MADAR_DIJLA · 113506-AE – ViTIP Production (Proposed)":
+                - /url: /environments/13
+            - cell "MADAR_DIJLA":
+              - generic: MA
+              - link "MADAR_DIJLA":
+                - /url: /clients/9
+            - 'cell "No technical owner: recorded as an assignment gap."':
+              - generic: "No technical owner: recorded as an assignment gap."
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Assign the technical owner.":
+              - generic: Assign the technical owner.
+            - cell "Open":
+              - generic: Open
+            - cell "09 Nov 2026, 13:59":
+              - generic: 09 Nov 2026, 13:59
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · Map-Pro-APP1 MADAR_DIJLA No technical owner recorded. Laith Hamdan Assign the asset owner. Open 09 Nov 2026, 14:09 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · Map-Pro-APP1":
+              - link "Asset · Map-Pro-APP1":
+                - /url: /assets/270
+            - cell "MADAR_DIJLA":
+              - generic: MA
+              - link "MADAR_DIJLA":
+                - /url: /clients/9
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "09 Nov 2026, 14:09":
+              - generic: 09 Nov 2026, 14:09
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-APP_Vip SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-APP_Vip":
+              - link "Asset · PAVS-PRO-APP_Vip":
+                - /url: /assets/253
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-APP1 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-APP1":
+              - link "Asset · PAVS-PRO-APP1":
+                - /url: /assets/235
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-APP2 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-APP2":
+              - link "Asset · PAVS-PRO-APP2":
+                - /url: /assets/236
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-DB1 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-DB1":
+              - link "Asset · PAVS-PRO-DB1":
+                - /url: /assets/239
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-DB2 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-DB2":
+              - link "Asset · PAVS-PRO-DB2":
+                - /url: /assets/240
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-LSNR SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-LSNR":
+              - link "Asset · PAVS-PRO-LSNR":
+                - /url: /assets/256
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-WEB1 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-WEB1":
+              - link "Asset · PAVS-PRO-WEB1":
+                - /url: /assets/237
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-PRO-WEB2 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-PRO-WEB2":
+              - link "Asset · PAVS-PRO-WEB2":
+                - /url: /assets/238
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+          - row "Select Missing owner Missing owner Asset · PAVS-STG-APP1 SEW No technical owner recorded. Mohammed Alqaruoti Assign the asset owner. Open 06 Nov 2026, 10:06 Coordinate":
+            - cell "Select Missing owner":
+              - checkbox "Select Missing owner"
+            - cell "Missing owner":
+              - generic: Missing owner
+            - cell "Asset · PAVS-STG-APP1":
+              - link "Asset · PAVS-STG-APP1":
+                - /url: /assets/241
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "No technical owner recorded.":
+              - generic: No technical owner recorded.
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "Assign the asset owner.":
+              - generic: Assign the asset owner.
+            - cell "Open":
+              - generic: Open
+            - cell "06 Nov 2026, 10:06":
+              - generic: 06 Nov 2026, 10:06
+            - cell "Coordinate":
+              - button "Coordinate"
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 263
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 263
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

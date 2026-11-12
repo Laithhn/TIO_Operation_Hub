@@ -1,0 +1,608 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Roles" [level=1]
+- generic: A person can hold several roles and their rights combine. Set what each role may do on the Rights page.
+- link "Edit rights":
+  - /url: /admin/rights
+- button "+ New role"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Roles":
+    - searchbox "Filter rows"
+    - generic: 3 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Roles":
+      - caption: Roles
+      - rowgroup:
+        - row "Select all rows shown Role Description Active users Rights Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Role":
+            - button "Role":
+              - generic: Role
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Active users":
+            - button "Active users":
+              - generic: Active users
+          - columnheader "Rights":
+            - button "Rights":
+              - generic: Rights
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - 'row "Select TIO Manager built-in Protected TIO Manager built-in Protected Runs the TIO team; administers the hub. Always holds every right. 2 active users hold TIO Manager: show who All rights Edit role TIO Manager Clone role TIO Manager Rights of TIO Manager"':
+          - cell "Select TIO Manager built-in Protected":
+            - checkbox "Select TIO Manager built-in Protected"
+          - cell "TIO Manager built-in Protected":
+            - button "TIO Manager":
+              - generic: TIO Manager
+            - generic: built-in
+            - generic: Protected
+          - cell "Runs the TIO team; administers the hub. Always holds every right.":
+            - generic: Runs the TIO team; administers the hub. Always holds every right.
+          - 'cell "2 active users hold TIO Manager: show who"':
+            - 'button "2 active users hold TIO Manager: show who"': "2"
+          - cell "All rights":
+            - text: All rights
+          - cell "Edit role TIO Manager Clone role TIO Manager Rights of TIO Manager":
+            - button "Edit role TIO Manager": Edit
+            - button "Clone role TIO Manager": Clone
+            - link "Rights of TIO Manager":
+              - /url: /admin/rights?role=1
+              - text: Rights
+        - 'row "Select Operation Engineer built-in Operation Engineer built-in Day-to-day operations work on every client. 13 active users hold Operation Engineer: show who Edit role Operation Engineer Clone role Operation Engineer Rights of Operation Engineer"':
+          - cell "Select Operation Engineer built-in":
+            - checkbox "Select Operation Engineer built-in"
+          - cell "Operation Engineer built-in":
+            - button "Operation Engineer":
+              - generic: Operation Engineer
+            - generic: built-in
+          - cell "Day-to-day operations work on every client.":
+            - generic: Day-to-day operations work on every client.
+          - 'cell "13 active users hold Operation Engineer: show who"':
+            - 'button "13 active users hold Operation Engineer: show who"': "13"
+          - cell:
+            - 'generic "145 rights of Operation Engineer: show the list"': 145 rights
+          - cell "Edit role Operation Engineer Clone role Operation Engineer Rights of Operation Engineer":
+            - button "Edit role Operation Engineer": Edit
+            - button "Clone role Operation Engineer": Clone
+            - link "Rights of Operation Engineer":
+              - /url: /admin/rights?role=2
+              - text: Rights
+        - 'row "Select ITD Manager ITD Manager Runs the TIO team; administers the hub. Always holds every right. 1 active users hold ITD Manager: show who Edit role ITD Manager Clone role ITD Manager Rights of ITD Manager Actions for role ITD Manager"':
+          - cell "Select ITD Manager":
+            - checkbox "Select ITD Manager"
+          - cell "ITD Manager":
+            - button "ITD Manager":
+              - generic: ITD Manager
+          - cell "Runs the TIO team; administers the hub. Always holds every right.":
+            - generic: Runs the TIO team; administers the hub. Always holds every right.
+          - 'cell "1 active users hold ITD Manager: show who"':
+            - 'button "1 active users hold ITD Manager: show who"': "1"
+          - cell:
+            - 'generic "249 rights of ITD Manager: show the list"': 249 rights
+          - cell "Edit role ITD Manager Clone role ITD Manager Rights of ITD Manager Actions for role ITD Manager":
+            - button "Edit role ITD Manager": Edit
+            - button "Clone role ITD Manager": Clone
+            - link "Rights of ITD Manager":
+              - /url: /admin/rights?role=3
+              - text: Rights
+            - button "Actions for role ITD Manager": ⋯
+    - status
+  - region "Compare roles":
+    - heading "Compare roles" [level=2]
+    - paragraph: Shows what each role is assigned on its own. A person's final access also depends on their other roles, individual exceptions and data scope.
+    - text: Find a right
+    - searchbox "Find a right"
+    - text: Module
+    - combobox "Module":
+      - option "All modules" [selected]
+      - option "Platform-wide controls"
+      - option "Clients"
+      - option "Products"
+      - option "Tickets"
+      - option "Commitments"
+      - option "Teams"
+      - option "Escalations"
+      - option "Dashboard"
+      - option "Reporting Center"
+      - option "Notes"
+      - option "Administration"
+    - checkbox "Only where roles differ"
+    - text: Only where roles differ
+    - status: 249 of 249 rights
+    - button "Expand all"
+    - button "Collapse all"
+    - region "Role and right comparison":
+      - table "Saved rights by role":
+        - rowgroup:
+          - row "Right Edit the rights of TIO Manager Protected Edit the rights of Operation Engineer Edit the rights of ITD Manager":
+            - columnheader "Right"
+            - columnheader "Edit the rights of TIO Manager Protected":
+              - link "Edit the rights of TIO Manager":
+                - /url: /admin/rights?role=1
+                - text: TIO Manager
+              - generic: Protected
+            - columnheader "Edit the rights of Operation Engineer":
+              - link "Edit the rights of Operation Engineer":
+                - /url: /admin/rights?role=2
+                - text: Operation Engineer
+            - columnheader "Edit the rights of ITD Manager":
+              - link "Edit the rights of ITD Manager":
+                - /url: /admin/rights?role=3
+                - text: ITD Manager
+        - rowgroup:
+          - 'row "Expand Platform-wide controls: Platform-wide controls TIO Manager: 4 of 4 assigned Operation Engineer: 1 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Platform-wide controls: Platform-wide controls"':
+              - 'button "Expand Platform-wide controls: Platform-wide controls"': "▸ Platform-wide controls: Platform-wide controls"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 1 of 4 assigned"':
+              - 'generic "Operation Engineer: 1 of 4 assigned"': 1 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Clients: Client structure TIO Manager: 36 of 36 assigned Operation Engineer: 26 of 36 assigned ITD Manager: 36 of 36 assigned"':
+            - 'rowheader "Expand Clients: Client structure"':
+              - 'button "Expand Clients: Client structure"': "▸ Clients: Client structure"
+            - 'cell "TIO Manager: 36 of 36 assigned"':
+              - 'generic "TIO Manager: 36 of 36 assigned"': 36 / 36
+            - 'cell "Operation Engineer: 26 of 36 assigned"':
+              - 'generic "Operation Engineer: 26 of 36 assigned"': 26 / 36
+            - 'cell "ITD Manager: 36 of 36 assigned"':
+              - 'generic "ITD Manager: 36 of 36 assigned"': 36 / 36
+        - rowgroup:
+          - 'row "Expand Clients: Projects TIO Manager: 13 of 13 assigned Operation Engineer: 0 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Clients: Projects"':
+              - 'button "Expand Clients: Projects"': "▸ Clients: Projects"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 0 of 13 assigned"':
+              - 'generic "Operation Engineer: 0 of 13 assigned"': 0 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Clients: Contracts TIO Manager: 13 of 13 assigned Operation Engineer: 0 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Clients: Contracts"':
+              - 'button "Expand Clients: Contracts"': "▸ Clients: Contracts"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 0 of 13 assigned"':
+              - 'generic "Operation Engineer: 0 of 13 assigned"': 0 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Clients: Environments TIO Manager: 20 of 20 assigned Operation Engineer: 20 of 20 assigned ITD Manager: 20 of 20 assigned"':
+            - 'rowheader "Expand Clients: Environments"':
+              - 'button "Expand Clients: Environments"': "▸ Clients: Environments"
+            - 'cell "TIO Manager: 20 of 20 assigned"':
+              - 'generic "TIO Manager: 20 of 20 assigned"': 20 / 20
+            - 'cell "Operation Engineer: 20 of 20 assigned"':
+              - 'generic "Operation Engineer: 20 of 20 assigned"': 20 / 20
+            - 'cell "ITD Manager: 20 of 20 assigned"':
+              - 'generic "ITD Manager: 20 of 20 assigned"': 20 / 20
+        - rowgroup:
+          - 'row "Expand Clients: Servers TIO Manager: 13 of 13 assigned Operation Engineer: 12 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Clients: Servers"':
+              - 'button "Expand Clients: Servers"': "▸ Clients: Servers"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 12 of 13 assigned"':
+              - 'generic "Operation Engineer: 12 of 13 assigned"': 12 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Clients: Installations TIO Manager: 13 of 13 assigned Operation Engineer: 12 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Clients: Installations"':
+              - 'button "Expand Clients: Installations"': "▸ Clients: Installations"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 12 of 13 assigned"':
+              - 'generic "Operation Engineer: 12 of 13 assigned"': 12 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Products: Products TIO Manager: 13 of 13 assigned Operation Engineer: 10 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Products: Products"':
+              - 'button "Expand Products: Products"': "▸ Products: Products"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 10 of 13 assigned"':
+              - 'generic "Operation Engineer: 10 of 13 assigned"': 10 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Tickets: Tickets TIO Manager: 21 of 21 assigned Operation Engineer: 19 of 21 assigned ITD Manager: 21 of 21 assigned"':
+            - 'rowheader "Expand Tickets: Tickets"':
+              - 'button "Expand Tickets: Tickets"': "▸ Tickets: Tickets"
+            - 'cell "TIO Manager: 21 of 21 assigned"':
+              - 'generic "TIO Manager: 21 of 21 assigned"': 21 / 21
+            - 'cell "Operation Engineer: 19 of 21 assigned"':
+              - 'generic "Operation Engineer: 19 of 21 assigned"': 19 / 21
+            - 'cell "ITD Manager: 21 of 21 assigned"':
+              - 'generic "ITD Manager: 21 of 21 assigned"': 21 / 21
+        - rowgroup:
+          - 'row "Expand Commitments: Commitments TIO Manager: 13 of 13 assigned Operation Engineer: 10 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Commitments: Commitments"':
+              - 'button "Expand Commitments: Commitments"': "▸ Commitments: Commitments"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 10 of 13 assigned"':
+              - 'generic "Operation Engineer: 10 of 13 assigned"': 10 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Teams: Teams and handovers TIO Manager: 13 of 13 assigned Operation Engineer: 10 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Teams: Teams and handovers"':
+              - 'button "Expand Teams: Teams and handovers"': "▸ Teams: Teams and handovers"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 10 of 13 assigned"':
+              - 'generic "Operation Engineer: 10 of 13 assigned"': 10 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Teams: Handovers TIO Manager: 3 of 3 assigned Operation Engineer: 3 of 3 assigned ITD Manager: 3 of 3 assigned"':
+            - 'rowheader "Expand Teams: Handovers"':
+              - 'button "Expand Teams: Handovers"': "▸ Teams: Handovers"
+            - 'cell "TIO Manager: 3 of 3 assigned"':
+              - 'generic "TIO Manager: 3 of 3 assigned"': 3 / 3
+            - 'cell "Operation Engineer: 3 of 3 assigned"':
+              - 'generic "Operation Engineer: 3 of 3 assigned"': 3 / 3
+            - 'cell "ITD Manager: 3 of 3 assigned"':
+              - 'generic "ITD Manager: 3 of 3 assigned"': 3 / 3
+        - rowgroup:
+          - 'row "Expand Teams: Reassignment queue TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Teams: Reassignment queue"':
+              - 'button "Expand Teams: Reassignment queue"': "▸ Teams: Reassignment queue"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Escalations: Other operations TIO Manager: 13 of 13 assigned Operation Engineer: 10 of 13 assigned ITD Manager: 13 of 13 assigned"':
+            - 'rowheader "Expand Escalations: Other operations"':
+              - 'button "Expand Escalations: Other operations"': "▸ Escalations: Other operations"
+            - 'cell "TIO Manager: 13 of 13 assigned"':
+              - 'generic "TIO Manager: 13 of 13 assigned"': 13 / 13
+            - 'cell "Operation Engineer: 10 of 13 assigned"':
+              - 'generic "Operation Engineer: 10 of 13 assigned"': 10 / 13
+            - 'cell "ITD Manager: 13 of 13 assigned"':
+              - 'generic "ITD Manager: 13 of 13 assigned"': 13 / 13
+        - rowgroup:
+          - 'row "Expand Dashboard: Operations dashboard TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: Operations dashboard"':
+              - 'button "Expand Dashboard: Operations dashboard"': "▸ Dashboard: Operations dashboard"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: Notifications TIO Manager: 3 of 3 assigned Operation Engineer: 0 of 3 assigned ITD Manager: 3 of 3 assigned"':
+            - 'rowheader "Expand Dashboard: Notifications"':
+              - 'button "Expand Dashboard: Notifications"': "▸ Dashboard: Notifications"
+            - 'cell "TIO Manager: 3 of 3 assigned"':
+              - 'generic "TIO Manager: 3 of 3 assigned"': 3 / 3
+            - 'cell "Operation Engineer: 0 of 3 assigned"':
+              - 'generic "Operation Engineer: 0 of 3 assigned"': 0 / 3
+            - 'cell "ITD Manager: 3 of 3 assigned"':
+              - 'generic "ITD Manager: 3 of 3 assigned"': 3 / 3
+        - rowgroup:
+          - 'row "Expand Dashboard: My dashboard TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: My dashboard"':
+              - 'button "Expand Dashboard: My dashboard"': "▸ Dashboard: My dashboard"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: Client map TIO Manager: 1 of 1 assigned Operation Engineer: 0 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: Client map"':
+              - 'button "Expand Dashboard: Client map"': "▸ Dashboard: Client map"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 0 of 1 assigned"':
+              - 'generic "Operation Engineer: 0 of 1 assigned"': 0 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: Action list TIO Manager: 1 of 1 assigned Operation Engineer: 0 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: Action list"':
+              - 'button "Expand Dashboard: Action list"': "▸ Dashboard: Action list"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 0 of 1 assigned"':
+              - 'generic "Operation Engineer: 0 of 1 assigned"': 0 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: Data quality TIO Manager: 2 of 2 assigned Operation Engineer: 0 of 2 assigned ITD Manager: 2 of 2 assigned"':
+            - 'rowheader "Expand Dashboard: Data quality"':
+              - 'button "Expand Dashboard: Data quality"': "▸ Dashboard: Data quality"
+            - 'cell "TIO Manager: 2 of 2 assigned"':
+              - 'generic "TIO Manager: 2 of 2 assigned"': 2 / 2
+            - 'cell "Operation Engineer: 0 of 2 assigned"':
+              - 'generic "Operation Engineer: 0 of 2 assigned"': 0 / 2
+            - 'cell "ITD Manager: 2 of 2 assigned"':
+              - 'generic "ITD Manager: 2 of 2 assigned"': 2 / 2
+        - rowgroup:
+          - 'row "Expand Dashboard: Operational dashboard TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: Operational dashboard"':
+              - 'button "Expand Dashboard: Operational dashboard"': "▸ Dashboard: Operational dashboard"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: SLA & Contracts dashboard TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: SLA & Contracts dashboard"':
+              - 'button "Expand Dashboard: SLA & Contracts dashboard"': "▸ Dashboard: SLA & Contracts dashboard"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: Management dashboard TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: Management dashboard"':
+              - 'button "Expand Dashboard: Management dashboard"': "▸ Dashboard: Management dashboard"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Dashboard: Project dashboard TIO Manager: 1 of 1 assigned Operation Engineer: 1 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Dashboard: Project dashboard"':
+              - 'button "Expand Dashboard: Project dashboard"': "▸ Dashboard: Project dashboard"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 1 of 1 assigned"':
+              - 'generic "Operation Engineer: 1 of 1 assigned"': 1 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Reporting Center: Reporting center TIO Manager: 1 of 1 assigned Operation Engineer: 0 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Reporting Center: Reporting center"':
+              - 'button "Expand Reporting Center: Reporting center"': "▸ Reporting Center: Reporting center"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 0 of 1 assigned"':
+              - 'generic "Operation Engineer: 0 of 1 assigned"': 0 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Reporting Center: Overview TIO Manager: 1 of 1 assigned Operation Engineer: 0 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Reporting Center: Overview"':
+              - 'button "Expand Reporting Center: Overview"': "▸ Reporting Center: Overview"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 0 of 1 assigned"':
+              - 'generic "Operation Engineer: 0 of 1 assigned"': 0 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Reporting Center: Report library TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Reporting Center: Report library"':
+              - 'button "Expand Reporting Center: Report library"': "▸ Reporting Center: Report library"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Reporting Center: Tickets report builder TIO Manager: 2 of 2 assigned Operation Engineer: 0 of 2 assigned ITD Manager: 2 of 2 assigned"':
+            - 'rowheader "Expand Reporting Center: Tickets report builder"':
+              - 'button "Expand Reporting Center: Tickets report builder"': "▸ Reporting Center: Tickets report builder"
+            - 'cell "TIO Manager: 2 of 2 assigned"':
+              - 'generic "TIO Manager: 2 of 2 assigned"': 2 / 2
+            - 'cell "Operation Engineer: 0 of 2 assigned"':
+              - 'generic "Operation Engineer: 0 of 2 assigned"': 0 / 2
+            - 'cell "ITD Manager: 2 of 2 assigned"':
+              - 'generic "ITD Manager: 2 of 2 assigned"': 2 / 2
+        - rowgroup:
+          - 'row "Expand Reporting Center: My reports TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Reporting Center: My reports"':
+              - 'button "Expand Reporting Center: My reports"': "▸ Reporting Center: My reports"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Reporting Center: Scheduled reports TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Reporting Center: Scheduled reports"':
+              - 'button "Expand Reporting Center: Scheduled reports"': "▸ Reporting Center: Scheduled reports"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Reporting Center: Export history TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Reporting Center: Export history"':
+              - 'button "Expand Reporting Center: Export history"': "▸ Reporting Center: Export history"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Reporting Center: Templates TIO Manager: 1 of 1 assigned Operation Engineer: 0 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Reporting Center: Templates"':
+              - 'button "Expand Reporting Center: Templates"': "▸ Reporting Center: Templates"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 0 of 1 assigned"':
+              - 'generic "Operation Engineer: 0 of 1 assigned"': 0 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Notes: Personal notes TIO Manager: 5 of 5 assigned Operation Engineer: 5 of 5 assigned ITD Manager: 5 of 5 assigned"':
+            - 'rowheader "Expand Notes: Personal notes"':
+              - 'button "Expand Notes: Personal notes"': "▸ Notes: Personal notes"
+            - 'cell "TIO Manager: 5 of 5 assigned"':
+              - 'generic "TIO Manager: 5 of 5 assigned"': 5 / 5
+            - 'cell "Operation Engineer: 5 of 5 assigned"':
+              - 'generic "Operation Engineer: 5 of 5 assigned"': 5 / 5
+            - 'cell "ITD Manager: 5 of 5 assigned"':
+              - 'generic "ITD Manager: 5 of 5 assigned"': 5 / 5
+        - rowgroup:
+          - 'row "Expand Administration: Users TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Administration: Users"':
+              - 'button "Expand Administration: Users"': "▸ Administration: Users"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Administration: Roles and rights TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Administration: Roles and rights"':
+              - 'button "Expand Administration: Roles and rights"': "▸ Administration: Roles and rights"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Administration: Directory group mappings TIO Manager: 3 of 3 assigned Operation Engineer: 0 of 3 assigned ITD Manager: 3 of 3 assigned"':
+            - 'rowheader "Expand Administration: Directory group mappings"':
+              - 'button "Expand Administration: Directory group mappings"': "▸ Administration: Directory group mappings"
+            - 'cell "TIO Manager: 3 of 3 assigned"':
+              - 'generic "TIO Manager: 3 of 3 assigned"': 3 / 3
+            - 'cell "Operation Engineer: 0 of 3 assigned"':
+              - 'generic "Operation Engineer: 0 of 3 assigned"': 0 / 3
+            - 'cell "ITD Manager: 3 of 3 assigned"':
+              - 'generic "ITD Manager: 3 of 3 assigned"': 3 / 3
+        - rowgroup:
+          - 'row "Expand Administration: Configuration TIO Manager: 4 of 4 assigned Operation Engineer: 0 of 4 assigned ITD Manager: 4 of 4 assigned"':
+            - 'rowheader "Expand Administration: Configuration"':
+              - 'button "Expand Administration: Configuration"': "▸ Administration: Configuration"
+            - 'cell "TIO Manager: 4 of 4 assigned"':
+              - 'generic "TIO Manager: 4 of 4 assigned"': 4 / 4
+            - 'cell "Operation Engineer: 0 of 4 assigned"':
+              - 'generic "Operation Engineer: 0 of 4 assigned"': 0 / 4
+            - 'cell "ITD Manager: 4 of 4 assigned"':
+              - 'generic "ITD Manager: 4 of 4 assigned"': 4 / 4
+        - rowgroup:
+          - 'row "Expand Administration: Settings TIO Manager: 2 of 2 assigned Operation Engineer: 0 of 2 assigned ITD Manager: 2 of 2 assigned"':
+            - 'rowheader "Expand Administration: Settings"':
+              - 'button "Expand Administration: Settings"': "▸ Administration: Settings"
+            - 'cell "TIO Manager: 2 of 2 assigned"':
+              - 'generic "TIO Manager: 2 of 2 assigned"': 2 / 2
+            - 'cell "Operation Engineer: 0 of 2 assigned"':
+              - 'generic "Operation Engineer: 0 of 2 assigned"': 0 / 2
+            - 'cell "ITD Manager: 2 of 2 assigned"':
+              - 'generic "ITD Manager: 2 of 2 assigned"': 2 / 2
+        - rowgroup:
+          - 'row "Expand Administration: Change history TIO Manager: 1 of 1 assigned Operation Engineer: 0 of 1 assigned ITD Manager: 1 of 1 assigned"':
+            - 'rowheader "Expand Administration: Change history"':
+              - 'button "Expand Administration: Change history"': "▸ Administration: Change history"
+            - 'cell "TIO Manager: 1 of 1 assigned"':
+              - 'generic "TIO Manager: 1 of 1 assigned"': 1 / 1
+            - 'cell "Operation Engineer: 0 of 1 assigned"':
+              - 'generic "Operation Engineer: 0 of 1 assigned"': 0 / 1
+            - 'cell "ITD Manager: 1 of 1 assigned"':
+              - 'generic "ITD Manager: 1 of 1 assigned"': 1 / 1
+        - rowgroup:
+          - 'row "Expand Administration: Integrations TIO Manager: 3 of 3 assigned Operation Engineer: 0 of 3 assigned ITD Manager: 3 of 3 assigned"':
+            - 'rowheader "Expand Administration: Integrations"':
+              - 'button "Expand Administration: Integrations"': "▸ Administration: Integrations"
+            - 'cell "TIO Manager: 3 of 3 assigned"':
+              - 'generic "TIO Manager: 3 of 3 assigned"': 3 / 3
+            - 'cell "Operation Engineer: 0 of 3 assigned"':
+              - 'generic "Operation Engineer: 0 of 3 assigned"': 0 / 3
+            - 'cell "ITD Manager: 3 of 3 assigned"':
+              - 'generic "ITD Manager: 3 of 3 assigned"': 3 / 3
+    - paragraph: ✓ effective for this role alone · ! assigned, but a prerequisite is missing · • assigned, role inactive · — not assigned
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

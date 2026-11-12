@@ -1,0 +1,513 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Clients" [level=1]
+- generic: Countries group clients for reporting; regions are optional and shown only where a client has them.
+- link "+ New Client":
+  - /url: /clients/new
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Clients":
+    - searchbox "Search all clients"
+    - generic: 20 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Clients: scroll sideways for more columns"':
+      - table "Clients":
+        - caption: Clients
+        - rowgroup:
+          - row "Select all rows shown Alias Client Country Status Structure Environments Open tickets Overdue commitments Project manager Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Alias":
+              - button "Alias":
+                - generic: Alias
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Country":
+              - button "Country":
+                - generic: Country
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Structure":
+              - button "Structure":
+                - generic: Structure
+            - columnheader "Environments":
+              - button "Environments":
+                - generic: Environments
+            - columnheader "Open tickets":
+              - button "Open tickets":
+                - generic: Open tickets
+            - columnheader "Overdue commitments":
+              - button "Overdue commitments":
+                - generic: Overdue commitments
+            - columnheader "Project manager":
+              - button "Project manager":
+                - generic: Project manager
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select ADP ADP Abu Dhabi Police 2 sub-client(s) United Arab Emirates Opportunity Direct 0 0 0 Laith Hamdan Actions for client ADP":
+            - cell "Select ADP":
+              - checkbox "Select ADP"
+            - cell "ADP":
+              - link "ADP":
+                - /url: /clients/8
+            - cell "Abu Dhabi Police 2 sub-client(s)":
+              - link "Abu Dhabi Police":
+                - /url: /clients/8
+              - generic: 2 sub-client(s)
+            - cell "United Arab Emirates":
+              - generic: United Arab Emirates
+            - cell "Opportunity":
+              - generic: Opportunity
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client ADP":
+              - button "Actions for client ADP": ⋯
+          - row "Select ↳ ADP-STC ADP-STC Abu Dhabi Police STC Sub-client of ADP United Arab Emirates Active Direct 0 0 0 Laith Hamdan Actions for client ADP-STC":
+            - cell "Select ↳ ADP-STC":
+              - checkbox "Select ↳ ADP-STC"
+            - cell "ADP-STC":
+              - text: ↳
+              - link "ADP-STC":
+                - /url: /clients/24
+            - cell "Abu Dhabi Police STC Sub-client of ADP":
+              - link "Abu Dhabi Police STC":
+                - /url: /clients/24
+              - generic: Sub-client of ADP
+            - cell "United Arab Emirates":
+              - generic: United Arab Emirates
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client ADP-STC":
+              - button "Actions for client ADP-STC": ⋯
+          - row "Select ↳ ADP-TRAFFIC ADP-TRAFFIC Abu Dhabi Traffic Department Sub-client of ADP United Arab Emirates Active Direct 0 0 0 Laith Hamdan Actions for client ADP-TRAFFIC":
+            - cell "Select ↳ ADP-TRAFFIC":
+              - checkbox "Select ↳ ADP-TRAFFIC"
+            - cell "ADP-TRAFFIC":
+              - text: ↳
+              - link "ADP-TRAFFIC":
+                - /url: /clients/23
+            - cell "Abu Dhabi Traffic Department Sub-client of ADP":
+              - link "Abu Dhabi Traffic Department":
+                - /url: /clients/23
+              - generic: Sub-client of ADP
+            - cell "United Arab Emirates":
+              - generic: United Arab Emirates
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client ADP-TRAFFIC":
+              - button "Actions for client ADP-TRAFFIC": ⋯
+          - row "Select DGSN DGSN NATIONAL GENDARMERIE (DGSN) Morocco Opportunity Direct 0 0 0 Laith Hamdan Actions for client DGSN":
+            - cell "Select DGSN":
+              - checkbox "Select DGSN"
+            - cell "DGSN":
+              - link "DGSN":
+                - /url: /clients/12
+            - cell "NATIONAL GENDARMERIE (DGSN)":
+              - link "NATIONAL GENDARMERIE (DGSN)":
+                - /url: /clients/12
+            - cell "Morocco":
+              - generic: Morocco
+            - cell "Opportunity":
+              - generic: Opportunity
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client DGSN":
+              - button "Actions for client DGSN": ⋯
+          - row "Select DUBAI_POLICE DUBAI_POLICE Dubai Police 2 sub-client(s) United Arab Emirates Active Direct 0 0 0 Laith Hamdan Actions for client DUBAI_POLICE":
+            - cell "Select DUBAI_POLICE":
+              - checkbox "Select DUBAI_POLICE"
+            - cell "DUBAI_POLICE":
+              - link "DUBAI_POLICE":
+                - /url: /clients/2
+            - cell "Dubai Police 2 sub-client(s)":
+              - link "Dubai Police":
+                - /url: /clients/2
+              - generic: 2 sub-client(s)
+            - cell "United Arab Emirates":
+              - generic: United Arab Emirates
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client DUBAI_POLICE":
+              - button "Actions for client DUBAI_POLICE": ⋯
+          - row "Select ↳ OYOON OYOON OYOON Center Sub-client of DUBAI_POLICE United Arab Emirates Active Direct 0 9 0 Laith Hamdan Actions for client OYOON":
+            - cell "Select ↳ OYOON":
+              - checkbox "Select ↳ OYOON"
+            - cell "OYOON":
+              - text: ↳
+              - generic: OC
+              - link "OYOON":
+                - /url: /clients/3
+            - cell "OYOON Center Sub-client of DUBAI_POLICE":
+              - link "OYOON Center":
+                - /url: /clients/3
+              - generic: Sub-client of DUBAI_POLICE
+            - cell "United Arab Emirates":
+              - generic: United Arab Emirates
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "9":
+              - generic: "9"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client OYOON":
+              - button "Actions for client OYOON": ⋯
+          - row "Select ↳ TRAFFIC TRAFFIC Dubai Traffic Department Sub-client of DUBAI_POLICE United Arab Emirates Active Direct 0 0 0 Laith Hamdan Actions for client TRAFFIC":
+            - cell "Select ↳ TRAFFIC":
+              - checkbox "Select ↳ TRAFFIC"
+            - cell "TRAFFIC":
+              - text: ↳
+              - generic: DT
+              - link "TRAFFIC":
+                - /url: /clients/4
+            - cell "Dubai Traffic Department Sub-client of DUBAI_POLICE":
+              - link "Dubai Traffic Department":
+                - /url: /clients/4
+              - generic: Sub-client of DUBAI_POLICE
+            - cell "United Arab Emirates":
+              - generic: United Arab Emirates
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client TRAFFIC":
+              - button "Actions for client TRAFFIC": ⋯
+          - row "Select EIFFAGE EIFFAGE Eiffage Concessions Senegal Active Direct 0 0 0 Reda Moulouki Actions for client EIFFAGE":
+            - cell "Select EIFFAGE":
+              - checkbox "Select EIFFAGE"
+            - cell "EIFFAGE":
+              - link "EIFFAGE":
+                - /url: /clients/18
+            - cell "Eiffage Concessions":
+              - link "Eiffage Concessions":
+                - /url: /clients/18
+            - cell "Senegal":
+              - generic: Senegal
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Reda Moulouki":
+              - generic: Reda Moulouki
+            - cell "Actions for client EIFFAGE":
+              - button "Actions for client EIFFAGE": ⋯
+          - row "Select MADAR_DIJLA MADAR_DIJLA Madar Dijla Iraq Active Direct 1 0 0 Laith Hamdan Actions for client MADAR_DIJLA":
+            - cell "Select MADAR_DIJLA":
+              - checkbox "Select MADAR_DIJLA"
+            - cell "MADAR_DIJLA":
+              - generic: MD
+              - link "MADAR_DIJLA":
+                - /url: /clients/9
+            - cell "Madar Dijla":
+              - link "Madar Dijla":
+                - /url: /clients/9
+            - cell "Iraq":
+              - generic: Iraq
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client MADAR_DIJLA":
+              - button "Actions for client MADAR_DIJLA": ⋯
+          - row "Select MULTICOM MULTICOM MULTICOM - IT Security Tunisia Active Direct 0 0 0 Laith Hamdan Actions for client MULTICOM":
+            - cell "Select MULTICOM":
+              - checkbox "Select MULTICOM"
+            - cell "MULTICOM":
+              - generic: MI
+              - link "MULTICOM":
+                - /url: /clients/19
+            - cell "MULTICOM - IT Security":
+              - link "MULTICOM - IT Security":
+                - /url: /clients/19
+            - cell "Tunisia":
+              - generic: Tunisia
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client MULTICOM":
+              - button "Actions for client MULTICOM": ⋯
+          - row "Select NARSA NARSA NARSA Morocco Active Direct 0 0 0 Laith Hamdan Actions for client NARSA":
+            - cell "Select NARSA":
+              - checkbox "Select NARSA"
+            - cell "NARSA":
+              - generic: NA
+              - link "NARSA":
+                - /url: /clients/11
+            - cell "NARSA":
+              - link "NARSA":
+                - /url: /clients/11
+            - cell "Morocco":
+              - generic: Morocco
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client NARSA":
+              - button "Actions for client NARSA": ⋯
+          - row "Select PESAPRINT PESAPRINT Pesa Print Kenya Active Direct 0 0 0 Laith Hamdan Actions for client PESAPRINT":
+            - cell "Select PESAPRINT":
+              - checkbox "Select PESAPRINT"
+            - cell "PESAPRINT":
+              - generic: PP
+              - link "PESAPRINT":
+                - /url: /clients/16
+            - cell "Pesa Print":
+              - link "Pesa Print":
+                - /url: /clients/16
+            - cell "Kenya":
+              - generic: Kenya
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client PESAPRINT":
+              - button "Actions for client PESAPRINT": ⋯
+          - row "Select QATAR_MOI QATAR_MOI Qatar MOI Qatar Opportunity Direct 0 0 0 Laith Hamdan Actions for client QATAR_MOI":
+            - cell "Select QATAR_MOI":
+              - checkbox "Select QATAR_MOI"
+            - cell "QATAR_MOI":
+              - generic: QM
+              - link "QATAR_MOI":
+                - /url: /clients/17
+            - cell "Qatar MOI":
+              - link "Qatar MOI":
+                - /url: /clients/17
+            - cell "Qatar":
+              - generic: Qatar
+            - cell "Opportunity":
+              - generic: Opportunity
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client QATAR_MOI":
+              - button "Actions for client QATAR_MOI": ⋯
+          - row "Select RNP RNP Rwanda National Ploce Rwanda Active Direct 0 65 0 Laith Hamdan Actions for client RNP":
+            - cell "Select RNP":
+              - checkbox "Select RNP"
+            - cell "RNP":
+              - generic: RN
+              - link "RNP":
+                - /url: /clients/10
+            - cell "Rwanda National Ploce":
+              - link "Rwanda National Ploce":
+                - /url: /clients/10
+            - cell "Rwanda":
+              - generic: Rwanda
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "65":
+              - generic: "65"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client RNP":
+              - button "Actions for client RNP": ⋯
+          - row "Select ROP ROP Royal Oman Police (ROP) Oman Active Direct 0 0 0 Laith Hamdan Actions for client ROP":
+            - cell "Select ROP":
+              - checkbox "Select ROP"
+            - cell "ROP":
+              - generic: RO
+              - link "ROP":
+                - /url: /clients/15
+            - cell "Royal Oman Police (ROP)":
+              - link "Royal Oman Police (ROP)":
+                - /url: /clients/15
+            - cell "Oman":
+              - generic: Oman
+            - cell "Active":
+              - text: Active
+            - cell "Direct":
+              - generic: Direct
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for client ROP":
+              - button "Actions for client ROP": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 20
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 20
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

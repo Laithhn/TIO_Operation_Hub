@@ -1,0 +1,15 @@
+{
+  "id": "R076-laptop",
+  "route": "/admin/config/priority-guidance",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Priority guidance"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 721,
+  "title": "Priority guidance · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

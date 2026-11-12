@@ -1,0 +1,15 @@
+{
+  "id": "R066-desktop",
+  "route": "/admin/config/server-types",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Server types"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 474,
+  "title": "Server types · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

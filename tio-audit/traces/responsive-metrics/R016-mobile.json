@@ -1,0 +1,15 @@
+{
+  "id": "R016-mobile",
+  "route": "/environments",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Environments"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 1128,
+  "title": "Environments · TIO Operations Hub",
+  "width": 390
+}

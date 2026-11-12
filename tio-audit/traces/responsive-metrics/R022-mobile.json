@@ -1,0 +1,15 @@
+{
+  "id": "R022-mobile",
+  "route": "/actions",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Action list"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 3211,
+  "title": "Action list · TIO Operations Hub",
+  "width": 390
+}

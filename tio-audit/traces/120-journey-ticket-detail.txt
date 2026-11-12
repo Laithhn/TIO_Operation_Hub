@@ -1,0 +1,449 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Tickets":
+    - /url: /cases
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - generic: CS-2595
+- heading "CS-2595 · R3 Backoffice Slowess issue" [level=1]
+- text: Waiting for customer
+- text: Critical
+- text: Bug · Client-related
+- text: Waiting on Customer
+- text: Overdue
+- link "Edit":
+  - /url: /cases/10795/edit
+- button "Reassign"
+- button "Record progress"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All tickets":
+      - /url: /cases
+    - link "New ticket":
+      - /url: /cases/new
+  - button "Expand menu":
+- main:
+  - generic: This ticket's status follows Jira, so change it there. The due dates come from the Jira creation time and the contract SLA.
+  - generic: Assigned in Jira to Yousef al abdulrahim, representing the client. The ticket waits on the customer until Jira reassigns it.
+  - region "What matters now":
+    - generic: Latest activity
+    - generic: Waiting started
+    - generic: System · 10 Nov 2026, 17:47
+    - generic: Next action
+    - generic: Review the ticket imported from Jira.
+    - text: Next review 07 Nov 2026, 14:38
+    - text: Review passed
+    - generic: Owner
+    - text: Moataz Al Khaldi
+    - generic: from Jira
+    - generic: KSA Operation Team
+    - generic: SLA and deadline
+    - generic "First response":
+      - text: First response
+      - text: Met
+    - generic "Resolution":
+      - text: Resolution
+      - text: Breached
+    - generic: Due 2026-11-08 08:38 +03:00 (Asia/Riyadh)
+  - heading "Jira details (imported)" [level=2]:
+    - button "Jira details (imported)" [expanded]: Jira details (imported)
+  - button "Sync with Jira"
+  - region "Jira integration":
+    - generic: Jira integration (Poliscan Cloud Jira)
+    - text: Synchronized
+    - generic: "Last sync: 10 Nov 2026, 17:52 · Next sync: 10 Nov 2026, 22:05"
+  - term: Jira issue
+  - definition:
+    - link "TAH-2382":
+      - /url: https://poliscan.atlassian.net/browse/TAH-2382
+  - term: Jira status
+  - definition:
+    - generic: Verification
+  - term: Jira assignee
+  - definition: Yousef al abdulrahim
+  - term: Ticket Classification
+  - definition: Issue
+  - term: Application Component
+  - definition: Backoffice
+  - term: Program
+  - definition: MOI
+  - term: Jira issue type
+  - definition: Task
+  - term: Jira component
+  - definition: —
+  - term: Jira priority
+  - definition: P1 - Critical
+  - term: Jira due date
+  - definition: —
+  - term: Jira resolution
+  - definition: —
+  - term: Reporter
+  - definition: Yousef al abdulrahim
+  - term: Jira created
+  - definition: 05 Nov 2026, 14:33
+  - term: Jira URL
+  - definition:
+    - link "https://poliscan.atlassian.net/browse/TAH-2382":
+      - /url: https://poliscan.atlassian.net/browse/TAH-2382
+  - heading "Description (Jira)" [level=3]
+  - generic: "This Jira for repeated issue in R3 APP Server causing slowness due to a failure in Endpoint: https://r3psopservice.tahakom.com/api/Psop/OperationalData/Incident/FirstUnprocessedIncident As observed in the monitoring trace, multiple consecutive GET requests to the endpoint remain pending for approximately 1 minute and 40 seconds, eventually showing \"No response\" We need your kind support to investigate and share your feedback regarding R3 Backoffice Slowness"
+  - tablist:
+    - tab "Activity" [selected]:
+      - generic: Activity
+    - tab "Affected records (0)":
+      - generic: Affected records (0)
+    - tab "Jira references (1)":
+      - generic: Jira references (1)
+    - tab "Documented impact":
+      - generic: Documented impact
+    - tab "Commitments (0)":
+      - generic: Commitments (0)
+    - tab "Escalations":
+      - generic: Escalations
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Field history":
+      - generic: Field history
+  - heading "Activity & comments" [level=2]
+  - group "Show activity":
+    - button "All activity (17)" [pressed]:
+      - text: All activity
+      - generic: (17)
+    - button "Jira comments (4)":
+      - text: Jira comments
+      - generic: (4)
+    - button "TIO comments (0)":
+      - text: TIO comments
+      - generic: (0)
+    - button "Workflow changes (1)":
+      - text: Workflow changes
+      - generic: (1)
+    - button "Assignments (4)":
+      - text: Assignments
+      - generic: (4)
+  - checkbox "Show system activity" [checked]
+  - text: Show system activity
+  - generic: LH
+  - text: Add a comment to this ticket (TIO only)
+  - textbox "Add a comment to this ticket (TIO only)":
+    - /placeholder: Write a comment for the team…
+  - generic: This comment is saved in TIO Operations Hub only and will not be sent to Jira.
+  - button "Add comment" [disabled]
+  - region "Today · November 10, 2026":
+    - heading "Today · November 10, 2026" [level=4]:
+      - generic: Today · November 10, 2026
+    - list:
+      - text: Waiting started
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: Customer
+      - text: System · 10 Nov 2026, 17:47
+      - generic: TIO
+      - generic: "Assigned in Jira to Yousef al abdulrahim: TAH-2382"
+      - text: Jira assignment
+      - generic: from
+      - generic: Moataz Al Khaldi
+      - generic: →
+      - generic: to
+      - generic: Yousef al abdulrahim
+      - text: Moataz Al Khaldi · 10 Nov 2026, 17:45
+      - generic: Jira
+      - generic: · TAH-2382
+      - generic: MA
+      - text: Moataz Al Khaldi
+      - generic: Jira
+      - generic: 10 Nov 2026, 17:45
+      - generic: Dear Team, Following our investigation, we noticed that FirstUnprocessed is sometimes slow. In coordination with the development team, we deployed a new package with some improvements and additional logs to investigate the issue further. Please let us know if you notice any issues. Best regards,
+      - generic: "Jira comment · TAH-2382 · Comment #70738"
+      - generic: NA
+      - text: Nasser AlTuraiki
+      - generic: Jira
+      - generic: 10 Nov 2026, 12:41
+      - generic: Dear @Moataz Al Khaldi, For your Feedback
+      - generic: "Jira comment · TAH-2382 · Comment #70734"
+  - region "November 8, 2026":
+    - heading "November 8, 2026" [level=4]:
+      - generic: November 8, 2026
+    - list:
+      - generic: KS
+      - text: Kareem Shaheen
+      - generic: Jira
+      - generic: 08 Nov 2026, 15:28
+      - generic: Dear @Moataz Al Khaldi @Yousef al abdulrahim Can you please share feedback on the progress
+      - generic: "Jira comment · TAH-2382 · Comment #70710"
+      - text: Priority changed
+      - generic: from
+      - generic: Normal
+      - generic: →
+      - generic: to
+      - generic: Critical
+      - text: System · 08 Nov 2026, 12:40
+      - generic: TIO
+      - generic: "From Jira TAH-2382: P1 - Critical"
+      - text: Jira priority change
+      - generic: from
+      - generic: P3 - Normal
+      - generic: →
+      - generic: to
+      - generic: P1 - Critical
+      - text: Mohammed AlRammah · 08 Nov 2026, 12:39
+      - generic: Jira
+      - generic: · TAH-2382
+  - region "November 5, 2026":
+    - heading "November 5, 2026" [level=4]:
+      - generic: November 5, 2026
+    - list:
+      - text: Waiting ended
+      - generic: from
+      - generic: Customer
+      - generic: →
+      - generic: to
+      - generic: —
+      - text: System · 05 Nov 2026, 15:40
+      - generic: TIO
+      - generic: "Reassigned in Jira: TAH-2382"
+      - text: Jira assignment
+      - generic: from
+      - generic: Yousef al abdulrahim
+      - generic: →
+      - generic: to
+      - generic: Moataz Al Khaldi
+      - text: ahmed Khalifa · 05 Nov 2026, 15:40
+      - generic: Jira
+      - generic: · TAH-2382
+      - text: First response
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: 2026-11-05T11:32:18.0500000+00:00
+      - text: System · 05 Nov 2026, 15:35
+      - generic: TIO
+      - generic: First Jira reply on TAH-2382
+      - text: Waiting started
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: Customer
+      - text: System · 05 Nov 2026, 15:35
+      - generic: TIO
+      - generic: "Assigned in Jira to Yousef al abdulrahim: TAH-2382"
+      - text: Jira assignment
+      - generic: from
+      - generic: Moataz Al Khaldi
+      - generic: →
+      - generic: to
+      - generic: Yousef al abdulrahim
+      - text: ahmed Khalifa · 05 Nov 2026, 15:32
+      - generic: Jira
+      - generic: · TAH-2382
+      - generic: AK
+      - text: ahmed Khalifa
+      - generic: Jira
+      - generic: 05 Nov 2026, 15:32
+      - generic: Dear @Yousef al abdulrahim , We are collecting logs from all WEB and APP servers. Once the investigation is completed, we will share our findings and provide you with an update.
+      - generic: "Jira comment · TAH-2382 · Comment #70695"
+      - text: Owner changed
+      - generic: from
+      - generic: Unassigned
+      - generic: →
+      - generic: to
+      - generic: Moataz Al Khaldi
+      - text: System · 05 Nov 2026, 14:38
+      - generic: TIO
+      - generic: From Jira TAH-2382
+      - text: Jira added
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: Poliscan Cloud Jira TAH-2382
+      - text: System · 05 Nov 2026, 14:38
+      - generic: TIO
+      - generic: Source issue of the Jira synchronization
+      - text: Contract changed
+      - generic: from
+      - generic: No contract
+      - generic: →
+      - generic: to
+      - generic: CT-1001
+      - text: System · 05 Nov 2026, 14:38
+      - generic: TIO
+      - generic: The contract linked to Jira space TAH that covers the ticket's creation date
+      - text: Created
+      - generic: from
+      - generic: —
+      - generic: →
+      - generic: to
+      - generic: New
+      - text: System · 05 Nov 2026, 14:38
+      - generic: TIO
+      - generic: Imported from Jira TAH-2382
+  - complementary "Ticket details":
+    - heading "Management summary" [level=2]:
+      - button "Management summary" [expanded]: Management summary
+    - term: Owner
+    - definition:
+      - text: Moataz Al Khaldi
+      - generic: from Jira
+    - term: Backup owner
+    - definition: None
+    - term: Responsible team
+    - definition: KSA Operation Team
+    - term: Coordinator
+    - definition: —
+    - term: Responsible party
+    - definition: Customer IT
+    - term: Impact
+    - definition: Not yet assessed. Imported from Jira TAH-2382.
+    - term: Progress
+    - definition: No progress recorded
+    - term: Next action
+    - definition: Review the ticket imported from Jira.
+    - term: Next review
+    - definition:
+      - text: 07 Nov 2026, 14:38
+      - text: Review passed
+    - term: Due
+    - definition:
+      - text: 2026-11-08 08:38 +03:00
+      - generic: (Asia/Riyadh)
+    - term: Last progress update
+    - definition:
+      - text: 05 Nov 2026, 14:38
+      - generic "Review every 2 days or by next-review date · last 05 Nov 2026, 14:38 · due 07 Nov 2026, 14:38":
+        - text: Stale
+        - generic: Stale
+    - heading "Age and waiting" [level=2]:
+      - button "Age and waiting" [expanded]: Age and waiting
+    - term: Opened
+    - definition:
+      - text: 05 Nov 2026, 14:33
+      - generic: (Jira creation time)
+    - term: Added to the hub
+    - definition:
+      - text: 05 Nov 2026, 14:38
+      - generic: (import time; not used for age, deadlines or opened reporting)
+    - term: Age since opening
+    - definition: 5.3 days
+    - term: Reopened
+    - definition: 0 time(s)
+    - term: Recorded waiting
+    - definition:
+      - text: 4.4 h
+      - generic: (the operational due date is not paused; the contractual SLA pauses while waiting on the customer)
+    - term: Waiting now
+    - definition:
+      - text: On Customer
+      - generic: since 10 Nov 2026, 17:47
+    - term: Validation request
+    - definition: Unknown
+    - term: Outcome
+    - definition: Unknown
+    - term: Validation evidence
+    - definition: Unknown
+    - generic "Waiting periods (2)"
+    - heading "Contractual SLA" [level=2]:
+      - button "Contractual SLA" [expanded]: Contractual SLA
+    - term: Contract
+    - definition:
+      - link "CT-1001":
+        - /url: /contracts/1
+      - text: · 2026_Vitronic Software Service Level Agreement
+    - term: Applied target
+    - definition:
+      - text: Critical priority · support hours Sunday Monday Tuesday Wednesday Thursday 08:00–17:00 Asia/Riyadh · paused while waiting on the customer
+      - generic: Taken from CT-1001 on 08 Nov 2026, 12:40; later contract edits do not change it. This contract was valid when the ticket was created.
+    - term: Clock start
+    - definition:
+      - text: 05 Nov 2026, 14:33
+      - generic: (Jira creation time; deadlines and elapsed time count from here)
+    - term: Paused (waiting on the customer)
+    - definition: 5 min
+    - term: Operational due date
+    - definition:
+      - text: 08 Nov 2026, 09:38
+      - generic: (the contractual resolution deadline of this synchronized ticket)
+    - heading "SLA measurements" [level=2]:
+      - button "SLA measurements" [expanded]: SLA measurements
+    - group "Contractual SLA measurements":
+      - region "First response":
+        - heading "First response" [level=3]
+        - text: Met
+        - term: Target
+        - definition: 2 h
+        - term: Deadline
+        - definition: 05 Nov 2026, 16:38
+        - term: Actual
+        - definition:
+          - text: 05 Nov 2026, 15:32
+          - generic: 58 min counted
+      - region "Resolution":
+        - heading "Resolution" [level=3]
+        - text: Breached
+        - term: Target
+        - definition: 4 h
+        - term: Deadline
+        - definition: 08 Nov 2026, 09:38
+        - term: Actual
+        - definition:
+          - text: Not yet resolved
+          - generic: 30 h 8 min counted
+        - term: Over target
+        - definition:
+          - generic: 60 h 26 min over
+    - heading "Indicative penalties" [level=2]:
+      - button "Indicative penalties": Indicative penalties
+    - generic: 14 line(s)
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

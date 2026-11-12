@@ -1,0 +1,15 @@
+{
+  "id": "R001-laptop",
+  "route": "/",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Operations Command Center"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 13903,
+  "title": "Operations Command Center · TIO Operations Hub",
+  "width": 1366
+}

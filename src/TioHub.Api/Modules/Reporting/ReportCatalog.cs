@@ -155,7 +155,8 @@ public static class ReportCatalog
             Key = "cases", Name = "Tickets report", Category = Operations, Icon = "case",
             Description = "Tickets with status, priority, owner, next action, due date and Jira references — the same rows as the Tickets list.",
             Filters = [Client, Team, Product, Owner,
-                new("status", "Status", FilterKind.Select, Options: ["open", "all", "done", .. Names<CaseStatus>()], Hint: "Empty = open tickets."),
+                // TIO-BUG-006: the options are the configured statuses, filled in per request (ReportingEndpoints /catalog, CaseStatusFilter).
+                new("status", "Status", FilterKind.Select, Options: CaseStatusFilter.Aggregates, Hint: "Empty = all open tickets. A status filters the configured ticket status, as in the ticket list."),
                 new("priority", "Priority", FilterKind.Select, Options: [.. Names<Priority>(), "Critical,High"]),
                 new("scope", "Work scope", FilterKind.Select, Options: Names<WorkScope>()),
                 .. Range("createdFrom", "createdTo", "Opened", hint: "The Jira creation time of a synchronized ticket, otherwise the hub creation time."),

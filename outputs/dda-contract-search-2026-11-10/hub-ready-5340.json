@@ -1,0 +1,346 @@
+{
+  "contract": "5340 of 2026",
+  "target_client": "OYOON Center",
+  "skip_contract": "5341; user completed CT-1009 manually",
+  "source_pdf": "C:\\Users\\lmh\\Downloads\\DDGE Contract Oyoon 266 ANPR Data Management AMC-Print-CEsigned.pdf",
+  "source_facts": "C:\\Data\\D\\MyWorkSpace\\05.Others\\TIO Operations Hub\\outputs\\dda-contract-search-2026-11-10\\import-5341-5340.json",
+  "main_fields": {
+    "name": "Oyoon 266 ANPR Data Management AMC",
+    "reference": "5340 of 2026",
+    "requisition": "12600246",
+    "type": "SLA & support",
+    "start_date": "2026-07-01",
+    "end_date": "2027-06-30",
+    "support_notes": "P1: 24/7; response 1h, workaround 8h, MTTR 24h. P2: response 1h, workaround 24h, MTTR 48h. P3: resolution 72h/MTTR 14d (clarify). P4: agreed timeline. RCA: 48h after resolution.",
+    "obligations": "SOURCE/HISTORY: Contract 5340/2026, Oyoon 266 ANPR Data Management AMC, req.12600246; dated 22-Jul-2026. Parties: Digital Dubai Government Establishment (affiliated with Digital Dubai Authority) and VITRONIC MACHINE VISION MIDDLE EAST (L.L.C.). Term: 01-Jul-2026–30-Jun-2027 (pp1–3). Both signatures visible (p33): H.E. Matar AlHumairi, CEO DDGE, 29-Sep-2026 09:48 UTC+4; Dr Youssef El Hansali, CEO, date literally 03-08-2018. Vendor year is anomalous; retain and confirm. Signature authenticity not cryptographically validated. 29-Sep email supplied countersigned copy with LPO pending; current LPO/payment status unverified.\nFEES/SECURITY: AED528,000 fixed, excluding VAT/applicable fees (p4). Four planned invoices AED132,000/25% each: 01-Oct-2026, 01-Jan-2027, 01-Apr-2027, 30-Jun-2027 (p34). Not payment evidence; no Net-days stated. BG: final/unconditional/irrevocable, local bank, 2% of contract value (AED10,560 derived), effective from start until 90 days after term end; revocation by DDGE consent, return after approved completion certificate (pp5,18). Audits/consultancy fees and ad-hoc/PSR limitations: see Coverage; rates unstated.\nRENEWAL/DELIVERY: DDGE gives written intention-to-renew notice 30 days before expiry (p3); no automatic-renewal clause printed in this appendix. Amendments need mutual signed written addendum. Formal written DDGE acceptance required; rectify rejected/nonconforming service at no extra cost (pp2–4). Pre-approved qualified staff/replacements, progress meetings and complete records required (pp18–19).\nPENALTIES: General sanctions/delay remedies refer to Law12/2020; no numeric daily rate or ARL deduction bands in this contract (pp4,22–23). Do not copy 5341 ARL rates. Clause12(9) states direct-loss indemnity, excludes indirect/consequential/lost profits save gross negligence/fraud/confidentiality breach, then compensation not exceeding100% of contract value (pp20–21); this is not an express SLA-credit cap. DDGE may set off amounts owed (p26). Exemptions for proven force majeure/customer cause require consent. Breach cure:30 working days after written notice; DDGE early termination:30 days written notice and payment for services rendered (pp16–17).\nESCALATION/NOTICES: L1 operational, L2 supervisory, L3 executive; P1 immediate L2 then L3 if unresolved; P2 L1 then escalate on SLA breach; P3/P4 L1 unless repeated/breached. Document in email/JIRA (pp30–32). DDGE L1 Huda Salim AlHashmi (hudasalim.alhashmi@digitaldubai.ae), L2 Shaikha Ibrahim Abdulla Almarzooqi (shaikha.almarzooqi@digitaldubai.ae), L3 Abdulla Ali Salem Bin Kenaid AlFalasi (abdulla.alfalasi@digitaldubai.ae). VITRONIC L1 Abdalrhman Asaad, L2 Laith Hamdan, L3 Dr Youssef El Hansali. Official notices: Huda and Mohammed Ahmed Abdo Al Omari (mohammad.alomari@vitronic.com), by personal delivery/registered mail/email; notify contact changes (pp29–32).\nSECURITY/GOVERNANCE: Confidentiality survives; ISO27001/22301, ISR/DESC and applicable PCI DSS controls. Written actual/suspected cyber-incident notice within24h; report and cooperate (pp7–15). RCA separately due48h after resolution (p36). Cloud/AI need prior approval; UAE data residency unless approved; protect personal data, return/delete/certify and support secure exit. Subcontract/assignment need written consent; supplier remains liable. DDGE compliance audits at no extra cost. Force-majeure notice within7 working days. Dubai/UAE law; amicable dispute30 days then senior management/Dubai Courts. Main contract prevails over appendices; Arabic prevails (pp2,15–28). Full attached PDF governs.",
+    "service_coverage": "SIGNED OPERATION & SLA APPENDIX, pp35–36.\nPRODUCTS: Level A: Vitronic Intelligent Tracking System (VITIS) v3.48.1; Roadside Remote Management (RRM) v2.19.4; Smart Dashboard v2.1.0. Level B: Vitronic Intelligent Tracking System v1.4.4 and ANPRPool (Main ANPR Pool Service). Levels C/D: no specific products defined; limited or no support.\nSCOPE: Secured remote diagnostics/support; on-site visits if remote support fails within agreed Turnaround Time (no numeric onsite attendance time printed); telephone/email/JIRA support; quarterly technical support including system administration, performance tuning, fault diagnosis/repair; continuous maintenance bug fixes at no extra cost; remote configuration support scheduled in advance. System audits on request subject to service fees; on-site fault-analysis/optimization/re-engineering consultancy subject to fees. Administration remote/on-site by prior negotiation. Tailored training in operation, maintenance, monitoring, troubleshooting and reporting. Application support/development via Professional Services Request (PSR). Pre-booked/ad-hoc services only on explicit request and outside agreement. No extra-service rates specified.\nPRIORITIES: P1 Critical major system impact: response1h, workaround8h, MTTR24h, explicitly24/7. P2 Urgent partial impact/no workaround: response1h, workaround24h, MTTR48h. P3 Standard fault/no operational impact: resolution72h AND MTTR14days in same line; preserve both and clarify before treating one as sole deadline. P4 Enhancement/no operational impact: resolution by agreed timeline; no fixed numeric row. RCA all incidents within48h of resolution. Coverage hours for P2–P4, general support calendar, calendar/business basis and availability percentage are unspecified. Escalation clause calls P2 High; appendix calls it Urgent.\nEXCLUSIONS: Dubai Police-supplied software except ANPR Pool Service; unauthorized hardware/software changes; system installation/relocation; consumables repair; faults not caused by normal usage.\nLIMITS: No dedicated allocated engineer promise is printed here (do not copy 5341). No ARL/service-credit schedule appears. Optional supplier system audits are distinct from general clause16 compliance-audit assistance without extra cost. Underlying technical/financial offers QU040000261 Jul-26 appear only as references/icons (p34), not embedded offer content. Source PDF supplements these notes.",
+    "support_hours": "P1 24/7 only; other priorities unspecified",
+    "renewal": "DDGE written intention-to-renew notice 30 days before expiry; no automatic renewal stated"
+  },
+  "sla_targets": [
+    {
+      "priority": "P1",
+      "response_hours": 1,
+      "resolution_hours": null,
+      "clock": "CalendarHours",
+      "notes": "Critical; major system impact. Explicit 24/7. Workaround within8h; MTTR within24h (p36). MTTR is not inserted as a resolution deadline."
+    },
+    {
+      "priority": "P2",
+      "response_hours": 1,
+      "resolution_hours": null,
+      "clock": "Unknown",
+      "notes": "Urgent; partial system impact/no workaround. Workaround within24h; MTTR within48h. Coverage clock unspecified (p36)."
+    },
+    {
+      "priority": "P3",
+      "response_hours": null,
+      "resolution_hours": 72,
+      "clock": "Unknown",
+      "notes": "Standard; fault/no operational impact. Same line also states MTTR within14days; ambiguity retained, clarification needed. No response target printed (p36)."
+    }
+  ],
+  "p4_text_only": "P4 Enhancement Request: no operational impact; resolution based on agreed timeline (p36). No fixed target; do not invent positive number to satisfy UI.",
+  "character_counts": {
+    "support_notes": 177,
+    "obligations": 3573,
+    "service_coverage": 2412
+  },
+  "validation_limits": {
+    "support_notes": 200,
+    "obligations": 4000,
+    "service_coverage": 4000
+  },
+  "delivery": {
+    "service_scope": [
+      {
+        "text": "Remote diagnostics and support via secured connection",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "On-site visits if remote support fails (within agreed Turnaround Time; no numeric onsite time printed)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Telephone, email and JIRA ticketing support",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Quarterly technical support including system administration, performance tuning, fault diagnosis and repair",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Continuous software maintenance updates (bug fixes only) at no additional cost",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Software configuration support (remote, scheduled in advance)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "System audits upon request (subject to service fees)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "On-site consultancy for fault analysis, optimization and re-engineering (subject to fees)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "System administration (remote or on-site, by prior negotiation)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Tailored training covering system operation, maintenance, monitoring, troubleshooting and reporting",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Application support and development via Professional Services Request (PSR)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      },
+      {
+        "text": "Pre-booked/ad-hoc services available upon explicit request (not covered under agreement)",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      }
+    ],
+    "acceptance": {
+      "text": "All works, services, supplies and deliverables are subject to the First Party's inspection, examination and acceptance. Acceptance requires its formal written approval. Nonconforming work/service/supply may be rejected and must be re-performed or rectified at no additional cost.",
+      "pages": [
+        3
+      ],
+      "source_kind": "main_contract",
+      "clause": "1"
+    },
+    "service_records_and_staffing": {
+      "text": "Perform with diligence; obtain First Party written approval of nominated professionals; provide pre-approved qualified specialists and an alternative when the responsible person is unavailable; attend requested progress meetings; collaborate and supply relevant data without cost; consider written comments; maintain complete execution/obligation records and present them upon request; maintain necessary approvals, consents, permits, licenses and authorizations.",
+      "pages": [
+        18,
+        19,
+        20,
+        21
+      ],
+      "source_kind": "main_contract",
+      "clause": "12(1)-(10)"
+    },
+    "separate_hardware_delivery_or_installation_milestones": null,
+    "separate_milestones_note": "No separate hardware shipment, installation or project-acceptance milestone dates are printed. Appendix 3 dates are planned invoice dates, not proof of delivery/payment.",
+    "rca": {
+      "text": "For all incidents, provide/share RCA within 48 hours of resolution.",
+      "pages": [
+        36
+      ],
+      "source_kind": "signed_operation_sla_appendix"
+    },
+    "cyber_incident_notice": {
+      "text": "Notify First Party in writing promptly and no later than 24 hours after an actual or suspected security/cyber incident; provide detailed nature/root-cause/corrective-action report under ISR and cooperate with investigation, mitigation and regulators. This is separate from the appendix RCA-after-resolution target.",
+      "pages": [
+        14,
+        15
+      ],
+      "source_kind": "main_contract",
+      "clause": "7(12)"
+    }
+  },
+  "fees_payments": {
+    "currency": "AED",
+    "total_excluding_vat": 528000,
+    "vat_basis": "Exclusive of VAT and applicable fees; no VAT rate or VAT-inclusive total printed",
+    "fixed_price": true,
+    "all_expenses_included_in_base_value": true,
+    "source_pages": [
+      4
+    ],
+    "payment_schedule": [
+      {
+        "sequence": 1,
+        "description": "System Support and Monitoring – 1 payment",
+        "planned_invoice_date": "2026-10-01",
+        "amount_aed_excluding_vat": 132000,
+        "percent": 25,
+        "pages": [
+          34
+        ],
+        "status": "Planned source schedule; actual invoice/payment not verified"
+      },
+      {
+        "sequence": 2,
+        "description": "System Support and Monitoring – 2 payment",
+        "planned_invoice_date": "2027-01-01",
+        "amount_aed_excluding_vat": 132000,
+        "percent": 25,
+        "pages": [
+          34
+        ],
+        "status": "Planned source schedule; actual invoice/payment not verified"
+      },
+      {
+        "sequence": 3,
+        "description": "System Support and Monitoring – 3 payment",
+        "planned_invoice_date": "2027-04-01",
+        "amount_aed_excluding_vat": 132000,
+        "percent": 25,
+        "pages": [
+          34
+        ],
+        "status": "Planned source schedule; actual invoice/payment not verified"
+      },
+      {
+        "sequence": 4,
+        "description": "System Support and Monitoring – 4 payment",
+        "planned_invoice_date": "2027-06-30",
+        "amount_aed_excluding_vat": 132000,
+        "percent": 25,
+        "pages": [
+          34
+        ],
+        "status": "Planned source schedule; actual invoice/payment not verified"
+      }
+    ],
+    "schedule_source_pages": [
+      34
+    ],
+    "invoice_due_days": null,
+    "payment_terms_note": "Appendix 3 is a planned invoice schedule. No Net N days or settlement evidence is specified in this PDF.",
+    "additional_fee_services": [
+      {
+        "text": "System audits subject to service fees; on-site consultancy subject to fees; pre-booked/ad-hoc services explicitly outside agreement; application support/development via PSR. No fee rates printed. System administration is by prior negotiation.",
+        "pages": [
+          35
+        ],
+        "source_kind": "signed_operation_sla_appendix"
+      }
+    ],
+    "performance_security": {
+      "text": "Final, unconditional and irrevocable bank guarantee from a bank operating within the State: 2% of total contract value. Starts on contract start date and remains valid 90 days after the contract period ends. Revocation requires First Party consent; return follows an approved certificate of completion.",
+      "pages": [
+        5,
+        18
+      ],
+      "source_kind": "main_contract",
+      "clause": "5(3); 11(3)"
+    },
+    "performance_security_amount_derived": 10560.0,
+    "performance_security_derived_note": "Arithmetic only: 2% multiplied by stated ex-VAT contract value; issuance/release not established.",
+    "offset_right": {
+      "text": "First Party may offset/deduct from supplier payments sums, payments or claims owed under the contract or from supplier failure to perform.",
+      "pages": [
+        26
+      ],
+      "source_kind": "main_contract",
+      "clause": "15(3)"
+    }
+  },
+  "penalties": {
+    "general_sanctions": {
+      "text": "Failure to provide services/materials or exceeding the granted time limit permits legal action under Law 12 of 2020 and relevant UAE laws. Delay penalties/fines/measures are referred to that law; no numeric daily delay rate or service-credit cap is stated in these general clauses. An exemption for emergency, force majeure, First Party cause or other cause beyond supplier control requires supporting proof and First Party consent.",
+      "pages": [
+        4,
+        22,
+        23
+      ],
+      "source_kind": "main_contract",
+      "clause": "4; 12(16)"
+    },
+    "general_compensation_cap_and_liability": {
+      "text": "Supplier indemnifies direct damages/losses and related claims arising from breach. Wording excludes indirect losses, consequential damages and lost profits, save damages arising from gross negligence, fraud or confidentiality breach. It then states compensation shall not exceed 100% of total contract value. Preserve this clause wording; it is not an express cap on SLA deductions, and the treatment of exceptions is not resolved here. Supplier remains liable for third-party performance.",
+      "pages": [
+        20,
+        21
+      ],
+      "source_kind": "main_contract",
+      "clause": "12(9)"
+    },
+    "sla_payment_deductions": null,
+    "numeric_daily_delay_rate": null,
+    "express_sla_deduction_cap": null,
+    "rule_note": "Do not treat the general 100% compensation wording as an express SLA deduction cap.",
+    "sla_payment_deductions_note": "No numeric SLA deduction/credit bands printed in the signed Operation & SLA appendix. Apply only the stated general contractual sanctions/liability; do not copy contract 5341 ARL rates."
+  },
+  "history": [
+    {
+      "event": "Stated service period starts",
+      "date": "2026-07-01",
+      "pages": [
+        3
+      ]
+    },
+    {
+      "event": "Contract document dated",
+      "date": "2026-07-22",
+      "pages": [
+        1
+      ]
+    },
+    {
+      "event": "Supplier signature date as printed",
+      "date_as_printed": "03-08-2018",
+      "person": "Dr Youssef El Hansali",
+      "role": "CEO",
+      "pages": [
+        33
+      ]
+    },
+    {
+      "event": "First Party signature appearance dated",
+      "date": "2026-09-29T09:48:00+04:00",
+      "person": "H.E. Matar AlHumairi",
+      "role": "CEO, Digital Dubai Government Establishment",
+      "pages": [
+        33
+      ]
+    },
+    {
+      "event": "Countersigned-copy email context supplied by parent Outlook review",
+      "context": "29 September 2026 email supplies countersigned copy; LPO pending at that point. This does not establish current LPO/payment status.",
+      "evidence_scope": "Parent-provided email context, not independently re-read by PDF extraction agent"
+    },
+    {
+      "event": "Source review for Hub import",
+      "date": "2026-11-10",
+      "note": "Read-only source extraction; no Hub write performed by this extraction agent."
+    },
+    {
+      "event": "Stated service period ends",
+      "date": "2027-06-30",
+      "pages": [
+        3
+      ]
+    }
+  ],
+  "mutation_note": "Prepared offline only; no Hub mutation by extraction agent."
+}

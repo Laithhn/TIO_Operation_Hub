@@ -1,0 +1,435 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: Projects & contracts
+- heading "Projects & contracts" [level=1]
+- generic: "A project is the engagement with a client: its products, environments and the contracts with their SLA terms and renewal dates."
+- button "+ New project"
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - tablist:
+    - tab "Projects" [selected]:
+      - generic: Projects
+    - tab "Contract register":
+      - generic: Contract register
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - region "Table":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 12 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Select all rows shown Code Project Client Status Supported products Contracts Service dates Owner Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Code":
+              - button "Code":
+                - generic: Code
+            - columnheader "Project":
+              - button "Project":
+                - generic: Project
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Supported products":
+              - button "Supported products":
+                - generic: Supported products
+            - columnheader "Contracts":
+              - button "Contracts":
+                - generic: Contracts
+            - columnheader "Service dates":
+              - button "Service dates":
+                - generic: Service dates
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select 113506-AE 113506-AE Iraq 100x Enforcement Bar Smart Traffic Project MADAR_DIJLA Active None Unknown Laith Hamdan Actions for project 113506-AE":
+            - cell "Select 113506-AE":
+              - checkbox "Select 113506-AE"
+            - cell "113506-AE":
+              - link "113506-AE":
+                - /url: /projects/8
+            - cell "Iraq 100x Enforcement Bar Smart Traffic Project":
+              - link "Iraq 100x Enforcement Bar Smart Traffic Project":
+                - /url: /projects/8
+            - cell "MADAR_DIJLA":
+              - generic: MD
+              - link "MADAR_DIJLA":
+                - /url: /clients/9
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "None":
+              - generic: None
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project 113506-AE":
+              - button "Actions for project 113506-AE": ⋯
+          - row "Select KU105375 KU105375 KU105375 - Kurdistan BackOffice Support SEW Planned PSOP, ViTIP 1 active Unknown Abdalrhman (Aboud) Asaad Actions for project KU105375":
+            - cell "Select KU105375":
+              - checkbox "Select KU105375"
+            - cell "KU105375":
+              - link "KU105375":
+                - /url: /projects/7
+            - cell "KU105375 - Kurdistan BackOffice Support":
+              - link "KU105375 - Kurdistan BackOffice Support":
+                - /url: /projects/7
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Planned":
+              - generic: Planned
+            - cell "PSOP, ViTIP":
+              - generic: PSOP, ViTIP
+            - cell "1 active":
+              - generic: 1 active
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Abdalrhman (Aboud) Asaad":
+              - generic: Abdalrhman (Aboud) Asaad
+            - cell "Actions for project KU105375":
+              - button "Actions for project KU105375": ⋯
+          - row "Select 115510-AE 115510-AE Morocco National Gendarmerie enforcement-bar delivery DGSN Active None Unknown Reda Moulouki Actions for project 115510-AE":
+            - cell "Select 115510-AE":
+              - checkbox "Select 115510-AE"
+            - cell "115510-AE":
+              - link "115510-AE":
+                - /url: /projects/9
+            - cell "Morocco National Gendarmerie enforcement-bar delivery":
+              - link "Morocco National Gendarmerie enforcement-bar delivery":
+                - /url: /projects/9
+            - cell "DGSN":
+              - link "DGSN":
+                - /url: /clients/12
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "None":
+              - generic: None
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Reda Moulouki":
+              - generic: Reda Moulouki
+            - cell "Actions for project 115510-AE":
+              - button "Actions for project 115510-AE": ⋯
+          - row "Select OYOON-182-AMC-2026 OYOON-182-AMC-2026 OYOON 182 Al Qudra Bluscan SSPX and CCH AMC OYOON Active 1 active 1 need renewal attention 01 Jan 2026 – 31 Dec 2026 Laith Hamdan Actions for project OYOON-182-AMC-2026":
+            - cell "Select OYOON-182-AMC-2026":
+              - checkbox "Select OYOON-182-AMC-2026"
+            - cell "OYOON-182-AMC-2026":
+              - link "OYOON-182-AMC-2026":
+                - /url: /projects/15
+            - cell "OYOON 182 Al Qudra Bluscan SSPX and CCH AMC":
+              - link "OYOON 182 Al Qudra Bluscan SSPX and CCH AMC":
+                - /url: /projects/15
+            - cell "OYOON":
+              - generic: OC
+              - link "OYOON":
+                - /url: /clients/3
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "1 active 1 need renewal attention":
+              - text: 1 active
+              - text: 1 need renewal attention
+            - cell "01 Jan 2026 – 31 Dec 2026":
+              - generic: 01 Jan 2026 – 31 Dec 2026
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project OYOON-182-AMC-2026":
+              - button "Actions for project OYOON-182-AMC-2026": ⋯
+          - row "Select 116938-AE 116938-AE OYOON ANPR Data Management and AMC OYOON Active 1 active of 2 01 Jul 2025 – 30 Jun 2027 Laith Hamdan Actions for project 116938-AE":
+            - cell "Select 116938-AE":
+              - checkbox "Select 116938-AE"
+            - cell "116938-AE":
+              - link "116938-AE":
+                - /url: /projects/14
+            - cell "OYOON ANPR Data Management and AMC":
+              - link "OYOON ANPR Data Management and AMC":
+                - /url: /projects/14
+            - cell "OYOON":
+              - generic: OC
+              - link "OYOON":
+                - /url: /clients/3
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "1 active of 2":
+              - generic: 1 active of 2
+            - cell "01 Jul 2025 – 30 Jun 2027":
+              - generic: 01 Jul 2025 – 30 Jun 2027
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project 116938-AE":
+              - button "Actions for project 116938-AE": ⋯
+          - row "Select QATAR-MOI-POC QATAR-MOI-POC Qatar MOI centralized traffic-radar management POC QATAR_MOI Active None Unknown Laith Hamdan Actions for project QATAR-MOI-POC":
+            - cell "Select QATAR-MOI-POC":
+              - checkbox "Select QATAR-MOI-POC"
+            - cell "QATAR-MOI-POC":
+              - link "QATAR-MOI-POC":
+                - /url: /projects/11
+            - cell "Qatar MOI centralized traffic-radar management POC":
+              - link "Qatar MOI centralized traffic-radar management POC":
+                - /url: /projects/11
+            - cell "QATAR_MOI":
+              - generic: QM
+              - link "QATAR_MOI":
+                - /url: /clients/17
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "None":
+              - generic: None
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project QATAR-MOI-POC":
+              - button "Actions for project QATAR-MOI-POC": ⋯
+          - row "Select 104723-DE 104723-DE SAPOL Australia back-office delivery and support SAPOL Active None Unknown Abdulhamid Tork Actions for project 104723-DE":
+            - cell "Select 104723-DE":
+              - checkbox "Select 104723-DE"
+            - cell "104723-DE":
+              - link "104723-DE":
+                - /url: /projects/12
+            - cell "SAPOL Australia back-office delivery and support":
+              - link "SAPOL Australia back-office delivery and support":
+                - /url: /projects/12
+            - cell "SAPOL":
+              - generic: SA
+              - link "SAPOL":
+                - /url: /clients/13
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "None":
+              - generic: None
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Abdulhamid Tork":
+              - generic: Abdulhamid Tork
+            - cell "Actions for project 104723-DE":
+              - button "Actions for project 104723-DE": ⋯
+          - row "Select 117992-AE 117992-AE SLA _ IT Application & Platform Licenses – 2026 TAH Active PSOP 1 active of 2 Unknown Laith Hamdan Actions for project 117992-AE":
+            - cell "Select 117992-AE":
+              - checkbox "Select 117992-AE"
+            - cell "117992-AE":
+              - link "117992-AE":
+                - /url: /projects/1
+            - cell "SLA _ IT Application & Platform Licenses – 2026":
+              - link "SLA _ IT Application & Platform Licenses – 2026":
+                - /url: /projects/1
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Active":
+              - text: Active
+            - cell "PSOP":
+              - generic: PSOP
+            - cell "1 active of 2":
+              - generic: 1 active of 2
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project 117992-AE":
+              - button "Actions for project 117992-AE": ⋯
+          - row "Select TAK-VITIP-POC TAK-VITIP-POC TAK Ethiopia ViTIP Lite certification POC TAK Planned None Unknown Laith Hamdan Actions for project TAK-VITIP-POC":
+            - cell "Select TAK-VITIP-POC":
+              - checkbox "Select TAK-VITIP-POC"
+            - cell "TAK-VITIP-POC":
+              - link "TAK-VITIP-POC":
+                - /url: /projects/13
+            - cell "TAK Ethiopia ViTIP Lite certification POC":
+              - link "TAK Ethiopia ViTIP Lite certification POC":
+                - /url: /projects/13
+            - cell "TAK":
+              - generic: TB
+              - link "TAK":
+                - /url: /clients/7
+            - cell "Planned":
+              - generic: Planned
+            - cell
+            - cell "None":
+              - generic: None
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project TAK-VITIP-POC":
+              - button "Actions for project TAK-VITIP-POC": ⋯
+          - row "Select 115307-AE 115307-AE TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So MULTICOM Active 1 active Unknown Laith Hamdan Actions for project 115307-AE":
+            - cell "Select 115307-AE":
+              - checkbox "Select 115307-AE"
+            - cell "115307-AE":
+              - link "115307-AE":
+                - /url: /projects/4
+            - cell "TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So":
+              - link "TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So":
+                - /url: /projects/4
+            - cell "MULTICOM":
+              - generic: MI
+              - link "MULTICOM":
+                - /url: /clients/19
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "1 active":
+              - generic: 1 active
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for project 115307-AE":
+              - button "Actions for project 115307-AE": ⋯
+          - row "Select DGSN-VIITS-POC DGSN-VIITS-POC ViITS POC – NARSA integration and DGSN deployment readiness DGSN Planned None Unknown Reda Moulouki Actions for project DGSN-VIITS-POC":
+            - cell "Select DGSN-VIITS-POC":
+              - checkbox "Select DGSN-VIITS-POC"
+            - cell "DGSN-VIITS-POC":
+              - link "DGSN-VIITS-POC":
+                - /url: /projects/10
+            - cell "ViITS POC – NARSA integration and DGSN deployment readiness":
+              - link "ViITS POC – NARSA integration and DGSN deployment readiness":
+                - /url: /projects/10
+            - cell "DGSN":
+              - link "DGSN":
+                - /url: /clients/12
+            - cell "Planned":
+              - generic: Planned
+            - cell
+            - cell "None":
+              - generic: None
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "Reda Moulouki":
+              - generic: Reda Moulouki
+            - cell "Actions for project DGSN-VIITS-POC":
+              - button "Actions for project DGSN-VIITS-POC": ⋯
+          - 'row "Select 115101-AE 115101-AE VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE OYOON Active 1 active of 2 20 May 2025 – open Abdalrhman (Aboud) Asaad Actions for project 115101-AE"':
+            - cell "Select 115101-AE":
+              - checkbox "Select 115101-AE"
+            - cell "115101-AE":
+              - link "115101-AE":
+                - /url: /projects/2
+            - 'cell "VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE"':
+              - 'link "VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE"':
+                - /url: /projects/2
+            - cell "OYOON":
+              - generic: OC
+              - link "OYOON":
+                - /url: /clients/3
+            - cell "Active":
+              - text: Active
+            - cell
+            - cell "1 active of 2":
+              - generic: 1 active of 2
+            - cell "20 May 2025 – open":
+              - generic: 20 May 2025 – open
+            - cell "Abdalrhman (Aboud) Asaad":
+              - generic: Abdalrhman (Aboud) Asaad
+            - cell "Actions for project 115101-AE":
+              - button "Actions for project 115101-AE": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 12 OF 12
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 12 OF 12
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

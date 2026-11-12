@@ -1,0 +1,249 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "Projects & contracts":
+    - /url: /projects?clientId=1
+  - generic: ›
+  - generic: 117992-AE
+- heading "117992-AE · SLA _ IT Application & Platform Licenses – 2026" [level=1]
+- text: Active
+- text: Tahakom
+- button "Edit project"
+- link "+ Contract":
+  - /url: /contracts/new?projectId=1&clientId=1
+- button "Archive"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "Project" [level=2]
+  - term: Client
+  - definition:
+    - link "TAH · Tahakom":
+      - /url: /clients/1
+  - term: Project owner
+  - definition: Laith Hamdan
+  - term: Service dates
+  - definition: Unknown
+  - term: Scope
+  - definition: Unknown
+  - heading "Products and environments" [level=2]
+  - term: Supported products
+  - definition:
+    - generic: PSOP
+  - term: Environments
+  - definition: None linked
+  - paragraph: The project's contracts cover these products.
+  - heading "Contracts & SLAs" [level=2]
+  - region "Contracts of this project":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Contracts of this project: scroll sideways for more columns"':
+      - table "Contracts of this project":
+        - caption: Contracts of this project
+        - rowgroup:
+          - row "Select all rows shown Contract Type Status Term Renewal SLA targets (response / resolution) Support Owner Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Contract":
+              - button "Contract":
+                - generic: Contract
+            - columnheader "Type":
+              - button "Type":
+                - generic: Type
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Term":
+              - button "Term":
+                - generic: Term
+            - columnheader "Renewal":
+              - button "Renewal":
+                - generic: Renewal
+            - columnheader "SLA targets (response / resolution)":
+              - button "SLA targets (response / resolution)":
+                - generic: SLA targets (response / resolution)
+            - columnheader "Support":
+              - button "Support":
+                - generic: Support
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - 'row "Select CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265 CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265 SLA & support Active 15 Oct 2025 – 14 Oct 2027 Current Critical: 2 h / 20 h High: 4 h / 1 d 16 h Low: 1 d / 15 d 5 h Normal: 8 h / 7 d On site 8 on site required Laith Hamdan Actions for contract CT-1001"':
+            - cell "Select CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265":
+              - checkbox "Select CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265"
+            - cell "CT-1001 · 2026_Vitronic Software Service Level Agreement CW16622, QU040000265":
+              - link "CT-1001 · 2026_Vitronic Software Service Level Agreement":
+                - /url: /contracts/1
+              - generic: CW16622, QU040000265
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Active":
+              - text: Active
+            - cell "15 Oct 2025 – 14 Oct 2027":
+              - generic: 15 Oct 2025 – 14 Oct 2027
+            - cell "Current":
+              - text: Current
+            - 'cell "Critical: 2 h / 20 h High: 4 h / 1 d 16 h Low: 1 d / 15 d 5 h Normal: 8 h / 7 d"':
+              - generic: "Critical: 2 h / 20 h"
+              - generic: "High: 4 h / 1 d 16 h"
+              - generic: "Low: 1 d / 15 d 5 h"
+              - generic: "Normal: 8 h / 7 d"
+            - cell "On site 8 on site required":
+              - text: On site
+              - generic: 8 on site required
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1001":
+              - button "Actions for contract CT-1001": ⋯
+          - 'row "Select CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622 CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622 SLA & support Ended 01 Jan 2025 – 14 Oct 2025 Ended Critical: 1 h / 2 h High: 2 h / 4 h Low: 12 h / 1 d 12 h Normal: 4 h / 12 h On site 3 on site required Laith Hamdan Actions for contract CT-1006"':
+            - cell "Select CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622":
+              - checkbox "Select CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622"
+            - cell "CT-1006 · 2025 Vitronic Software Service Level Agreement CW16622":
+              - link "CT-1006 · 2025 Vitronic Software Service Level Agreement":
+                - /url: /contracts/6
+              - generic: CW16622
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Ended":
+              - generic: Ended
+            - cell "01 Jan 2025 – 14 Oct 2025":
+              - generic: 01 Jan 2025 – 14 Oct 2025
+            - cell "Ended":
+              - generic: Ended
+            - 'cell "Critical: 1 h / 2 h High: 2 h / 4 h Low: 12 h / 1 d 12 h Normal: 4 h / 12 h"':
+              - generic: "Critical: 1 h / 2 h"
+              - generic: "High: 2 h / 4 h"
+              - generic: "Low: 12 h / 1 d 12 h"
+              - generic: "Normal: 4 h / 12 h"
+            - cell "On site 3 on site required":
+              - text: On site
+              - generic: 3 on site required
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1006":
+              - button "Actions for contract CT-1006": ⋯
+    - status
+  - heading "My notes" [level=2]
+  - button "+ New note"
+  - paragraph:
+    - text: "Private: only you see your notes."
+  - generic: You have no notes linked here.
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this project yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When By Action Reason Changes (before → after)":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - generic: When
+          - columnheader "By":
+            - generic: By
+          - columnheader "Action":
+            - generic: Action
+          - columnheader "Reason":
+            - generic: Reason
+          - columnheader "Changes (before → after)":
+            - generic: Changes (before → after)
+      - rowgroup:
+        - row "Select 22 Oct 2026, 12:39 22 Oct 2026, 12:39 lmh Create":
+          - cell "Select 22 Oct 2026, 12:39":
+            - checkbox "Select 22 Oct 2026, 12:39"
+          - cell "22 Oct 2026, 12:39":
+            - generic: 22 Oct 2026, 12:39
+          - cell "lmh":
+            - generic: lmh
+          - cell "Create":
+            - generic: Create
+          - cell
+          - cell:
+            - 'generic "Client id: — → 1 Code: — → 117992-AE Show all 5 changes"':
+              - generic: "Client id: — → 1"
+              - generic: "Code: — → 117992-AE"
+              - generic: Show all 5 changes
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

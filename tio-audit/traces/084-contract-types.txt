@@ -1,0 +1,215 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Contracts & Tickets":
+    - /url: /admin/config/category/contracts-cases
+  - generic: ›
+  - generic: Contract types
+- heading "Contract types" [level=1]
+- generic: Offered on the contract form. Each type belongs to a category used in reports.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Contract types":
+    - searchbox "Filter rows"
+    - generic: 5 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Contract types":
+      - caption: Contract types
+      - rowgroup:
+        - row "Select all rows shown Order Name Description Behaves as In use (contracts) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Behaves as":
+            - button "Behaves as":
+              - generic: Behaves as
+          - columnheader "In use (contracts)":
+            - button "In use (contracts)":
+              - generic: In use (contracts)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move SLA & support up Move SLA & support down SLA & support — SLA & support 6 Active Actions for SLA & support":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move SLA & support up Move SLA & support down":
+            - button "Move SLA & support up" [disabled]: ▲
+            - button "Move SLA & support down": ▼
+          - cell "SLA & support":
+            - button "SLA & support"
+          - cell "—":
+            - generic: —
+          - cell "SLA & support":
+            - generic: SLA & support
+          - cell "6":
+            - generic: "6"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for SLA & support":
+            - button "Actions for SLA & support": ⋯
+        - row "Select ▲ ▼ Move Implementation up Move Implementation down Implementation — Implementation 2 Active Actions for Implementation":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Implementation up Move Implementation down":
+            - button "Move Implementation up": ▲
+            - button "Move Implementation down": ▼
+          - cell "Implementation":
+            - button "Implementation"
+          - cell "—":
+            - generic: —
+          - cell "Implementation":
+            - generic: Implementation
+          - cell "2":
+            - generic: "2"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Implementation":
+            - button "Actions for Implementation": ⋯
+        - row "Select ▲ ▼ Move Maintenance up Move Maintenance down Maintenance — Maintenance 1 Active Actions for Maintenance":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Maintenance up Move Maintenance down":
+            - button "Move Maintenance up": ▲
+            - button "Move Maintenance down": ▼
+          - cell "Maintenance":
+            - button "Maintenance"
+          - cell "—":
+            - generic: —
+          - cell "Maintenance":
+            - generic: Maintenance
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Maintenance":
+            - button "Actions for Maintenance": ⋯
+        - row "Select ▲ ▼ Move Subscription up Move Subscription down Subscription — Subscription 0 Active Actions for Subscription":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Subscription up Move Subscription down":
+            - button "Move Subscription up": ▲
+            - button "Move Subscription down": ▼
+          - cell "Subscription":
+            - button "Subscription"
+          - cell "—":
+            - generic: —
+          - cell "Subscription":
+            - generic: Subscription
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Subscription":
+            - button "Actions for Subscription": ⋯
+        - row "Select ▲ ▼ Move Other up Move Other down Other — Other 0 Active Actions for Other":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "—":
+            - generic: —
+          - cell "Other":
+            - generic: Other
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

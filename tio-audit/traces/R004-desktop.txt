@@ -1,0 +1,670 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Management dashboard" [level=1]
+- text: Trends and portfolio status.
+- generic: As of 10 Nov 2026, 16:52 (Asia/Dubai) · 01 Oct 2026 to date, compared with 01 Jul 2026 – 10 Aug 2026.
+- button "Refresh"
+- link "Command Center":
+  - /url: /
+- link "Reporting Center":
+  - /url: /reporting-center
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - generic: Period
+  - combobox "Period":
+    - option "This quarter vs previous" [selected]
+    - option "This month vs previous"
+    - option "Year to date vs last year"
+  - generic: Team
+  - combobox "Team":
+    - option "All teams" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - paragraph: Changes compare the period to date with the same number of days of the previous period. Escalations, payments and contract decisions belong to no team and are hidden under a team filter.
+  - 'link "Running projects: 12. 0 off track · 0 at risk · 12 without a status. open the list"':
+    - generic: Running projects
+    - generic: ›
+    - generic: "12"
+    - list:
+      - generic: 0 off track · 0 at risk · 12 without a status
+  - 'link "Open ticket backlog: 183. status Attention. 173 at the start of the period. since then (+5.8 %). open the list"':
+    - generic: Open ticket backlog
+    - generic: ›
+    - generic: "183"
+    - generic: ●
+    - text: Attention
+    - list:
+      - generic: 173 at the start of the period
+      - generic: ▲ 10
+      - text: since then (+5.8 %)
+  - 'group "Median time to resolve: 37.1 d. Tickets closed in the period, creation to closure. against the previous period"':
+    - generic: Median time to resolve
+    - generic: 37.1 d
+    - list:
+      - generic: Tickets closed in the period, creation to closure
+      - generic: ▲ 21.2 d
+      - text: against the previous period
+  - 'link "SLA resolution compliance: 20.5 %. status Critical. 44 measured · objective 90 %. against the previous period. open the list"':
+    - generic: SLA resolution compliance
+    - generic: ›
+    - generic: 20.5 %
+    - generic: ▲
+    - text: Critical
+    - list:
+      - generic: 44 measured · objective 90 %
+      - generic: ▲ 4.2 pts
+      - text: against the previous period
+  - 'link "Commitments on time: 50 %. status Attention. 2 completed in the period. · 5 overdue now. open the list"':
+    - generic: Commitments on time
+    - generic: ›
+    - generic: 50 %
+    - generic: ●
+    - text: Attention
+    - list:
+      - generic: 2 completed in the period
+      - generic: no comparison · 5 overdue now
+  - 'link "Escalations received: 2. 0 active now · 0 at level 3. against the previous period. open the list"':
+    - generic: Escalations received
+    - generic: ›
+    - generic: "2"
+    - list:
+      - generic: 0 active now · 0 at level 3
+      - generic: ▲ 2
+      - text: against the previous period
+  - 'link "Overdue payments: 4. status Critical. 4,860,000.00 SAR + 146,400.00 AED + 100,000.00 EUR. 3 contract(s) · per currency, never added. open the list"':
+    - generic: Overdue payments
+    - generic: ›
+    - generic: "4"
+    - generic: ▲
+    - text: Critical
+    - list:
+      - generic: 4,860,000.00 SAR + 146,400.00 AED + 100,000.00 EUR
+      - generic: 3 contract(s) · per currency, never added
+  - heading "Tickets opened and closed — last 12 months" [level=2]
+  - button "Table view"
+  - paragraph: When opened stays above closed, the backlog grows. The backlog at each month end is in the table view.
+  - generic: Opened
+  - generic: Closed
+  - img "Opened and Closed per week":
+    - generic: "0"
+    - generic: "20"
+    - generic: "40"
+    - generic: "60"
+    - generic: "80"
+    - generic: Jan 26
+    - generic: Mar 26
+    - generic: May 26
+    - generic: Jul 26
+    - generic: Sep 26
+    - generic: Nov 26
+    - generic: Opened 16
+    - generic: Closed 4
+  - region "Workload against people, by team":
+    - heading "Workload against people, by team" [level=2]
+    - paragraph: "Open tickets per active team member. Coverage gaps: tickets of a priority that needs a backup owner and has none."
+    - region "Workload by team":
+      - table "Workload by team":
+        - caption: Workload by team
+        - rowgroup:
+          - row "Team Members Open tickets Per member Coverage gaps":
+            - columnheader "Team":
+              - button "Team":
+                - generic: Team
+            - columnheader "Members":
+              - button "Members":
+                - generic: Members
+            - columnheader "Open tickets":
+              - button "Open tickets":
+                - generic: Open tickets
+            - columnheader "Per member":
+              - button "Per member":
+                - generic: Per member
+            - columnheader "Coverage gaps":
+              - button "Coverage gaps":
+                - generic: Coverage gaps
+        - rowgroup:
+          - row "KSA Operation Team 5 91 18.2 open tickets per member 18.2 2":
+            - cell "KSA Operation Team":
+              - link "KSA Operation Team":
+                - /url: /teams/1
+            - cell "5":
+              - generic: "5"
+            - cell "91":
+              - link "91":
+                - /url: /cases?teamId=1
+            - cell "18.2 open tickets per member 18.2":
+              - img "18.2 open tickets per member"
+              - generic: "18.2"
+            - cell "2":
+              - generic: "2"
+          - row "Dubai Office Operation Team 3 65 21.7 open tickets per member 21.7 2":
+            - cell "Dubai Office Operation Team":
+              - link "Dubai Office Operation Team":
+                - /url: /teams/6
+            - cell "3":
+              - generic: "3"
+            - cell "65":
+              - link "65":
+                - /url: /cases?teamId=6
+            - cell "21.7 open tickets per member 21.7":
+              - img "21.7 open tickets per member"
+              - generic: "21.7"
+            - cell "2":
+              - generic: "2"
+      - status
+  - region "Project portfolio":
+    - heading "Project portfolio" [level=2]
+    - generic: 12 running project(s) of 9 client(s) · the status is what the project manager recorded; the symbols come from rules
+    - region "Project portfolio":
+      - 'group "Project portfolio: scroll sideways for more columns"':
+        - table "Project portfolio":
+          - caption: Project portfolio
+          - rowgroup:
+            - row "Project Client Manager Recorded status Delivery SLA Escalations Commitments Commercial Environments Next milestone Status age":
+              - columnheader "Project":
+                - button "Project":
+                  - generic: Project
+              - columnheader "Client":
+                - button "Client":
+                  - generic: Client
+              - columnheader "Manager":
+                - button "Manager":
+                  - generic: Manager
+              - columnheader "Recorded status":
+                - button "Recorded status":
+                  - generic: Recorded status
+              - columnheader "Delivery":
+                - button "Delivery":
+                  - generic: Delivery
+              - columnheader "SLA":
+                - button "SLA":
+                  - generic: SLA
+              - columnheader "Escalations":
+                - button "Escalations":
+                  - generic: Escalations
+              - columnheader "Commitments":
+                - button "Commitments":
+                  - generic: Commitments
+              - columnheader "Commercial":
+                - button "Commercial":
+                  - generic: Commercial
+              - columnheader "Environments":
+                - button "Environments":
+                  - generic: Environments
+              - columnheader "Next milestone":
+                - button "Next milestone":
+                  - generic: Next milestone
+              - columnheader "Status age":
+                - button "Status age":
+                  - generic: Status age
+          - rowgroup:
+            - 'row "117992-AE SLA _ IT Application & Platform Licenses – 2026 TAH Laith Hamdan No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Off track. Response 21.2 % · resolution 20.3 % · 61 open ticket(s) breached. Escalations: On track. No active escalation. Commitments: Off track. 1 of 1 open commitment(s) overdue. Commercial: Off track. 2 payment(s) overdue, the oldest by 254 days. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "117992-AE SLA _ IT Application & Platform Licenses – 2026":
+                - link "117992-AE":
+                  - /url: /dashboards/project?projectId=1
+                - text: SLA _ IT Application & Platform Licenses – 2026
+              - cell "TAH":
+                - link "TAH":
+                  - /url: /clients/1
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Off track. Response 21.2 % · resolution 20.3 % · 61 open ticket(s) breached."':
+                - 'img "Service / SLA: Off track. Response 21.2 % · resolution 20.3 % · 61 open ticket(s) breached."': ■
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: Off track. 1 of 1 open commitment(s) overdue."':
+                - 'img "Commitments: Off track. 1 of 1 open commitment(s) overdue."': ■
+              - 'cell "Commercial: Off track. 2 payment(s) overdue, the oldest by 254 days."':
+                - 'img "Commercial: Off track. 2 payment(s) overdue, the oldest by 254 days."': ■
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "OYOON-182-AMC-2026 OYOON 182 Al Qudra Bluscan SSPX and CCH AMC OYOON Laith Hamdan No status recorded Delivery: Off track. 1 milestone(s) late — AMC service period start, 313 days. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Watch. A renewal decision is due. Environments: Unknown. No environment is linked to this project. AMC service period start 01 Jan 2026 · late Never"':
+              - cell "OYOON-182-AMC-2026 OYOON 182 Al Qudra Bluscan SSPX and CCH AMC":
+                - link "OYOON-182-AMC-2026":
+                  - /url: /dashboards/project?projectId=15
+                - text: OYOON 182 Al Qudra Bluscan SSPX and CCH AMC
+              - cell "OYOON":
+                - link "OYOON":
+                  - /url: /clients/3
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Off track. 1 milestone(s) late — AMC service period start, 313 days."':
+                - 'img "Delivery: Off track. 1 milestone(s) late — AMC service period start, 313 days."': ■
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Watch. A renewal decision is due."':
+                - 'img "Commercial: Watch. A renewal decision is due."': ▲
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "AMC service period start 01 Jan 2026 · late":
+                - text: AMC service period start
+                - generic: 01 Jan 2026 · late
+              - cell "Never":
+                - generic: Never
+            - 'row "115101-AE VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE OYOON Abdalrhman (Aboud) Asaad No status recorded Delivery: On track. No milestone is late. Next: Annual Zabeel support and maintenance, 02 Jun 2027. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Off track. 1 payment(s) overdue, the oldest by 67 days. Environments: Unknown. No environment is linked to this project. Annual Zabeel support and maintenance 02 Jun 2027 Never"':
+              - 'cell "115101-AE VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE"':
+                - link "115101-AE":
+                  - /url: /dashboards/project?projectId=2
+                - text: "VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE"
+              - cell "OYOON":
+                - link "OYOON":
+                  - /url: /clients/3
+              - cell "Abdalrhman (Aboud) Asaad":
+                - generic: Abdalrhman (Aboud) Asaad
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: On track. No milestone is late. Next: Annual Zabeel support and maintenance, 02 Jun 2027."':
+                - 'img "Delivery: On track. No milestone is late. Next: Annual Zabeel support and maintenance, 02 Jun 2027."': ●
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Off track. 1 payment(s) overdue, the oldest by 67 days."':
+                - 'img "Commercial: Off track. 1 payment(s) overdue, the oldest by 67 days."': ■
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "Annual Zabeel support and maintenance 02 Jun 2027":
+                - text: Annual Zabeel support and maintenance
+                - generic: 02 Jun 2027
+              - cell "Never":
+                - generic: Never
+            - 'row "115307-AE TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So MULTICOM Laith Hamdan No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Off track. 1 payment(s) overdue, the oldest by 137 days. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "115307-AE TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So":
+                - link "115307-AE":
+                  - /url: /dashboards/project?projectId=4
+                - text: TT_VI-AE_Tunisia_Tender_4xFixed CCH_ViTIP Lite_3 yearsSLA So
+              - cell "MULTICOM":
+                - link "MULTICOM":
+                  - /url: /clients/19
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Off track. 1 payment(s) overdue, the oldest by 137 days."':
+                - 'img "Commercial: Off track. 1 payment(s) overdue, the oldest by 137 days."': ■
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "KU105375 KU105375 - Kurdistan BackOffice Support SEW Abdalrhman (Aboud) Asaad No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Off track. Response 66.7 % · resolution 33.3 % · 15 open ticket(s) breached. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: On track. No overdue payment; no renewal decision due. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "KU105375 KU105375 - Kurdistan BackOffice Support":
+                - link "KU105375":
+                  - /url: /dashboards/project?projectId=7
+                - text: KU105375 - Kurdistan BackOffice Support
+              - cell "SEW":
+                - link "SEW":
+                  - /url: /clients/20
+              - cell "Abdalrhman (Aboud) Asaad":
+                - generic: Abdalrhman (Aboud) Asaad
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Off track. Response 66.7 % · resolution 33.3 % · 15 open ticket(s) breached."':
+                - 'img "Service / SLA: Off track. Response 66.7 % · resolution 33.3 % · 15 open ticket(s) breached."': ■
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: On track. No overdue payment; no renewal decision due."':
+                - 'img "Commercial: On track. No overdue payment; no renewal decision due."': ●
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "116938-AE OYOON ANPR Data Management and AMC OYOON Laith Hamdan No status recorded Delivery: On track. No milestone is late. Next: Annual ANPR Data Management AMC, 30 Jun 2027. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: On track. No overdue payment; no renewal decision due. Environments: Unknown. No environment is linked to this project. Annual ANPR Data Management AMC 30 Jun 2027 Never"':
+              - cell "116938-AE OYOON ANPR Data Management and AMC":
+                - link "116938-AE":
+                  - /url: /dashboards/project?projectId=14
+                - text: OYOON ANPR Data Management and AMC
+              - cell "OYOON":
+                - link "OYOON":
+                  - /url: /clients/3
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: On track. No milestone is late. Next: Annual ANPR Data Management AMC, 30 Jun 2027."':
+                - 'img "Delivery: On track. No milestone is late. Next: Annual ANPR Data Management AMC, 30 Jun 2027."': ●
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: On track. No overdue payment; no renewal decision due."':
+                - 'img "Commercial: On track. No overdue payment; no renewal decision due."': ●
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "Annual ANPR Data Management AMC 30 Jun 2027":
+                - text: Annual ANPR Data Management AMC
+                - generic: 30 Jun 2027
+              - cell "Never":
+                - generic: Never
+            - 'row "104723-DE SAPOL Australia back-office delivery and support SAPOL Abdulhamid Tork No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Unknown. No contract is recorded for this project. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "104723-DE SAPOL Australia back-office delivery and support":
+                - link "104723-DE":
+                  - /url: /dashboards/project?projectId=12
+                - text: SAPOL Australia back-office delivery and support
+              - cell "SAPOL":
+                - link "SAPOL":
+                  - /url: /clients/13
+              - cell "Abdulhamid Tork":
+                - generic: Abdulhamid Tork
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Unknown. No contract is recorded for this project."':
+                - 'img "Commercial: Unknown. No contract is recorded for this project."': ○
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "113506-AE Iraq 100x Enforcement Bar Smart Traffic Project MADAR_DIJLA Laith Hamdan No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Unknown. No contract is recorded for this project. Environments: Unknown. No condition has been reported for its environments. — Never"':
+              - cell "113506-AE Iraq 100x Enforcement Bar Smart Traffic Project":
+                - link "113506-AE":
+                  - /url: /dashboards/project?projectId=8
+                - text: Iraq 100x Enforcement Bar Smart Traffic Project
+              - cell "MADAR_DIJLA":
+                - link "MADAR_DIJLA":
+                  - /url: /clients/9
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Unknown. No contract is recorded for this project."':
+                - 'img "Commercial: Unknown. No contract is recorded for this project."': ○
+              - 'cell "Environments: Unknown. No condition has been reported for its environments."':
+                - 'img "Environments: Unknown. No condition has been reported for its environments."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "115510-AE Morocco National Gendarmerie enforcement-bar delivery DGSN Reda Moulouki No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Unknown. No contract is recorded for this project. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "115510-AE Morocco National Gendarmerie enforcement-bar delivery":
+                - link "115510-AE":
+                  - /url: /dashboards/project?projectId=9
+                - text: Morocco National Gendarmerie enforcement-bar delivery
+              - cell "DGSN":
+                - link "DGSN":
+                  - /url: /clients/12
+              - cell "Reda Moulouki":
+                - generic: Reda Moulouki
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Unknown. No contract is recorded for this project."':
+                - 'img "Commercial: Unknown. No contract is recorded for this project."': ○
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "DGSN-VIITS-POC ViITS POC – NARSA integration and DGSN deployment readiness DGSN Reda Moulouki No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Unknown. No contract is recorded for this project. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "DGSN-VIITS-POC ViITS POC – NARSA integration and DGSN deployment readiness":
+                - link "DGSN-VIITS-POC":
+                  - /url: /dashboards/project?projectId=10
+                - text: ViITS POC – NARSA integration and DGSN deployment readiness
+              - cell "DGSN":
+                - link "DGSN":
+                  - /url: /clients/12
+              - cell "Reda Moulouki":
+                - generic: Reda Moulouki
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Unknown. No contract is recorded for this project."':
+                - 'img "Commercial: Unknown. No contract is recorded for this project."': ○
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "QATAR-MOI-POC Qatar MOI centralized traffic-radar management POC QATAR_MOI Laith Hamdan No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Unknown. No contract is recorded for this project. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "QATAR-MOI-POC Qatar MOI centralized traffic-radar management POC":
+                - link "QATAR-MOI-POC":
+                  - /url: /dashboards/project?projectId=11
+                - text: Qatar MOI centralized traffic-radar management POC
+              - cell "QATAR_MOI":
+                - link "QATAR_MOI":
+                  - /url: /clients/17
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Unknown. No contract is recorded for this project."':
+                - 'img "Commercial: Unknown. No contract is recorded for this project."': ○
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+            - 'row "TAK-VITIP-POC TAK Ethiopia ViTIP Lite certification POC TAK Laith Hamdan No status recorded Delivery: Unknown. No dated milestone is recorded on an Active contract. Service / SLA: Unknown. No measured SLA obligation in the last 90 days. Escalations: On track. No active escalation. Commitments: On track. No open commitment. Commercial: Unknown. No contract is recorded for this project. Environments: Unknown. No environment is linked to this project. — Never"':
+              - cell "TAK-VITIP-POC TAK Ethiopia ViTIP Lite certification POC":
+                - link "TAK-VITIP-POC":
+                  - /url: /dashboards/project?projectId=13
+                - text: TAK Ethiopia ViTIP Lite certification POC
+              - cell "TAK":
+                - link "TAK":
+                  - /url: /clients/7
+              - cell "Laith Hamdan":
+                - generic: Laith Hamdan
+              - cell "No status recorded":
+                - generic: No status recorded
+              - 'cell "Delivery: Unknown. No dated milestone is recorded on an Active contract."':
+                - 'img "Delivery: Unknown. No dated milestone is recorded on an Active contract."': ○
+              - 'cell "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."':
+                - 'img "Service / SLA: Unknown. No measured SLA obligation in the last 90 days."': ○
+              - 'cell "Escalations: On track. No active escalation."':
+                - 'img "Escalations: On track. No active escalation."': ●
+              - 'cell "Commitments: On track. No open commitment."':
+                - 'img "Commitments: On track. No open commitment."': ●
+              - 'cell "Commercial: Unknown. No contract is recorded for this project."':
+                - 'img "Commercial: Unknown. No contract is recorded for this project."': ○
+              - 'cell "Environments: Unknown. No environment is linked to this project."':
+                - 'img "Environments: Unknown. No environment is linked to this project."': ○
+              - cell "—":
+                - generic: —
+              - cell "Never":
+                - generic: Never
+      - status
+    - paragraph: ● On track ▲ Watch ■ Off track ○ Unknown (no data — never shown as on track). Hover a symbol for its facts.
+  - heading "Escalations by client — this period" [level=2]
+  - button "Table view"
+  - paragraph: Escalations received in the period. Click a bar for the client's escalations.
+  - list:
+    - generic "TAH"
+    - 'link "TAH: 2 escalation(s). Open list"':
+      - generic: "2"
+  - region "Risks and pending decisions":
+    - heading "Risks and pending decisions" [level=2]
+    - paragraph: Open risk follow-up tickets, and contracts that need a renewal decision.
+    - table:
+      - rowgroup:
+        - row "Decide CT-1011 OYOON — Notice deadline 2026-12-01 (ends 2026-12-31)":
+          - cell "Decide":
+            - text: Decide
+          - cell "CT-1011 OYOON — Notice deadline 2026-12-01 (ends 2026-12-31)":
+            - link "CT-1011":
+              - /url: /contracts/11
+            - text: OYOON — Notice deadline 2026-12-01 (ends 2026-12-31)
+  - region "Data trust":
+    - heading "Data trust" [level=2]
+    - paragraph: How far the figures on this page can be relied on.
+    - table:
+      - rowgroup:
+        - row "Open data-quality items 263":
+          - cell "Open data-quality items":
+            - link "Open data-quality items":
+              - /url: /data-quality
+          - cell "263"
+        - row "Environments needing verification 2 / 9":
+          - cell "Environments needing verification":
+            - link "Environments needing verification":
+              - /url: /environments?freshness=needsVerification
+          - cell "2 / 9"
+        - row "Environments never reported 7 / 9":
+          - cell "Environments never reported":
+            - link "Environments never reported":
+              - /url: /environments?condition=Unknown
+          - cell "7 / 9"
+        - row "Tickets not SLA-measurable (period) 0 / 53":
+          - cell "Tickets not SLA-measurable (period)":
+            - link "Tickets not SLA-measurable (period)":
+              - /url: /dashboards/sla
+          - cell "0 / 53"
+        - row "Projects without a recorded status 12 / 12":
+          - cell "Projects without a recorded status"
+          - cell "12 / 12"
+        - row "Projects whose status needs review 0 / 12":
+          - cell "Projects whose status needs review"
+          - cell "0 / 12"
+        - row "Projects where signals disagree with the status 0 / 12":
+          - cell "Projects where signals disagree with the status"
+          - cell "0 / 12"
+        - row "Active contracts without an end date 0":
+          - cell "Active contracts without an end date":
+            - link "Active contracts without an end date":
+              - /url: /contracts?renewal=unknownEnd
+          - cell "0"
+  - paragraph: Changes compare the period to date with the same number of days of the previous period. The backlog history does not replay reopened tickets, and leaves out closed tickets that have no recorded closing time.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,15 @@
+{
+  "id": "R063-mobile",
+  "route": "/admin/config/environment-types",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Environment types"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 423,
+  "title": "Environment types · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

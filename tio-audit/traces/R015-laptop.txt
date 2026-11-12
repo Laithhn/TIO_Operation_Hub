@@ -1,0 +1,477 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Projects & contracts":
+    - /url: /projects
+  - generic: ›
+  - generic: Contract register
+- heading "Projects & contracts" [level=1]
+- generic: "Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; tickets linked to a contract are measured against them."
+- button "Export CSV"
+- link "+ New contract":
+  - /url: /contracts/new
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - tablist:
+    - tab "Projects":
+      - generic: Projects
+    - tab "Contract register" [selected]:
+      - generic: Contract register
+  - button "Scroll tabs right":
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Renewal
+  - combobox "Renewal":
+    - option "Any" [selected]
+    - option "Needs attention"
+    - option "Expired, still Active"
+    - option "Renewal due (≤ 90 days)"
+    - option "End date unknown"
+    - option "Current"
+  - generic: Type
+  - combobox "Type":
+    - option "Any" [selected]
+    - option "SLA & support"
+    - option "Implementation"
+    - option "Maintenance"
+    - option "Subscription"
+    - option "Other"
+  - region "Contracts":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Contracts: scroll sideways for more columns"':
+      - table "Contracts":
+        - caption: Contracts
+        - rowgroup:
+          - row "Select all rows shown Ref Contract Project Type Status Term Notice deadline Renewal Support SLA targets Owner Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Ref":
+              - button "Ref":
+                - generic: Ref
+            - columnheader "Contract":
+              - button "Contract":
+                - generic: Contract
+            - columnheader "Project":
+              - button "Project":
+                - generic: Project
+            - columnheader "Type":
+              - button "Type":
+                - generic: Type
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Term":
+              - button "Term":
+                - generic: Term
+            - columnheader "Notice deadline":
+              - button "Notice deadline":
+                - generic: Notice deadline
+            - columnheader "Renewal":
+              - button "Renewal":
+                - generic: Renewal
+            - columnheader "Support":
+              - button "Support":
+                - generic: Support
+            - columnheader "SLA targets":
+              - button "SLA targets":
+                - generic: SLA targets
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select CT-1006 CT-1006 2025 Vitronic Software Service Level Agreement CW16622 117992-AE TAH SLA & support Ended 01 Jan 2025 – 14 Oct 2025 14 Sept 2025 Ended On site 3 on site required 4 Laith Hamdan Actions for contract CT-1006":
+            - cell "Select CT-1006":
+              - checkbox "Select CT-1006"
+            - cell "CT-1006":
+              - link "CT-1006":
+                - /url: /contracts/6
+            - cell "2025 Vitronic Software Service Level Agreement CW16622":
+              - link "2025 Vitronic Software Service Level Agreement":
+                - /url: /contracts/6
+              - generic: CW16622
+            - cell "117992-AE TAH":
+              - link "117992-AE":
+                - /url: /projects/1
+              - generic: TAH
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Ended":
+              - generic: Ended
+            - cell "01 Jan 2025 – 14 Oct 2025":
+              - generic: 01 Jan 2025 – 14 Oct 2025
+            - cell "14 Sept 2025":
+              - generic: 14 Sept 2025
+            - cell "Ended":
+              - generic: Ended
+            - cell "On site 3 on site required":
+              - text: On site
+              - generic: 3 on site required
+            - cell "4":
+              - generic: "4"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1006":
+              - button "Actions for contract CT-1006": ⋯
+          - row "Select CT-1013 CT-1013 BPA 42500353 — OYOON 174 Zabeel System AMC (2025–2026) 42500353 revision 0 115101-AE OYOON SLA & support Ended 03 Jun 2025 – 03 Jun 2026 — Ended Unknown none Laith Hamdan Actions for contract CT-1013":
+            - cell "Select CT-1013":
+              - checkbox "Select CT-1013"
+            - cell "CT-1013":
+              - link "CT-1013":
+                - /url: /contracts/13
+            - cell "BPA 42500353 — OYOON 174 Zabeel System AMC (2025–2026) 42500353 revision 0":
+              - link "BPA 42500353 — OYOON 174 Zabeel System AMC (2025–2026)":
+                - /url: /contracts/13
+              - generic: 42500353 revision 0
+            - cell "115101-AE OYOON":
+              - link "115101-AE":
+                - /url: /projects/2
+              - generic: OC
+              - generic: OYOON
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Ended":
+              - generic: Ended
+            - cell "03 Jun 2025 – 03 Jun 2026":
+              - generic: 03 Jun 2025 – 03 Jun 2026
+            - cell "—":
+              - generic: —
+            - cell "Ended":
+              - generic: Ended
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "none":
+              - generic: none
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1013":
+              - button "Actions for contract CT-1013": ⋯
+          - row "Select CT-1012 CT-1012 OYOON 159 ANPR Data Management Solution 5196 of 2025 116938-AE OYOON Implementation Ended 01 Jul 2025 – 30 Jun 2026 31 May 2026 Ended Hybrid none Laith Hamdan Actions for contract CT-1012":
+            - cell "Select CT-1012":
+              - checkbox "Select CT-1012"
+            - cell "CT-1012":
+              - link "CT-1012":
+                - /url: /contracts/12
+            - cell "OYOON 159 ANPR Data Management Solution 5196 of 2025":
+              - link "OYOON 159 ANPR Data Management Solution":
+                - /url: /contracts/12
+              - generic: 5196 of 2025
+            - cell "116938-AE OYOON":
+              - link "116938-AE":
+                - /url: /projects/14
+              - generic: OC
+              - generic: OYOON
+            - cell "Implementation":
+              - generic: Implementation
+            - cell "Ended":
+              - generic: Ended
+            - cell "01 Jul 2025 – 30 Jun 2026":
+              - generic: 01 Jul 2025 – 30 Jun 2026
+            - cell "31 May 2026":
+              - generic: 31 May 2026
+            - cell "Ended":
+              - generic: Ended
+            - cell "Hybrid":
+              - generic: Hybrid
+            - cell "none":
+              - generic: none
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1012":
+              - button "Actions for contract CT-1012": ⋯
+          - row "Select CT-1011 CT-1011 OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH 5194 of 2025 OYOON-182-AMC-2026 OYOON Maintenance Active 01 Jan 2026 – 31 Dec 2026 01 Dec 2026 Renewal due Hybrid 4 Laith Hamdan Actions for contract CT-1011":
+            - cell "Select CT-1011":
+              - checkbox "Select CT-1011"
+            - cell "CT-1011":
+              - link "CT-1011":
+                - /url: /contracts/11
+            - cell "OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH 5194 of 2025":
+              - link "OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH":
+                - /url: /contracts/11
+              - generic: 5194 of 2025
+            - cell "OYOON-182-AMC-2026 OYOON":
+              - link "OYOON-182-AMC-2026":
+                - /url: /projects/15
+              - generic: OC
+              - generic: OYOON
+            - cell "Maintenance":
+              - generic: Maintenance
+            - cell "Active":
+              - text: Active
+            - cell "01 Jan 2026 – 31 Dec 2026":
+              - generic: 01 Jan 2026 – 31 Dec 2026
+            - cell "01 Dec 2026":
+              - generic: 01 Dec 2026
+            - cell "Renewal due":
+              - text: Renewal due
+            - cell "Hybrid":
+              - generic: Hybrid
+            - cell "4":
+              - generic: "4"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1011":
+              - button "Actions for contract CT-1011": ⋯
+          - row "Select CT-1009 CT-1009 OYOON 174 Zabeel System AMC Renewal 5341 of 2026 115101-AE OYOON SLA & support Active 03 Jun 2026 – 02 Jun 2027 — Current Hybrid 1 on site required 4 Laith Hamdan Actions for contract CT-1009":
+            - cell "Select CT-1009":
+              - checkbox "Select CT-1009"
+            - cell "CT-1009":
+              - link "CT-1009":
+                - /url: /contracts/9
+            - cell "OYOON 174 Zabeel System AMC Renewal 5341 of 2026":
+              - link "OYOON 174 Zabeel System AMC Renewal":
+                - /url: /contracts/9
+              - generic: 5341 of 2026
+            - cell "115101-AE OYOON":
+              - link "115101-AE":
+                - /url: /projects/2
+              - generic: OC
+              - generic: OYOON
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Active":
+              - text: Active
+            - cell "03 Jun 2026 – 02 Jun 2027":
+              - generic: 03 Jun 2026 – 02 Jun 2027
+            - cell "—":
+              - generic: —
+            - cell "Current":
+              - text: Current
+            - cell "Hybrid 1 on site required":
+              - text: Hybrid
+              - generic: 1 on site required
+            - cell "4":
+              - generic: "4"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1009":
+              - button "Actions for contract CT-1009": ⋯
+          - row "Select CT-1010 CT-1010 OYOON 266 ANPR Data Management AMC 5340 of 2026 116938-AE OYOON SLA & support Active 01 Jul 2026 – 30 Jun 2027 31 May 2027 Current Hybrid 4 Laith Hamdan Actions for contract CT-1010":
+            - cell "Select CT-1010":
+              - checkbox "Select CT-1010"
+            - cell "CT-1010":
+              - link "CT-1010":
+                - /url: /contracts/10
+            - cell "OYOON 266 ANPR Data Management AMC 5340 of 2026":
+              - link "OYOON 266 ANPR Data Management AMC":
+                - /url: /contracts/10
+              - generic: 5340 of 2026
+            - cell "116938-AE OYOON":
+              - link "116938-AE":
+                - /url: /projects/14
+              - generic: OC
+              - generic: OYOON
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Active":
+              - text: Active
+            - cell "01 Jul 2026 – 30 Jun 2027":
+              - generic: 01 Jul 2026 – 30 Jun 2027
+            - cell "31 May 2027":
+              - generic: 31 May 2027
+            - cell "Current":
+              - text: Current
+            - cell "Hybrid":
+              - generic: Hybrid
+            - cell "4":
+              - generic: "4"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1010":
+              - button "Actions for contract CT-1010": ⋯
+          - row "Select CT-1001 CT-1001 2026_Vitronic Software Service Level Agreement CW16622, QU040000265 117992-AE TAH SLA & support Active 15 Oct 2025 – 14 Oct 2027 16 Jul 2027 Current On site 8 on site required 4 Laith Hamdan Actions for contract CT-1001":
+            - cell "Select CT-1001":
+              - checkbox "Select CT-1001"
+            - cell "CT-1001":
+              - link "CT-1001":
+                - /url: /contracts/1
+            - cell "2026_Vitronic Software Service Level Agreement CW16622, QU040000265":
+              - link "2026_Vitronic Software Service Level Agreement":
+                - /url: /contracts/1
+              - generic: CW16622, QU040000265
+            - cell "117992-AE TAH":
+              - link "117992-AE":
+                - /url: /projects/1
+              - generic: TAH
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Active":
+              - text: Active
+            - cell "15 Oct 2025 – 14 Oct 2027":
+              - generic: 15 Oct 2025 – 14 Oct 2027
+            - cell "16 Jul 2027":
+              - generic: 16 Jul 2027
+            - cell "Current":
+              - text: Current
+            - cell "On site 8 on site required":
+              - text: On site
+              - generic: 8 on site required
+            - cell "4":
+              - generic: "4"
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1001":
+              - button "Actions for contract CT-1001": ⋯
+          - row "Select CT-1004 CT-1004 PI2026_134_ViTIP_Lite_Contract PI2026_134 115307-AE MULTICOM Implementation Active 26 Jun 2026 – 25 Jun 2029 — Current Unknown none Laith Hamdan Actions for contract CT-1004":
+            - cell "Select CT-1004":
+              - checkbox "Select CT-1004"
+            - cell "CT-1004":
+              - link "CT-1004":
+                - /url: /contracts/4
+            - cell "PI2026_134_ViTIP_Lite_Contract PI2026_134":
+              - link "PI2026_134_ViTIP_Lite_Contract":
+                - /url: /contracts/4
+              - generic: PI2026_134
+            - cell "115307-AE MULTICOM":
+              - link "115307-AE":
+                - /url: /projects/4
+              - generic: MI
+              - generic: MULTICOM
+            - cell "Implementation":
+              - generic: Implementation
+            - cell "Active":
+              - text: Active
+            - cell "26 Jun 2026 – 25 Jun 2029":
+              - generic: 26 Jun 2026 – 25 Jun 2029
+            - cell "—":
+              - generic: —
+            - cell "Current":
+              - text: Current
+            - cell "Unknown":
+              - generic: Unknown
+            - cell "none":
+              - generic: none
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "Actions for contract CT-1004":
+              - button "Actions for contract CT-1004": ⋯
+          - row "Select CT-1008 CT-1008 Kurdistan BackOffice – Software Support & Maintenance SLA QU2024_191 KU105375 SEW SLA & support Active 01 Jan 2024 – 31 Dec 2038 04 Jul 2038 Current Remote 4 Abdalrhman (Aboud) Asaad Actions for contract CT-1008":
+            - cell "Select CT-1008":
+              - checkbox "Select CT-1008"
+            - cell "CT-1008":
+              - link "CT-1008":
+                - /url: /contracts/8
+            - cell "Kurdistan BackOffice – Software Support & Maintenance SLA QU2024_191":
+              - link "Kurdistan BackOffice – Software Support & Maintenance SLA":
+                - /url: /contracts/8
+              - generic: QU2024_191
+            - cell "KU105375 SEW":
+              - link "KU105375":
+                - /url: /projects/7
+              - generic: SEW
+            - cell "SLA & support":
+              - generic: SLA & support
+            - cell "Active":
+              - text: Active
+            - cell "01 Jan 2024 – 31 Dec 2038":
+              - generic: 01 Jan 2024 – 31 Dec 2038
+            - cell "04 Jul 2038":
+              - generic: 04 Jul 2038
+            - cell "Current":
+              - text: Current
+            - cell "Remote":
+              - generic: Remote
+            - cell "4":
+              - generic: "4"
+            - cell "Abdalrhman (Aboud) Asaad":
+              - generic: Abdalrhman (Aboud) Asaad
+            - cell "Actions for contract CT-1008":
+              - button "Actions for contract CT-1008": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 9 OF 9
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 9 OF 9
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

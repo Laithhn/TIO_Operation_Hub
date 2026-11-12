@@ -90,6 +90,13 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
                     { check.Add($"filters.{key}", "Enter a valid date (yyyy-MM-dd)."); continue; }
                     labels.Add($"{f.Label} = {value}");
                     break;
+                case FilterKind.Select when def.Key == "cases" && string.Equals(f.Key, "status", StringComparison.OrdinalIgnoreCase):
+                    // TIO-BUG-006: configured statuses (code:<StatusCode>), aggregates and older stage values; anything else is refused.
+                    var status = await CaseStatusFilter.ResolveAsync(db, value, ct);
+                    if (status is null) { check.Add($"filters.{key}", $"'{value}' is not a ticket status of {f.Label}. Choose one of the listed statuses."); continue; }
+                    value = status.Value;
+                    labels.Add($"{f.Label} = {status.Summary}");
+                    break;
                 case FilterKind.Select:
                     var opt = f.Options?.FirstOrDefault(o => string.Equals(o, value, StringComparison.OrdinalIgnoreCase));
                     if (opt is null) { check.Add($"filters.{key}", $"'{value}' is not an option of {f.Label}."); continue; }

@@ -37,10 +37,22 @@ public static class BuilderEndpoints
         job.UserId == viewer.UserId && ExportAccessFingerprint.IsCurrent(job.AccessFingerprint, viewer)
         && (job.Source != "Schedule" || job.Status == ExportStatus.Completed);
 
+    /// <summary>
+    /// TIO-BUG-005: why the details of an export are hidden from this viewer, as a safe category: it says nothing about the hidden
+    /// filters, rows or file, only which rule hid them. "Available" when they are shown. The masking itself is unchanged.
+    /// </summary>
+    public static string DetailsAvailability(ExportJob job, UserContext viewer) =>
+        job.UserId != viewer.UserId ? "OtherOwner"
+        : job.Source == "Schedule" && job.Status != ExportStatus.Completed ? "ScheduleNotCompleted"
+        : job.AccessFingerprint is null ? "LegacyExport"
+        : !ExportAccessFingerprint.IsCurrent(job.AccessFingerprint, viewer) ? "AccessChanged"
+        : "Available";
+
     public static object JobDto(ExportJob j, string? user, UserContext viewer)
     {
         var mine = j.UserId == viewer.UserId;
         var details = CanSeeJobDetails(j, viewer);
+        var availability = details ? "Available" : DetailsAvailability(j, viewer);
         return new
         {
             j.Id, j.AuditId, j.Report, ReportName = details ? j.ReportName : ReportCatalog.Find(j.Report)?.Name ?? "Report",
@@ -50,6 +62,7 @@ public static class BuilderEndpoints
             j.ExpiresAt, Error = details ? j.Error : null, j.Source, j.ScheduleId, j.RetryOfId,
             j.SavedReportId, j.Attempts, j.CutoffAt, user, builder = j.DefinitionJson != null,
             canDownload = details && j.Status == ExportStatus.Completed && j.StoredPath != null,
+            detailsAvailability = availability,
             canRetry = details && j.Status is (ExportStatus.Failed or ExportStatus.Expired or ExportStatus.Cancelled),
             canCancel = mine && j.DefinitionJson != null && j.Status is (ExportStatus.Pending or ExportStatus.Processing) && !j.CancelRequested
         };

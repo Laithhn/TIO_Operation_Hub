@@ -1,0 +1,74 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Teams":
+      - /url: /teams
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Reassignment queue" [level=1]
+- generic: Active records whose owner is deactivated. Nothing is reassigned automatically; use a handover or reassign each record.
+- link "Handovers":
+  - /url: /handovers
+- complementary "Section menu":
+  - navigation:
+    - link "Teams & coverage":
+      - /url: /teams
+    - link "Handovers":
+      - /url: /handovers
+    - link "Reassignment queue":
+      - /url: /reassignment
+  - button "Expand menu":
+- main:
+  - region "Table":
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Type Record Deactivated owner Reason":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Type":
+            - generic: Type
+          - columnheader "Record":
+            - generic: Record
+          - columnheader "Deactivated owner":
+            - generic: Deactivated owner
+          - columnheader "Reason":
+            - generic: Reason
+      - rowgroup
+    - status
+    - generic: No records entered.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

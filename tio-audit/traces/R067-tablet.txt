@@ -1,0 +1,221 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+    - generic: Administration
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Servers":
+    - /url: /admin/config/category/servers
+  - generic: ›
+  - generic: Server roles
+- heading "Server roles" [level=1]
+- generic: What a server is for, for example Application server or Database server.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Server roles":
+    - searchbox "Filter rows"
+    - generic: 7 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Server roles":
+      - caption: Server roles
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (servers) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (servers)":
+            - button "In use (servers)":
+              - generic: In use (servers)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Application server up Move Application server down Application server — 69 Active Actions for Application server":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Application server up Move Application server down":
+            - button "Move Application server up" [disabled]: ▲
+            - button "Move Application server down": ▼
+          - cell "Application server":
+            - button "Application server"
+          - cell "—":
+            - generic: —
+          - cell "69":
+            - generic: "69"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Application server":
+            - button "Actions for Application server": ⋯
+        - row "Select ▲ ▼ Move Web server up Move Web server down Web server — 31 Active Actions for Web server":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Web server up Move Web server down":
+            - button "Move Web server up": ▲
+            - button "Move Web server down": ▼
+          - cell "Web server":
+            - button "Web server"
+          - cell "—":
+            - generic: —
+          - cell "31":
+            - generic: "31"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Web server":
+            - button "Actions for Web server": ⋯
+        - row "Select ▲ ▼ Move Database server up Move Database server down Database server — 29 Active Actions for Database server":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Database server up Move Database server down":
+            - button "Move Database server up": ▲
+            - button "Move Database server down": ▼
+          - cell "Database server":
+            - button "Database server"
+          - cell "—":
+            - generic: —
+          - cell "29":
+            - generic: "29"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Database server":
+            - button "Actions for Database server": ⋯
+        - row "Select ▲ ▼ Move Listener up Move Listener down Listener — 8 Active Actions for Listener":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Listener up Move Listener down":
+            - button "Move Listener up": ▲
+            - button "Move Listener down": ▼
+          - cell "Listener":
+            - button "Listener"
+          - cell "—":
+            - generic: —
+          - cell "8":
+            - generic: "8"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Listener":
+            - button "Actions for Listener": ⋯
+        - row "Select ▲ ▼ Move Load balancer up Move Load balancer down Load balancer — 8 Active Actions for Load balancer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Load balancer up Move Load balancer down":
+            - button "Move Load balancer up": ▲
+            - button "Move Load balancer down": ▼
+          - cell "Load balancer":
+            - button "Load balancer"
+          - cell "—":
+            - generic: —
+          - cell "8":
+            - generic: "8"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Load balancer":
+            - button "Actions for Load balancer": ⋯
+        - row "Select ▲ ▼ Move Storage up Move Storage down Storage — 0 Active Actions for Storage":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Storage up Move Storage down":
+            - button "Move Storage up": ▲
+            - button "Move Storage down": ▼
+          - cell "Storage":
+            - button "Storage"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Storage":
+            - button "Actions for Storage": ⋯
+        - row "Select ▲ ▼ Move Other up Move Other down Other — 8 Active Actions for Other":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Other up Move Other down":
+            - button "Move Other up": ▲
+            - button "Move Other down" [disabled]: ▼
+          - cell "Other":
+            - button "Other"
+          - cell "—":
+            - generic: —
+          - cell "8":
+            - generic: "8"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Other":
+            - button "Actions for Other": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

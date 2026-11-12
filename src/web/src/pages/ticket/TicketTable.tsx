@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import { get, qs, type Paged } from '../../api';
 import { fmtDateTime, label } from '../../format';
-import { useDebounced } from '../../hooks';
+import { useDebounced, useTypes } from '../../hooks';
 import { Badge, DataTable, DeleteAction, Pager, SelectInput, StatusBadge } from '../../ui/kit';
 import { ClientDisplay, initialsOf, toneOf } from '../../ui/ClientLogo';
 
@@ -28,6 +28,10 @@ type TableProps = {
 
 /** The tickets table of the Tickets page: the same columns, row details and column choices wherever a list of tickets is shown. */
 export function TicketTable({ rows, loading, error, empty, sort, onSort, totalCount, search }: TableProps) {
+  // TIO-BUG-007: the type hint and Type column use the configured type label, as the ticket detail does (renamed and retired
+  // types keep their configured label; an unknown code falls back to the code in words). The stored code is unchanged.
+  const T = useTypes();
+  const typeName = (code: string) => T.name('CaseType', code);
   return (
     <DataTable<CaseRow> rowKey={r => r.id} rows={rows} loading={loading} error={error} empty={empty} sort={sort} onSort={onSort} caption="Tickets" columnsKey="cases-v2"
       search={search} totalCount={totalCount} columnFilters={false}
@@ -44,7 +48,7 @@ export function TicketTable({ rows, loading, error, empty, sort, onSort, totalCo
         {(r.waitingReason || r.stale) && <div><dt>Flags</dt><dd>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</dd></div>}
       </dl>}
       columns={[
-        { key: 'work', header: 'Ticket', sort: 'title', priority: 'primary', render: r => <span title={label(r.type)}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '24rem' },
+        { key: 'work', header: 'Ticket', sort: 'title', priority: 'primary', render: r => <span title={`Type: ${typeName(r.type)}`}><Link to={`/cases/${r.id}`}>{r.ref}</Link> {r.title}</span>, maxWidth: '24rem' },
         { key: 'client', header: 'Client', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal</span> },
         { key: 'priority', header: 'Priority', sort: 'priority', render: r => <StatusBadge value={r.priority} /> },
         { key: 'status', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.statusCode} enumName="CaseStatus" />{r.status === 'Cancelled' && <span className="chip">Cancelled</span>}</> },
@@ -59,7 +63,7 @@ export function TicketTable({ rows, loading, error, empty, sort, onSort, totalCo
         { key: 'sla', header: 'Contractual SLA', defaultHidden: true, render: r => <>{r.contractRef && <div className="hint mono">{r.contractRef}</div>}<SlaPair response={r.responseSla} resolution={r.resolutionSla} /></> },
         { key: 'ref', header: 'Ref', sort: 'ref', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.ref}</Link> },
         { key: 'title', header: 'Title', sort: 'title', defaultHidden: true, render: r => <Link to={`/cases/${r.id}`}>{r.title}</Link> },
-        { key: 'type', header: 'Type', defaultHidden: true, render: r => label(r.type) },
+        { key: 'type', header: 'Type', defaultHidden: true, render: r => typeName(r.type) },
         { key: 'team', header: 'Team', defaultHidden: true, render: r => r.teamName },
         { key: 'next', header: 'Next action / review', defaultHidden: true, render: r => <>{r.nextAction}<div className="hint">{fmtDateTime(r.nextReviewAt)}{r.reviewOverdue && ' · review passed'}</div></> },
         { key: 'flags', header: 'Flags', defaultHidden: true, render: r => <>{r.waitingReason && <Badge tone="warn">Waiting: {label(r.waitingReason)}</Badge>}{r.stale && <Badge tone="bad">Stale</Badge>}</> },

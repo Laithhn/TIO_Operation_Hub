@@ -1,0 +1,280 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: · Regional
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview" [pressed]
+    - button "Operational"
+    - button "Technical"
+    - button "Commercial"
+    - button "Records"
+  - region "Risks and outstanding work":
+    - heading "Risks and outstanding work" [level=2]
+    - generic: 64 item(s) · 6 critical
+    - group "Issue type":
+      - button "All 64" [pressed]
+      - button "Overdue ticket 58"
+      - button "Ticket due within 24 h 1"
+      - button "Environment degraded or down 1"
+      - button "Overdue commitment 3"
+      - button "Payment 1"
+    - region "Risks and outstanding work":
+      - table "Risks and outstanding work":
+        - caption: Risks and outstanding work
+        - rowgroup:
+          - row "Severity Issue Owner Deadline Next action":
+            - columnheader "Severity":
+              - button "Severity":
+                - generic: Severity
+            - columnheader "Issue":
+              - button "Issue":
+                - generic: Issue
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Deadline":
+              - button "Deadline":
+                - generic: Deadline
+            - columnheader "Next action":
+              - button "Next action":
+                - generic: Next action
+        - rowgroup:
+          - row "Critical High priority Overdue ticket CS-1834 BO Release 18.0 Ahmed Awadalla 152 d 2 h overdue Review the ticket imported from Jira. Due 2026-06-11 10:38 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-1834 BO Release 18.0":
+              - generic: Overdue ticket
+              - link "CS-1834":
+                - /url: /cases/10034
+              - text: BO Release 18.0
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "152 d 2 h overdue":
+              - generic: 152 d 2 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-06-11 10:38 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-06-11 10:38 UTC
+          - row "Critical High priority Overdue ticket CS-1821 Vehicle Speed Reverted After Vehicle Type Change Ahmed Awadalla 148 d 6 h overdue Review the ticket imported from Jira. Due 2026-06-15 06:30 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-1821 Vehicle Speed Reverted After Vehicle Type Change":
+              - generic: Overdue ticket
+              - link "CS-1821":
+                - /url: /cases/10021
+              - text: Vehicle Speed Reverted After Vehicle Type Change
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "148 d 6 h overdue":
+              - generic: 148 d 6 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-06-15 06:30 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-06-15 06:30 UTC
+          - row "Critical High priority Overdue ticket CS-1833 BackOffice Kubernetes Ansil Ansar2 90 d 4 h overdue Review the ticket imported from Jira. Due 2026-08-12 08:18 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-1833 BackOffice Kubernetes":
+              - generic: Overdue ticket
+              - link "CS-1833":
+                - /url: /cases/10033
+              - text: BackOffice Kubernetes
+            - cell "Ansil Ansar2":
+              - generic: Ansil Ansar2
+            - cell "90 d 4 h overdue":
+              - generic: 90 d 4 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-08-12 08:18 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-08-12 08:18 UTC
+          - row "Critical Critical priority Overdue ticket CS-2593 R1 Backoffice Slowess issue Moataz Al Khaldi 7 d 0 h overdue Review the ticket imported from Jira. Due 2026-11-03 11:55 UTC":
+            - cell "Critical Critical priority":
+              - text: Critical
+              - generic: Critical priority
+            - cell "Overdue ticket CS-2593 R1 Backoffice Slowess issue":
+              - generic: Overdue ticket
+              - link "CS-2593":
+                - /url: /cases/10793
+              - text: R1 Backoffice Slowess issue
+            - cell "Moataz Al Khaldi":
+              - generic: Moataz Al Khaldi
+            - cell "7 d 0 h overdue":
+              - generic: 7 d 0 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-11-03 11:55 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-11-03 11:55 UTC
+          - row "Critical Critical priority Overdue ticket CS-2595 R3 Backoffice Slowess issue Moataz Al Khaldi 2 d 7 h overdue Review the ticket imported from Jira. Due 2026-11-08 05:38 UTC":
+            - cell "Critical Critical priority":
+              - text: Critical
+              - generic: Critical priority
+            - cell "Overdue ticket CS-2595 R3 Backoffice Slowess issue":
+              - generic: Overdue ticket
+              - link "CS-2595":
+                - /url: /cases/10795
+              - text: R3 Backoffice Slowess issue
+            - cell "Moataz Al Khaldi":
+              - generic: Moataz Al Khaldi
+            - cell "2 d 7 h overdue":
+              - generic: 2 d 7 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-11-08 05:38 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-11-08 05:38 UTC
+          - row "Critical High priority Overdue ticket CS-2590 R3 Violation Assignment Issue Moataz Al Khaldi 2 d 6 h overdue Review the ticket imported from Jira. Due 2026-11-08 06:27 UTC":
+            - cell "Critical High priority":
+              - text: Critical
+              - generic: High priority
+            - cell "Overdue ticket CS-2590 R3 Violation Assignment Issue":
+              - generic: Overdue ticket
+              - link "CS-2590":
+                - /url: /cases/10790
+              - text: R3 Violation Assignment Issue
+            - cell "Moataz Al Khaldi":
+              - generic: Moataz Al Khaldi
+            - cell "2 d 6 h overdue":
+              - generic: 2 d 6 h overdue
+            - cell "Review the ticket imported from Jira. Due 2026-11-08 06:27 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2026-11-08 06:27 UTC
+          - row "High Normal priority Overdue ticket CS-2534 Monitor copy status of Archive service of Traffic Services Portal Unassigned 624 d 5 h overdue Review the ticket imported from Jira. Due 2025-02-24 07:21 UTC":
+            - cell "High Normal priority":
+              - text: High
+              - generic: Normal priority
+            - cell "Overdue ticket CS-2534 Monitor copy status of Archive service of Traffic Services Portal":
+              - generic: Overdue ticket
+              - link "CS-2534":
+                - /url: /cases/10734
+              - text: Monitor copy status of Archive service of Traffic Services Portal
+            - cell "Unassigned":
+              - text: Unassigned
+            - cell "624 d 5 h overdue":
+              - generic: 624 d 5 h overdue
+            - cell "Review the ticket imported from Jira. Due 2025-02-24 07:21 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2025-02-24 07:21 UTC
+          - row "High Normal priority Overdue ticket CS-1786 OBJ/EFA API Release 1.1 Unassigned 568 d 2 h overdue Review the ticket imported from Jira. Due 2025-04-21 09:49 UTC":
+            - cell "High Normal priority":
+              - text: High
+              - generic: Normal priority
+            - cell "Overdue ticket CS-1786 OBJ/EFA API Release 1.1":
+              - generic: Overdue ticket
+              - link "CS-1786":
+                - /url: /cases/9986
+              - text: OBJ/EFA API Release 1.1
+            - cell "Unassigned":
+              - text: Unassigned
+            - cell "568 d 2 h overdue":
+              - generic: 568 d 2 h overdue
+            - cell "Review the ticket imported from Jira. Due 2025-04-21 09:49 UTC":
+              - text: Review the ticket imported from Jira.
+              - generic: Due 2025-04-21 09:49 UTC
+      - status
+    - button "Show all 64"
+    - link "Open the full action list":
+      - /url: /actions?clientId=1
+    - generic: "Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record."
+  - heading "Management" [level=2]
+  - term: Project manager
+  - definition: Laith Hamdan
+  - term: Project team
+  - definition:
+    - list:
+      - text: Ahmed Awadalla
+      - generic: · Operation engineer
+      - text: Moataz Al Khaldi
+      - generic: · Operation engineer
+      - text: Tareq Abdul Jabar
+      - generic: · Operation engineer
+      - text: Waleed Alharthi
+      - generic: · Operation engineer
+      - text: Ziyad Bu Dukhi
+      - generic: · Operation engineer
+  - term: Last reviewed
+  - definition: 29 Oct 2026, 10:47
+  - term: Freshness
+  - definition:
+    - generic "Review every 90 days · last 29 Oct 2026, 10:47 · due 27 Jan 2027, 10:47":
+      - text: Current
+      - generic: Current
+  - term: Operational state
+  - definition:
+    - text: Active
+  - heading "At a glance" [level=2]
+  - term: Environments
+  - definition: 6 (6 with applications)
+  - term: Application installations
+  - definition: "6"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

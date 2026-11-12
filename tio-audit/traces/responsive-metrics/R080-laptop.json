@@ -1,0 +1,15 @@
+{
+  "id": "R080-laptop",
+  "route": "/admin/settings",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Settings"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 3007,
+  "title": "Settings · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

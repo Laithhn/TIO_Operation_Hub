@@ -1,0 +1,15 @@
+{
+  "id": "R041-tablet",
+  "route": "/reporting-center/schedules",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 276,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

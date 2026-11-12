@@ -1,0 +1,289 @@
+TERM
+03 Jun 2025 – 03 Jun 2026
+Unknown
+RENEWAL
+Ended
+SLA TARGETS
+None recorded
+Tickets are not measured
+PAYMENTS
+1 open, no due date
+Details
+SLA targets
+0
+Delivery
+2
+Fees and payments
+1
+Penalties
+0
+Coverage
+Documents
+History
+Contract
+Client
+OYOON · OYOON Center
+Contract reference
+42500353 revision 0
+Type
+SLA & support
+Project
+115101-AE · VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE
+Owner
+Laith Hamdan
+Term
+03 Jun 2025 – 03 Jun 2026
+Renewal terms
+Unknown
+Notice period
+Unknown
+Last reviewed
+10 Nov 2026
+Service obligations
+Support model
+Unknown
+Support hours
+Unknown
+Support notes
+Historical BPA: CEO acceptance response observed; no signed PDF. SLA hours/targets unspecified. Portal processing, settlement and renewal unverified.
+On-site engineers required
+Unknown
+Coverage
+
+OYOON 174 Zabeel System AMC, exactly as stated in BPA 42500353 revision 0. Operational client: OYOON Center; project 115101-AE mapping confirmed by the user on 10 November 2026. Issuer/entity: Smart Dubai Government / Digital Dubai Government Establishment. Ship To DDGE; Bill To Dubai Smart Government Establishment, Corporate Support Services Dept. Supplier: VITRONIC MACHINE VISION MIDDLE EAST (L.L.C), supplier 72567. Detailed software versions, technical scope, service hours, engineer count, covered environments, SLA targets and exclusions are absent from the retrieved notification; no terms copied from the 2026–2027 renewal.
+
+Show more
+Obligations
+
+SOURCE / ACCEPTANCE: Historical BPA 42500353 revision 0. The full forwarded email contains the purchase-agreement notification and quoted terms. Its embedded original email is a supplier acceptance response: Youssef El_Hansali addressed “Response: Accept” to grp.notification@dubai.gov.ae on 25 October 2025 at 17:05:34 UTC (21:05:34 Asia/Dubai). Original email headers and body were inspected. Government electronic processing/acknowledgement remains unverified. No countersigned BPA PDF located. Both original email files and extracted source facts are attached.
+
+TERM / STATUS: Order date 22 October 2025; effectivity 3 June 2025–3 June 2026. Status Ended denotes the expired source term, not actual service completion or settlement. No renewal/extension verified. Operational client OYOON Center, project 115101-AE and Laith Hamdan ownership confirmed by the user on 10 November 2026.
+
+DETAILS / FEES: Description exactly OYOON 174 Zabeel System AMC. Amount Agreed AED 488,000; quantity 1 Each; unit price AED 488,000. VAT basis, rate and amount are unspecified; do not treat the value as confirmed VAT-inclusive or VAT-exclusive. Issuer heading Smart Dubai Government; entity/Ship To Digital Dubai Government Establishment; Bill To Dubai Smart Government Establishment, Corporate Support Services Dept. Supplier VITRONIC MACHINE VISION MIDDLE EAST (L.L.C), supplier 72567.
+
+PAYMENT: Payment terms exactly Immediate; freight terms OTHER. No dated invoice schedule, installment breakdown, actual invoices, paid dates, outstanding balance or payment due date verified. Structured payment entry records the term only, not a confirmed unpaid receivable.
+
+SLA / DELIVERY / PENALTIES / COVERAGE: The notification gives no numeric response/resolution/availability target, support window, engineer requirement, detailed exclusions, delivery acceptance criteria, penalty formula/cap, bank guarantee clause or renewal notice period. These remain unknown. No later 5341 contract terms copied. Delivery dates are effectivity boundaries, not actual completion.
+
+SOURCE HISTORY: GRP Notification 25 October 2025 21:04:23 as quoted; supplier acceptance response 25 October 2025 21:05:34 Dubai; Dr Youssef forwarded the notification that evening. Abdalrhman (Aboud) Asaad forwarded it to colleagues 26 October 2025 13:34, relating it to the ViTIP Oyoon SLA. Quoted forwarding timestamp zones were not independently verified. These are source events; the Hub History is the actual creation/edit audit.
+
+FOLLOW-UP: Confirm government acceptance processing, obtain full signed annexes if available, VAT treatment, service acceptance and settlement. Original email terms and acceptance response supplement these notes.
+
+OUTLOOK: https://outlook.cloud.microsoft/mail/id/AAQkADUwOTNlYzdhLTdmOTItNDZlNS04MTNhLTEwZDk0M2MxYzI0YwAQAFO8D67ND%2BtLhAgT4lClMa4%3D
+
+Show more
+SLA targets (recorded)
+
+Targets as the contract states them. Tickets linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects tickets linked afterwards. The clock does not pause while a ticket waits on the customer. Tickets measured against this contract
+
+SLA targets
+	
+Priority
+	
+Response target
+	
+Resolution target
+	
+Clock
+	
+Notes
+No records entered.
+Delivery schedule · 0 % complete on average
+2 rows
+FILTER
+COLUMNS
+EXPORT CSV
+Contract delivery schedule
+	
+Phase
+	
+Description
+	
+Completion
+	
+Date
+
+
+	
+BPA effectivity starts
+	
+Source effectivity boundary; actual delivery/acceptance unverified.
+	
+Unknown
+	
+03 Jun 2025
+
+
+	
+BPA effectivity ends
+	
+Printed source expiry. No renewal/extension or actual completion verified.
+	
+Unknown
+	
+03 Jun 2026
+Fees and costs (AED)
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract fees and costs
+	
+Description
+	
+Unit
+	
+Qty
+	
+Unit price
+	
+Total
+
+
+	
+BPA Amount Agreed for OYOON174 Zabeel System AMC; VAT basis unknown; not confirmed as inclusive or exclusive of VAT.
+	
+Each
+	
+1
+	
+488,000.00
+	
+488,000.00
+
+Total: 488,000.00 AED
+
+Payment terms
+
+Open payments have no due date.
+
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract payment terms
+	
+Condition
+	
+%
+	
+Amount
+	
+Due
+	
+Status
+
+
+	
+Payment terms exactly Immediate. Actual invoice, payment and balance unknown. No dated invoice or installment schedule verified.
+	
+	
+	
+Unknown
+	
+Pending
+Penalty assessments
+RECALCULATE
+
+Indicative contractual amounts only. Different recorded rates or caps are assessed separately and require review. Superseded assessments have no current charge; earlier values remain in change history. The hub does not issue credits or invoices.
+
+Reason for recalculation or confirmation
+No assessments have been calculated.
+Covered products (from the project)
+The project has no products recorded.
+Covered environments
+No records entered.
+Contract and SLA documents (3)
+UPLOAD FILES
+TOTAL FILES
+3
+DOCUMENT CATEGORIES
+2
+by file type
+UPLOADERS
+1
+LATEST UPLOAD
+10 Nov 2026
+Laith Hamdan
+All categories
+Data file
+E-mail
+All file types
+EML
+JSON
+Sort
+Newest first
+Oldest first
+Name A–Z
+Name Z–A
+Size, smallest first
+Size, largest first
+RESET
+Attachments of this contract
+	FILE NAME	CATEGORY	TYPE	SIZE	UPLOADED ON	UPLOADED BY	
+ACTIONS
+
+	
+42500353-extracted-terms-reference.json
+BPA 42500353: complete original forwarded notification with purchase-agreement terms, original supplier CEO acceptance response, and extracted facts for reference. No countersigned PDF located; electronic processing/payment unverified.
+	Data file	JSON	8.6 KB	10 Nov 2026, 11:57	Laith Hamdan	
+
+	
+Blanket Purchase Agreement 42500353,0 requires your acceptance.eml
+BPA 42500353: complete original forwarded notification with purchase-agreement terms, original supplier CEO acceptance response, and extracted facts for reference. No countersigned PDF located; electronic processing/payment unverified.
+	E-mail	EML	8.1 KB	10 Nov 2026, 11:57	Laith Hamdan	
+
+	
+FW_ Blanket Purchase Agreement 42500353,0 requires your acceptance.eml
+BPA 42500353: complete original forwarded notification with purchase-agreement terms, original supplier CEO acceptance response, and extracted facts for reference. No countersigned PDF located; electronic processing/payment unverified.
+	E-mail	EML	42 KB	10 Nov 2026, 11:57	Laith Hamdan	
+1–3 of 3 files
+Rows per page: 
+8
+15
+25
+50
+PREVIOUS
+1
+NEXT
+Change history
+2 rows
+FILTER
+COLUMNS
+EXPORT CSV
+	
+When
+	
+By
+	
+Action
+	
+Reason
+	
+Changes (before → after)
+
+
+	
+10 Nov 2026, 11:57
+	
+lmh
+	
+Update
+	
+	
+Last reviewed at: 10 Nov 2026, 11:54 → 10 Nov 2026, 11:57
+Obligations: SOURCE AND STATUS: Historical Blanket Purchase Agreement 42500353 revision 0. Original GRP Notification email requests acceptance; forwarding request to respond Yes is not proof of acceptance. No countersigned BPA PDF or explicit acceptance confirmation located in the reviewed thread. The original embedded Outlook email (.eml) is attached. Status Ended records the stated expired effectivity period; it does not assert acceptance, execution, service completion or settlement. No extension/renewal verified. DETAILS: Purchase order date 22 Oct 2025; effectivity 3 Jun 2025–3 Jun 2026; original description OYOON 174 Zabeel System AMC. Amount Agreed AED 488,000; quantity 1 Each, unit price AED 488,000. VAT rate, VAT amount and whether value includes/excludes VAT are unspecified. No tax calculation inferred. FEES AND PAYMENTS: Payment terms exactly Immediate; freight terms OTHER. No dated invoice schedule, installment breakdown, actual invoices, paid dates, outstanding balance or payment due date verified. The structured payment entry is a recorded term only, not a receivable confirmation. SLA / DELIVERY / PENALTIES / COVERAGE: The retrieved notification contains no numeric response/resolution/availability target, support window, delivery acceptance criteria, penalty formula/cap, guarantee clause or renewal notice period. Leave these unknown; do not copy later contract 5341 terms. Source dates in Delivery are effectivity boundaries, not actual completion. HISTORY: Order 22 Oct 2025. GRP Notification dated25 Oct 2025 21:04:23 was forwarded by Dr Youssef El_Hansali the same evening; Abdalrhman (Aboud) Asaad forwarded to colleagues26 Oct 2025 13:34, describing it as related to the ViTIP Oyoon SLA. Displayed email timestamp zone not independently verified. User confirmed OYOON Center, project 115101-AE and Laith Hamdan ownership on 10 November 2026. FOLLOW-UP: Verify original acceptance/execution, obtain a signed contract/full annexes if available, confirm VAT basis and current settlement. Source notification governs only the facts it contains. OUTLOOK: https://outlook.cloud.microsoft/mail/id/AAQkADUwOTNlYzdhLTdmOTItNDZlNS04MTNhLTEwZDk0M2MxYzI0YwAQAFO8D67ND%2BtLhAgT4lClMa4%3D → SOURCE / ACCEPTANCE: Historical BPA 42500353 revision 0. The full forwarded email contains the purchase-agreement notification and quoted terms. Its embedded original email is a supplier acceptance response: Youssef El_Hansali addressed “Response: Accept” to grp.notification@dubai.gov.ae on 25 October 2025 at 17:05:34 UTC (21:05:34 Asia/Dubai). Original email headers and body were inspected. Government electronic processing/acknowledgement remains unverified. No countersigned BPA PDF located. Both original email files and extracted source facts are attached. TERM / STATUS: Order date 22 October 2025; effectivity 3 June 2025–3 June 2026. Status Ended denotes the expired source term, not actual service completion or settlement. No renewal/extension verified. Operational client OYOON Center, project 115101-AE and Laith Hamdan ownership confirmed by the user on 10 November 2026. DETAILS / FEES: Description exactly OYOON 174 Zabeel System AMC. Amount Agreed AED 488,000; quantity 1 Each; unit price AED 488,000. VAT basis, rate and amount are unspecified; do not treat the value as confirmed VAT-inclusive or VAT-exclusive. Issuer heading Smart Dubai Government; entity/Ship To Digital Dubai Government Establishment; Bill To Dubai Smart Government Establishment, Corporate Support Services Dept. Supplier VITRONIC MACHINE VISION MIDDLE EAST (L.L.C), supplier 72567. PAYMENT: Payment terms exactly Immediate; freight terms OTHER. No dated invoice schedule, installment breakdown, actual invoices, paid dates, outstanding balance or payment due date verified. Structured payment entry records the term only, not a confirmed unpaid receivable. SLA / DELIVERY / PENALTIES / COVERAGE: The notification gives no numeric response/resolution/availability target, support window, engineer requirement, detailed exclusions, delivery acceptance criteria, penalty formula/cap, bank guarantee clause or renewal notice period. These remain unknown. No later 5341 contract terms copied. Delivery dates are effectivity boundaries, not actual completion. SOURCE HISTORY: GRP Notification 25 October 2025 21:04:23 as quoted; supplier acceptance response 25 October 2025 21:05:34 Dubai; Dr Youssef forwarded the notification that evening. Abdalrhman (Aboud) Asaad forwarded it to colleagues 26 October 2025 13:34, relating it to the ViTIP Oyoon SLA. Quoted forwarding timestamp zones were not independently verified. These are source events; the Hub History is the actual creation/edit audit. FOLLOW-UP: Confirm government acceptance processing, obtain full signed annexes if available, VAT treatment, service acceptance and settlement. Original email terms and acceptance response supplement these notes. OUTLOOK: https://outlook.cloud.microsoft/mail/id/AAQkADUwOTNlYzdhLTdmOTItNDZlNS04MTNhLTEwZDk0M2MxYzI0YwAQAFO8D67ND%2BtLhAgT4lClMa4%3D
+Show all 3 changes
+
+
+	
+10 Nov 2026, 11:54
+	
+lmh
+	
+Create
+	
+	
+Client id: — → 3
+Contract reference: — → 42500353 revision 0
+Show all 21 changes

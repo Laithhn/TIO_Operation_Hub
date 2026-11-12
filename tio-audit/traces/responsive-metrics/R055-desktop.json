@@ -1,0 +1,15 @@
+{
+  "id": "R055-desktop",
+  "route": "/admin/config/category/clients-environments",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Clients & Environments"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 493,
+  "title": "Clients & Environments · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

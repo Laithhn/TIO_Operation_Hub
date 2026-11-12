@@ -1,0 +1,15 @@
+{
+  "id": "R007-tablet",
+  "route": "/products",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Products"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 563,
+  "title": "Products · TIO Operations Hub",
+  "width": 768
+}

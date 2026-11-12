@@ -1,0 +1,158 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Products" [level=1]
+- generic: "The software products (applications) TIO delivers and supports: what each one is, its modules and features, its versions and where it is installed."
+- link "+ New product":
+  - /url: /products/new
+- complementary "Section menu":
+  - navigation:
+    - link "All products":
+      - /url: /products
+    - link "New product":
+      - /url: /products/new
+  - button "Expand menu":
+- main:
+  - region "Products":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Products: scroll sideways for more columns"':
+      - table "Products":
+        - caption: Products
+        - rowgroup:
+          - row "Select all rows shown Product Category Application developers Product owner Modules Microservices Features Latest version Installed at Status Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Product":
+              - button "Product":
+                - generic: Product
+            - columnheader "Category":
+              - button "Category":
+                - generic: Category
+            - columnheader "Application developers":
+              - button "Application developers":
+                - generic: Application developers
+            - columnheader "Product owner":
+              - button "Product owner":
+                - generic: Product owner
+            - columnheader "Modules":
+              - button "Modules":
+                - generic: Modules
+            - columnheader "Microservices":
+              - button "Microservices":
+                - generic: Microservices
+            - columnheader "Features":
+              - button "Features":
+                - generic: Features
+            - columnheader "Latest version":
+              - button "Latest version":
+                - generic: Latest version
+            - columnheader "Installed at":
+              - button "Installed at":
+                - generic: Installed at
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - 'row "Select PSOP · Poliscan Office Pro Also known as: Case Processing PSOP · Poliscan Office Pro Also known as: Case Processing Backoffice Abdulrahman Assad (lead), Markus Uhlar, Laith Hamdan, Naveed Ur Rahman Lee Browman 0 13 7 V17.8 1 client(s) · 6 environment(s) Active Actions for product PSOP"':
+            - 'cell "Select PSOP · Poliscan Office Pro Also known as: Case Processing"':
+              - 'checkbox "Select PSOP · Poliscan Office Pro Also known as: Case Processing"'
+            - 'cell "PSOP · Poliscan Office Pro Also known as: Case Processing"':
+              - link "PSOP · Poliscan Office Pro":
+                - /url: /products/1
+              - generic: "Also known as: Case Processing"
+            - cell "Backoffice":
+              - generic: Backoffice
+            - cell "Abdulrahman Assad (lead), Markus Uhlar, Laith Hamdan, Naveed Ur Rahman":
+              - generic: Abdulrahman Assad (lead), Markus Uhlar, Laith Hamdan, Naveed Ur Rahman
+            - cell "Lee Browman":
+              - generic: Lee Browman
+            - cell "0":
+              - generic: "0"
+            - cell "13":
+              - generic: "13"
+            - cell "7":
+              - generic: "7"
+            - cell "V17.8":
+              - generic: V17.8
+            - cell "1 client(s) · 6 environment(s)":
+              - generic: 1 client(s) · 6 environment(s)
+            - cell "Active":
+              - text: Active
+            - cell "Actions for product PSOP":
+              - button "Actions for product PSOP": ⋯
+          - row "Select ViTIP · Vitronic Intelligent Traffic Platfrom ViTIP · Vitronic Intelligent Traffic Platfrom — — Abd AL Rahman Asaad 17 0 2 — 2 client(s) · 2 environment(s) Active Actions for product ViTIP":
+            - cell "Select ViTIP · Vitronic Intelligent Traffic Platfrom":
+              - checkbox "Select ViTIP · Vitronic Intelligent Traffic Platfrom"
+            - cell "ViTIP · Vitronic Intelligent Traffic Platfrom":
+              - link "ViTIP · Vitronic Intelligent Traffic Platfrom":
+                - /url: /products/4
+            - cell "—":
+              - generic: —
+            - cell "—":
+              - generic: —
+            - cell "Abd AL Rahman Asaad":
+              - generic: Abd AL Rahman Asaad
+            - cell "17":
+              - generic: "17"
+            - cell "0":
+              - generic: "0"
+            - cell "2":
+              - generic: "2"
+            - cell "—":
+              - generic: —
+            - cell "2 client(s) · 2 environment(s)":
+              - generic: 2 client(s) · 2 environment(s)
+            - cell "Active":
+              - text: Active
+            - cell "Actions for product ViTIP":
+              - button "Actions for product ViTIP": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

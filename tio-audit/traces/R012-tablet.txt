@@ -1,0 +1,309 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Reporting Center":
+    - generic: Reporting Center
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Reporting Center" [level=1]
+- generic: Your report usage, recent exports, upcoming schedules and quick actions.
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center (current section)":
+      - /url: /reporting-center
+      - text: Reporting Center
+      - generic: (current section)
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Your report usage since 12 Oct 2026, 00:00 — exports and schedules, not ticket or SLA performance.
+  - group "Period":
+    - button "Last 7 days"
+    - button "Last 30 days" [pressed]
+    - button "Last 90 days"
+  - generic "Report usage":
+    - 'link "Reports generated: 6. none in the previous period. 6 export request(s) in 30 days. open the list"':
+      - generic: Reports generated
+      - generic: ›
+      - generic: "6"
+      - list:
+        - generic: none in the previous period
+        - generic: 6 export request(s) in 30 days
+    - 'group "Success rate: 100 %. status OK. 6 completed, 0 failed"':
+      - generic: Success rate
+      - generic: 100 %
+      - generic: ✓
+      - text: OK
+      - list:
+        - generic: 6 completed, 0 failed
+    - 'link "Failed exports: 0. status OK. no change. Open the history for reasons and retry. open the list"':
+      - generic: Failed exports
+      - generic: ›
+      - generic: "0"
+      - generic: ✓
+      - text: OK
+      - list:
+        - generic: no change
+        - generic: Open the history for reasons and retry
+    - 'link "Scheduled reports: 0. No active schedule. 0 saved report(s) you can open. open the list"':
+      - generic: Scheduled reports
+      - generic: ›
+      - generic: "0"
+      - list:
+        - generic: No active schedule
+        - generic: 0 saved report(s) you can open
+  - heading "Report activity" [level=2]
+  - button "Table view"
+  - paragraph: Your exports per day in the period (completed and failed).
+  - 'img "Exports per day: 2026-10-23 1 completed, 0 failed; 2026-10-28 1 completed, 0 failed; 2026-11-04 1 completed, 0 failed; 2026-11-05 3 completed, 0 failed"':
+    - 'generic "2026-10-12: 0 completed, 0 failed"'
+    - 'generic "2026-10-13: 0 completed, 0 failed"'
+    - 'generic "2026-10-14: 0 completed, 0 failed"'
+    - 'generic "2026-10-15: 0 completed, 0 failed"'
+    - 'generic "2026-10-16: 0 completed, 0 failed"'
+    - 'generic "2026-10-17: 0 completed, 0 failed"'
+    - 'generic "2026-10-18: 0 completed, 0 failed"'
+    - 'generic "2026-10-19: 0 completed, 0 failed"'
+    - 'generic "2026-10-20: 0 completed, 0 failed"'
+    - 'generic "2026-10-21: 0 completed, 0 failed"'
+    - 'generic "2026-10-22: 0 completed, 0 failed"'
+    - 'generic "2026-10-23: 1 completed, 0 failed"'
+    - 'generic "2026-10-24: 0 completed, 0 failed"'
+    - 'generic "2026-10-25: 0 completed, 0 failed"'
+    - 'generic "2026-10-26: 0 completed, 0 failed"'
+    - 'generic "2026-10-27: 0 completed, 0 failed"'
+    - 'generic "2026-10-28: 1 completed, 0 failed"'
+    - 'generic "2026-10-29: 0 completed, 0 failed"'
+    - 'generic "2026-10-30: 0 completed, 0 failed"'
+    - 'generic "2026-10-31: 0 completed, 0 failed"'
+    - 'generic "2026-11-01: 0 completed, 0 failed"'
+    - 'generic "2026-11-02: 0 completed, 0 failed"'
+    - 'generic "2026-11-03: 0 completed, 0 failed"'
+    - 'generic "2026-11-04: 1 completed, 0 failed"'
+    - 'generic "2026-11-05: 3 completed, 0 failed"'
+    - 'generic "2026-11-06: 0 completed, 0 failed"'
+    - 'generic "2026-11-07: 0 completed, 0 failed"'
+    - 'generic "2026-11-08: 0 completed, 0 failed"'
+    - 'generic "2026-11-09: 0 completed, 0 failed"'
+    - 'generic "2026-11-10: 0 completed, 0 failed"'
+  - generic: 10-12
+  - generic: 10-16
+  - generic: 10-20
+  - generic: 10-24
+  - generic: 10-28
+  - generic: 11-01
+  - generic: 11-05
+  - generic: 11-09
+  - list:
+    - listitem: Completed
+    - listitem: ▲ Failed
+  - heading "Report types used" [level=2]
+  - button "Table view"
+  - paragraph: Your exports in the period by report category.
+  - 'img "exports 6: Operations 5, Technical 1"':
+    - generic: "6"
+    - generic: exports
+  - list:
+    - text: Operations
+    - generic: "5"
+    - generic: 83 %
+    - text: Technical
+    - generic: "1"
+    - generic: 17 %
+  - heading "Quick actions" [level=2]
+  - link "Build a tickets report Filters, columns, live preview, Excel and PDF":
+    - /url: /reporting-center/builder/cases
+    - generic: Build a tickets report
+    - generic: Filters, columns, live preview, Excel and PDF
+    - generic: ›
+  - link "Start from a template Ready-made tickets report configurations":
+    - /url: /reporting-center/templates
+    - generic: Start from a template
+    - generic: Ready-made tickets report configurations
+    - generic: ›
+  - link "Browse the report library 14 reports in four categories":
+    - /url: /reporting-center/library
+    - generic: Browse the report library
+    - generic: 14 reports in four categories
+    - generic: ›
+  - link "Schedule a report Recurring files for you and colleagues":
+    - /url: /reporting-center/schedules
+    - generic: Schedule a report
+    - generic: Recurring files for you and colleagues
+    - generic: ›
+  - heading "Recent exports" [level=2]
+  - link "View all":
+    - /url: /reporting-center/history
+  - region "Recent exports":
+    - table "Recent exports":
+      - caption: Recent exports
+      - rowgroup:
+        - row "Report Format Requested Status Rows Actions":
+          - columnheader "Report":
+            - button "Report":
+              - generic: Report
+          - columnheader "Format":
+            - button "Format":
+              - generic: Format
+          - columnheader "Requested":
+            - button "Requested":
+              - generic: Requested
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Rows":
+            - button "Rows":
+              - generic: Rows
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Tickets report Report builder PDF 05 Nov 2026, 15:19 Completed —":
+          - cell "Tickets report Report builder":
+            - text: Tickets report
+            - generic: Report builder
+          - cell "PDF":
+            - generic: PDF
+          - cell "05 Nov 2026, 15:19":
+            - generic: 05 Nov 2026, 15:19
+          - cell "Completed":
+            - text: Completed
+          - cell "—":
+            - generic: —
+          - cell
+        - row "Tickets report Report builder XLSX 05 Nov 2026, 15:18 Completed —":
+          - cell "Tickets report Report builder":
+            - text: Tickets report
+            - generic: Report builder
+          - cell "XLSX":
+            - generic: XLSX
+          - cell "05 Nov 2026, 15:18":
+            - generic: 05 Nov 2026, 15:18
+          - cell "Completed":
+            - text: Completed
+          - cell "—":
+            - generic: —
+          - cell
+        - row "Tickets report Report builder XLSX 05 Nov 2026, 15:17 Completed —":
+          - cell "Tickets report Report builder":
+            - text: Tickets report
+            - generic: Report builder
+          - cell "XLSX":
+            - generic: XLSX
+          - cell "05 Nov 2026, 15:17":
+            - generic: 05 Nov 2026, 15:17
+          - cell "Completed":
+            - text: Completed
+          - cell "—":
+            - generic: —
+          - cell
+        - row "Tickets report Report builder PDF 04 Nov 2026, 17:57 Completed —":
+          - cell "Tickets report Report builder":
+            - text: Tickets report
+            - generic: Report builder
+          - cell "PDF":
+            - generic: PDF
+          - cell "04 Nov 2026, 17:57":
+            - generic: 04 Nov 2026, 17:57
+          - cell "Completed":
+            - text: Completed
+          - cell "—":
+            - generic: —
+          - cell
+        - row "Tickets report Report builder XLSX 28 Oct 2026, 13:22 Completed —":
+          - cell "Tickets report Report builder":
+            - text: Tickets report
+            - generic: Report builder
+          - cell "XLSX":
+            - generic: XLSX
+          - cell "28 Oct 2026, 13:22":
+            - generic: 28 Oct 2026, 13:22
+          - cell "Completed":
+            - text: Completed
+          - cell "—":
+            - generic: —
+          - cell
+        - row "Assets inventory report Reporting Center XLSX 23 Oct 2026, 11:51 Expired —":
+          - cell "Assets inventory report Reporting Center":
+            - text: Assets inventory report
+            - generic: Reporting Center
+          - cell "XLSX":
+            - generic: XLSX
+          - cell "23 Oct 2026, 11:51":
+            - generic: 23 Oct 2026, 11:51
+          - cell "Expired":
+            - generic: Expired
+          - cell "—":
+            - generic: —
+          - cell
+    - status
+  - heading "Scheduled reports" [level=2]
+  - link "View all":
+    - /url: /reporting-center/schedules
+  - region "Upcoming scheduled reports":
+    - table "Upcoming scheduled reports":
+      - caption: Upcoming scheduled reports
+      - rowgroup:
+        - row "Name Frequency Next run Status":
+          - columnheader "Name":
+            - generic: Name
+          - columnheader "Frequency":
+            - generic: Frequency
+          - columnheader "Next run":
+            - generic: Next run
+          - columnheader "Status":
+            - generic: Status
+      - rowgroup
+    - status
+    - generic: No records entered.
+  - heading "Your most used reports (30 days)" [level=3]
+  - list:
+    - generic: Tickets report
+    - generic: "5"
+    - generic: Assets inventory report
+    - generic: "1"
+  - paragraph: Exports contain only rows you are authorized to see. Files are kept for 14 days and only you can download yours; every export and download is audited. One export holds at most 100,000 rows.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

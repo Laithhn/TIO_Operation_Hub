@@ -1,0 +1,385 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Environments":
+    - /url: /environments
+  - generic: ›
+  - generic: Assets
+- heading "Infrastructure assets" [level=1]
+- generic: Recorded provisioning by client, region, environment, product, phase, role and lifecycle.
+- button "Export CSV"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - generic: Role
+  - combobox "Role":
+    - option "All roles" [selected]
+    - option "Application server"
+    - option "Web server"
+    - option "Database server"
+    - option "Listener"
+    - option "Load balancer"
+    - option "Storage"
+    - option "Other"
+  - generic: Project phase
+  - combobox "Project phase":
+    - option "All phases" [selected]
+    - option "Requested"
+    - option "Approved"
+    - option "Deployed"
+  - heading "Totals for the current filter" [level=2]
+  - paragraph: Recorded provisioning (manually documented, not measured utilization). Unknown quantities are counted as missing, never as zero.
+  - term: Assets
+  - definition: 153 (VM 138 · Physical 0 · Logical endpoints 15, not counted as VMs)
+  - term: CPU
+  - definition: 1672 vCPU · 0 physical cores (kept separate) · unknown on 5 host(s)
+  - term: RAM
+  - definition: 6280 GB + 0 GiB (units not mixed) · unknown on 5 host(s)
+  - term: Dedicated storage
+  - definition: 27100 GB · 0 volume(s) unknown
+  - term: Shared storage (counted once)
+  - definition: 0 in 0 pool(s) used by 0 volume(s)
+  - term: Unverified
+  - definition: 150 unverified asset(s)
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 15 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Asset Client / environment Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Asset":
+            - button "Asset":
+              - generic: Asset
+          - columnheader "Client / environment":
+            - button "Client / environment":
+              - generic: Client / environment
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for Map-Pro-APP1 Map-Pro-APP1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server Map-Pro-APP1":
+          - cell "Details for Map-Pro-APP1":
+            - button "Details for Map-Pro-APP1":
+          - cell "Map-Pro-APP1":
+            - link "Map-Pro-APP1":
+              - /url: /assets/270
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server Map-Pro-APP1":
+            - button "Actions for server Map-Pro-APP1": ⋯
+        - row "Details for VIDPP-PRO-APP1 VIDPP-PRO-APP1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server VIDPP-PRO-APP1":
+          - cell "Details for VIDPP-PRO-APP1":
+            - button "Details for VIDPP-PRO-APP1":
+          - cell "VIDPP-PRO-APP1":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/274
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server VIDPP-PRO-APP1":
+            - button "Actions for server VIDPP-PRO-APP1": ⋯
+        - row "Details for VIDPP-PRO-DB1 VIDPP-PRO-DB1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server VIDPP-PRO-DB1":
+          - cell "Details for VIDPP-PRO-DB1":
+            - button "Details for VIDPP-PRO-DB1":
+          - cell "VIDPP-PRO-DB1":
+            - link "VIDPP-PRO-DB1":
+              - /url: /assets/275
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server VIDPP-PRO-DB1":
+            - button "Actions for server VIDPP-PRO-DB1": ⋯
+        - row "Details for VIITS-PRO-RTSP1 VIITS-PRO-RTSP1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server VIITS-PRO-RTSP1":
+          - cell "Details for VIITS-PRO-RTSP1":
+            - button "Details for VIITS-PRO-RTSP1":
+          - cell "VIITS-PRO-RTSP1":
+            - link "VIITS-PRO-RTSP1":
+              - /url: /assets/268
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server VIITS-PRO-RTSP1":
+            - button "Actions for server VIITS-PRO-RTSP1": ⋯
+        - row "Details for VIITS-PRO-RTSP2 VIITS-PRO-RTSP2 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server VIITS-PRO-RTSP2":
+          - cell "Details for VIITS-PRO-RTSP2":
+            - button "Details for VIITS-PRO-RTSP2":
+          - cell "VIITS-PRO-RTSP2":
+            - link "VIITS-PRO-RTSP2":
+              - /url: /assets/269
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server VIITS-PRO-RTSP2":
+            - button "Actions for server VIITS-PRO-RTSP2": ⋯
+        - row "Details for VISDB-PRO-BGETL VISDB-PRO-BGETL MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server VISDB-PRO-BGETL":
+          - cell "Details for VISDB-PRO-BGETL":
+            - button "Details for VISDB-PRO-BGETL":
+          - cell "VISDB-PRO-BGETL":
+            - link "VISDB-PRO-BGETL":
+              - /url: /assets/276
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server VISDB-PRO-BGETL":
+            - button "Actions for server VISDB-PRO-BGETL": ⋯
+        - row "Details for ViTIP-PRO-APP1 ViTIP-PRO-APP1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-APP1":
+          - cell "Details for ViTIP-PRO-APP1":
+            - button "Details for ViTIP-PRO-APP1":
+          - cell "ViTIP-PRO-APP1":
+            - link "ViTIP-PRO-APP1":
+              - /url: /assets/266
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-APP1":
+            - button "Actions for server ViTIP-PRO-APP1": ⋯
+        - row "Details for ViTIP-PRO-APP2 ViTIP-PRO-APP2 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-APP2":
+          - cell "Details for ViTIP-PRO-APP2":
+            - button "Details for ViTIP-PRO-APP2":
+          - cell "ViTIP-PRO-APP2":
+            - link "ViTIP-PRO-APP2":
+              - /url: /assets/267
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-APP2":
+            - button "Actions for server ViTIP-PRO-APP2": ⋯
+        - row "Details for ViTIP-PRO-DB1 ViTIP-PRO-DB1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-DB1":
+          - cell "Details for ViTIP-PRO-DB1":
+            - button "Details for ViTIP-PRO-DB1":
+          - cell "ViTIP-PRO-DB1":
+            - link "ViTIP-PRO-DB1":
+              - /url: /assets/263
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-DB1":
+            - button "Actions for server ViTIP-PRO-DB1": ⋯
+        - row "Details for ViTIP-PRO-DB2 ViTIP-PRO-DB2 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-DB2":
+          - cell "Details for ViTIP-PRO-DB2":
+            - button "Details for ViTIP-PRO-DB2":
+          - cell "ViTIP-PRO-DB2":
+            - link "ViTIP-PRO-DB2":
+              - /url: /assets/264
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-DB2":
+            - button "Actions for server ViTIP-PRO-DB2": ⋯
+        - row "Details for ViTIP-PRO-DB3 ViTIP-PRO-DB3 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-DB3":
+          - cell "Details for ViTIP-PRO-DB3":
+            - button "Details for ViTIP-PRO-DB3":
+          - cell "ViTIP-PRO-DB3":
+            - link "ViTIP-PRO-DB3":
+              - /url: /assets/265
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-DB3":
+            - button "Actions for server ViTIP-PRO-DB3": ⋯
+        - row "Details for ViTIP-Pro-LND1 ViTIP-Pro-LND1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-Pro-LND1":
+          - cell "Details for ViTIP-Pro-LND1":
+            - button "Details for ViTIP-Pro-LND1":
+          - cell "ViTIP-Pro-LND1":
+            - link "ViTIP-Pro-LND1":
+              - /url: /assets/271
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-Pro-LND1":
+            - button "Actions for server ViTIP-Pro-LND1": ⋯
+        - row "Details for ViTIP-PRO-SQL1 ViTIP-PRO-SQL1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-SQL1":
+          - cell "Details for ViTIP-PRO-SQL1":
+            - button "Details for ViTIP-PRO-SQL1":
+          - cell "ViTIP-PRO-SQL1":
+            - link "ViTIP-PRO-SQL1":
+              - /url: /assets/261
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-SQL1":
+            - button "Actions for server ViTIP-PRO-SQL1": ⋯
+        - row "Details for ViTIP-PRO-SQL2 ViTIP-PRO-SQL2 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-SQL2":
+          - cell "Details for ViTIP-PRO-SQL2":
+            - button "Details for ViTIP-PRO-SQL2":
+          - cell "ViTIP-PRO-SQL2":
+            - link "ViTIP-PRO-SQL2":
+              - /url: /assets/262
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-SQL2":
+            - button "Actions for server ViTIP-PRO-SQL2": ⋯
+        - row "Details for ViTIP-PRO-Web1 ViTIP-PRO-Web1 MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed) Actions for server ViTIP-PRO-Web1":
+          - cell "Details for ViTIP-PRO-Web1":
+            - button "Details for ViTIP-PRO-Web1":
+          - cell "ViTIP-PRO-Web1":
+            - link "ViTIP-PRO-Web1":
+              - /url: /assets/272
+          - cell "MADAR_DIJLA / 113506-AE – ViTIP Production (Proposed)":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+            - text: /
+            - link "113506-AE – ViTIP Production (Proposed)":
+              - /url: /environments/13
+          - cell "Actions for server ViTIP-PRO-Web1":
+            - button "Actions for server ViTIP-PRO-Web1": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 153
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 153
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

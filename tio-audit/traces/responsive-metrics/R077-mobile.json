@@ -1,0 +1,15 @@
+{
+  "id": "R077-mobile",
+  "route": "/admin/config/team-member-roles",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Team member roles"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 642,
+  "title": "Team member roles · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

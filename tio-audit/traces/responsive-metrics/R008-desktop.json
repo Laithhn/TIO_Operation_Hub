@@ -1,0 +1,15 @@
+{
+  "id": "R008-desktop",
+  "route": "/cases",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Tickets"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 3049,
+  "title": "Tickets · TIO Operations Hub",
+  "width": 1920
+}

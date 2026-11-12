@@ -1,0 +1,247 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "My dashboard" [level=1]
+- generic: Only your own tickets and commitments. Updated 10 Nov 2026, 16:43.
+- link "All my tickets":
+  - /url: /cases?ownerId=1
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - region "My work now":
+    - link "0 overdue":
+      - /url: /cases?ownerId=1&due=overdue
+      - generic: "0"
+      - text: overdue
+    - link "0 due within 24 hours":
+      - /url: /cases?ownerId=1&due=24h
+      - generic: "0"
+      - text: due within 24 hours
+    - link "0 critical or high":
+      - /url: /cases?ownerId=1&priority=Critical%2CHigh
+      - generic: "0"
+      - text: critical or high
+    - generic: "0"
+    - text: no first response yet
+    - generic: under a contract
+    - link "0 review passed":
+      - /url: /cases?ownerId=1&reviewOverdue=true
+      - generic: "0"
+      - text: review passed
+    - link "0 waiting":
+      - /url: /cases?ownerId=1&waiting=true
+      - generic: "0"
+      - text: waiting
+    - link "0 open tickets":
+      - /url: /cases?ownerId=1
+      - generic: "0"
+      - text: open tickets
+    - link "6 open commitments 5 overdue":
+      - /url: /commitments?ownerId=1
+      - generic: "6"
+      - text: open commitments
+      - generic: 5 overdue
+  - heading "What to work on next" [level=2]
+  - region "What to work on next":
+    - table "What to work on next":
+      - caption: What to work on next
+      - rowgroup:
+        - row "Work Next step Client Priority Status Due":
+          - columnheader "Work":
+            - button "Work":
+              - generic: Work
+          - columnheader "Next step":
+            - button "Next step":
+              - generic: Next step
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Priority":
+            - button "Priority":
+              - generic: Priority
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Due":
+            - button "Due":
+              - generic: Due
+      - rowgroup:
+        - row "Commitment CM-1006 Hire a new DevOps engineer to fulfill the SLA commitment Deliver it, or agree a new date TAH — Open 31 Jul 2026, 17:00 · overdue":
+          - cell "Commitment CM-1006 Hire a new DevOps engineer to fulfill the SLA commitment":
+            - generic: Commitment
+            - link "CM-1006":
+              - /url: /commitments/6
+            - generic: Hire a new DevOps engineer to fulfill the SLA commitment
+          - cell "Deliver it, or agree a new date":
+            - generic: Deliver it, or agree a new date
+          - cell "TAH":
+            - generic: TAH
+          - cell "—":
+            - generic: —
+          - cell "Open":
+            - generic: Open
+          - cell "31 Jul 2026, 17:00 · overdue":
+            - generic: 31 Jul 2026, 17:00 · overdue
+        - row "Commitment CM-1004 Replacement Operation Engineer For Faisal Al Yami Deliver it, or agree a new date TAH — Open 31 Aug 2026, 17:00 · overdue":
+          - cell "Commitment CM-1004 Replacement Operation Engineer For Faisal Al Yami":
+            - generic: Commitment
+            - link "CM-1004":
+              - /url: /commitments/4
+            - generic: Replacement Operation Engineer For Faisal Al Yami
+          - cell "Deliver it, or agree a new date":
+            - generic: Deliver it, or agree a new date
+          - cell "TAH":
+            - generic: TAH
+          - cell "—":
+            - generic: —
+          - cell "Open":
+            - generic: Open
+          - cell "31 Aug 2026, 17:00 · overdue":
+            - generic: 31 Aug 2026, 17:00 · overdue
+        - row "Commitment CM-1003 Agreed to have meeting with Client to agree on the POC scope Deliver it, or agree a new date TAK — Open 02 Nov 2026, 15:00 · overdue":
+          - cell "Commitment CM-1003 Agreed to have meeting with Client to agree on the POC scope":
+            - generic: Commitment
+            - link "CM-1003":
+              - /url: /commitments/3
+            - generic: Agreed to have meeting with Client to agree on the POC scope
+          - cell "Deliver it, or agree a new date":
+            - generic: Deliver it, or agree a new date
+          - cell "TAK":
+            - generic: TAK
+          - cell "—":
+            - generic: —
+          - cell "Open":
+            - generic: Open
+          - cell "02 Nov 2026, 15:00 · overdue":
+            - generic: 02 Nov 2026, 15:00 · overdue
+        - row "Commitment CM-1008 Minimum IT infrastructure requirement only for certificate purposes Deliver it, or agree a new date TAK — Open 02 Nov 2026, 17:00 · overdue":
+          - cell "Commitment CM-1008 Minimum IT infrastructure requirement only for certificate purposes":
+            - generic: Commitment
+            - link "CM-1008":
+              - /url: /commitments/8
+            - generic: Minimum IT infrastructure requirement only for certificate purposes
+          - cell "Deliver it, or agree a new date":
+            - generic: Deliver it, or agree a new date
+          - cell "TAK":
+            - generic: TAK
+          - cell "—":
+            - generic: —
+          - cell "Open":
+            - generic: Open
+          - cell "02 Nov 2026, 17:00 · overdue":
+            - generic: 02 Nov 2026, 17:00 · overdue
+        - row "Commitment CM-1005 Replacement Operation Engineer For Abdullah Al Zugheibi Deliver it, or agree a new date TAH — Open 05 Nov 2026, 17:00 · overdue":
+          - cell "Commitment CM-1005 Replacement Operation Engineer For Abdullah Al Zugheibi":
+            - generic: Commitment
+            - link "CM-1005":
+              - /url: /commitments/5
+            - generic: Replacement Operation Engineer For Abdullah Al Zugheibi
+          - cell "Deliver it, or agree a new date":
+            - generic: Deliver it, or agree a new date
+          - cell "TAH":
+            - generic: TAH
+          - cell "—":
+            - generic: —
+          - cell "Open":
+            - generic: Open
+          - cell "05 Nov 2026, 17:00 · overdue":
+            - generic: 05 Nov 2026, 17:00 · overdue
+        - row "Commitment CM-1009 Evaluate and implement technical solutions to increase the percentage of traffic… …violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate. Deliver by the due date TRAFFIC — Open 17 Nov 2026, 17:00":
+          - cell "Commitment CM-1009 Evaluate and implement technical solutions to increase the percentage of traffic… …violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate.":
+            - generic: Commitment
+            - link "CM-1009":
+              - /url: /commitments/9
+            - generic "Evaluate and implement technical solutions to increase the percentage of traffic violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate.":
+              - text: Evaluate and implement technical solutions to increase the percentage of traffic…
+              - generic: …violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate.
+          - cell "Deliver by the due date":
+            - generic: Deliver by the due date
+          - cell "TRAFFIC":
+            - generic: TRAFFIC
+          - cell "—":
+            - generic: —
+          - cell "Open":
+            - generic: Open
+          - cell "17 Nov 2026, 17:00":
+            - generic: 17 Nov 2026, 17:00
+    - status
+  - heading "My last 30 days" [level=2]
+  - generic: "0"
+  - text: opened
+  - generic: "0"
+  - text: closed
+  - generic: Not measured
+  - text: response met
+  - generic: 0 breached
+  - generic: Not measured
+  - text: resolution met
+  - generic: 0 breached
+  - generic: Not measured
+  - text: average first response
+  - generic: Not measured
+  - text: average resolution
+  - heading "Latest comments on my tickets" [level=2]
+  - generic: No comments yet.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

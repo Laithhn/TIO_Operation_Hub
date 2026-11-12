@@ -1,0 +1,15 @@
+{
+  "id": "R022-tablet",
+  "route": "/actions",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Action list"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 5344,
+  "title": "Action list · TIO Operations Hub",
+  "width": 768
+}

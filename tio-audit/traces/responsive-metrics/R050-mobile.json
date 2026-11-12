@@ -1,0 +1,15 @@
+{
+  "id": "R050-mobile",
+  "route": "/notifications",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Notifications"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 893,
+  "title": "Notifications · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

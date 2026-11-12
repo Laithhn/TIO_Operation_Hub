@@ -1,0 +1,15 @@
+{
+  "id": "R030-laptop",
+  "route": "/admin/access",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Access review"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 17265,
+  "title": "Access review · TIO Operations Hub",
+  "width": 1366
+}

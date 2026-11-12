@@ -1,0 +1,542 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Tickets" [level=1]
+- generic: Synchronized tickets follow their Jira status. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time.
+- button "Export CSV"
+- link "+ New Ticket":
+  - /url: /cases/new
+- complementary "Section menu":
+  - navigation:
+    - link "All tickets":
+      - /url: /cases
+    - link "New ticket":
+      - /url: /cases/new
+  - button "Expand menu":
+- main:
+  - group "Quick views":
+    - button "All open183" [pressed]
+    - button "My tickets0"
+    - button "Overdue73"
+    - button "Unassigned104"
+    - button "Waiting for customer88"
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+    - option "Unassigned"
+  - generic: Status
+  - combobox "Status":
+    - option "Open" [selected]
+    - option "All"
+    - option "Closed or cancelled"
+    - option "New"
+    - option "Open"
+    - option "In progress"
+    - option "Waiting for customer"
+    - option "Resolved"
+    - option "Closed"
+    - option "Re-opened"
+  - generic: Priority
+  - combobox "Priority":
+    - option "Any" [selected]
+    - option "Critical or high"
+    - option "Critical"
+    - option "High"
+    - option "Normal"
+    - option "Low"
+  - generic: Deadline
+  - combobox "Deadline":
+    - option "Any" [selected]
+    - option "Overdue"
+    - option "Due within 24 hours"
+    - option "Due soon"
+    - option "No deadline"
+  - button "Advanced filters":
+    - text: Advanced filters
+    - generic: ▾
+  - region "Tickets":
+    - searchbox "Search all tickets"
+    - generic: 183 rows
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Tickets":
+      - caption: Tickets
+      - rowgroup:
+        - row "Details Select all rows shown Ticket Client Priority Status Owner Deadline Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Ticket":
+            - button "Ticket" [active]:
+              - generic: Ticket
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Priority":
+            - button "Priority":
+              - generic: Priority
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Owner":
+            - button "Owner":
+              - generic: Owner
+          - columnheader "Deadline":
+            - button "Deadline":
+              - generic: Deadline
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted Details for CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted OYOON Normal Resolved Rashed alhameli Client contact None Actions for ticket CS-3125":
+          - cell "Select CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted":
+            - checkbox "Select CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted"
+          - cell "Details for CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted":
+            - button "Details for CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted":
+          - cell "CS-3125 (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted":
+            - generic "Incident":
+              - link "CS-3125":
+                - /url: /cases/11325
+              - text: (ANPR Pool GetTFWanted API) is not retrieving the Traffic Wanted
+          - cell "OYOON":
+            - generic: OY
+            - link "OYOON":
+              - /url: /clients/3
+          - cell "Normal":
+            - generic: Normal
+          - cell "Resolved":
+            - text: Resolved
+          - cell "Rashed alhameli Client contact":
+            - generic: RA
+            - text: Rashed alhameli
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-3125":
+            - button "Actions for ticket CS-3125": ⋯
+        - row "Select CS-4067 103059-AE_PIVOT_Agreement Details for CS-4067 103059-AE_PIVOT_Agreement CS-4067 103059-AE_PIVOT_Agreement RNP Normal In progress Adnan Ahmed None Actions for ticket CS-4067":
+          - cell "Select CS-4067 103059-AE_PIVOT_Agreement":
+            - checkbox "Select CS-4067 103059-AE_PIVOT_Agreement"
+          - cell "Details for CS-4067 103059-AE_PIVOT_Agreement":
+            - button "Details for CS-4067 103059-AE_PIVOT_Agreement":
+          - cell "CS-4067 103059-AE_PIVOT_Agreement":
+            - generic "Task":
+              - link "CS-4067":
+                - /url: /cases/12267
+              - text: 103059-AE_PIVOT_Agreement
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "In progress":
+            - text: In progress
+          - cell "Adnan Ahmed":
+            - generic: AA
+            - generic: Adnan Ahmed
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4067":
+            - button "Actions for ticket CS-4067": ⋯
+        - row "Select CS-4044 Accident Reconstruction Details for CS-4044 Accident Reconstruction CS-4044 Accident Reconstruction RNP Normal Waiting for customer Sannan Khan Client contact None Actions for ticket CS-4044":
+          - cell "Select CS-4044 Accident Reconstruction":
+            - checkbox "Select CS-4044 Accident Reconstruction"
+          - cell "Details for CS-4044 Accident Reconstruction":
+            - button "Details for CS-4044 Accident Reconstruction":
+          - cell "CS-4044 Accident Reconstruction":
+            - generic "Task":
+              - link "CS-4044":
+                - /url: /cases/12244
+              - text: Accident Reconstruction
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Sannan Khan Client contact":
+            - generic: SK
+            - text: Sannan Khan
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4044":
+            - button "Actions for ticket CS-4044": ⋯
+        - row "Select CS-2998 Add the comment while bulk reject Details for CS-2998 Add the comment while bulk reject CS-2998 Add the comment while bulk reject SEW Normal Resolved Mohammed Alqaruoti 02 Aug 2026, 18:00 · overdue Actions for ticket CS-2998":
+          - cell "Select CS-2998 Add the comment while bulk reject":
+            - checkbox "Select CS-2998 Add the comment while bulk reject"
+          - cell "Details for CS-2998 Add the comment while bulk reject":
+            - button "Details for CS-2998 Add the comment while bulk reject":
+          - cell "CS-2998 Add the comment while bulk reject":
+            - generic "Task":
+              - link "CS-2998":
+                - /url: /cases/11198
+              - text: Add the comment while bulk reject
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "Normal":
+            - generic: Normal
+          - cell "Resolved":
+            - text: Resolved
+          - cell "Mohammed Alqaruoti":
+            - generic: MA
+            - generic: Mohammed Alqaruoti
+          - cell "02 Aug 2026, 18:00 · overdue":
+            - generic: 02 Aug 2026, 18:00 · overdue
+          - cell "Actions for ticket CS-2998":
+            - button "Actions for ticket CS-2998": ⋯
+        - row "Select CS-2999 Adding new Category under Kurdistan cities Details for CS-2999 Adding new Category under Kurdistan cities CS-2999 Adding new Category under Kurdistan cities SEW High Resolved Mohammed Alqaruoti 03 Nov 2026, 12:11 · overdue Actions for ticket CS-2999":
+          - cell "Select CS-2999 Adding new Category under Kurdistan cities":
+            - checkbox "Select CS-2999 Adding new Category under Kurdistan cities"
+          - cell "Details for CS-2999 Adding new Category under Kurdistan cities":
+            - button "Details for CS-2999 Adding new Category under Kurdistan cities":
+          - cell "CS-2999 Adding new Category under Kurdistan cities":
+            - generic "Task":
+              - link "CS-2999":
+                - /url: /cases/11199
+              - text: Adding new Category under Kurdistan cities
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "High":
+            - text: High
+          - cell "Resolved":
+            - text: Resolved
+          - cell "Mohammed Alqaruoti":
+            - generic: MA
+            - generic: Mohammed Alqaruoti
+          - cell "03 Nov 2026, 12:11 · overdue":
+            - generic: 03 Nov 2026, 12:11 · overdue
+          - cell "Actions for ticket CS-2999":
+            - button "Actions for ticket CS-2999": ⋯
+        - row "Select CS-2731 Adding New Fields in The Device Profile Details for CS-2731 Adding New Fields in The Device Profile CS-2731 Adding New Fields in The Device Profile TAH Normal Waiting for customer Kareem Shaheen Client contact None Actions for ticket CS-2731":
+          - cell "Select CS-2731 Adding New Fields in The Device Profile":
+            - checkbox "Select CS-2731 Adding New Fields in The Device Profile"
+          - cell "Details for CS-2731 Adding New Fields in The Device Profile":
+            - button "Details for CS-2731 Adding New Fields in The Device Profile":
+          - cell "CS-2731 Adding New Fields in The Device Profile":
+            - generic "Incident":
+              - link "CS-2731":
+                - /url: /cases/10931
+              - text: Adding New Fields in The Device Profile
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Kareem Shaheen Client contact":
+            - generic: KS
+            - text: Kareem Shaheen
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-2731":
+            - button "Actions for ticket CS-2731": ⋯
+        - row "Select CS-1836 Adding Record For Violation XML In DB Details for CS-1836 Adding Record For Violation XML In DB CS-1836 Adding Record For Violation XML In DB TAH Normal Open Naveed Ur Rehman 13 Sept 2026, 16:43 · overdue Actions for ticket CS-1836":
+          - cell "Select CS-1836 Adding Record For Violation XML In DB":
+            - checkbox "Select CS-1836 Adding Record For Violation XML In DB"
+          - cell "Details for CS-1836 Adding Record For Violation XML In DB":
+            - button "Details for CS-1836 Adding Record For Violation XML In DB":
+          - cell "CS-1836 Adding Record For Violation XML In DB":
+            - generic "Incident":
+              - link "CS-1836":
+                - /url: /cases/10036
+              - text: Adding Record For Violation XML In DB
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "Open":
+            - generic: Open
+          - cell "Naveed Ur Rehman":
+            - generic: NU
+            - generic: Naveed Ur Rehman
+          - cell "13 Sept 2026, 16:43 · overdue":
+            - generic: 13 Sept 2026, 16:43 · overdue
+          - cell "Actions for ticket CS-1836":
+            - button "Actions for ticket CS-1836": ⋯
+        - row "Select CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers Details for CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers RNP Normal New Abdalrhman (Aboud) Asaad None Actions for ticket CS-4120":
+          - cell "Select CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers":
+            - checkbox "Select CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers"
+          - cell "Details for CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers":
+            - button "Details for CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers":
+          - cell "CS-4120 Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers":
+            - generic "Task":
+              - link "CS-4120":
+                - /url: /cases/12320
+              - text: Adding RNP Vehicles to be prepared and authorized by any clerk(s) but be investigated by specifics officers
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "Abdalrhman (Aboud) Asaad":
+            - generic: AA
+            - generic: Abdalrhman (Aboud) Asaad
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4120":
+            - button "Actions for ticket CS-4120": ⋯
+        - row "Select CS-2739 Adding User Section Attributes to PSOP Details for CS-2739 Adding User Section Attributes to PSOP CS-2739 Adding User Section Attributes to PSOP TAH Normal Waiting for customer Kareem Shaheen Client contact None Actions for ticket CS-2739":
+          - cell "Select CS-2739 Adding User Section Attributes to PSOP":
+            - checkbox "Select CS-2739 Adding User Section Attributes to PSOP"
+          - cell "Details for CS-2739 Adding User Section Attributes to PSOP":
+            - button "Details for CS-2739 Adding User Section Attributes to PSOP":
+          - cell "CS-2739 Adding User Section Attributes to PSOP":
+            - generic "Incident":
+              - link "CS-2739":
+                - /url: /cases/10939
+              - text: Adding User Section Attributes to PSOP
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Kareem Shaheen Client contact":
+            - generic: KS
+            - text: Kareem Shaheen
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-2739":
+            - button "Actions for ticket CS-2739": ⋯
+        - row "Select CS-2997 ANPR stopped working and shwoing error Details for CS-2997 ANPR stopped working and shwoing error CS-2997 ANPR stopped working and shwoing error SEW High Resolved Adam Faisal Smail Client contact 03 May 2026, 16:54 · overdue Actions for ticket CS-2997":
+          - cell "Select CS-2997 ANPR stopped working and shwoing error":
+            - checkbox "Select CS-2997 ANPR stopped working and shwoing error"
+          - cell "Details for CS-2997 ANPR stopped working and shwoing error":
+            - button "Details for CS-2997 ANPR stopped working and shwoing error":
+          - cell "CS-2997 ANPR stopped working and shwoing error":
+            - generic "Incident":
+              - link "CS-2997":
+                - /url: /cases/11197
+              - text: ANPR stopped working and shwoing error
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "High":
+            - text: High
+          - cell "Resolved":
+            - text: Resolved
+          - cell "Adam Faisal Smail Client contact":
+            - generic: AF
+            - text: Adam Faisal Smail
+            - generic: Client contact
+          - cell "03 May 2026, 16:54 · overdue":
+            - generic: 03 May 2026, 16:54 · overdue
+          - cell "Actions for ticket CS-2997":
+            - button "Actions for ticket CS-2997": ⋯
+        - row "Select CS-3127 API Details for CS-3127 API CS-3127 API OYOON Normal Resolved Mohammad Al-Omari None Actions for ticket CS-3127":
+          - cell "Select CS-3127 API":
+            - checkbox "Select CS-3127 API"
+          - cell "Details for CS-3127 API":
+            - button "Details for CS-3127 API":
+          - cell "CS-3127 API":
+            - generic "Task":
+              - link "CS-3127":
+                - /url: /cases/11327
+              - text: API
+          - cell "OYOON":
+            - generic: OY
+            - link "OYOON":
+              - /url: /clients/3
+          - cell "Normal":
+            - generic: Normal
+          - cell "Resolved":
+            - text: Resolved
+          - cell "Mohammad Al-Omari":
+            - generic: MA
+            - generic: Mohammad Al-Omari
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-3127":
+            - button "Actions for ticket CS-3127": ⋯
+        - row "Select CS-4076 Approval of WOODEN TYPE ACCESS FLOOR Details for CS-4076 Approval of WOODEN TYPE ACCESS FLOOR CS-4076 Approval of WOODEN TYPE ACCESS FLOOR RNP Normal Waiting for customer Sannan Khan Client contact None Actions for ticket CS-4076":
+          - cell "Select CS-4076 Approval of WOODEN TYPE ACCESS FLOOR":
+            - checkbox "Select CS-4076 Approval of WOODEN TYPE ACCESS FLOOR"
+          - cell "Details for CS-4076 Approval of WOODEN TYPE ACCESS FLOOR":
+            - button "Details for CS-4076 Approval of WOODEN TYPE ACCESS FLOOR":
+          - cell "CS-4076 Approval of WOODEN TYPE ACCESS FLOOR":
+            - generic "Task":
+              - link "CS-4076":
+                - /url: /cases/12276
+              - text: Approval of WOODEN TYPE ACCESS FLOOR
+          - cell "RNP":
+            - generic: RN
+            - link "RNP":
+              - /url: /clients/10
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Sannan Khan Client contact":
+            - generic: SK
+            - text: Sannan Khan
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-4076":
+            - button "Actions for ticket CS-4076": ⋯
+        - row "Select CS-2719 Auto Archive for Cases with Issues on Upload Stage Details for CS-2719 Auto Archive for Cases with Issues on Upload Stage CS-2719 Auto Archive for Cases with Issues on Upload Stage TAH Normal In progress Abdulhamid Tork None Actions for ticket CS-2719":
+          - cell "Select CS-2719 Auto Archive for Cases with Issues on Upload Stage":
+            - checkbox "Select CS-2719 Auto Archive for Cases with Issues on Upload Stage"
+          - cell "Details for CS-2719 Auto Archive for Cases with Issues on Upload Stage":
+            - button "Details for CS-2719 Auto Archive for Cases with Issues on Upload Stage":
+          - cell "CS-2719 Auto Archive for Cases with Issues on Upload Stage":
+            - generic "Incident":
+              - link "CS-2719":
+                - /url: /cases/10919
+              - text: Auto Archive for Cases with Issues on Upload Stage
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "In progress":
+            - text: In progress
+          - cell "Abdulhamid Tork":
+            - generic: AT
+            - generic: Abdulhamid Tork
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-2719":
+            - button "Actions for ticket CS-2719": ⋯
+        - row "Select CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track) Details for CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track) CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track) TAH Normal Waiting for customer Kareem Shaheen Client contact None Actions for ticket CS-2726":
+          - cell "Select CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)":
+            - checkbox "Select CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)"
+          - cell "Details for CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)":
+            - button "Details for CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)":
+          - cell "CS-2726 Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)":
+            - generic "Incident":
+              - link "CS-2726":
+                - /url: /cases/10926
+              - text: Auto Reject and Archive of Bus Under Allowed Speed Cases (Fast Track)
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "Waiting for customer":
+            - text: Waiting for customer
+          - cell "Kareem Shaheen Client contact":
+            - generic: KS
+            - text: Kareem Shaheen
+            - generic: Client contact
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-2726":
+            - button "Actions for ticket CS-2726": ⋯
+        - row "Select CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed Details for CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed TAH Normal New Unassigned None Actions for ticket CS-2751":
+          - cell "Select CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed":
+            - checkbox "Select CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed"
+          - cell "Details for CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed":
+            - button "Details for CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed":
+          - cell "CS-2751 Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed":
+            - generic "Incident":
+              - link "CS-2751":
+                - /url: /cases/10951
+              - text: Backoffice - Modify item opening rules - Vehicle Size Misclassification - Bus speed under the allowed speed
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "Normal":
+            - generic: Normal
+          - cell "New":
+            - generic: New
+          - cell "Unassigned":
+            - generic: Unassigned
+          - cell "None":
+            - generic: None
+          - cell "Actions for ticket CS-2751":
+            - button "Actions for ticket CS-2751": ⋯
+    - status: Sorted by Ticket, ascending.
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 183
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 183
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

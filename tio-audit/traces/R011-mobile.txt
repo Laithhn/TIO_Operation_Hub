@@ -1,0 +1,112 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Teams":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Teams
+- heading "Teams and coverage" [level=1]
+- generic: Assignments, waiting work, due dates and backup coverage. Capacity and absence planning arrive in the Next release.
+- button "+ New Team"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams (current section)":
+      - /url: /teams
+      - text: Teams
+      - generic: (current section)
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Code Team Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Code":
+            - button "Code":
+              - generic: Code
+          - columnheader "Team":
+            - button "Team":
+              - generic: Team
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for DXB_OPERATION DXB_OPERATION Dubai Office Operation Team Active Actions for team DXB_OPERATION":
+          - cell "Details for DXB_OPERATION":
+            - button "Details for DXB_OPERATION":
+          - cell "DXB_OPERATION":
+            - link "DXB_OPERATION":
+              - /url: /teams/6
+          - cell "Dubai Office Operation Team":
+            - link "Dubai Office Operation Team":
+              - /url: /teams/6
+          - cell "Active":
+            - text: Active
+          - cell "Actions for team DXB_OPERATION":
+            - button "Actions for team DXB_OPERATION": ⋯
+        - row "Details for KSA_OPERATION KSA_OPERATION KSA Operation Team Active Actions for team KSA_OPERATION":
+          - cell "Details for KSA_OPERATION":
+            - button "Details for KSA_OPERATION":
+          - cell "KSA_OPERATION":
+            - link "KSA_OPERATION":
+              - /url: /teams/1
+          - cell "KSA Operation Team":
+            - link "KSA Operation Team":
+              - /url: /teams/1
+          - cell "Active":
+            - text: Active
+          - cell "Actions for team KSA_OPERATION":
+            - button "Actions for team KSA_OPERATION": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

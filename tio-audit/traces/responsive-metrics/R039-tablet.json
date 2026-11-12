@@ -1,0 +1,15 @@
+{
+  "id": "R039-tablet",
+  "route": "/reporting-center/builder/cases",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 4110,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

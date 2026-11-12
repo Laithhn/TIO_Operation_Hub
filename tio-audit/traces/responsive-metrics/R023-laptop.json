@@ -1,0 +1,15 @@
+{
+  "id": "R023-laptop",
+  "route": "/data-quality",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Data quality"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 3862,
+  "title": "Data quality · TIO Operations Hub",
+  "width": 1366
+}

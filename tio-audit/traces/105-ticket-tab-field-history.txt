@@ -1,0 +1,1915 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Tickets":
+    - /url: /cases
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - generic: CS-4003
+- 'heading "CS-4003 · CCC: RRM Integration" [level=1]'
+- text: Waiting for customer
+- generic: Normal
+- text: Epic · Client-related
+- text: Waiting on Customer
+- link "Edit":
+  - /url: /cases/12203/edit
+- button "Assign"
+- button "Record progress"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All tickets":
+      - /url: /cases
+    - link "New ticket":
+      - /url: /cases/new
+  - button "Expand menu":
+- main:
+  - generic: This ticket's status follows Jira, so change it there. The due dates come from the Jira creation time and the contract SLA.
+  - generic: Assigned in Jira to Yousef al abdulrahim, representing the client. The ticket waits on the customer until Jira reassigns it.
+  - region "What matters now":
+    - generic: Latest activity
+    - generic: Started
+    - generic: System · 09 Nov 2026, 12:37
+    - generic: Next action
+    - generic: Review the ticket imported from Jira.
+    - generic: Next review 11 Nov 2026, 12:31
+    - generic: Owner
+    - generic: Unassigned
+    - generic: KSA Operation Team
+    - generic: SLA and deadline
+    - generic "First response":
+      - text: First response
+      - generic: Pending
+    - generic "Resolution":
+      - text: Resolution
+      - generic: Pending
+    - generic: Due 2026-11-15 12:56 +03:00 (Asia/Riyadh)
+  - heading "Jira details (imported)" [level=2]:
+    - button "Jira details (imported)" [expanded]: Jira details (imported)
+  - button "Sync with Jira"
+  - region "Jira integration":
+    - generic: Jira integration (Poliscan Cloud Jira)
+    - text: Synchronized
+    - generic: "Last sync: 10 Nov 2026, 14:32 · Next sync: 10 Nov 2026, 17:01"
+  - term: Jira issue
+  - definition:
+    - link "TAD-956":
+      - /url: https://poliscan.atlassian.net/browse/TAD-956
+  - term: Jira status
+  - definition:
+    - generic: In Progress
+  - term: Jira assignee
+  - definition: Yousef al abdulrahim
+  - term: Program
+  - definition: MOI
+  - term: Jira issue type
+  - definition: Epic
+  - term: Jira component
+  - definition: —
+  - term: Jira priority
+  - definition: P3 - Normal
+  - term: Jira due date
+  - definition: —
+  - term: Jira resolution
+  - definition: —
+  - term: Reporter
+  - definition: Kareem Shaheen
+  - term: Jira created
+  - definition: 09 Nov 2026, 12:27
+  - term: Jira URL
+  - definition:
+    - link "https://poliscan.atlassian.net/browse/TAD-956":
+      - /url: https://poliscan.atlassian.net/browse/TAD-956
+  - heading "Description (Jira)" [level=3]
+  - generic: Provide APIs on RRM for CCC integration
+  - tablist:
+    - tab "Activity":
+      - generic: Activity
+    - tab "Affected records (0)":
+      - generic: Affected records (0)
+    - tab "Jira references (1)":
+      - generic: Jira references (1)
+    - tab "Documented impact":
+      - generic: Documented impact
+    - tab "Commitments (0)":
+      - generic: Commitments (0)
+    - tab "Escalations":
+      - generic: Escalations
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Field history" [selected]:
+      - generic: Field history
+  - heading "Change history 334 records" [level=2]:
+    - text: Change history
+    - generic "334 records": "334"
+  - paragraph: Every saved change to this ticket's fields, newest first. Comments and Jira activity are under Activity.
+  - generic: Filter by field, person or value
+  - searchbox "Filter by field, person or value"
+  - list "Change history":
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 17:00
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:51
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:56
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:51
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:56
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 15:51
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:56
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 16:55
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 17:00
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1703"
+    - generic: →
+    - generic: to
+    - generic: "1708"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 16:55
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:46
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:51
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:46
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:51
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 15:46
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:51
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 16:50
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 16:55
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1698"
+    - generic: →
+    - generic: to
+    - generic: "1703"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 16:50
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:41
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:46
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:41
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:46
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 15:41
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:46
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 16:45
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 16:50
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1693"
+    - generic: →
+    - generic: to
+    - generic: "1698"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 16:45
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:36
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:41
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:36
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:41
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 15:36
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:41
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 16:40
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 16:45
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1688"
+    - generic: →
+    - generic: to
+    - generic: "1693"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 16:40
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:31
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:36
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:31
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:36
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 15:31
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:36
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 16:35
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 16:40
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1683"
+    - generic: →
+    - generic: to
+    - generic: "1688"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 16:35
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:26
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:31
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 13:26
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:31
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 15:26
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:31
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 16:30
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 16:35
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1678"
+    - generic: →
+    - generic: to
+    - generic: "1683"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 16:30
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:51
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:26
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:51
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 13:26
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 14:51
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 15:26
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 15:55
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 16:30
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1643"
+    - generic: →
+    - generic: to
+    - generic: "1678"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 15:55
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:45
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:51
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:45
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:51
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 14:45
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 14:51
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 15:50
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 15:55
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1638"
+    - generic: →
+    - generic: to
+    - generic: "1643"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 15:50
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:40
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:45
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:40
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:45
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 14:40
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 14:45
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 15:45
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 15:50
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1633"
+    - generic: →
+    - generic: to
+    - generic: "1638"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 15:45
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:35
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:40
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:35
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:40
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 14:35
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 14:40
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 15:40
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 15:45
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1628"
+    - generic: →
+    - generic: to
+    - generic: "1633"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 15:40
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:30
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:35
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:30
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:35
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 14:30
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 14:35
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 15:35
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 15:40
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1623"
+    - generic: →
+    - generic: to
+    - generic: "1628"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 15:35
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:25
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:30
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 12:25
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:30
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 14:25
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 14:30
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 15:30
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 15:35
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1618"
+    - generic: →
+    - generic: to
+    - generic: "1623"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 15:30
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:53
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:25
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:53
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 12:25
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:53
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 14:25
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:57
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 15:30
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1586"
+    - generic: →
+    - generic: to
+    - generic: "1618"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:57
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:48
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:53
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:48
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:53
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:48
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:53
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:52
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:57
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1581"
+    - generic: →
+    - generic: to
+    - generic: "1586"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:52
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:43
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:48
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:43
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:48
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:43
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:48
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:47
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:52
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1576"
+    - generic: →
+    - generic: to
+    - generic: "1581"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:47
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:38
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:43
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:38
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:43
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:38
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:43
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:42
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:47
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1571"
+    - generic: →
+    - generic: to
+    - generic: "1576"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:42
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:33
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:38
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:33
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:38
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:33
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:38
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:37
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:42
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1565"
+    - generic: →
+    - generic: to
+    - generic: "1571"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:37
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:28
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:33
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:28
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:33
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:28
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:33
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:32
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:37
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1560"
+    - generic: →
+    - generic: to
+    - generic: "1565"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:32
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:23
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:28
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:23
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:28
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:23
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:28
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:27
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:32
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1555"
+    - generic: →
+    - generic: to
+    - generic: "1560"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:27
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:18
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:23
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:18
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:23
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:18
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:23
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:22
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:27
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1550"
+    - generic: →
+    - generic: to
+    - generic: "1555"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:22
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:13
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:18
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:13
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:18
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:13
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:18
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:17
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:22
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1545"
+    - generic: →
+    - generic: to
+    - generic: "1550"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:17
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:08
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:13
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:08
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:13
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:08
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:13
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:12
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:17
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1540"
+    - generic: →
+    - generic: to
+    - generic: "1545"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:12
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:03
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:08
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 11:03
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:08
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 13:03
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:08
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:07
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:12
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1535"
+    - generic: →
+    - generic: to
+    - generic: "1540"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:07
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:58
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:03
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:58
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 11:03
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:58
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 13:03
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 14:02
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:07
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1530"
+    - generic: →
+    - generic: to
+    - generic: "1535"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 14:02
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:53
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:58
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:53
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:58
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:53
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:58
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:57
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 14:02
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1525"
+    - generic: →
+    - generic: to
+    - generic: "1530"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:57
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:48
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:53
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:48
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:53
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:48
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:53
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:52
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:57
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1520"
+    - generic: →
+    - generic: to
+    - generic: "1525"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:52
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:43
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:48
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:43
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:48
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:43
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:48
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:47
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:52
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1515"
+    - generic: →
+    - generic: to
+    - generic: "1520"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:47
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:38
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:43
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:38
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:43
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:38
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:43
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:42
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:47
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1510"
+    - generic: →
+    - generic: to
+    - generic: "1515"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:42
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:33
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:38
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:33
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:38
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:33
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:38
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:37
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:42
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1505"
+    - generic: →
+    - generic: to
+    - generic: "1510"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:37
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:28
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:33
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:28
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:33
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:28
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:33
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:32
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:37
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1500"
+    - generic: →
+    - generic: to
+    - generic: "1505"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:32
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:23
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:28
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:23
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:28
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:23
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:28
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:27
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:32
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1495"
+    - generic: →
+    - generic: to
+    - generic: "1500"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:27
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:18
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:23
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:18
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:23
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:18
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:23
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:22
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:27
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1490"
+    - generic: →
+    - generic: to
+    - generic: "1495"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:22
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:13
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:18
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:13
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:18
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:13
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:18
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:17
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:22
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1485"
+    - generic: →
+    - generic: to
+    - generic: "1490"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:17
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:08
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:13
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:08
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:13
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:08
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:13
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:12
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:17
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1480"
+    - generic: →
+    - generic: to
+    - generic: "1485"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:12
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:03
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:08
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 10:03
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:08
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 12:03
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:08
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:07
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:12
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1475"
+    - generic: →
+    - generic: to
+    - generic: "1480"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:07
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:58
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:03
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:58
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 10:03
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:58
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 12:03
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 13:02
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:07
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1470"
+    - generic: →
+    - generic: to
+    - generic: "1475"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 13:02
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:53
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:58
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:53
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:58
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:53
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:58
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:57
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 13:02
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1465"
+    - generic: →
+    - generic: to
+    - generic: "1470"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:57
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:48
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:53
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:48
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:53
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:48
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:53
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:52
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:57
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1460"
+    - generic: →
+    - generic: to
+    - generic: "1465"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:52
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:43
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:48
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:43
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:48
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:43
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:48
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:47
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:52
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1455"
+    - generic: →
+    - generic: to
+    - generic: "1460"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:47
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:38
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:43
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:38
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:43
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:38
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:43
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:42
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:47
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1450"
+    - generic: →
+    - generic: to
+    - generic: "1455"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:42
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:33
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:38
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:33
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:38
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:33
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:38
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:37
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:42
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1445"
+    - generic: →
+    - generic: to
+    - generic: "1450"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:37
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:28
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:33
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:28
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:33
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:28
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:33
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:32
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:37
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1440"
+    - generic: →
+    - generic: to
+    - generic: "1445"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:32
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:23
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:28
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:23
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:28
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:23
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:28
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:27
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:32
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1435"
+    - generic: →
+    - generic: to
+    - generic: "1440"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:27
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:18
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:23
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:18
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:23
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:18
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:23
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:22
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:27
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1430"
+    - generic: →
+    - generic: to
+    - generic: "1435"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:22
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:13
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:18
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:13
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:18
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:13
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:18
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:17
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:22
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1425"
+    - generic: →
+    - generic: to
+    - generic: "1430"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:17
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:08
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:13
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:08
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:13
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:08
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:13
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:12
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:17
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1420"
+    - generic: →
+    - generic: to
+    - generic: "1425"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:12
+    - generic: Due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:03
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:08
+    - generic: Resolution due at
+    - generic: from
+    - generic: 15 Nov 2026, 09:03
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:08
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 11:03
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:08
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:07
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:12
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1415"
+    - generic: →
+    - generic: to
+    - generic: "1420"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:07
+    - generic: Due at
+    - generic: from
+    - generic: 12 Nov 2026, 17:58
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:03
+    - generic: Resolution due at
+    - generic: from
+    - generic: 12 Nov 2026, 17:58
+    - generic: →
+    - generic: to
+    - generic: 15 Nov 2026, 09:03
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 10:58
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 11:03
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 12:02
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:07
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1410"
+    - generic: →
+    - generic: to
+    - generic: "1415"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 12:02
+    - generic: Due at
+    - generic: from
+    - generic: 12 Nov 2026, 17:53
+    - generic: →
+    - generic: to
+    - generic: 12 Nov 2026, 17:58
+    - generic: Resolution due at
+    - generic: from
+    - generic: 12 Nov 2026, 17:53
+    - generic: →
+    - generic: to
+    - generic: 12 Nov 2026, 17:58
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 10:53
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 10:58
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 11:57
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 12:02
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1405"
+    - generic: →
+    - generic: to
+    - generic: "1410"
+    - text: System
+    - generic: Update
+    - generic: 10 Nov 2026, 11:57
+    - generic: Due at
+    - generic: from
+    - generic: 12 Nov 2026, 17:48
+    - generic: →
+    - generic: to
+    - generic: 12 Nov 2026, 17:53
+    - generic: Resolution due at
+    - generic: from
+    - generic: 12 Nov 2026, 17:48
+    - generic: →
+    - generic: to
+    - generic: 12 Nov 2026, 17:53
+    - generic: Response due at
+    - generic: from
+    - generic: 11 Nov 2026, 10:48
+    - generic: →
+    - generic: to
+    - generic: 11 Nov 2026, 10:53
+    - generic: Sla calculated at
+    - generic: from
+    - generic: 10 Nov 2026, 11:52
+    - generic: →
+    - generic: to
+    - generic: 10 Nov 2026, 11:57
+    - generic: Sla paused minutes
+    - generic: from
+    - generic: "1400"
+    - generic: →
+    - generic: to
+    - generic: "1405"
+  - button "Show more history (284)"
+  - complementary "Ticket details":
+    - heading "Management summary" [level=2]:
+      - button "Management summary" [expanded]: Management summary
+    - term: Owner
+    - definition: Unassigned
+    - term: Backup owner
+    - definition: None
+    - term: Responsible team
+    - definition: KSA Operation Team
+    - term: Coordinator
+    - definition: —
+    - term: Responsible party
+    - definition: Customer IT
+    - term: Impact
+    - definition: Not yet assessed. Imported from Jira TAD-956.
+    - term: Progress
+    - definition: No progress recorded
+    - term: Next action
+    - definition: Review the ticket imported from Jira.
+    - term: Next review
+    - definition: 11 Nov 2026, 12:31
+    - term: Due
+    - definition:
+      - text: 2026-11-15 12:56 +03:00
+      - generic: (Asia/Riyadh)
+    - term: Last progress update
+    - definition:
+      - text: 09 Nov 2026, 12:31
+      - generic "Review every 2 days or by next-review date · last 09 Nov 2026, 12:31 · due 11 Nov 2026, 12:31":
+        - text: Current
+        - generic: Current
+    - heading "Age and waiting" [level=2]:
+      - button "Age and waiting" [expanded]: Age and waiting
+    - term: Opened
+    - definition:
+      - text: 09 Nov 2026, 12:27
+      - generic: (Jira creation time)
+    - term: Added to the hub
+    - definition:
+      - text: 09 Nov 2026, 12:31
+      - generic: (import time; not used for age, deadlines or opened reporting)
+    - term: Age since opening
+    - definition: 1.2 days
+    - term: Reopened
+    - definition: 0 time(s)
+    - term: Recorded waiting
+    - definition:
+      - text: 28.5 h
+      - generic: (the operational due date is not paused; the contractual SLA pauses while waiting on the customer)
+    - term: Waiting now
+    - definition:
+      - text: On Customer
+      - generic: since 09 Nov 2026, 12:31
+    - term: Validation request
+    - definition: Unknown
+    - term: Outcome
+    - definition: Unknown
+    - term: Validation evidence
+    - definition: Unknown
+    - generic "Waiting periods (1)"
+    - heading "Contractual SLA" [level=2]:
+      - button "Contractual SLA" [expanded]: Contractual SLA
+    - term: Contract
+    - definition:
+      - link "CT-1001":
+        - /url: /contracts/1
+      - text: · 2026_Vitronic Software Service Level Agreement
+    - term: Applied target
+    - definition:
+      - text: Normal priority · support hours Sunday Monday Tuesday Wednesday Thursday 08:00–17:00 Asia/Riyadh · paused while waiting on the customer
+      - generic: Taken from CT-1001 on 09 Nov 2026, 12:31; later contract edits do not change it. This contract was valid when the ticket was created.
+    - term: Clock start
+    - definition:
+      - text: 09 Nov 2026, 12:27
+      - generic: (Jira creation time; deadlines and elapsed time count from here)
+    - term: Paused (waiting on the customer)
+    - definition: 28 h 28 min
+    - term: Operational due date
+    - definition:
+      - text: 15 Nov 2026, 13:56
+      - generic: (the contractual resolution deadline of this synchronized ticket)
+    - heading "SLA measurements" [level=2]:
+      - button "SLA measurements" [expanded]: SLA measurements
+    - group "Contractual SLA measurements":
+      - region "First response":
+        - heading "First response" [level=3]
+        - generic: Pending
+        - term: Target
+        - definition: 8 h
+        - term: Deadline
+        - definition: 11 Nov 2026, 15:56
+        - term: Actual
+        - definition:
+          - text: Not yet recorded
+          - generic: 4 min counted
+      - region "Resolution":
+        - heading "Resolution" [level=3]
+        - generic: Pending
+        - term: Target
+        - definition: 24 h
+        - term: Deadline
+        - definition: 15 Nov 2026, 13:56
+        - term: Actual
+        - definition:
+          - text: Not yet resolved
+          - generic: 4 min counted
+    - heading "Indicative penalties" [level=2]:
+      - button "Indicative penalties": Indicative penalties
+    - generic: 14 line(s)
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

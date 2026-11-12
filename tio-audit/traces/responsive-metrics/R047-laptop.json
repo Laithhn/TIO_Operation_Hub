@@ -1,0 +1,15 @@
+{
+  "id": "R047-laptop",
+  "route": "/environments/3",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Production"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 2516,
+  "title": "Production · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

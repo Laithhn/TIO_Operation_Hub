@@ -1,0 +1,152 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Operations Command Center" [level=1]
+- button "Refreshing…" [disabled]: Refreshing…
+- link "Client map":
+  - /url: /map
+- link "Action list":
+  - /url: /actions
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - generic: Reporting period
+  - combobox "Reporting period":
+    - option "Today"
+    - option "Last 7 days"
+    - option "Last 30 days" [selected]
+    - option "This quarter"
+    - option "Custom range"
+  - generic: Show
+  - group "Show":
+    - button "All I can see" [pressed]
+    - button "My work"
+  - button "Advanced filters":
+    - text: Advanced filters
+    - generic: ▾
+  - status: Loading…
+  - region "Needs immediate attention":
+    - heading "Needs immediate attention" [level=2]
+    - generic: Loading…
+    - region "Needs immediate attention":
+      - status: Loading…
+      - status
+    - link "Open the full action list":
+      - /url: /actions
+    - generic: "Severity: overdue critical/high work, escalations past a target and unavailable environments are Critical. One row per record."
+  - navigation "Dashboard sections":
+    - link "Attention":
+      - /url: "#attention"
+    - link "Figures":
+      - /url: "#overview"
+    - link "Tickets":
+      - /url: "#cases"
+    - link "Escalations":
+      - /url: "#escalations"
+    - link "Contractual SLA":
+      - /url: "#sla"
+    - link "Contracts & SLAs":
+      - /url: "#contracts"
+    - link "Payments":
+      - /url: "#payments"
+    - link "Health":
+      - /url: "#health"
+    - link "Data quality":
+      - /url: "#quality"
+  - region "Key figures":
+    - group "Main figures":
+      - 'group "Active contracts: loading"':
+        - generic: Active contracts
+        - list:
+      - 'group "Overdue payments: loading"':
+        - generic: Overdue payments
+        - list:
+      - 'group "Upcoming commitments: loading"':
+        - generic: Upcoming commitments
+        - list:
+      - 'group "Active escalations: loading"':
+        - generic: Active escalations
+        - list:
+      - 'group "Open tickets: loading"':
+        - generic: Open tickets
+        - list:
+    - group "More figures":
+      - 'group "Clients: loading"':
+        - generic: Clients
+        - list:
+      - 'group "Targets met (period): loading"':
+        - generic: Targets met (period)
+        - list:
+      - 'group "Contractual SLA met (period): loading"':
+        - generic: Contractual SLA met (period)
+        - list:
+      - 'group "Environment health: loading"':
+        - generic: Environment health
+        - list:
+      - 'group "Data quality: loading"':
+        - generic: Data quality
+        - list:
+    - paragraph: The reporting period applies to opened, closed and received figures and to targets met; open, overdue and due figures are always as of now.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

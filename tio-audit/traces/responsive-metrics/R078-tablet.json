@@ -1,0 +1,15 @@
+{
+  "id": "R078-tablet",
+  "route": "/admin/policies",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Review policies"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 986,
+  "title": "Review policies · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

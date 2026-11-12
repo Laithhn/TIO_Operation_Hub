@@ -1,0 +1,15 @@
+{
+  "id": "R002-laptop",
+  "route": "/dashboards/operational",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Operational dashboard"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 3943,
+  "title": "Operational dashboard · TIO Operations Hub",
+  "width": 1366
+}

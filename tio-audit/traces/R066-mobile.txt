@@ -1,0 +1,137 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Servers":
+    - /url: /admin/config/category/servers
+  - generic: ›
+  - generic: Server types
+- heading "Server types" [level=1]
+- generic: Offered on the server form. The category decides how the server is counted in totals.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Server types":
+    - searchbox "Filter rows"
+    - generic: 3 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Server types":
+      - caption: Server types
+      - rowgroup:
+        - row "Details Order Name Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for ▲ ▼ Move Virtual machine (VM) up Move Virtual machine (VM) down Virtual machine (VM) Active Actions for Virtual machine (VM)":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Virtual machine (VM) up Move Virtual machine (VM) down":
+            - button "Move Virtual machine (VM) up" [disabled]: ▲
+            - button "Move Virtual machine (VM) down": ▼
+          - cell "Virtual machine (VM)":
+            - button "Virtual machine (VM)"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Virtual machine (VM)":
+            - button "Actions for Virtual machine (VM)": ⋯
+        - row "Details for ▲ ▼ Move Physical server up Move Physical server down Physical server Active Actions for Physical server":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Physical server up Move Physical server down":
+            - button "Move Physical server up": ▲
+            - button "Move Physical server down": ▼
+          - cell "Physical server":
+            - button "Physical server"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Physical server":
+            - button "Actions for Physical server": ⋯
+        - row "Details for ▲ ▼ Move Logical endpoint up Move Logical endpoint down Logical endpoint Active Actions for Logical endpoint":
+          - cell "Details for ▲ ▼":
+            - button "Details for ▲ ▼":
+          - cell "Move Logical endpoint up Move Logical endpoint down":
+            - button "Move Logical endpoint up": ▲
+            - button "Move Logical endpoint down" [disabled]: ▼
+          - cell "Logical endpoint":
+            - button "Logical endpoint"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Logical endpoint":
+            - button "Actions for Logical endpoint": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

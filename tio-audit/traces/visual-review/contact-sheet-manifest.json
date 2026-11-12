@@ -1,0 +1,137 @@
+[
+  {
+    "contactSheet": "traces/visual-review/contact-mobile-a.png",
+    "entries": [
+      {
+        "id": "R001-mobile",
+        "source": "screenshots/R001-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R008-mobile",
+        "source": "screenshots/R008-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R024-mobile",
+        "source": "screenshots/R024-mobile.png",
+        "width": 390,
+        "height": 520,
+        "scale": 1
+      }
+    ]
+  },
+  {
+    "contactSheet": "traces/visual-review/contact-mobile-b.png",
+    "entries": [
+      {
+        "id": "R025-mobile",
+        "source": "screenshots/R025-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R027-mobile",
+        "source": "screenshots/R027-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R029-mobile",
+        "source": "screenshots/R029-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      }
+    ]
+  },
+  {
+    "contactSheet": "traces/visual-review/contact-mobile-c.png",
+    "entries": [
+      {
+        "id": "R032-mobile",
+        "source": "screenshots/R032-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R039-mobile",
+        "source": "screenshots/R039-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R044-mobile",
+        "source": "screenshots/R044-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      }
+    ]
+  },
+  {
+    "contactSheet": "traces/visual-review/contact-mobile-d.png",
+    "entries": [
+      {
+        "id": "R047-mobile",
+        "source": "screenshots/R047-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      },
+      {
+        "id": "R050-mobile",
+        "source": "screenshots/R050-mobile.png",
+        "width": 390,
+        "height": 843,
+        "scale": 1
+      }
+    ]
+  },
+  {
+    "contactSheet": "traces/visual-review/contact-tablet-a.png",
+    "entries": [
+      {
+        "id": "R024-tablet",
+        "source": "screenshots/R024-tablet.png",
+        "width": 768,
+        "height": 1024,
+        "scale": 1
+      },
+      {
+        "id": "R029-tablet",
+        "source": "screenshots/R029-tablet.png",
+        "width": 768,
+        "height": 1024,
+        "scale": 1
+      }
+    ]
+  },
+  {
+    "contactSheet": "traces/visual-review/contact-tablet-b.png",
+    "entries": [
+      {
+        "id": "R039-tablet",
+        "source": "screenshots/R039-tablet.png",
+        "width": 768,
+        "height": 1024,
+        "scale": 1
+      },
+      {
+        "id": "R050-tablet",
+        "source": "screenshots/R050-tablet.png",
+        "width": 768,
+        "height": 1024,
+        "scale": 1
+      }
+    ]
+  }
+]

@@ -1,0 +1,170 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Servers":
+    - /url: /admin/config/category/servers
+  - generic: ›
+  - generic: Project phases
+- heading "Project phases" [level=1]
+- generic: Where a server is in its delivery, for example Requested or Deployed.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Project phases":
+    - searchbox "Filter rows"
+    - generic: 3 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Project phases":
+      - caption: Project phases
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (servers) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (servers)":
+            - button "In use (servers)":
+              - generic: In use (servers)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Requested up Move Requested down Requested — 28 Active Actions for Requested":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Requested up Move Requested down":
+            - button "Move Requested up" [disabled]: ▲
+            - button "Move Requested down": ▼
+          - cell "Requested":
+            - button "Requested"
+          - cell "—":
+            - generic: —
+          - cell "28":
+            - generic: "28"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Requested":
+            - button "Actions for Requested": ⋯
+        - row "Select ▲ ▼ Move Approved up Move Approved down Approved — 67 Active Actions for Approved":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Approved up Move Approved down":
+            - button "Move Approved up": ▲
+            - button "Move Approved down": ▼
+          - cell "Approved":
+            - button "Approved"
+          - cell "—":
+            - generic: —
+          - cell "67":
+            - generic: "67"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Approved":
+            - button "Actions for Approved": ⋯
+        - row "Select ▲ ▼ Move Deployed up Move Deployed down Deployed — 54 Active Actions for Deployed":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Deployed up Move Deployed down":
+            - button "Move Deployed up": ▲
+            - button "Move Deployed down" [disabled]: ▼
+          - cell "Deployed":
+            - button "Deployed"
+          - cell "—":
+            - generic: —
+          - cell "54":
+            - generic: "54"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Deployed":
+            - button "Actions for Deployed": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

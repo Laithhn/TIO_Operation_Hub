@@ -1,0 +1,15 @@
+{
+  "id": "R064-desktop",
+  "route": "/admin/config/responsibility-areas",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Responsibility areas"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 523,
+  "title": "Responsibility areas · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

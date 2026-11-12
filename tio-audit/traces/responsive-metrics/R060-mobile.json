@@ -1,0 +1,15 @@
+{
+  "id": "R060-mobile",
+  "route": "/admin/config/category/system",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "System"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 250,
+  "title": "System · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

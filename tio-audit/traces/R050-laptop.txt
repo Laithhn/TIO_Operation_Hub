@@ -1,0 +1,142 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Notifications" [level=1]
+- generic: Work assigned to you, due and overdue tickets, commitments and escalations, contracts that need a renewal decision and contract payments coming due. Alerts are resolved automatically when their cause is cleared; read and resolved notices are cleared after 90 days.
+- button "Mark all as read (11)"
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - tablist:
+    - tab "All" [selected]:
+      - generic: All
+    - tab "Unread (11)":
+      - generic: Unread (11)
+    - tab "Critical (9)":
+      - generic: Critical (9)
+    - tab "Payments (4 unread)":
+      - generic: Payments (4 unread)
+  - generic: Search
+  - searchbox "Search notifications"
+  - generic: Importance
+  - combobox "Filter by importance":
+    - option "All" [selected]
+    - option "Critical / overdue"
+    - option "Action required"
+    - option "Informational"
+  - generic: Business state
+  - combobox "Filter by business state":
+    - option "Open and resolved" [selected]
+    - option "Open"
+    - option "Resolved"
+  - region "Critical / overdue":
+    - heading "Critical / overdue" [level=3]:
+      - text: Critical / overdue
+    - generic: 4 overdue payments
+    - generic: CT-1001, CT-1001, CT-1004 and 1 more require attention.
+    - text: Payment management ·
+    - time: 3 hours ago
+    - generic: · 4 unread
+    - generic: Overdue
+    - button "View payments (4)"
+    - generic: 5 overdue commitments
+    - generic: CM-1005, CM-1008, CM-1003 and 2 more require attention.
+    - text: Commitment management ·
+    - time: 4 days ago
+    - generic: · 5 unread
+    - generic: Overdue
+    - button "View commitments (5)"
+  - region "Action required":
+    - heading "Action required" [level=3]:
+      - text: Action required
+    - generic: "Contract CT-1011: renewal due"
+    - generic: OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH
+    - text: Contract management ·
+    - time: 4 hours ago
+    - generic: · Unread
+    - generic: Needs attention
+    - 'button "Review contract: Contract CT-1011: renewal due"': Review contract
+    - 'button "Mark as read: Contract CT-1011: renewal due"': Mark as read
+    - 'button "Delete notification Contract CT-1011: renewal due"': Delete
+  - region "Informational":
+    - heading "Informational" [level=3]:
+      - text: Informational
+    - generic: 15 tickets assigned to you
+    - generic: CS-4099, CS-2926, CS-2858 and 12 more.
+    - text: Ticket management ·
+    - time: 3 hours ago
+    - generic: · 1 unread
+    - generic: Assigned
+    - button "View tickets (15)"
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 37
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 37
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

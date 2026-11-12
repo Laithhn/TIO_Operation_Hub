@@ -1,0 +1,186 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Contracts & Tickets":
+    - /url: /admin/config/category/contracts-cases
+  - generic: ›
+  - generic: Priority guidance
+- heading "Priority guidance" [level=1]
+- generic: The explanation shown for each ticket priority. Rename or reword it to match your service levels.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Priority guidance":
+    - searchbox "Filter rows"
+    - generic: 4 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Priority guidance":
+      - caption: Priority guidance
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (the ticket form (guidance text)) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (the ticket form (guidance text))":
+            - button "In use (the ticket form (guidance text))":
+              - generic: In use (the ticket form (guidance text))
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - 'row "Select ▲ ▼ Move Critical up Move Critical down Critical Proposed: service down for a client; criteria to be agreed before the pilot. 0 Active Actions for Critical"':
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Critical up Move Critical down":
+            - button "Move Critical up" [disabled]: ▲
+            - button "Move Critical down": ▼
+          - cell "Critical":
+            - button "Critical"
+          - 'cell "Proposed: service down for a client; criteria to be agreed before the pilot."':
+            - generic: "Proposed: service down for a client; criteria to be agreed before the pilot."
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Critical":
+            - button "Actions for Critical": ⋯
+        - 'row "Select ▲ ▼ Move High up Move High down High Proposed: significant degradation; criteria to be agreed before the pilot. 0 Active Actions for High"':
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move High up Move High down":
+            - button "Move High up": ▲
+            - button "Move High down": ▼
+          - cell "High":
+            - button "High"
+          - 'cell "Proposed: significant degradation; criteria to be agreed before the pilot."':
+            - generic: "Proposed: significant degradation; criteria to be agreed before the pilot."
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for High":
+            - button "Actions for High": ⋯
+        - 'row "Select ▲ ▼ Move Normal up Move Normal down Normal Proposed: limited impact; criteria to be agreed before the pilot. 0 Active Actions for Normal"':
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Normal up Move Normal down":
+            - button "Move Normal up": ▲
+            - button "Move Normal down": ▼
+          - cell "Normal":
+            - button "Normal"
+          - 'cell "Proposed: limited impact; criteria to be agreed before the pilot."':
+            - generic: "Proposed: limited impact; criteria to be agreed before the pilot."
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Normal":
+            - button "Actions for Normal": ⋯
+        - 'row "Select ▲ ▼ Move Low up Move Low down Low Proposed: no customer impact; criteria to be agreed before the pilot. 0 Active Actions for Low"':
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Low up Move Low down":
+            - button "Move Low up": ▲
+            - button "Move Low down" [disabled]: ▼
+          - cell "Low":
+            - button "Low"
+          - 'cell "Proposed: no customer impact; criteria to be agreed before the pilot."':
+            - generic: "Proposed: no customer impact; criteria to be agreed before the pilot."
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Low":
+            - button "Actions for Low": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

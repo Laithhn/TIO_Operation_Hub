@@ -1,0 +1,539 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Tickets":
+    - generic: Tickets
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Tickets" [level=1]
+- generic: Synchronized tickets follow their Jira status. Opened is the Jira creation time of a synchronized ticket, otherwise the hub creation time.
+- button "Export CSV"
+- link "+ New Ticket":
+  - /url: /cases/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets (current section)":
+      - /url: /cases
+      - text: Tickets
+      - generic: (current section)
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - group "Quick views":
+    - button "All open183" [pressed]
+    - button "My tickets0"
+    - button "Overdue73"
+    - button "Unassigned104"
+    - button "Waiting for customer88"
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+    - option "Unassigned"
+  - generic: Status
+  - combobox "Status":
+    - option "Open" [selected]
+    - option "All"
+    - option "Closed or cancelled"
+    - option "New"
+    - option "Open"
+    - option "In progress"
+    - option "Waiting for customer"
+    - option "Resolved"
+    - option "Closed"
+    - option "Re-opened"
+  - generic: Priority
+  - combobox "Priority":
+    - option "Any" [selected]
+    - option "Critical or high"
+    - option "Critical"
+    - option "High"
+    - option "Normal"
+    - option "Low"
+  - generic: Deadline
+  - combobox "Deadline":
+    - option "Any" [selected]
+    - option "Overdue"
+    - option "Due within 24 hours"
+    - option "Due soon"
+    - option "No deadline"
+  - button "Advanced filters":
+    - text: Advanced filters
+    - generic: ▾
+  - region "Tickets":
+    - searchbox "Search all tickets"
+    - generic: 183 rows
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Tickets: scroll sideways for more columns"':
+      - table "Tickets":
+        - caption: Tickets
+        - rowgroup:
+          - row "Details Select all rows shown Ticket Client Priority Status Owner Deadline Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Ticket":
+              - button "Ticket":
+                - generic: Ticket
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Priority":
+              - button "Priority":
+                - generic: Priority
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Owner":
+              - button "Owner":
+                - generic: Owner
+            - columnheader "Deadline":
+              - button "Deadline":
+                - generic: Deadline
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select CS-4149 Importer 1.7 Details for CS-4149 Importer 1.7 CS-4149 Importer 1.7 TAH Normal New Naveed Ur Rehman 07 Dec 2026, 11:30 Actions for ticket CS-4149":
+            - cell "Select CS-4149 Importer 1.7":
+              - checkbox "Select CS-4149 Importer 1.7"
+            - cell "Details for CS-4149 Importer 1.7":
+              - button "Details for CS-4149 Importer 1.7":
+            - cell "CS-4149 Importer 1.7":
+              - generic "Epic":
+                - link "CS-4149":
+                  - /url: /cases/12349
+                - text: Importer 1.7
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "New":
+              - generic: New
+            - cell "Naveed Ur Rehman":
+              - generic: NU
+              - generic: Naveed Ur Rehman
+            - cell "07 Dec 2026, 11:30":
+              - generic: 07 Dec 2026, 11:30
+            - cell "Actions for ticket CS-4149":
+              - button "Actions for ticket CS-4149": ⋯
+          - row "Select CS-4006 BackOffice | Site Record Details for CS-4006 BackOffice | Site Record CS-4006 BackOffice | Site Record TAH Normal New Naveed Ur Rehman 12 Nov 2026, 09:45 Actions for ticket CS-4006":
+            - cell "Select CS-4006 BackOffice | Site Record":
+              - checkbox "Select CS-4006 BackOffice | Site Record"
+            - cell "Details for CS-4006 BackOffice | Site Record":
+              - button "Details for CS-4006 BackOffice | Site Record":
+            - cell "CS-4006 BackOffice | Site Record":
+              - generic "Incident":
+                - link "CS-4006":
+                  - /url: /cases/12206
+                - text: BackOffice | Site Record
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "New":
+              - generic: New
+            - cell "Naveed Ur Rehman":
+              - generic: NU
+              - generic: Naveed Ur Rehman
+            - cell "12 Nov 2026, 09:45":
+              - generic: 12 Nov 2026, 09:45
+            - cell "Actions for ticket CS-4006":
+              - button "Actions for ticket CS-4006": ⋯
+          - row "Select CS-4005 BackOffice | Device record Details for CS-4005 BackOffice | Device record CS-4005 BackOffice | Device record TAH Normal New Naveed Ur Rehman 12 Nov 2026, 09:40 Actions for ticket CS-4005":
+            - cell "Select CS-4005 BackOffice | Device record":
+              - checkbox "Select CS-4005 BackOffice | Device record"
+            - cell "Details for CS-4005 BackOffice | Device record":
+              - button "Details for CS-4005 BackOffice | Device record":
+            - cell "CS-4005 BackOffice | Device record":
+              - generic "Incident":
+                - link "CS-4005":
+                  - /url: /cases/12205
+                - text: BackOffice | Device record
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "New":
+              - generic: New
+            - cell "Naveed Ur Rehman":
+              - generic: NU
+              - generic: Naveed Ur Rehman
+            - cell "12 Nov 2026, 09:40":
+              - generic: 12 Nov 2026, 09:40
+            - cell "Actions for ticket CS-4005":
+              - button "Actions for ticket CS-4005": ⋯
+          - row "Select CS-4004 RRM JSON file Details for CS-4004 RRM JSON file CS-4004 RRM JSON file TAH Normal New Naveed Ur Rehman 12 Nov 2026, 09:34 Actions for ticket CS-4004":
+            - cell "Select CS-4004 RRM JSON file":
+              - checkbox "Select CS-4004 RRM JSON file"
+            - cell "Details for CS-4004 RRM JSON file":
+              - button "Details for CS-4004 RRM JSON file":
+            - cell "CS-4004 RRM JSON file":
+              - generic "Incident":
+                - link "CS-4004":
+                  - /url: /cases/12204
+                - text: RRM JSON file
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "New":
+              - generic: New
+            - cell "Naveed Ur Rehman":
+              - generic: NU
+              - generic: Naveed Ur Rehman
+            - cell "12 Nov 2026, 09:34":
+              - generic: 12 Nov 2026, 09:34
+            - cell "Actions for ticket CS-4004":
+              - button "Actions for ticket CS-4004": ⋯
+          - 'row "Select CS-4003 CCC: RRM Integration Details for CS-4003 CCC: RRM Integration CS-4003 CCC: RRM Integration TAH Normal Waiting for customer Yousef al abdulrahim Client contact 15 Nov 2026, 13:46 Actions for ticket CS-4003"':
+            - 'cell "Select CS-4003 CCC: RRM Integration"':
+              - 'checkbox "Select CS-4003 CCC: RRM Integration"'
+            - 'cell "Details for CS-4003 CCC: RRM Integration"':
+              - 'button "Details for CS-4003 CCC: RRM Integration"':
+            - 'cell "CS-4003 CCC: RRM Integration"':
+              - generic "Epic":
+                - link "CS-4003":
+                  - /url: /cases/12203
+                - text: "CCC: RRM Integration"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "Waiting for customer":
+              - text: Waiting for customer
+            - cell "Yousef al abdulrahim Client contact":
+              - generic: YA
+              - text: Yousef al abdulrahim
+              - generic: Client contact
+            - cell "15 Nov 2026, 13:46":
+              - generic: 15 Nov 2026, 13:46
+            - cell "Actions for ticket CS-4003":
+              - button "Actions for ticket CS-4003": ⋯
+          - row "Select CS-3998 CCC Integration Details for CS-3998 CCC Integration CS-3998 CCC Integration TAH Normal Waiting for customer Yousef al abdulrahim Client contact 15 Nov 2026, 13:47 Actions for ticket CS-3998":
+            - cell "Select CS-3998 CCC Integration":
+              - checkbox "Select CS-3998 CCC Integration"
+            - cell "Details for CS-3998 CCC Integration":
+              - button "Details for CS-3998 CCC Integration":
+            - cell "CS-3998 CCC Integration":
+              - generic "Epic":
+                - link "CS-3998":
+                  - /url: /cases/12198
+                - text: CCC Integration
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "Waiting for customer":
+              - text: Waiting for customer
+            - cell "Yousef al abdulrahim Client contact":
+              - generic: YA
+              - text: Yousef al abdulrahim
+              - generic: Client contact
+            - cell "15 Nov 2026, 13:47":
+              - generic: 15 Nov 2026, 13:47
+            - cell "Actions for ticket CS-3998":
+              - button "Actions for ticket CS-3998": ⋯
+          - row "Select CS-2595 R3 Backoffice Slowess issue Details for CS-2595 R3 Backoffice Slowess issue CS-2595 R3 Backoffice Slowess issue TAH Critical New Moataz Al Khaldi 08 Nov 2026, 09:38 · overdue Actions for ticket CS-2595":
+            - cell "Select CS-2595 R3 Backoffice Slowess issue":
+              - checkbox "Select CS-2595 R3 Backoffice Slowess issue"
+            - cell "Details for CS-2595 R3 Backoffice Slowess issue":
+              - button "Details for CS-2595 R3 Backoffice Slowess issue":
+            - cell "CS-2595 R3 Backoffice Slowess issue":
+              - generic "Incident":
+                - link "CS-2595":
+                  - /url: /cases/10795
+                - text: R3 Backoffice Slowess issue
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Critical":
+              - text: Critical
+            - cell "New":
+              - generic: New
+            - cell "Moataz Al Khaldi":
+              - generic: MA
+              - generic: Moataz Al Khaldi
+            - cell "08 Nov 2026, 09:38 · overdue":
+              - generic: 08 Nov 2026, 09:38 · overdue
+            - cell "Actions for ticket CS-2595":
+              - button "Actions for ticket CS-2595": ⋯
+          - row "Select CS-2594 Kafka Integration BO | Site Information Not Being Sent Details for CS-2594 Kafka Integration BO | Site Information Not Being Sent CS-2594 Kafka Integration BO | Site Information Not Being Sent TAH Normal In progress Ahmed Awadalla 11 Nov 2026, 12:18 Actions for ticket CS-2594":
+            - cell "Select CS-2594 Kafka Integration BO | Site Information Not Being Sent":
+              - checkbox "Select CS-2594 Kafka Integration BO | Site Information Not Being Sent"
+            - cell "Details for CS-2594 Kafka Integration BO | Site Information Not Being Sent":
+              - button "Details for CS-2594 Kafka Integration BO | Site Information Not Being Sent":
+            - cell "CS-2594 Kafka Integration BO | Site Information Not Being Sent":
+              - generic "Incident":
+                - link "CS-2594":
+                  - /url: /cases/10794
+                - text: Kafka Integration BO | Site Information Not Being Sent
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "In progress":
+              - text: In progress
+            - cell "Ahmed Awadalla":
+              - generic: AA
+              - generic: Ahmed Awadalla
+            - cell "11 Nov 2026, 12:18":
+              - generic: 11 Nov 2026, 12:18
+            - cell "Actions for ticket CS-2594":
+              - button "Actions for ticket CS-2594": ⋯
+          - row "Select CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep Details for CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep TAH Normal Waiting for customer Ahmed Awadalla 15 Nov 2026, 12:25 Actions for ticket CS-2592":
+            - cell "Select CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep":
+              - checkbox "Select CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep"
+            - cell "Details for CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep":
+              - button "Details for CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep":
+            - cell "CS-2592 Kafka Integration BO | Resending Data Starting 1st Sep":
+              - generic "Incident":
+                - link "CS-2592":
+                  - /url: /cases/10792
+                - text: Kafka Integration BO | Resending Data Starting 1st Sep
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "Waiting for customer":
+              - text: Waiting for customer
+            - cell "Ahmed Awadalla":
+              - generic: AA
+              - generic: Ahmed Awadalla
+            - cell "15 Nov 2026, 12:25":
+              - generic: 15 Nov 2026, 12:25
+            - cell "Actions for ticket CS-2592":
+              - button "Actions for ticket CS-2592": ⋯
+          - row "Select CS-2591 Kafka Integration BO | Media Retrieval Issue Details for CS-2591 Kafka Integration BO | Media Retrieval Issue CS-2591 Kafka Integration BO | Media Retrieval Issue TAH Normal Waiting for customer Ahmed Awadalla 15 Nov 2026, 11:49 Actions for ticket CS-2591":
+            - cell "Select CS-2591 Kafka Integration BO | Media Retrieval Issue":
+              - checkbox "Select CS-2591 Kafka Integration BO | Media Retrieval Issue"
+            - cell "Details for CS-2591 Kafka Integration BO | Media Retrieval Issue":
+              - button "Details for CS-2591 Kafka Integration BO | Media Retrieval Issue":
+            - cell "CS-2591 Kafka Integration BO | Media Retrieval Issue":
+              - generic "Incident":
+                - link "CS-2591":
+                  - /url: /cases/10791
+                - text: Kafka Integration BO | Media Retrieval Issue
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "Waiting for customer":
+              - text: Waiting for customer
+            - cell "Ahmed Awadalla":
+              - generic: AA
+              - generic: Ahmed Awadalla
+            - cell "15 Nov 2026, 11:49":
+              - generic: 15 Nov 2026, 11:49
+            - cell "Actions for ticket CS-2591":
+              - button "Actions for ticket CS-2591": ⋯
+          - row "Select CS-2590 R3 Violation Assignment Issue Details for CS-2590 R3 Violation Assignment Issue CS-2590 R3 Violation Assignment Issue TAH High In progress Moataz Al Khaldi 08 Nov 2026, 10:27 · overdue Actions for ticket CS-2590":
+            - cell "Select CS-2590 R3 Violation Assignment Issue":
+              - checkbox "Select CS-2590 R3 Violation Assignment Issue"
+            - cell "Details for CS-2590 R3 Violation Assignment Issue":
+              - button "Details for CS-2590 R3 Violation Assignment Issue":
+            - cell "CS-2590 R3 Violation Assignment Issue":
+              - generic "Incident":
+                - link "CS-2590":
+                  - /url: /cases/10790
+                - text: R3 Violation Assignment Issue
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "High":
+              - text: High
+            - cell "In progress":
+              - text: In progress
+            - cell "Moataz Al Khaldi":
+              - generic: MA
+              - generic: Moataz Al Khaldi
+            - cell "08 Nov 2026, 10:27 · overdue":
+              - generic: 08 Nov 2026, 10:27 · overdue
+            - cell "Actions for ticket CS-2590":
+              - button "Actions for ticket CS-2590": ⋯
+          - row "Select CS-2593 R1 Backoffice Slowess issue Details for CS-2593 R1 Backoffice Slowess issue CS-2593 R1 Backoffice Slowess issue TAH Critical In progress Moataz Al Khaldi 03 Nov 2026, 15:55 · overdue Actions for ticket CS-2593":
+            - cell "Select CS-2593 R1 Backoffice Slowess issue":
+              - checkbox "Select CS-2593 R1 Backoffice Slowess issue"
+            - cell "Details for CS-2593 R1 Backoffice Slowess issue":
+              - button "Details for CS-2593 R1 Backoffice Slowess issue":
+            - cell "CS-2593 R1 Backoffice Slowess issue":
+              - generic "Incident":
+                - link "CS-2593":
+                  - /url: /cases/10793
+                - text: R1 Backoffice Slowess issue
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Critical":
+              - text: Critical
+            - cell "In progress":
+              - text: In progress
+            - cell "Moataz Al Khaldi":
+              - generic: MA
+              - generic: Moataz Al Khaldi
+            - cell "03 Nov 2026, 15:55 · overdue":
+              - generic: 03 Nov 2026, 15:55 · overdue
+            - cell "Actions for ticket CS-2593":
+              - button "Actions for ticket CS-2593": ⋯
+          - row "Select CS-3000 EB events not exists on the ITS platforms demo or prod Details for CS-3000 EB events not exists on the ITS platforms demo or prod CS-3000 EB events not exists on the ITS platforms demo or prod SEW High In progress Mohammed Alqaruoti 05 Nov 2026, 17:37 · overdue Actions for ticket CS-3000":
+            - cell "Select CS-3000 EB events not exists on the ITS platforms demo or prod":
+              - checkbox "Select CS-3000 EB events not exists on the ITS platforms demo or prod"
+            - cell "Details for CS-3000 EB events not exists on the ITS platforms demo or prod":
+              - button "Details for CS-3000 EB events not exists on the ITS platforms demo or prod":
+            - cell "CS-3000 EB events not exists on the ITS platforms demo or prod":
+              - generic "Incident":
+                - link "CS-3000":
+                  - /url: /cases/11200
+                - text: EB events not exists on the ITS platforms demo or prod
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "High":
+              - text: High
+            - cell "In progress":
+              - text: In progress
+            - cell "Mohammed Alqaruoti":
+              - generic: MA
+              - generic: Mohammed Alqaruoti
+            - cell "05 Nov 2026, 17:37 · overdue":
+              - generic: 05 Nov 2026, 17:37 · overdue
+            - cell "Actions for ticket CS-3000":
+              - button "Actions for ticket CS-3000": ⋯
+          - row "Select CS-2588 SFRS Portal | Network Segmentation Not Applied Details for CS-2588 SFRS Portal | Network Segmentation Not Applied CS-2588 SFRS Portal | Network Segmentation Not Applied TAH Normal Waiting for customer Mohammed Shanawaz Client contact 05 Nov 2026, 11:07 · overdue Actions for ticket CS-2588":
+            - cell "Select CS-2588 SFRS Portal | Network Segmentation Not Applied":
+              - checkbox "Select CS-2588 SFRS Portal | Network Segmentation Not Applied"
+            - cell "Details for CS-2588 SFRS Portal | Network Segmentation Not Applied":
+              - button "Details for CS-2588 SFRS Portal | Network Segmentation Not Applied":
+            - cell "CS-2588 SFRS Portal | Network Segmentation Not Applied":
+              - generic "Incident":
+                - link "CS-2588":
+                  - /url: /cases/10788
+                - text: SFRS Portal | Network Segmentation Not Applied
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "Normal":
+              - generic: Normal
+            - cell "Waiting for customer":
+              - text: Waiting for customer
+            - cell "Mohammed Shanawaz Client contact":
+              - generic: MS
+              - text: Mohammed Shanawaz
+              - generic: Client contact
+            - cell "05 Nov 2026, 11:07 · overdue":
+              - generic: 05 Nov 2026, 11:07 · overdue
+            - cell "Actions for ticket CS-2588":
+              - button "Actions for ticket CS-2588": ⋯
+          - row "Select CS-2999 Adding new Category under Kurdistan cities Details for CS-2999 Adding new Category under Kurdistan cities CS-2999 Adding new Category under Kurdistan cities SEW High Resolved Mohammed Alqaruoti 03 Nov 2026, 12:11 · overdue Actions for ticket CS-2999":
+            - cell "Select CS-2999 Adding new Category under Kurdistan cities":
+              - checkbox "Select CS-2999 Adding new Category under Kurdistan cities"
+            - cell "Details for CS-2999 Adding new Category under Kurdistan cities":
+              - button "Details for CS-2999 Adding new Category under Kurdistan cities":
+            - cell "CS-2999 Adding new Category under Kurdistan cities":
+              - generic "Task":
+                - link "CS-2999":
+                  - /url: /cases/11199
+                - text: Adding new Category under Kurdistan cities
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "High":
+              - text: High
+            - cell "Resolved":
+              - text: Resolved
+            - cell "Mohammed Alqaruoti":
+              - generic: MA
+              - generic: Mohammed Alqaruoti
+            - cell "03 Nov 2026, 12:11 · overdue":
+              - generic: 03 Nov 2026, 12:11 · overdue
+            - cell "Actions for ticket CS-2999":
+              - button "Actions for ticket CS-2999": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 15 OF 183
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 15 OF 183
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

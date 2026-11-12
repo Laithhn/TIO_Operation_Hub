@@ -1,0 +1,79 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Teams":
+    - generic: Teams
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Reassignment queue" [level=1]
+- generic: Active records whose owner is deactivated. Nothing is reassigned automatically; use a handover or reassign each record.
+- link "Handovers":
+  - /url: /handovers
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams (current section)":
+      - /url: /teams
+      - text: Teams
+      - generic: (current section)
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - region "Table":
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Type Record Deactivated owner Reason":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Type":
+            - generic: Type
+          - columnheader "Record":
+            - generic: Record
+          - columnheader "Deactivated owner":
+            - generic: Deactivated owner
+          - columnheader "Reason":
+            - generic: Reason
+      - rowgroup
+    - status
+    - generic: No records entered.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

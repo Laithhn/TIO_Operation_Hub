@@ -1,0 +1,15 @@
+{
+  "id": "R066-mobile",
+  "route": "/admin/config/server-types",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Server types"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 354,
+  "title": "Server types · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

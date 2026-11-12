@@ -1,0 +1,15 @@
+{
+  "id": "R016-desktop",
+  "route": "/environments",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Environments"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 2319,
+  "title": "Environments · TIO Operations Hub",
+  "width": 1920
+}

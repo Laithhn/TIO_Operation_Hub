@@ -1,0 +1,15 @@
+{
+  "id": "R065-laptop",
+  "route": "/admin/config/team-roles",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Project team roles"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 575,
+  "title": "Project team roles · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

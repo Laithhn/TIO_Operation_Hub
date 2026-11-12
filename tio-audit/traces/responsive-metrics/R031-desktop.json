@@ -1,0 +1,15 @@
+{
+  "id": "R031-desktop",
+  "route": "/admin/config",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Configuration"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 524,
+  "title": "Configuration · TIO Operations Hub",
+  "width": 1920
+}

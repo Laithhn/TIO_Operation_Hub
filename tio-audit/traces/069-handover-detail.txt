@@ -1,0 +1,117 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Handovers":
+    - /url: /handovers
+  - generic: ›
+  - generic: HO-101
+- heading "HO-101 · Handover" [level=1]
+- generic: Cancelled
+- complementary "Section menu":
+  - navigation:
+    - link "Teams & coverage":
+      - /url: /teams
+    - link "Handovers":
+      - /url: /handovers
+    - link "Reassignment queue":
+      - /url: /reassignment
+  - button "Expand menu":
+- main:
+  - heading "Transfer" [level=2]
+  - term: From
+  - definition: Laith Hamdan
+  - term: To
+  - definition: Abdulhamid Tork
+  - term: Effective
+  - definition: 05 Nov 2026, 09:00
+  - term: Summary
+  - definition: I will be in vacation next week and this commitment should be completed
+  - term: Outstanding actions
+  - definition: Unknown
+  - term: Documentation / cover
+  - definition: Unknown
+  - heading "Completion" [level=2]
+  - term: Acknowledged
+  - definition: Not yet
+  - term: Manager exception
+  - definition: None
+  - term: Completed
+  - definition: —
+  - term: Cancellation
+  - definition: vacation cancelled
+  - heading "Affected records" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Type Record Ownership applied":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Type":
+            - generic: Type
+          - columnheader "Record":
+            - generic: Record
+          - columnheader "Ownership applied":
+            - generic: Ownership applied
+      - rowgroup:
+        - row "Select Commitment Commitment CM-1003 · Agreed to have meeting with Client to agree on the POC scope On completion":
+          - cell "Select Commitment":
+            - checkbox "Select Commitment"
+          - cell "Commitment":
+            - generic: Commitment
+          - cell "CM-1003 · Agreed to have meeting with Client to agree on the POC scope":
+            - link "CM-1003 · Agreed to have meeting with Client to agree on the POC scope":
+              - /url: /commitments/3
+          - cell "On completion":
+            - generic: On completion
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

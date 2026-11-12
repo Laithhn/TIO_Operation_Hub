@@ -1,0 +1,15 @@
+{
+  "id": "R016-tablet",
+  "route": "/environments",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Environments"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 2319,
+  "title": "Environments · TIO Operations Hub",
+  "width": 768
+}

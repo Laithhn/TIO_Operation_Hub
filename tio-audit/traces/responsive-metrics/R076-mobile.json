@@ -1,0 +1,15 @@
+{
+  "id": "R076-mobile",
+  "route": "/admin/config/priority-guidance",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Priority guidance"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 352,
+  "title": "Priority guidance · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,455 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "R2":
+    - /url: /regions/2
+  - generic: ›
+  - generic: Production
+- heading "Production" [level=1]
+- text: Production · Region R2 ·
+- text: Critical
+- link "Edit":
+  - /url: /environments/3/edit
+- button "Report condition"
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "Ownership and coverage" [level=2]
+  - term: Technical owner
+  - definition: Ahmed Awadalla
+  - term: Operation engineer
+  - definition: Ahmed Awadalla
+  - term: Backup operation engineer
+  - definition: Moataz Al Khaldi
+  - term: Hosting
+  - definition: On-prem
+  - term: Location
+  - definition: Riyadh
+  - term: Project link
+  - definition: None
+  - heading "Condition and freshness (separately scoped)" [level=2]
+  - term: Reported condition
+  - definition:
+    - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+      - text: Degraded
+      - text: Needs verification
+  - term: Reason
+  - definition: Slowness Issue
+  - term: Observed
+  - definition: 22 Oct 2026, 14:11
+  - term: Inventory review
+  - definition:
+    - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+      - text: Current
+      - generic: Current
+  - term: Firewall rules review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Record review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Last reviewed
+  - definition: —
+  - paragraph: Condition is manually reported, not live monitoring. A condition report never refreshes the inventory review.
+  - tablist:
+    - tab "Applications (1)":
+      - generic: Applications (1)
+    - tab "Servers & assets (13)":
+      - generic: Servers & assets (13)
+    - tab "Work":
+      - generic: Work
+    - tab "Firewall rules (0)":
+      - generic: Firewall rules (0)
+    - tab "Condition history":
+      - generic: Condition history
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Data quality" [selected]:
+      - generic: Data quality
+    - tab "History":
+      - generic: History
+  - heading "Open data-quality items" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 29 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Rule Record Detail Next action":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Rule":
+            - button "Rule":
+              - generic: Rule
+          - columnheader "Record":
+            - button "Record":
+              - generic: Record
+          - columnheader "Detail":
+            - button "Detail":
+              - generic: Detail
+          - columnheader "Next action":
+            - button "Next action":
+              - generic: Next action
+      - rowgroup:
+        - row "Select Unknown version Unknown version Installation · PSOP · PSOP Installed version is Unknown. Confirm the installed version with evidence.":
+          - cell "Select Unknown version":
+            - checkbox "Select Unknown version"
+          - cell "Unknown version":
+            - generic: Unknown version
+          - cell "Installation · PSOP · PSOP":
+            - generic: Installation · PSOP · PSOP
+          - cell "Installed version is Unknown.":
+            - generic: Installed version is Unknown.
+          - cell "Confirm the installed version with evidence.":
+            - generic: Confirm the installed version with evidence.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-APP1 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-APP1":
+            - generic: Asset · PSOP-R2PRO-APP1
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-APP2 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-APP2":
+            - generic: Asset · PSOP-R2PRO-APP2
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-IMPORT1 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-IMPORT1":
+            - generic: Asset · PSOP-R2PRO-IMPORT1
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-IMPORT2 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-IMPORT2":
+            - generic: Asset · PSOP-R2PRO-IMPORT2
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-MW1 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-MW1":
+            - generic: Asset · PSOP-R2PRO-MW1
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-MW2 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-MW2":
+            - generic: Asset · PSOP-R2PRO-MW2
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-WF1 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-WF1":
+            - generic: Asset · PSOP-R2PRO-WF1
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-WF2 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-WF2":
+            - generic: Asset · PSOP-R2PRO-WF2
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-WEB1 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-WEB1":
+            - generic: Asset · PSOP-R2PRO-WEB1
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-WEB2 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-WEB2":
+            - generic: Asset · PSOP-R2PRO-WEB2
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-DB1 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-DB1":
+            - generic: Asset · PSOP-R2PRO-DB1
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-DB2 No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-DB2":
+            - generic: Asset · PSOP-R2PRO-DB2
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - row "Select Missing owner Missing owner Asset · PSOP-R2PRO-LSN No technical owner recorded. Assign the asset owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Asset · PSOP-R2PRO-LSN":
+            - generic: Asset · PSOP-R2PRO-LSN
+          - cell "No technical owner recorded.":
+            - generic: No technical owner recorded.
+          - cell "Assign the asset owner.":
+            - generic: Assign the asset owner.
+        - 'row "Select Missing specification Missing specification Asset · PSOP-R2PRO-LSN Unknown: CPU, RAM, OS. Obtain the specification from the source owner."':
+          - cell "Select Missing specification":
+            - checkbox "Select Missing specification"
+          - cell "Missing specification":
+            - generic: Missing specification
+          - cell "Asset · PSOP-R2PRO-LSN":
+            - generic: Asset · PSOP-R2PRO-LSN
+          - 'cell "Unknown: CPU, RAM, OS."':
+            - generic: "Unknown: CPU, RAM, OS."
+          - cell "Obtain the specification from the source owner.":
+            - generic: Obtain the specification from the source owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Anpr.Carmen No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Anpr.Carmen":
+            - generic: Component · PSOP.Service.Anpr.Carmen
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Broker No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Broker":
+            - generic: Component · PSOP.Service.Broker
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Export No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Export":
+            - generic: Component · PSOP.Service.Export
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Logging No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Logging":
+            - generic: Component · PSOP.Service.Logging
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.PlateLookup No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.PlateLookup":
+            - generic: Component · PSOP.Service.PlateLookup
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Core No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Core":
+            - generic: Component · PSOP.Service.Core
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Topology No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Topology":
+            - generic: Component · PSOP.Service.Topology
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.TrafficLegal No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.TrafficLegal":
+            - generic: Component · PSOP.Service.TrafficLegal
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.VehicleLookup No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.VehicleLookup":
+            - generic: Component · PSOP.Service.VehicleLookup
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+        - row "Select Missing owner Missing owner Component · PSOP.Service.Import No owner or coordinator recorded. Assign the component owner.":
+          - cell "Select Missing owner":
+            - checkbox "Select Missing owner"
+          - cell "Missing owner":
+            - generic: Missing owner
+          - cell "Component · PSOP.Service.Import":
+            - generic: Component · PSOP.Service.Import
+          - cell "No owner or coordinator recorded.":
+            - generic: No owner or coordinator recorded.
+          - cell "Assign the component owner.":
+            - generic: Assign the component owner.
+    - status
+    - navigation "Table pages":
+      - generic: 1 – 25 of 29
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "10"
+        - option "25" [selected]
+        - option "50"
+        - option "100"
+      - button "Prev" [disabled]
+      - generic: Page 1 of 2
+      - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -676,9 +676,10 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, empty = 'n
             {caption && <caption className="sr">{caption}</caption>}
             <thead>
               <tr>
-                {hasDetails && <th scope="col" className="col-disclose"><span className="sr">Details</span></th>}
+                {/* TIO-BUG-003: same order as the body cells: selection, then details. */}
                 {canSelect && <th scope="col" className="col-select"><input type="checkbox" aria-label="Select all rows shown" checked={allShownTicked}
                   ref={el => { if (el) el.indeterminate = someShownTicked && !allShownTicked; }} onChange={e => setShownTicked(e.target.checked)} /></th>}
+                {hasDetails && <th scope="col" className="col-disclose"><span className="sr">Details</span></th>}
                 {visibleCols.map(c => {
                   const s = sortState(c);
                   const name = headerText(c);

@@ -1,0 +1,15 @@
+{
+  "id": "R047-tablet",
+  "route": "/environments/3",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Production"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 2518,
+  "title": "Production · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

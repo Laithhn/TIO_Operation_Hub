@@ -1,0 +1,15 @@
+{
+  "id": "R034-laptop",
+  "route": "/admin/integrations/jira",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Jira Connections"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 5458,
+  "title": "Jira Connections · TIO Operations Hub",
+  "width": 1366
+}

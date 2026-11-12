@@ -1,0 +1,15 @@
+{
+  "id": "R061-laptop",
+  "route": "/admin/config/reported-conditions",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Reported conditions"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 390,
+  "title": "Reported conditions · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

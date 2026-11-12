@@ -1,0 +1,98 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Scheduled reports
+- heading "Reporting Center" [level=1]
+- generic: Recurring report files for you and colleagues, each generated with the recipient’s own access.
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Section menu":
+  - navigation:
+    - link "Overview":
+      - /url: /reporting-center
+    - link "Report library":
+      - /url: /reporting-center/library
+    - link "Tickets report builder":
+      - /url: /reporting-center/builder/cases
+    - link "My reports":
+      - /url: /reporting-center/my-reports
+    - link "Scheduled reports":
+      - /url: /reporting-center/schedules
+    - link "Export history":
+      - /url: /reporting-center/history
+    - link "Templates":
+      - /url: /reporting-center/templates
+  - button "Expand menu":
+- main:
+  - paragraph: Your scheduled reports. Files are generated at the chosen local time and kept in each recipient's export history.
+  - button "+ Schedule a saved report"
+  - button "+ Schedule report"
+  - region "Scheduled reports":
+    - table "Scheduled reports":
+      - caption: Scheduled reports
+      - rowgroup:
+        - row "Name Frequency Format Recipients Next run Last run Status Actions":
+          - columnheader "Name":
+            - generic: Name
+          - columnheader "Frequency":
+            - generic: Frequency
+          - columnheader "Format":
+            - generic: Format
+          - columnheader "Recipients":
+            - generic: Recipients
+          - columnheader "Next run":
+            - generic: Next run
+          - columnheader "Last run":
+            - generic: Last run
+          - columnheader "Status":
+            - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - generic: No records entered.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

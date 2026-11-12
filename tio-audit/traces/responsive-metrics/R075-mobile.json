@@ -1,0 +1,15 @@
+{
+  "id": "R075-mobile",
+  "route": "/admin/config/escalation-channels",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Escalation channels"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 380,
+  "title": "Escalation channels · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

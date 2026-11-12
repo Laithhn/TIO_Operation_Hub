@@ -1,0 +1,95 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Reporting Center":
+    - generic: Reporting Center
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Scheduled reports
+- heading "Reporting Center" [level=1]
+- generic: Recurring report files for you and colleagues, each generated with the recipient’s own access.
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center (current section)":
+      - /url: /reporting-center
+      - text: Reporting Center
+      - generic: (current section)
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - paragraph: Your scheduled reports. Files are generated at the chosen local time and kept in each recipient's export history.
+  - button "+ Schedule a saved report"
+  - button "+ Schedule report"
+  - region "Scheduled reports":
+    - table "Scheduled reports":
+      - caption: Scheduled reports
+      - rowgroup:
+        - row "Name Frequency Format Recipients Next run Last run Status Actions":
+          - columnheader "Name":
+            - generic: Name
+          - columnheader "Frequency":
+            - generic: Frequency
+          - columnheader "Format":
+            - generic: Format
+          - columnheader "Recipients":
+            - generic: Recipients
+          - columnheader "Next run":
+            - generic: Next run
+          - columnheader "Last run":
+            - generic: Last run
+          - columnheader "Status":
+            - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - generic: No records entered.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

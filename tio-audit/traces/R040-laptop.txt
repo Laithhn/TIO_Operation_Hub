@@ -1,0 +1,105 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: My reports
+- heading "Reporting Center" [level=1]
+- generic: "Saved Tickets Report Builder configurations: yours, your team’s and those shared with you."
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Section menu":
+  - navigation:
+    - link "Overview":
+      - /url: /reporting-center
+    - link "Report library":
+      - /url: /reporting-center/library
+    - link "Tickets report builder":
+      - /url: /reporting-center/builder/cases
+    - link "My reports":
+      - /url: /reporting-center/my-reports
+    - link "Scheduled reports":
+      - /url: /reporting-center/schedules
+    - link "Export history":
+      - /url: /reporting-center/history
+    - link "Templates":
+      - /url: /reporting-center/templates
+  - button "Expand menu":
+- main:
+  - generic: Search saved reports
+  - searchbox "Search saved reports"
+  - group "Show":
+    - button "All I can see" [pressed]
+    - button "Mine"
+    - button "Shared with me"
+    - button "Favorites"
+  - link "+ New tickets report":
+    - /url: /reporting-center/builder/cases
+  - region "Saved reports":
+    - table "Saved reports":
+      - caption: Saved reports
+      - rowgroup:
+        - row "Favorite Report Visibility Owner Updated Last export Schedules Actions":
+          - columnheader "Favorite":
+            - generic: Favorite
+          - columnheader "Report":
+            - generic: Report
+          - columnheader "Visibility":
+            - generic: Visibility
+          - columnheader "Owner":
+            - generic: Owner
+          - columnheader "Updated":
+            - generic: Updated
+          - columnheader "Last export":
+            - generic: Last export
+          - columnheader "Schedules":
+            - generic: Schedules
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - generic: No records entered.
+  - paragraph: "Opening a shared report runs it with your own access: you see only the tickets you may see. Only the owner can change or delete a report."
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

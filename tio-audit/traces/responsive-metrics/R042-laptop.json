@@ -1,0 +1,15 @@
+{
+  "id": "R042-laptop",
+  "route": "/reporting-center/history",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 1480,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

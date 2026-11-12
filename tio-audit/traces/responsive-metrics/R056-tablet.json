@@ -1,0 +1,15 @@
+{
+  "id": "R056-tablet",
+  "route": "/admin/config/category/servers",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Servers"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 463,
+  "title": "Servers · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

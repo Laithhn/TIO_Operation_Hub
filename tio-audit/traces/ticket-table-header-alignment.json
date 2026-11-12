@@ -1,0 +1,87 @@
+{
+  "firstRow": [
+    {
+      "checkbox": true,
+      "detailButton": false,
+      "text": ""
+    },
+    {
+      "checkbox": false,
+      "detailButton": true,
+      "text": " "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": "CS-4003 CCC: RRM Integration "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": "TAH "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": "Normal "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": " Waiting for customer "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": "YAYousef al abdulrahim Client contact "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": "15 Nov 2026, 13:56 "
+    },
+    {
+      "checkbox": false,
+      "detailButton": false,
+      "text": "⋯ "
+    }
+  ],
+  "headers": [
+    {
+      "checkbox": false,
+      "text": "Details"
+    },
+    {
+      "checkbox": true,
+      "text": ""
+    },
+    {
+      "checkbox": false,
+      "text": "Ticket "
+    },
+    {
+      "checkbox": false,
+      "text": "Client "
+    },
+    {
+      "checkbox": false,
+      "text": "Priority "
+    },
+    {
+      "checkbox": false,
+      "text": "Status "
+    },
+    {
+      "checkbox": false,
+      "text": "Owner "
+    },
+    {
+      "checkbox": false,
+      "text": "Deadline "
+    },
+    {
+      "checkbox": false,
+      "text": "Actions"
+    }
+  ]
+}

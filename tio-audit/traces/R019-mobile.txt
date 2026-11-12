@@ -1,0 +1,463 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Environments":
+    - /url: /environments
+  - generic: ›
+  - generic: Firewall rules
+- heading "Firewall rules" [level=1]
+- generic: "The allowed communication between servers: source, destination, ports, protocol, direction and purpose. Recorded configuration, not a live firewall export."
+- button "+ New rule"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Protocol
+  - combobox "Protocol":
+    - option "Any protocol" [selected]
+    - option "TCP"
+    - option "UDP"
+    - option "TCP and UDP"
+    - option "ICMP"
+    - option "Any"
+  - generic: Search
+  - textbox "Search":
+    - /placeholder: Server, port or purpose
+  - region "Firewall rules":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 25 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Firewall rules":
+      - caption: Firewall rules
+      - rowgroup:
+        - row "Details Client Source server Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Source server":
+            - button "Source server":
+              - generic: Source server
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for SEW SEW PAVS-PRO-APP_Vip MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP_Vip MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP_Vip":
+              - /url: /assets/253
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP1": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP_Vip MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP_Vip MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP_Vip":
+              - /url: /assets/253
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP2": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB1": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB2": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-LSNR":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → VITIP-PRO-LSNR": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB1": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB2": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-LSNR":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → PAVS-PRO-LSNR": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB1": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB2": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-LSNR":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → PAVS-PRO-LSNR": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB1": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB2": ⋯
+        - row "Details for SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-LSNR":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → VITIP-PRO-LSNR": ⋯
+        - row "Details for TAH TAH PSOP-R1PRO-APP1 Production Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-WEB1":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "PSOP-R1PRO-APP1 Production":
+            - link "PSOP-R1PRO-APP1":
+              - /url: /assets/1
+            - generic: Production
+          - cell "Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-WEB1":
+            - button "Edit"
+            - button "Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-WEB1": ⋯
+        - row "Details for TAH TAH PSOP-R1PRO-APP1 Production Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-LSN":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "PSOP-R1PRO-APP1 Production":
+            - link "PSOP-R1PRO-APP1":
+              - /url: /assets/1
+            - generic: Production
+          - cell "Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-LSN":
+            - button "Edit"
+            - button "Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-LSN": ⋯
+        - row "Details for SEW SEW User Devices / Vitronic Devices MOI_ViTIP_Production Edit Actions for rule User Devices / Vitronic Devices → VIITS-PRO-RTSP_Vip":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "User Devices / Vitronic Devices MOI_ViTIP_Production":
+            - link "User Devices / Vitronic Devices":
+              - /url: /assets/257
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule User Devices / Vitronic Devices → VIITS-PRO-RTSP_Vip":
+            - button "Edit"
+            - button "Actions for rule User Devices / Vitronic Devices → VIITS-PRO-RTSP_Vip": ⋯
+        - row "Details for SEW SEW User Devices / Vitronic Devices MOI_ViTIP_Production Edit Actions for rule User Devices / Vitronic Devices → VITIP-PRO-WEB_vIP":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "User Devices / Vitronic Devices MOI_ViTIP_Production":
+            - link "User Devices / Vitronic Devices":
+              - /url: /assets/257
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule User Devices / Vitronic Devices → VITIP-PRO-WEB_vIP":
+            - button "Edit"
+            - button "Actions for rule User Devices / Vitronic Devices → VITIP-PRO-WEB_vIP": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP_vIP MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP_vIP MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP_vIP":
+              - /url: /assets/251
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP1":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP1": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP_vIP MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP_vIP MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP_vIP":
+              - /url: /assets/251
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP2":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP2": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES1":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES1": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES2":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES2": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES3":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES3":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES3": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB1":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB1": ⋯
+        - row "Details for SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB2":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB2": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 124
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 124
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

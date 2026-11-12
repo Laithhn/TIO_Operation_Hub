@@ -1,0 +1,173 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Escalations":
+    - /url: /escalations
+- heading "New escalation" [level=1]
+- complementary "Section menu":
+  - navigation:
+    - link "All escalations":
+      - /url: /escalations
+    - link "New escalation":
+      - /url: /escalations/new
+    - link "Escalation channels":
+      - /url: /admin/config/escalation-channels
+  - button "Expand menu":
+- main:
+  - group "Escalation":
+    - generic: Escalation
+    - generic: Client *
+    - combobox "Client *":
+      - option "— Select —" [selected]
+      - option "ADP · Abu Dhabi Police"
+      - option "ADP-STC · Abu Dhabi Police STC"
+      - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+      - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+      - option "DUBAI_POLICE · Dubai Police"
+      - option "EIFFAGE · Eiffage Concessions"
+      - option "MADAR_DIJLA · Madar Dijla"
+      - option "MULTICOM · MULTICOM - IT Security"
+      - option "NARSA · NARSA"
+      - option "OYOON · OYOON Center"
+      - option "PESAPRINT · Pesa Print"
+      - option "QATAR_MOI · Qatar MOI"
+      - option "RNP · Rwanda National Ploce"
+      - option "ROP · Royal Oman Police (ROP)"
+      - option "SAPOL · South Australia Police"
+      - option "SEW · Sewar Tech"
+      - option "SHJ_POLICE · Sharjah Police"
+      - option "TAH · Tahakom"
+      - option "TAK · TAK Business Group"
+      - option "TRAFFIC · Dubai Traffic Department"
+    - generic: Direction *
+    - combobox "Direction *":
+      - option "Received from the client" [selected]
+      - option "Raised by TIO"
+    - generic: Title *
+    - textbox "Title *"
+    - generic: Description
+    - textbox "Description"
+    - generic: Channel *
+    - combobox "Channel *":
+      - option "— Select —" [selected]
+      - option "E-mail"
+      - option "Formal letter"
+      - option "Verbal (call or meeting)"
+      - option "Jira"
+    - generic: Channels are configured under Administration → Configuration → Escalation channels.
+    - generic: Channel reference
+    - textbox "Channel reference":
+      - /placeholder: Letter number, e-mail subject, Jira key…
+    - generic: Priority *
+    - combobox "Priority *":
+      - option "Critical"
+      - option "High" [selected]
+      - option "Normal"
+      - option "Low"
+    - generic: Level *
+    - combobox "Level *":
+      - option "Level 1" [selected]
+      - option "Level 2"
+      - option "Level 3"
+    - generic: Raise it later from the escalation page.
+    - generic: Received / raised at *
+    - textbox "Received / raised at *": 2026-11-10T16:50
+  - group "Escalated by":
+    - generic: Escalated by
+    - generic: Full name
+    - textbox "Full name"
+    - generic: Job title
+    - textbox "Job title"
+    - generic: Organization
+    - textbox "Organization"
+    - generic: Email
+    - textbox "Email":
+      - /placeholder: name@example.org
+    - generic: Phone
+    - textbox "Phone":
+      - /placeholder: +971 4 000 0000
+    - generic: Mobile
+    - textbox "Mobile"
+  - group "Ownership and targets":
+    - generic: Ownership and targets
+    - generic: Accountable owner *
+    - combobox "Accountable owner *":
+      - option "— Select —"
+      - option "Abdalrhman (Aboud) Asaad"
+      - option "Abdulhamid Tork"
+      - option "Ahmed Awadalla"
+      - option "Laith Hamdan" [selected]
+      - option "LMH OPR"
+      - option "Moataz Al Khaldi"
+      - option "Mohammad Al Omari"
+      - option "Mohammed Alqaruoti"
+      - option "Naveed Ur Rehman"
+      - option "Ousama Didouqen"
+      - option "Reda Moulouki"
+      - option "Reem Hamid"
+      - option "Shiju Unnithan"
+      - option "Tareq Abdul Jabar"
+      - option "Waleed Alharthi"
+      - option "Ziyad Bu Dukhi"
+    - generic: Respond by
+    - textbox "Respond by"
+    - generic: Optional. Overdue until the first reply or status change.
+    - generic: Resolve by
+    - textbox "Resolve by": 2026-11-15T17:00
+    - generic: Optional.
+  - group "Related records (optional)":
+    - generic: Related records (optional)
+    - generic: Project
+    - combobox "Project":
+      - option "None" [selected]
+    - generic: Contract
+    - combobox "Contract":
+      - option "None" [selected]
+    - generic: Ticket
+    - combobox "Ticket":
+      - option "None" [selected]
+  - button "Cancel"
+  - button "Record escalation"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

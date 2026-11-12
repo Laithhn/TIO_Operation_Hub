@@ -1,3 +1,4 @@
+import { parseExactJson } from './auditValues';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router';
 import { get, qs, type Paged } from '../api';
@@ -57,7 +58,8 @@ export function HistoryPanel({ entityType, entityId }: { entityType: string; ent
 export function parseChanges(json?: string | null): { field: string; from: string; to: string }[] | null {
   if (!json) return [];
   let d: Record<string, [unknown, unknown]> = {};
-  try { d = JSON.parse(json); } catch { return null; }
+  // TIO-BUG-002: integers beyond 2^53 are shown exactly as stored, not rounded.
+  try { d = parseExactJson(json) as typeof d; } catch { return null; }
   return Object.entries(d).map(([k, v]) => ({ field: label(k), from: changeValue(v?.[0]), to: changeValue(v?.[1]) }));
 }
 

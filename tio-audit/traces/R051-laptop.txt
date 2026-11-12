@@ -1,0 +1,484 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "Production":
+    - /url: /environments/3
+  - generic: ›
+  - generic: PSOP-R2PRO-APP1
+- heading "PSOP-R2PRO-APP1" [level=1]
+- text: Virtual machine (VM) · Application server ·
+- text: Active
+- button "Edit"
+- button "+ Volume"
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - heading "Recorded specification" [level=2]
+  - term: CPU
+  - definition: 8 vCPU
+  - term: RAM
+  - definition: 16 GB
+  - term: OS
+  - definition: Windows Server 2022
+  - term: Network zone
+  - definition: APP
+  - term: IP address
+  - definition: Unknown
+  - term: VLAN
+  - definition: Unknown
+  - term: Project phase
+  - definition: Approved
+  - term: Technical owner
+  - definition: No owner (gap)
+  - term: Last verified
+  - definition: —
+  - paragraph: Recorded provisioning, not measured utilization.
+  - heading "Technical owner" [level=2]
+  - generic: No technical owner recorded (gap).
+  - term: Responsible party
+  - definition: TIO
+  - term: Organization
+  - definition: Unknown
+  - heading "Volumes" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Label Capacity Purpose Shared storage Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Label":
+            - button "Label":
+              - generic: Label
+          - columnheader "Capacity":
+            - button "Capacity":
+              - generic: Capacity
+          - columnheader "Purpose":
+            - button "Purpose":
+              - generic: Purpose
+          - columnheader "Shared storage":
+            - button "Shared storage":
+              - generic: Shared storage
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select D Drive D Drive 100 GB Operating System Dedicated Actions for volume D Drive":
+          - cell "Select D Drive":
+            - checkbox "Select D Drive"
+          - cell "D Drive":
+            - generic: D Drive
+          - cell "100 GB":
+            - generic: 100 GB
+          - cell "Operating System":
+            - generic: Operating System
+          - cell "Dedicated":
+            - generic: Dedicated
+          - cell "Actions for volume D Drive":
+            - button "Actions for volume D Drive": ⋯
+        - row "Select E Drive E Drive 100 GB Operational Data Dedicated Actions for volume E Drive":
+          - cell "Select E Drive":
+            - checkbox "Select E Drive"
+          - cell "E Drive":
+            - generic: E Drive
+          - cell "100 GB":
+            - generic: 100 GB
+          - cell "Operational Data":
+            - generic: Operational Data
+          - cell "Dedicated":
+            - generic: Dedicated
+          - cell "Actions for volume E Drive":
+            - button "Actions for volume E Drive": ⋯
+    - status
+  - heading "Hosted microservices" [level=2]
+  - button "Edit hosted microservices"
+  - region "Microservices deployed on this server":
+    - searchbox "Filter rows"
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Microservices deployed on this server":
+      - caption: Microservices deployed on this server
+      - rowgroup:
+        - row "Select all rows shown Microservice Deployed version Installation":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Microservice":
+            - button "Microservice":
+              - generic: Microservice
+          - columnheader "Deployed version":
+            - button "Deployed version":
+              - generic: Deployed version
+          - columnheader "Installation":
+            - button "Installation":
+              - generic: Installation
+      - rowgroup:
+        - row "Select PSOP.Service.Anpr.Carmen PSOP.Service.Anpr.Carmen Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.Anpr.Carmen":
+            - checkbox "Select PSOP.Service.Anpr.Carmen"
+          - cell "PSOP.Service.Anpr.Carmen":
+            - link "PSOP.Service.Anpr.Carmen":
+              - /url: /microservices/2
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Broker PSOP.Service.Broker Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.Broker":
+            - checkbox "Select PSOP.Service.Broker"
+          - cell "PSOP.Service.Broker":
+            - link "PSOP.Service.Broker":
+              - /url: /microservices/3
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Core PSOP.Service.Core Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.Core":
+            - checkbox "Select PSOP.Service.Core"
+          - cell "PSOP.Service.Core":
+            - link "PSOP.Service.Core":
+              - /url: /microservices/9
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Export PSOP.Service.Export Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.Export":
+            - checkbox "Select PSOP.Service.Export"
+          - cell "PSOP.Service.Export":
+            - link "PSOP.Service.Export":
+              - /url: /microservices/4
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Logging PSOP.Service.Logging Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.Logging":
+            - checkbox "Select PSOP.Service.Logging"
+          - cell "PSOP.Service.Logging":
+            - link "PSOP.Service.Logging":
+              - /url: /microservices/6
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.PlateLookup PSOP.Service.PlateLookup Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.PlateLookup":
+            - checkbox "Select PSOP.Service.PlateLookup"
+          - cell "PSOP.Service.PlateLookup":
+            - link "PSOP.Service.PlateLookup":
+              - /url: /microservices/8
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Topology PSOP.Service.Topology Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.Topology":
+            - checkbox "Select PSOP.Service.Topology"
+          - cell "PSOP.Service.Topology":
+            - link "PSOP.Service.Topology":
+              - /url: /microservices/10
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.TrafficLegal PSOP.Service.TrafficLegal Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.TrafficLegal":
+            - checkbox "Select PSOP.Service.TrafficLegal"
+          - cell "PSOP.Service.TrafficLegal":
+            - link "PSOP.Service.TrafficLegal":
+              - /url: /microservices/11
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.VehicleLookup PSOP.Service.VehicleLookup Not recorded PSOP · PSOP":
+          - cell "Select PSOP.Service.VehicleLookup":
+            - checkbox "Select PSOP.Service.VehicleLookup"
+          - cell "PSOP.Service.VehicleLookup":
+            - link "PSOP.Service.VehicleLookup":
+              - /url: /microservices/12
+          - cell "Not recorded":
+            - text: Not recorded
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+    - status
+  - heading "Hosted components" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Component Role Installation":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Component":
+            - button "Component":
+              - generic: Component
+          - columnheader "Role":
+            - button "Role":
+              - generic: Role
+          - columnheader "Installation":
+            - button "Installation":
+              - generic: Installation
+      - rowgroup:
+        - row "Select PSOP.Service.Anpr.Carmen PSOP.Service.Anpr.Carmen Application PSOP · PSOP":
+          - cell "Select PSOP.Service.Anpr.Carmen":
+            - checkbox "Select PSOP.Service.Anpr.Carmen"
+          - cell "PSOP.Service.Anpr.Carmen":
+            - link "PSOP.Service.Anpr.Carmen":
+              - /url: /components/27
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Broker PSOP.Service.Broker Application PSOP · PSOP":
+          - cell "Select PSOP.Service.Broker":
+            - checkbox "Select PSOP.Service.Broker"
+          - cell "PSOP.Service.Broker":
+            - link "PSOP.Service.Broker":
+              - /url: /components/28
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Export PSOP.Service.Export Application PSOP · PSOP":
+          - cell "Select PSOP.Service.Export":
+            - checkbox "Select PSOP.Service.Export"
+          - cell "PSOP.Service.Export":
+            - link "PSOP.Service.Export":
+              - /url: /components/29
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Logging PSOP.Service.Logging Application PSOP · PSOP":
+          - cell "Select PSOP.Service.Logging":
+            - checkbox "Select PSOP.Service.Logging"
+          - cell "PSOP.Service.Logging":
+            - link "PSOP.Service.Logging":
+              - /url: /components/30
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.PlateLookup PSOP.Service.PlateLookup Application PSOP · PSOP":
+          - cell "Select PSOP.Service.PlateLookup":
+            - checkbox "Select PSOP.Service.PlateLookup"
+          - cell "PSOP.Service.PlateLookup":
+            - link "PSOP.Service.PlateLookup":
+              - /url: /components/31
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Core PSOP.Service.Core Application PSOP · PSOP":
+          - cell "Select PSOP.Service.Core":
+            - checkbox "Select PSOP.Service.Core"
+          - cell "PSOP.Service.Core":
+            - link "PSOP.Service.Core":
+              - /url: /components/32
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.Topology PSOP.Service.Topology Application PSOP · PSOP":
+          - cell "Select PSOP.Service.Topology":
+            - checkbox "Select PSOP.Service.Topology"
+          - cell "PSOP.Service.Topology":
+            - link "PSOP.Service.Topology":
+              - /url: /components/33
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.TrafficLegal PSOP.Service.TrafficLegal Application PSOP · PSOP":
+          - cell "Select PSOP.Service.TrafficLegal":
+            - checkbox "Select PSOP.Service.TrafficLegal"
+          - cell "PSOP.Service.TrafficLegal":
+            - link "PSOP.Service.TrafficLegal":
+              - /url: /components/34
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+        - row "Select PSOP.Service.VehicleLookup PSOP.Service.VehicleLookup Application PSOP · PSOP":
+          - cell "Select PSOP.Service.VehicleLookup":
+            - checkbox "Select PSOP.Service.VehicleLookup"
+          - cell "PSOP.Service.VehicleLookup":
+            - link "PSOP.Service.VehicleLookup":
+              - /url: /components/35
+          - cell "Application":
+            - generic: Application
+          - cell "PSOP · PSOP":
+            - link "PSOP · PSOP":
+              - /url: /installations/3
+    - status
+  - heading "Firewall rules (from and to this server)" [level=2]
+  - button "+ New firewall rule"
+  - region "Firewall rules":
+    - table "Firewall rules":
+      - caption: Firewall rules
+      - rowgroup:
+        - row "Select all rows shown Source server Direction Destination server Ports Protocol Purpose Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Source server":
+            - generic: Source server
+          - columnheader "Direction":
+            - generic: Direction
+          - columnheader "Destination server":
+            - generic: Destination server
+          - columnheader "Ports":
+            - generic: Ports
+          - columnheader "Protocol":
+            - generic: Protocol
+          - columnheader "Purpose":
+            - generic: Purpose
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup
+    - status
+    - generic: No records entered.
+  - region "Attachments (0)":
+    - heading "Attachments (0)" [level=2]
+    - paragraph:
+      - generic: No files attached to this server yet.
+      - text: Upload contracts, reports, diagrams, e-mails and other documents to keep them with the record.
+    - button "Upload files":
+      - text: Upload files
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When By Action Reason Changes (before → after)":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - generic: When
+          - columnheader "By":
+            - generic: By
+          - columnheader "Action":
+            - generic: Action
+          - columnheader "Reason":
+            - generic: Reason
+          - columnheader "Changes (before → after)":
+            - generic: Changes (before → after)
+      - rowgroup:
+        - row "Select 22 Oct 2026, 13:58 22 Oct 2026, 13:58 lmh Create Copied from R1 / Production":
+          - cell "Select 22 Oct 2026, 13:58":
+            - checkbox "Select 22 Oct 2026, 13:58"
+          - cell "22 Oct 2026, 13:58":
+            - generic: 22 Oct 2026, 13:58
+          - cell "lmh":
+            - generic: lmh
+          - cell "Create":
+            - generic: Create
+          - cell "Copied from R1 / Production":
+            - generic: Copied from R1 / Production
+          - cell:
+            - 'generic "Client id: — → 1 Coordinator user id: — → 2 Show all 17 changes"':
+              - generic: "Client id: — → 1"
+              - generic: "Coordinator user id: — → 2"
+              - generic: Show all 17 changes
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

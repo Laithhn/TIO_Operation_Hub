@@ -1,0 +1,237 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+    - generic: Administration
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Servers":
+    - /url: /admin/config/category/servers
+  - generic: ›
+  - generic: Network zones
+- heading "Network zones" [level=1]
+- generic: Network zones offered on the server form.
+- button "+ Add"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Network zones":
+    - searchbox "Filter rows"
+    - generic: 8 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Network zones":
+      - caption: Network zones
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (servers) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (servers)":
+            - button "In use (servers)":
+              - generic: In use (servers)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move DMZ up Move DMZ down DMZ — 7 Active Actions for DMZ":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move DMZ up Move DMZ down":
+            - button "Move DMZ up" [disabled]: ▲
+            - button "Move DMZ down": ▼
+          - cell "DMZ":
+            - button "DMZ"
+          - cell "—":
+            - generic: —
+          - cell "7":
+            - generic: "7"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for DMZ":
+            - button "Actions for DMZ": ⋯
+        - row "Select ▲ ▼ Move Internal up Move Internal down Internal — 0 Active Actions for Internal":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Internal up Move Internal down":
+            - button "Move Internal up": ▲
+            - button "Move Internal down": ▼
+          - cell "Internal":
+            - button "Internal"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Internal":
+            - button "Actions for Internal": ⋯
+        - row "Select ▲ ▼ Move APP up Move APP down APP — 73 Active Actions for APP":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move APP up Move APP down":
+            - button "Move APP up": ▲
+            - button "Move APP down": ▼
+          - cell "APP":
+            - button "APP"
+          - cell "—":
+            - generic: —
+          - cell "73":
+            - generic: "73"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for APP":
+            - button "Actions for APP": ⋯
+        - row "Select ▲ ▼ Move WEB up Move WEB down WEB — 32 Active Actions for WEB":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move WEB up Move WEB down":
+            - button "Move WEB up": ▲
+            - button "Move WEB down": ▼
+          - cell "WEB":
+            - button "WEB"
+          - cell "—":
+            - generic: —
+          - cell "32":
+            - generic: "32"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for WEB":
+            - button "Actions for WEB": ⋯
+        - row "Select ▲ ▼ Move Management up Move Management down Management — 0 Active Actions for Management":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Management up Move Management down":
+            - button "Move Management up": ▲
+            - button "Move Management down": ▼
+          - cell "Management":
+            - button "Management"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Management":
+            - button "Actions for Management": ⋯
+        - row "Select ▲ ▼ Move Client LAN up Move Client LAN down Client LAN — 0 Active Actions for Client LAN":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Client LAN up Move Client LAN down":
+            - button "Move Client LAN up": ▲
+            - button "Move Client LAN down": ▼
+          - cell "Client LAN":
+            - button "Client LAN"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Client LAN":
+            - button "Actions for Client LAN": ⋯
+        - row "Select ▲ ▼ Move DB up Move DB down DB — 37 Active Actions for DB":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move DB up Move DB down":
+            - button "Move DB up": ▲
+            - button "Move DB down": ▼
+          - cell "DB":
+            - button "DB"
+          - cell "—":
+            - generic: —
+          - cell "37":
+            - generic: "37"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for DB":
+            - button "Actions for DB": ⋯
+        - row "Select ▲ ▼ Move External up Move External down External — 4 Active Actions for External":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move External up Move External down":
+            - button "Move External up": ▲
+            - button "Move External down" [disabled]: ▼
+          - cell "External":
+            - button "External"
+          - cell "—":
+            - generic: —
+          - cell "4":
+            - generic: "4"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for External":
+            - button "Actions for External": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

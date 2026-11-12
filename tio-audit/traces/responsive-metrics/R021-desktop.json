@@ -1,0 +1,15 @@
+{
+  "id": "R021-desktop",
+  "route": "/reassignment",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Reassignment queue"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 64,
+  "title": "Reassignment queue · TIO Operations Hub",
+  "width": 1920
+}

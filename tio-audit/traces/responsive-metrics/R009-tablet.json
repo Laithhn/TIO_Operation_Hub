@@ -1,0 +1,15 @@
+{
+  "id": "R009-tablet",
+  "route": "/commitments",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Commitments"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 2724,
+  "title": "Commitments · TIO Operations Hub",
+  "width": 768
+}

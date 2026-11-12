@@ -1127,6 +1127,95 @@ public sealed class JiraIntegrationTests : IAsyncLifetime
         Assert.Equal(1, await OpenIssuesAsync(JiraIssueType.MissingUserMapping, f.ConnectionId));
     }
 
+    // ---------------------------------------------------------------- TIO-BUG-002 ----------------------------------------------------------------
+    // Audit of a Jira user mapping whose new hub user is created in the same save: the after-value must be the user's saved id.
+
+    private Task<List<TioHub.Api.Modules.Admin.AuditEntry>> MappingAuditAsync(long mappingId) =>
+        Db(db => db.AuditEntries.AsNoTracking().Where(a => a.EntityType == nameof(JiraUserMapping) && a.EntityId == mappingId).OrderBy(a => a.Id).ToListAsync());
+
+    private static JsonArray Change(TioHub.Api.Modules.Admin.AuditEntry a, string field) => JsonNode.Parse(a.Changes!)![field]!.AsArray();
+
+    [Fact]
+    public async Task Bug002_a_mapping_to_a_team_member_created_in_the_same_save_audits_the_saved_user_id()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("160", "TAH-160", assigneeId: "acc-audit", assigneeName: "Rana");
+        await RunAsync(f.SpaceId);
+        var member = await CreateTeamMemberAsync(f.ConnectionId, "acc-audit", "Fictional Rana 160");
+
+        var mapping = await Db(db => db.JiraUserMappings.AsNoTracking().FirstAsync(m => m.JiraConnectionId == f.ConnectionId && m.JiraAccountId == "acc-audit"));
+        Assert.Equal(member, mapping.TioUserId);                          // the business foreign key
+        var entry = (await MappingAuditAsync(mapping.Id)).Last(a => a.Changes != null && a.Changes.Contains("\"TioUserId\""));
+        var values = Change(entry, "TioUserId");
+        Assert.Null(values[0]);                                          // before: unmapped
+        Assert.Equal(member, values[1]!.GetValue<long>());               // after: the real id, not EF's temporary negative key
+        Assert.True(values[1]!.GetValue<long>() > 0);
+        Assert.Contains("created as a Vitronic team member", entry.Reason);
+        // The user's own creation is audited in the same save, with the same time and correlation.
+        var created = await Db(db => db.AuditEntries.AsNoTracking().SingleAsync(a => a.EntityType == "User" && a.EntityId == member && a.Action == "Create"));
+        Assert.Equal(entry.At, created.At);
+        Assert.Equal(entry.CorrelationId, created.CorrelationId);
+    }
+
+    [Fact]
+    public async Task Bug002_a_mapping_to_a_new_client_contact_audits_the_saved_contact_id()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("161", "TAH-161", assigneeId: "acc-contact", assigneeName: "Lina");
+        await RunAsync(f.SpaceId);
+        var manager = await _hub.As(HubFactory.Manager);
+        var row = (await manager.Get($"/admin/jira-connections/{f.ConnectionId}/users")).Body!.AsArray().First(u => u!["jiraAccountId"]!.GetValue<string>() == "acc-contact")!;
+        var contact = await manager.Create($"/admin/jira-user-mappings/{row["id"]!.GetValue<long>()}/contact", new { clientId = f.ClientId, name = "Fictional Lina 161" });
+        var mapping = await Db(db => db.JiraUserMappings.AsNoTracking().FirstAsync(m => m.JiraConnectionId == f.ConnectionId && m.JiraAccountId == "acc-contact"));
+        Assert.Equal(contact, mapping.ClientContactId);
+        var values = Change((await MappingAuditAsync(mapping.Id)).Last(a => a.Changes != null && a.Changes.Contains("ClientContactId")), "ClientContactId");
+        Assert.Null(values[0]);
+        Assert.Equal(contact, values[1]!.GetValue<long>());
+    }
+
+    [Fact]
+    public async Task Bug002_the_before_value_is_kept_and_a_failed_save_writes_no_audit()
+    {
+        var f = await SetUpAsync();
+        _jira.Add("162", "TAH-162", assigneeId: "acc-remap", assigneeName: "Omar");
+        await RunAsync(f.SpaceId);
+        var engineer = await _hub.UserId(HubFactory.Engineer);
+        await MapUserAsync(f.ConnectionId, "acc-remap", engineer);
+        var mappingId = await Db(db => db.JiraUserMappings.Where(m => m.JiraConnectionId == f.ConnectionId && m.JiraAccountId == "acc-remap").Select(m => m.Id).FirstAsync());
+
+        // Re-pointed to a user created in the same save: before = the engineer, after = the new user's saved id.
+        long created;
+        using (var scope = _hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+            var m = await db.JiraUserMappings.FirstAsync(x => x.Id == mappingId);
+            var user = new TioHub.Api.Modules.Access.User { AccountName = $"jira-team-{Guid.NewGuid():N}", DisplayName = "Fictional Omar 162", WorkingTimeZone = "UTC", Classification = UserClassification.VitronicTeamMember, LoginEnabled = false };
+            db.Users.Add(user);
+            m.TioUser = user;
+            await db.SaveChangesAsync();
+            created = user.Id;
+        }
+        var values = Change((await MappingAuditAsync(mappingId)).Last(), "TioUserId");
+        Assert.Equal(engineer, values[0]!.GetValue<long>());
+        Assert.Equal(created, values[1]!.GetValue<long>());
+
+        // A save that fails (duplicate account name) rolls back the mapping, the user and their audit entries together.
+        var before = (await MappingAuditAsync(mappingId)).Count;
+        var audits = await Db(db => db.AuditEntries.CountAsync());
+        using (var scope = _hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+            var m = await db.JiraUserMappings.FirstAsync(x => x.Id == mappingId);
+            var duplicate = new TioHub.Api.Modules.Access.User { AccountName = HubFactory.Engineer, DisplayName = "Duplicate", WorkingTimeZone = "UTC", Classification = UserClassification.VitronicTeamMember, LoginEnabled = false };
+            db.Users.Add(duplicate);
+            m.TioUser = duplicate;
+            await Assert.ThrowsAnyAsync<DbUpdateException>(() => db.SaveChangesAsync());
+        }
+        Assert.Equal(before, (await MappingAuditAsync(mappingId)).Count);
+        Assert.Equal(audits, await Db(db => db.AuditEntries.CountAsync()));
+        Assert.Equal(created, await Db(db => db.JiraUserMappings.Where(x => x.Id == mappingId).Select(x => x.TioUserId).FirstAsync()));
+    }
+
     private async Task<long> CreateTeamMemberAsync(long connection, string account, string name)
     {
         var admin = await _hub.As(HubFactory.Manager);

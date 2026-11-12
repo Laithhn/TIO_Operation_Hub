@@ -1,0 +1,384 @@
+TERM
+01 Jul 2026 – 30 Jun 2027
+Give notice by 31 May 2027
+RENEWAL
+Current
+SLA TARGETS
+4 priorities
+Critical: 1 h first response / — resolution
+PAYMENTS
+4 open, no due date
+Details
+SLA targets
+4
+Delivery
+1
+Fees and payments
+4
+Penalties
+0
+Coverage
+Documents
+History
+Contract
+Client
+OYOON · OYOON Center
+Contract reference
+5340 of 2026
+Type
+SLA & support
+Project
+116938-AE · OYOON ANPR Data Management and AMC
+Owner
+Laith Hamdan
+Term
+01 Jul 2026 – 30 Jun 2027
+Renewal terms
+Renewal by agreement
+Notice period
+30 days · give notice by 31 May 2027
+Last reviewed
+10 Nov 2026
+Service obligations
+Support model
+Hybrid
+Support hours
+Unknown
+Support notes
+P1/P2: response 1h, 24/7 (offer); workaround 8/24h, MTTR 24/48h. P3/P4: response 1h. P3 signed resolution 72h vs offer workaround 72h/MTTR 14d. P4 agreed timeline. RCA 48h after resolution.
+On-site engineers required
+Unknown
+Coverage
+
+SIGNED CONTRACT pp35–36 + supporting offer (P=PDF page). Level A: VITIS 3.48.1, RRM 2.19.4, SDB 2.1.0; active support/maintenance/development. Signed Level B lists VITIS 1.4.4 and ANPRPool; offer P19 labels ANPRPool 1.4.4 under VITIS, with maintenance limited to P1/P2. Levels C/D have no named products; C best efforts for P1/P2, D as-is.
+Offer normal support: Mon–Thu 09:00–18:00, Fri 08:30–12:30, excluding UAE public holidays/nonworking days (P10,22; timezone unstated). P1/P2 include after-hours 24/7 (P15). Telephone/email/JIRA; ITD.Operation.ME@vitronic.com; required JIRA reporting and max 2 concurrent calls (P13–14).
+Signed scope: secured remote diagnostics; on-site if remote fails within agreed TAT (no numeric attendance time); quarterly administration/performance tuning/fault diagnosis/repair; bug fixes at no extra cost; scheduled remote configuration; training; negotiated administration. Audit/consultancy subject to fees; application development via PSR; explicit-request ad-hoc services outside agreement.
+Offer P10 promises resident support engineer/expert escalation; P22 prices 2x Dev/Operation Engineers for REMOTE support, plus 500 integration/enhancement development hours at AED 0 over 01-Jul-2026–30-Jun-2027. Deployment/count wording needs clarification; do not infer2 resident staff. Training on demand: overview, monitoring, troubleshooting, maintenance, escalation, JIRA/log/reporting (P12). Standard OS/SQL/Elasticsearch/MongoDB licenses excluded (P7).
+Exclusions: Dubai Police software except ANPRPool/supported list; unagreed hardware/software changes; installation/relocation; consumables; abnormal-use faults. Main contract prevails; offer template/version inconsistencies and fee qualifications are recorded in Obligations and attached supplement.
+
+Show more
+Obligations
+
+C=36-page signed contract 5340/2026; P=24-page offer QU040000261 v1.3; L=award letter. C/Arabic precedence applies; preserve conflicting offer terms without silently replacing signed terms.
+IDENTITY/HISTORY: Oyoon 266 ANPR Data Management AMC, req. 12600246; C dated 22-Jul-2026, term 01-Jul-2026–30-Jun-2027. DDGE (Digital Dubai Authority affiliate)/VITRONIC MACHINE VISION ME LLC. C p33 signatures: Matar AlHumairi 29-Sep-2026 09:48 UTC+4; Youssef El Hansali literally 03-08-2018 (year anomaly). P24 shows Dubai Police/OYOON approval signature+stamp dated 07/05/2026 and Abdulhamid Tork signature, vendor date blank. Cover Jul 2026, history 18-Feb-2025 Draft and glossary SEWAR references require version clarification. L 2-Jul-2026 awards matching title/quote/AED 528,000; no requisition printed. 29-Sep countersigned-copy email had LPO pending then; current status unverified.
+FEES/SECURITY: C AED528,000 fixed exVAT; planned132,000/25% invoices01-Oct-2026,01-Jan/01-Apr/30-Jun-2027. Preserve schedule/no settlement inference. C BG 2% (10,560 derived), local-bank irrevocable/unconditional, start through 90 days after term; release after completion certificate. L instead demanded 10% within 10 working days of receipt: historical conflict. P22 says quarterly basic fees due≤30-days from quarter first day; reconcile with C invoice schedule. P21 outside-scope rates: prepaid AED4,395.62/business day; standard AED5,548.69/business day. P11 lists travel/manpower/travel-time/necessary expenses for on-site visits unless agreed otherwise; no blanket addition to C fixed expenses/included service. P21 permits fee adjustment at renewal.
+SLA/PENALTIES: C P3 resolution 72h/MTTR14d; P15 calls 72h workaround, adds 1h responses for P3/P4 and 24/7 P2; retain conflict. Workaround/MTTR remain notes. RCA all incidents ≤48h after resolution. P16–18 adds monthly-average ARL = 1−(MTTRactual−MTTRtarget)/MTTRtarget; MTTR=total restoration durations/TT count for tier/severity. Deduct next monthly/quarterly invoice: ARL ≥98%: 0%;90≤ARL<98:0.5%;85≤ARL<89:2%;80≤ARL<84:5%;65≤ARL<79:10%;<65:subject to cancellation. Printed band gaps remain. Final-quarter credit deducted last invoice/payment deferred to quarter end. This is offer support absent from signed SLA appendix, not copied from 5341. P17 response clock ticket-open→Verification-to-Open; resolution starts after Verification→Open; reclassification changes deadline; out-of-scope calls require valid categorization/MTTR overrun for penalties. C general Law 12/2020 remedies and 100% compensation wording remain; not an express SLA-credit cap.
+RENEWAL/ESCALATION: C intention-to-renew written notice 30 days before expiry; P21 automatic annual renewal/90 days or 3 months cancellation, outstanding amounts due on customer cancellation: conflict. C immediate P1 L2→L3 prevails over P18 response-overrun table: Laith P1/P2/P3 +5/17/36h; Abdalrhman +10/34/72h. C contacts: DDGE Huda→Shaikha→Abdulla; VITRONIC Abdalrhman→Laith→Youssef (C31–32). P23 operational contact Rashid AlHameli, R.AlHameli@DubaiPolice.gov.ae.
+GENERAL: Written acceptance/rectification at no cost; signed amendments; pre-approved staff/replacements/records. Breach cure 30 working days; DDGE early termination 30 days written notice/pay services rendered. Subcontract/assignment need consent; supplier liable. Confidentiality survives; ISR/DESC/ISO27001/22301; cyber notice ≤24h. Cloud/AI prior approval; UAE residency unless approved; protect/return/delete data and support exit. DDGE audits without added cost; force-majeure notice 7 working days. Dubai/UAE law;30-day amicable dispute then senior management/Dubai Courts. Full attached sources govern.
+
+Show more
+SLA targets (recorded)
+
+Targets as the contract states them. Tickets linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects tickets linked afterwards. The clock does not pause while a ticket waits on the customer. Tickets measured against this contract
+
+4 rows
+FILTER
+COLUMNS
+EXPORT CSV
+SLA targets
+	
+Priority
+	
+Response target
+	
+Resolution target
+	
+Clock
+	
+Notes
+
+
+	
+Critical
+	
+1 h
+	
+—
+	
+Calendar hours (24×7)
+	
+P1 Critical: response 1h, 24/7 (signed p36; offer p15). Workaround 8h and MTTR 24h are separate metrics, not a fixed per-ticket resolution target.
+
+
+	
+High
+	
+1 h
+	
+—
+	
+Calendar hours (24×7)
+	
+P2 High: response 1h. Offer p15 explicitly includes after-hours 24/7. Workaround 24h; MTTR 48h. Signed appendix p36 does not contradict the offer supplement.
+
+
+	
+Normal
+	
+1 h
+	
+3 d
+	
+Unknown
+	
+P3 Normal: offer p15 response 1h in covered hours. Signed p36 says resolution 72h/MTTR 14d; offer calls 72h a workaround. Clock unknown: support schedule varies by day and timezone is unstated.
+
+
+	
+Low
+	
+1 h
+	
+—
+	
+Unknown
+	
+P4 Low: offer p15 response 1h in covered hours; enhancement/no operational impact. Resolution by agreed timeline. Clock unknown: support schedule varies by day and timezone is unstated.
+Delivery schedule · 0 % complete on average
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract delivery schedule
+	
+Phase
+	
+Description
+	
+Completion
+	
+Date
+
+
+	
+Annual ANPR Data Management AMC
+	
+Support/monitoring and quarterly technical services during1Jul2026–30Jun2027. Formal customer written acceptance required. Date is stated service end, not actual completion; pp3,35–36.
+	
+Unknown
+	
+30 Jun 2027
+Fees and costs (AED)
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract fees and costs
+	
+Description
+	
+Unit
+	
+Qty
+	
+Unit price
+	
+Total
+
+
+	
+Annual OYOON266 system support/monitoring — fixed contract value excluding VAT and applicable fees (p4).
+	
+Contract
+	
+1
+	
+528,000.00
+	
+528,000.00
+
+Total: 528,000.00 AED
+
+Payment terms
+
+Open payments have no due date.
+
+4 rows
+FILTER
+COLUMNS
+EXPORT CSV
+Contract payment terms
+	
+Condition
+	
+%
+	
+Amount
+	
+Due
+	
+Status
+
+
+	
+System Support and Monitoring, payment 1; planned invoice 01-Oct-2026; actual invoice/payment status unknown (signed p34).
+	
+25 %
+	
+132,000.00 AED
+	
+Unknown
+	
+Pending
+
+
+	
+System Support and Monitoring, payment 2; planned invoice 01-Jan-2027; actual invoice/payment status unknown (signed p34).
+	
+25 %
+	
+132,000.00 AED
+	
+Unknown
+	
+Pending
+
+
+	
+System Support and Monitoring, payment 3; planned invoice 01-Apr-2027; actual invoice/payment status unknown (signed p34).
+	
+25 %
+	
+132,000.00 AED
+	
+Unknown
+	
+Pending
+
+
+	
+System Support and Monitoring, payment 4; planned invoice 30-Jun-2027; actual invoice/payment status unknown (signed p34).
+	
+25 %
+	
+132,000.00 AED
+	
+Unknown
+	
+Pending
+Penalty assessments
+RECALCULATE
+
+Indicative contractual amounts only. Different recorded rates or caps are assessed separately and require review. Superseded assessments have no current charge; earlier values remain in change history. The hub does not issue credits or invoices.
+
+Reason for recalculation or confirmation
+No assessments have been calculated.
+Covered products (from the project)
+The project has no products recorded.
+Covered environments
+No records entered.
+Contract and SLA documents (5)
+UPLOAD FILES
+TOTAL FILES
+5
+DOCUMENT CATEGORIES
+2
+by file type
+UPLOADERS
+1
+LATEST UPLOAD
+10 Nov 2026
+Laith Hamdan
+All categories
+Data file
+PDF document
+All file types
+JSON
+PDF
+Sort
+Newest first
+Oldest first
+Name A–Z
+Name Z–A
+Size, smallest first
+Size, largest first
+RESET
+Attachments of this contract
+	FILE NAME	CATEGORY	TYPE	SIZE	UPLOADED ON	UPLOADED BY	
+ACTIONS
+
+	
+supplemental-5340-proposal.json
+Contract 5340: referenced QU040000261 v1.3 commercial/SLA proposal, matched 2-Jul-2026 award letter, and page-referenced supplement. Signed contract prevails; renewal, guarantee, payment, SLA and template conflicts are retained for review.
+	Data file	JSON	19 KB	10 Nov 2026, 12:09	Laith Hamdan	
+
+	
+LOA.pdf
+Contract 5340: referenced QU040000261 v1.3 commercial/SLA proposal, matched 2-Jul-2026 award letter, and page-referenced supplement. Signed contract prevails; renewal, guarantee, payment, SLA and template conflicts are retained for review.
+	PDF document	PDF	30 KB	10 Nov 2026, 12:09	Laith Hamdan	
+
+	
+DDGE 12600246 -ANPR Pool SLA Commercial Prop.pdf
+Contract 5340: referenced QU040000261 v1.3 commercial/SLA proposal, matched 2-Jul-2026 award letter, and page-referenced supplement. Signed contract prevails; renewal, guarantee, payment, SLA and template conflicts are retained for review.
+	PDF document	PDF	684 KB	10 Nov 2026, 12:09	Laith Hamdan	
+
+	
+5340-extracted-terms-reference.json
+Contract 5340 of 2026: original countersigned PDF and page-referenced extracted terms for reference. The signed PDF governs. Vendor signature year prints 2018; flagged in the record.
+	Data file	JSON	38 KB	10 Nov 2026, 11:48	Laith Hamdan	
+
+	
+DDGE Contract Oyoon 266 ANPR Data Management AMC-Print-CEsigned.pdf
+Contract 5340 of 2026: original countersigned PDF and page-referenced extracted terms for reference. The signed PDF governs. Vendor signature year prints 2018; flagged in the record.
+	PDF document	PDF	9.7 MB	10 Nov 2026, 11:48	Laith Hamdan	
+1–5 of 5 files
+Rows per page: 
+8
+15
+25
+50
+PREVIOUS
+1
+NEXT
+Change history
+3 rows
+FILTER
+COLUMNS
+EXPORT CSV
+	
+When
+	
+By
+	
+Action
+	
+Reason
+	
+Changes (before → after)
+
+
+	
+10 Nov 2026, 12:08
+	
+lmh
+	
+Update
+	
+	
+Coverage: SIGNED OPERATION & SLA APPENDIX, pp35–36. PRODUCTS: Level A: Vitronic Intelligent Tracking System (VITIS) v3.48.1; Roadside Remote Management (RRM) v2.19.4; Smart Dashboard v2.1.0. Level B: Vitronic Intelligent Tracking System v1.4.4 and ANPRPool (Main ANPR Pool Service). Levels C/D: no specific products defined; limited or no support. SCOPE: Secured remote diagnostics/support; on-site visits if remote support fails within agreed Turnaround Time (no numeric onsite attendance time printed); telephone/email/JIRA support; quarterly technical support including system administration, performance tuning, fault diagnosis/repair; continuous maintenance bug fixes at no extra cost; remote configuration support scheduled in advance. System audits on request subject to service fees; on-site fault-analysis/optimization/re-engineering consultancy subject to fees. Administration remote/on-site by prior negotiation. Tailored training in operation, maintenance, monitoring, troubleshooting and reporting. Application support/development via Professional Services Request (PSR). Pre-booked/ad-hoc services only on explicit request and outside agreement. No extra-service rates specified. EXCLUSIONS: Dubai Police-supplied software except ANPR Pool Service; unauthorized hardware/software changes; system installation/relocation; consumables repair; faults not caused by normal usage. LIMITS: No dedicated allocated engineer promise is printed here (do not copy 5341). No ARL/service-credit schedule appears. Optional supplier system audits are distinct from general clause16 compliance-audit assistance without extra cost. Underlying technical/financial offers QU040000261 Jul-26 appear only as references/icons (p34), not embedded offer content. Source PDF supplements these notes. → SIGNED CONTRACT pp35–36 + supporting offer (P=PDF page). Level A: VITIS 3.48.1, RRM 2.19.4, SDB 2.1.0; active support/maintenance/development. Signed Level B lists VITIS 1.4.4 and ANPRPool; offer P19 labels ANPRPool 1.4.4 under VITIS, with maintenance limited to P1/P2. Levels C/D have no named products; C best efforts for P1/P2, D as-is. Offer normal support: Mon–Thu 09:00–18:00, Fri 08:30–12:30, excluding UAE public holidays/nonworking days (P10,22; timezone unstated). P1/P2 include after-hours 24/7 (P15). Telephone/email/JIRA; ITD.Operation.ME@vitronic.com; required JIRA reporting and max 2 concurrent calls (P13–14). Signed scope: secured remote diagnostics; on-site if remote fails within agreed TAT (no numeric attendance time); quarterly administration/performance tuning/fault diagnosis/repair; bug fixes at no extra cost; scheduled remote configuration; training; negotiated administration. Audit/consultancy subject to fees; application development via PSR; explicit-request ad-hoc services outside agreement. Offer P10 promises resident support engineer/expert escalation; P22 prices 2x Dev/Operation Engineers for REMOTE support, plus 500 integration/enhancement development hours at AED 0 over 01-Jul-2026–30-Jun-2027. Deployment/count wording needs clarification; do not infer2 resident staff. Training on demand: overview, monitoring, troubleshooting, maintenance, escalation, JIRA/log/reporting (P12). Standard OS/SQL/Elasticsearch/MongoDB licenses excluded (P7). Exclusions: Dubai Police software except ANPRPool/supported list; unagreed hardware/software changes; installation/relocation; consumables; abnormal-use faults. Main contract prevails; offer template/version inconsistencies and fee qualifications are recorded in Obligations and attached supplement.
+Last reviewed at: 10 Nov 2026, 11:55 → 10 Nov 2026, 12:08
+Show all 4 changes
+
+
+	
+10 Nov 2026, 11:55
+	
+lmh
+	
+Update
+	
+	
+Last reviewed at: 10 Nov 2026, 11:46 → 10 Nov 2026, 11:55
+
+
+	
+10 Nov 2026, 11:46
+	
+lmh
+	
+Create
+	
+	
+Client id: — → 3
+Contract reference: — → 5340 of 2026
+Show all 22 changes

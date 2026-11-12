@@ -1,0 +1,15 @@
+{
+  "id": "R037-desktop",
+  "route": "/admin/integrations/jira/monitoring",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Jira synchronization monitoring"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 3027,
+  "title": "Jira synchronization monitoring · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

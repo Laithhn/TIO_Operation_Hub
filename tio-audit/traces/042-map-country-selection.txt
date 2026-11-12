@@ -1,0 +1,270 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- main:
+  - region "Client Map toolbar":
+    - heading "Client Map" [level=1]
+    - paragraph:
+      - text: 20 clients in 12 countries · as of
+      - time: 10 Nov 2026, 16:45
+      - text: (Asia/Dubai)
+    - radiogroup "Map layer":
+      - radio "Clients 20" [checked]:
+        - generic: Clients
+        - generic: "20"
+      - radio "Servers 138":
+        - generic: Servers
+        - generic: "138"
+      - radio "Open tickets 183":
+        - generic: Open tickets
+        - generic: "183"
+      - radio "Overdue 78":
+        - generic: Overdue
+        - generic: "78"
+      - radio "Contracts 6":
+        - generic: Contracts
+        - generic: "6"
+    - generic: Client
+    - combobox "Client":
+      - option "All authorized clients" [selected]
+      - option "ADP · Abu Dhabi Police"
+      - option "ADP-STC · Abu Dhabi Police STC"
+      - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+      - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+      - option "DUBAI_POLICE · Dubai Police"
+      - option "EIFFAGE · Eiffage Concessions"
+      - option "MADAR_DIJLA · Madar Dijla"
+      - option "MULTICOM · MULTICOM - IT Security"
+      - option "NARSA · NARSA"
+      - option "OYOON · OYOON Center"
+      - option "PESAPRINT · Pesa Print"
+      - option "QATAR_MOI · Qatar MOI"
+      - option "RNP · Rwanda National Ploce"
+      - option "ROP · Royal Oman Police (ROP)"
+      - option "SAPOL · South Australia Police"
+      - option "SEW · Sewar Tech"
+      - option "SHJ_POLICE · Sharjah Police"
+      - option "TAH · Tahakom"
+      - option "TAK · TAK Business Group"
+      - option "TRAFFIC · Dubai Traffic Department"
+    - generic: Region
+    - combobox "Region":
+      - option "All regions" [selected]
+      - option "Western Asia (Middle East) (12)"
+      - option "Africa (7)"
+      - option "Oceania (1)"
+    - generic: Team
+    - combobox "Team":
+      - option "All teams" [selected]
+      - option "Dubai Office Operation Team"
+      - option "KSA Operation Team"
+    - generic: Product
+    - combobox "Product":
+      - option "All products" [selected]
+      - option "PSOP"
+      - option "ViTIP"
+    - button "Reset filters" [disabled]:
+    - button "Refresh":
+    - link "Operations Command Center":
+      - /url: /
+  - complementary "Country explorer":
+    - tablist "Explore by":
+      - tab "Countries (12)" [selected]
+      - tab "Clients (20)"
+    - searchbox "Search countries"
+    - generic: Sort by
+    - combobox "Sort countries":
+      - option "Number of clients" [selected]
+      - option "Name"
+    - list "Countries":
+      - 'button "United Arab Emirates: 7 clients, 7 clients"':
+        - img "AE"
+        - generic: United Arab Emirates
+        - generic: ADP, ADP-STC, ADP-TRAFFIC, DUBAI_POLICE, OYOON, SHJ_POLICE, TRAFFIC
+        - generic: "7"
+      - 'button "Iraq: 2 clients, 2 clients"':
+        - img "IQ"
+        - generic: Iraq
+        - generic: MADAR_DIJLA, SEW
+        - generic: "2"
+      - 'button "Morocco: 2 clients, 2 clients"':
+        - img "MA"
+        - generic: Morocco
+        - generic: DGSN, NARSA
+        - generic: "2"
+      - 'button "Australia: 1 clients, 1 client"':
+        - img "AU"
+        - generic: Australia
+        - generic: SAPOL
+        - generic: "1"
+      - 'button "Ethiopia: 1 clients, 1 client"':
+        - img "ET"
+        - generic: Ethiopia
+        - generic: TAK
+        - generic: "1"
+      - 'button "Kenya: 1 clients, 1 client"':
+        - img "KE"
+        - generic: Kenya
+        - generic: PESAPRINT
+        - generic: "1"
+      - 'button "Oman: 1 clients, 1 client"':
+        - img "OM"
+        - generic: Oman
+        - generic: ROP
+        - generic: "1"
+      - 'button "Qatar: 1 clients, 1 client"':
+        - img "QA"
+        - generic: Qatar
+        - generic: QATAR_MOI
+        - generic: "1"
+      - 'button "Rwanda: 1 clients, 1 client"':
+        - img "RW"
+        - generic: Rwanda
+        - generic: RNP
+        - generic: "1"
+      - 'button "Saudi Arabia: 1 clients, 1 client" [active] [pressed]':
+        - img "SA"
+        - generic: Saudi Arabia
+        - generic: TAH
+        - generic: "1"
+      - 'button "Senegal: 1 clients, 1 client"':
+        - img "SN"
+        - generic: Senegal
+        - generic: EIFFAGE
+        - generic: "1"
+      - 'button "Tunisia: 1 clients, 1 client"':
+        - img "TN"
+        - generic: Tunisia
+        - generic: MULTICOM
+        - generic: "1"
+  - region "Map":
+    - button "Hide countries" [expanded]:
+      - text: Hide countries
+    - generic "Clients per country":
+      - generic: Clients
+      - generic: 0 recorded
+      - generic: 1–1
+      - generic: 2–2
+      - generic: 3–4
+      - generic: 5–5
+      - generic: 6–7
+      - generic: has overdue work
+      - generic: Only countries with authorized clients are coloured
+    - group "OpenStreetMap of clients by country. The country list beside it has the same data.":
+      - 'button "United Arab Emirates: 7 clients. Show its clients"':
+        - generic: "7"
+      - 'button "Tunisia: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Senegal: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Saudi Arabia: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Rwanda: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Qatar: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Oman: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Morocco: 2 clients. Show its clients"':
+        - generic: "2"
+      - 'button "Kenya: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Iraq: 2 clients. Show its clients"':
+        - generic: "2"
+      - 'button "Ethiopia: 1 clients. Show its clients"':
+        - generic: "1"
+      - 'button "Australia: 1 clients. Show its clients"':
+        - generic: "1"
+      - button "Zoom in": +
+      - button "Zoom out": −
+      - button "Layers"
+      - generic: 500 km
+      - generic: © OpenStreetMap contributors
+    - group "Map view":
+      - button "Show all client countries": ⤢
+      - button "Show the world": ◯
+      - button "Full screen": ⛶
+    - generic: Click the map to zoom with the mouse wheel; drag to move
+  - complementary "Country details":
+    - img "SA"
+    - heading "Saudi Arabia" [level=2]
+    - paragraph:
+      - text: 1 client · 78 servers · 91 open tickets ·
+      - generic: 61 overdue
+      - text: · 1 active contract
+    - button "Close country details":
+    - tablist "Country details":
+      - tab "Clients (1)" [selected]
+      - tab "Servers (78)"
+      - tab "Tickets (91)"
+      - tab "Contracts (1)"
+    - 'tabpanel "Saudi Arabia: clients"':
+      - table "Clients in Saudi Arabia":
+        - caption: Clients in Saudi Arabia
+        - rowgroup:
+          - row "Client Products Status Open":
+            - columnheader "Client"
+            - columnheader "Products"
+            - columnheader "Status"
+            - columnheader "Open":
+              - generic: Open
+        - rowgroup:
+          - 'row "TAH Tahakom Project manager: Laith Hamdan PSOP 61 overdue Open client TAH"':
+            - 'cell "TAH Tahakom Project manager: Laith Hamdan"':
+              - generic: TAH
+              - generic: Tahakom
+              - generic: "Project manager: Laith Hamdan"
+            - cell "PSOP"
+            - cell "61 overdue":
+              - generic: 61 overdue
+            - cell "Open client TAH":
+              - link "Open client TAH":
+                - /url: /clients/1
+    - link "View all clients in Saudi Arabia":
+      - /url: /clients?country=Saudi+Arabia
+      - text: View all clients in Saudi Arabia
+    - link "Show the overview for Saudi Arabia":
+      - /url: /?country=Saudi+Arabia
+      - text: Operations Command Center for Saudi Arabia
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,15 @@
+{
+  "id": "R021-mobile",
+  "route": "/reassignment",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Reassignment queue"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 43,
+  "title": "Reassignment queue · TIO Operations Hub",
+  "width": 390
+}

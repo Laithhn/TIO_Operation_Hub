@@ -1,0 +1,15 @@
+{
+  "id": "R020-mobile",
+  "route": "/handovers",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Handovers"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 112,
+  "title": "Handovers · TIO Operations Hub",
+  "width": 390
+}

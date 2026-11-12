@@ -1,0 +1,218 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Clients & Environments":
+    - /url: /admin/config/category/clients-environments
+  - generic: ›
+  - generic: Responsibility areas
+- heading "Responsibility areas" [level=1]
+- generic: Areas of work (application, database, network…) used when recording who is responsible for what at a client.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Responsibility areas":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Responsibility areas":
+      - caption: Responsibility areas
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (responsibility boundaries) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (responsibility boundaries)":
+            - button "In use (responsibility boundaries)":
+              - generic: In use (responsibility boundaries)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Application up Move Application down Application — 0 Active Actions for Application":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Application up Move Application down":
+            - button "Move Application up" [disabled]: ▲
+            - button "Move Application down": ▼
+          - cell "Application":
+            - button "Application"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Application":
+            - button "Actions for Application": ⋯
+        - row "Select ▲ ▼ Move Database up Move Database down Database — 1 Active Actions for Database":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Database up Move Database down":
+            - button "Move Database up": ▲
+            - button "Move Database down": ▼
+          - cell "Database":
+            - button "Database"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Database":
+            - button "Actions for Database": ⋯
+        - row "Select ▲ ▼ Move Operating system up Move Operating system down Operating system — 1 Active Actions for Operating system":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Operating system up Move Operating system down":
+            - button "Move Operating system up": ▲
+            - button "Move Operating system down": ▼
+          - cell "Operating system":
+            - button "Operating system"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Operating system":
+            - button "Actions for Operating system": ⋯
+        - row "Select ▲ ▼ Move Network up Move Network down Network — 1 Active Actions for Network":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Network up Move Network down":
+            - button "Move Network up": ▲
+            - button "Move Network down": ▼
+          - cell "Network":
+            - button "Network"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Network":
+            - button "Actions for Network": ⋯
+        - row "Select ▲ ▼ Move Backup up Move Backup down Backup — 0 Active Actions for Backup":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Backup up Move Backup down":
+            - button "Move Backup up": ▲
+            - button "Move Backup down": ▼
+          - cell "Backup":
+            - button "Backup"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Backup":
+            - button "Actions for Backup": ⋯
+        - row "Select ▲ ▼ Move Monitoring up Move Monitoring down Monitoring — 0 Active Actions for Monitoring":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Monitoring up Move Monitoring down":
+            - button "Move Monitoring up": ▲
+            - button "Move Monitoring down" [disabled]: ▼
+          - cell "Monitoring":
+            - button "Monitoring"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Monitoring":
+            - button "Actions for Monitoring": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

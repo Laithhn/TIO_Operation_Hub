@@ -1,0 +1,88 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Reporting Center":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Reporting Center
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: My reports
+- heading "Reporting Center" [level=1]
+- generic: "Saved Tickets Report Builder configurations: yours, your team’s and those shared with you."
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center (current section)":
+      - /url: /reporting-center
+      - text: Reporting Center
+      - generic: (current section)
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Search saved reports
+  - searchbox "Search saved reports"
+  - group "Show":
+    - button "All I can see" [pressed]
+    - button "Mine"
+    - button "Shared with me"
+    - button "Favorites"
+  - link "+ New tickets report":
+    - /url: /reporting-center/builder/cases
+  - region "Saved reports":
+    - table "Saved reports":
+      - caption: Saved reports
+      - rowgroup:
+        - row "Details Report":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Report":
+            - generic: Report
+      - rowgroup
+    - status
+    - generic: No records entered.
+  - paragraph: "Opening a shared report runs it with your own access: you see only the tickets you may see. Only the owner can change or delete a report."
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

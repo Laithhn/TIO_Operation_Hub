@@ -1,0 +1,15 @@
+{
+  "id": "R046-desktop",
+  "route": "/handovers/1",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "HO-101 · Handover"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 500,
+  "title": "HO-101 · Handover · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

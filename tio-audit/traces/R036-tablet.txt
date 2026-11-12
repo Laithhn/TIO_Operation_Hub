@@ -1,0 +1,186 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+    - generic: Administration
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Jira Connections":
+    - /url: /admin/integrations/jira
+- heading "Jira conflict resolution" [level=1]
+- generic: Ownership conflicts, user and workflow mappings, existing-case reconciliation and moved issues.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - tablist:
+    - tab "Issues" [selected]:
+      - generic: Issues
+    - tab "Jira users":
+      - generic: Jira users
+    - tab "Workflow mappings":
+      - generic: Workflow mappings
+  - heading "Integration issues" [level=2]
+  - combobox "Filter by resolution status":
+    - option "Open" [selected]
+    - option "Resolved"
+    - option "Dismissed"
+  - region "Jira integration issues":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Jira integration issues: scroll sideways for more columns"':
+      - table "Jira integration issues":
+        - caption: Jira integration issues
+        - rowgroup:
+          - row "Select all rows shown Connection Space Jira issue Client Existing ticket Conflict type Description and suggested action Last seen Resolution Actions":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Connection":
+              - button "Connection":
+                - generic: Connection
+            - columnheader "Space":
+              - button "Space":
+                - generic: Space
+            - columnheader "Jira issue":
+              - button "Jira issue":
+                - generic: Jira issue
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Existing ticket":
+              - button "Existing ticket":
+                - generic: Existing ticket
+            - columnheader "Conflict type":
+              - button "Conflict type":
+                - generic: Conflict type
+            - columnheader "Description and suggested action":
+              - button "Description and suggested action":
+                - generic: Description and suggested action
+            - columnheader "Last seen":
+              - button "Last seen":
+                - generic: Last seen
+            - columnheader "Resolution":
+              - button "Resolution":
+                - generic: Resolution
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Select Poliscan Cloud Jira Poliscan Cloud Jira VEV RNP — Unknown workflow status Jira status \"Resolved\" in space VEV has no ticket status, so tickets keep their current status. Map the Jira status to a ticket status; tickets are updated at the next run. 10 Nov 2026, 16:45 Open Dismiss":
+            - cell "Select Poliscan Cloud Jira":
+              - checkbox "Select Poliscan Cloud Jira"
+            - cell "Poliscan Cloud Jira":
+              - generic: Poliscan Cloud Jira
+            - cell "VEV":
+              - generic: VEV
+            - cell
+            - cell "RNP":
+              - link "RNP":
+                - /url: /clients/10?tab=jira
+            - cell "—":
+              - generic: —
+            - cell "Unknown workflow status":
+              - generic: Unknown workflow status
+            - cell "Jira status \"Resolved\" in space VEV has no ticket status, so tickets keep their current status. Map the Jira status to a ticket status; tickets are updated at the next run.":
+              - text: Jira status "Resolved" in space VEV has no ticket status, so tickets keep their current status.
+              - generic: Map the Jira status to a ticket status; tickets are updated at the next run.
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "Open":
+              - text: Open
+            - cell "Dismiss":
+              - button "Dismiss"
+          - row "Select Poliscan Cloud Jira Poliscan Cloud Jira VEV VEV-131 RNP CS-4125 Missing user mapping Jira user Akram Almerdas is not mapped to a hub user or client contact, so the ticket keeps its current owner. Map the Jira user to a hub user or a client contact; the ticket is updated at the next run. 10 Nov 2026, 16:45 Open Dismiss":
+            - cell "Select Poliscan Cloud Jira":
+              - checkbox "Select Poliscan Cloud Jira"
+            - cell "Poliscan Cloud Jira":
+              - generic: Poliscan Cloud Jira
+            - cell "VEV":
+              - generic: VEV
+            - cell "VEV-131":
+              - generic: VEV-131
+            - cell "RNP":
+              - link "RNP":
+                - /url: /clients/10?tab=jira
+            - cell "CS-4125":
+              - link "CS-4125":
+                - /url: /cases/12325
+            - cell "Missing user mapping":
+              - generic: Missing user mapping
+            - cell "Jira user Akram Almerdas is not mapped to a hub user or client contact, so the ticket keeps its current owner. Map the Jira user to a hub user or a client contact; the ticket is updated at the next run.":
+              - text: Jira user Akram Almerdas is not mapped to a hub user or client contact, so the ticket keeps its current owner.
+              - generic: Map the Jira user to a hub user or a client contact; the ticket is updated at the next run.
+            - cell "10 Nov 2026, 16:45":
+              - generic: 10 Nov 2026, 16:45
+            - cell "Open":
+              - text: Open
+            - cell "Dismiss":
+              - button "Dismiss"
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 2 OF 2
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 2 OF 2
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

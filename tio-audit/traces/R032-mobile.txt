@@ -1,0 +1,159 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- heading "Change history" [level=1]
+- generic: Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - generic: Activity
+  - combobox "Activity":
+    - option "Changes by people" [selected]
+    - option "Background work (Jira sync, scans)"
+    - option "All activity"
+  - generic: Person
+  - textbox "Person":
+    - /placeholder: Account name
+  - generic: Record type
+  - combobox "Record type"
+  - generic: Action
+  - combobox "Action":
+    - option "Any" [selected]
+    - option "Create"
+    - option "Update"
+    - option "Status change"
+    - option "Owner change"
+    - option "Archive"
+    - option "Restore"
+    - option "Access change"
+    - option "Access granted"
+    - option "Access revoked"
+    - option "Export"
+    - option "Remove"
+  - generic: Category
+  - combobox "Category":
+    - option "Any" [selected]
+    - option "Business records"
+    - option "Access administration"
+  - generic: From
+  - textbox "From"
+  - generic: To
+  - textbox "To"
+  - region "Table":
+    - status: Loading…
+    - status
+  - heading "Recent exports" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details When User":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "When":
+            - button "When":
+              - generic: When
+          - columnheader "User":
+            - button "User":
+              - generic: User
+      - rowgroup:
+        - row "Details for 05 Nov 2026, 15:19 05 Nov 2026, 15:19 lmh":
+          - cell "Details for 05 Nov 2026, 15:19":
+            - button "Details for 05 Nov 2026, 15:19":
+          - cell "05 Nov 2026, 15:19":
+            - generic: 05 Nov 2026, 15:19
+          - cell "lmh":
+            - generic: lmh
+        - row "Details for 05 Nov 2026, 15:18 05 Nov 2026, 15:18 lmh":
+          - cell "Details for 05 Nov 2026, 15:18":
+            - button "Details for 05 Nov 2026, 15:18":
+          - cell "05 Nov 2026, 15:18":
+            - generic: 05 Nov 2026, 15:18
+          - cell "lmh":
+            - generic: lmh
+        - row "Details for 05 Nov 2026, 15:17 05 Nov 2026, 15:17 lmh":
+          - cell "Details for 05 Nov 2026, 15:17":
+            - button "Details for 05 Nov 2026, 15:17":
+          - cell "05 Nov 2026, 15:17":
+            - generic: 05 Nov 2026, 15:17
+          - cell "lmh":
+            - generic: lmh
+        - row "Details for 04 Nov 2026, 17:57 04 Nov 2026, 17:57 lmh":
+          - cell "Details for 04 Nov 2026, 17:57":
+            - button "Details for 04 Nov 2026, 17:57":
+          - cell "04 Nov 2026, 17:57":
+            - generic: 04 Nov 2026, 17:57
+          - cell "lmh":
+            - generic: lmh
+        - row "Details for 28 Oct 2026, 13:22 28 Oct 2026, 13:22 lmh":
+          - cell "Details for 28 Oct 2026, 13:22":
+            - button "Details for 28 Oct 2026, 13:22":
+          - cell "28 Oct 2026, 13:22":
+            - generic: 28 Oct 2026, 13:22
+          - cell "lmh":
+            - generic: lmh
+        - row "Details for 23 Oct 2026, 11:51 23 Oct 2026, 11:51 lmh":
+          - cell "Details for 23 Oct 2026, 11:51":
+            - button "Details for 23 Oct 2026, 11:51":
+          - cell "23 Oct 2026, 11:51":
+            - generic: 23 Oct 2026, 11:51
+          - cell "lmh":
+            - generic: lmh
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

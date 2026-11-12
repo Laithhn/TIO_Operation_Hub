@@ -1,0 +1,1912 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Report library
+- heading "Reporting Center" [level=1]
+- generic: "All reports by category: configure, preview and export (CSV or Excel); the Tickets report also has the Report Builder."
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Section menu":
+  - navigation:
+    - link "Overview":
+      - /url: /reporting-center
+    - link "Report library":
+      - /url: /reporting-center/library
+    - link "Tickets report builder":
+      - /url: /reporting-center/builder/cases
+    - link "My reports":
+      - /url: /reporting-center/my-reports
+    - link "Scheduled reports":
+      - /url: /reporting-center/schedules
+    - link "Export history":
+      - /url: /reporting-center/history
+    - link "Templates":
+      - /url: /reporting-center/templates
+  - button "Expand menu":
+- main:
+  - button "← All reports"
+  - heading "Team KPI report" [level=2]
+  - paragraph: "Operational intelligence · How each person works their Jira tickets: first response and resolution times, SLA breaches, replies written, reopened and overdue tickets."
+  - list "Export steps":
+    - generic: "1"
+    - text: Configure
+    - generic: "2"
+    - text: Preview
+    - generic: "3"
+    - text: Export options
+    - generic: "4"
+    - text: Generate & download
+  - heading "1 · Configure" [level=2]
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Team
+  - combobox "Team":
+    - option "All teams" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+    - option "Abdalrhman (Aboud) Asaad"
+    - option "Abdulhamid Tork"
+    - option "Ahmed Awadalla"
+    - option "LMH OPR"
+    - option "Moataz Al Khaldi"
+    - option "Mohammad Al Omari"
+    - option "Mohammed Alqaruoti"
+    - option "Naveed Ur Rehman"
+    - option "Ousama Didouqen"
+    - option "Reda Moulouki"
+    - option "Reem Hamid"
+    - option "Shiju Unnithan"
+    - option "Tareq Abdul Jabar"
+    - option "Waleed Alharthi"
+    - option "Ziyad Bu Dukhi"
+  - generic: Opened from
+  - textbox "Opened from"
+  - generic: Tickets opened in this range, and replies written in it. Empty = all.
+  - generic: Opened to
+  - textbox "Opened to"
+  - generic: Time zone for dates and times
+  - combobox "Time zone for dates and times":
+    - option "Not set"
+    - option "(UTC−11:00) Pacific/Midway"
+    - option "(UTC−11:00) Pacific/Niue"
+    - option "(UTC−11:00) Pacific/Pago Pago"
+    - option "(UTC−10:00) America/Adak"
+    - option "(UTC−10:00) Pacific/Honolulu"
+    - option "(UTC−10:00) Pacific/Rarotonga"
+    - option "(UTC−10:00) Pacific/Tahiti"
+    - option "(UTC−09:30) Pacific/Marquesas"
+    - option "(UTC−09:00) America/Anchorage"
+    - option "(UTC−09:00) America/Juneau"
+    - option "(UTC−09:00) America/Metlakatla"
+    - option "(UTC−09:00) America/Nome"
+    - option "(UTC−09:00) America/Sitka"
+    - option "(UTC−09:00) America/Yakutat"
+    - option "(UTC−09:00) Pacific/Gambier"
+    - option "(UTC−08:00) America/Los Angeles"
+    - option "(UTC−08:00) America/Tijuana"
+    - option "(UTC−08:00) Pacific/Pitcairn"
+    - option "(UTC−07:00) America/Boise"
+    - option "(UTC−07:00) America/Cambridge Bay"
+    - option "(UTC−07:00) America/Ciudad Juarez"
+    - option "(UTC−07:00) America/Creston"
+    - option "(UTC−07:00) America/Dawson"
+    - option "(UTC−07:00) America/Dawson Creek"
+    - option "(UTC−07:00) America/Denver"
+    - option "(UTC−07:00) America/Fort Nelson"
+    - option "(UTC−07:00) America/Hermosillo"
+    - option "(UTC−07:00) America/Inuvik"
+    - option "(UTC−07:00) America/Mazatlan"
+    - option "(UTC−07:00) America/Phoenix"
+    - option "(UTC−07:00) America/Vancouver"
+    - option "(UTC−07:00) America/Whitehorse"
+    - option "(UTC−06:00) America/Bahia Banderas"
+    - option "(UTC−06:00) America/Belize"
+    - option "(UTC−06:00) America/Chicago"
+    - option "(UTC−06:00) America/Chihuahua"
+    - option "(UTC−06:00) America/Costa Rica"
+    - option "(UTC−06:00) America/Edmonton"
+    - option "(UTC−06:00) America/El Salvador"
+    - option "(UTC−06:00) America/Guatemala"
+    - option "(UTC−06:00) America/Indiana/Knox"
+    - option "(UTC−06:00) America/Indiana/Tell City"
+    - option "(UTC−06:00) America/Managua"
+    - option "(UTC−06:00) America/Matamoros"
+    - option "(UTC−06:00) America/Menominee"
+    - option "(UTC−06:00) America/Merida"
+    - option "(UTC−06:00) America/Mexico City"
+    - option "(UTC−06:00) America/Monterrey"
+    - option "(UTC−06:00) America/North Dakota/Beulah"
+    - option "(UTC−06:00) America/North Dakota/Center"
+    - option "(UTC−06:00) America/North Dakota/New Salem"
+    - option "(UTC−06:00) America/Ojinaga"
+    - option "(UTC−06:00) America/Rankin Inlet"
+    - option "(UTC−06:00) America/Regina"
+    - option "(UTC−06:00) America/Resolute"
+    - option "(UTC−06:00) America/Swift Current"
+    - option "(UTC−06:00) America/Tegucigalpa"
+    - option "(UTC−06:00) America/Winnipeg"
+    - option "(UTC−06:00) Pacific/Galapagos"
+    - option "(UTC−05:00) America/Bogota"
+    - option "(UTC−05:00) America/Cancun"
+    - option "(UTC−05:00) America/Cayman"
+    - option "(UTC−05:00) America/Coral Harbour"
+    - option "(UTC−05:00) America/Detroit"
+    - option "(UTC−05:00) America/Eirunepe"
+    - option "(UTC−05:00) America/Grand Turk"
+    - option "(UTC−05:00) America/Guayaquil"
+    - option "(UTC−05:00) America/Havana"
+    - option "(UTC−05:00) America/Indiana/Marengo"
+    - option "(UTC−05:00) America/Indiana/Petersburg"
+    - option "(UTC−05:00) America/Indiana/Vevay"
+    - option "(UTC−05:00) America/Indiana/Vincennes"
+    - option "(UTC−05:00) America/Indiana/Winamac"
+    - option "(UTC−05:00) America/Indianapolis"
+    - option "(UTC−05:00) America/Iqaluit"
+    - option "(UTC−05:00) America/Jamaica"
+    - option "(UTC−05:00) America/Kentucky/Monticello"
+    - option "(UTC−05:00) America/Lima"
+    - option "(UTC−05:00) America/Louisville"
+    - option "(UTC−05:00) America/Nassau"
+    - option "(UTC−05:00) America/New York"
+    - option "(UTC−05:00) America/Panama"
+    - option "(UTC−05:00) America/Port-au-Prince"
+    - option "(UTC−05:00) America/Rio Branco"
+    - option "(UTC−05:00) America/Toronto"
+    - option "(UTC−05:00) Pacific/Easter"
+    - option "(UTC−04:00) America/Anguilla"
+    - option "(UTC−04:00) America/Antigua"
+    - option "(UTC−04:00) America/Aruba"
+    - option "(UTC−04:00) America/Barbados"
+    - option "(UTC−04:00) America/Blanc-Sablon"
+    - option "(UTC−04:00) America/Boa Vista"
+    - option "(UTC−04:00) America/Campo Grande"
+    - option "(UTC−04:00) America/Caracas"
+    - option "(UTC−04:00) America/Cuiaba"
+    - option "(UTC−04:00) America/Curacao"
+    - option "(UTC−04:00) America/Dominica"
+    - option "(UTC−04:00) America/Glace Bay"
+    - option "(UTC−04:00) America/Goose Bay"
+    - option "(UTC−04:00) America/Grenada"
+    - option "(UTC−04:00) America/Guadeloupe"
+    - option "(UTC−04:00) America/Guyana"
+    - option "(UTC−04:00) America/Halifax"
+    - option "(UTC−04:00) America/Kralendijk"
+    - option "(UTC−04:00) America/La Paz"
+    - option "(UTC−04:00) America/Lower Princes"
+    - option "(UTC−04:00) America/Manaus"
+    - option "(UTC−04:00) America/Marigot"
+    - option "(UTC−04:00) America/Martinique"
+    - option "(UTC−04:00) America/Moncton"
+    - option "(UTC−04:00) America/Montserrat"
+    - option "(UTC−04:00) America/Port of Spain"
+    - option "(UTC−04:00) America/Porto Velho"
+    - option "(UTC−04:00) America/Puerto Rico"
+    - option "(UTC−04:00) America/Santo Domingo"
+    - option "(UTC−04:00) America/St Barthelemy"
+    - option "(UTC−04:00) America/St Kitts"
+    - option "(UTC−04:00) America/St Lucia"
+    - option "(UTC−04:00) America/St Thomas"
+    - option "(UTC−04:00) America/St Vincent"
+    - option "(UTC−04:00) America/Thule"
+    - option "(UTC−04:00) America/Tortola"
+    - option "(UTC−04:00) Atlantic/Bermuda"
+    - option "(UTC−03:30) America/St Johns"
+    - option "(UTC−03:00) America/Araguaina"
+    - option "(UTC−03:00) America/Argentina/La Rioja"
+    - option "(UTC−03:00) America/Argentina/Rio Gallegos"
+    - option "(UTC−03:00) America/Argentina/Salta"
+    - option "(UTC−03:00) America/Argentina/San Juan"
+    - option "(UTC−03:00) America/Argentina/San Luis"
+    - option "(UTC−03:00) America/Argentina/Tucuman"
+    - option "(UTC−03:00) America/Argentina/Ushuaia"
+    - option "(UTC−03:00) America/Asuncion"
+    - option "(UTC−03:00) America/Bahia"
+    - option "(UTC−03:00) America/Belem"
+    - option "(UTC−03:00) America/Buenos Aires"
+    - option "(UTC−03:00) America/Catamarca"
+    - option "(UTC−03:00) America/Cayenne"
+    - option "(UTC−03:00) America/Cordoba"
+    - option "(UTC−03:00) America/Coyhaique"
+    - option "(UTC−03:00) America/Fortaleza"
+    - option "(UTC−03:00) America/Jujuy"
+    - option "(UTC−03:00) America/Maceio"
+    - option "(UTC−03:00) America/Mendoza"
+    - option "(UTC−03:00) America/Miquelon"
+    - option "(UTC−03:00) America/Montevideo"
+    - option "(UTC−03:00) America/Paramaribo"
+    - option "(UTC−03:00) America/Punta Arenas"
+    - option "(UTC−03:00) America/Recife"
+    - option "(UTC−03:00) America/Santarem"
+    - option "(UTC−03:00) America/Santiago"
+    - option "(UTC−03:00) America/Sao Paulo"
+    - option "(UTC−03:00) Antarctica/Palmer"
+    - option "(UTC−03:00) Antarctica/Rothera"
+    - option "(UTC−03:00) Atlantic/Stanley"
+    - option "(UTC−02:00) America/Godthab"
+    - option "(UTC−02:00) America/Noronha"
+    - option "(UTC−02:00) America/Scoresbysund"
+    - option "(UTC−02:00) Atlantic/South Georgia"
+    - option "(UTC−01:00) Atlantic/Azores"
+    - option "(UTC−01:00) Atlantic/Cape Verde"
+    - option "(UTC+00:00) Africa/Abidjan"
+    - option "(UTC+00:00) Africa/Accra"
+    - option "(UTC+00:00) Africa/Bamako"
+    - option "(UTC+00:00) Africa/Banjul"
+    - option "(UTC+00:00) Africa/Bissau"
+    - option "(UTC+00:00) Africa/Casablanca"
+    - option "(UTC+00:00) Africa/Conakry"
+    - option "(UTC+00:00) Africa/Dakar"
+    - option "(UTC+00:00) Africa/El Aaiun"
+    - option "(UTC+00:00) Africa/Freetown"
+    - option "(UTC+00:00) Africa/Lome"
+    - option "(UTC+00:00) Africa/Monrovia"
+    - option "(UTC+00:00) Africa/Nouakchott"
+    - option "(UTC+00:00) Africa/Ouagadougou"
+    - option "(UTC+00:00) Africa/Sao Tome"
+    - option "(UTC+00:00) America/Danmarkshavn"
+    - option "(UTC+00:00) Antarctica/Troll"
+    - option "(UTC+00:00) Atlantic/Canary"
+    - option "(UTC+00:00) Atlantic/Faeroe"
+    - option "(UTC+00:00) Atlantic/Madeira"
+    - option "(UTC+00:00) Atlantic/Reykjavik"
+    - option "(UTC+00:00) Atlantic/St Helena"
+    - option "(UTC+00:00) Europe/Dublin"
+    - option "(UTC+00:00) Europe/Guernsey"
+    - option "(UTC+00:00) Europe/Isle of Man"
+    - option "(UTC+00:00) Europe/Jersey"
+    - option "(UTC+00:00) Europe/Lisbon"
+    - option "(UTC+00:00) Europe/London"
+    - option "(UTC+00:00) UTC"
+    - option "(UTC+01:00) Africa/Algiers"
+    - option "(UTC+01:00) Africa/Bangui"
+    - option "(UTC+01:00) Africa/Brazzaville"
+    - option "(UTC+01:00) Africa/Ceuta"
+    - option "(UTC+01:00) Africa/Douala"
+    - option "(UTC+01:00) Africa/Kinshasa"
+    - option "(UTC+01:00) Africa/Lagos"
+    - option "(UTC+01:00) Africa/Libreville"
+    - option "(UTC+01:00) Africa/Luanda"
+    - option "(UTC+01:00) Africa/Malabo"
+    - option "(UTC+01:00) Africa/Ndjamena"
+    - option "(UTC+01:00) Africa/Niamey"
+    - option "(UTC+01:00) Africa/Porto-Novo"
+    - option "(UTC+01:00) Africa/Tunis"
+    - option "(UTC+01:00) Arctic/Longyearbyen"
+    - option "(UTC+01:00) Europe/Amsterdam"
+    - option "(UTC+01:00) Europe/Andorra"
+    - option "(UTC+01:00) Europe/Belgrade"
+    - option "(UTC+01:00) Europe/Berlin"
+    - option "(UTC+01:00) Europe/Bratislava"
+    - option "(UTC+01:00) Europe/Brussels"
+    - option "(UTC+01:00) Europe/Budapest"
+    - option "(UTC+01:00) Europe/Busingen"
+    - option "(UTC+01:00) Europe/Copenhagen"
+    - option "(UTC+01:00) Europe/Gibraltar"
+    - option "(UTC+01:00) Europe/Ljubljana"
+    - option "(UTC+01:00) Europe/Luxembourg"
+    - option "(UTC+01:00) Europe/Madrid"
+    - option "(UTC+01:00) Europe/Malta"
+    - option "(UTC+01:00) Europe/Monaco"
+    - option "(UTC+01:00) Europe/Oslo"
+    - option "(UTC+01:00) Europe/Paris"
+    - option "(UTC+01:00) Europe/Podgorica"
+    - option "(UTC+01:00) Europe/Prague"
+    - option "(UTC+01:00) Europe/Rome"
+    - option "(UTC+01:00) Europe/San Marino"
+    - option "(UTC+01:00) Europe/Sarajevo"
+    - option "(UTC+01:00) Europe/Skopje"
+    - option "(UTC+01:00) Europe/Stockholm"
+    - option "(UTC+01:00) Europe/Tirane"
+    - option "(UTC+01:00) Europe/Vaduz"
+    - option "(UTC+01:00) Europe/Vatican"
+    - option "(UTC+01:00) Europe/Vienna"
+    - option "(UTC+01:00) Europe/Warsaw"
+    - option "(UTC+01:00) Europe/Zagreb"
+    - option "(UTC+01:00) Europe/Zurich"
+    - option "(UTC+02:00) Africa/Blantyre"
+    - option "(UTC+02:00) Africa/Bujumbura"
+    - option "(UTC+02:00) Africa/Cairo"
+    - option "(UTC+02:00) Africa/Gaborone"
+    - option "(UTC+02:00) Africa/Harare"
+    - option "(UTC+02:00) Africa/Johannesburg"
+    - option "(UTC+02:00) Africa/Juba"
+    - option "(UTC+02:00) Africa/Khartoum"
+    - option "(UTC+02:00) Africa/Kigali"
+    - option "(UTC+02:00) Africa/Lubumbashi"
+    - option "(UTC+02:00) Africa/Lusaka"
+    - option "(UTC+02:00) Africa/Maputo"
+    - option "(UTC+02:00) Africa/Maseru"
+    - option "(UTC+02:00) Africa/Mbabane"
+    - option "(UTC+02:00) Africa/Tripoli"
+    - option "(UTC+02:00) Africa/Windhoek"
+    - option "(UTC+02:00) Asia/Beirut"
+    - option "(UTC+02:00) Asia/Famagusta"
+    - option "(UTC+02:00) Asia/Gaza"
+    - option "(UTC+02:00) Asia/Hebron"
+    - option "(UTC+02:00) Asia/Jerusalem"
+    - option "(UTC+02:00) Asia/Nicosia"
+    - option "(UTC+02:00) Europe/Athens"
+    - option "(UTC+02:00) Europe/Bucharest"
+    - option "(UTC+02:00) Europe/Chisinau"
+    - option "(UTC+02:00) Europe/Helsinki"
+    - option "(UTC+02:00) Europe/Kaliningrad"
+    - option "(UTC+02:00) Europe/Kiev"
+    - option "(UTC+02:00) Europe/Mariehamn"
+    - option "(UTC+02:00) Europe/Riga"
+    - option "(UTC+02:00) Europe/Sofia"
+    - option "(UTC+02:00) Europe/Tallinn"
+    - option "(UTC+02:00) Europe/Vilnius"
+    - option "(UTC+03:00) Africa/Addis Ababa"
+    - option "(UTC+03:00) Africa/Asmera"
+    - option "(UTC+03:00) Africa/Dar es Salaam"
+    - option "(UTC+03:00) Africa/Djibouti"
+    - option "(UTC+03:00) Africa/Kampala"
+    - option "(UTC+03:00) Africa/Mogadishu"
+    - option "(UTC+03:00) Africa/Nairobi"
+    - option "(UTC+03:00) Antarctica/Syowa"
+    - option "(UTC+03:00) Asia/Aden"
+    - option "(UTC+03:00) Asia/Amman"
+    - option "(UTC+03:00) Asia/Baghdad"
+    - option "(UTC+03:00) Asia/Bahrain"
+    - option "(UTC+03:00) Asia/Damascus"
+    - option "(UTC+03:00) Asia/Kuwait"
+    - option "(UTC+03:00) Asia/Qatar"
+    - option "(UTC+03:00) Asia/Riyadh"
+    - option "(UTC+03:00) Europe/Istanbul"
+    - option "(UTC+03:00) Europe/Kirov"
+    - option "(UTC+03:00) Europe/Minsk"
+    - option "(UTC+03:00) Europe/Moscow"
+    - option "(UTC+03:00) Europe/Simferopol"
+    - option "(UTC+03:00) Europe/Volgograd"
+    - option "(UTC+03:00) Indian/Antananarivo"
+    - option "(UTC+03:00) Indian/Comoro"
+    - option "(UTC+03:00) Indian/Mayotte"
+    - option "(UTC+03:30) Asia/Tehran"
+    - option "(UTC+04:00) Asia/Baku"
+    - option "(UTC+04:00) Asia/Dubai" [selected]
+    - option "(UTC+04:00) Asia/Muscat"
+    - option "(UTC+04:00) Asia/Tbilisi"
+    - option "(UTC+04:00) Asia/Yerevan"
+    - option "(UTC+04:00) Europe/Astrakhan"
+    - option "(UTC+04:00) Europe/Samara"
+    - option "(UTC+04:00) Europe/Saratov"
+    - option "(UTC+04:00) Europe/Ulyanovsk"
+    - option "(UTC+04:00) Indian/Mahe"
+    - option "(UTC+04:00) Indian/Mauritius"
+    - option "(UTC+04:00) Indian/Reunion"
+    - option "(UTC+04:30) Asia/Kabul"
+    - option "(UTC+05:00) Antarctica/Mawson"
+    - option "(UTC+05:00) Antarctica/Vostok"
+    - option "(UTC+05:00) Asia/Almaty"
+    - option "(UTC+05:00) Asia/Aqtau"
+    - option "(UTC+05:00) Asia/Aqtobe"
+    - option "(UTC+05:00) Asia/Ashgabat"
+    - option "(UTC+05:00) Asia/Atyrau"
+    - option "(UTC+05:00) Asia/Dushanbe"
+    - option "(UTC+05:00) Asia/Karachi"
+    - option "(UTC+05:00) Asia/Oral"
+    - option "(UTC+05:00) Asia/Qostanay"
+    - option "(UTC+05:00) Asia/Qyzylorda"
+    - option "(UTC+05:00) Asia/Samarkand"
+    - option "(UTC+05:00) Asia/Tashkent"
+    - option "(UTC+05:00) Asia/Yekaterinburg"
+    - option "(UTC+05:00) Indian/Kerguelen"
+    - option "(UTC+05:00) Indian/Maldives"
+    - option "(UTC+05:30) Asia/Calcutta"
+    - option "(UTC+05:30) Asia/Colombo"
+    - option "(UTC+05:45) Asia/Katmandu"
+    - option "(UTC+06:00) Asia/Bishkek"
+    - option "(UTC+06:00) Asia/Dhaka"
+    - option "(UTC+06:00) Asia/Omsk"
+    - option "(UTC+06:00) Asia/Thimphu"
+    - option "(UTC+06:00) Asia/Urumqi"
+    - option "(UTC+06:00) Indian/Chagos"
+    - option "(UTC+06:30) Asia/Rangoon"
+    - option "(UTC+06:30) Indian/Cocos"
+    - option "(UTC+07:00) Antarctica/Davis"
+    - option "(UTC+07:00) Asia/Bangkok"
+    - option "(UTC+07:00) Asia/Barnaul"
+    - option "(UTC+07:00) Asia/Hovd"
+    - option "(UTC+07:00) Asia/Jakarta"
+    - option "(UTC+07:00) Asia/Krasnoyarsk"
+    - option "(UTC+07:00) Asia/Novokuznetsk"
+    - option "(UTC+07:00) Asia/Novosibirsk"
+    - option "(UTC+07:00) Asia/Phnom Penh"
+    - option "(UTC+07:00) Asia/Pontianak"
+    - option "(UTC+07:00) Asia/Saigon"
+    - option "(UTC+07:00) Asia/Tomsk"
+    - option "(UTC+07:00) Asia/Vientiane"
+    - option "(UTC+07:00) Indian/Christmas"
+    - option "(UTC+08:00) Antarctica/Casey"
+    - option "(UTC+08:00) Asia/Brunei"
+    - option "(UTC+08:00) Asia/Hong Kong"
+    - option "(UTC+08:00) Asia/Irkutsk"
+    - option "(UTC+08:00) Asia/Kuala Lumpur"
+    - option "(UTC+08:00) Asia/Kuching"
+    - option "(UTC+08:00) Asia/Macau"
+    - option "(UTC+08:00) Asia/Makassar"
+    - option "(UTC+08:00) Asia/Manila"
+    - option "(UTC+08:00) Asia/Shanghai"
+    - option "(UTC+08:00) Asia/Singapore"
+    - option "(UTC+08:00) Asia/Taipei"
+    - option "(UTC+08:00) Asia/Ulaanbaatar"
+    - option "(UTC+08:00) Australia/Perth"
+    - option "(UTC+08:45) Australia/Eucla"
+    - option "(UTC+09:00) Asia/Chita"
+    - option "(UTC+09:00) Asia/Dili"
+    - option "(UTC+09:00) Asia/Jayapura"
+    - option "(UTC+09:00) Asia/Khandyga"
+    - option "(UTC+09:00) Asia/Pyongyang"
+    - option "(UTC+09:00) Asia/Seoul"
+    - option "(UTC+09:00) Asia/Tokyo"
+    - option "(UTC+09:00) Asia/Yakutsk"
+    - option "(UTC+09:00) Pacific/Palau"
+    - option "(UTC+09:30) Australia/Darwin"
+    - option "(UTC+10:00) Antarctica/DumontDUrville"
+    - option "(UTC+10:00) Asia/Ust-Nera"
+    - option "(UTC+10:00) Asia/Vladivostok"
+    - option "(UTC+10:00) Australia/Brisbane"
+    - option "(UTC+10:00) Australia/Lindeman"
+    - option "(UTC+10:00) Pacific/Guam"
+    - option "(UTC+10:00) Pacific/Port Moresby"
+    - option "(UTC+10:00) Pacific/Saipan"
+    - option "(UTC+10:00) Pacific/Truk"
+    - option "(UTC+10:30) Australia/Adelaide"
+    - option "(UTC+10:30) Australia/Broken Hill"
+    - option "(UTC+11:00) Antarctica/Macquarie"
+    - option "(UTC+11:00) Asia/Magadan"
+    - option "(UTC+11:00) Asia/Sakhalin"
+    - option "(UTC+11:00) Asia/Srednekolymsk"
+    - option "(UTC+11:00) Australia/Hobart"
+    - option "(UTC+11:00) Australia/Lord Howe"
+    - option "(UTC+11:00) Australia/Melbourne"
+    - option "(UTC+11:00) Australia/Sydney"
+    - option "(UTC+11:00) Pacific/Bougainville"
+    - option "(UTC+11:00) Pacific/Efate"
+    - option "(UTC+11:00) Pacific/Guadalcanal"
+    - option "(UTC+11:00) Pacific/Kosrae"
+    - option "(UTC+11:00) Pacific/Noumea"
+    - option "(UTC+11:00) Pacific/Ponape"
+    - option "(UTC+12:00) Asia/Anadyr"
+    - option "(UTC+12:00) Asia/Kamchatka"
+    - option "(UTC+12:00) Pacific/Fiji"
+    - option "(UTC+12:00) Pacific/Funafuti"
+    - option "(UTC+12:00) Pacific/Kwajalein"
+    - option "(UTC+12:00) Pacific/Majuro"
+    - option "(UTC+12:00) Pacific/Nauru"
+    - option "(UTC+12:00) Pacific/Norfolk"
+    - option "(UTC+12:00) Pacific/Tarawa"
+    - option "(UTC+12:00) Pacific/Wake"
+    - option "(UTC+12:00) Pacific/Wallis"
+    - option "(UTC+13:00) Antarctica/McMurdo"
+    - option "(UTC+13:00) Pacific/Apia"
+    - option "(UTC+13:00) Pacific/Auckland"
+    - option "(UTC+13:00) Pacific/Enderbury"
+    - option "(UTC+13:00) Pacific/Fakaofo"
+    - option "(UTC+13:00) Pacific/Tongatapu"
+    - option "(UTC+13:45) Pacific/Chatham"
+    - option "(UTC+14:00) Pacific/Kiritimati"
+  - generic: Dates in the filters are calendar days in this zone.
+  - generic: "No filters: all rows you are authorized to see."
+  - button "Reset filters"
+  - button "Refresh preview" [active]
+  - generic "Save these filters as a preset"
+  - heading "2 · Preview" [level=2]
+  - generic: 36 matching row(s) · data as of 10 Nov 2026, 17:06 (Asia/Dubai)
+  - paragraph: "Team KPI report · Filters: none"
+  - generic "Report summary":
+    - generic "Tickets opened in the range, not cancelled.":
+      - generic: "1949"
+      - generic: Tickets
+      - generic: Tickets opened in the range, not cancelled.
+    - generic "Breached ÷ (met + breached). A ticket whose replies come only from people not mapped in Jira users has no first response, and counts as breached.":
+      - generic: 70.6%
+      - generic: Response breaches
+      - generic: Breached ÷ (met + breached). A ticket whose replies come only from people not mapped in Jira users has no first response, and counts as breached.
+    - generic "Breached ÷ (met + breached).":
+      - generic: 87.2%
+      - generic: Resolution breaches
+      - generic: Breached ÷ (met + breached).
+    - generic "Open tickets past their due date.":
+      - generic: "73"
+      - generic: Overdue now
+      - generic: Open tickets past their due date.
+    - generic "Public Jira comments by mapped people.":
+      - generic: "7911"
+      - generic: Replies written
+      - generic: Public Jira comments by mapped people.
+    - 'generic "No person: no owner, and the Jira assignee is unmapped or a client contact."':
+      - generic: "1448"
+      - generic: Unassigned
+      - generic: "No person: no owner, and the Jira assignee is unmapped or a client contact."
+  - heading "By team" [level=3]
+  - region "By team":
+    - 'group "By team: scroll sideways for more columns"':
+      - table "By team":
+        - caption: By team
+        - rowgroup:
+          - row "Team Tickets Open Response breached Resolution breached Overdue Replies":
+            - columnheader "Team":
+              - button "Team":
+                - generic: Team
+            - columnheader "Tickets":
+              - button "Tickets":
+                - generic: Tickets
+            - columnheader "Open":
+              - button "Open":
+                - generic: Open
+            - columnheader "Response breached":
+              - button "Response breached":
+                - generic: Response breached
+            - columnheader "Resolution breached":
+              - button "Resolution breached":
+                - generic: Resolution breached
+            - columnheader "Overdue":
+              - button "Overdue":
+                - generic: Overdue
+            - columnheader "Replies":
+              - button "Replies":
+                - generic: Replies
+        - rowgroup:
+          - row "Dubai Office Operation Team 142 65 0 0 0 1140":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "142":
+              - generic: "142"
+            - cell "65":
+              - generic: "65"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "1140":
+              - generic: "1140"
+          - row "KSA Operation Team 1465 91 421 496 58 5405":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "1465":
+              - generic: "1465"
+            - cell "91":
+              - generic: "91"
+            - cell "421":
+              - generic: "421"
+            - cell "496":
+              - generic: "496"
+            - cell "58":
+              - generic: "58"
+            - cell "5405":
+              - generic: "5405"
+          - row "No team 342 27 55 84 15 1366":
+            - cell "No team":
+              - generic: No team
+            - cell "342":
+              - generic: "342"
+            - cell "27":
+              - generic: "27"
+            - cell "55":
+              - generic: "55"
+            - cell "84":
+              - generic: "84"
+            - cell "15":
+              - generic: "15"
+            - cell "1366":
+              - generic: "1366"
+    - status
+  - region "Preview of Team KPI report":
+    - 'group "Preview of Team KPI report: scroll sideways for more columns"':
+      - table "Preview of Team KPI report":
+        - caption: Preview of Team KPI report
+        - rowgroup:
+          - row "Team Person Tickets Open Closed First responses Average first response (h) Median first response (h) Response met Response breached Response breach % Resolved Average resolution (h) Median resolution (h) Resolution met Resolution breached Resolution breach % Overdue Waiting Reopened Reopened % Replies written First replies written":
+            - columnheader "Team":
+              - button "Team":
+                - generic: Team
+            - columnheader "Person":
+              - button "Person":
+                - generic: Person
+            - columnheader "Tickets":
+              - button "Tickets":
+                - generic: Tickets
+            - columnheader "Open":
+              - button "Open":
+                - generic: Open
+            - columnheader "Closed":
+              - button "Closed":
+                - generic: Closed
+            - columnheader "First responses":
+              - button "First responses":
+                - generic: First responses
+            - columnheader "Average first response (h)":
+              - button "Average first response (h)":
+                - generic: Average first response (h)
+            - columnheader "Median first response (h)":
+              - button "Median first response (h)":
+                - generic: Median first response (h)
+            - columnheader "Response met":
+              - button "Response met":
+                - generic: Response met
+            - columnheader "Response breached":
+              - button "Response breached":
+                - generic: Response breached
+            - columnheader "Response breach %":
+              - button "Response breach %":
+                - generic: Response breach %
+            - columnheader "Resolved":
+              - button "Resolved":
+                - generic: Resolved
+            - columnheader "Average resolution (h)":
+              - button "Average resolution (h)":
+                - generic: Average resolution (h)
+            - columnheader "Median resolution (h)":
+              - button "Median resolution (h)":
+                - generic: Median resolution (h)
+            - columnheader "Resolution met":
+              - button "Resolution met":
+                - generic: Resolution met
+            - columnheader "Resolution breached":
+              - button "Resolution breached":
+                - generic: Resolution breached
+            - columnheader "Resolution breach %":
+              - button "Resolution breach %":
+                - generic: Resolution breach %
+            - columnheader "Overdue":
+              - button "Overdue":
+                - generic: Overdue
+            - columnheader "Waiting":
+              - button "Waiting":
+                - generic: Waiting
+            - columnheader "Reopened":
+              - button "Reopened":
+                - generic: Reopened
+            - columnheader "Reopened %":
+              - button "Reopened %":
+                - generic: Reopened %
+            - columnheader "Replies written":
+              - button "Replies written":
+                - generic: Replies written
+            - columnheader "First replies written":
+              - button "First replies written":
+                - generic: First replies written
+        - rowgroup:
+          - row "Dubai Office Operation Team Unassigned 47 34 13 33 6091.6 1035.1 0 0 13 10839.7 12337 0 0 0 29 0 0 0 0":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "47":
+              - generic: "47"
+            - cell "34":
+              - generic: "34"
+            - cell "13":
+              - generic: "13"
+            - cell "33":
+              - generic: "33"
+            - cell "6091.6":
+              - generic: "6091.6"
+            - cell "1035.1":
+              - generic: "1035.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "13":
+              - generic: "13"
+            - cell "10839.7":
+              - generic: "10839.7"
+            - cell "12337":
+              - generic: "12337"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "29":
+              - generic: "29"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+          - row "Dubai Office Operation Team Ala AlBarghouthi 32 6 26 28 94.8 1 0 0 26 6653.2 4318.3 0 0 0 0 0 0 189 66":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Ala AlBarghouthi":
+              - generic: Ala AlBarghouthi
+            - cell "32":
+              - generic: "32"
+            - cell "6":
+              - generic: "6"
+            - cell "26":
+              - generic: "26"
+            - cell "28":
+              - generic: "28"
+            - cell "94.8":
+              - generic: "94.8"
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "26":
+              - generic: "26"
+            - cell "6653.2":
+              - generic: "6653.2"
+            - cell "4318.3":
+              - generic: "4318.3"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "189":
+              - generic: "189"
+            - cell "66":
+              - generic: "66"
+          - row "Dubai Office Operation Team Moath Zayed 14 0 14 13 5168.9 954.1 0 0 14 10768.9 12062 0 0 0 0 0 0 175 72":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Moath Zayed":
+              - generic: Moath Zayed
+            - cell "14":
+              - generic: "14"
+            - cell "0":
+              - generic: "0"
+            - cell "14":
+              - generic: "14"
+            - cell "13":
+              - generic: "13"
+            - cell "5168.9":
+              - generic: "5168.9"
+            - cell "954.1":
+              - generic: "954.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "14":
+              - generic: "14"
+            - cell "10768.9":
+              - generic: "10768.9"
+            - cell "12062":
+              - generic: "12062"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "175":
+              - generic: "175"
+            - cell "72":
+              - generic: "72"
+          - row "Dubai Office Operation Team Ngirababo 14 2 12 14 17.3 0.1 0 0 12 9249.2 12070.4 0 0 0 2 0 0 6 3":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Ngirababo":
+              - generic: Ngirababo
+            - cell "14":
+              - generic: "14"
+            - cell "2":
+              - generic: "2"
+            - cell "12":
+              - generic: "12"
+            - cell "14":
+              - generic: "14"
+            - cell "17.3":
+              - generic: "17.3"
+            - cell "0.1":
+              - generic: "0.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "12":
+              - generic: "12"
+            - cell "9249.2":
+              - generic: "9249.2"
+            - cell "12070.4":
+              - generic: "12070.4"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "2":
+              - generic: "2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "6":
+              - generic: "6"
+            - cell "3":
+              - generic: "3"
+          - row "Dubai Office Operation Team amai 13 9 4 4 3658.2 0.2 0 0 4 9573.7 12188.8 0 0 0 0 0 0 0 0":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "amai":
+              - generic: amai
+            - cell "13":
+              - generic: "13"
+            - cell "9":
+              - generic: "9"
+            - cell "4":
+              - generic: "4"
+            - cell "4":
+              - generic: "4"
+            - cell "3658.2":
+              - generic: "3658.2"
+            - cell "0.2":
+              - generic: "0.2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "4":
+              - generic: "4"
+            - cell "9573.7":
+              - generic: "9573.7"
+            - cell "12188.8":
+              - generic: "12188.8"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+          - row "Dubai Office Operation Team Abdalrhman (Aboud) Asaad 8 4 4 3 0 0 0 0 4 6181.3 5906.1 0 0 0 0 0 0 1 0":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Abdalrhman (Aboud) Asaad":
+              - generic: Abdalrhman (Aboud) Asaad
+            - cell "8":
+              - generic: "8"
+            - cell "4":
+              - generic: "4"
+            - cell "4":
+              - generic: "4"
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "4":
+              - generic: "4"
+            - cell "6181.3":
+              - generic: "6181.3"
+            - cell "5906.1":
+              - generic: "5906.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+          - row "Dubai Office Operation Team Adnan Ahmed 6 4 2 2 554.4 554.4 0 0 2 12492.1 12492.1 0 0 0 0 0 0 4 1":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Adnan Ahmed":
+              - generic: Adnan Ahmed
+            - cell "6":
+              - generic: "6"
+            - cell "4":
+              - generic: "4"
+            - cell "2":
+              - generic: "2"
+            - cell "2":
+              - generic: "2"
+            - cell "554.4":
+              - generic: "554.4"
+            - cell "554.4":
+              - generic: "554.4"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "2":
+              - generic: "2"
+            - cell "12492.1":
+              - generic: "12492.1"
+            - cell "12492.1":
+              - generic: "12492.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "4":
+              - generic: "4"
+            - cell "1":
+              - generic: "1"
+          - row "Dubai Office Operation Team car 6 6 0 2 0.2 0.2 0 0 0 0 0 0 0 0 0 1 1":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "car":
+              - generic: car
+            - cell "6":
+              - generic: "6"
+            - cell "6":
+              - generic: "6"
+            - cell "0":
+              - generic: "0"
+            - cell "2":
+              - generic: "2"
+            - cell "0.2":
+              - generic: "0.2"
+            - cell "0.2":
+              - generic: "0.2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "1":
+              - generic: "1"
+            - cell "1":
+              - generic: "1"
+          - row "Dubai Office Operation Team Laith Hamdan 1 0 1 1 407.5 407.5 0 0 1 882.2 882.2 0 0 0 0 0 0 247 66":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+            - cell "1":
+              - generic: "1"
+            - cell "1":
+              - generic: "1"
+            - cell "407.5":
+              - generic: "407.5"
+            - cell "407.5":
+              - generic: "407.5"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "1":
+              - generic: "1"
+            - cell "882.2":
+              - generic: "882.2"
+            - cell "882.2":
+              - generic: "882.2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "247":
+              - generic: "247"
+            - cell "66":
+              - generic: "66"
+          - row "Dubai Office Operation Team Mohammed Alqaruoti 1 0 1 1 164.1 164.1 0 0 1 10468.2 10468.2 0 0 0 0 0 0 517 130":
+            - cell "Dubai Office Operation Team":
+              - generic: Dubai Office Operation Team
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+            - cell "1":
+              - generic: "1"
+            - cell "1":
+              - generic: "1"
+            - cell "164.1":
+              - generic: "164.1"
+            - cell "164.1":
+              - generic: "164.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "1":
+              - generic: "1"
+            - cell "10468.2":
+              - generic: "10468.2"
+            - cell "10468.2":
+              - generic: "10468.2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "517":
+              - generic: "517"
+            - cell "130":
+              - generic: "130"
+          - row "KSA Operation Team Unassigned 1174 59 1115 973 492.4 46.1 133 318 70.5 1115 2309.8 526.2 58 393 87.1 37 33 0 0 0 0":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Unassigned":
+              - generic: Unassigned
+            - cell "1174":
+              - generic: "1174"
+            - cell "59":
+              - generic: "59"
+            - cell "1115":
+              - generic: "1115"
+            - cell "973":
+              - generic: "973"
+            - cell "492.4":
+              - generic: "492.4"
+            - cell "46.1":
+              - generic: "46.1"
+            - cell "133":
+              - generic: "133"
+            - cell "318":
+              - generic: "318"
+            - cell "70.5":
+              - generic: "70.5"
+            - cell "1115":
+              - generic: "1115"
+            - cell "2309.8":
+              - generic: "2309.8"
+            - cell "526.2":
+              - generic: "526.2"
+            - cell "58":
+              - generic: "58"
+            - cell "393":
+              - generic: "393"
+            - cell "87.1":
+              - generic: "87.1"
+            - cell "37":
+              - generic: "37"
+            - cell "33":
+              - generic: "33"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+          - row "KSA Operation Team Abdulhamid Tork 84 2 82 61 1006.2 146.5 1 25 96.2 82 5063.5 2048.6 1 25 96.2 0 0 0 0 373 80":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Abdulhamid Tork":
+              - generic: Abdulhamid Tork
+            - cell "84":
+              - generic: "84"
+            - cell "2":
+              - generic: "2"
+            - cell "82":
+              - generic: "82"
+            - cell "61":
+              - generic: "61"
+            - cell "1006.2":
+              - generic: "1006.2"
+            - cell "146.5":
+              - generic: "146.5"
+            - cell "1":
+              - generic: "1"
+            - cell "25":
+              - generic: "25"
+            - cell "96.2":
+              - generic: "96.2"
+            - cell "82":
+              - generic: "82"
+            - cell "5063.5":
+              - generic: "5063.5"
+            - cell "2048.6":
+              - generic: "2048.6"
+            - cell "1":
+              - generic: "1"
+            - cell "25":
+              - generic: "25"
+            - cell "96.2":
+              - generic: "96.2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "373":
+              - generic: "373"
+            - cell "80":
+              - generic: "80"
+          - row "KSA Operation Team Ahmed Awadalla 78 9 69 53 459.5 40.2 9 36 80 69 1312.7 430.9 9 33 78.6 5 6 0 0 1552 378":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Ahmed Awadalla":
+              - generic: Ahmed Awadalla
+            - cell "78":
+              - generic: "78"
+            - cell "9":
+              - generic: "9"
+            - cell "69":
+              - generic: "69"
+            - cell "53":
+              - generic: "53"
+            - cell "459.5":
+              - generic: "459.5"
+            - cell "40.2":
+              - generic: "40.2"
+            - cell "9":
+              - generic: "9"
+            - cell "36":
+              - generic: "36"
+            - cell "80":
+              - generic: "80"
+            - cell "69":
+              - generic: "69"
+            - cell "1312.7":
+              - generic: "1312.7"
+            - cell "430.9":
+              - generic: "430.9"
+            - cell "9":
+              - generic: "9"
+            - cell "33":
+              - generic: "33"
+            - cell "78.6":
+              - generic: "78.6"
+            - cell "5":
+              - generic: "5"
+            - cell "6":
+              - generic: "6"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "1552":
+              - generic: "1552"
+            - cell "378":
+              - generic: "378"
+          - row "KSA Operation Team Waleed Alharthi 40 0 40 29 101.6 24.2 6 12 66.7 40 523.1 129.1 6 12 66.7 0 0 0 0 569 129":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Waleed Alharthi":
+              - generic: Waleed Alharthi
+            - cell "40":
+              - generic: "40"
+            - cell "0":
+              - generic: "0"
+            - cell "40":
+              - generic: "40"
+            - cell "29":
+              - generic: "29"
+            - cell "101.6":
+              - generic: "101.6"
+            - cell "24.2":
+              - generic: "24.2"
+            - cell "6":
+              - generic: "6"
+            - cell "12":
+              - generic: "12"
+            - cell "66.7":
+              - generic: "66.7"
+            - cell "40":
+              - generic: "40"
+            - cell "523.1":
+              - generic: "523.1"
+            - cell "129.1":
+              - generic: "129.1"
+            - cell "6":
+              - generic: "6"
+            - cell "12":
+              - generic: "12"
+            - cell "66.7":
+              - generic: "66.7"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "569":
+              - generic: "569"
+            - cell "129":
+              - generic: "129"
+          - row "KSA Operation Team Faisal Alyami 17 0 17 15 68.9 19.4 2 5 71.4 17 911.7 120.1 1 6 85.7 0 0 0 0 596 151":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Faisal Alyami":
+              - generic: Faisal Alyami
+            - cell "17":
+              - generic: "17"
+            - cell "0":
+              - generic: "0"
+            - cell "17":
+              - generic: "17"
+            - cell "15":
+              - generic: "15"
+            - cell "68.9":
+              - generic: "68.9"
+            - cell "19.4":
+              - generic: "19.4"
+            - cell "2":
+              - generic: "2"
+            - cell "5":
+              - generic: "5"
+            - cell "71.4":
+              - generic: "71.4"
+            - cell "17":
+              - generic: "17"
+            - cell "911.7":
+              - generic: "911.7"
+            - cell "120.1":
+              - generic: "120.1"
+            - cell "1":
+              - generic: "1"
+            - cell "6":
+              - generic: "6"
+            - cell "85.7":
+              - generic: "85.7"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "596":
+              - generic: "596"
+            - cell "151":
+              - generic: "151"
+          - row "KSA Operation Team Abdulaziz Yousif Alghamdi 17 0 17 11 223.8 117.9 0 7 100 17 1610.7 833.3 0 7 100 0 0 0 0 127 22":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Abdulaziz Yousif Alghamdi":
+              - generic: Abdulaziz Yousif Alghamdi
+            - cell "17":
+              - generic: "17"
+            - cell "0":
+              - generic: "0"
+            - cell "17":
+              - generic: "17"
+            - cell "11":
+              - generic: "11"
+            - cell "223.8":
+              - generic: "223.8"
+            - cell "117.9":
+              - generic: "117.9"
+            - cell "0":
+              - generic: "0"
+            - cell "7":
+              - generic: "7"
+            - cell "100":
+              - generic: "100"
+            - cell "17":
+              - generic: "17"
+            - cell "1610.7":
+              - generic: "1610.7"
+            - cell "833.3":
+              - generic: "833.3"
+            - cell "0":
+              - generic: "0"
+            - cell "7":
+              - generic: "7"
+            - cell "100":
+              - generic: "100"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "127":
+              - generic: "127"
+            - cell "22":
+              - generic: "22"
+          - row "KSA Operation Team Naveed Ur Rehman 16 14 2 7 412.5 29.7 2 12 85.7 2 3063.8 3063.8 0 11 100 9 0 0 0 923 286":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Naveed Ur Rehman":
+              - generic: Naveed Ur Rehman
+            - cell "16":
+              - generic: "16"
+            - cell "14":
+              - generic: "14"
+            - cell "2":
+              - generic: "2"
+            - cell "7":
+              - generic: "7"
+            - cell "412.5":
+              - generic: "412.5"
+            - cell "29.7":
+              - generic: "29.7"
+            - cell "2":
+              - generic: "2"
+            - cell "12":
+              - generic: "12"
+            - cell "85.7":
+              - generic: "85.7"
+            - cell "2":
+              - generic: "2"
+            - cell "3063.8":
+              - generic: "3063.8"
+            - cell "3063.8":
+              - generic: "3063.8"
+            - cell "0":
+              - generic: "0"
+            - cell "11":
+              - generic: "11"
+            - cell "100":
+              - generic: "100"
+            - cell "9":
+              - generic: "9"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "923":
+              - generic: "923"
+            - cell "286":
+              - generic: "286"
+          - row "KSA Operation Team Laith Hamdan 15 0 15 13 282 146.5 0 0 15 2486.2 1249.5 0 0 0 0 0 0 247 66":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Laith Hamdan":
+              - generic: Laith Hamdan
+            - cell "15":
+              - generic: "15"
+            - cell "0":
+              - generic: "0"
+            - cell "15":
+              - generic: "15"
+            - cell "13":
+              - generic: "13"
+            - cell "282":
+              - generic: "282"
+            - cell "146.5":
+              - generic: "146.5"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "15":
+              - generic: "15"
+            - cell "2486.2":
+              - generic: "2486.2"
+            - cell "1249.5":
+              - generic: "1249.5"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "247":
+              - generic: "247"
+            - cell "66":
+              - generic: "66"
+          - row "KSA Operation Team Tareq Abdul Jabar 5 2 3 4 221.4 139.7 2 3 60 3 1223.1 75.7 1 4 80 2 1 0 0 243 44":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Tareq Abdul Jabar":
+              - generic: Tareq Abdul Jabar
+            - cell "5":
+              - generic: "5"
+            - cell "2":
+              - generic: "2"
+            - cell "3":
+              - generic: "3"
+            - cell "4":
+              - generic: "4"
+            - cell "221.4":
+              - generic: "221.4"
+            - cell "139.7":
+              - generic: "139.7"
+            - cell "2":
+              - generic: "2"
+            - cell "3":
+              - generic: "3"
+            - cell "60":
+              - generic: "60"
+            - cell "3":
+              - generic: "3"
+            - cell "1223.1":
+              - generic: "1223.1"
+            - cell "75.7":
+              - generic: "75.7"
+            - cell "1":
+              - generic: "1"
+            - cell "4":
+              - generic: "4"
+            - cell "80":
+              - generic: "80"
+            - cell "2":
+              - generic: "2"
+            - cell "1":
+              - generic: "1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "243":
+              - generic: "243"
+            - cell "44":
+              - generic: "44"
+          - row "KSA Operation Team Moath Zayed 4 0 4 4 235.7 273 0 0 4 960.1 1069.6 0 0 0 0 0 0 175 72":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Moath Zayed":
+              - generic: Moath Zayed
+            - cell "4":
+              - generic: "4"
+            - cell "0":
+              - generic: "0"
+            - cell "4":
+              - generic: "4"
+            - cell "4":
+              - generic: "4"
+            - cell "235.7":
+              - generic: "235.7"
+            - cell "273":
+              - generic: "273"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "4":
+              - generic: "4"
+            - cell "960.1":
+              - generic: "960.1"
+            - cell "1069.6":
+              - generic: "1069.6"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "175":
+              - generic: "175"
+            - cell "72":
+              - generic: "72"
+          - row "KSA Operation Team Moataz Al Khaldi 3 3 0 3 16.5 1 2 1 33.3 0 0 3 100 3 0 0 0 4 0":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Moataz Al Khaldi":
+              - generic: Moataz Al Khaldi
+            - cell "3":
+              - generic: "3"
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+            - cell "3":
+              - generic: "3"
+            - cell "16.5":
+              - generic: "16.5"
+            - cell "1":
+              - generic: "1"
+            - cell "2":
+              - generic: "2"
+            - cell "1":
+              - generic: "1"
+            - cell "33.3":
+              - generic: "33.3"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "3":
+              - generic: "3"
+            - cell "100":
+              - generic: "100"
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "4":
+              - generic: "4"
+            - cell "0":
+              - generic: "0"
+          - row "KSA Operation Team Mohammed Alqaruoti 3 0 3 2 3 3 0 0 3 126.9 141.8 0 0 0 0 0 0 517 130":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Mohammed Alqaruoti":
+              - generic: Mohammed Alqaruoti
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+            - cell "3":
+              - generic: "3"
+            - cell "2":
+              - generic: "2"
+            - cell "3":
+              - generic: "3"
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "3":
+              - generic: "3"
+            - cell "126.9":
+              - generic: "126.9"
+            - cell "141.8":
+              - generic: "141.8"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "517":
+              - generic: "517"
+            - cell "130":
+              - generic: "130"
+          - row "KSA Operation Team Ahmed Elobaiad 3 0 3 1 18.4 18.4 0 0 3 5504.9 2327.1 0 0 0 0 0 0 50 10":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Ahmed Elobaiad":
+              - generic: Ahmed Elobaiad
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+            - cell "3":
+              - generic: "3"
+            - cell "1":
+              - generic: "1"
+            - cell "18.4":
+              - generic: "18.4"
+            - cell "18.4":
+              - generic: "18.4"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "3":
+              - generic: "3"
+            - cell "5504.9":
+              - generic: "5504.9"
+            - cell "2327.1":
+              - generic: "2327.1"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "50":
+              - generic: "50"
+            - cell "10":
+              - generic: "10"
+          - row "KSA Operation Team Ansil Ansar2 2 2 0 0 0 2 100 0 0 2 100 2 0 0 0 3 0":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Ansil Ansar2":
+              - generic: Ansil Ansar2
+            - cell "2":
+              - generic: "2"
+            - cell "2":
+              - generic: "2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "2":
+              - generic: "2"
+            - cell "100":
+              - generic: "100"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "2":
+              - generic: "2"
+            - cell "100":
+              - generic: "100"
+            - cell "2":
+              - generic: "2"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "3":
+              - generic: "3"
+            - cell "0":
+              - generic: "0"
+          - row "KSA Operation Team Mohammed Wasay 2 0 2 1 982.6 982.6 0 0 2 2084.4 2084.4 0 0 0 0 0 0 16 5":
+            - cell "KSA Operation Team":
+              - generic: KSA Operation Team
+            - cell "Mohammed Wasay":
+              - generic: Mohammed Wasay
+            - cell "2":
+              - generic: "2"
+            - cell "0":
+              - generic: "0"
+            - cell "2":
+              - generic: "2"
+            - cell "1":
+              - generic: "1"
+            - cell "982.6":
+              - generic: "982.6"
+            - cell "982.6":
+              - generic: "982.6"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "2":
+              - generic: "2"
+            - cell "2084.4":
+              - generic: "2084.4"
+            - cell "2084.4":
+              - generic: "2084.4"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "0":
+              - generic: "0"
+            - cell "16":
+              - generic: "16"
+            - cell "5":
+              - generic: "5"
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 36
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 36
+    - button "Next"
+  - heading "3 · Export options" [level=2]
+  - group "Format":
+    - generic: Format
+    - radio "CSV" [checked]
+    - generic: CSV
+    - radio "Excel (.xlsx)"
+    - generic: Excel (.xlsx)
+    - generic "A formatted PDF layout is available for the Tickets report only.":
+      - radio "PDF A formatted PDF layout is available for the Tickets report only." [disabled]
+      - generic: PDF
+      - generic: A formatted PDF layout is available for the Tickets report only.
+  - 'generic "Columns: 23 of 23 in the export"'
+  - button "Generate CSV"
+  - generic: 36 row(s) · the file is kept for download in the export history.
+  - paragraph:
+    - text: Need a report that is not listed? Report definitions live in one place on the server (
+    - link "ask the application team":
+      - /url: /admin
+    - text: ); a new definition appears here automatically.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

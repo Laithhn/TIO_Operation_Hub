@@ -1,0 +1,581 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - generic: Integrations
+- heading "Jira Connections" [level=1]
+- generic: Manage Jira sites, credentials, space discovery and synchronization health. The hub only reads from Jira.
+- button "Refresh"
+- link "Sync preview":
+  - /url: /admin/integrations/jira/review
+- button "+ New connection"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - list "Jira integration overview":
+    - generic: 1 · Connection
+    - generic: 1 of 1 active
+    - generic: Site, credentials and test. Last sync 10 Nov 2026, 16:51.
+    - link "Connections":
+      - /url: "#jira-connections"
+    - text: ·
+    - link "Jira instances list":
+      - /url: /admin/jira
+    - generic: 2 · Clients and spaces
+    - generic: 7 of 29 spaces assigned
+    - generic: 5 clients connected. A space is assigned on its client's Jira tab.
+    - link "Discovered spaces":
+      - /url: "#jira-spaces"
+    - text: ·
+    - link "Clients":
+      - /url: /clients
+    - generic: 3 · Mappings
+    - generic: People and statuses
+    - generic: Jira users to hub people, Jira statuses to ticket statuses.
+    - link "Jira users":
+      - /url: /admin/integrations/jira/conflicts?tab=users
+    - text: ·
+    - link "Workflow mappings":
+      - /url: /admin/integrations/jira/conflicts?tab=workflow
+    - generic: 4 · Health and errors
+    - generic: 2 to review · 0 failed (24 h)
+    - generic: Last success 10 Nov 2026, 16:51.
+    - link "Conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - text: ·
+    - link "Monitoring":
+      - /url: /admin/integrations/jira/monitoring
+  - heading "Configured connections" [level=2]
+  - generic: Filter connections
+  - textbox "Filter connections":
+    - /placeholder: Name or site
+  - region "Configured Jira connections":
+    - table "Configured Jira connections":
+      - caption: Configured Jira connections
+      - rowgroup:
+        - row "Details Connection name Type Status":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Connection name":
+            - generic: Connection name
+          - columnheader "Type":
+            - generic: Type
+          - columnheader "Status":
+            - generic: Status
+      - rowgroup:
+        - row "Details for Poliscan Cloud Jira Poliscan Cloud Jira Jira Cloud Active":
+          - cell "Details for Poliscan Cloud Jira":
+            - button "Details for Poliscan Cloud Jira":
+          - cell "Poliscan Cloud Jira":
+            - button "Poliscan Cloud Jira" [pressed]
+          - cell "Jira Cloud":
+            - generic: Jira Cloud
+          - cell "Active":
+            - text: Active
+    - status
+  - heading "Connection details" [level=2]
+  - button "Edit"
+  - button "Disable"
+  - paragraph:
+    - text: Poliscan Cloud Jira
+    - text: Active
+  - term: Jira site URL
+  - definition:
+    - link "https://poliscan.atlassian.net":
+      - /url: https://poliscan.atlassian.net
+  - term: Connection type
+  - definition: Jira Cloud
+  - term: Cloud ID
+  - definition: cbf0b7e0-6148-441d-967e-4930f944782e
+  - term: Auth mode
+  - definition: API token (Basic / unscoped)
+  - term: Reference list
+  - definition: Customer Cloud Jira
+  - term: Connected clients
+  - definition: "5"
+  - term: Assigned spaces
+  - definition: "7"
+  - term: Last sync
+  - definition: 10 Nov 2026, 16:51
+  - term: Last successful test
+  - definition: 10 Nov 2026, 13:41
+  - term: Last credential rotation
+  - definition: 09 Nov 2026, 11:12
+  - heading "Credentials & security" [level=2]
+  - button "Rotate credentials"
+  - button "Test credentials"
+  - term: Username / e-mail
+  - definition: lmh@vitronic.com
+  - term: API token
+  - definition: ••••••••••••••••
+  - term: Secret store
+  - definition: Encrypted on the server (data protection)
+  - term: Secret reference
+  - definition: protected:jira-connection-2
+  - generic: Credentials are masked and never returned in API responses.
+  - heading "Connection test results" [level=2]
+  - button "Run test"
+  - generic: Last test successful in 1689 ms · 10 Nov 2026, 13:41
+  - list:
+    - generic: "Site reachability: Passed"
+    - generic: The site answered.
+    - generic: "Authentication: Passed"
+    - generic: Signed in as Laith Hamdan.
+    - generic: "Project discovery: Passed"
+    - generic: 29 accessible space(s).
+    - generic: "Issue search: Passed"
+    - generic: Issue search is allowed.
+  - heading "Discovery configuration" [level=2]
+  - button "Discover now"
+  - term: Discovery mode
+  - definition: On demand
+  - term: Sync interval
+  - definition: Set per client (default every 15 minutes)
+  - term: Initial import
+  - definition: First run of each space
+  - term: Incremental sync
+  - definition:
+    - text: Enabled
+  - term: Full reconciliation
+  - definition: Set per client (default weekly)
+  - term: Last discovery
+  - definition: 04 Nov 2026, 14:43
+  - heading "Sync health" [level=2]
+  - term: Issue sync
+  - definition:
+    - text: Healthy
+  - term: Comment sync
+  - definition:
+    - text: Healthy
+  - term: Activity sync
+  - definition:
+    - text: Warning
+  - term: Last full reconciliation
+  - definition: 10 Nov 2026, 13:45
+  - term: Issues read (24h)
+  - definition: "3442"
+  - term: Tickets created (24h)
+  - definition: "143"
+  - term: Tickets updated (24h)
+  - definition: "109"
+  - term: Comments synced (24h)
+  - definition: "265"
+  - term: Failed records (24h)
+  - definition: "0"
+  - term: Average duration
+  - definition: 2.3 s
+  - generic: 2 item(s) need review.
+  - link "View failures":
+    - /url: /admin/integrations/jira/conflicts
+  - link "Open sync history":
+    - /url: /admin/integrations/jira/monitoring?connectionId=2
+  - heading "Client usage" [level=2]
+  - table:
+    - rowgroup:
+      - row "Client Used spaces":
+        - columnheader "Client"
+        - columnheader "Used spaces"
+    - rowgroup:
+      - row "OYOON DPO":
+        - cell "OYOON"
+        - cell "DPO":
+          - generic: DPO
+      - row "SEW SEW":
+        - cell "SEW"
+        - cell "SEW":
+          - generic: SEW
+      - row "TAH TAB TAD TAH":
+        - cell "TAH"
+        - cell "TAB TAD TAH":
+          - generic: TAB
+          - generic: TAD
+          - generic: TAH
+      - row "ADP TWT":
+        - cell "ADP"
+        - cell "TWT":
+          - generic: TWT
+      - row "RNP VEV":
+        - cell "RNP"
+        - cell "VEV":
+          - generic: VEV
+  - paragraph: Manage space ownership on each client's Jira integration tab.
+  - heading "Discovered spaces and sync health" [level=2]
+  - button "Discover spaces"
+  - link "View sync history":
+    - /url: /admin/integrations/jira/monitoring?connectionId=2
+  - generic: "Connection: Poliscan Cloud Jira. Discovery never assigns a space; assign spaces from the client's Jira integration tab."
+  - region "Discovered Jira spaces":
+    - searchbox "Filter rows"
+    - generic: 29 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Discovered Jira spaces: scroll sideways for more columns"':
+      - table "Discovered Jira spaces":
+        - caption: Discovered Jira spaces
+        - rowgroup:
+          - row "Details Space key Space name Status Actions":
+            - columnheader "Details":
+              - generic: Details
+            - columnheader "Space key":
+              - button "Space key":
+                - generic: Space key
+            - columnheader "Space name":
+              - button "Space name":
+                - generic: Space name
+            - columnheader "Status":
+              - button "Status":
+                - generic: Status
+            - columnheader "Actions":
+              - generic: Actions
+        - rowgroup:
+          - row "Details for AIPM AIPM Oyoon AI Agent - Project Management Not configured":
+            - cell "Details for AIPM":
+              - button "Details for AIPM":
+            - cell "AIPM":
+              - link "AIPM":
+                - /url: https://poliscan.atlassian.net/browse/AIPM
+            - cell "Oyoon AI Agent - Project Management":
+              - generic: Oyoon AI Agent - Project Management
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for CEG CEG CEGELEC ENFORCEMENT TRAILER Not configured":
+            - cell "Details for CEG":
+              - button "Details for CEG":
+            - cell "CEG":
+              - link "CEG":
+                - /url: https://poliscan.atlassian.net/browse/CEG
+            - cell "CEGELEC ENFORCEMENT TRAILER":
+              - generic: CEGELEC ENFORCEMENT TRAILER
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for DPO DPO Dubai Police Oyoon Enabled Reassign":
+            - cell "Details for DPO":
+              - button "Details for DPO":
+            - cell "DPO":
+              - link "DPO":
+                - /url: https://poliscan.atlassian.net/browse/DPO
+            - cell "Dubai Police Oyoon":
+              - generic: Dubai Police Oyoon
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for DXB DXB Dubai Police Not configured":
+            - cell "Details for DXB":
+              - button "Details for DXB":
+            - cell "DXB":
+              - link "DXB":
+                - /url: https://poliscan.atlassian.net/browse/DXB
+            - cell "Dubai Police":
+              - generic: Dubai Police
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for ESP ESP ESP Product Development Not configured":
+            - cell "Details for ESP":
+              - button "Details for ESP":
+            - cell "ESP":
+              - link "ESP":
+                - /url: https://poliscan.atlassian.net/browse/ESP
+            - cell "ESP Product Development":
+              - generic: ESP Product Development
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for ET2 ET2 ENFORCEMENT TRAILER 2 Not configured":
+            - cell "Details for ET2":
+              - button "Details for ET2":
+            - cell "ET2":
+              - link "ET2":
+                - /url: https://poliscan.atlassian.net/browse/ET2
+            - cell "ENFORCEMENT TRAILER 2":
+              - generic: ENFORCEMENT TRAILER 2
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for IDS IDS ViTIP-IDS Not configured":
+            - cell "Details for IDS":
+              - button "Details for IDS":
+            - cell "IDS":
+              - link "IDS":
+                - /url: https://poliscan.atlassian.net/browse/IDS
+            - cell "ViTIP-IDS":
+              - generic: ViTIP-IDS
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for LLC LLC Vitronic BackOffice LLC Not configured":
+            - cell "Details for LLC":
+              - button "Details for LLC":
+            - cell "LLC":
+              - link "LLC":
+                - /url: https://poliscan.atlassian.net/browse/LLC
+            - cell "Vitronic BackOffice LLC":
+              - generic: Vitronic BackOffice LLC
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for NRS NRS National Road Safety Agency Project Not configured":
+            - cell "Details for NRS":
+              - button "Details for NRS":
+            - cell "NRS":
+              - link "NRS":
+                - /url: https://poliscan.atlassian.net/browse/NRS
+            - cell "National Road Safety Agency Project":
+              - generic: National Road Safety Agency Project
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for OAAO OAAO Oyoon AI Agent - Operation Not configured":
+            - cell "Details for OAAO":
+              - button "Details for OAAO":
+            - cell "OAAO":
+              - link "OAAO":
+                - /url: https://poliscan.atlassian.net/browse/OAAO
+            - cell "Oyoon AI Agent - Operation":
+              - generic: Oyoon AI Agent - Operation
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for OAAWM OAAWM Oyoon AI Agent - Work Management Not configured":
+            - cell "Details for OAAWM":
+              - button "Details for OAAWM":
+            - cell "OAAWM":
+              - link "OAAWM":
+                - /url: https://poliscan.atlassian.net/browse/OAAWM
+            - cell "Oyoon AI Agent - Work Management":
+              - generic: Oyoon AI Agent - Work Management
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for OYOON OYOON Oyoon AI Agent - Finance Not configured":
+            - cell "Details for OYOON":
+              - button "Details for OYOON":
+            - cell "OYOON":
+              - link "OYOON":
+                - /url: https://poliscan.atlassian.net/browse/OYOON
+            - cell "Oyoon AI Agent - Finance":
+              - generic: Oyoon AI Agent - Finance
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for PES PES PesaPrint Not configured":
+            - cell "Details for PES":
+              - button "Details for PES":
+            - cell "PES":
+              - link "PES":
+                - /url: https://poliscan.atlassian.net/browse/PES
+            - cell "PesaPrint":
+              - generic: PesaPrint
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for PSOL PSOL PSOL Not configured":
+            - cell "Details for PSOL":
+              - button "Details for PSOL":
+            - cell "PSOL":
+              - link "PSOL":
+                - /url: https://poliscan.atlassian.net/browse/PSOL
+            - cell "PSOL":
+              - generic: PSOL
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for RPI RPI Research and Product Innovation Not configured":
+            - cell "Details for RPI":
+              - button "Details for RPI":
+            - cell "RPI":
+              - link "RPI":
+                - /url: https://poliscan.atlassian.net/browse/RPI
+            - cell "Research and Product Innovation":
+              - generic: Research and Product Innovation
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for SEW SEW SEWAR Enabled Reassign":
+            - cell "Details for SEW":
+              - button "Details for SEW":
+            - cell "SEW":
+              - link "SEW":
+                - /url: https://poliscan.atlassian.net/browse/SEW
+            - cell "SEWAR":
+              - generic: SEWAR
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for TAB TAB Tahakom Business Requirements Enabled Reassign":
+            - cell "Details for TAB":
+              - button "Details for TAB":
+            - cell "TAB":
+              - link "TAB":
+                - /url: https://poliscan.atlassian.net/browse/TAB
+            - cell "Tahakom Business Requirements":
+              - generic: Tahakom Business Requirements
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for TAD TAD Tahakom Development Enabled Reassign":
+            - cell "Details for TAD":
+              - button "Details for TAD":
+            - cell "TAD":
+              - link "TAD":
+                - /url: https://poliscan.atlassian.net/browse/TAD
+            - cell "Tahakom Development":
+              - generic: Tahakom Development
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for TAH TAH Tahakom Enabled Reassign":
+            - cell "Details for TAH":
+              - button "Details for TAH":
+            - cell "TAH":
+              - link "TAH":
+                - /url: https://poliscan.atlassian.net/browse/TAH
+            - cell "Tahakom":
+              - generic: Tahakom
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for TDEV TDEV TAHAKOM BackOffice Development Not configured":
+            - cell "Details for TDEV":
+              - button "Details for TDEV":
+            - cell "TDEV":
+              - link "TDEV":
+                - /url: https://poliscan.atlassian.net/browse/TDEV
+            - cell "TAHAKOM BackOffice Development":
+              - generic: TAHAKOM BackOffice Development
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for TIO TIO Technology Implementation And Operation Not configured":
+            - cell "Details for TIO":
+              - button "Details for TIO":
+            - cell "TIO":
+              - link "TIO":
+                - /url: https://poliscan.atlassian.net/browse/TIO
+            - cell "Technology Implementation And Operation":
+              - generic: Technology Implementation And Operation
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for TWT TWT Tatweer Enabled Reassign":
+            - cell "Details for TWT":
+              - button "Details for TWT":
+            - cell "TWT":
+              - link "TWT":
+                - /url: https://poliscan.atlassian.net/browse/TWT
+            - cell "Tatweer":
+              - generic: Tatweer
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for VEV VEV Eastern Venture Enabled Reassign":
+            - cell "Details for VEV":
+              - button "Details for VEV":
+            - cell "VEV":
+              - link "VEV":
+                - /url: https://poliscan.atlassian.net/browse/VEV
+            - cell "Eastern Venture":
+              - generic: Eastern Venture
+            - cell "Enabled":
+              - text: Enabled
+            - cell "Reassign":
+              - button "Reassign"
+          - row "Details for VI VI Vi Framework Not configured":
+            - cell "Details for VI":
+              - button "Details for VI":
+            - cell "VI":
+              - link "VI":
+                - /url: https://poliscan.atlassian.net/browse/VI
+            - cell "Vi Framework":
+              - generic: Vi Framework
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+          - row "Details for VIT VIT ViTIP Not configured":
+            - cell "Details for VIT":
+              - button "Details for VIT":
+            - cell "VIT":
+              - link "VIT":
+                - /url: https://poliscan.atlassian.net/browse/VIT
+            - cell "ViTIP":
+              - generic: ViTIP
+            - cell "Not configured":
+              - generic: Not configured
+            - cell
+    - status
+    - navigation "Discovered Jira spaces pages":
+      - generic: 1 – 25 of 29
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "10"
+        - option "25" [selected]
+        - option "50"
+        - option "100"
+      - button "Prev" [disabled]
+      - generic: Page 1 of 2
+      - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

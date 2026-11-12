@@ -1,0 +1,709 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "117992-AE":
+    - /url: /projects/1
+  - generic: ›
+  - generic: CT-1001
+- heading "CT-1001 · 2026_Vitronic Software Service Level Agreement" [level=1]
+- text: Active
+- text: Current
+- link "Edit":
+  - /url: /contracts/1/edit
+- link "Renew contract":
+  - /url: /contracts/new?renewFrom=1
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - region "Contract summary":
+    - link "Term 15 Oct 2025 – 14 Oct 2027 Give notice by 16 Jul 2027":
+      - /url: "#contract-details"
+      - generic: Term
+      - generic: 15 Oct 2025 – 14 Oct 2027
+      - generic: Give notice by 16 Jul 2027
+    - link "Renewal Current":
+      - /url: "#contract-details"
+      - generic: Renewal
+      - text: Current
+    - 'link "SLA targets 4 priorities Critical: 2 h first response / 20 h resolution"':
+      - /url: "#contract-sla"
+      - generic: SLA targets
+      - generic: 4 priorities
+      - generic: "Critical: 2 h first response / 20 h resolution"
+    - link "Payments Next due 01 Mar 2026 2 overdue":
+      - /url: "#contract-payments"
+      - generic: Payments
+      - generic: Next due 01 Mar 2026
+      - generic: 2 overdue
+  - navigation "Contract sections":
+    - link "Details":
+      - /url: "#contract-details"
+    - link "SLA targets 4":
+      - /url: "#contract-sla"
+      - text: SLA targets
+      - generic: "4"
+    - link "Delivery 5":
+      - /url: "#contract-delivery"
+      - text: Delivery
+      - generic: "5"
+    - link "Fees and payments 4":
+      - /url: "#contract-payments"
+      - text: Fees and payments
+      - generic: "4"
+    - link "Penalties 0":
+      - /url: "#contract-penalties"
+      - text: Penalties
+      - generic: "0"
+    - link "Coverage":
+      - /url: "#contract-coverage"
+    - link "Documents":
+      - /url: "#contract-documents"
+    - link "History":
+      - /url: "#contract-history"
+  - heading "Contract" [level=2]
+  - term: Client
+  - definition:
+    - link "TAH · Tahakom":
+      - /url: /clients/1
+  - term: Contract reference
+  - definition: CW16622, QU040000265
+  - term: Type
+  - definition: SLA & support
+  - term: Project
+  - definition:
+    - link "117992-AE · SLA _ IT Application & Platform Licenses – 2026":
+      - /url: /projects/1
+  - term: Owner
+  - definition: Laith Hamdan
+  - term: Term
+  - definition: 15 Oct 2025 – 14 Oct 2027
+  - term: Renewal terms
+  - definition: Renewal by agreement
+  - term: Notice period
+  - definition: 90 days · give notice by 16 Jul 2027
+  - term: Last reviewed
+  - definition: 10 Nov 2026
+  - heading "Service obligations" [level=2]
+  - term: Support model
+  - definition: On site
+  - term: Support hours
+  - definition: Sun–Thu 08:00–17:00 (Asia/Riyadh)
+  - term: Support notes
+  - definition: Public Holidays Excluded
+  - term: On-site engineers required
+  - definition: "8"
+  - term: Coverage
+  - definition:
+    - paragraph: "1. Development of Back Office Solution - New features as required. - Customization as required by Tahakom. 2. Violation Data Processing - Processing and verification of raw violation data. - Image review and classification. - Rejection handling and documentation. 3. Workflow and Queue Management - Task distribution and SLA monitoring. - Escalation management and exception handling. 4. Quality Assurance and Control - Implementation of multi-level quality assurance checks. - Reporting on quality metrics and issue resolution. 5. Reporting and Dashboards - Provision of regular reports: daily, weekly, monthly. - Creation of dashboards for SLA and incident tracking. 6. Management and Coordination - Coordination with technical and enforcement teams. - Addressing feedback from authorities and managing rejections."
+    - button "Show more"
+  - term: Obligations
+  - definition: Unknown
+  - heading "SLA targets (recorded)" [level=2]
+  - paragraph:
+    - text: Targets as the contract states them. Tickets linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects tickets linked afterwards. The clock pauses while a ticket waits on the customer.
+    - link "Tickets measured against this contract":
+      - /url: /cases?contractId=1&status=all
+  - region "SLA targets":
+    - searchbox "Filter rows"
+    - generic: 4 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "SLA targets":
+      - caption: SLA targets
+      - rowgroup:
+        - row "Select all rows shown Priority Response target Resolution target Clock Notes":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Priority":
+            - button "Priority":
+              - generic: Priority
+          - columnheader "Response target":
+            - button "Response target":
+              - generic: Response target
+          - columnheader "Resolution target":
+            - button "Resolution target":
+              - generic: Resolution target
+          - columnheader "Clock":
+            - button "Clock":
+              - generic: Clock
+          - columnheader "Notes":
+            - button "Notes":
+              - generic: Notes
+      - rowgroup:
+        - row "Select Critical Critical 2 h 20 h Support hours":
+          - cell "Select Critical":
+            - checkbox "Select Critical"
+          - cell "Critical":
+            - generic: Critical
+          - cell "2 h":
+            - generic: 2 h
+          - cell "20 h":
+            - generic: 20 h
+          - cell "Support hours":
+            - generic: Support hours
+          - cell
+        - row "Select High High 4 h 1 d 16 h Support hours":
+          - cell "Select High":
+            - checkbox "Select High"
+          - cell "High":
+            - generic: High
+          - cell "4 h":
+            - generic: 4 h
+          - cell "1 d 16 h":
+            - generic: 1 d 16 h
+          - cell "Support hours":
+            - generic: Support hours
+          - cell
+        - row "Select Normal Normal 8 h 7 d Support hours":
+          - cell "Select Normal":
+            - checkbox "Select Normal"
+          - cell "Normal":
+            - generic: Normal
+          - cell "8 h":
+            - generic: 8 h
+          - cell "7 d":
+            - generic: 7 d
+          - cell "Support hours":
+            - generic: Support hours
+          - cell
+        - row "Select Low Low 1 d 15 d 5 h Support hours":
+          - cell "Select Low":
+            - checkbox "Select Low"
+          - cell "Low":
+            - generic: Low
+          - cell "1 d":
+            - generic: 1 d
+          - cell "15 d 5 h":
+            - generic: 15 d 5 h
+          - cell "Support hours":
+            - generic: Support hours
+          - cell
+    - status
+  - heading "Delivery schedule · 20 % complete on average" [level=2]
+  - region "Contract delivery schedule":
+    - searchbox "Filter rows"
+    - generic: 5 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Contract delivery schedule":
+      - caption: Contract delivery schedule
+      - rowgroup:
+        - row "Select all rows shown Phase Description Completion Date":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Phase":
+            - button "Phase":
+              - generic: Phase
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Completion":
+            - button "Completion":
+              - generic: Completion
+          - columnheader "Date":
+            - button "Date":
+              - generic: Date
+      - rowgroup:
+        - row "Select First First Kickoff Meeting, project plan 10 % Unknown":
+          - cell "Select First":
+            - checkbox "Select First"
+          - cell "First":
+            - generic: First
+          - cell "Kickoff Meeting, project plan":
+            - generic: Kickoff Meeting, project plan
+          - cell "10 %":
+            - generic: 10 %
+          - cell "Unknown":
+            - generic: Unknown
+        - row "Select Secong Secong UI/UX mockups 15 % Unknown":
+          - cell "Select Secong":
+            - checkbox "Select Secong"
+          - cell "Secong":
+            - generic: Secong
+          - cell "UI/UX mockups":
+            - generic: UI/UX mockups
+          - cell "15 %":
+            - generic: 15 %
+          - cell "Unknown":
+            - generic: Unknown
+        - row "Select Third Third Developed Features 40 % Unknown":
+          - cell "Select Third":
+            - checkbox "Select Third"
+          - cell "Third":
+            - generic: Third
+          - cell "Developed Features":
+            - generic: Developed Features
+          - cell "40 %":
+            - generic: 40 %
+          - cell "Unknown":
+            - generic: Unknown
+        - row "Select Fourth Fourth System Deployed, UAT completed 25 % Unknown":
+          - cell "Select Fourth":
+            - checkbox "Select Fourth"
+          - cell "Fourth":
+            - generic: Fourth
+          - cell "System Deployed, UAT completed":
+            - generic: System Deployed, UAT completed
+          - cell "25 %":
+            - generic: 25 %
+          - cell "Unknown":
+            - generic: Unknown
+        - row "Select Fifth Fifth Monthly Reports, SLA compliance logs 10 % Unknown":
+          - cell "Select Fifth":
+            - checkbox "Select Fifth"
+          - cell "Fifth":
+            - generic: Fifth
+          - cell "Monthly Reports, SLA compliance logs":
+            - generic: Monthly Reports, SLA compliance logs
+          - cell "10 %":
+            - generic: 10 %
+          - cell "Unknown":
+            - generic: Unknown
+    - status
+  - heading "Fees and costs (SAR)" [level=2]
+  - region "Contract fees and costs":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Contract fees and costs":
+      - caption: Contract fees and costs
+      - rowgroup:
+        - row "Select all rows shown Description Unit Qty Unit price Total":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Unit":
+            - button "Unit":
+              - generic: Unit
+          - columnheader "Qty":
+            - button "Qty":
+              - generic: Qty
+          - columnheader "Unit price":
+            - button "Unit price":
+              - generic: Unit price
+          - columnheader "Total":
+            - button "Total":
+              - generic: Total
+      - rowgroup:
+        - row "Select Skilled technical service engineers Skilled technical service engineers man-day 8 652,500.00 5,220,000.00":
+          - cell "Select Skilled technical service engineers":
+            - checkbox "Select Skilled technical service engineers"
+          - cell "Skilled technical service engineers":
+            - generic: Skilled technical service engineers
+          - cell "man-day":
+            - generic: man-day
+          - cell "8":
+            - generic: "8"
+          - cell "652,500.00":
+            - generic: 652,500.00
+          - cell "5,220,000.00":
+            - generic: 5,220,000.00
+        - row "Select Automatic traffic violation monitoring system and new solutions support (Kolona Amen, Maidan) Automatic traffic violation monitoring system and new solutions support (Kolona Amen, Maidan) month 24 187,500.00 4,500,000.00":
+          - cell "Select Automatic traffic violation monitoring system and new solutions support (Kolona Amen, Maidan)":
+            - checkbox "Select Automatic traffic violation monitoring system and new solutions support (Kolona Amen, Maidan)"
+          - cell "Automatic traffic violation monitoring system and new solutions support (Kolona Amen, Maidan)":
+            - generic: Automatic traffic violation monitoring system and new solutions support (Kolona Amen, Maidan)
+          - cell "month":
+            - generic: month
+          - cell "24":
+            - generic: "24"
+          - cell "187,500.00":
+            - generic: 187,500.00
+          - cell "4,500,000.00":
+            - generic: 4,500,000.00
+    - status
+  - paragraph:
+    - generic: "Total: 9,720,000.00 SAR"
+  - heading "Payment terms" [level=2]
+  - paragraph: "Next due: 01 Mar 2026 — Fisrt Paymet - Every 6 Months (2,430,000.00 SAR)."
+  - region "Contract payment terms":
+    - searchbox "Filter rows"
+    - generic: 4 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Contract payment terms":
+      - caption: Contract payment terms
+      - rowgroup:
+        - row "Select all rows shown Condition % Amount Due Status":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Condition":
+            - button "Condition":
+              - generic: Condition
+          - columnheader "%":
+            - button "%":
+              - generic: "%"
+          - columnheader "Amount":
+            - button "Amount":
+              - generic: Amount
+          - columnheader "Due":
+            - button "Due":
+              - generic: Due
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+      - rowgroup:
+        - row "Select Fisrt Paymet - Every 6 Months Fisrt Paymet - Every 6 Months 25 % 2,430,000.00 SAR 01 Mar 2026 Pending Overdue":
+          - cell "Select Fisrt Paymet - Every 6 Months":
+            - checkbox "Select Fisrt Paymet - Every 6 Months"
+          - cell "Fisrt Paymet - Every 6 Months":
+            - generic: Fisrt Paymet - Every 6 Months
+          - cell "25 %":
+            - generic: 25 %
+          - cell "2,430,000.00 SAR":
+            - generic: 2,430,000.00 SAR
+          - cell "01 Mar 2026":
+            - generic: 01 Mar 2026
+          - cell "Pending Overdue":
+            - generic: Pending
+            - text: Overdue
+        - row "Select Second Payment - Every 6 Months Second Payment - Every 6 Months 25 % 2,430,000.00 SAR 15 Sept 2026 Pending Overdue":
+          - cell "Select Second Payment - Every 6 Months":
+            - checkbox "Select Second Payment - Every 6 Months"
+          - cell "Second Payment - Every 6 Months":
+            - generic: Second Payment - Every 6 Months
+          - cell "25 %":
+            - generic: 25 %
+          - cell "2,430,000.00 SAR":
+            - generic: 2,430,000.00 SAR
+          - cell "15 Sept 2026":
+            - generic: 15 Sept 2026
+          - cell "Pending Overdue":
+            - generic: Pending
+            - text: Overdue
+        - row "Select Third Payment - Every 6 Months Third Payment - Every 6 Months 25 % 2,430,000.00 SAR 01 Mar 2027 Pending":
+          - cell "Select Third Payment - Every 6 Months":
+            - checkbox "Select Third Payment - Every 6 Months"
+          - cell "Third Payment - Every 6 Months":
+            - generic: Third Payment - Every 6 Months
+          - cell "25 %":
+            - generic: 25 %
+          - cell "2,430,000.00 SAR":
+            - generic: 2,430,000.00 SAR
+          - cell "01 Mar 2027":
+            - generic: 01 Mar 2027
+          - cell "Pending":
+            - generic: Pending
+        - row "Select Fourth Payment - Every 6 Months Fourth Payment - Every 6 Months 25 % 2,430,000.00 SAR 31 Aug 2027 Pending":
+          - cell "Select Fourth Payment - Every 6 Months":
+            - checkbox "Select Fourth Payment - Every 6 Months"
+          - cell "Fourth Payment - Every 6 Months":
+            - generic: Fourth Payment - Every 6 Months
+          - cell "25 %":
+            - generic: 25 %
+          - cell "2,430,000.00 SAR":
+            - generic: 2,430,000.00 SAR
+          - cell "31 Aug 2027":
+            - generic: 31 Aug 2027
+          - cell "Pending":
+            - generic: Pending
+    - status
+  - heading "Penalty assessments" [level=2]
+  - button "Recalculate" [disabled]
+  - paragraph: Indicative contractual amounts only. Different recorded rates or caps are assessed separately and require review. Superseded assessments have no current charge; earlier values remain in change history. The hub does not issue credits or invoices.
+  - generic: Reason for recalculation or confirmation *
+  - textbox "Reason for recalculation or confirmation *"
+  - generic: No assessments have been calculated.
+  - heading "Covered products (from the project)" [level=2]
+  - list:
+    - listitem: PSOP · Poliscan Office Pro
+  - heading "Covered environments" [level=2]
+  - list:
+    - link "R1 / Production":
+      - /url: /environments/1
+    - generic: · Production
+    - link "R1 / Staging":
+      - /url: /environments/2
+    - generic: · Production
+    - link "R2 / Production":
+      - /url: /environments/3
+    - generic: · Production
+    - link "R3 / Production":
+      - /url: /environments/4
+    - generic: · Production
+    - link "R2 / Staging":
+      - /url: /environments/5
+    - generic: · Production
+    - link "R3 / Staging":
+      - /url: /environments/6
+    - generic: · Production
+  - region "Contract and SLA documents (2)":
+    - heading "Contract and SLA documents (2)" [level=2]
+    - button "Upload files":
+      - text: Upload files
+    - list "Attachment summary":
+      - generic: Total files
+      - generic: "2"
+      - generic: Document categories
+      - generic: "1"
+      - generic: by file type
+      - generic: Uploaders
+      - generic: "1"
+      - generic: Latest upload
+      - generic: 10 Nov 2026
+      - generic: Laith Hamdan
+    - search "Find attachments":
+      - searchbox "Search by file name"
+      - combobox "Category":
+        - option "All categories" [selected]
+        - option "PDF document"
+      - combobox "File type":
+        - option "All file types" [selected]
+        - option "PDF"
+      - generic: Sort
+      - combobox "Sort":
+        - option "Newest first" [selected]
+        - option "Oldest first"
+        - option "Name A–Z"
+        - option "Name Z–A"
+        - option "Size, smallest first"
+        - option "Size, largest first"
+      - button "Reset" [disabled]:
+        - text: Reset
+    - table "Attachments of this contract":
+      - caption: Attachments of this contract
+      - rowgroup:
+        - row "Select all files on this page File name Category Type Size Uploaded on Uploaded by Actions":
+          - columnheader "Select all files on this page":
+            - checkbox "Select all files on this page"
+          - columnheader "File name"
+          - columnheader "Category"
+          - columnheader "Type"
+          - columnheader "Size"
+          - columnheader "Uploaded on"
+          - columnheader "Uploaded by"
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf Preview CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf Master Framework Agreement PDF document PDF 487 KB 10 Nov 2026, 13:26 Laith Hamdan Actions for CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf":
+          - cell "Select CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf":
+            - checkbox "Select CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf"
+          - cell "Preview CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf Master Framework Agreement":
+            - button "Preview CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf": CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf
+            - generic "Master Framework Agreement"
+          - cell "PDF document":
+            - generic: PDF document
+          - cell "PDF"
+          - cell "487 KB"
+          - cell "10 Nov 2026, 13:26"
+          - cell "Laith Hamdan"
+          - cell "Actions for CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf":
+            - button "Actions for CW14123 - Vitronic SA & TAHAKOM MFA - Signed (1).pdf":
+        - row "Select 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf Preview 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf PDF document PDF 1.8 MB 10 Nov 2026, 13:15 Laith Hamdan Actions for 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf":
+          - cell "Select 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf":
+            - checkbox "Select 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf"
+          - cell "Preview 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf":
+            - button "Preview 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf": 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf
+          - cell "PDF document":
+            - generic: PDF document
+          - cell "PDF"
+          - cell "1.8 MB"
+          - cell "10 Nov 2026, 13:15"
+          - cell "Laith Hamdan"
+          - cell "Actions for 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf":
+            - button "Actions for 115184_Tahakom_Commercial_Proposal_SLA_Software_V3.4.pdf":
+    - navigation "Attachment pages":
+      - generic: 1–2 of 2 files
+      - text: "Rows per page:"
+      - combobox "Rows per page:":
+        - option "8" [selected]
+        - option "15"
+        - option "25"
+        - option "50"
+      - button "Previous" [disabled]
+      - button "Page 1": "1"
+      - button "Next" [disabled]
+  - heading "Change history" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When By Action Reason Changes (before → after)":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - button "When":
+              - generic: When
+          - columnheader "By":
+            - button "By":
+              - generic: By
+          - columnheader "Action":
+            - button "Action":
+              - generic: Action
+          - columnheader "Reason":
+            - button "Reason":
+              - generic: Reason
+          - columnheader "Changes (before → after)":
+            - button "Changes (before → after)":
+              - generic: Changes (before → after)
+      - rowgroup:
+        - row "Select 10 Nov 2026, 13:24 10 Nov 2026, 13:24 lmh Update":
+          - cell "Select 10 Nov 2026, 13:24":
+            - checkbox "Select 10 Nov 2026, 13:24"
+          - cell "10 Nov 2026, 13:24":
+            - generic: 10 Nov 2026, 13:24
+          - cell "lmh":
+            - generic: lmh
+          - cell "Update":
+            - generic: Update
+          - cell
+          - cell:
+            - 'generic "Contract reference: CW16622 → CW16622, QU040000265 Last reviewed at: 10 Nov 2026, 11:44 → 10 Nov 2026, 13:24 Show all 3 changes"':
+              - generic: "Contract reference: CW16622 → CW16622, QU040000265"
+              - generic: "Last reviewed at: 10 Nov 2026, 11:44 → 10 Nov 2026, 13:24"
+              - generic: Show all 3 changes
+        - 'row "Select 10 Nov 2026, 11:44 10 Nov 2026, 11:44 lmh Update Last reviewed at: 28 Oct 2026, 13:27 → 10 Nov 2026, 11:44 Title: Vitronic Software Service Level Agreement → 2026_Vitronic Software Service Level Agreement"':
+          - cell "Select 10 Nov 2026, 11:44":
+            - checkbox "Select 10 Nov 2026, 11:44"
+          - cell "10 Nov 2026, 11:44":
+            - generic: 10 Nov 2026, 11:44
+          - cell "lmh":
+            - generic: lmh
+          - cell "Update":
+            - generic: Update
+          - cell
+          - 'cell "Last reviewed at: 28 Oct 2026, 13:27 → 10 Nov 2026, 11:44 Title: Vitronic Software Service Level Agreement → 2026_Vitronic Software Service Level Agreement"':
+            - generic: "Last reviewed at: 28 Oct 2026, 13:27 → 10 Nov 2026, 11:44"
+            - generic: "Title: Vitronic Software Service Level Agreement → 2026_Vitronic Software Service Level Agreement"
+        - 'row "Select 28 Oct 2026, 13:27 28 Oct 2026, 13:27 lmh Update Last reviewed at: 23 Oct 2026, 11:42 → 28 Oct 2026, 13:27"':
+          - cell "Select 28 Oct 2026, 13:27":
+            - checkbox "Select 28 Oct 2026, 13:27"
+          - cell "28 Oct 2026, 13:27":
+            - generic: 28 Oct 2026, 13:27
+          - cell "lmh":
+            - generic: lmh
+          - cell "Update":
+            - generic: Update
+          - cell
+          - 'cell "Last reviewed at: 23 Oct 2026, 11:42 → 28 Oct 2026, 13:27"':
+            - generic: "Last reviewed at: 23 Oct 2026, 11:42 → 28 Oct 2026, 13:27"
+        - 'row "Select 23 Oct 2026, 11:42 23 Oct 2026, 11:42 lmh Update Last reviewed at: 22 Oct 2026, 15:46 → 23 Oct 2026, 11:42 Sla pause while waiting on customer: false → true"':
+          - cell "Select 23 Oct 2026, 11:42":
+            - checkbox "Select 23 Oct 2026, 11:42"
+          - cell "23 Oct 2026, 11:42":
+            - generic: 23 Oct 2026, 11:42
+          - cell "lmh":
+            - generic: lmh
+          - cell "Update":
+            - generic: Update
+          - cell
+          - 'cell "Last reviewed at: 22 Oct 2026, 15:46 → 23 Oct 2026, 11:42 Sla pause while waiting on customer: false → true"':
+            - generic: "Last reviewed at: 22 Oct 2026, 15:46 → 23 Oct 2026, 11:42"
+            - generic: "Sla pause while waiting on customer: false → true"
+        - 'row "Select 22 Oct 2026, 15:46 22 Oct 2026, 15:46 lmh Update Last reviewed at: 22 Oct 2026, 12:54 → 22 Oct 2026, 15:46"':
+          - cell "Select 22 Oct 2026, 15:46":
+            - checkbox "Select 22 Oct 2026, 15:46"
+          - cell "22 Oct 2026, 15:46":
+            - generic: 22 Oct 2026, 15:46
+          - cell "lmh":
+            - generic: lmh
+          - cell "Update":
+            - generic: Update
+          - cell
+          - 'cell "Last reviewed at: 22 Oct 2026, 12:54 → 22 Oct 2026, 15:46"':
+            - generic: "Last reviewed at: 22 Oct 2026, 12:54 → 22 Oct 2026, 15:46"
+        - row "Select 22 Oct 2026, 12:54 22 Oct 2026, 12:54 lmh Create":
+          - cell "Select 22 Oct 2026, 12:54":
+            - checkbox "Select 22 Oct 2026, 12:54"
+          - cell "22 Oct 2026, 12:54":
+            - generic: 22 Oct 2026, 12:54
+          - cell "lmh":
+            - generic: lmh
+          - cell "Create":
+            - generic: Create
+          - cell
+          - cell:
+            - 'generic "Client id: — → 1 Contract reference: — → CW16622 Show all 24 changes"':
+              - generic: "Client id: — → 1"
+              - generic: "Contract reference: — → CW16622"
+              - generic: Show all 24 changes
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,142 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "Change history" [level=1]
+- generic: Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed.
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - generic: Activity
+  - combobox "Activity":
+    - option "Changes by people" [selected]
+    - option "Background work (Jira sync, scans)"
+    - option "All activity"
+  - generic: Person
+  - textbox "Person":
+    - /placeholder: Account name
+  - generic: Record type
+  - combobox "Record type"
+  - generic: Action
+  - combobox "Action":
+    - option "Any" [selected]
+    - option "Create"
+    - option "Update"
+    - option "Status change"
+    - option "Owner change"
+    - option "Archive"
+    - option "Restore"
+    - option "Access change"
+    - option "Access granted"
+    - option "Access revoked"
+    - option "Export"
+    - option "Remove"
+  - generic: Category
+  - combobox "Category":
+    - option "Any" [selected]
+    - option "Business records"
+    - option "Access administration"
+  - generic: From
+  - textbox "From"
+  - generic: To
+  - textbox "To"
+  - region "Table":
+    - status: Loading…
+    - status
+  - heading "Recent exports" [level=2]
+  - region "Table":
+    - searchbox "Filter rows" [active]: Tio user id
+    - generic: 0 of 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown When User Report Filters Rows":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "When":
+            - button "When":
+              - generic: When
+          - columnheader "User":
+            - button "User":
+              - generic: User
+          - columnheader "Report":
+            - button "Report":
+              - generic: Report
+          - columnheader "Filters":
+            - button "Filters":
+              - generic: Filters
+          - columnheader "Rows":
+            - button "Rows":
+              - generic: Rows
+      - rowgroup
+    - status
+    - generic: No matching records. Change or clear the filters.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

@@ -1,0 +1,15 @@
+{
+  "id": "R072-mobile",
+  "route": "/admin/config/contract-types",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Contract types"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 406,
+  "title": "Contract types · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

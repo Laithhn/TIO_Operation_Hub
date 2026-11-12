@@ -1,0 +1,15 @@
+{
+  "id": "R004-mobile",
+  "route": "/dashboards/management",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Management dashboard"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 3639,
+  "title": "Management dashboard · TIO Operations Hub",
+  "width": 390
+}

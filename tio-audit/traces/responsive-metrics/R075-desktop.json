@@ -1,0 +1,15 @@
+{
+  "id": "R075-desktop",
+  "route": "/admin/config/escalation-channels",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Escalation channels"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 471,
+  "title": "Escalation channels · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

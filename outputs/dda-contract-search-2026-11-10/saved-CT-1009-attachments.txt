@@ -1,0 +1,474 @@
+TERM
+03 Jun 2026 – 02 Jun 2027
+Unknown
+RENEWAL
+Current
+SLA TARGETS
+4 priorities
+Critical: 1 h first response / 4 h resolution
+PAYMENTS
+Next due 04 Sept 2026
+1 overdue
+Details
+SLA targets
+4
+Delivery
+1
+Fees and payments
+4
+Penalties
+0
+Coverage
+Documents
+History
+Contract
+Client
+OYOON · OYOON Center
+Contract reference
+5341 of 2026
+Type
+SLA & support
+Project
+115101-AE · VTT_VI_AE_ViTIP_ITS_1xCustom SLA_OYOON_Dubai: ‪‪‪115101-AE
+Owner
+Laith Hamdan
+Term
+03 Jun 2026 – 02 Jun 2027
+Renewal terms
+Unknown
+Notice period
+Unknown
+Last reviewed
+10 Nov 2026
+Service obligations
+Support model
+Hybrid
+Support hours
+Mon–Fri 08:00–17:00
+Support notes
+Support hours/clock unspecified. Remote first, on-site if needed. Allocated Software Operation Engineer; no staffing count. Renewal, ARL, penalties/history: see Obligations.
+On-site engineers required
+1
+Coverage
+
+Operational client: OYOON Center. Contracting customer: DDGE, affiliated with Digital Dubai Authority.
+
+Supported software and coverage:
+Products:
+1:
+Support level: A
+Name: Vitronic Intelligent Tracking System (VITIS)
+Version: 3.48.1 [p35 ]
+2:
+Support level: A
+Name: Roadside Remote Management (RRM)
+Version: 2.19.4 [p35 ]
+3:
+Support level: A
+Name: Smart Dashboard (SDB)
+Version: 2.1.0 [p35 ]
+4:
+Support level: B
+Name: Backend workers and APIs related to VITIS, RRM and SDB; e.g. EmailWorker, FRWorker, Web and API components [p35 ]
+5:
+Support level: C/D
+Name: No specific products defined; limited or no support provided [p35 ]
+Channels:
+1: Telephone
+2: Email
+3: JIRA ticketing system
+Source pages:
+1: 35
+2: 36
+Service hours: Not specified in the signed PDF; do not assume 24/7 for any priority.
+Onsite condition: On-site if remote resolution fails; no numeric on-site attendance commitment printed.
+Exclusions:
+1: Dubai Police software not listed in supported products [p36 ]
+2: Unauthorized hardware/software changes [p36 ]
+3: System installation or relocation [p36 ]
+4: Consumables repair/replacement [p36 ]
+5: Faults not caused by normal usage [p36 ]
+
+Included and separately charged services:
+1: Technical support and maintenance for VITIS, RRM and SDB systems [p35 ]
+2: Remote diagnostics and support via secured connection [p35 ]
+3: On-site visits if remote resolution fails [p35 ]
+4: Support through telephone, email or JIRA ticketing system [p35 ]
+5: Allocated Software Operation Engineer [p35 ]
+6: Continuous software maintenance updates (bug fixes only) [p35 ]
+7: Software configuration support [p35 ]
+8: System audit upon request [p35 ]
+9: On-site consultancy for fault analysis, optimization and re-engineering [p35 ]
+10: System administration (remote or on-site, by prior negotiation) [p35 ]
+11: Tailored training on system maintenance, operation and administration [p35 ]
+12: Application support and pre-booked services (charged separately) [p35 ]
+
+Show more
+Obligations
+
+Contract 5341/2026 – OYOON Support & Maintenance
+
+ 1. Contract Overview
+
+Customer: DDGE / OYOON Center  
+Supplier: VITRONIC Machine Vision Middle East LLC  
+Contract: 5341/2026 | Requisition: 12600254  
+Project: 115101-AE | Owner: Laith Hamdan  
+Period: 3 June 2026 – 2 June 2027  
+Value: AED 585,600 excluding VAT  
+Document Date: 22 July 2026
+
+Project mapping and ownership confirmed on 10 November 2026.
+
+ 2. Service Scope
+
+Maintenance and technical support for VITIS, RRM and SDB, covering remote diagnostics, on-site intervention when remote resolution fails, telephone/email/JIRA support, an allocated Software Operation Engineer, bug fixes, configuration, audits, consultancy, system administration and training. Application support and pre-booked services are charged separately.
+
+Support hours and SLA clock basis are unspecified.
+
+ 3. SLA and Incident Obligations
+
+- RCA: Within 48 hours after incident resolution.
+- Cyber incidents: Written notification within 24 hours.
+- Escalation: L1 → L2 → L3; P1 escalates immediately to L2.
+- ARL deductions: 90–<98%: 0.5%; 85–<89%: 2%; 80–<84%: 5%; 65–<79%: 10%; below 65%: potential SLA cancellation.
+
+ARL calculation, measurement period, percentage gaps and aggregate deduction cap are undefined. MTTR is a separate metric.
+
+ 4. Financial Terms
+
+Fixed contract value: AED 585,600 excluding VAT.
+
+Four planned invoices of AED 146,400 each (25%), dated:
+
+- 4 September 2026
+- 4 December 2026
+- 4 March 2027
+- 3 June 2027
+
+Actual invoicing and payments remain unverified.
+
+Performance guarantee: 2% (AED 11,712 calculated), valid until 90 days after contract expiry; issuance unconfirmed.
+
+ 5. Key Contractual Obligations
+
+Formal written customer acceptance is required. Maintain approved staffing, service records, security controls (ISO, ISR, DESC), confidentiality, audit cooperation and secure data handling.
+
+Cloud/AI activities require applicable prior approvals. Amendments and subcontracting require written authorization.
+
+General delay sanctions reference Law 12 of 2020. Compensation provisions include a stated 100% contract-value limit, subject to clause wording and exceptions; this is not an express SLA deduction cap.
+
+ 6. Renewal and Termination
+
+- Main contract: Renewal-intention notice 30 days before expiry.
+- SLA appendix: Automatic annual renewal unless terminated with three months' written notice.
+- Breach termination: Generally subject to a 30-working-day cure period.
+- Early termination: At least 30 days' notice, with compensation for eligible services/materials.
+
+Renewal provisions conflict and require clarification. Main-contract and Arabic-language precedence provisions apply.
+
+ 7. Escalation Contacts
+
+| Level | DDGE | VITRONIC |
+|---|---|---|
+| L1 | Huda AlHashmi | Abdalrhman Asaad |
+| L2 | Shaikha Almarzooqi | Laith Hamdan |
+| L3 | Abdulla AlFalasi | Dr Youssef El Hansali |
+
+ 8. Pending Verification
+
+Confirm renewal interpretation, ARL methodology, support calendar, guarantee issuance, payment/acceptance status and referenced offer QU040000261.
+
+Evidence Status: Contractual scope and commercial terms verified; operational execution, settlement and unresolved SLA interpretations remain unconfirmed.
+
+Source: Signed DDGE Contract 5341/2026, 36 pages, including Operation & SLA appendix. Hub review: 10 November 2026.
+
+Show less
+SLA targets (recorded)
+
+Targets as the contract states them. Tickets linked to this contract are measured against the target for their priority, copied when the contract is linked (A61); editing the targets affects tickets linked afterwards. The clock pauses while a ticket waits on the customer. Tickets measured against this contract
+
+4 rows
+FILTER
+COLUMNS
+EXPORT CSV
+SLA targets
+	
+Priority
+	
+Response target
+	
+Resolution target
+	
+Clock
+	
+Notes
+
+
+	
+Critical
+	
+1 h
+	
+4 h
+	
+Unknown
+	
+P1 Critical; major system impact. Response1h; workaround8h; MTTR24h (aggregate metric, not a separately stated per-ticket resolution limit). Signed SLA p36. Clock/coverage hours unspecified.
+
+
+	
+High
+	
+2 h
+	
+8 h
+	
+Unknown
+	
+P2 Urgent; partial system impact. Response1h; workaround24h; MTTR48h. Main escalation section labels P2 High. Clock/coverage hours unspecified; p36.
+
+
+	
+Normal
+	
+4 h
+	
+14 d
+	
+Unknown
+	
+P3 Standard; no operational impact. Resolution within14days (=336h). Clock basis unspecified; p36.
+
+
+	
+Low
+	
+2 d
+	
+15 d 5 h
+	
+Unknown
+	
+P4 Enhancement; feature requests. Resolution based on agreed timeline; no fixed numeric target. Signed SLA p36.
+Delivery schedule · 0 % complete on average
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract delivery schedule
+	
+Phase
+	
+Description
+	
+Completion
+	
+Date
+
+
+	
+Annual Zabeel support and maintenance
+	
+Service period 3 June 2026–2 June 2027; support, monitoring and allocated Software Operation Engineer. Formal acceptance requires written DDGE approval. Date is stated service end, not actual completion; pp3,35–36.
+	
+Unknown
+	
+02 Jun 2027
+Fees and costs (AED)
+1 row
+FILTER
+COLUMNS
+EXPORT CSV
+Contract fees and costs
+	
+Description
+	
+Unit
+	
+Qty
+	
+Unit price
+	
+Total
+
+
+	
+Annual OYOON174 Zabeel system support/monitoring — fixed contract value, excluding VAT and applicable fees (p4).
+	
+Contract
+	
+1
+	
+585,600.00
+	
+585,600.00
+
+Total: 585,600.00 AED
+
+Payment terms
+
+Next due: 04 Sept 2026 — System Support and Monitoring – 1 payment (146,400.00 AED).
+
+4 rows
+FILTER
+COLUMNS
+EXPORT CSV
+Contract payment terms
+	
+Condition
+	
+%
+	
+Amount
+	
+Due
+	
+Status
+
+
+	
+System Support and Monitoring – 1 payment
+	
+25 %
+	
+146,400.00 AED
+	
+04 Sept 2026
+	
+Pending 
+Overdue
+
+
+	
+System Support and Monitoring – 2 payment
+	
+25 %
+	
+146,400.00 AED
+	
+04 Dec 2026
+	
+Pending
+
+
+	
+System Support and Monitoring – 3 payment
+	
+25 %
+	
+146,400.00 AED
+	
+04 Mar 2027
+	
+Pending
+
+
+	
+System Support and Monitoring – 4 payment
+	
+25 %
+	
+146,400.00 AED
+	
+03 Jun 2027
+	
+Pending
+Penalty assessments
+RECALCULATE
+
+Indicative contractual amounts only. Different recorded rates or caps are assessed separately and require review. Superseded assessments have no current charge; earlier values remain in change history. The hub does not issue credits or invoices.
+
+Reason for recalculation or confirmation
+No assessments have been calculated.
+Covered products (from the project)
+The project has no products recorded.
+Covered environments
+No records entered.
+Contract and SLA documents (2)
+UPLOAD FILES
+TOTAL FILES
+2
+DOCUMENT CATEGORIES
+2
+by file type
+UPLOADERS
+1
+LATEST UPLOAD
+10 Nov 2026
+Laith Hamdan
+All categories
+Data file
+PDF document
+All file types
+JSON
+PDF
+Sort
+Newest first
+Oldest first
+Name A–Z
+Name Z–A
+Size, smallest first
+Size, largest first
+RESET
+Attachments of this contract
+	FILE NAME	CATEGORY	TYPE	SIZE	UPLOADED ON	UPLOADED BY	
+ACTIONS
+
+	
+5341-extracted-terms-reference.json
+Contract 5341 of2026 / requisition12600254: original 36-page countersigned Zabeel AMC renewal, including payment and Operation & SLA appendices, plus page-referenced source facts. Original PDF governs; reference summary does not change manually entered Hub values.
+	Data file	JSON	39 KB	10 Nov 2026, 12:55	Laith Hamdan	
+
+	
+DDGE Contract Oyoon 174 Zabeel System AMC Renewal-Print-CEsigned (2).pdf
+Contract 5341 of2026 / requisition12600254: original 36-page countersigned Zabeel AMC renewal, including payment and Operation & SLA appendices, plus page-referenced source facts. Original PDF governs; reference summary does not change manually entered Hub values.
+	PDF document	PDF	10.0 MB	10 Nov 2026, 12:55	Laith Hamdan	
+1–2 of 2 files
+Rows per page: 
+8
+15
+25
+50
+PREVIOUS
+1
+NEXT
+Change history
+2 rows
+FILTER
+COLUMNS
+EXPORT CSV
+	
+When
+	
+By
+	
+Action
+	
+Reason
+	
+Changes (before → after)
+
+
+	
+10 Nov 2026, 11:17
+	
+lmh
+	
+Update
+	
+	
+Last reviewed at: 10 Nov 2026, 11:14 → 10 Nov 2026, 11:17
+
+
+	
+10 Nov 2026, 11:14
+	
+lmh
+	
+Create
+	
+	
+Client id: — → 3
+Contract reference: — → 5341 of 2026
+Show all 24 changes

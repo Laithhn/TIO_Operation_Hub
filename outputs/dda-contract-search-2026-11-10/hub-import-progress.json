@@ -1,0 +1,100 @@
+{
+  "completedOn": "2026-11-10",
+  "client": {
+    "id": 3,
+    "name": "OYOON Center"
+  },
+  "owner": "Laith Hamdan",
+  "skipped": {
+    "record": "CT-1009",
+    "reason": "User completed manually; left unchanged after skip instruction."
+  },
+  "createdProjects": [
+    {
+      "id": 14,
+      "reference": "116938-AE"
+    },
+    {
+      "id": 15,
+      "reference": "OYOON-182-AMC-2026"
+    }
+  ],
+  "contracts": [
+    {
+      "record": "CT-1010",
+      "reference": "5340 of 2026",
+      "url": "https://nb01994.vitronic.de/contracts/10",
+      "status": "Active",
+      "valueAED": 528000,
+      "vatBasis": "Excluding VAT",
+      "documents": 5,
+      "slaRows": 4,
+      "deliveryRows": 1,
+      "paymentRows": 4
+    },
+    {
+      "record": "CT-1011",
+      "reference": "5194 of 2025",
+      "url": "https://nb01994.vitronic.de/contracts/11",
+      "status": "Active",
+      "valueAED": 512506.76,
+      "vatBasis": "Excluding VAT",
+      "documents": 4,
+      "slaRows": 4,
+      "deliveryRows": 3,
+      "paymentRows": 1,
+      "renewalNoticeDeadline": "2026-12-01"
+    },
+    {
+      "record": "CT-1012",
+      "reference": "5196 of 2025",
+      "url": "https://nb01994.vitronic.de/contracts/12",
+      "status": "Ended",
+      "valueAED": 440000,
+      "vatBasis": "Excluding VAT",
+      "documents": 4,
+      "slaRows": 0,
+      "deliveryRows": 14,
+      "paymentRows": 7
+    },
+    {
+      "record": "CT-1013",
+      "reference": "42500353 revision 0",
+      "url": "https://nb01994.vitronic.de/contracts/13",
+      "status": "Ended",
+      "valueAED": 488000,
+      "vatBasis": "Unknown",
+      "documents": 3,
+      "slaRows": 0,
+      "deliveryRows": 2,
+      "paymentRows": 1
+    }
+  ],
+  "verification": "Saved records read back through authenticated Hub UI; attachment names, counts and nonzero sizes verified. Screenshot shows all5 OYOON contract records. Contract5340 final planned invoice visually checked as30-Jun-2027. Payment due dates left unknown; source planned invoice dates retained as text.",
+  "limitations": [
+    "Actual invoices/payment/service completion and guarantee issue unverified; Pending is the required workflow default, not a confirmed receivable.",
+    "ARL monthly aggregate credits cannot be represented by the current per-breach penalty calculator; source formula/bands/conflicts recorded in Obligations and attached supplement.",
+    "Source-backed coverage is in Service coverage text. Matching product/environment links were not available and were not inferred.",
+    "CT1010 P3/P4 clock remains unknown: differing weekday support intervals and unstated timezone; P1/P2 explicitly24/7.",
+    "BPA full countersigned PDF not located; original notification and supplier acceptance-response EMLs attached. Government processing and VAT basis unverified.",
+    "Signed/source renewal, security, payment and template discrepancies retained for review."
+  ],
+  "applicationChanges": "Business records and attachments only through Hub UI. No source-code, schema, migration, rights, configuration or seed-data changes. No direct database commands.",
+  "suggestedNextAction": "Review flagged source discrepancies and the Al Qudra renewal deadline of1-Dec-2026.",
+  "proof": "oyo-on-contract-register-completed.png",
+  "followUpAttachments": {
+    "record": "CT-1009",
+    "reference": "5341 of2026",
+    "url": "https://nb01994.vitronic.de/contracts/9#contract-documents",
+    "completedOn": "2026-11-10",
+    "files": [
+      "DDGE Contract Oyoon 174 Zabeel System AMC Renewal-Print-CEsigned (2).pdf",
+      "5341-extracted-terms-reference.json"
+    ],
+    "documentsAfterUpload": 2,
+    "contractFieldsUnchanged": true,
+    "verification": "UI confirms both filenames/nonzero sizes; contract fields before Documents compared equal before/after upload.",
+    "limitation": "No separate matching Zabeel offer found among previously downloaded files. ANPR5340 offer/LOA excluded.",
+    "proof": "CT-1009-attachments-added.png"
+  }
+}

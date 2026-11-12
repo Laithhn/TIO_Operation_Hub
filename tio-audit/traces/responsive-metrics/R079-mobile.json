@@ -1,0 +1,15 @@
+{
+  "id": "R079-mobile",
+  "route": "/admin/jira",
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Jira instances"
+  ],
+  "height": 844,
+  "loadingTexts": [],
+  "mainTextLength": 156,
+  "title": "Jira instances · TIO Operations Hub",
+  "width": 390,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

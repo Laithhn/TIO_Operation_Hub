@@ -1,0 +1,92 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Administration":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Administration
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - generic: Contracts & Tickets
+- heading "Contracts & Tickets" [level=1]
+- generic: Contract and ticket types, statuses, escalation channels and priorities.
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration (current section)":
+      - /url: /admin
+      - text: Administration
+      - generic: (current section)
+    - button "Administration pages":
+- main:
+  - list "Contracts & Tickets pages":
+    - link "Contract types":
+      - /url: /admin/config/contract-types
+    - generic: Types offered on the contract form.
+    - generic: 5 active
+    - generic: Editable list
+    - link "Ticket types":
+      - /url: /admin/config/case-types
+    - generic: Types offered when opening a ticket.
+    - generic: 5 active
+    - generic: Editable list
+    - link "Ticket statuses":
+      - /url: /admin/config/case-statuses
+    - generic: Display labels of the built-in case statuses.
+    - generic: 7 active
+    - generic: Editable list
+    - link "Escalation channels":
+      - /url: /admin/config/escalation-channels
+    - generic: How escalations arrive and how replies go out.
+    - generic: 4 active
+    - generic: Editable list
+    - link "Priority guidance":
+      - /url: /admin/config/priority-guidance
+    - generic: Guidance text shown for each ticket priority.
+    - generic: 4 active
+    - generic: Editable list
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

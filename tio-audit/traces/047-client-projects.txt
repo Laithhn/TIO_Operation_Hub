@@ -1,0 +1,140 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: TAH
+- heading "Tahakom" [level=1]
+- text: TAH · Saudi Arabia ·
+- text: Active
+- text: ·
+- link "Edit":
+  - /url: /clients/1/edit
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - img "Tahakom logo"
+  - generic: Tahakom
+  - generic: TAH · Saudi Arabia
+  - navigation "Client areas":
+    - button "Overview"
+    - button "Operational"
+    - button "Technical"
+    - button "Commercial" [active] [pressed]
+    - button "Records"
+  - tablist:
+    - tab "Organizations":
+      - generic: Organizations
+    - tab "Contracts & SLAs":
+      - generic: Contracts & SLAs
+    - tab "Projects" [selected]:
+      - generic: Projects
+  - heading "Projects and their contracts" [level=2]
+  - link "Open list":
+    - /url: /projects?clientId=1
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 1 row
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Select all rows shown Code Project Status Owner Service dates Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Code":
+            - generic: Code
+          - columnheader "Project":
+            - generic: Project
+          - columnheader "Status":
+            - generic: Status
+          - columnheader "Owner":
+            - generic: Owner
+          - columnheader "Service dates":
+            - generic: Service dates
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select 117992-AE 117992-AE SLA _ IT Application & Platform Licenses – 2026 Active Laith Hamdan Unknown Actions for project 117992-AE":
+          - cell "Select 117992-AE":
+            - checkbox "Select 117992-AE"
+          - cell "117992-AE":
+            - link "117992-AE":
+              - /url: /projects/1
+          - cell "SLA _ IT Application & Platform Licenses – 2026":
+            - link "SLA _ IT Application & Platform Licenses – 2026":
+              - /url: /projects/1
+          - cell "Active":
+            - text: Active
+          - cell "Laith Hamdan":
+            - generic: Laith Hamdan
+          - cell "Unknown":
+            - generic: Unknown
+          - cell "Actions for project 117992-AE":
+            - button "Actions for project 117992-AE": ⋯
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

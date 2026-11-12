@@ -61,10 +61,13 @@
 .ntf-page { padding: 6px 10px 4px; }
 .ntf-page .ntf-side { max-width: 40%; }
 .ntf-row-actions { display: flex; gap: 10px; }
+/* TIO-BUG-004: on a phone the badge and action take a row of their own under the text. The rule must also beat the page's
+   ".ntf-page .ntf-side { max-width: 40% }", which otherwise kept the row at 40% and pushed the badge back over the title.
+   Long action labels wrap instead of overflowing. */
 @media (max-width: 600px) {
-  .ntf-side { max-width: none; }
   .ntf { flex-wrap: wrap; }
-  .ntf-side { flex-direction: row; align-items: center; width: 100%; justify-content: flex-end; }
+  .ntf .ntf-side, .ntf-page .ntf-side { flex: 1 1 100%; max-width: none; width: 100%; min-width: 0; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+  .ntf .ntf-act { white-space: normal; overflow-wrap: anywhere; text-align: center; max-width: 100%; }
 }
 /* Phones: the pop-up is pinned to the screen edges under the header instead of to the bell. */
 @media (max-width: 600px) {

@@ -1,0 +1,86 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Products":
+    - /url: /products
+- heading "New product" [level=1]
+- generic: A product is a software application TIO delivers and supports. Add modules, features and versions on the product page after saving.
+- complementary "Section menu":
+  - navigation:
+    - link "All products":
+      - /url: /products
+    - link "New product":
+      - /url: /products/new
+  - button "Expand menu":
+- main:
+  - generic: Product code *
+  - textbox "Product code *"
+  - generic: Short and permanent, e.g. PSOP or ViRRM.
+  - generic: Product name *
+  - textbox "Product name *"
+  - generic: Also known as
+  - textbox "Also known as"
+  - generic: Other names people use, separated by semicolons.
+  - generic: Category
+  - textbox "Category"
+  - generic: e.g. Back office, ANPR, Big data.
+  - generic: Product owner
+  - textbox "Product owner"
+  - generic: Any name; the product owner does not need a hub account.
+  - generic: Description
+  - textbox "Description"
+  - generic: What the product does, for whom, and anything a new engineer should know.
+  - generic: Technology
+  - textbox "Technology"
+  - generic: Platform and stack, e.g. .NET 8, SQL Server 2019, Docker, Windows Server.
+  - checkbox "Active (untick to retire the product)" [checked]
+  - text: Active (untick to retire the product)
+  - group "Application developers":
+    - generic: Application developers
+    - paragraph: No developers listed yet.
+    - button "+ Developer"
+  - button "Cancel"
+  - button "Save product"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

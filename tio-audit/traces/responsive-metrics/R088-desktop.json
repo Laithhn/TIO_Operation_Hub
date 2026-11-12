@@ -1,0 +1,15 @@
+{
+  "id": "R088-desktop",
+  "route": "/admin/groups",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Directory group mappings"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 41,
+  "title": "Directory group mappings · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

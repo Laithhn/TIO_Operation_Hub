@@ -1,0 +1,15 @@
+{
+  "id": "R006-laptop",
+  "route": "/clients",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Clients"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 1828,
+  "title": "Clients · TIO Operations Hub",
+  "width": 1366
+}

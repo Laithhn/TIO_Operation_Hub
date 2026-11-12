@@ -1,0 +1,298 @@
+{
+  "purpose": "Hub-ready UI content, not an API request. Use observed live form labels/options. No browser/Hub mutations performed by this subagent.",
+  "rules": [
+    "All completion percentages blank; percentages in payment rows are allocation terms, not delivery completion.",
+    "All payment dueDate fields blank: planned invoice dates are not payment due dates.",
+    "Pending is the only neutral available default in the inspected form; explicitly state actual status unknown. If live UI offers Unknown, prefer Unknown.",
+    "No numeric penalty clauses are created without a verified contractual formula.",
+    "Do not apply default support calendars to5196.",
+    "Source history belongs in narrative; Hub History remains the truthful creation/edit audit."
+  ],
+  "contracts": [
+    {
+      "reference": "5194 of 2025",
+      "clientId": 3,
+      "projectId": 15,
+      "projectCode": "OYOON-182-AMC-2026",
+      "ownerUserId": 1,
+      "owner": "Laith Hamdan",
+      "mainFields": {
+        "title": "OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH",
+        "contractReference": "5194 of 2025",
+        "type": "Maintenance",
+        "status": "Active",
+        "startDate": "2026-01-01",
+        "endDate": "2026-12-31",
+        "renewalTerms": "RenewalByAgreement",
+        "noticeDays": 30,
+        "currency": "AED",
+        "supportModel": "Hybrid",
+        "support24x7": false,
+        "supportDays": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday"
+        ],
+        "supportFrom": "09:00",
+        "supportTo": "18:00",
+        "supportTimeZone": "Asia/Dubai",
+        "onSiteEngineersRequired": null,
+        "supportHours": "Public holi days excluded. UAE time Mon–Fri 09:00–18:00 (p24). P 1 immediate action/1 h response. Numeric resolution targets and response-clock handling outside coverage  hours are unspecified.",
+        "coverage": "AMC of Al Qudra Bluscan SSPX/CCH equipment during 01-Jan–31-Dec-2026. Appendix 3(p23):8 Bluscan speed enforcement devices,10 Bluscan(CCH) devices, and cleaning of 14 Bluscan(CCH) radar equipment cabinets. Appendix 4(pp23–24): secure remote diagnostics/support; telephone/email support within operational  hours; on-site visits if remote resolution is unavailable; repair/replacement of faulty equipment; corrective maintenance restoring normal operation; preventive inspections/upkeepper manufacturer recommendations. Coverage Mon–Fri 09:00–18:00 UAE time, public holi days excluded. Excludes vandalism, disaster recovery, consumables and non-standard hardware/software changes not mutually agreed. Escalation applies if resolution exceeds agreed timelines; this PDF gives no numeric resolution target or named escalation chain.",
+        "obligations": "COMMERCIAL / PAYMENT — AED  512,506.76 excluding VAT, final fixed total including expenses (p4 cl 5). Monthly payments within 30  days after invoice submission accompanied by approved, duly signed Service Completion Form confirming satisfactory delivery (p23 App3). Actual invoice/payment/completion status is unverified. Printed annual fee lines are preserved as annual packages; original quantities and monthly figures are in fee descriptions. Monthly figures total AED  42,708.90; ×12 is AED  512,506.80, AED  0.04 above the annual total. Do not silently rebalance.\n\nPENALTIES / LIABILITY — Failure to supply services/materials or delay beyond the granted period permits measures under Dubai Law 12/2020 and relevant laws (pp3–4 cl 4; p16 cl 12.16). No numeric penalty rate, service credit formula or penalty capis specified. A supplier exemption application needs proof of emergency, force majeure, customer-caused delay or another cause outside supplier control, and customer consent. The compensation paragraph states a 100% contract-value liability limit; indirect/consequential losses and lost profit are excluded with exceptions for gross negligence, fraud or confidentiality breach (pp13–14 cl 12.9). This liability limit is not a delay-penalty cap.\n\nGUARANTEE / RENEWAL / TERMINATION — Final unconditional irrevocable bank guarantee: 10% of contract value, from a bank operating in the State, effective from start and valid 90  days after contract end; revocation requires customer consent. Actual guarantee provision is unverified (p4 cl 5.3). Customer written intention to renew 30  days before expiry; no unconditional automatic renewal (p3 cl 2). Unrectified breach:15  working-day cure after written notice (p9 cl 9.1). Customer early termination: at least 30  days written notice, paying value of supplied materials/services (p10 cl 9.2). Force-majeure notice within 7  working  days with details, supporting proof and mitigation; timeline extension by agreement (pp18–19 cl 14). Amicable dispute period 30  days, then senior management; Dubai law/UAE federal law and Dubai Courts (p11 cl 10).\n\nGOVERNANCE — Changes need an authorized mutual written addendum. Customer written consent is required for subcontracting/assignment and use of its IP, name or logo; supplier remains liable. Confidentiality/security survive expiry; return customer materials on request/end. Apply proportionate ISO/IEC 27001, ISO/IEC 22301, ISR/DESC/cloud and applicable PCI DSS controls. Maintain HSE and continuity. Customer audit/offset rights apply. Arabic prevails if versions differ. (Clauses 3,6–8,12–16.)\n\nCONTACTS — Huda Salim AlHashmi, Principal Project Manager, hudasalim.alhashmi@digitaldubai.ae,04-5599559; Mohammed Ahmed Abdo Al Omari, Customer Experience Products Lead, mohammad.alomari@vitronic.com,04-3290009. Notices in person, registered mail, email or mutually agreed means; representative changes by email (pp20–21 cl 17).\n\nSOURCE HISTORY — Supplier CEO Dr Youssef El Hansali signed 05-Dec-2025; service term 01-Jan–31-Dec-2026; DDGE CEO H.E.Matar AlHumairi countersigned 09-Jan-2026 11:47 UTC+4 (pp3,22). These are source events, not Hub audit events. Actual completion, acceptance, invoices/payments and guarantee issue/return are unverified.\n\nSOURCE LIMITS — Requisition 12500433 (p1). Technical/financial offerQU040000173,Jan-2025, references 12500433 proposal.pdf (p23); that separate proposal is not embedded and was not verified. Numeric resolution/availability targets and the response clock outside coverage  hours are not specified; keepthem unknown. Customer must provide remote access, site safety, documentation and initial spare-parts inventory (p24).",
+        "slaPauseWhileWaitingOnCustomer": false,
+        "environmentIds": []
+      },
+      "slaTargets": [
+        {
+          "priority": "P1",
+          "responseMinutes": 60,
+          "resolutionMinutes": null,
+          "basis": "Unknown",
+          "notes": "Critical: Major system impact; immediate action. Explicit response target; no numeric resolution target or confirmed clock basis (p24 App4)."
+        },
+        {
+          "priority": "P2",
+          "responseMinutes": 480,
+          "resolutionMinutes": null,
+          "basis": "Unknown",
+          "notes": "Urgent: Significant impact. Explicit response target; no numeric resolution target or confirmed clock basis (p24 App4)."
+        },
+        {
+          "priority": "P3",
+          "responseMinutes": 960,
+          "resolutionMinutes": null,
+          "basis": "Unknown",
+          "notes": "Standard: Minor issues. Explicit response target; no numeric resolution target or confirmed clock basis (p24 App4)."
+        },
+        {
+          "priority": "P4",
+          "responseMinutes": 4320,
+          "resolutionMinutes": null,
+          "basis": "Unknown",
+          "notes": "Enhancement: Non-critical requests. Explicit response target; no numeric resolution target or confirmed clock basis (p24 App4)."
+        }
+      ],
+      "milestones": [
+        {
+          "phase": "AMC service period start",
+          "description": "Stated maintenance period begins; actual completion is not inferred (p3 cl 2).",
+          "completionPercent": null,
+          "date": "2026-01-01"
+        },
+        {
+          "phase": "Monthly service and completion evidence",
+          "description": "Recurring maintenance throughout 2026; approved signed Service Completion Form accompanies each invoice. No fixed monthly day specified (p23 App3).",
+          "completionPercent": null,
+          "date": null
+        },
+        {
+          "phase": "AMC service period end",
+          "description": "Stated term expiry; renewal requires customer written intention 30  days before expiry (p3 cl 2).",
+          "completionPercent": null,
+          "date": "2026-12-31"
+        }
+      ],
+      "fees": [
+        {
+          "description": "Maintenance of Bluscan speed enforcement devices; 8 units; 2026 annual package. Printed monthly AED  13,562.47; annual AED  162,749.66 (p23 App3).",
+          "unit": "year",
+          "quantity": 1,
+          "unitPrice": 162749.66,
+          "normalization": "One annual package preserves stated annual aggregate; original asset quantity is descriptive, not a multiplier."
+        },
+        {
+          "description": "Maintenance of Bluscan (CCH) speed enforcement devices; 10 units; 2026 annual package. Printed monthly AED  28,661.33; annual AED  343,935.90 (p23 App3).",
+          "unit": "year",
+          "quantity": 1,
+          "unitPrice": 343935.9,
+          "normalization": "One annual package preserves stated annual aggregate; original asset quantity is descriptive, not a multiplier."
+        },
+        {
+          "description": "Cleaning of Bluscan (CCH) radar equipment cabinets; 14 units; 2026 annual package. Printed monthly AED  485.10; annual AED  5,821.20 (p23 App3).",
+          "unit": "year",
+          "quantity": 1,
+          "unitPrice": 5821.2,
+          "normalization": "One annual package preserves stated annual aggregate; original asset quantity is descriptive, not a multiplier."
+        }
+      ],
+      "payments": [
+        {
+          "condition": "Monthly payment within 30  days after invoice plus approved,duly signed Service Completion Form; actual invoice/payment status unknown (p23 App3).",
+          "percentage": null,
+          "amount": null,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        }
+      ],
+      "penaltyClauses": [],
+      "penaltyGuidance": "The available calculation model must not be populated with a synthetic fixed amount or percentage. If live UI offers manual/text-only clauses, use the statutory rule from Obligations; otherwise preserve it in Obligations. The100% liability cap is not a penalty cap.",
+      "sourceDocument": "C:\\Users\\lmh\\Downloads\\DDGE Contract OYOON 182 AMC 2026 Al Qudra Bluscan SSPX-Print-CEsigned.pdf",
+      "feeTotalExpected": 512506.76
+    },
+    {
+      "reference": "5196 of 2025",
+      "clientId": 3,
+      "projectId": null,
+      "projectIdGuidance": "Parent has the approved5196project mapping; bind that project. Do not assign5194project15.",
+      "ownerUserId": 1,
+      "owner": "Laith Hamdan",
+      "mainFields": {
+        "title": "OYOON 159 ANPR Data Management Solution",
+        "contractReference": "5196 of 2025",
+        "type": "Implementation",
+        "status": "Ended",
+        "startDate": "2025-07-01",
+        "endDate": "2026-06-30",
+        "renewalTerms": "RenewalByAgreement",
+        "noticeDays": 30,
+        "currency": "AED",
+        "supportModel": "Unknown",
+        "support24x7": false,
+        "supportDays": [],
+        "supportFrom": "",
+        "supportTo": "",
+        "supportTimeZone": "",
+        "onSiteEngineersRequired": null,
+        "supportHours": "No support  hours or SLA response/resolution targets specified in the 21-page PDF. Do not retain default support  days/times. Referenced V 4.0 proposal is unverified (p20).",
+        "coverage": "OYOON 159 ANPR Data Management Solution: allocation of professional human resources for ANPR operations optimization; technology enhancement of existing software; development/deployment of Dashboard and Management modules; training,handover and commissioning to Oyoon Operations (p21 App3). Contract term 01-Jul-2025–30-Jun-2026 (p2); planned work period 01-Jul-2025–31-Mar-2026 (p21). No verified support model, engineer headcount, SLA response/resolution target, coverage  hours or covered environment list is provided by this PDF. Separate proposalV 4.0,May-2025 is referenced only and remains unverified (p20).",
+        "obligations": "COMMERCIAL / PAYMENT — AED  440,000 excluding VAT, final fixed price including expenses (pp3–4 cl 5). Appendix 3(pp20–21) categories: professional resources AED  308,000/70%; management modules AED  110,000/25%; training/handover/commissioning AED  22,000/5%. Planned invoice milestones are recorded as conditions, without invented payment due dates. No invoice-to-payment period is stated. Actual delivery, invoice, acceptance and payment status are unverified.\n\nPAYMENT SOURCE ERRORS — Row 1.4 prints 28-Feb-25,AED  77,000/17.5%, before the 01-Jul-25 start; preserve this printed date and do not silently change its year. Final Acceptance row 3.1 prints 01-Mar-26,AED  44,000/5%, while its category is AED  22,000/5%. Printed component invoices total AED  462,000 versus the signed/category total AED  440,000. Keepthe final-acceptance amount unknown in structured payments and retain the conflict here; no confirmed AED  462,000 payment schedule. Planned end of work 31-Mar-2026 differs from contract expiry 30-Jun-2026; preserve both (p21).\n\nPENALTIES / LIABILITY — Failure to supply services/materials or delay beyond the granted period permits measures under Dubai Law 12/2020 and relevant laws (p3 cl 4; p14 cl 12.16). No numeric penalty rate, service credit formula or penalty capis stated. Delay exemption needs supporting proof and customer consent. Compensation paragraph states a 100% contract-value liability limit; indirect/consequential losses and lost profit are excluded with exceptions for gross negligence, fraud or confidentiality breach (pp12–13 cl 12.9). The liability limit is not a delay-penalty cap.\n\nGUARANTEE / RENEWAL / TERMINATION — Final unconditional irrevocable bank guarantee 10% of contract value, effective from start and valid 90  days after end, revocable only with customer consent; actual provision unverified (p4 cl 5.3). Renewal requires customer written intention 30  days before expiry (p2 cl 2). Breach cure 15  working  days after written notice; early termination on at least 30  days written notice with compensation for supplied materials/services (pp8–9 cl 9). Force-majeure notice within 7  working  days with supporting details/proof/mitigation; timeline extension by agreement (pp15–17 cl 14). Amicable dispute period 30  days, then senior management; Dubai/UAE law and Dubai Courts (pp9–10 cl 10).\n\nGOVERNANCE — Changes need an authorized mutual written addendum. Customer written consent is required for subcontracting/assignment and use of its IP, name or logo; supplier remains liable. Confidentiality/security survive expiry; return customer materials on request/end. Apply proportionate ISO/IEC 27001, ISO/IEC 22301, ISR/DESC/cloud and applicable PCI DSS controls. Maintain HSE and continuity. Customer audit/offset rights apply. Arabic prevails if versions differ. (Clauses 3,6–8,12–16.)\n\nCONTACTS — Huda Salim AlHashmi, Principal Project Manager, hudasalim.alhashmi@digitaldubai.ae,04-5599559; Mohammed Ahmed Abdo Al Omari, Customer Experience Products Lead, mohammad.alomari@vitronic.com,04-3290009. Notices in person, registered mail, email or mutually agreed means; representative changes by email (p18 cl 17).\n\nSOURCE HISTORY — Stated term 01-Jul-2025–30-Jun-2026 (p2); supplier CEO Dr Youssef El Hansali signed 27-Nov-2025; DDGE CEO H.E.Matar AlHumairi countersigned 09-Jan-2026 11:47 UTC+4 (p19). Planned final acceptance 01-Mar-2026 and end of work 31-Mar-2026 (p21) are not proof of actual acceptance/completion. No extension/renewal is verified.\n\nSOURCE LIMITS — Requisition 12500298 (p1). Appendices 1/2 reference V 4.0,May-2025,DDGE 12500298 Proposal.pdf (p20); separate proposal is not embedded/unverified. The 21-page source has no SLA appendix, numeric response/resolution/availability targets or coverage  hours. Do not copy targets from another contract.",
+        "slaPauseWhileWaitingOnCustomer": false,
+        "environmentIds": []
+      },
+      "slaTargets": [],
+      "milestones": [
+        {
+          "phase": "Start of Work (planned)",
+          "description": "Planned work start and stated contract start (pp2,21); actual work completion unverified.",
+          "completionPercent": null,
+          "date": "2025-07-01"
+        },
+        {
+          "phase": "Professional resources / ANPR operations optimization",
+          "description": "Resource allocation phase. Planned invoice dates 31-Aug-25,31-Oct-25,31-Dec-25 and printed 28-Feb-25; final date predates start and remains unresolved. These are invoice milestones, not actual completion (p21).",
+          "completionPercent": null,
+          "date": null
+        },
+        {
+          "phase": "Technical plan and software enhancement (planned invoice milestone)",
+          "description": "Technical proposal plan and technology enhancement of existing software. Printed planned invoice milestone; actual delivery/completion unverified (p21).",
+          "completionPercent": null,
+          "date": "2025-09-30"
+        },
+        {
+          "phase": "Dashboard and Management modules (planned invoice milestone)",
+          "description": "Complete development/deployment of 2 modules. Printed planned invoice milestone; actual delivery/completion unverified (p21).",
+          "completionPercent": null,
+          "date": "2026-02-28"
+        },
+        {
+          "phase": "Training,handover,commissioning / Final Acceptance (planned)",
+          "description": "Planned final acceptance only; source amount 44,000 conflicts with category 22,000/5%. No actual acceptance certificate verified (p21).",
+          "completionPercent": null,
+          "date": "2026-03-01"
+        },
+        {
+          "phase": "End of Work (planned)",
+          "description": "Printed planned end of work 31-Mar-2026; distinct from contract expiry 30-Jun-2026; actual completion unverified (pp2,21).",
+          "completionPercent": null,
+          "date": "2026-03-31"
+        }
+      ],
+      "fees": [
+        {
+          "description": "Allocation of professional human resources for ANPR operation optimization; 70% category; stated contract allocation excluding VAT (p21 App3).",
+          "unit": "lumpsum",
+          "quantity": 1,
+          "unitPrice": 308000
+        },
+        {
+          "description": "Development of the Product (Management Modules); 25% category; stated contract allocation excluding VAT (p21 App3).",
+          "unit": "lumpsum",
+          "quantity": 1,
+          "unitPrice": 110000
+        },
+        {
+          "description": "Training, Handover, and Commissioning to Oyoon Operations; 5% category; stated contract allocation excluding VAT (p21 App3).",
+          "unit": "lumpsum",
+          "quantity": 1,
+          "unitPrice": 22000
+        }
+      ],
+      "payments": [
+        {
+          "condition": "1.1 Professional resources 1 st payment; planned invoice 31-Aug-25; actual invoice/payment status unknown (p21).",
+          "percentage": 17.5,
+          "amount": 77000,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        },
+        {
+          "condition": "1.2 Professional resources 2 nd payment; planned invoice 31-Oct-25; actual invoice/payment status unknown (p21).",
+          "percentage": 17.5,
+          "amount": 77000,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        },
+        {
+          "condition": "1.3 Professional resources 3 rd payment; planned invoice 31-Dec-25; actual invoice/payment status unknown (p21).",
+          "percentage": 17.5,
+          "amount": 77000,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        },
+        {
+          "condition": "1.4 Professional resources 4 th payment; planned invoice 28-Feb-25; actual invoice/payment status unknown (p21). Printed 2025 date predates start; year unconfirmed.",
+          "percentage": 17.5,
+          "amount": 77000,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        },
+        {
+          "condition": "2.1 Technical proposal plan and technology enhancement of existing software; planned invoice 30-Sep-25; actual invoice/payment status unknown (p21).",
+          "percentage": 10,
+          "amount": 44000,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        },
+        {
+          "condition": "2.2 Complete development and deployment of 2 modules (Dashboard and Management); planned invoice 28-feb-26; actual invoice/payment status unknown (p21).",
+          "percentage": 15,
+          "amount": 66000,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        },
+        {
+          "condition": "3.1 Final Acceptance; planned invoice 01-Mar-26; actual invoice/payment status unknown (p21). Source amount 44,000 conflicts with category 22,000/5%; amount unconfirmed.",
+          "percentage": 5,
+          "amount": null,
+          "dueDate": null,
+          "status": "Pending",
+          "paidOn": null,
+          "status_meaning": "Required Hub workflow default for a recorded contract term; actual invoice/payment status is unknown, not asserted unpaid."
+        }
+      ],
+      "penaltyClauses": [],
+      "penaltyGuidance": "The available calculation model must not be populated with a synthetic fixed amount or percentage. If live UI offers manual/text-only clauses, use the statutory rule from Obligations; otherwise preserve it in Obligations. The100% liability cap is not a penalty cap.",
+      "sourceDocument": "C:\\Users\\lmh\\Downloads\\DDGE Contract OYOON 159 ANPR Data Management Solution-Print-CEsigned (002).pdf",
+      "feeTotalExpected": 440000,
+      "paymentAmountCheck": "Known nonconflicting component amounts total418,000; final acceptance amount is blank because source conflicts. Percentages total100%. Printed uncorrected component invoice sum462,000 is NOT a confirmed schedule."
+    }
+  ]
+}

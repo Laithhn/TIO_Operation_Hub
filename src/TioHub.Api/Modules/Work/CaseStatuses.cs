@@ -78,6 +78,17 @@ public static class CaseStatuses
         return db.LookupValues.AnyAsync(l => l.ListName == List && l.Category == name && !l.IsRetired, ct);
     }
 
+    /// <summary>
+    /// Audit TIO-BUG-001: the label people see for a configured status code, for summaries composed on the server (global search).
+    /// Retired values keep their label, as on the ticket itself; an unknown code is shown as stored, never replaced by the stage.
+    /// </summary>
+    public static async Task<Dictionary<string, string>> LabelsAsync(HubDbContext db, CancellationToken ct) =>
+        (await db.LookupValues.AsNoTracking().Where(l => l.ListName == List).Select(l => new { l.Code, l.Label }).ToListAsync(ct))
+            .GroupBy(l => l.Code, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.First().Label, StringComparer.OrdinalIgnoreCase);
+
+    public static string LabelOf(IReadOnlyDictionary<string, string> labels, string? code) =>
+        string.IsNullOrEmpty(code) ? "Status unknown" : labels.TryGetValue(code, out var l) ? l : code;
+
     public static async Task<CaseStatusBehavior?> BehaviorOfAsync(HubDbContext db, string? code, CancellationToken ct)
     {
         var category = await db.LookupValues.AsNoTracking().Where(l => l.ListName == List && l.Code == code).Select(l => l.Category).FirstOrDefaultAsync(ct);

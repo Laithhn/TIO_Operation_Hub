@@ -1,0 +1,15 @@
+{
+  "id": "R013-tablet",
+  "route": "/admin/users",
+  "dialogs": [],
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Users"
+  ],
+  "height": 1024,
+  "loadingOnly": false,
+  "mainTextLength": 3369,
+  "title": "Users · TIO Operations Hub",
+  "width": 768
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R068-laptop",
+  "route": "/admin/config/network-zones",
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Network zones"
+  ],
+  "height": 768,
+  "loadingTexts": [],
+  "mainTextLength": 566,
+  "title": "Network zones · TIO Operations Hub",
+  "width": 1366,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

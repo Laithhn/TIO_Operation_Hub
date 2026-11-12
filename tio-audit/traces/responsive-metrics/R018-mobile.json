@@ -1,0 +1,15 @@
+{
+  "id": "R018-mobile",
+  "route": "/assets",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Infrastructure assets"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 2624,
+  "title": "Infrastructure assets · TIO Operations Hub",
+  "width": 390
+}

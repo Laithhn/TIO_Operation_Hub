@@ -1,0 +1,109 @@
+{
+  "scope": "Local artifact quality control; not additional live application testing",
+  "checks": [
+    {
+      "check": "Required deliverables exist",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Coverage count and status totals",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Unique scenario IDs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "All coverage evidence paths exist",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Issue register exact columns",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Seven unique issue IDs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Issue severity totals",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-001 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-002 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-003 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-004 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-005 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-006 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "TIO-BUG-007 mandatory fields",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Responsive aggregate has364 unique observations",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "91 route mapping and all canonical PNG/TXT pairs",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Geometry assertions supported",
+      "passed": true,
+      "detail": ""
+    },
+    {
+      "check": "Markdown local evidence links resolve",
+      "passed": true,
+      "detail": {
+        "markdownFiles": 31,
+        "missing": []
+      }
+    },
+    {
+      "check": "Machine summary agrees with ledger",
+      "passed": true,
+      "detail": ""
+    }
+  ],
+  "passed": 19,
+  "failed": 0,
+  "exclusions": [
+    "Runtime node_modules junction is excluded from artifact traversal/hash manifest.",
+    "No claim that a width assertion proves complete visual/functional correctness."
+  ]
+}

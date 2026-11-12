@@ -1,0 +1,15 @@
+{
+  "id": "R057-tablet",
+  "route": "/admin/config/category/products-installations",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Products & Installations"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 103,
+  "title": "Products & Installations · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

@@ -1,0 +1,15 @@
+{
+  "id": "R015-desktop",
+  "route": "/contracts",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Projects & contracts"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 2912,
+  "title": "Projects & contracts · TIO Operations Hub",
+  "width": 1920
+}

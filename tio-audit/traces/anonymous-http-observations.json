@@ -1,0 +1,229 @@
+{
+  "capturedAtUtc": "2026-11-10T12:45:59.9658774+00:00",
+  "environment": {
+    "client": "Native PowerShell System.Net.Http.HttpClient",
+    "network": "Local workspace machine",
+    "sampleSizePerRoute": 1,
+    "requestMode": "Sequential anonymous low-volume GET",
+    "followRedirects": false,
+    "cookiesSent": false,
+    "defaultCredentials": false,
+    "tlsBypass": false
+  },
+  "observations": [
+    {
+      "method": "GET",
+      "url": "https://nb01994.vitronic.de/",
+      "startedAtUtc": "2026-11-10T12:45:59.4338235+00:00",
+      "authentication": "Anonymous; no default credentials, request cookies or authorization header",
+      "redirectsFollowed": false,
+      "tlsValidation": "Platform default; no bypass",
+      "status": 200,
+      "elapsedMs": 267.1,
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "Strict-Transport-Security": "max-age=2592000",
+        "Cache-Control": "no-store, no-cache",
+        "X-Frame-Options": "DENY",
+        "Content-Length": "609",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "same-origin",
+        "Server": "Microsoft-IIS/10.0",
+        "X-Powered-By": "ASP.NET",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Content-Type": "text/html",
+        "Date": "Tue, 10 Nov 2026 12:45:59 GMT"
+      },
+      "cookieMetadata": [],
+      "bodySummary": {
+        "byteLength": 609,
+        "contentRecorded": false
+      },
+      "errorType": null,
+      "errorMessage": null
+    },
+    {
+      "method": "GET",
+      "url": "https://nb01994.vitronic.de/api/v1/me",
+      "startedAtUtc": "2026-11-10T12:45:59.7247480+00:00",
+      "authentication": "Anonymous; no default credentials, request cookies or authorization header",
+      "redirectsFollowed": false,
+      "tlsValidation": "Platform default; no bypass",
+      "status": 401,
+      "elapsedMs": 13.2,
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "Strict-Transport-Security": "max-age=2592000",
+        "Cache-Control": "no-store",
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "same-origin",
+        "Server": "Microsoft-IIS/10.0",
+        "X-Powered-By": "ASP.NET",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Date": "Tue, 10 Nov 2026 12:45:59 GMT"
+      },
+      "cookieMetadata": [],
+      "bodySummary": {
+        "byteLength": 0,
+        "contentRecorded": false
+      },
+      "errorType": null,
+      "errorMessage": null
+    },
+    {
+      "method": "GET",
+      "url": "https://nb01994.vitronic.de/api/v1/clients",
+      "startedAtUtc": "2026-11-10T12:45:59.7420604+00:00",
+      "authentication": "Anonymous; no default credentials, request cookies or authorization header",
+      "redirectsFollowed": false,
+      "tlsValidation": "Platform default; no bypass",
+      "status": 401,
+      "elapsedMs": 9.2,
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "Strict-Transport-Security": "max-age=2592000",
+        "Cache-Control": "no-store",
+        "X-Frame-Options": "DENY",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "same-origin",
+        "Server": "Microsoft-IIS/10.0",
+        "X-Powered-By": "ASP.NET",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Date": "Tue, 10 Nov 2026 12:45:59 GMT"
+      },
+      "cookieMetadata": [],
+      "bodySummary": {
+        "byteLength": 0,
+        "contentRecorded": false
+      },
+      "errorType": null,
+      "errorMessage": null
+    },
+    {
+      "method": "GET",
+      "url": "https://nb01994.vitronic.de/api/health/live",
+      "startedAtUtc": "2026-11-10T12:45:59.7518344+00:00",
+      "authentication": "Anonymous; no default credentials, request cookies or authorization header",
+      "redirectsFollowed": false,
+      "tlsValidation": "Platform default; no bypass",
+      "status": 200,
+      "elapsedMs": 9.5,
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "Strict-Transport-Security": "max-age=2592000",
+        "Cache-Control": "no-store",
+        "X-Frame-Options": "DENY",
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "same-origin",
+        "Server": "Microsoft-IIS/10.0",
+        "X-Powered-By": "ASP.NET",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Date": "Tue, 10 Nov 2026 12:45:59 GMT"
+      },
+      "cookieMetadata": [],
+      "bodySummary": {
+        "byteLength": 17,
+        "contentRecorded": false,
+        "healthStatus": "live"
+      },
+      "errorType": null,
+      "errorMessage": null
+    },
+    {
+      "method": "GET",
+      "url": "https://nb01994.vitronic.de/api/health/ready",
+      "startedAtUtc": "2026-11-10T12:45:59.7682282+00:00",
+      "authentication": "Anonymous; no default credentials, request cookies or authorization header",
+      "redirectsFollowed": false,
+      "tlsValidation": "Platform default; no bypass",
+      "status": 200,
+      "elapsedMs": 30.7,
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "Strict-Transport-Security": "max-age=2592000",
+        "Cache-Control": "no-store",
+        "X-Frame-Options": "DENY",
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "same-origin",
+        "Server": "Microsoft-IIS/10.0",
+        "X-Powered-By": "ASP.NET",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Date": "Tue, 10 Nov 2026 12:45:59 GMT"
+      },
+      "cookieMetadata": [],
+      "bodySummary": {
+        "byteLength": 18,
+        "contentRecorded": false,
+        "healthStatus": "ready"
+      },
+      "errorType": null,
+      "errorMessage": null
+    },
+    {
+      "method": "GET",
+      "url": "https://nb01994.vitronic.de/api/v1/auth/config",
+      "startedAtUtc": "2026-11-10T12:45:59.8001966+00:00",
+      "authentication": "Anonymous; no default credentials, request cookies or authorization header",
+      "redirectsFollowed": false,
+      "tlsValidation": "Platform default; no bypass",
+      "status": 200,
+      "elapsedMs": 67.2,
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "Strict-Transport-Security": "max-age=2592000",
+        "Cache-Control": "no-store, no-cache",
+        "X-Frame-Options": "DENY",
+        "Content-Type": "application/json; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "same-origin",
+        "Server": "Microsoft-IIS/10.0",
+        "X-Powered-By": "ASP.NET",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+        "Date": "Tue, 10 Nov 2026 12:45:59 GMT"
+      },
+      "cookieMetadata": [
+        {
+          "name": "TioHub.Antiforgery",
+          "value": "[REDACTED]",
+          "attributeNames": [
+            "path",
+            "secure",
+            "samesite",
+            "httponly"
+          ],
+          "secure": true,
+          "httpOnly": true,
+          "sameSite": [
+            "strict"
+          ]
+        },
+        {
+          "name": "XSRF-TOKEN",
+          "value": "[REDACTED]",
+          "attributeNames": [
+            "path",
+            "secure",
+            "samesite"
+          ],
+          "secure": true,
+          "httpOnly": false,
+          "sameSite": [
+            "strict"
+          ]
+        }
+      ],
+      "bodySummary": {
+        "byteLength": 138,
+        "contentRecorded": false,
+        "mode": "Forms",
+        "setupRequired": false,
+        "passwordRule": "At least 12 characters (a passphrase works well), not containing the account name."
+      },
+      "errorType": null,
+      "errorMessage": null
+    }
+  ]
+}

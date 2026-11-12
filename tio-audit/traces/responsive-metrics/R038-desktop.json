@@ -1,0 +1,15 @@
+{
+  "id": "R038-desktop",
+  "route": "/reporting-center/library",
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "Reporting Center"
+  ],
+  "height": 1080,
+  "loadingTexts": [],
+  "mainTextLength": 2949,
+  "title": "Reporting Center · TIO Operations Hub",
+  "width": 1920,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

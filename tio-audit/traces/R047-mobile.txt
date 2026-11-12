@@ -1,0 +1,269 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "TAH":
+    - /url: /clients/1
+  - generic: ›
+  - link "R2":
+    - /url: /regions/2
+  - generic: ›
+  - generic: Production
+- heading "Production" [level=1]
+- text: Production · Region R2 ·
+- text: Critical
+- link "Edit":
+  - /url: /environments/3/edit
+- button "Report condition"
+- button "+ Add":
+  - text: + Add
+  - generic: ▾
+- button "More":
+  - text: More
+  - generic: ▾
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - heading "Ownership and coverage" [level=2]
+  - term: Technical owner
+  - definition: Ahmed Awadalla
+  - term: Operation engineer
+  - definition: Ahmed Awadalla
+  - term: Backup operation engineer
+  - definition: Moataz Al Khaldi
+  - term: Hosting
+  - definition: On-prem
+  - term: Location
+  - definition: Riyadh
+  - term: Project link
+  - definition: None
+  - heading "Condition and freshness (separately scoped)" [level=2]
+  - term: Reported condition
+  - definition:
+    - generic "Manually reported 22 Oct 2026, 14:11 — not live monitoring":
+      - text: Degraded
+      - text: Needs verification
+  - term: Reason
+  - definition: Slowness Issue
+  - term: Observed
+  - definition: 22 Oct 2026, 14:11
+  - term: Inventory review
+  - definition:
+    - generic "Review every 30 days · last 22 Oct 2026, 13:58 · due 21 Nov 2026, 13:58":
+      - text: Current
+      - generic: Current
+  - term: Firewall rules review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Record review
+  - definition:
+    - generic "No review policy":
+      - text: No policy
+      - generic: No review policy
+  - term: Last reviewed
+  - definition: —
+  - paragraph: Condition is manually reported, not live monitoring. A condition report never refreshes the inventory review.
+  - tablist:
+    - tab "Applications (1)" [selected]:
+      - generic: Applications (1)
+    - tab "Servers & assets (13)":
+      - generic: Servers & assets (13)
+    - tab "Work":
+      - generic: Work
+    - tab "Firewall rules (0)":
+      - generic: Firewall rules (0)
+    - tab "Condition history":
+      - generic: Condition history
+    - tab "Attachments":
+      - generic: Attachments
+    - tab "Data quality":
+      - generic: Data quality
+    - tab "History":
+      - generic: History
+  - button "Scroll tabs right":
+  - heading "PSOP · PSOP Unknown version" [level=2]:
+    - link "PSOP · PSOP":
+      - /url: /installations/3
+    - generic: Unknown version
+  - region "Components in PSOP PSOP":
+    - searchbox "Filter rows"
+    - generic: 13 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Components in PSOP PSOP":
+      - caption: Components in PSOP PSOP
+      - rowgroup:
+        - row "Details Component Role":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Component":
+            - button "Component":
+              - generic: Component
+          - columnheader "Role":
+            - button "Role":
+              - generic: Role
+      - rowgroup:
+        - row "Details for PSOP.Service.Anpr.Carmen PSOP.Service.Anpr.Carmen Application":
+          - cell "Details for PSOP.Service.Anpr.Carmen":
+            - button "Details for PSOP.Service.Anpr.Carmen":
+          - cell "PSOP.Service.Anpr.Carmen":
+            - link "PSOP.Service.Anpr.Carmen":
+              - /url: /components/27
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Broker PSOP.Service.Broker Application":
+          - cell "Details for PSOP.Service.Broker":
+            - button "Details for PSOP.Service.Broker":
+          - cell "PSOP.Service.Broker":
+            - link "PSOP.Service.Broker":
+              - /url: /components/28
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Export PSOP.Service.Export Application":
+          - cell "Details for PSOP.Service.Export":
+            - button "Details for PSOP.Service.Export":
+          - cell "PSOP.Service.Export":
+            - link "PSOP.Service.Export":
+              - /url: /components/29
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Logging PSOP.Service.Logging Application":
+          - cell "Details for PSOP.Service.Logging":
+            - button "Details for PSOP.Service.Logging":
+          - cell "PSOP.Service.Logging":
+            - link "PSOP.Service.Logging":
+              - /url: /components/30
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.PlateLookup PSOP.Service.PlateLookup Application":
+          - cell "Details for PSOP.Service.PlateLookup":
+            - button "Details for PSOP.Service.PlateLookup":
+          - cell "PSOP.Service.PlateLookup":
+            - link "PSOP.Service.PlateLookup":
+              - /url: /components/31
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Core PSOP.Service.Core Application":
+          - cell "Details for PSOP.Service.Core":
+            - button "Details for PSOP.Service.Core":
+          - cell "PSOP.Service.Core":
+            - link "PSOP.Service.Core":
+              - /url: /components/32
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Topology PSOP.Service.Topology Application":
+          - cell "Details for PSOP.Service.Topology":
+            - button "Details for PSOP.Service.Topology":
+          - cell "PSOP.Service.Topology":
+            - link "PSOP.Service.Topology":
+              - /url: /components/33
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.TrafficLegal PSOP.Service.TrafficLegal Application":
+          - cell "Details for PSOP.Service.TrafficLegal":
+            - button "Details for PSOP.Service.TrafficLegal":
+          - cell "PSOP.Service.TrafficLegal":
+            - link "PSOP.Service.TrafficLegal":
+              - /url: /components/34
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.VehicleLookup PSOP.Service.VehicleLookup Application":
+          - cell "Details for PSOP.Service.VehicleLookup":
+            - button "Details for PSOP.Service.VehicleLookup":
+          - cell "PSOP.Service.VehicleLookup":
+            - link "PSOP.Service.VehicleLookup":
+              - /url: /components/35
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Import PSOP.Service.Import Application":
+          - cell "Details for PSOP.Service.Import":
+            - button "Details for PSOP.Service.Import":
+          - cell "PSOP.Service.Import":
+            - link "PSOP.Service.Import":
+              - /url: /components/36
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Media.X64 PSOP.Service.Media.X64 Application":
+          - cell "Details for PSOP.Service.Media.X64":
+            - button "Details for PSOP.Service.Media.X64":
+          - cell "PSOP.Service.Media.X64":
+            - link "PSOP.Service.Media.X64":
+              - /url: /components/37
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Service.Workflow PSOP.Service.Workflow Application":
+          - cell "Details for PSOP.Service.Workflow":
+            - button "Details for PSOP.Service.Workflow":
+          - cell "PSOP.Service.Workflow":
+            - link "PSOP.Service.Workflow":
+              - /url: /components/38
+          - cell "Application":
+            - generic: Application
+        - row "Details for PSOP.Web PSOP.Web Application":
+          - cell "Details for PSOP.Web":
+            - button "Details for PSOP.Web":
+          - cell "PSOP.Web":
+            - link "PSOP.Web":
+              - /url: /components/39
+          - cell "Application":
+            - generic: Application
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

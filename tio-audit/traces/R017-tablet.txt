@@ -1,0 +1,374 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+    - generic: Clients
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Environments":
+    - /url: /environments
+  - generic: ›
+  - generic: Version matrix
+- heading "Product version matrix" [level=1]
+- generic: Versions are compared only within the same product. An environment with several installations is counted once in environment totals.
+- button "Export CSV"
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - generic: Environment type
+  - combobox "Environment type":
+    - option "All types" [selected]
+    - option "Production"
+    - option "Staging"
+    - option "UAT"
+    - option "Test"
+    - option "Disaster recovery"
+    - option "Other"
+  - heading "Product coverage" [level=2]
+  - region "Table":
+    - searchbox "Filter rows"
+    - generic: 2 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Table: scroll sideways for more columns"':
+      - table:
+        - rowgroup:
+          - row "Select all rows shown Product Installations Environments (distinct) By version (installations / environments) Unknown version Never confirmed":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Product":
+              - button "Product":
+                - generic: Product
+            - columnheader "Installations":
+              - button "Installations":
+                - generic: Installations
+            - columnheader "Environments (distinct)":
+              - button "Environments (distinct)":
+                - generic: Environments (distinct)
+            - columnheader "By version (installations / environments)":
+              - button "By version (installations / environments)":
+                - generic: By version (installations / environments)
+            - columnheader "Unknown version":
+              - button "Unknown version":
+                - generic: Unknown version
+            - columnheader "Never confirmed":
+              - button "Never confirmed":
+                - generic: Never confirmed
+        - rowgroup:
+          - 'row "Select PSOP PSOP 6 6 V17.8: 1 / 1 5 6"':
+            - cell "Select PSOP":
+              - checkbox "Select PSOP"
+            - cell "PSOP":
+              - generic: PSOP
+            - cell "6":
+              - generic: "6"
+            - cell "6":
+              - generic: "6"
+            - 'cell "V17.8: 1 / 1"':
+              - generic: "V17.8: 1 / 1"
+            - cell "5":
+              - text: "5"
+            - cell "6":
+              - generic: "6"
+          - row "Select ViTIP ViTIP 2 2 2 2":
+            - cell "Select ViTIP":
+              - checkbox "Select ViTIP"
+            - cell "ViTIP":
+              - generic: ViTIP
+            - cell "2":
+              - generic: "2"
+            - cell "2":
+              - generic: "2"
+            - cell
+            - cell "2":
+              - text: "2"
+            - cell "2":
+              - generic: "2"
+    - status
+  - heading "Matrix (environment × product)" [level=2]
+  - region "Environment by product matrix":
+    - searchbox "Filter rows"
+    - generic: 8 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - 'group "Environment by product matrix: scroll sideways for more columns"':
+      - table "Environment by product matrix":
+        - caption: Environment by product matrix
+        - rowgroup:
+          - row "Select all rows shown Client Region Environment ViTIP PSOP":
+            - columnheader "Select all rows shown":
+              - checkbox "Select all rows shown"
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Region":
+              - button "Region":
+                - generic: Region
+            - columnheader "Environment":
+              - button "Environment":
+                - generic: Environment
+            - columnheader "ViTIP":
+              - button "ViTIP":
+                - generic: ViTIP
+            - columnheader "PSOP":
+              - button "PSOP":
+                - generic: PSOP
+        - rowgroup:
+          - 'row "Select MADAR_DIJLA MADAR_DIJLA Direct 113506-AE – ViTIP Production (Proposed) Production ViTIP-Lite: Unknown No policy No review policy"':
+            - cell "Select MADAR_DIJLA":
+              - checkbox "Select MADAR_DIJLA"
+            - cell "MADAR_DIJLA":
+              - generic: MA
+              - link "MADAR_DIJLA":
+                - /url: /clients/9
+            - cell "Direct":
+              - generic: Direct
+            - cell "113506-AE – ViTIP Production (Proposed) Production":
+              - link "113506-AE – ViTIP Production (Proposed)":
+                - /url: /environments/13
+              - generic: Production
+            - 'cell "ViTIP-Lite: Unknown No policy No review policy"':
+              - link "ViTIP-Lite":
+                - /url: /installations/12
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+            - cell
+          - 'row "Select SEW SEW Direct MOI_ViTIP_Production Production ViTIP: Unknown No policy No review policy"':
+            - cell "Select SEW":
+              - checkbox "Select SEW"
+            - cell "SEW":
+              - link "SEW":
+                - /url: /clients/20
+            - cell "Direct":
+              - generic: Direct
+            - cell "MOI_ViTIP_Production Production":
+              - link "MOI_ViTIP_Production":
+                - /url: /environments/11
+              - generic: Production
+            - 'cell "ViTIP: Unknown No policy No review policy"':
+              - link "ViTIP":
+                - /url: /installations/11
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+            - cell
+          - 'row "Select TAH TAH R1 Production Production PSOP: V17.8 No policy No review policy"':
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R1":
+              - generic: R1
+            - cell "Production Production":
+              - link "Production":
+                - /url: /environments/1
+              - generic: Production
+            - cell
+            - 'cell "PSOP: V17.8 No policy No review policy"':
+              - link "PSOP":
+                - /url: /installations/1
+              - text: ":"
+              - generic: V17.8
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+          - 'row "Select TAH TAH R1 Staging Production PSOP: Unknown No policy No review policy"':
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R1":
+              - generic: R1
+            - cell "Staging Production":
+              - link "Staging":
+                - /url: /environments/2
+              - generic: Production
+            - cell
+            - 'cell "PSOP: Unknown No policy No review policy"':
+              - link "PSOP":
+                - /url: /installations/2
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+          - 'row "Select TAH TAH R2 Production Production PSOP: Unknown No policy No review policy"':
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R2":
+              - generic: R2
+            - cell "Production Production":
+              - link "Production":
+                - /url: /environments/3
+              - generic: Production
+            - cell
+            - 'cell "PSOP: Unknown No policy No review policy"':
+              - link "PSOP":
+                - /url: /installations/3
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+          - 'row "Select TAH TAH R2 Staging Production PSOP: Unknown No policy No review policy"':
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R2":
+              - generic: R2
+            - cell "Staging Production":
+              - link "Staging":
+                - /url: /environments/5
+              - generic: Production
+            - cell
+            - 'cell "PSOP: Unknown No policy No review policy"':
+              - link "PSOP":
+                - /url: /installations/5
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+          - 'row "Select TAH TAH R3 Production Production PSOP: Unknown No policy No review policy"':
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R3":
+              - generic: R3
+            - cell "Production Production":
+              - link "Production":
+                - /url: /environments/4
+              - generic: Production
+            - cell
+            - 'cell "PSOP: Unknown No policy No review policy"':
+              - link "PSOP":
+                - /url: /installations/4
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+          - 'row "Select TAH TAH R3 Staging Production PSOP: Unknown No policy No review policy"':
+            - cell "Select TAH":
+              - checkbox "Select TAH"
+            - cell "TAH":
+              - link "TAH":
+                - /url: /clients/1
+            - cell "R3":
+              - generic: R3
+            - cell "Staging Production":
+              - link "Staging":
+                - /url: /environments/6
+              - generic: Production
+            - cell
+            - 'cell "PSOP: Unknown No policy No review policy"':
+              - link "PSOP":
+                - /url: /installations/6
+              - text: ":"
+              - text: Unknown
+              - generic "No review policy":
+                - text: No policy
+                - generic: No review policy
+    - status
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

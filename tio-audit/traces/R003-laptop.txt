@@ -1,0 +1,521 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - button "More sections (3)":
+      - text: More
+      - generic: ▾
+      - generic: sections (3)
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- heading "SLA & Contracts dashboard" [level=1]
+- text: Contractual obligations, measured compliance and contract lifecycle.
+- generic: As of 10 Nov 2026, 16:52 (Asia/Dubai) · period 12 Aug 2026 – 10 Nov 2026.
+- button "Refresh"
+- link "Contract register":
+  - /url: /contracts
+- link "Reporting Center":
+  - /url: /reporting-center
+- complementary "Section menu":
+  - navigation:
+    - link "My dashboard":
+      - /url: /my-dashboard
+    - link "Executive overview":
+      - /url: /
+    - link "Operational":
+      - /url: /dashboards/operational
+    - link "SLA & Contracts":
+      - /url: /dashboards/sla
+    - link "Management":
+      - /url: /dashboards/management
+    - link "Project":
+      - /url: /dashboards/project
+    - link "Client map":
+      - /url: /map
+    - link "Action list":
+      - /url: /actions
+    - link "Notifications":
+      - /url: /notifications
+    - link "Data quality":
+      - /url: /data-quality
+  - button "Expand menu":
+- main:
+  - generic: Reporting period
+  - combobox "Reporting period":
+    - option "Last 30 days"
+    - option "Last 90 days" [selected]
+    - option "This quarter"
+    - option "Last 12 months"
+    - option "Custom range"
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Contract
+  - combobox "Contract":
+    - option "All active contracts" [selected]
+    - option "CT-1001 · TAH"
+    - option "CT-1008 · SEW"
+    - option "CT-1004 · MULTICOM"
+    - option "CT-1009 · OYOON"
+    - option "CT-1010 · OYOON"
+    - option "CT-1011 · OYOON"
+  - generic: Contract type
+  - combobox "Contract type":
+    - option "All types" [selected]
+    - option "SlaSupport"
+    - option "Implementation"
+    - option "Maintenance"
+  - generic: Priority
+  - combobox "Priority":
+    - option "All priorities" [selected]
+    - option "Critical"
+    - option "High"
+    - option "Normal"
+    - option "Low"
+  - paragraph: Compliance = met ÷ (met + breached), by the time the ticket was opened. Pending and not measurable obligations are excluded and shown separately; the priority filter applies to tickets, not to the contract list.
+  - 'link "Response compliance: 22.9 %. 19 met · 64 breached · objective 90 %. open the list"':
+    - generic: Response compliance
+    - generic: ›
+    - generic: 22.9 %
+    - list:
+      - generic: 19 met · 64 breached · objective 90 %
+  - 'link "Resolution compliance: 20.8 %. status Critical. 16 met · 61 breached. against the previous period. open the list"':
+    - generic: Resolution compliance
+    - generic: ›
+    - generic: 20.8 %
+    - generic: ▲
+    - text: Critical
+    - list:
+      - generic: 16 met · 61 breached
+      - generic: ▲ 9.3 pts
+      - text: against the previous period
+  - 'link "Breaches in the period: 125. status Critical. 64 response · 61 resolution. open the list"':
+    - generic: Breaches in the period
+    - generic: ›
+    - generic: "125"
+    - generic: ▲
+    - text: Critical
+    - list:
+      - generic: 64 response · 61 resolution
+  - 'link "Clocks at risk now: 1. status Attention. 25 % of the target or less is left. 9 running. open the list"':
+    - generic: Clocks at risk now
+    - generic: ›
+    - generic: "1"
+    - generic: ●
+    - text: Attention
+    - list:
+      - generic: 25 % of the target or less is left
+      - generic: 9 running
+  - 'group "Not measurable: 0. All 86 ticket(s) are measurable"':
+    - generic: Not measurable
+    - generic: "0"
+    - list:
+      - generic: All 86 ticket(s) are measurable
+  - 'link "Active contracts: 6. 5 with SLA targets. No draft. open the list"':
+    - generic: Active contracts
+    - generic: ›
+    - generic: "6"
+    - list:
+      - generic: 5 with SLA targets
+      - generic: No draft
+  - 'link "Renewal decisions due: 1. status Attention. Earliest in 21 day(s). open the list"':
+    - generic: Renewal decisions due
+    - generic: ›
+    - generic: "1"
+    - generic: ●
+    - text: Attention
+    - list:
+      - generic: Earliest in 21 day(s)
+  - heading "Compliance trend — last 12 months" [level=2]
+  - button "Table view"
+  - paragraph: "Monthly rate by the month the ticket was opened. A month without a measured obligation has no point. Dashed line: the 90 % objective (setting Dashboard.SlaComplianceTargetPercent — an internal objective, not a contract term)."
+  - generic: First response
+  - generic: Resolution
+  - generic: Objective 90 %
+  - img "First response and Resolution in percent per month, objective 90 %":
+    - generic: 0 %
+    - generic: 25 %
+    - generic: 50 %
+    - generic: 75 %
+    - generic: 100 %
+    - generic: Jan 26
+    - generic: Mar 26
+    - generic: May 26
+    - generic: Jul 26
+    - generic: Sep 26
+    - generic: Nov 26
+    - generic: 50 % First response
+    - generic: 0 % Resolution
+  - heading "Breaches by priority" [level=2]
+  - button "Table view"
+  - paragraph: Response and resolution breaches of tickets opened in the period. Click a bar for the tickets.
+  - list:
+    - generic "Critical"
+    - 'link "Critical: 3 open — Response breached 1, Resolution breached 2"':
+      - generic: "3"
+    - generic "High"
+    - 'link "High: 9 open — Response breached 3, Resolution breached 6"':
+      - generic: "9"
+    - generic "Normal"
+    - 'link "Normal: 113 open — Response breached 60, Resolution breached 53"':
+      - generic: "113"
+    - generic "Low"
+    - 'link "Low: 0 open — Response breached 0, Resolution breached 0"':
+      - generic: "0"
+  - generic: Response breached
+  - generic: Resolution breached
+  - heading "Why tickets are not measurable" [level=2]
+  - button "Table view"
+  - paragraph: Fixing these makes the compliance figures complete. Counted once per ticket.
+  - generic: Every ticket in the period is measurable.
+  - region "Compliance by contract":
+    - heading "Compliance by contract" [level=2]
+    - link "Contract register":
+      - /url: /contracts
+    - paragraph: Active contracts in view, the lowest resolution compliance first. Support calendar and targets are the terms recorded on the contract.
+    - region "Compliance by contract":
+      - 'group "Compliance by contract: scroll sideways for more columns"':
+        - table "Compliance by contract":
+          - caption: Compliance by contract
+          - rowgroup:
+            - row "Contract Client · project Support Tickets Response Resolution Breached Worst priority Ends / notice":
+              - columnheader "Contract":
+                - button "Contract":
+                  - generic: Contract
+              - columnheader "Client · project":
+                - button "Client · project":
+                  - generic: Client · project
+              - columnheader "Support":
+                - button "Support":
+                  - generic: Support
+              - columnheader "Tickets":
+                - button "Tickets":
+                  - generic: Tickets
+              - columnheader "Response":
+                - button "Response":
+                  - generic: Response
+              - columnheader "Resolution":
+                - button "Resolution":
+                  - generic: Resolution
+              - columnheader "Breached":
+                - button "Breached":
+                  - generic: Breached
+              - columnheader "Worst priority":
+                - button "Worst priority":
+                  - generic: Worst priority
+              - columnheader "Ends / notice":
+                - button "Ends / notice":
+                  - generic: Ends / notice
+          - rowgroup:
+            - row "CT-1001 TAH · 117992-AE 2026_Vitronic Software Service Level Agreement Sun–Thu 08:00–17:00 (Asia/Riyadh) 83 21.2 % of 80 measured 21.2 % ▼ of 80 20.3 % of 74 measured 20.3 % ▼ of 74 72 Critical Current 14 Oct 2027 · notice by 16 Jul 2027":
+              - cell "CT-1001":
+                - link "CT-1001":
+                  - /url: /contracts/1
+              - cell "TAH · 117992-AE 2026_Vitronic Software Service Level Agreement":
+                - link "TAH":
+                  - /url: /clients/1
+                - text: ·
+                - link "117992-AE":
+                  - /url: /dashboards/project?projectId=1
+                - generic: 2026_Vitronic Software Service Level Agreement
+              - cell "Sun–Thu 08:00–17:00 (Asia/Riyadh)":
+                - generic: Sun–Thu 08:00–17:00 (Asia/Riyadh)
+              - cell "83":
+                - link "83":
+                  - /url: /cases?contractId=1&sla=withContract&status=all&createdFrom=2026-08-12T12%3A52%3A46.9195195%2B00%3A00&createdTo=2026-11-10T12%3A52%3A46.9195195%2B00%3A00
+              - cell "21.2 % of 80 measured 21.2 % ▼ of 80":
+                - generic "17 met, 63 breached, 3 pending, 0 not measurable":
+                  - img "21.2 % of 80 measured"
+                  - generic: 21.2 %
+                  - text: ▼
+                  - generic: of 80
+              - cell "20.3 % of 74 measured 20.3 % ▼ of 74":
+                - generic "15 met, 59 breached, 9 pending, 0 not measurable":
+                  - img "20.3 % of 74 measured"
+                  - generic: 20.3 %
+                  - text: ▼
+                  - generic: of 74
+              - cell "72":
+                - generic: "72"
+              - cell "Critical":
+                - text: Critical
+              - cell "Current 14 Oct 2027 · notice by 16 Jul 2027":
+                - generic: Current
+                - generic: 14 Oct 2027 · notice by 16 Jul 2027
+            - row "CT-1008 SEW · KU105375 Kurdistan BackOffice – Software Support & Maintenance SLA Sun–Thu 08:00–17:00 (Asia/Baghdad) 3 66.7 % of 3 measured 66.7 % ▼ of 3 33.3 % of 3 measured 33.3 % ▼ of 3 2 High Current 31 Dec 2038 · notice by 04 Jul 2038":
+              - cell "CT-1008":
+                - link "CT-1008":
+                  - /url: /contracts/8
+              - cell "SEW · KU105375 Kurdistan BackOffice – Software Support & Maintenance SLA":
+                - link "SEW":
+                  - /url: /clients/20
+                - text: ·
+                - link "KU105375":
+                  - /url: /dashboards/project?projectId=7
+                - generic: Kurdistan BackOffice – Software Support & Maintenance SLA
+              - cell "Sun–Thu 08:00–17:00 (Asia/Baghdad)":
+                - generic: Sun–Thu 08:00–17:00 (Asia/Baghdad)
+              - cell "3":
+                - link "3":
+                  - /url: /cases?contractId=8&sla=withContract&status=all&createdFrom=2026-08-12T12%3A52%3A46.9195195%2B00%3A00&createdTo=2026-11-10T12%3A52%3A46.9195195%2B00%3A00
+              - cell "66.7 % of 3 measured 66.7 % ▼ of 3":
+                - generic "2 met, 1 breached, 0 pending, 0 not measurable":
+                  - img "66.7 % of 3 measured"
+                  - generic: 66.7 %
+                  - text: ▼
+                  - generic: of 3
+              - cell "33.3 % of 3 measured 33.3 % ▼ of 3":
+                - generic "1 met, 2 breached, 0 pending, 0 not measurable":
+                  - img "33.3 % of 3 measured"
+                  - generic: 33.3 %
+                  - text: ▼
+                  - generic: of 3
+              - cell "2":
+                - generic: "2"
+              - cell "High":
+                - text: High
+              - cell "Current 31 Dec 2038 · notice by 04 Jul 2038":
+                - generic: Current
+                - generic: 31 Dec 2038 · notice by 04 Jul 2038
+            - row "CT-1004 MULTICOM · 115307-AE PI2026_134_ViTIP_Lite_Contract Sun–Thu 08:00–17:00 (Asia/Dubai) No SLA targets recorded 0 Not available Not available 0 — Current 25 Jun 2029":
+              - cell "CT-1004":
+                - link "CT-1004":
+                  - /url: /contracts/4
+              - cell "MULTICOM · 115307-AE PI2026_134_ViTIP_Lite_Contract":
+                - link "MULTICOM":
+                  - /url: /clients/19
+                - text: ·
+                - link "115307-AE":
+                  - /url: /dashboards/project?projectId=4
+                - generic: PI2026_134_ViTIP_Lite_Contract
+              - cell "Sun–Thu 08:00–17:00 (Asia/Dubai) No SLA targets recorded":
+                - text: Sun–Thu 08:00–17:00 (Asia/Dubai)
+                - generic: No SLA targets recorded
+              - cell "0":
+                - generic: "0"
+              - cell "Not available":
+                - generic: Not available
+              - cell "Not available":
+                - generic: Not available
+              - cell "0":
+                - generic: "0"
+              - cell "—":
+                - generic: —
+              - cell "Current 25 Jun 2029":
+                - generic: Current
+                - generic: 25 Jun 2029
+            - row "CT-1009 OYOON · 115101-AE OYOON 174 Zabeel System AMC Renewal Mon–Fri 08:00–17:00 0 Not available Not available 0 — Current 02 Jun 2027":
+              - cell "CT-1009":
+                - link "CT-1009":
+                  - /url: /contracts/9
+              - cell "OYOON · 115101-AE OYOON 174 Zabeel System AMC Renewal":
+                - link "OYOON":
+                  - /url: /clients/3
+                - text: ·
+                - link "115101-AE":
+                  - /url: /dashboards/project?projectId=2
+                - generic: OYOON 174 Zabeel System AMC Renewal
+              - cell "Mon–Fri 08:00–17:00":
+                - generic: Mon–Fri 08:00–17:00
+              - cell "0":
+                - generic: "0"
+              - cell "Not available":
+                - generic: Not available
+              - cell "Not available":
+                - generic: Not available
+              - cell "0":
+                - generic: "0"
+              - cell "—":
+                - generic: —
+              - cell "Current 02 Jun 2027":
+                - generic: Current
+                - generic: 02 Jun 2027
+            - row "CT-1010 OYOON · 116938-AE OYOON 266 ANPR Data Management AMC Unknown 0 Not available Not available 0 — Current 30 Jun 2027 · notice by 31 May 2027":
+              - cell "CT-1010":
+                - link "CT-1010":
+                  - /url: /contracts/10
+              - cell "OYOON · 116938-AE OYOON 266 ANPR Data Management AMC":
+                - link "OYOON":
+                  - /url: /clients/3
+                - text: ·
+                - link "116938-AE":
+                  - /url: /dashboards/project?projectId=14
+                - generic: OYOON 266 ANPR Data Management AMC
+              - cell "Unknown":
+                - generic: Unknown
+              - cell "0":
+                - generic: "0"
+              - cell "Not available":
+                - generic: Not available
+              - cell "Not available":
+                - generic: Not available
+              - cell "0":
+                - generic: "0"
+              - cell "—":
+                - generic: —
+              - cell "Current 30 Jun 2027 · notice by 31 May 2027":
+                - generic: Current
+                - generic: 30 Jun 2027 · notice by 31 May 2027
+            - row "CT-1011 OYOON · OYOON-182-AMC-2026 OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH Mon–Fri 09:00–18:00 (Asia/Dubai) 0 Not available Not available 0 — Renewal due 31 Dec 2026 · notice by 01 Dec 2026":
+              - cell "CT-1011":
+                - link "CT-1011":
+                  - /url: /contracts/11
+              - cell "OYOON · OYOON-182-AMC-2026 OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH":
+                - link "OYOON":
+                  - /url: /clients/3
+                - text: ·
+                - link "OYOON-182-AMC-2026":
+                  - /url: /dashboards/project?projectId=15
+                - generic: OYOON 182 AMC 2026 Al Qudra Bluscan SSPX, CCH
+              - cell "Mon–Fri 09:00–18:00 (Asia/Dubai)":
+                - generic: Mon–Fri 09:00–18:00 (Asia/Dubai)
+              - cell "0":
+                - generic: "0"
+              - cell "Not available":
+                - generic: Not available
+              - cell "Not available":
+                - generic: Not available
+              - cell "0":
+                - generic: "0"
+              - cell "—":
+                - generic: —
+              - cell "Renewal due 31 Dec 2026 · notice by 01 Dec 2026":
+                - text: Renewal due
+                - generic: 31 Dec 2026 · notice by 01 Dec 2026
+      - status
+  - region "Contract lifecycle":
+    - heading "Contract lifecycle" [level=2]
+    - paragraph: Term of each Active contract across three years. Colour and the table above carry the state in words.
+    - img "Contract terms, notice deadlines and today":
+      - generic: "2026"
+      - generic: "2027"
+      - generic: "2028"
+      - 'link "CT-1011 · OYOON: 01 Jan 2026 to 31 Dec 2026 · notice by 01 Dec 2026 · Renewal due"':
+        - generic: CT-1011 OYOON
+      - 'link "CT-1009 · OYOON: 03 Jun 2026 to 02 Jun 2027 · Current"':
+        - generic: CT-1009 OYOON
+      - 'link "CT-1010 · OYOON: 01 Jul 2026 to 30 Jun 2027 · notice by 31 May 2027 · Current"':
+        - generic: CT-1010 OYOON
+      - 'link "CT-1001 · TAH: 15 Oct 2025 to 14 Oct 2027 · notice by 16 Jul 2027 · Current"':
+        - generic: CT-1001 TAH
+      - 'link "CT-1004 · MULTICOM: 26 Jun 2026 to 25 Jun 2029 · Current"':
+        - generic: CT-1004 MULTICOM
+      - 'link "CT-1008 · SEW: 01 Jan 2024 to 31 Dec 2038 · notice by 04 Jul 2038 · Current"':
+        - generic: CT-1008 SEW
+      - generic: Today
+    - generic: Current
+    - generic: Renewal due
+    - generic: Ended, still Active
+    - generic: End date unknown
+    - generic: ◆ Last day to give notice
+    - paragraph: Hover or focus a bar for its dates; click to open the contract.
+  - region "Renewal & notice watchlist":
+    - heading "Renewal & notice watchlist" [level=2]
+    - paragraph: Decisions that must be made before a date passes.
+    - table:
+      - rowgroup:
+        - row "Contract Decide by State":
+          - columnheader "Contract"
+          - columnheader "Decide by"
+          - columnheader "State"
+      - rowgroup:
+        - row "CT-1011 OYOON Laith Hamdan 01 Dec 2026 21 day(s)":
+          - cell "CT-1011 OYOON Laith Hamdan":
+            - link "CT-1011":
+              - /url: /contracts/11
+            - text: OYOON
+            - generic: Laith Hamdan
+          - cell "01 Dec 2026"
+          - cell "21 day(s)":
+            - text: 21 day(s)
+  - region "Payments":
+    - heading "Payments" [level=2]
+    - paragraph: "Open payments of the contracts in view: recorded contract terms, per currency — never added across currencies."
+    - table:
+      - rowgroup:
+        - row "Currency Overdue Due within 30 days":
+          - columnheader "Currency"
+          - columnheader "Overdue"
+          - columnheader "Due within 30 days"
+      - rowgroup:
+        - row "AED 146,400.00 AED 1 payment(s) 146,400.00 AED 1 payment(s)":
+          - cell "AED"
+          - cell "146,400.00 AED 1 payment(s)":
+            - text: 146,400.00 AED
+            - generic: 1 payment(s)
+          - cell "146,400.00 AED 1 payment(s)":
+            - text: 146,400.00 AED
+            - generic: 1 payment(s)
+        - row "EUR 100,000.00 EUR 1 payment(s) — 0 payment(s)":
+          - cell "EUR"
+          - cell "100,000.00 EUR 1 payment(s)":
+            - text: 100,000.00 EUR
+            - generic: 1 payment(s)
+          - cell "— 0 payment(s)":
+            - text: —
+            - generic: 0 payment(s)
+        - row "SAR 4,860,000.00 SAR 2 payment(s) — 0 payment(s)":
+          - cell "SAR"
+          - cell "4,860,000.00 SAR 2 payment(s)":
+            - text: 4,860,000.00 SAR
+            - generic: 2 payment(s)
+          - cell "— 0 payment(s)":
+            - text: —
+            - generic: 0 payment(s)
+    - paragraph:
+      - link "All overdue payments":
+        - /url: /notifications?show=payments&state=overdue
+  - paragraph: Client tickets with a linked contract, by the time they were opened. Rate = met ÷ (met + breached); pending and not measurable obligations are excluded. A pending obligation past its deadline counts as breached. SLA targets are terms recorded from the contracts; compliance is measured from recorded ticket times. The compliance objective is an internal setting, not a contract term. Public holidays are not modelled.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

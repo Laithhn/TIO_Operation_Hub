@@ -67,7 +67,7 @@ public static class OverviewEndpoints
             var cases = await db.Cases.AsNoTracking().Where(x => x.ClientId == id && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled)
                 .Where(x => regionId == null || x.Environments.Any(ce => envIds.Contains(ce.EnvironmentId)))
                 .OrderBy(x => x.DueAt == null).ThenBy(x => x.DueAt)
-                .Select(x => new { x.Id, x.Ref, x.Title, x.Status, x.Priority, owner = x.Owner == null ? "Unassigned" : x.Owner.DisplayName, x.DueAt, overdue = x.DueAt != null && x.DueAt < now, x.WaitingReason, x.NextAction })
+                .Select(x => new { x.Id, x.Ref, x.Title, x.Status, x.StatusCode, x.Priority, owner = x.Owner == null ? "Unassigned" : x.Owner.DisplayName, x.DueAt, overdue = x.DueAt != null && x.DueAt < now, x.WaitingReason, x.NextAction })
                 .ToListAsync(ct);
             var commitments = await db.Commitments.AsNoTracking().Where(x => x.ClientId == id && x.Status == CommitmentStatus.Open).OrderBy(x => x.CurrentDueAt)
                 .Select(x => new { x.Id, x.Ref, x.Description, x.Type, x.CurrentDueAt, x.TimeZone, overdue = x.CurrentDueAt < now, owner = x.Owner == null ? null : x.Owner.DisplayName }).ToListAsync(ct);
@@ -146,7 +146,7 @@ public static class OverviewEndpoints
                     components = a.Hosts.Select(h => new { h.ComponentId, h.Component!.Name, h.Component.Role })
                 }).ToListAsync(ct);
             var cases = await db.Cases.AsNoTracking().Where(c => c.Environments.Any(ce => ce.EnvironmentId == id) && c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled)
-                .Select(c => new { c.Id, c.Ref, c.Title, c.Status, c.Priority, owner = c.Owner == null ? "Unassigned" : c.Owner.DisplayName, c.DueAt, c.NextAction }).ToListAsync(ct);
+                .Select(c => new { c.Id, c.Ref, c.Title, c.Status, c.StatusCode, c.Priority, owner = c.Owner == null ? "Unassigned" : c.Owner.DisplayName, c.DueAt, c.NextAction }).ToListAsync(ct);
             var caseIds = cases.Select(c => c.Id).ToList();
             var commitments = await db.Commitments.AsNoTracking().Where(m => m.Status == CommitmentStatus.Open && ((m.CaseId != null && caseIds.Contains(m.CaseId.Value)) || (e.ProjectId != null && m.ProjectId == e.ProjectId)))
                 .Select(m => new { m.Id, m.Ref, m.Description, m.CurrentDueAt, m.TimeZone }).ToListAsync(ct);

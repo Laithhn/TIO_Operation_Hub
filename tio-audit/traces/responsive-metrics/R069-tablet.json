@@ -1,0 +1,15 @@
+{
+  "id": "R069-tablet",
+  "route": "/admin/config/operating-systems",
+  "documentWidth": 768,
+  "errorAlerts": [],
+  "h1": [
+    "Operating systems"
+  ],
+  "height": 1024,
+  "loadingTexts": [],
+  "mainTextLength": 391,
+  "title": "Operating systems · TIO Operations Hub",
+  "width": 768,
+  "metricPass": "Recovery remeasurement; original screenshot retained"
+}

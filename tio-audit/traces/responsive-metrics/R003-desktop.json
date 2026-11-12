@@ -1,0 +1,15 @@
+{
+  "id": "R003-desktop",
+  "route": "/dashboards/sla",
+  "dialogs": [],
+  "documentWidth": 1920,
+  "errorAlerts": [],
+  "h1": [
+    "SLA & Contracts dashboard"
+  ],
+  "height": 1080,
+  "loadingOnly": false,
+  "mainTextLength": 5113,
+  "title": "SLA & Contracts dashboard · TIO Operations Hub",
+  "width": 1920
+}

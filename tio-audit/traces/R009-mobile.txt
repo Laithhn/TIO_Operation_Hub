@@ -1,0 +1,225 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Commitments":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Commitments
+- heading "Commitments" [level=1]
+- generic: Owned promises with deadlines in their original time zone. Waiting never pauses a deadline; late completion stays Completed with a separate timeliness result.
+- button "Export CSV"
+- link "+ New Commitment":
+  - /url: /commitments/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients":
+      - /url: /clients
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments (current section)":
+      - /url: /commitments
+      - text: Commitments
+      - generic: (current section)
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Team
+  - combobox "Team":
+    - option "All teams" [selected]
+    - option "Dubai Office Operation Team"
+    - option "KSA Operation Team"
+  - generic: Owner
+  - combobox "Owner":
+    - option "Anyone" [selected]
+    - option "Me"
+  - generic: Deadline
+  - combobox "Deadline":
+    - option "Any" [selected]
+    - option "Open and overdue"
+    - option "Upcoming"
+  - generic: Timeliness
+  - combobox "Timeliness":
+    - option "Any" [selected]
+    - option "Completed late"
+  - region "Commitments":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 6 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Commitments":
+      - caption: Commitments
+      - rowgroup:
+        - row "Details Ref Description Status Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Ref":
+            - button "Ref":
+              - generic: Ref
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for CM-1006 CM-1006 Hire a new DevOps engineer to fulfill the SLA commitment Open Actions for commitment CM-1006":
+          - cell "Details for CM-1006":
+            - button "Details for CM-1006":
+          - cell "CM-1006":
+            - link "CM-1006":
+              - /url: /commitments/6
+          - cell "Hire a new DevOps engineer to fulfill the SLA commitment":
+            - link "Hire a new DevOps engineer to fulfill the SLA commitment":
+              - /url: /commitments/6
+          - cell "Open":
+            - generic: Open
+          - cell "Actions for commitment CM-1006":
+            - button "Actions for commitment CM-1006": ⋯
+        - row "Details for CM-1004 CM-1004 Replacement Operation Engineer For Faisal Al Yami Open Actions for commitment CM-1004":
+          - cell "Details for CM-1004":
+            - button "Details for CM-1004":
+          - cell "CM-1004":
+            - link "CM-1004":
+              - /url: /commitments/4
+          - cell "Replacement Operation Engineer For Faisal Al Yami":
+            - link "Replacement Operation Engineer For Faisal Al Yami":
+              - /url: /commitments/4
+          - cell "Open":
+            - generic: Open
+          - cell "Actions for commitment CM-1004":
+            - button "Actions for commitment CM-1004": ⋯
+        - row "Details for CM-1003 CM-1003 Agreed to have meeting with Client to agree on the POC scope Open Actions for commitment CM-1003":
+          - cell "Details for CM-1003":
+            - button "Details for CM-1003":
+          - cell "CM-1003":
+            - link "CM-1003":
+              - /url: /commitments/3
+          - cell "Agreed to have meeting with Client to agree on the POC scope":
+            - link "Agreed to have meeting with Client to agree on the POC scope":
+              - /url: /commitments/3
+          - text: TA
+          - cell "Open":
+            - generic: Open
+          - cell "Actions for commitment CM-1003":
+            - button "Actions for commitment CM-1003": ⋯
+        - row "Details for CM-1008 CM-1008 Minimum IT infrastructure requirement only for certificate purposes Open Actions for commitment CM-1008":
+          - cell "Details for CM-1008":
+            - button "Details for CM-1008":
+          - cell "CM-1008":
+            - link "CM-1008":
+              - /url: /commitments/8
+          - cell "Minimum IT infrastructure requirement only for certificate purposes":
+            - link "Minimum IT infrastructure requirement only for certificate purposes":
+              - /url: /commitments/8
+          - text: TA
+          - cell "Open":
+            - generic: Open
+          - cell "Actions for commitment CM-1008":
+            - button "Actions for commitment CM-1008": ⋯
+        - row "Details for CM-1005 CM-1005 Replacement Operation Engineer For Abdullah Al Zugheibi Open Actions for commitment CM-1005":
+          - cell "Details for CM-1005":
+            - button "Details for CM-1005":
+          - cell "CM-1005":
+            - link "CM-1005":
+              - /url: /commitments/5
+          - cell "Replacement Operation Engineer For Abdullah Al Zugheibi":
+            - link "Replacement Operation Engineer For Abdullah Al Zugheibi":
+              - /url: /commitments/5
+          - cell "Open":
+            - generic: Open
+          - cell "Actions for commitment CM-1005":
+            - button "Actions for commitment CM-1005": ⋯
+        - row "Details for CM-1009 CM-1009 Evaluate and implement technical solutions to increase the percentage of traffic… …violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate. Open Actions for commitment CM-1009":
+          - cell "Details for CM-1009":
+            - button "Details for CM-1009":
+          - cell "CM-1009":
+            - link "CM-1009":
+              - /url: /commitments/9
+          - cell "Evaluate and implement technical solutions to increase the percentage of traffic… …violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate.":
+            - generic "Evaluate and implement technical solutions to increase the percentage of traffic violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate.":
+              - link "Evaluate and implement technical solutions to increase the percentage of traffic…":
+                - /url: /commitments/9
+              - generic: …violations automatically exported to DTS through the AutoExport service. This includes renewing the Carmen OCR engine license (Serial No. 1201504, expired on 30/09/2025), improving recognition of new Dubai double-letter plate symbols (CC, DD, EE, FF, GG, HH, NN, etc.), and addressing low OCR confidence levels for existing symbols (AA, BB). Additionally, assess the feasibility of relying on Vitronic MEA and Carmen OCR engines for AutoExport validation conditions, while reviewing the limitations of the Vitronic GmbH OCR engine, to improve plate recognition accuracy, optimize AutoExport conditions, and increase the overall automatic export rate.
+          - text: TR
+          - cell "Open":
+            - generic: Open
+          - cell "Actions for commitment CM-1009":
+            - button "Actions for commitment CM-1009": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 6 OF 6
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 6 OF 6
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

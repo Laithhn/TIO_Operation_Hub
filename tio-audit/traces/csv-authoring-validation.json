@@ -1,0 +1,6 @@
+{
+  "method": "Artifact Tool literal-value workbook authored and exact round-trip compared, then raw CSV serialized",
+  "rows": 465,
+  "columns": 11,
+  "formulaOrFormattingFeatures": "None requested in raw CSV"
+}

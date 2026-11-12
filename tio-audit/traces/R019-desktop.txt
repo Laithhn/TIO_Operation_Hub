@@ -1,0 +1,804 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - link "Environments":
+    - /url: /environments
+  - generic: ›
+  - generic: Firewall rules
+- heading "Firewall rules" [level=1]
+- generic: "The allowed communication between servers: source, destination, ports, protocol, direction and purpose. Recorded configuration, not a live firewall export."
+- button "+ New rule"
+- complementary "Section menu":
+  - navigation:
+    - link "All clients":
+      - /url: /clients
+    - link "Projects & contracts":
+      - /url: /projects
+    - link "Environments":
+      - /url: /environments
+    - link "New client":
+      - /url: /clients/new
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Protocol
+  - combobox "Protocol":
+    - option "Any protocol" [selected]
+    - option "TCP"
+    - option "UDP"
+    - option "TCP and UDP"
+    - option "ICMP"
+    - option "Any"
+  - generic: Search
+  - textbox "Search":
+    - /placeholder: Server, port or purpose
+  - region "Firewall rules":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 25 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Firewall rules":
+      - caption: Firewall rules
+      - rowgroup:
+        - row "Select all rows shown Client Source server Direction Destination server Ports Protocol Purpose Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Source server":
+            - button "Source server":
+              - generic: Source server
+          - columnheader "Direction":
+            - button "Direction":
+              - generic: Direction
+          - columnheader "Destination server":
+            - button "Destination server":
+              - generic: Destination server
+          - columnheader "Ports":
+            - button "Ports":
+              - generic: Ports
+          - columnheader "Protocol":
+            - button "Protocol":
+              - generic: Protocol
+          - columnheader "Purpose":
+            - button "Purpose":
+              - generic: Purpose
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - 'row "Select SEW SEW PAVS-PRO-APP_Vip MOI_ViTIP_Production Both ways PAVS-PRO-APP1 MOI_ViTIP_Production 5665 TCP PAVS API service Sheet rule 9 (Firewall Rules row 13). Source: PAVS-PRO-APP_Vip 10.50.12.75. Destination: PAVS-PRO-APP1 10.50.13.72. Sheet source name: Application Load Balancer1, recorded as the F5 vIP PAVS-PRO-APP_Vip. Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP_Vip MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP_Vip":
+              - /url: /assets/253
+            - generic: MOI_ViTIP_Production
+          - cell "Both ways":
+            - generic "Both directions": ⇄ Both ways
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "5665":
+            - generic: "5665"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "PAVS API service Sheet rule 9 (Firewall Rules row 13). Source: PAVS-PRO-APP_Vip 10.50.12.75. Destination: PAVS-PRO-APP1 10.50.13.72. Sheet source name: Application Load Balancer1, recorded as the F5 vIP PAVS-PRO-APP_Vip."':
+            - text: PAVS API service
+            - generic: "Sheet rule 9 (Firewall Rules row 13). Source: PAVS-PRO-APP_Vip 10.50.12.75. Destination: PAVS-PRO-APP1 10.50.13.72. Sheet source name: Application Load Balancer1, recorded as the F5 vIP PAVS-PRO-APP_Vip."
+          - cell "Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP1": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP_Vip MOI_ViTIP_Production Both ways PAVS-PRO-APP2 MOI_ViTIP_Production 5665 TCP PAVS API service Sheet rule 9 (Firewall Rules row 13). Source: PAVS-PRO-APP_Vip 10.50.12.75. Destination: PAVS-PRO-APP2 10.50.13.73. Sheet source name: Application Load Balancer1, recorded as the F5 vIP PAVS-PRO-APP_Vip. Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP_Vip MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP_Vip":
+              - /url: /assets/253
+            - generic: MOI_ViTIP_Production
+          - cell "Both ways":
+            - generic "Both directions": ⇄ Both ways
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "5665":
+            - generic: "5665"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "PAVS API service Sheet rule 9 (Firewall Rules row 13). Source: PAVS-PRO-APP_Vip 10.50.12.75. Destination: PAVS-PRO-APP2 10.50.13.73. Sheet source name: Application Load Balancer1, recorded as the F5 vIP PAVS-PRO-APP_Vip."':
+            - text: PAVS API service
+            - generic: "Sheet rule 9 (Firewall Rules row 13). Source: PAVS-PRO-APP_Vip 10.50.12.75. Destination: PAVS-PRO-APP2 10.50.13.73. Sheet source name: Application Load Balancer1, recorded as the F5 vIP PAVS-PRO-APP_Vip."
+          - cell "Edit Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP_Vip ⇄ PAVS-PRO-APP2": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production One way VITIP-PRO-DB1 MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-DB1 10.50.15.60. Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-DB1 MOI_ViTIP_Production":
+            - link "VITIP-PRO-DB1":
+              - /url: /assets/207
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-DB1 10.50.15.60."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-DB1 10.50.15.60."
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB1": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production One way VITIP-PRO-DB2 MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-DB2 10.50.15.61. Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-DB2 MOI_ViTIP_Production":
+            - link "VITIP-PRO-DB2":
+              - /url: /assets/208
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-DB2 10.50.15.61."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-DB2 10.50.15.61."
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → VITIP-PRO-DB2": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production One way VITIP-PRO-LSNR MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-LSNR IP unknown. Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-LSNR"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-LSNR MOI_ViTIP_Production":
+            - link "VITIP-PRO-LSNR":
+              - /url: /assets/255
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-LSNR IP unknown."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP1 10.50.13.72. Destination: VITIP-PRO-LSNR IP unknown."
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → VITIP-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → VITIP-PRO-LSNR": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production One way PAVS-PRO-DB1 MOI_ViTIP_Production 1433 TCP Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-DB1 10.50.15.65. Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "PAVS-PRO-DB1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-DB1":
+              - /url: /assets/239
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-DB1 10.50.15.65."':
+            - text: Relational DB access (PVAS databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-DB1 10.50.15.65."
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB1": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production One way PAVS-PRO-DB2 MOI_ViTIP_Production 1433 TCP Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-DB2 10.50.15.66. Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "PAVS-PRO-DB2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-DB2":
+              - /url: /assets/240
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-DB2 10.50.15.66."':
+            - text: Relational DB access (PVAS databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-DB2 10.50.15.66."
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → PAVS-PRO-DB2": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP1 MOI_ViTIP_Production One way PAVS-PRO-LSNR MOI_ViTIP_Production 1433 TCP Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-LSNR IP unknown. Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-LSNR"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP1":
+              - /url: /assets/235
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "PAVS-PRO-LSNR MOI_ViTIP_Production":
+            - link "PAVS-PRO-LSNR":
+              - /url: /assets/256
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-LSNR IP unknown."':
+            - text: Relational DB access (PVAS databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP1 10.50.13.72. Destination: PAVS-PRO-LSNR IP unknown."
+          - cell "Edit Actions for rule PAVS-PRO-APP1 → PAVS-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP1 → PAVS-PRO-LSNR": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production One way PAVS-PRO-DB1 MOI_ViTIP_Production 1433 TCP Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-DB1 10.50.15.65. Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "PAVS-PRO-DB1 MOI_ViTIP_Production":
+            - link "PAVS-PRO-DB1":
+              - /url: /assets/239
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-DB1 10.50.15.65."':
+            - text: Relational DB access (PVAS databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-DB1 10.50.15.65."
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB1": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production One way PAVS-PRO-DB2 MOI_ViTIP_Production 1433 TCP Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-DB2 10.50.15.66. Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "PAVS-PRO-DB2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-DB2":
+              - /url: /assets/240
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-DB2 10.50.15.66."':
+            - text: Relational DB access (PVAS databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-DB2 10.50.15.66."
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → PAVS-PRO-DB2": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production One way PAVS-PRO-LSNR MOI_ViTIP_Production 1433 TCP Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-LSNR IP unknown. Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-LSNR"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "PAVS-PRO-LSNR MOI_ViTIP_Production":
+            - link "PAVS-PRO-LSNR":
+              - /url: /assets/256
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (PVAS databases) via the SQL AlwaysOn Listener Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-LSNR IP unknown."':
+            - text: Relational DB access (PVAS databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 20 (Firewall Rules row 24). Source: PAVS-PRO-APP2 10.50.13.73. Destination: PAVS-PRO-LSNR IP unknown."
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → PAVS-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → PAVS-PRO-LSNR": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production One way VITIP-PRO-DB1 MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-DB1 10.50.15.60. Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-DB1 MOI_ViTIP_Production":
+            - link "VITIP-PRO-DB1":
+              - /url: /assets/207
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-DB1 10.50.15.60."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-DB1 10.50.15.60."
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB1": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production One way VITIP-PRO-DB2 MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-DB2 10.50.15.61. Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-DB2 MOI_ViTIP_Production":
+            - link "VITIP-PRO-DB2":
+              - /url: /assets/208
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-DB2 10.50.15.61."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-DB2 10.50.15.61."
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → VITIP-PRO-DB2": ⋯
+        - 'row "Select SEW SEW PAVS-PRO-APP2 MOI_ViTIP_Production One way VITIP-PRO-LSNR MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-LSNR IP unknown. Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-LSNR"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "PAVS-PRO-APP2 MOI_ViTIP_Production":
+            - link "PAVS-PRO-APP2":
+              - /url: /assets/236
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-LSNR MOI_ViTIP_Production":
+            - link "VITIP-PRO-LSNR":
+              - /url: /assets/255
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-LSNR IP unknown."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: PAVS-PRO-APP2 10.50.13.73. Destination: VITIP-PRO-LSNR IP unknown."
+          - cell "Edit Actions for rule PAVS-PRO-APP2 → VITIP-PRO-LSNR":
+            - button "Edit"
+            - button "Actions for rule PAVS-PRO-APP2 → VITIP-PRO-LSNR": ⋯
+        - row "Select TAH TAH PSOP-R1PRO-APP1 Production Both ways PSOP-R1PRO-WEB1 Production 443 TCP Web to Call Apis Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-WEB1":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "PSOP-R1PRO-APP1 Production":
+            - link "PSOP-R1PRO-APP1":
+              - /url: /assets/1
+            - generic: Production
+          - cell "Both ways":
+            - generic "Both directions": ⇄ Both ways
+          - cell "PSOP-R1PRO-WEB1 Production":
+            - link "PSOP-R1PRO-WEB1":
+              - /url: /assets/9
+            - generic: Production
+          - cell "443":
+            - generic: "443"
+          - cell "TCP":
+            - generic: TCP
+          - cell "Web to Call Apis":
+            - generic: Web to Call Apis
+          - cell "Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-WEB1":
+            - button "Edit"
+            - button "Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-WEB1": ⋯
+        - row "Select TAH TAH PSOP-R1PRO-APP1 Production Both ways PSOP-R1PRO-LSN Production 1043 TCP database Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-LSN":
+          - cell "Select TAH":
+            - checkbox "Select TAH"
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "PSOP-R1PRO-APP1 Production":
+            - link "PSOP-R1PRO-APP1":
+              - /url: /assets/1
+            - generic: Production
+          - cell "Both ways":
+            - generic "Both directions": ⇄ Both ways
+          - cell "PSOP-R1PRO-LSN Production":
+            - link "PSOP-R1PRO-LSN":
+              - /url: /assets/13
+            - generic: Production
+          - cell "1043":
+            - generic: "1043"
+          - cell "TCP":
+            - generic: TCP
+          - cell "database":
+            - generic: database
+          - cell "Edit Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-LSN":
+            - button "Edit"
+            - button "Actions for rule PSOP-R1PRO-APP1 ⇄ PSOP-R1PRO-LSN": ⋯
+        - 'row "Select SEW SEW User Devices / Vitronic Devices MOI_ViTIP_Production One way VIITS-PRO-RTSP_Vip MOI_ViTIP_Production 80 TCP OSM map-layer service Sheet rule 15 (Firewall Rules row 19). Source: User Devices / Vitronic Devices IP unknown. Destination: VIITS-PRO-RTSP_Vip 10.50.12.76. Sheet destination name: Application Load Balancer3, recorded as the F5 vIP VIITS-PRO-RTSP_Vip. Edit Actions for rule User Devices / Vitronic Devices → VIITS-PRO-RTSP_Vip"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "User Devices / Vitronic Devices MOI_ViTIP_Production":
+            - link "User Devices / Vitronic Devices":
+              - /url: /assets/257
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VIITS-PRO-RTSP_Vip MOI_ViTIP_Production":
+            - link "VIITS-PRO-RTSP_Vip":
+              - /url: /assets/254
+            - generic: MOI_ViTIP_Production
+          - cell "80":
+            - generic: "80"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "OSM map-layer service Sheet rule 15 (Firewall Rules row 19). Source: User Devices / Vitronic Devices IP unknown. Destination: VIITS-PRO-RTSP_Vip 10.50.12.76. Sheet destination name: Application Load Balancer3, recorded as the F5 vIP VIITS-PRO-RTSP_Vip."':
+            - text: OSM map-layer service
+            - generic: "Sheet rule 15 (Firewall Rules row 19). Source: User Devices / Vitronic Devices IP unknown. Destination: VIITS-PRO-RTSP_Vip 10.50.12.76. Sheet destination name: Application Load Balancer3, recorded as the F5 vIP VIITS-PRO-RTSP_Vip."
+          - cell "Edit Actions for rule User Devices / Vitronic Devices → VIITS-PRO-RTSP_Vip":
+            - button "Edit"
+            - button "Actions for rule User Devices / Vitronic Devices → VIITS-PRO-RTSP_Vip": ⋯
+        - 'row "Select SEW SEW User Devices / Vitronic Devices MOI_ViTIP_Production One way VITIP-PRO-WEB_vIP MOI_ViTIP_Production 443 TCP Client and Vitronic field-device access to the ViTIP web portal (TLS terminated at the web load balancer) Sheet rule 1 (Firewall Rules row 5). Source: User Devices / Vitronic Devices IP unknown. Destination: VITIP-PRO-WEB_vIP 10.50.12.69. Sheet destination name: Web Load Balancer + Port Routing, recorded as the F5 vIP VITIP-PRO-WEB_vIP. Edit Actions for rule User Devices / Vitronic Devices → VITIP-PRO-WEB_vIP"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "User Devices / Vitronic Devices MOI_ViTIP_Production":
+            - link "User Devices / Vitronic Devices":
+              - /url: /assets/257
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-WEB_vIP MOI_ViTIP_Production":
+            - link "VITIP-PRO-WEB_vIP":
+              - /url: /assets/247
+            - generic: MOI_ViTIP_Production
+          - cell "443":
+            - generic: "443"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Client and Vitronic field-device access to the ViTIP web portal (TLS terminated at the web load balancer) Sheet rule 1 (Firewall Rules row 5). Source: User Devices / Vitronic Devices IP unknown. Destination: VITIP-PRO-WEB_vIP 10.50.12.69. Sheet destination name: Web Load Balancer + Port Routing, recorded as the F5 vIP VITIP-PRO-WEB_vIP."':
+            - text: Client and Vitronic field-device access to the ViTIP web portal (TLS terminated at the web load balancer)
+            - generic: "Sheet rule 1 (Firewall Rules row 5). Source: User Devices / Vitronic Devices IP unknown. Destination: VITIP-PRO-WEB_vIP 10.50.12.69. Sheet destination name: Web Load Balancer + Port Routing, recorded as the F5 vIP VITIP-PRO-WEB_vIP."
+          - cell "Edit Actions for rule User Devices / Vitronic Devices → VITIP-PRO-WEB_vIP":
+            - button "Edit"
+            - button "Actions for rule User Devices / Vitronic Devices → VITIP-PRO-WEB_vIP": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP_vIP MOI_ViTIP_Production Both ways VIDPP-PRO-APP1 MOI_ViTIP_Production 5663 TCP DPP API service (traffic data analytics / processing) Sheet rule 7 (Firewall Rules row 11). Source: VIDPP-PRO-APP_vIP 10.50.12.73. Destination: VIDPP-PRO-APP1 10.50.13.66. Sheet source name: Application Load Balancer1, recorded as the F5 vIP VIDPP-PRO-APP_vIP. Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP_vIP MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP_vIP":
+              - /url: /assets/251
+            - generic: MOI_ViTIP_Production
+          - cell "Both ways":
+            - generic "Both directions": ⇄ Both ways
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "5663":
+            - generic: "5663"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "DPP API service (traffic data analytics / processing) Sheet rule 7 (Firewall Rules row 11). Source: VIDPP-PRO-APP_vIP 10.50.12.73. Destination: VIDPP-PRO-APP1 10.50.13.66. Sheet source name: Application Load Balancer1, recorded as the F5 vIP VIDPP-PRO-APP_vIP."':
+            - text: DPP API service (traffic data analytics / processing)
+            - generic: "Sheet rule 7 (Firewall Rules row 11). Source: VIDPP-PRO-APP_vIP 10.50.12.73. Destination: VIDPP-PRO-APP1 10.50.13.66. Sheet source name: Application Load Balancer1, recorded as the F5 vIP VIDPP-PRO-APP_vIP."
+          - cell "Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP1":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP1": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP_vIP MOI_ViTIP_Production Both ways VIDPP-PRO-APP2 MOI_ViTIP_Production 5663 TCP DPP API service (traffic data analytics / processing) Sheet rule 7 (Firewall Rules row 11). Source: VIDPP-PRO-APP_vIP 10.50.12.73. Destination: VIDPP-PRO-APP2 10.50.13.67. Sheet source name: Application Load Balancer1, recorded as the F5 vIP VIDPP-PRO-APP_vIP. Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP_vIP MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP_vIP":
+              - /url: /assets/251
+            - generic: MOI_ViTIP_Production
+          - cell "Both ways":
+            - generic "Both directions": ⇄ Both ways
+          - cell "VIDPP-PRO-APP2 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP2":
+              - /url: /assets/217
+            - generic: MOI_ViTIP_Production
+          - cell "5663":
+            - generic: "5663"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "DPP API service (traffic data analytics / processing) Sheet rule 7 (Firewall Rules row 11). Source: VIDPP-PRO-APP_vIP 10.50.12.73. Destination: VIDPP-PRO-APP2 10.50.13.67. Sheet source name: Application Load Balancer1, recorded as the F5 vIP VIDPP-PRO-APP_vIP."':
+            - text: DPP API service (traffic data analytics / processing)
+            - generic: "Sheet rule 7 (Firewall Rules row 11). Source: VIDPP-PRO-APP_vIP 10.50.12.73. Destination: VIDPP-PRO-APP2 10.50.13.67. Sheet source name: Application Load Balancer1, recorded as the F5 vIP VIDPP-PRO-APP_vIP."
+          - cell "Edit Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP2":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP_vIP ⇄ VIDPP-PRO-APP2": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production One way VIITS-PRO-ES1 MOI_ViTIP_Production 9200, 27017, 6379, 5601 TCP Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES1 10.50.15.62. Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VIITS-PRO-ES1 MOI_ViTIP_Production":
+            - link "VIITS-PRO-ES1":
+              - /url: /assets/209
+            - generic: MOI_ViTIP_Production
+          - cell "9200, 27017, 6379, 5601":
+            - generic: 9200, 27017, 6379, 5601
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES1 10.50.15.62."':
+            - text: Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access
+            - generic: "Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES1 10.50.15.62."
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES1":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES1": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production One way VIITS-PRO-ES2 MOI_ViTIP_Production 9200, 27017, 6379, 5601 TCP Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES2 10.50.15.63. Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VIITS-PRO-ES2 MOI_ViTIP_Production":
+            - link "VIITS-PRO-ES2":
+              - /url: /assets/210
+            - generic: MOI_ViTIP_Production
+          - cell "9200, 27017, 6379, 5601":
+            - generic: 9200, 27017, 6379, 5601
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES2 10.50.15.63."':
+            - text: Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access
+            - generic: "Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES2 10.50.15.63."
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES2":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES2": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production One way VIITS-PRO-ES3 MOI_ViTIP_Production 9200, 27017, 6379, 5601 TCP Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES3 10.50.15.64. Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES3"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VIITS-PRO-ES3 MOI_ViTIP_Production":
+            - link "VIITS-PRO-ES3":
+              - /url: /assets/211
+            - generic: MOI_ViTIP_Production
+          - cell "9200, 27017, 6379, 5601":
+            - generic: 9200, 27017, 6379, 5601
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES3 10.50.15.64."':
+            - text: Elasticsearch (9200), MongoDB (27017), Redis cache (6379) and Kibana (5601) access
+            - generic: "Sheet rule 11 (Firewall Rules row 15). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VIITS-PRO-ES3 10.50.15.64."
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES3":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VIITS-PRO-ES3": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production One way VITIP-PRO-DB1 MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VITIP-PRO-DB1 10.50.15.60. Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB1"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-DB1 MOI_ViTIP_Production":
+            - link "VITIP-PRO-DB1":
+              - /url: /assets/207
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VITIP-PRO-DB1 10.50.15.60."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VITIP-PRO-DB1 10.50.15.60."
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB1":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB1": ⋯
+        - 'row "Select SEW SEW VIDPP-PRO-APP1 MOI_ViTIP_Production One way VITIP-PRO-DB2 MOI_ViTIP_Production 1433 TCP Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VITIP-PRO-DB2 10.50.15.61. Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB2"':
+          - cell "Select SEW":
+            - checkbox "Select SEW"
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "VIDPP-PRO-APP1 MOI_ViTIP_Production":
+            - link "VIDPP-PRO-APP1":
+              - /url: /assets/216
+            - generic: MOI_ViTIP_Production
+          - cell "One way":
+            - generic "Source to destination": → One way
+          - cell "VITIP-PRO-DB2 MOI_ViTIP_Production":
+            - link "VITIP-PRO-DB2":
+              - /url: /assets/208
+            - generic: MOI_ViTIP_Production
+          - cell "1433":
+            - generic: "1433"
+          - cell "TCP":
+            - generic: TCP
+          - 'cell "Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener Sheet rule 10 (Firewall Rules row 14). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VITIP-PRO-DB2 10.50.15.61."':
+            - text: Relational DB access (IDS, ITS/VIITS, RRM, SDB and DPP databases) via the SQL AlwaysOn Listener
+            - generic: "Sheet rule 10 (Firewall Rules row 14). Source: VIDPP-PRO-APP1 10.50.13.66. Destination: VITIP-PRO-DB2 10.50.15.61."
+          - cell "Edit Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB2":
+            - button "Edit"
+            - button "Actions for rule VIDPP-PRO-APP1 → VITIP-PRO-DB2": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 124
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 124
+    - button "Next"
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

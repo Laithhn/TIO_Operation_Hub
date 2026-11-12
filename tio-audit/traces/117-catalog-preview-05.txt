@@ -1,0 +1,1263 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Reporting Center":
+    - /url: /reporting-center
+  - generic: ›
+  - generic: Report library
+- heading "Reporting Center" [level=1]
+- generic: "All reports by category: configure, preview and export (CSV or Excel); the Tickets report also has the Report Builder."
+- button "Refresh"
+- button "Schedule report"
+- button "+ Create report"
+- complementary "Section menu":
+  - navigation:
+    - link "Overview":
+      - /url: /reporting-center
+    - link "Report library":
+      - /url: /reporting-center/library
+    - link "Tickets report builder":
+      - /url: /reporting-center/builder/cases
+    - link "My reports":
+      - /url: /reporting-center/my-reports
+    - link "Scheduled reports":
+      - /url: /reporting-center/schedules
+    - link "Export history":
+      - /url: /reporting-center/history
+    - link "Templates":
+      - /url: /reporting-center/templates
+  - button "Expand menu":
+- main:
+  - button "← All reports"
+  - heading "Assets inventory report" [level=2]
+  - paragraph: Technical · Servers and other assets with type, role, lifecycle and recorded CPU, RAM and operating system. Network zones need the Technical detail right.
+  - list "Export steps":
+    - generic: "1"
+    - text: Configure
+    - generic: "2"
+    - text: Preview
+    - generic: "3"
+    - text: Export options
+    - generic: "4"
+    - text: Generate & download
+  - heading "1 · Configure" [level=2]
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Product
+  - combobox "Product":
+    - option "All products" [selected]
+    - option "PSOP"
+    - option "ViTIP"
+  - generic: Asset type
+  - combobox "Asset type":
+    - option "All types" [selected]
+    - option "Virtual machine (VM)"
+    - option "Physical server"
+    - option "Logical endpoint"
+  - generic: Lifecycle
+  - combobox "Lifecycle":
+    - option "Any" [selected]
+    - option "Planned"
+    - option "Active"
+    - option "Retired"
+    - option "Unknown"
+  - generic "Advanced filters"
+  - generic: Time zone for dates and times
+  - combobox "Time zone for dates and times":
+    - option "Not set"
+    - option "(UTC−11:00) Pacific/Midway"
+    - option "(UTC−11:00) Pacific/Niue"
+    - option "(UTC−11:00) Pacific/Pago Pago"
+    - option "(UTC−10:00) America/Adak"
+    - option "(UTC−10:00) Pacific/Honolulu"
+    - option "(UTC−10:00) Pacific/Rarotonga"
+    - option "(UTC−10:00) Pacific/Tahiti"
+    - option "(UTC−09:30) Pacific/Marquesas"
+    - option "(UTC−09:00) America/Anchorage"
+    - option "(UTC−09:00) America/Juneau"
+    - option "(UTC−09:00) America/Metlakatla"
+    - option "(UTC−09:00) America/Nome"
+    - option "(UTC−09:00) America/Sitka"
+    - option "(UTC−09:00) America/Yakutat"
+    - option "(UTC−09:00) Pacific/Gambier"
+    - option "(UTC−08:00) America/Los Angeles"
+    - option "(UTC−08:00) America/Tijuana"
+    - option "(UTC−08:00) Pacific/Pitcairn"
+    - option "(UTC−07:00) America/Boise"
+    - option "(UTC−07:00) America/Cambridge Bay"
+    - option "(UTC−07:00) America/Ciudad Juarez"
+    - option "(UTC−07:00) America/Creston"
+    - option "(UTC−07:00) America/Dawson"
+    - option "(UTC−07:00) America/Dawson Creek"
+    - option "(UTC−07:00) America/Denver"
+    - option "(UTC−07:00) America/Fort Nelson"
+    - option "(UTC−07:00) America/Hermosillo"
+    - option "(UTC−07:00) America/Inuvik"
+    - option "(UTC−07:00) America/Mazatlan"
+    - option "(UTC−07:00) America/Phoenix"
+    - option "(UTC−07:00) America/Vancouver"
+    - option "(UTC−07:00) America/Whitehorse"
+    - option "(UTC−06:00) America/Bahia Banderas"
+    - option "(UTC−06:00) America/Belize"
+    - option "(UTC−06:00) America/Chicago"
+    - option "(UTC−06:00) America/Chihuahua"
+    - option "(UTC−06:00) America/Costa Rica"
+    - option "(UTC−06:00) America/Edmonton"
+    - option "(UTC−06:00) America/El Salvador"
+    - option "(UTC−06:00) America/Guatemala"
+    - option "(UTC−06:00) America/Indiana/Knox"
+    - option "(UTC−06:00) America/Indiana/Tell City"
+    - option "(UTC−06:00) America/Managua"
+    - option "(UTC−06:00) America/Matamoros"
+    - option "(UTC−06:00) America/Menominee"
+    - option "(UTC−06:00) America/Merida"
+    - option "(UTC−06:00) America/Mexico City"
+    - option "(UTC−06:00) America/Monterrey"
+    - option "(UTC−06:00) America/North Dakota/Beulah"
+    - option "(UTC−06:00) America/North Dakota/Center"
+    - option "(UTC−06:00) America/North Dakota/New Salem"
+    - option "(UTC−06:00) America/Ojinaga"
+    - option "(UTC−06:00) America/Rankin Inlet"
+    - option "(UTC−06:00) America/Regina"
+    - option "(UTC−06:00) America/Resolute"
+    - option "(UTC−06:00) America/Swift Current"
+    - option "(UTC−06:00) America/Tegucigalpa"
+    - option "(UTC−06:00) America/Winnipeg"
+    - option "(UTC−06:00) Pacific/Galapagos"
+    - option "(UTC−05:00) America/Bogota"
+    - option "(UTC−05:00) America/Cancun"
+    - option "(UTC−05:00) America/Cayman"
+    - option "(UTC−05:00) America/Coral Harbour"
+    - option "(UTC−05:00) America/Detroit"
+    - option "(UTC−05:00) America/Eirunepe"
+    - option "(UTC−05:00) America/Grand Turk"
+    - option "(UTC−05:00) America/Guayaquil"
+    - option "(UTC−05:00) America/Havana"
+    - option "(UTC−05:00) America/Indiana/Marengo"
+    - option "(UTC−05:00) America/Indiana/Petersburg"
+    - option "(UTC−05:00) America/Indiana/Vevay"
+    - option "(UTC−05:00) America/Indiana/Vincennes"
+    - option "(UTC−05:00) America/Indiana/Winamac"
+    - option "(UTC−05:00) America/Indianapolis"
+    - option "(UTC−05:00) America/Iqaluit"
+    - option "(UTC−05:00) America/Jamaica"
+    - option "(UTC−05:00) America/Kentucky/Monticello"
+    - option "(UTC−05:00) America/Lima"
+    - option "(UTC−05:00) America/Louisville"
+    - option "(UTC−05:00) America/Nassau"
+    - option "(UTC−05:00) America/New York"
+    - option "(UTC−05:00) America/Panama"
+    - option "(UTC−05:00) America/Port-au-Prince"
+    - option "(UTC−05:00) America/Rio Branco"
+    - option "(UTC−05:00) America/Toronto"
+    - option "(UTC−05:00) Pacific/Easter"
+    - option "(UTC−04:00) America/Anguilla"
+    - option "(UTC−04:00) America/Antigua"
+    - option "(UTC−04:00) America/Aruba"
+    - option "(UTC−04:00) America/Barbados"
+    - option "(UTC−04:00) America/Blanc-Sablon"
+    - option "(UTC−04:00) America/Boa Vista"
+    - option "(UTC−04:00) America/Campo Grande"
+    - option "(UTC−04:00) America/Caracas"
+    - option "(UTC−04:00) America/Cuiaba"
+    - option "(UTC−04:00) America/Curacao"
+    - option "(UTC−04:00) America/Dominica"
+    - option "(UTC−04:00) America/Glace Bay"
+    - option "(UTC−04:00) America/Goose Bay"
+    - option "(UTC−04:00) America/Grenada"
+    - option "(UTC−04:00) America/Guadeloupe"
+    - option "(UTC−04:00) America/Guyana"
+    - option "(UTC−04:00) America/Halifax"
+    - option "(UTC−04:00) America/Kralendijk"
+    - option "(UTC−04:00) America/La Paz"
+    - option "(UTC−04:00) America/Lower Princes"
+    - option "(UTC−04:00) America/Manaus"
+    - option "(UTC−04:00) America/Marigot"
+    - option "(UTC−04:00) America/Martinique"
+    - option "(UTC−04:00) America/Moncton"
+    - option "(UTC−04:00) America/Montserrat"
+    - option "(UTC−04:00) America/Port of Spain"
+    - option "(UTC−04:00) America/Porto Velho"
+    - option "(UTC−04:00) America/Puerto Rico"
+    - option "(UTC−04:00) America/Santo Domingo"
+    - option "(UTC−04:00) America/St Barthelemy"
+    - option "(UTC−04:00) America/St Kitts"
+    - option "(UTC−04:00) America/St Lucia"
+    - option "(UTC−04:00) America/St Thomas"
+    - option "(UTC−04:00) America/St Vincent"
+    - option "(UTC−04:00) America/Thule"
+    - option "(UTC−04:00) America/Tortola"
+    - option "(UTC−04:00) Atlantic/Bermuda"
+    - option "(UTC−03:30) America/St Johns"
+    - option "(UTC−03:00) America/Araguaina"
+    - option "(UTC−03:00) America/Argentina/La Rioja"
+    - option "(UTC−03:00) America/Argentina/Rio Gallegos"
+    - option "(UTC−03:00) America/Argentina/Salta"
+    - option "(UTC−03:00) America/Argentina/San Juan"
+    - option "(UTC−03:00) America/Argentina/San Luis"
+    - option "(UTC−03:00) America/Argentina/Tucuman"
+    - option "(UTC−03:00) America/Argentina/Ushuaia"
+    - option "(UTC−03:00) America/Asuncion"
+    - option "(UTC−03:00) America/Bahia"
+    - option "(UTC−03:00) America/Belem"
+    - option "(UTC−03:00) America/Buenos Aires"
+    - option "(UTC−03:00) America/Catamarca"
+    - option "(UTC−03:00) America/Cayenne"
+    - option "(UTC−03:00) America/Cordoba"
+    - option "(UTC−03:00) America/Coyhaique"
+    - option "(UTC−03:00) America/Fortaleza"
+    - option "(UTC−03:00) America/Jujuy"
+    - option "(UTC−03:00) America/Maceio"
+    - option "(UTC−03:00) America/Mendoza"
+    - option "(UTC−03:00) America/Miquelon"
+    - option "(UTC−03:00) America/Montevideo"
+    - option "(UTC−03:00) America/Paramaribo"
+    - option "(UTC−03:00) America/Punta Arenas"
+    - option "(UTC−03:00) America/Recife"
+    - option "(UTC−03:00) America/Santarem"
+    - option "(UTC−03:00) America/Santiago"
+    - option "(UTC−03:00) America/Sao Paulo"
+    - option "(UTC−03:00) Antarctica/Palmer"
+    - option "(UTC−03:00) Antarctica/Rothera"
+    - option "(UTC−03:00) Atlantic/Stanley"
+    - option "(UTC−02:00) America/Godthab"
+    - option "(UTC−02:00) America/Noronha"
+    - option "(UTC−02:00) America/Scoresbysund"
+    - option "(UTC−02:00) Atlantic/South Georgia"
+    - option "(UTC−01:00) Atlantic/Azores"
+    - option "(UTC−01:00) Atlantic/Cape Verde"
+    - option "(UTC+00:00) Africa/Abidjan"
+    - option "(UTC+00:00) Africa/Accra"
+    - option "(UTC+00:00) Africa/Bamako"
+    - option "(UTC+00:00) Africa/Banjul"
+    - option "(UTC+00:00) Africa/Bissau"
+    - option "(UTC+00:00) Africa/Casablanca"
+    - option "(UTC+00:00) Africa/Conakry"
+    - option "(UTC+00:00) Africa/Dakar"
+    - option "(UTC+00:00) Africa/El Aaiun"
+    - option "(UTC+00:00) Africa/Freetown"
+    - option "(UTC+00:00) Africa/Lome"
+    - option "(UTC+00:00) Africa/Monrovia"
+    - option "(UTC+00:00) Africa/Nouakchott"
+    - option "(UTC+00:00) Africa/Ouagadougou"
+    - option "(UTC+00:00) Africa/Sao Tome"
+    - option "(UTC+00:00) America/Danmarkshavn"
+    - option "(UTC+00:00) Antarctica/Troll"
+    - option "(UTC+00:00) Atlantic/Canary"
+    - option "(UTC+00:00) Atlantic/Faeroe"
+    - option "(UTC+00:00) Atlantic/Madeira"
+    - option "(UTC+00:00) Atlantic/Reykjavik"
+    - option "(UTC+00:00) Atlantic/St Helena"
+    - option "(UTC+00:00) Europe/Dublin"
+    - option "(UTC+00:00) Europe/Guernsey"
+    - option "(UTC+00:00) Europe/Isle of Man"
+    - option "(UTC+00:00) Europe/Jersey"
+    - option "(UTC+00:00) Europe/Lisbon"
+    - option "(UTC+00:00) Europe/London"
+    - option "(UTC+00:00) UTC"
+    - option "(UTC+01:00) Africa/Algiers"
+    - option "(UTC+01:00) Africa/Bangui"
+    - option "(UTC+01:00) Africa/Brazzaville"
+    - option "(UTC+01:00) Africa/Ceuta"
+    - option "(UTC+01:00) Africa/Douala"
+    - option "(UTC+01:00) Africa/Kinshasa"
+    - option "(UTC+01:00) Africa/Lagos"
+    - option "(UTC+01:00) Africa/Libreville"
+    - option "(UTC+01:00) Africa/Luanda"
+    - option "(UTC+01:00) Africa/Malabo"
+    - option "(UTC+01:00) Africa/Ndjamena"
+    - option "(UTC+01:00) Africa/Niamey"
+    - option "(UTC+01:00) Africa/Porto-Novo"
+    - option "(UTC+01:00) Africa/Tunis"
+    - option "(UTC+01:00) Arctic/Longyearbyen"
+    - option "(UTC+01:00) Europe/Amsterdam"
+    - option "(UTC+01:00) Europe/Andorra"
+    - option "(UTC+01:00) Europe/Belgrade"
+    - option "(UTC+01:00) Europe/Berlin"
+    - option "(UTC+01:00) Europe/Bratislava"
+    - option "(UTC+01:00) Europe/Brussels"
+    - option "(UTC+01:00) Europe/Budapest"
+    - option "(UTC+01:00) Europe/Busingen"
+    - option "(UTC+01:00) Europe/Copenhagen"
+    - option "(UTC+01:00) Europe/Gibraltar"
+    - option "(UTC+01:00) Europe/Ljubljana"
+    - option "(UTC+01:00) Europe/Luxembourg"
+    - option "(UTC+01:00) Europe/Madrid"
+    - option "(UTC+01:00) Europe/Malta"
+    - option "(UTC+01:00) Europe/Monaco"
+    - option "(UTC+01:00) Europe/Oslo"
+    - option "(UTC+01:00) Europe/Paris"
+    - option "(UTC+01:00) Europe/Podgorica"
+    - option "(UTC+01:00) Europe/Prague"
+    - option "(UTC+01:00) Europe/Rome"
+    - option "(UTC+01:00) Europe/San Marino"
+    - option "(UTC+01:00) Europe/Sarajevo"
+    - option "(UTC+01:00) Europe/Skopje"
+    - option "(UTC+01:00) Europe/Stockholm"
+    - option "(UTC+01:00) Europe/Tirane"
+    - option "(UTC+01:00) Europe/Vaduz"
+    - option "(UTC+01:00) Europe/Vatican"
+    - option "(UTC+01:00) Europe/Vienna"
+    - option "(UTC+01:00) Europe/Warsaw"
+    - option "(UTC+01:00) Europe/Zagreb"
+    - option "(UTC+01:00) Europe/Zurich"
+    - option "(UTC+02:00) Africa/Blantyre"
+    - option "(UTC+02:00) Africa/Bujumbura"
+    - option "(UTC+02:00) Africa/Cairo"
+    - option "(UTC+02:00) Africa/Gaborone"
+    - option "(UTC+02:00) Africa/Harare"
+    - option "(UTC+02:00) Africa/Johannesburg"
+    - option "(UTC+02:00) Africa/Juba"
+    - option "(UTC+02:00) Africa/Khartoum"
+    - option "(UTC+02:00) Africa/Kigali"
+    - option "(UTC+02:00) Africa/Lubumbashi"
+    - option "(UTC+02:00) Africa/Lusaka"
+    - option "(UTC+02:00) Africa/Maputo"
+    - option "(UTC+02:00) Africa/Maseru"
+    - option "(UTC+02:00) Africa/Mbabane"
+    - option "(UTC+02:00) Africa/Tripoli"
+    - option "(UTC+02:00) Africa/Windhoek"
+    - option "(UTC+02:00) Asia/Beirut"
+    - option "(UTC+02:00) Asia/Famagusta"
+    - option "(UTC+02:00) Asia/Gaza"
+    - option "(UTC+02:00) Asia/Hebron"
+    - option "(UTC+02:00) Asia/Jerusalem"
+    - option "(UTC+02:00) Asia/Nicosia"
+    - option "(UTC+02:00) Europe/Athens"
+    - option "(UTC+02:00) Europe/Bucharest"
+    - option "(UTC+02:00) Europe/Chisinau"
+    - option "(UTC+02:00) Europe/Helsinki"
+    - option "(UTC+02:00) Europe/Kaliningrad"
+    - option "(UTC+02:00) Europe/Kiev"
+    - option "(UTC+02:00) Europe/Mariehamn"
+    - option "(UTC+02:00) Europe/Riga"
+    - option "(UTC+02:00) Europe/Sofia"
+    - option "(UTC+02:00) Europe/Tallinn"
+    - option "(UTC+02:00) Europe/Vilnius"
+    - option "(UTC+03:00) Africa/Addis Ababa"
+    - option "(UTC+03:00) Africa/Asmera"
+    - option "(UTC+03:00) Africa/Dar es Salaam"
+    - option "(UTC+03:00) Africa/Djibouti"
+    - option "(UTC+03:00) Africa/Kampala"
+    - option "(UTC+03:00) Africa/Mogadishu"
+    - option "(UTC+03:00) Africa/Nairobi"
+    - option "(UTC+03:00) Antarctica/Syowa"
+    - option "(UTC+03:00) Asia/Aden"
+    - option "(UTC+03:00) Asia/Amman"
+    - option "(UTC+03:00) Asia/Baghdad"
+    - option "(UTC+03:00) Asia/Bahrain"
+    - option "(UTC+03:00) Asia/Damascus"
+    - option "(UTC+03:00) Asia/Kuwait"
+    - option "(UTC+03:00) Asia/Qatar"
+    - option "(UTC+03:00) Asia/Riyadh"
+    - option "(UTC+03:00) Europe/Istanbul"
+    - option "(UTC+03:00) Europe/Kirov"
+    - option "(UTC+03:00) Europe/Minsk"
+    - option "(UTC+03:00) Europe/Moscow"
+    - option "(UTC+03:00) Europe/Simferopol"
+    - option "(UTC+03:00) Europe/Volgograd"
+    - option "(UTC+03:00) Indian/Antananarivo"
+    - option "(UTC+03:00) Indian/Comoro"
+    - option "(UTC+03:00) Indian/Mayotte"
+    - option "(UTC+03:30) Asia/Tehran"
+    - option "(UTC+04:00) Asia/Baku"
+    - option "(UTC+04:00) Asia/Dubai" [selected]
+    - option "(UTC+04:00) Asia/Muscat"
+    - option "(UTC+04:00) Asia/Tbilisi"
+    - option "(UTC+04:00) Asia/Yerevan"
+    - option "(UTC+04:00) Europe/Astrakhan"
+    - option "(UTC+04:00) Europe/Samara"
+    - option "(UTC+04:00) Europe/Saratov"
+    - option "(UTC+04:00) Europe/Ulyanovsk"
+    - option "(UTC+04:00) Indian/Mahe"
+    - option "(UTC+04:00) Indian/Mauritius"
+    - option "(UTC+04:00) Indian/Reunion"
+    - option "(UTC+04:30) Asia/Kabul"
+    - option "(UTC+05:00) Antarctica/Mawson"
+    - option "(UTC+05:00) Antarctica/Vostok"
+    - option "(UTC+05:00) Asia/Almaty"
+    - option "(UTC+05:00) Asia/Aqtau"
+    - option "(UTC+05:00) Asia/Aqtobe"
+    - option "(UTC+05:00) Asia/Ashgabat"
+    - option "(UTC+05:00) Asia/Atyrau"
+    - option "(UTC+05:00) Asia/Dushanbe"
+    - option "(UTC+05:00) Asia/Karachi"
+    - option "(UTC+05:00) Asia/Oral"
+    - option "(UTC+05:00) Asia/Qostanay"
+    - option "(UTC+05:00) Asia/Qyzylorda"
+    - option "(UTC+05:00) Asia/Samarkand"
+    - option "(UTC+05:00) Asia/Tashkent"
+    - option "(UTC+05:00) Asia/Yekaterinburg"
+    - option "(UTC+05:00) Indian/Kerguelen"
+    - option "(UTC+05:00) Indian/Maldives"
+    - option "(UTC+05:30) Asia/Calcutta"
+    - option "(UTC+05:30) Asia/Colombo"
+    - option "(UTC+05:45) Asia/Katmandu"
+    - option "(UTC+06:00) Asia/Bishkek"
+    - option "(UTC+06:00) Asia/Dhaka"
+    - option "(UTC+06:00) Asia/Omsk"
+    - option "(UTC+06:00) Asia/Thimphu"
+    - option "(UTC+06:00) Asia/Urumqi"
+    - option "(UTC+06:00) Indian/Chagos"
+    - option "(UTC+06:30) Asia/Rangoon"
+    - option "(UTC+06:30) Indian/Cocos"
+    - option "(UTC+07:00) Antarctica/Davis"
+    - option "(UTC+07:00) Asia/Bangkok"
+    - option "(UTC+07:00) Asia/Barnaul"
+    - option "(UTC+07:00) Asia/Hovd"
+    - option "(UTC+07:00) Asia/Jakarta"
+    - option "(UTC+07:00) Asia/Krasnoyarsk"
+    - option "(UTC+07:00) Asia/Novokuznetsk"
+    - option "(UTC+07:00) Asia/Novosibirsk"
+    - option "(UTC+07:00) Asia/Phnom Penh"
+    - option "(UTC+07:00) Asia/Pontianak"
+    - option "(UTC+07:00) Asia/Saigon"
+    - option "(UTC+07:00) Asia/Tomsk"
+    - option "(UTC+07:00) Asia/Vientiane"
+    - option "(UTC+07:00) Indian/Christmas"
+    - option "(UTC+08:00) Antarctica/Casey"
+    - option "(UTC+08:00) Asia/Brunei"
+    - option "(UTC+08:00) Asia/Hong Kong"
+    - option "(UTC+08:00) Asia/Irkutsk"
+    - option "(UTC+08:00) Asia/Kuala Lumpur"
+    - option "(UTC+08:00) Asia/Kuching"
+    - option "(UTC+08:00) Asia/Macau"
+    - option "(UTC+08:00) Asia/Makassar"
+    - option "(UTC+08:00) Asia/Manila"
+    - option "(UTC+08:00) Asia/Shanghai"
+    - option "(UTC+08:00) Asia/Singapore"
+    - option "(UTC+08:00) Asia/Taipei"
+    - option "(UTC+08:00) Asia/Ulaanbaatar"
+    - option "(UTC+08:00) Australia/Perth"
+    - option "(UTC+08:45) Australia/Eucla"
+    - option "(UTC+09:00) Asia/Chita"
+    - option "(UTC+09:00) Asia/Dili"
+    - option "(UTC+09:00) Asia/Jayapura"
+    - option "(UTC+09:00) Asia/Khandyga"
+    - option "(UTC+09:00) Asia/Pyongyang"
+    - option "(UTC+09:00) Asia/Seoul"
+    - option "(UTC+09:00) Asia/Tokyo"
+    - option "(UTC+09:00) Asia/Yakutsk"
+    - option "(UTC+09:00) Pacific/Palau"
+    - option "(UTC+09:30) Australia/Darwin"
+    - option "(UTC+10:00) Antarctica/DumontDUrville"
+    - option "(UTC+10:00) Asia/Ust-Nera"
+    - option "(UTC+10:00) Asia/Vladivostok"
+    - option "(UTC+10:00) Australia/Brisbane"
+    - option "(UTC+10:00) Australia/Lindeman"
+    - option "(UTC+10:00) Pacific/Guam"
+    - option "(UTC+10:00) Pacific/Port Moresby"
+    - option "(UTC+10:00) Pacific/Saipan"
+    - option "(UTC+10:00) Pacific/Truk"
+    - option "(UTC+10:30) Australia/Adelaide"
+    - option "(UTC+10:30) Australia/Broken Hill"
+    - option "(UTC+11:00) Antarctica/Macquarie"
+    - option "(UTC+11:00) Asia/Magadan"
+    - option "(UTC+11:00) Asia/Sakhalin"
+    - option "(UTC+11:00) Asia/Srednekolymsk"
+    - option "(UTC+11:00) Australia/Hobart"
+    - option "(UTC+11:00) Australia/Lord Howe"
+    - option "(UTC+11:00) Australia/Melbourne"
+    - option "(UTC+11:00) Australia/Sydney"
+    - option "(UTC+11:00) Pacific/Bougainville"
+    - option "(UTC+11:00) Pacific/Efate"
+    - option "(UTC+11:00) Pacific/Guadalcanal"
+    - option "(UTC+11:00) Pacific/Kosrae"
+    - option "(UTC+11:00) Pacific/Noumea"
+    - option "(UTC+11:00) Pacific/Ponape"
+    - option "(UTC+12:00) Asia/Anadyr"
+    - option "(UTC+12:00) Asia/Kamchatka"
+    - option "(UTC+12:00) Pacific/Fiji"
+    - option "(UTC+12:00) Pacific/Funafuti"
+    - option "(UTC+12:00) Pacific/Kwajalein"
+    - option "(UTC+12:00) Pacific/Majuro"
+    - option "(UTC+12:00) Pacific/Nauru"
+    - option "(UTC+12:00) Pacific/Norfolk"
+    - option "(UTC+12:00) Pacific/Tarawa"
+    - option "(UTC+12:00) Pacific/Wake"
+    - option "(UTC+12:00) Pacific/Wallis"
+    - option "(UTC+13:00) Antarctica/McMurdo"
+    - option "(UTC+13:00) Pacific/Apia"
+    - option "(UTC+13:00) Pacific/Auckland"
+    - option "(UTC+13:00) Pacific/Enderbury"
+    - option "(UTC+13:00) Pacific/Fakaofo"
+    - option "(UTC+13:00) Pacific/Tongatapu"
+    - option "(UTC+13:45) Pacific/Chatham"
+    - option "(UTC+14:00) Pacific/Kiritimati"
+  - generic: Dates in the filters are calendar days in this zone.
+  - generic: "No filters: all rows you are authorized to see."
+  - button "Reset filters"
+  - button "Refresh preview" [active]
+  - generic "Save these filters as a preset"
+  - heading "2 · Preview" [level=2]
+  - generic: 153 matching row(s) · data as of 10 Nov 2026, 17:06 (Asia/Dubai)
+  - paragraph: "Assets inventory report · Filters: none"
+  - region "Preview of Assets inventory report":
+    - 'group "Preview of Assets inventory report: scroll sideways for more columns"':
+      - table "Preview of Assets inventory report":
+        - caption: Preview of Assets inventory report
+        - rowgroup:
+          - row "Client Environment Asset Type Role Lifecycle Network zone CPU CPU unit RAM RAM unit OS Verified":
+            - columnheader "Client":
+              - button "Client":
+                - generic: Client
+            - columnheader "Environment":
+              - button "Environment":
+                - generic: Environment
+            - columnheader "Asset":
+              - button "Asset":
+                - generic: Asset
+            - columnheader "Type":
+              - button "Type":
+                - generic: Type
+            - columnheader "Role":
+              - button "Role":
+                - generic: Role
+            - columnheader "Lifecycle":
+              - button "Lifecycle":
+                - generic: Lifecycle
+            - columnheader "Network zone":
+              - button "Network zone":
+                - generic: Network zone
+            - columnheader "CPU":
+              - button "CPU":
+                - generic: CPU
+            - columnheader "CPU unit":
+              - button "CPU unit":
+                - generic: CPU unit
+            - columnheader "RAM":
+              - button "RAM":
+                - generic: RAM
+            - columnheader "RAM unit":
+              - button "RAM unit":
+                - generic: RAM unit
+            - columnheader "OS":
+              - button "OS":
+                - generic: OS
+            - columnheader "Verified":
+              - button "Verified":
+                - generic: Verified
+        - rowgroup:
+          - row "SEW MOI_ViTIP_Production Dahua ANPR Service Logical endpoint Other Active External":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "Dahua ANPR Service":
+              - generic: Dahua ANPR Service
+            - cell "Logical endpoint":
+              - generic: Logical endpoint
+            - cell "Other":
+              - generic: Other
+            - cell "Active":
+              - generic: Active
+            - cell "External":
+              - generic: External
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - row "SEW MOI_ViTIP_Production HIKVision ANPR Service Logical endpoint Other Active External":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "HIKVision ANPR Service":
+              - generic: HIKVision ANPR Service
+            - cell "Logical endpoint":
+              - generic: Logical endpoint
+            - cell "Other":
+              - generic: Other
+            - cell "Active":
+              - generic: Active
+            - cell "External":
+              - generic: External
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - row "MADAR_DIJLA 113506-AE – ViTIP Production (Proposed) Map-Pro-APP1 Virtual machine (VM) Application server Planned APP 32 vCPU 64 GB Linux":
+            - cell "MADAR_DIJLA":
+              - generic: MADAR_DIJLA
+            - cell "113506-AE – ViTIP Production (Proposed)":
+              - generic: 113506-AE – ViTIP Production (Proposed)
+            - cell "Map-Pro-APP1":
+              - generic: Map-Pro-APP1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Planned":
+              - generic: Planned
+            - cell "APP":
+              - generic: APP
+            - cell "32":
+              - generic: "32"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "64":
+              - generic: "64"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-APP_Vip Logical endpoint Load balancer Active APP":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-APP_Vip":
+              - generic: PAVS-PRO-APP_Vip
+            - cell "Logical endpoint":
+              - generic: Logical endpoint
+            - cell "Load balancer":
+              - generic: Load balancer
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-APP1 Virtual machine (VM) Application server Active APP 16 vCPU 32 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-APP1":
+              - generic: PAVS-PRO-APP1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "32":
+              - generic: "32"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-APP2 Virtual machine (VM) Application server Active APP 16 vCPU 32 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-APP2":
+              - generic: PAVS-PRO-APP2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "32":
+              - generic: "32"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-DB1 Virtual machine (VM) Database server Active DB 16 vCPU 64 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-DB1":
+              - generic: PAVS-PRO-DB1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Database server":
+              - generic: Database server
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "64":
+              - generic: "64"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-DB2 Virtual machine (VM) Database server Active DB 16 vCPU 64 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-DB2":
+              - generic: PAVS-PRO-DB2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Database server":
+              - generic: Database server
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "64":
+              - generic: "64"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-LSNR Logical endpoint Listener Active DB":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-LSNR":
+              - generic: PAVS-PRO-LSNR
+            - cell "Logical endpoint":
+              - generic: Logical endpoint
+            - cell "Listener":
+              - generic: Listener
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-WEB1 Virtual machine (VM) Web server Active WEB 4 vCPU 8 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-WEB1":
+              - generic: PAVS-PRO-WEB1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Web server":
+              - generic: Web server
+            - cell "Active":
+              - generic: Active
+            - cell "WEB":
+              - generic: WEB
+            - cell "4":
+              - generic: "4"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "8":
+              - generic: "8"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Production PAVS-PRO-WEB2 Virtual machine (VM) Web server Active WEB 4 vCPU 8 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Production":
+              - generic: MOI_ViTIP_Production
+            - cell "PAVS-PRO-WEB2":
+              - generic: PAVS-PRO-WEB2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Web server":
+              - generic: Web server
+            - cell "Active":
+              - generic: Active
+            - cell "WEB":
+              - generic: WEB
+            - cell "4":
+              - generic: "4"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "8":
+              - generic: "8"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Staging PAVS-STG-APP1 Virtual machine (VM) Application server Active APP 16 vCPU 64 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Staging":
+              - generic: MOI_ViTIP_Staging
+            - cell "PAVS-STG-APP1":
+              - generic: PAVS-STG-APP1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "64":
+              - generic: "64"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "SEW MOI_ViTIP_Staging PAVS-STG-DB1 Virtual machine (VM) Database server Active DB 16 vCPU 64 GB Linux":
+            - cell "SEW":
+              - generic: SEW
+            - cell "MOI_ViTIP_Staging":
+              - generic: MOI_ViTIP_Staging
+            - cell "PAVS-STG-DB1":
+              - generic: PAVS-STG-DB1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Database server":
+              - generic: Database server
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "64":
+              - generic: "64"
+            - cell "GB":
+              - generic: GB
+            - cell "Linux":
+              - generic: Linux
+            - cell
+          - row "TAH Production PSOP-R1PRO-APP1 Virtual machine (VM) Application server Active APP 8 vCPU 16 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-APP1":
+              - generic: PSOP-R1PRO-APP1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "8":
+              - generic: "8"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "16":
+              - generic: "16"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-APP2 Virtual machine (VM) Application server Active APP 8 vCPU 16 GB Windows Server 2026-10-22 13:56 +04:00":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-APP2":
+              - generic: PSOP-R1PRO-APP2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "8":
+              - generic: "8"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "16":
+              - generic: "16"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell "2026-10-22 13:56 +04:00":
+              - generic: 2026-10-22 13:56 +04:00
+          - row "TAH Production PSOP-R1PRO-DB1 Virtual machine (VM) Database server Active DB 16 vCPU 124 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-DB1":
+              - generic: PSOP-R1PRO-DB1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Database server":
+              - generic: Database server
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "124":
+              - generic: "124"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-DB2 Virtual machine (VM) Database server Active DB 16 vCPU 124 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-DB2":
+              - generic: PSOP-R1PRO-DB2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Database server":
+              - generic: Database server
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "124":
+              - generic: "124"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-IMPORT1 Virtual machine (VM) Application server Active APP 16 vCPU 32 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-IMPORT1":
+              - generic: PSOP-R1PRO-IMPORT1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "32":
+              - generic: "32"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-IMPORT2 Virtual machine (VM) Application server Active APP 16 vCPU 32 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-IMPORT2":
+              - generic: PSOP-R1PRO-IMPORT2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "32":
+              - generic: "32"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-LSN Logical endpoint Listener Active DB":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-LSN":
+              - generic: PSOP-R1PRO-LSN
+            - cell "Logical endpoint":
+              - generic: Logical endpoint
+            - cell "Listener":
+              - generic: Listener
+            - cell "Active":
+              - generic: Active
+            - cell "DB":
+              - generic: DB
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+            - cell
+          - row "TAH Production PSOP-R1PRO-MW1 Virtual machine (VM) Web server Active WEB 16 vCPU 128 GB Windows Server 2026-10-22 13:54 +04:00":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-MW1":
+              - generic: PSOP-R1PRO-MW1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Web server":
+              - generic: Web server
+            - cell "Active":
+              - generic: Active
+            - cell "WEB":
+              - generic: WEB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "128":
+              - generic: "128"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell "2026-10-22 13:54 +04:00":
+              - generic: 2026-10-22 13:54 +04:00
+          - row "TAH Production PSOP-R1PRO-MW2 Virtual machine (VM) Web server Active WEB 16 vCPU 128 GB Windows Server 2026-10-22 13:54 +04:00":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-MW2":
+              - generic: PSOP-R1PRO-MW2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Web server":
+              - generic: Web server
+            - cell "Active":
+              - generic: Active
+            - cell "WEB":
+              - generic: WEB
+            - cell "16":
+              - generic: "16"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "128":
+              - generic: "128"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell "2026-10-22 13:54 +04:00":
+              - generic: 2026-10-22 13:54 +04:00
+          - row "TAH Production PSOP-R1PRO-WEB1 Virtual machine (VM) Web server Active WEB 8 vCPU 16 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-WEB1":
+              - generic: PSOP-R1PRO-WEB1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Web server":
+              - generic: Web server
+            - cell "Active":
+              - generic: Active
+            - cell "WEB":
+              - generic: WEB
+            - cell "8":
+              - generic: "8"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "16":
+              - generic: "16"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-WEB2 Virtual machine (VM) Web server Active WEB 8 vCPU 16 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-WEB2":
+              - generic: PSOP-R1PRO-WEB2
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Web server":
+              - generic: Web server
+            - cell "Active":
+              - generic: Active
+            - cell "WEB":
+              - generic: WEB
+            - cell "8":
+              - generic: "8"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "16":
+              - generic: "16"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+          - row "TAH Production PSOP-R1PRO-WF1 Virtual machine (VM) Application server Active APP 8 vCPU 32 GB Windows Server":
+            - cell "TAH":
+              - generic: TAH
+            - cell "Production":
+              - generic: Production
+            - cell "PSOP-R1PRO-WF1":
+              - generic: PSOP-R1PRO-WF1
+            - cell "Virtual machine (VM)":
+              - generic: Virtual machine (VM)
+            - cell "Application server":
+              - generic: Application server
+            - cell "Active":
+              - generic: Active
+            - cell "APP":
+              - generic: APP
+            - cell "8":
+              - generic: "8"
+            - cell "vCPU":
+              - generic: vCPU
+            - cell "32":
+              - generic: "32"
+            - cell "GB":
+              - generic: GB
+            - cell "Windows Server":
+              - generic: Windows Server
+            - cell
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 25 OF 153
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15"
+      - option "25" [selected]
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 25 OF 153
+    - button "Next"
+  - heading "3 · Export options" [level=2]
+  - group "Format":
+    - generic: Format
+    - radio "CSV" [checked]
+    - generic: CSV
+    - radio "Excel (.xlsx)"
+    - generic: Excel (.xlsx)
+    - generic "A formatted PDF layout is available for the Tickets report only.":
+      - radio "PDF A formatted PDF layout is available for the Tickets report only." [disabled]
+      - generic: PDF
+      - generic: A formatted PDF layout is available for the Tickets report only.
+  - 'generic "Columns: 13 of 13 in the export"'
+  - button "Generate CSV"
+  - generic: 153 row(s) · the file is kept for download in the export history.
+  - paragraph:
+    - text: Need a report that is not listed? Report definitions live in one place on the server (
+    - link "ask the application team":
+      - /url: /admin
+    - text: ); a new definition appears here automatically.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

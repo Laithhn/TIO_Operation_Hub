@@ -1,0 +1,232 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - button "Menu, current section Clients":
+  - link "TIO Operations Hub home":
+    - /url: /
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- generic: "Section:"
+- text: Clients
+- navigation "Breadcrumb":
+  - link "Clients":
+    - /url: /clients
+  - generic: ›
+  - generic: Environments
+- heading "Environments" [level=1]
+- generic: Production in two regions are two distinct environments. Direct-client environments have no region by design.
+- button "Export CSV"
+- link "+ New Environment":
+  - /url: /environments/new
+- complementary "Navigation":
+  - paragraph: TIO Operations Hub
+  - button "Close menu":
+  - navigation "All sections":
+    - link "Dashboard":
+      - /url: /
+    - button "Dashboard pages":
+    - link "Clients (current section)":
+      - /url: /clients
+      - text: Clients
+      - generic: (current section)
+    - button "Clients pages":
+    - link "Products":
+      - /url: /products
+    - button "Products pages":
+    - link "Tickets":
+      - /url: /cases
+    - button "Tickets pages":
+    - link "Commitments":
+      - /url: /commitments
+    - button "Commitments pages":
+    - link "Notes":
+      - /url: /notes
+    - button "Notes pages":
+    - link "Escalations":
+      - /url: /escalations
+    - button "Escalations pages":
+    - link "Teams":
+      - /url: /teams
+    - button "Teams pages":
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - button "Reporting Center pages":
+    - link "Administration":
+      - /url: /admin
+    - button "Administration pages":
+- main:
+  - generic: Client
+  - combobox "Client":
+    - option "All authorized clients" [selected]
+    - option "ADP · Abu Dhabi Police"
+    - option "ADP-STC · Abu Dhabi Police STC"
+    - option "ADP-TRAFFIC · Abu Dhabi Traffic Department"
+    - option "DGSN · NATIONAL GENDARMERIE (DGSN)"
+    - option "DUBAI_POLICE · Dubai Police"
+    - option "EIFFAGE · Eiffage Concessions"
+    - option "MADAR_DIJLA · Madar Dijla"
+    - option "MULTICOM · MULTICOM - IT Security"
+    - option "NARSA · NARSA"
+    - option "OYOON · OYOON Center"
+    - option "PESAPRINT · Pesa Print"
+    - option "QATAR_MOI · Qatar MOI"
+    - option "RNP · Rwanda National Ploce"
+    - option "ROP · Royal Oman Police (ROP)"
+    - option "SAPOL · South Australia Police"
+    - option "SEW · Sewar Tech"
+    - option "SHJ_POLICE · Sharjah Police"
+    - option "TAH · Tahakom"
+    - option "TAK · TAK Business Group"
+    - option "TRAFFIC · Dubai Traffic Department"
+  - generic: Placement
+  - combobox "Placement":
+    - option "Regional and direct" [selected]
+    - option "Direct under client"
+  - generic: Reported condition
+  - combobox "Reported condition":
+    - option "Any" [selected]
+    - option "Unknown"
+    - option "Healthy"
+    - option "Degraded"
+    - option "Unavailable"
+  - generic: Review state
+  - combobox "Review state":
+    - option "Any" [selected]
+    - option "Inventory stale"
+    - option "Condition needs verification"
+  - region "Table":
+    - searchbox "Filter rows on this page only"
+    - generic: Only the rows loaded on this page are filtered; other pages are not searched.
+    - generic: 9 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table:
+      - rowgroup:
+        - row "Details Client Region Actions":
+          - columnheader "Details":
+            - generic: Details
+          - columnheader "Client":
+            - button "Client":
+              - generic: Client
+          - columnheader "Region":
+            - button "Region":
+              - generic: Region
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Details for MADAR_DIJLA MADAR_DIJLA Direct Actions for environment 113506-AE – ViTIP Production (Proposed)":
+          - cell "Details for MADAR_DIJLA":
+            - button "Details for MADAR_DIJLA":
+          - cell "MADAR_DIJLA":
+            - generic: MA
+            - link "MADAR_DIJLA":
+              - /url: /clients/9
+          - cell "Direct":
+            - generic: Direct
+          - cell "Actions for environment 113506-AE – ViTIP Production (Proposed)":
+            - button "Actions for environment 113506-AE – ViTIP Production (Proposed)": ⋯
+        - row "Details for SEW SEW Direct Actions for environment MOI_ViTIP_Production":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "Direct":
+            - generic: Direct
+          - cell "Actions for environment MOI_ViTIP_Production":
+            - button "Actions for environment MOI_ViTIP_Production": ⋯
+        - row "Details for SEW SEW Direct Actions for environment MOI_ViTIP_Staging":
+          - cell "Details for SEW":
+            - button "Details for SEW":
+          - cell "SEW":
+            - link "SEW":
+              - /url: /clients/20
+          - cell "Direct":
+            - generic: Direct
+          - cell "Actions for environment MOI_ViTIP_Staging":
+            - button "Actions for environment MOI_ViTIP_Staging": ⋯
+        - row "Details for TAH TAH R1 Actions for environment Production":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R1":
+            - generic: R1
+          - cell "Actions for environment Production":
+            - button "Actions for environment Production": ⋯
+        - row "Details for TAH TAH R1 Actions for environment Staging":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R1":
+            - generic: R1
+          - cell "Actions for environment Staging":
+            - button "Actions for environment Staging": ⋯
+        - row "Details for TAH TAH R2 Actions for environment Production":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R2":
+            - generic: R2
+          - cell "Actions for environment Production":
+            - button "Actions for environment Production": ⋯
+        - row "Details for TAH TAH R3 Actions for environment Production":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R3":
+            - generic: R3
+          - cell "Actions for environment Production":
+            - button "Actions for environment Production": ⋯
+        - row "Details for TAH TAH R2 Actions for environment Staging":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R2":
+            - generic: R2
+          - cell "Actions for environment Staging":
+            - button "Actions for environment Staging": ⋯
+        - row "Details for TAH TAH R3 Actions for environment Staging":
+          - cell "Details for TAH":
+            - button "Details for TAH":
+          - cell "TAH":
+            - link "TAH":
+              - /url: /clients/1
+          - cell "R3":
+            - generic: R3
+          - cell "Actions for environment Staging":
+            - button "Actions for environment Staging": ⋯
+    - status
+  - navigation "Pagination":
+    - generic: Records :- 9 OF 9
+    - text: "Items per page:"
+    - combobox "Items per page:":
+      - option "15" [selected]
+      - option "25"
+      - option "50"
+      - option "100"
+    - button "Prev" [disabled]
+    - generic: 1 - 9 OF 9
+    - button "Next" [disabled]
+- contentinfo:
+  - generic: © VITRONIC
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status

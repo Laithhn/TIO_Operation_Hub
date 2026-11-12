@@ -10,6 +10,8 @@ export type ExportJob = {
   startedAt?: string | null; completedAt?: string | null; rowCount?: number | null; fileSize?: number | null; fileName?: string | null; expiresAt?: string | null; error?: string | null;
   source: string; scheduleId?: number | null; retryOfId?: number | null; savedReportId?: number | null; attempts?: number; cutoffAt?: string | null; user?: string | null;
   builder?: boolean; canDownload: boolean; canRetry: boolean; canCancel?: boolean;
+  /** TIO-BUG-005: why details are hidden, as a safe category (Available, AccessChanged, LegacyExport, OtherOwner, ScheduleNotCompleted). */
+  detailsAvailability?: string;
 };
 export type Schedule = {
   id: number; name: string; report: string; reportName: string; filterSummary: string; format: string; frequency: string; dayOfWeek?: number | null; dayOfMonth?: number | null;

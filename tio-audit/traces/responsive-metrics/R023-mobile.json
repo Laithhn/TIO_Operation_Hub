@@ -1,0 +1,15 @@
+{
+  "id": "R023-mobile",
+  "route": "/data-quality",
+  "dialogs": [],
+  "documentWidth": 390,
+  "errorAlerts": [],
+  "h1": [
+    "Data quality"
+  ],
+  "height": 844,
+  "loadingOnly": false,
+  "mainTextLength": 2047,
+  "title": "Data quality · TIO Operations Hub",
+  "width": 390
+}

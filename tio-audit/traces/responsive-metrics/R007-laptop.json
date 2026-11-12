@@ -1,0 +1,15 @@
+{
+  "id": "R007-laptop",
+  "route": "/products",
+  "dialogs": [],
+  "documentWidth": 1366,
+  "errorAlerts": [],
+  "h1": [
+    "Products"
+  ],
+  "height": 768,
+  "loadingOnly": false,
+  "mainTextLength": 563,
+  "title": "Products · TIO Operations Hub",
+  "width": 1366
+}

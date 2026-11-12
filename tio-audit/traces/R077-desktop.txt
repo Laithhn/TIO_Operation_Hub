@@ -1,0 +1,298 @@
+- link "Skip to content":
+  - /url: "#main"
+- banner:
+  - link "TIO Operations Hub home":
+    - /url: /
+  - navigation "Main":
+    - link "Dashboard":
+      - /url: /
+    - link "Clients":
+      - /url: /clients
+    - link "Products":
+      - /url: /products
+    - link "Tickets":
+      - /url: /cases
+    - link "Commitments":
+      - /url: /commitments
+    - link "Notes":
+      - /url: /notes
+    - link "Escalations":
+      - /url: /escalations
+    - link "Teams":
+      - /url: /teams
+    - link "Reporting Center":
+      - /url: /reporting-center
+    - link "Administration":
+      - /url: /admin
+  - button "+ New":
+    - text: + New
+    - generic: ▾
+  - button "Search (/ or Ctrl+K)":
+  - button "Notifications, 11 unread":
+    - generic: "11"
+  - link "Signed in as Laith Hamdan. Change password":
+    - /url: /account/password
+  - button "Sign out":
+- navigation "Breadcrumb":
+  - link "Administration":
+    - /url: /admin
+  - generic: ›
+  - link "Configuration":
+    - /url: /admin/config
+  - generic: ›
+  - link "Teams":
+    - /url: /admin/config/category/teams
+  - generic: ›
+  - generic: Team member roles
+- heading "Team member roles" [level=1]
+- generic: Roles offered when adding or editing a member of an internal team (Teams), for example Team lead or Support engineer.
+- button "+ Add"
+- complementary "Section menu":
+  - navigation:
+    - link "Users":
+      - /url: /admin/users
+    - link "Roles":
+      - /url: /admin/roles
+    - link "Rights":
+      - /url: /admin/rights
+    - link "Access review":
+      - /url: /admin/access
+    - link "Configuration":
+      - /url: /admin/config
+    - link "Jira Connections":
+      - /url: /admin/integrations/jira
+    - link "Jira import review":
+      - /url: /admin/integrations/jira/review
+    - link "Jira conflicts":
+      - /url: /admin/integrations/jira/conflicts
+    - link "Jira sync monitor":
+      - /url: /admin/integrations/jira/monitoring
+    - link "Change history":
+      - /url: /admin/audit
+    - link "Archived records":
+      - /url: /admin/archived
+  - button "Expand menu":
+- main:
+  - checkbox "Show retired (0)"
+  - text: Show retired (0)
+  - region "Team member roles":
+    - searchbox "Filter rows"
+    - generic: 11 rows
+    - button "Filter":
+      - generic: Filter
+    - button "Columns":
+      - generic: Columns
+    - button "Export CSV":
+      - generic: Export CSV
+    - table "Team member roles":
+      - caption: Team member roles
+      - rowgroup:
+        - row "Select all rows shown Order Name Description In use (team members) Status Actions":
+          - columnheader "Select all rows shown":
+            - checkbox "Select all rows shown"
+          - columnheader "Order":
+            - button "Order":
+              - generic: Order
+          - columnheader "Name":
+            - button "Name":
+              - generic: Name
+          - columnheader "Description":
+            - button "Description":
+              - generic: Description
+          - columnheader "In use (team members)":
+            - button "In use (team members)":
+              - generic: In use (team members)
+          - columnheader "Status":
+            - button "Status":
+              - generic: Status
+          - columnheader "Actions":
+            - generic: Actions
+      - rowgroup:
+        - row "Select ▲ ▼ Move Team lead up Move Team lead down Team lead — 1 Active Actions for Team lead":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Team lead up Move Team lead down":
+            - button "Move Team lead up" [disabled]: ▲
+            - button "Move Team lead down": ▼
+          - cell "Team lead":
+            - button "Team lead"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Team lead":
+            - button "Actions for Team lead": ⋯
+        - row "Select ▲ ▼ Move Operation Engineer up Move Operation Engineer down Operation Engineer — 2 Active Actions for Operation Engineer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Operation Engineer up Move Operation Engineer down":
+            - button "Move Operation Engineer up": ▲
+            - button "Move Operation Engineer down": ▼
+          - cell "Operation Engineer":
+            - button "Operation Engineer"
+          - cell "—":
+            - generic: —
+          - cell "2":
+            - generic: "2"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Operation Engineer":
+            - button "Actions for Operation Engineer": ⋯
+        - row "Select ▲ ▼ Move Senior engineer up Move Senior engineer down Senior engineer — 0 Active Actions for Senior engineer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Senior engineer up Move Senior engineer down":
+            - button "Move Senior engineer up": ▲
+            - button "Move Senior engineer down": ▼
+          - cell "Senior engineer":
+            - button "Senior engineer"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Senior engineer":
+            - button "Actions for Senior engineer": ⋯
+        - row "Select ▲ ▼ Move Engineer up Move Engineer down Engineer — 0 Active Actions for Engineer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Engineer up Move Engineer down":
+            - button "Move Engineer up": ▲
+            - button "Move Engineer down": ▼
+          - cell "Engineer":
+            - button "Engineer"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Engineer":
+            - button "Actions for Engineer": ⋯
+        - row "Select ▲ ▼ Move Sr. Operation Enigneer up Move Sr. Operation Enigneer down Sr. Operation Enigneer — 3 Active Actions for Sr. Operation Enigneer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Sr. Operation Enigneer up Move Sr. Operation Enigneer down":
+            - button "Move Sr. Operation Enigneer up": ▲
+            - button "Move Sr. Operation Enigneer down": ▼
+          - cell "Sr. Operation Enigneer":
+            - button "Sr. Operation Enigneer"
+          - cell "—":
+            - generic: —
+          - cell "3":
+            - generic: "3"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Sr. Operation Enigneer":
+            - button "Actions for Sr. Operation Enigneer": ⋯
+        - row "Select ▲ ▼ Move Support engineer up Move Support engineer down Support engineer — 0 Active Actions for Support engineer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Support engineer up Move Support engineer down":
+            - button "Move Support engineer up": ▲
+            - button "Move Support engineer down": ▼
+          - cell "Support engineer":
+            - button "Support engineer"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Support engineer":
+            - button "Actions for Support engineer": ⋯
+        - row "Select ▲ ▼ Move Analyst up Move Analyst down Analyst — 0 Active Actions for Analyst":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Analyst up Move Analyst down":
+            - button "Move Analyst up": ▲
+            - button "Move Analyst down": ▼
+          - cell "Analyst":
+            - button "Analyst"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Analyst":
+            - button "Actions for Analyst": ⋯
+        - row "Select ▲ ▼ Move Project Delivery Lead up Move Project Delivery Lead down Project Delivery Lead — 1 Active Actions for Project Delivery Lead":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Project Delivery Lead up Move Project Delivery Lead down":
+            - button "Move Project Delivery Lead up": ▲
+            - button "Move Project Delivery Lead down": ▼
+          - cell "Project Delivery Lead":
+            - button "Project Delivery Lead"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Project Delivery Lead":
+            - button "Actions for Project Delivery Lead": ⋯
+        - row "Select ▲ ▼ Move Developer up Move Developer down Developer — 0 Active Actions for Developer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move Developer up Move Developer down":
+            - button "Move Developer up": ▲
+            - button "Move Developer down": ▼
+          - cell "Developer":
+            - button "Developer"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for Developer":
+            - button "Actions for Developer": ⋯
+        - row "Select ▲ ▼ Move DevOps Engineer up Move DevOps Engineer down DevOps Engineer — 1 Active Actions for DevOps Engineer":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move DevOps Engineer up Move DevOps Engineer down":
+            - button "Move DevOps Engineer up": ▲
+            - button "Move DevOps Engineer down": ▼
+          - cell "DevOps Engineer":
+            - button "DevOps Engineer"
+          - cell "—":
+            - generic: —
+          - cell "1":
+            - generic: "1"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for DevOps Engineer":
+            - button "Actions for DevOps Engineer": ⋯
+        - row "Select ▲ ▼ Move IT Expert up Move IT Expert down IT Expert — 0 Active Actions for IT Expert":
+          - cell "Select ▲ ▼":
+            - checkbox "Select ▲ ▼"
+          - cell "Move IT Expert up Move IT Expert down":
+            - button "Move IT Expert up": ▲
+            - button "Move IT Expert down" [disabled]: ▼
+          - cell "IT Expert":
+            - button "IT Expert"
+          - cell "—":
+            - generic: —
+          - cell "0":
+            - generic: "0"
+          - cell "Active":
+            - text: Active
+          - cell "Actions for IT Expert":
+            - button "Actions for IT Expert": ⋯
+    - status
+  - paragraph: Retiring a value stops offering it on forms; records that use it keep it. Names can be changed at any time; the change shows everywhere.
+- contentinfo:
+  - generic: © VITRONIC
+  - text: TIO Operations Hub 2.59.0
+  - button "What's new New since you last looked":
+    - text: What's new
+    - generic "New since you last looked"
+  - generic: "User : lmh · TIO Manager"
+  - generic: "Times: Asia/Dubai"
+  - text: Server Online
+- status
