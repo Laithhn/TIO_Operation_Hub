@@ -13,7 +13,7 @@
 | JavaScript exceptions / unexpected failed requests over all page loads | 0 / 0 (316 loads) | 0 / 0 (256 loads) |
 | Entry script | 900.6 kB (297.8 kB gzip); pages in separate chunks (largest: Clients 145 kB); map atlas 756.5 kB on demand | 788.6 kB single script |
 | Static assets in the build | 338 files, 5.2 MB | — |
-| API start-up on an empty database (migrate 104 migrations + seed + backfill) | about 60–80 s | about 20 s |
+| API start-up on an empty database (migrate 104 migrations + seed + backfill) | about 30 s from first log line to listening (not measured precisely) | about 20 s |
 | Project .NET suite | 19 min 54 s for 755 tests | 1 min 14 s for 140 |
 
 ## Reliability behaviour
