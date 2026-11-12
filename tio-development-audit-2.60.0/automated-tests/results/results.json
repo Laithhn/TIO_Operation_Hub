@@ -1,0 +1,2959 @@
+{
+  "config": {
+    "argv": [
+      "/opt/node22/bin/node",
+      "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/node_modules/.bin/playwright",
+      "test",
+      "--trace",
+      "off"
+    ],
+    "configFile": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/playwright.config.ts",
+    "rootDir": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "",
+        "name": "",
+        "testDir": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 60000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "results/results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "open": "never",
+          "outputFolder": "results/html"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "01-auth-roles.spec.ts",
+      "file": "01-auth-roles.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication and role-based behaviour",
+          "file": "01-auth-roles.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "target is the development build (guard for every other test)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 53,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:48.961Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-f76fbe3ddb24a201c423",
+              "file": "01-auth-roles.spec.ts",
+              "line": 5,
+              "column": 7
+            },
+            {
+              "title": "unknown account is refused by the API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 24,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:49.059Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-fa26dcb5c04694e8b73f",
+              "file": "01-auth-roles.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "state-changing call without antiforgery token is refused",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 24,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:49.102Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-a87a1f0141dea0f59def",
+              "file": "01-auth-roles.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "engineer cannot reach administration endpoints",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 157,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:49.143Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-1e1a7b44caf6e515aa4e",
+              "file": "01-auth-roles.spec.ts",
+              "line": 22,
+              "column": 7
+            },
+            {
+              "title": "engineer cannot create clients, triage or reopen (Manage right)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 22,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:49.316Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-0b056e669baec7a156c7",
+              "file": "01-auth-roles.spec.ts",
+              "line": 29,
+              "column": 7
+            },
+            {
+              "title": "administration is offered to the manager and refused to an engineer, in rights and in the browser",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1119,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:49.351Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-8cf2afb4c62eebc97513",
+              "file": "01-auth-roles.spec.ts",
+              "line": 34,
+              "column": 7
+            },
+            {
+              "title": "an engineer starts on My dashboard (A100)",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 403,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:50.555Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "4a04ae646bf3a5d15eeb-e48ea3b09cd16873c5df",
+              "file": "01-auth-roles.spec.ts",
+              "line": 48,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "02-navigation.spec.ts",
+      "file": "02-navigation.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Navigation",
+          "file": "02-navigation.spec.ts",
+          "line": 8,
+          "column": 6,
+          "specs": [
+            {
+              "title": "main sections open from the top bar without console errors",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1160,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:50.983Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-9b5f4c182b49c4f9a7af",
+              "file": "02-navigation.spec.ts",
+              "line": 11,
+              "column": 7
+            },
+            {
+              "title": "sections that do not fit are reachable from the More menu",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 475,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:52.160Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-5950f589190208a651fc",
+              "file": "02-navigation.spec.ts",
+              "line": 24,
+              "column": 7
+            },
+            {
+              "title": "deep link, refresh and back/forward keep the page and its filters",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1298,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:52.651Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-6c3772be63e430c02962",
+              "file": "02-navigation.spec.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "@defect unknown route says the page does not exist",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 5234,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { level: 1 })\nExpected pattern: \u001b[32m/not found/i\u001b[39m\nReceived string:  \u001b[31m\"Access denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByRole('heading', { level: 1 }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { level: 1 })\u001b[22m\n\u001b[2m    13 × locator resolved to <h1>Access denied</h1>\u001b[22m\n\u001b[2m       - unexpected value \"Access denied\"\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { level: 1 })\nExpected pattern: \u001b[32m/not found/i\u001b[39m\nReceived string:  \u001b[31m\"Access denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByRole('heading', { level: 1 }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { level: 1 })\u001b[22m\n\u001b[2m    13 × locator resolved to <h1>Access denied</h1>\u001b[22m\n\u001b[2m       - unexpected value \"Access denied\"\u001b[22m\n\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/02-navigation.spec.ts:46:59",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/02-navigation.spec.ts",
+                          "column": 59,
+                          "line": 46
+                        },
+                        "snippet": "  44 |   test('@defect unknown route says the page does not exist', async ({ page }) => {\n  45 |     await page.goto('/this/route/does-not-exist');\n> 46 |     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/not found/i);\n     |                                                           ^\n  47 |   });\n  48 |\n  49 |   test('missing record shows a not-found message with guidance', async ({ page }) => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/02-navigation.spec.ts",
+                            "column": 59,
+                            "line": 46
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoHaveText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: getByRole('heading', { level: 1 })\nExpected pattern: \u001b[32m/not found/i\u001b[39m\nReceived string:  \u001b[31m\"Access denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toHaveText\" getByRole('heading', { level: 1 }) with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByRole('heading', { level: 1 })\u001b[22m\n\u001b[2m    13 × locator resolved to <h1>Access denied</h1>\u001b[22m\n\u001b[2m       - unexpected value \"Access denied\"\u001b[22m\n\n\n  44 |   test('@defect unknown route says the page does not exist', async ({ page }) => {\n  45 |     await page.goto('/this/route/does-not-exist');\n> 46 |     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/not found/i);\n     |                                                           ^\n  47 |   });\n  48 |\n  49 |   test('missing record shows a not-found message with guidance', async ({ page }) => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/02-navigation.spec.ts:46:59"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:53.970Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/02-navigation-Navigation-d-1015d-ays-the-page-does-not-exist/test-failed-1.png"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/02-navigation-Navigation-d-1015d-ays-the-page-does-not-exist/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/02-navigation.spec.ts",
+                        "column": 59,
+                        "line": 46
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-d3cf36196f64d427ae91",
+              "file": "02-navigation.spec.ts",
+              "line": 44,
+              "column": 7
+            },
+            {
+              "title": "missing record shows a not-found message with guidance",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1168,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:07:59.676Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-0736d3720109c50d7e53",
+              "file": "02-navigation.spec.ts",
+              "line": 49,
+              "column": 7
+            },
+            {
+              "title": "keyboard: skip link is first and focus is visible",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1316,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:00.971Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-180b34f17f636189c82d",
+              "file": "02-navigation.spec.ts",
+              "line": 55,
+              "column": 7
+            },
+            {
+              "title": "top navigation links are fully inside the viewport at 1366x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1264,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:02.302Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "693a0a9757374728c9b4-d032b6817ba87b2aa558",
+              "file": "02-navigation.spec.ts",
+              "line": 64,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "03-cases-ui-crud.spec.ts",
+      "file": "03-cases-ui-crud.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Case form and CRUD through the UI",
+          "file": "03-cases-ui-crud.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "empty submit shows a summary and field errors, and marks fields invalid",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1222,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:03.587Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-9bc70c8c63ca74e3457b",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 21,
+              "column": 7
+            },
+            {
+              "title": "create, find in list, open, cancel, and see it in the timeline",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3653,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:04.900Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-1eed9feda0fdd554e9c0",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 30,
+              "column": 7
+            },
+            {
+              "title": "double click on Create sends one request",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1327,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:08.568Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-b86fce44387bd07969fc",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 54,
+              "column": 7
+            },
+            {
+              "title": "leaving a dirty form asks for confirmation",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1735,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:09.911Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-fadef0083b7064eac740",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 63,
+              "column": 7
+            },
+            {
+              "title": "offline save keeps the entered values and reports the failure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1401,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:11.664Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-d624b307b1706a81a15c",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 74,
+              "column": 7
+            },
+            {
+              "title": "server error on the list is shown with a trace id",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 3745,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:13.078Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-507661c82dae8b1808f3",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 86,
+              "column": 7
+            },
+            {
+              "title": "route guard: the create form is not offered to a role without rights",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1827,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:16.838Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "b4ca630c482103d73feb-2be27958d57d9909f45f",
+              "file": "03-cases-ui-crud.spec.ts",
+              "line": 95,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "04-business-rules.spec.ts",
+      "file": "04-business-rules.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Business rules enforced by the API",
+          "file": "04-business-rules.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "case creation validates mandatory fields, lengths, time zones and secrets",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 58,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:18.684Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-4d5fc0ac827be889ec25",
+              "file": "04-business-rules.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "case lifecycle: only valid transitions, optimistic concurrency, evidence on closure",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 612,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:18.928Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-07be2f599449637ed69a",
+              "file": "04-business-rules.spec.ts",
+              "line": 19,
+              "column": 7
+            },
+            {
+              "title": "two saves with the same version: one wins, one gets 412",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 69,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:19.550Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-724e26eb40217d58742d",
+              "file": "04-business-rules.spec.ts",
+              "line": 42,
+              "column": 7
+            },
+            {
+              "title": "contract SLA: target snapshot, single first response, contract of another client refused",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 218,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:19.632Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-155fc23237cf370dfbd0",
+              "file": "04-business-rules.spec.ts",
+              "line": 50,
+              "column": 7
+            },
+            {
+              "title": "contracts: date order, SLA target sanity, payment rules",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 68,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:19.863Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-48452f9840093b0d4189",
+              "file": "04-business-rules.spec.ts",
+              "line": 61,
+              "column": 7
+            },
+            {
+              "title": "commitments: reason for revision, completion time sanity, late result kept",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1626,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:19.944Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-8b97eb4a03da071e5156",
+              "file": "04-business-rules.spec.ts",
+              "line": 69,
+              "column": 7
+            },
+            {
+              "title": "escalations: status path, mandatory resolution and reasons, level bounds",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 157,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:21.581Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-74a9ef4353bc321427ed",
+              "file": "04-business-rules.spec.ts",
+              "line": 82,
+              "column": 7
+            },
+            {
+              "title": "attachments: dangerous types refused, read needs access, delete limited to uploader",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 112,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:21.751Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-bb5ffffa9df68d29f13a",
+              "file": "04-business-rules.spec.ts",
+              "line": 96,
+              "column": 7
+            },
+            {
+              "title": "personal notes are private and sanitized",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 50,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:21.874Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "d09f1c65e9213367331b-2ed25cd8e92ae0827664",
+              "file": "04-business-rules.spec.ts",
+              "line": 108,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "05-known-defects.spec.ts",
+      "file": "05-known-defects.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "@defect Confirmed audit findings (expected behaviour)",
+          "file": "05-known-defects.spec.ts",
+          "line": 6,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TIO-DEV-AUDIT-001 a priority change does not erase a recorded SLA breach",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 60607,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Breached\"\u001b[39m\nReceived: \u001b[31m\"Pending\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Breached\"\u001b[39m\nReceived: \u001b[31m\"Pending\"\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:28:64",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 64,
+                          "line": 28
+                        },
+                        "snippet": "  26 |     const id = await breachedCase(); const c = await m.json(`/cases/${id}`);\n  27 |     await m.act(`/cases/${id}`, { title: c.title, type: c.type, responsibleTeamId: 1, impactSummary: c.impactSummary, priority: 'Low', nextAction: 'n', nextReviewAt: inDays(1), changeNote: 'audit' }, 'put');\n> 28 |     expect((await m.json(`/cases/${id}`)).sla.response.status).toBe('Breached');\n     |                                                                ^\n  29 |   });\n  30 |\n  31 |   test('TIO-DEV-AUDIT-002 an engineer cannot remove the contract from a breached case', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 64,
+                            "line": 28
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m\"Breached\"\u001b[39m\nReceived: \u001b[31m\"Pending\"\u001b[39m\n\n  26 |     const id = await breachedCase(); const c = await m.json(`/cases/${id}`);\n  27 |     await m.act(`/cases/${id}`, { title: c.title, type: c.type, responsibleTeamId: 1, impactSummary: c.impactSummary, priority: 'Low', nextAction: 'n', nextReviewAt: inDays(1), changeNote: 'audit' }, 'put');\n> 28 |     expect((await m.json(`/cases/${id}`)).sla.response.status).toBe('Breached');\n     |                                                                ^\n  29 |   });\n  30 |\n  31 |   test('TIO-DEV-AUDIT-002 an engineer cannot remove the contract from a breached case', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:28:64"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:08:21.942Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-55587-erase-a-recorded-SLA-breach/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 64,
+                        "line": 28
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-ae551bc979cbbca90bbb",
+              "file": "05-known-defects.spec.ts",
+              "line": 24,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-002 an engineer cannot remove the contract from a breached case",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 60601,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:35:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 35
+                        },
+                        "snippet": "  33 |     const id = await breachedCase();\n  34 |     const r = await e.act(`/cases/${id}/contract`, { contractId: null, reason: 'wrong contract' });\n> 35 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  36 |     expect((await m.json(`/cases/${id}`)).sla.response.status).toBe('Breached');\n  37 |   });\n  38 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 35
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n\n  33 |     const id = await breachedCase();\n  34 |     const r = await e.act(`/cases/${id}/contract`, { contractId: null, reason: 'wrong contract' });\n> 35 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  36 |     expect((await m.json(`/cases/${id}`)).sla.response.status).toBe('Breached');\n  37 |   });\n  38 |\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:35:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:09:23.155Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-bce61-ntract-from-a-breached-case/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 35
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-9bfea90d637153a9a720",
+              "file": "05-known-defects.spec.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-003 a first response cannot be back-dated after the deadline has passed without manager approval",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 150000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 60672,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:43:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 43
+                        },
+                        "snippet": "  41 |     const id = await breachedCase(); const created = (await m.json(`/cases/${id}`)).createdAt;\n  42 |     const r = await e.act(`/cases/${id}/first-response`, { respondedAt: created, channel: 'Verbal' });\n> 43 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  44 |   });\n  45 |\n  46 |   test('TIO-DEV-AUDIT-004 a closed case cannot be edited', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 43
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n\n  41 |     const id = await breachedCase(); const created = (await m.json(`/cases/${id}`)).createdAt;\n  42 |     const r = await e.act(`/cases/${id}/first-response`, { respondedAt: created, channel: 'Verbal' });\n> 43 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  44 |   });\n  45 |\n  46 |   test('TIO-DEV-AUDIT-004 a closed case cannot be edited', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:43:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:10:24.634Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-cae88-ed-without-manager-approval/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 43
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-bfe2e2b83d9d42e2317d",
+              "file": "05-known-defects.spec.ts",
+              "line": 39,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-004 a closed case cannot be edited",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 245,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:49:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 49
+                        },
+                        "snippet": "  47 |     const id = await closedCase(); const c = await m.json(`/cases/${id}`);\n  48 |     const r = await e.act(`/cases/${id}`, { title: c.title + ' edited', type: c.type, responsibleTeamId: 1, impactSummary: 'changed', priority: c.priority, nextAction: 'n', nextReviewAt: inDays(1) }, 'put');\n> 49 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  50 |   });\n  51 |\n  52 |   test('TIO-DEV-AUDIT-004 the due date of a closed case cannot be changed', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 49
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n\n  47 |     const id = await closedCase(); const c = await m.json(`/cases/${id}`);\n  48 |     const r = await e.act(`/cases/${id}`, { title: c.title + ' edited', type: c.type, responsibleTeamId: 1, impactSummary: 'changed', priority: c.priority, nextAction: 'n', nextReviewAt: inDays(1) }, 'put');\n> 49 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  50 |   });\n  51 |\n  52 |   test('TIO-DEV-AUDIT-004 the due date of a closed case cannot be changed', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:49:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:26.098Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-1586f-losed-case-cannot-be-edited/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 49
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-d52a2c1560a5fc6406fa",
+              "file": "05-known-defects.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-004 the due date of a closed case cannot be changed",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 221,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:55:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 55
+                        },
+                        "snippet": "  53 |     const id = await closedCase();\n  54 |     const r = await e.act(`/cases/${id}/due`, { dueLocal: '2030-01-01T10:00', dueTimeZone: 'Asia/Dubai', reason: 'after close' });\n> 55 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  56 |   });\n  57 |\n  58 |   test('TIO-DEV-AUDIT-005 an owner cannot turn a missed commitment into \"Completed on time\" by revising the deadline alone', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 55
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n\n  53 |     const id = await closedCase();\n  54 |     const r = await e.act(`/cases/${id}/due`, { dueLocal: '2030-01-01T10:00', dueTimeZone: 'Asia/Dubai', reason: 'after close' });\n> 55 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  56 |   });\n  57 |\n  58 |   test('TIO-DEV-AUDIT-005 an owner cannot turn a missed commitment into \"Completed on time\" by revising the deadline alone', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:55:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:27.102Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-9fc91-osed-case-cannot-be-changed/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 55
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-aefea3d1827d81449293",
+              "file": "05-known-defects.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-005 an owner cannot turn a missed commitment into \"Completed on time\" by revising the deadline alone",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1590,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"Completed on time\"\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"Completed on time\"\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:64:65",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 65,
+                          "line": 64
+                        },
+                        "snippet": "  62 |     await new Promise(r => setTimeout(r, 1500));\n  63 |     await e.act(`/commitments/${id}/complete`, { completedAt: new Date().toISOString(), evidence: 'done' });\n> 64 |     expect((await m.json(`/commitments/${id}`)).timeliness).not.toBe('Completed on time');\n     |                                                                 ^\n  65 |   });\n  66 |\n  67 |   test('TIO-DEV-AUDIT-006 identical case submissions in quick succession create one record', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 65,
+                            "line": 64
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mnot\u001b[2m.\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: not \u001b[32m\"Completed on time\"\u001b[39m\n\n  62 |     await new Promise(r => setTimeout(r, 1500));\n  63 |     await e.act(`/commitments/${id}/complete`, { completedAt: new Date().toISOString(), evidence: 'done' });\n> 64 |     expect((await m.json(`/commitments/${id}`)).timeliness).not.toBe('Completed on time');\n     |                                                                 ^\n  65 |   });\n  66 |\n  67 |   test('TIO-DEV-AUDIT-006 identical case submissions in quick succession create one record', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:64:65"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:28.066Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-8642b-revising-the-deadline-alone/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 65,
+                        "line": 64
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-4b5f72daa49664fcd8a9",
+              "file": "05-known-defects.spec.ts",
+              "line": 58,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-006 identical case submissions in quick succession create one record",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 108,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:70:56",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 56,
+                          "line": 70
+                        },
+                        "snippet": "  68 |     const body = caseBody(fx.clientId, { title: `${PREFIX}duplicate ${Date.now()}` });\n  69 |     const res = await Promise.all([e.post('/cases', body), e.post('/cases', body), e.post('/cases', body)]);\n> 70 |     expect(res.filter(r => r.status() === 201).length).toBe(1);\n     |                                                        ^\n  71 |   });\n  72 |\n  73 |   test('TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 56,
+                            "line": 70
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m1\u001b[39m\nReceived: \u001b[31m3\u001b[39m\n\n  68 |     const body = caseBody(fx.clientId, { title: `${PREFIX}duplicate ${Date.now()}` });\n  69 |     const res = await Promise.all([e.post('/cases', body), e.post('/cases', body), e.post('/cases', body)]);\n> 70 |     expect(res.filter(r => r.status() === 201).length).toBe(1);\n     |                                                        ^\n  71 |   });\n  72 |\n  73 |   test('TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:70:56"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:30.295Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-462fc-uccession-create-one-record/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 56,
+                        "line": 70
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-9b153a838dd28f2a8480",
+              "file": "05-known-defects.spec.ts",
+              "line": 67,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 8,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 28,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m201\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m201\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:74:131",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 131,
+                          "line": 74
+                        },
+                        "snippet": "  72 |\n  73 |   test('TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created', async () => {\n> 74 |     expect((await e.post('/cases', caseBody(fx.clientId, { dueLocal: '2020-01-01T10:00', dueTimeZone: 'Asia/Dubai' }))).status()).toBe(422);\n     |                                                                                                                                   ^\n  75 |     expect((await e.post('/commitments', { scope: 'Client', clientId: fx.clientId, responsibleTeamId: 1, description: `${PREFIX}past`, type: 'Delivery', ownerUserId: e.me.id, dueLocal: '2020-01-01T10:00', timeZone: 'Asia/Dubai', nextReviewAt: inDays(5) })).status()).toBe(422);\n  76 |   });\n  77 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 131,
+                            "line": 74
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m201\u001b[39m\n\n  72 |\n  73 |   test('TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created', async () => {\n> 74 |     expect((await e.post('/cases', caseBody(fx.clientId, { dueLocal: '2020-01-01T10:00', dueTimeZone: 'Asia/Dubai' }))).status()).toBe(422);\n     |                                                                                                                                   ^\n  75 |     expect((await e.post('/commitments', { scope: 'Client', clientId: fx.clientId, responsibleTeamId: 1, description: `${PREFIX}past`, type: 'Delivery', ownerUserId: e.me.id, dueLocal: '2020-01-01T10:00', timeZone: 'Asia/Dubai', nextReviewAt: inDays(5) })).status()).toBe(422);\n  76 |   });\n  77 |\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:74:131"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:31.163Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-9f261-se-or-commitment-is-created/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 131,
+                        "line": 74
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-4b73b4fdb6ec4235749b",
+              "file": "05-known-defects.spec.ts",
+              "line": 73,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-008 a completed commitment cannot be edited",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 9,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1578,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:84:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 84
+                        },
+                        "snippet": "  82 |     await e.act(`/commitments/${id}/complete`, { completedAt: new Date().toISOString(), evidence: 'mail' });\n  83 |     const r = await e.act(`/commitments/${id}`, { description: body.description + ' edited', type: 'Delivery', ownerUserId: e.me.id, nextReviewAt: inDays(5) }, 'put');\n> 84 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  85 |   });\n  86 |\n  87 |   test('TIO-DEV-AUDIT-009 a contract reference is unique within a client', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 84
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m204\u001b[39m\n\n  82 |     await e.act(`/commitments/${id}/complete`, { completedAt: new Date().toISOString(), evidence: 'mail' });\n  83 |     const r = await e.act(`/commitments/${id}`, { description: body.description + ' edited', type: 'Delivery', ownerUserId: e.me.id, nextReviewAt: inDays(5) }, 'put');\n> 84 |     expect(r.status()).toBeGreaterThanOrEqual(400);\n     |                        ^\n  85 |   });\n  86 |\n  87 |   test('TIO-DEV-AUDIT-009 a contract reference is unique within a client', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:84:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:31.910Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-84745-commitment-cannot-be-edited/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 84
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-86aebf48794d28e3e2fc",
+              "file": "05-known-defects.spec.ts",
+              "line": 78,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-009 a contract reference is unique within a client",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 10,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 31,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m201\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m201\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:89:57",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 57,
+                          "line": 89
+                        },
+                        "snippet": "  87 |   test('TIO-DEV-AUDIT-009 a contract reference is unique within a client', async () => {\n  88 |     const body = { projectId: fx.projectId, title: `${PREFIX}dup ref`, contractReference: 'TIOAUDIT-REG-K', type: 'SlaSupport', status: 'Draft', ownerUserId: m.me.id };\n> 89 |     expect((await e.post('/contracts', body)).status()).toBeGreaterThanOrEqual(400);\n     |                                                         ^\n  90 |   });\n  91 |\n  92 |   test('TIO-DEV-AUDIT-010 another engineer cannot cancel a commitment they do not own', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 57,
+                            "line": 89
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeGreaterThanOrEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected: >= \u001b[32m400\u001b[39m\nReceived:    \u001b[31m201\u001b[39m\n\n  87 |   test('TIO-DEV-AUDIT-009 a contract reference is unique within a client', async () => {\n  88 |     const body = { projectId: fx.projectId, title: `${PREFIX}dup ref`, contractReference: 'TIOAUDIT-REG-K', type: 'SlaSupport', status: 'Draft', ownerUserId: m.me.id };\n> 89 |     expect((await e.post('/contracts', body)).status()).toBeGreaterThanOrEqual(400);\n     |                                                         ^\n  90 |   });\n  91 |\n  92 |   test('TIO-DEV-AUDIT-010 another engineer cannot cancel a commitment they do not own', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:89:57"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:34.207Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-49d1e-e-is-unique-within-a-client/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 57,
+                        "line": 89
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-3c3483740f838239afed",
+              "file": "05-known-defects.spec.ts",
+              "line": 87,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-010 another engineer cannot cancel a commitment they do not own",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 11,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 50,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m403\u001b[39m\nReceived: \u001b[31m204\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m403\u001b[39m\nReceived: \u001b[31m204\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:95:90",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 90,
+                          "line": 95
+                        },
+                        "snippet": "  93 |     const body = { scope: 'Client', clientId: fx.clientId, responsibleTeamId: 1, description: `${PREFIX}owned ${Date.now()}`, type: 'Delivery', ownerUserId: e.me.id, dueLocal: '2030-03-01T17:00', timeZone: 'Asia/Dubai', nextReviewAt: inDays(5) };\n  94 |     const id = (await (await e.post('/commitments', body)).json()).id;\n> 95 |     expect((await e2.act(`/commitments/${id}/cancel`, { reason: 'not mine' })).status()).toBe(403);\n     |                                                                                          ^\n  96 |   });\n  97 |\n  98 |   test('TIO-DEV-AUDIT-011 deleting a client with everything needs the record version', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 90,
+                            "line": 95
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m403\u001b[39m\nReceived: \u001b[31m204\u001b[39m\n\n  93 |     const body = { scope: 'Client', clientId: fx.clientId, responsibleTeamId: 1, description: `${PREFIX}owned ${Date.now()}`, type: 'Delivery', ownerUserId: e.me.id, dueLocal: '2030-03-01T17:00', timeZone: 'Asia/Dubai', nextReviewAt: inDays(5) };\n  94 |     const id = (await (await e.post('/commitments', body)).json()).id;\n> 95 |     expect((await e2.act(`/commitments/${id}/cancel`, { reason: 'not mine' })).status()).toBe(403);\n     |                                                                                          ^\n  96 |   });\n  97 |\n  98 |   test('TIO-DEV-AUDIT-011 deleting a client with everything needs the record version', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:95:90"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:34.962Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-dc145--commitment-they-do-not-own/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 90,
+                        "line": 95
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-4d2768d55bda081117cb",
+              "file": "05-known-defects.spec.ts",
+              "line": 92,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-011 deleting a client with everything needs the record version",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 12,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 2075,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m200\u001b[39m\nReceived array: \u001b[31m[412, 428]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m200\u001b[39m\nReceived array: \u001b[31m[412, 428]\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:103:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 103
+                        },
+                        "snippet": "  101 |     const del = await m.delete(`/dependents/clients/${id}`);   // no If-Match, no confirmation\n  102 |     if (del.ok()) { /* already gone: the defect */ } else await m.delete(`/dependents/clients/${id}`, await m.etag(`/clients/${id}`));\n> 103 |     expect([412, 428]).toContain(del.status());\n      |                        ^\n  104 |   });\n  105 |\n  106 |   test('TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 103
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoContain\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // indexOf\u001b[22m\n\nExpected value: \u001b[32m200\u001b[39m\nReceived array: \u001b[31m[412, 428]\u001b[39m\n\n  101 |     const del = await m.delete(`/dependents/clients/${id}`);   // no If-Match, no confirmation\n  102 |     if (del.ok()) { /* already gone: the defect */ } else await m.delete(`/dependents/clients/${id}`, await m.etag(`/clients/${id}`));\n> 103 |     expect([412, 428]).toContain(del.status());\n      |                        ^\n  104 |   });\n  105 |\n  106 |   test('TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:103:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:35.736Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-96d48-ng-needs-the-record-version/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 103
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-708319dbd1234852152a",
+              "file": "05-known-defects.spec.ts",
+              "line": 98,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 13,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 27,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m201\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m201\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:108:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 108
+                        },
+                        "snippet": "  106 |   test('TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received', async () => {\n  107 |     const r = await e.post('/escalations', { clientId: fx.clientId, title: `${PREFIX}targets in past`, direction: 'Received', channel: 'Email', priority: 'High', level: 1, receivedAt: inDays(-0.05), ownerUserId: e.me.id, responseDueAt: inDays(-30), resolutionDueAt: inDays(-29) });\n> 108 |     expect(r.status()).toBe(422);\n      |                        ^\n  109 |   });\n  110 |\n  111 |   test('TIO-DEV-AUDIT-013 an invalid enum value is reported against its field', async () => {"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 108
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m201\u001b[39m\n\n  106 |   test('TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received', async () => {\n  107 |     const r = await e.post('/escalations', { clientId: fx.clientId, title: `${PREFIX}targets in past`, direction: 'Received', channel: 'Email', priority: 'High', level: 1, receivedAt: inDays(-0.05), ownerUserId: e.me.id, responseDueAt: inDays(-30), resolutionDueAt: inDays(-29) });\n> 108 |     expect(r.status()).toBe(422);\n      |                        ^\n  109 |   });\n  110 |\n  111 |   test('TIO-DEV-AUDIT-013 an invalid enum value is reported against its field', async () => {\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:108:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:38.464Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-5760f-an-the-time-it-was-received/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 108
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-4c3e7ec157757aca8336",
+              "file": "05-known-defects.spec.ts",
+              "line": 106,
+              "column": 7
+            },
+            {
+              "title": "TIO-DEV-AUDIT-013 an invalid enum value is reported against its field",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 14,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 11,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m400\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m400\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:113:24",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                          "column": 24,
+                          "line": 113
+                        },
+                        "snippet": "  111 |   test('TIO-DEV-AUDIT-013 an invalid enum value is reported against its field', async () => {\n  112 |     const r = await e.post('/escalations', { clientId: fx.clientId, title: `${PREFIX}x`, direction: 'ReceivedFromClient', channel: 'Email', ownerUserId: e.me.id });\n> 113 |     expect(r.status()).toBe(422);\n      |                        ^\n  114 |     expect(JSON.stringify(await r.json())).toContain('direction');\n  115 |   });\n  116 | });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                            "column": 24,
+                            "line": 113
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m422\u001b[39m\nReceived: \u001b[31m400\u001b[39m\n\n  111 |   test('TIO-DEV-AUDIT-013 an invalid enum value is reported against its field', async () => {\n  112 |     const r = await e.post('/escalations', { clientId: fx.clientId, title: `${PREFIX}x`, direction: 'ReceivedFromClient', channel: 'Email', ownerUserId: e.me.id });\n> 113 |     expect(r.status()).toBe(422);\n      |                        ^\n  114 |     expect(JSON.stringify(await r.json())).toContain('direction');\n  115 |   });\n  116 | });\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts:113:24"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:39.241Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/05-known-defects--defect-C-80df7--reported-against-its-field/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/05-known-defects.spec.ts",
+                        "column": 24,
+                        "line": 113
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "9b62c6a6d6d17ed57ccd-21cbb938684f157f57d8",
+              "file": "05-known-defects.spec.ts",
+              "line": 111,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "06-tables-dashboard-reports.spec.ts",
+      "file": "06-tables-dashboard-reports.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Tables, dashboard KPIs and reports",
+          "file": "06-tables-dashboard-reports.spec.ts",
+          "line": 4,
+          "column": 6,
+          "specs": [
+            {
+              "title": "case list: search, status filter, sort and pagination agree with the API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 2946,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:39.908Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e26412011538b8f866cc-fd08e82e37eccf09024d",
+              "file": "06-tables-dashboard-reports.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "empty search shows a distinct empty state",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1555,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:43.076Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e26412011538b8f866cc-ea3bdb2159fd03645d61",
+              "file": "06-tables-dashboard-reports.spec.ts",
+              "line": 31,
+              "column": 7
+            },
+            {
+              "title": "every dashboard KPI equals the size of its drill-down list",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 169,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:44.645Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e26412011538b8f866cc-c318ae3245ebfed76469",
+              "file": "06-tables-dashboard-reports.spec.ts",
+              "line": 37,
+              "column": 7
+            },
+            {
+              "title": "a new overdue synthetic case moves Open, Overdue and Unassigned by exactly one",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 267,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:44.823Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e26412011538b8f866cc-0600ccd638f968edc513",
+              "file": "06-tables-dashboard-reports.spec.ts",
+              "line": 46,
+              "column": 7
+            },
+            {
+              "title": "overview page shows the same open-case figure as the API",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1198,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:45.104Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e26412011538b8f866cc-71bdf54dbc80a0693046",
+              "file": "06-tables-dashboard-reports.spec.ts",
+              "line": 60,
+              "column": 7
+            },
+            {
+              "title": "report preview, CSV export and list agree; formulas are neutralised; download is owner-only",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 140,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:46.319Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "e26412011538b8f866cc-9c7661e1b5064a5d431d",
+              "file": "06-tables-dashboard-reports.spec.ts",
+              "line": 66,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "07-responsive-journeys.spec.ts",
+      "file": "07-responsive-journeys.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Responsive layout",
+          "file": "07-responsive-journeys.spec.ts",
+          "line": 7,
+          "column": 6,
+          "specs": [
+            {
+              "title": "no horizontal page overflow at desktop 1920x1080",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6494,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:46.481Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-65b77c1d02f9a03ab0f6",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "no horizontal page overflow at laptop 1366x768",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6562,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:52.985Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-d0c818a03866faa62dc1",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "no horizontal page overflow at tablet 768x1024",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6411,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:11:59.561Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-f0c19920d214b87b1959",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "no horizontal page overflow at mobile 390x844",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 6339,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:05.988Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-1d420edc651b3f0fb89e",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 10,
+              "column": 9
+            },
+            {
+              "title": "below 900 px the section menu becomes a drawer",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 390,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:12.340Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-a16656a2a60feac80c92",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 23,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "End-to-end operational journeys",
+          "file": "07-responsive-journeys.spec.ts",
+          "line": 34,
+          "column": 6,
+          "specs": [
+            {
+              "title": "incident lifecycle: create, triage, assign, respond, wait, validate, close, audit history",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 305,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:12.740Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-6e45f98c77b2133ce722",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 38,
+              "column": 7
+            },
+            {
+              "title": "cross-module consistency: a case appears on the client page, in search and in the report",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1166,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:13.203Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-5b272160a6ed86086e08",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 52,
+              "column": 7
+            },
+            {
+              "title": "cleanup: every synthetic regression record is removed",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1288,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:14.379Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "43dc27e0576ff130a248-51d6e38c25e67610bbbc",
+              "file": "07-responsive-journeys.spec.ts",
+              "line": 65,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "08-scope-and-penalties.spec.ts",
+      "file": "08-scope-and-penalties.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Data scope per client (2.60.0)",
+          "file": "08-scope-and-penalties.spec.ts",
+          "line": 5,
+          "column": 6,
+          "specs": [
+            {
+              "title": "lists show only records of clients in scope",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 15,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 27,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts:11:98",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                          "column": 98,
+                          "line": 11
+                        },
+                        "snippet": "   9 |   test('lists show only records of clients in scope', async () => {\n  10 |     expect((await e.json('/clients?pageSize=100')).items.every((c: any) => c.code.startsWith('TIO'))).toBeTruthy();   // only synthetic audit clients\n> 11 |     expect((await e.json('/clients?pageSize=100')).items.some((c: any) => c.id === fx.clientId)).toBeTruthy();\n     |                                                                                                  ^\n  12 |     const mine = (await e.json('/cases?status=all&pageSize=100')).items;\n  13 |     expect(mine.every((c: any) => (c.clientCode ?? '').startsWith('TIO'))).toBeTruthy();\n  14 |     expect((await o.json(`/cases?status=all&pageSize=100`)).items.some((c: any) => c.clientId === fx.clientId)).toBeFalsy();"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                            "column": 98,
+                            "line": 11
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBeTruthy\u001b[2m()\u001b[22m\n\nReceived: \u001b[31mfalse\u001b[39m\n\n   9 |   test('lists show only records of clients in scope', async () => {\n  10 |     expect((await e.json('/clients?pageSize=100')).items.every((c: any) => c.code.startsWith('TIO'))).toBeTruthy();   // only synthetic audit clients\n> 11 |     expect((await e.json('/clients?pageSize=100')).items.some((c: any) => c.id === fx.clientId)).toBeTruthy();\n     |                                                                                                  ^\n  12 |     const mine = (await e.json('/cases?status=all&pageSize=100')).items;\n  13 |     expect(mine.every((c: any) => (c.clientCode ?? '').startsWith('TIO'))).toBeTruthy();\n  14 |     expect((await o.json(`/cases?status=all&pageSize=100`)).items.some((c: any) => c.clientId === fx.clientId)).toBeFalsy();\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts:11:98"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:15.682Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/08-scope-and-penalties-Dat-64ef8-records-of-clients-in-scope/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                        "column": 98,
+                        "line": 11
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ba3f2d9ef0fc08b3e84e-d20fd1ff1aa57e926779",
+              "file": "08-scope-and-penalties.spec.ts",
+              "line": 9,
+              "column": 7
+            },
+            {
+              "title": "records of another client answer 404 on read and write",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 119,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:16.457Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba3f2d9ef0fc08b3e84e-28299369e2c818253b3a",
+              "file": "08-scope-and-penalties.spec.ts",
+              "line": 17,
+              "column": 7
+            },
+            {
+              "title": "dashboards, search and reports follow the scope",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 144,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:16.942Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "ba3f2d9ef0fc08b3e84e-00d5d4fb57c470f4bbc3",
+              "file": "08-scope-and-penalties.spec.ts",
+              "line": 25,
+              "column": 7
+            },
+            {
+              "title": "@defect change history does not show child records of clients outside the scope",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 60000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 16,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 58,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 89\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"Handover by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+ ]\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 89\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"Handover by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts:38:66",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                          "column": 66,
+                          "line": 38
+                        },
+                        "snippet": "  36 |     for (const page of [1, 2, 3, 4]) items.push(...(await e.json(`/admin/audit?pageSize=100&page=${page}`)).items);\n  37 |     const foreign = items.filter(a => a.clientId === null && ['SlaTarget', 'ProjectProduct', 'Handover', 'ContractPayment'].includes(a.entityType) && a.userName !== ENGINEER);\n> 38 |     expect(foreign.map(a => `${a.entityType} by ${a.userName}`)).toEqual([]);\n     |                                                                  ^\n  39 |   });\n  40 | });\n  41 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                            "column": 66,
+                            "line": 38
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoEqual\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // deep equality\u001b[22m\n\n\u001b[32m- Expected  -  1\u001b[39m\n\u001b[31m+ Received  + 89\u001b[39m\n\n\u001b[32m- Array []\u001b[39m\n\u001b[31m+ Array [\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"SlaTarget by DEV\\\\manager\",\u001b[39m\n\u001b[31m+   \"Handover by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"SlaTarget by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+   \"ProjectProduct by system\",\u001b[39m\n\u001b[31m+ ]\u001b[39m\n\n  36 |     for (const page of [1, 2, 3, 4]) items.push(...(await e.json(`/admin/audit?pageSize=100&page=${page}`)).items);\n  37 |     const foreign = items.filter(a => a.clientId === null && ['SlaTarget', 'ProjectProduct', 'Handover', 'ContractPayment'].includes(a.entityType) && a.userName !== ENGINEER);\n> 38 |     expect(foreign.map(a => `${a.entityType} by ${a.userName}`)).toEqual([]);\n     |                                                                  ^\n  39 |   });\n  40 | });\n  41 |\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts:38:66"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:17.097Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/08-scope-and-penalties-Dat-49023-f-clients-outside-the-scope/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                        "column": 66,
+                        "line": 38
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ba3f2d9ef0fc08b3e84e-906c0548eaebf9d99562",
+              "file": "08-scope-and-penalties.spec.ts",
+              "line": 34,
+              "column": 7
+            }
+          ]
+        },
+        {
+          "title": "@defect Penalties follow SLA results that can be rewritten (2.60.0)",
+          "file": "08-scope-and-penalties.spec.ts",
+          "line": 42,
+          "column": 6,
+          "specs": [
+            {
+              "title": "TIO-260-AUDIT-001/002/003/011 an indicative penalty is not removed by priority change, contract unlink, back-dated response or delete",
+              "ok": false,
+              "tags": [
+                "defect"
+              ],
+              "tests": [
+                {
+                  "timeout": 180000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "",
+                  "projectName": "",
+                  "results": [
+                    {
+                      "workerIndex": 17,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 60962,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m4000\u001b[39m\nReceived: \u001b[31m0\u001b[39m",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m4000\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts:61:28",
+                        "location": {
+                          "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                          "column": 28,
+                          "line": 61
+                        },
+                        "snippet": "  59 |     await e.act(`/cases/${ids[2]}/first-response`, { respondedAt: (await m.json(`/cases/${ids[2]}`)).createdAt, channel: 'Verbal' });\n  60 |     await m.delete(`/dependents/cases/${ids[3]}`);\n> 61 |     expect(await amount()).toBe(4000);\n     |                            ^\n  62 |   });\n  63 | });\n  64 |"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                            "column": 28,
+                            "line": 61
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32m4000\u001b[39m\nReceived: \u001b[31m0\u001b[39m\n\n  59 |     await e.act(`/cases/${ids[2]}/first-response`, { respondedAt: (await m.json(`/cases/${ids[2]}`)).createdAt, channel: 'Verbal' });\n  60 |     await m.delete(`/dependents/cases/${ids[3]}`);\n> 61 |     expect(await amount()).toBe(4000);\n     |                            ^\n  62 |   });\n  63 | });\n  64 |\n    at /home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts:61:28"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-11-12T02:12:17.615Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/results/artifacts/08-scope-and-penalties--de-a4493-ck-dated-response-or-delete/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/home/user/TIO_Operation_Hub/tio-development-audit-2.60.0/automated-tests/specs/08-scope-and-penalties.spec.ts",
+                        "column": 28,
+                        "line": 61
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "ba3f2d9ef0fc08b3e84e-7ac934d5c3e9ca850376",
+              "file": "08-scope-and-penalties.spec.ts",
+              "line": 43,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-11-12T02:07:48.197Z",
+    "duration": 330466.785,
+    "expected": 45,
+    "skipped": 0,
+    "unexpected": 18,
+    "flaky": 0
+  }
+}

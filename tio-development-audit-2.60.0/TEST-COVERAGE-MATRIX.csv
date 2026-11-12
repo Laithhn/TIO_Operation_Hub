@@ -1,0 +1,50 @@
+Area,Feature,Method,Test IDs / artefact,Executed,Result on 2.60.0,Related issues
+Environment,Development verification incl. Jira disabled,Config + runtime inspection,00-DEVELOPMENT-ENVIRONMENT-VERIFICATION.md,Yes,Verified,
+Authentication,Development identities / unknown account / antiforgery,API + Playwright,01-auth-roles.spec.ts,Yes,Pass,
+Authentication,Forms and Windows sign-in,Not testable in this build,,No,Blocked,029
+Authorization,Administration endpoints and self-escalation,API,SEC-ADM; SEC-01..07; ROLE-04,Yes,Pass,
+Authorization,Per-client data scope: lists / 40 record routes / writes / dashboards / search / reports,API + Playwright,b3 run; 08-scope-and-penalties.spec.ts,Yes,Pass,
+Authorization,Change history and export log under scope,API,08-scope-and-penalties.spec.ts @defect,Yes,Fail,035
+Authorization,Route guards by right,Playwright,03-cases-ui-crud.spec.ts,Yes,Pass (fixed since 2.29.0),020
+Authorization,Record ownership inside a scope,API,OWN-01; COM-29,Yes,Fail (by design),010
+Authorization,Scoped exceptions / role conflicts / access simulation,Not executed,,No,Not tested,
+Navigation,Sections / More menu / deep link / refresh / back-forward,Playwright,02-navigation.spec.ts,Yes,Pass,
+Navigation,Unknown address,Playwright,02-navigation.spec.ts @defect,Yes,Fail,036
+Navigation,Header at 1366 px,Playwright,02-navigation.spec.ts,Yes,Pass (fixed),016
+Tickets,Create validation,API + Playwright,CASE-01..09,Yes,Pass (CASE-03 fail),007
+Tickets,Lifecycle with configurable statuses,API,CASE-12..30; ST-01..08,Yes,Pass,014
+Tickets,Edits after closure,API,CASE-31..33,Yes,Fail,004
+Tickets,Duplicate submission,API + Playwright,CASE-11,Yes,UI pass / API fail,006
+Tickets,Comments and activity,API,CMT-01..03,Yes,Pass,
+Tickets,UI create / search / cancel / unsaved changes / offline / server error,Playwright,03-cases-ui-crud.spec.ts,Yes,Pass,
+Tickets,Bulk selection / column chooser / quick views in the browser,Screenshots only,screenshots/laptop-cases.png,Partial,Viewed,
+Contractual SLA,Snapshot / first response / states,API,SLA-04..05; 04-business-rules.spec.ts,Yes,Pass,
+Contractual SLA,Integrity of breaches,API,SLA-06..10,Yes,Fail,001;002;003
+Penalties,Preview follows breaches; effect of manipulation,API,PEN-01..05,Yes,Fail (4000 -> 0),001;002;003;011
+Penalties,Monthly assessment / confirmation / caps,Not executed,,No,Not tested,
+Commitments,Validation / revise / complete / cancel / reopen,API,COM-02..29,Yes,Pass with defects,005;007;008
+Escalations,Validation and status path,API,ESC-02..13e,Yes,Pass with defects,012;013
+Clients,Create / duplicates / status reports / organisations,API,CLI-01..06; SR-01..03; ORG-01..03,Yes,Pass with defect,009
+Contracts,Dates / SLA targets / payments,API,CON-01..09,Yes,Pass with defects,007;009
+Environments and inventory,Create / condition / servers / firewall / installation / archive / delete refusal,API,ENV; CND; AST; VOL; FW; INS; ARC; DEL,Yes,Pass with defect,009
+Deletion,Cascade delete,API,PEN-05; test 011,Yes,Pass with observation,011
+Attachments,Types / download / delete,API,misc run; 04-business-rules.spec.ts,Yes,Pass,029
+Notes,Privacy and sanitising,API,misc run,Yes,Pass,
+Jira,Synchronisation / mappings / import review / conflicts,Disabled by configuration,,No,Not tested,029
+Jira,Admin pages and health in disabled state,API + crawl,b4 run; screenshots/desktop-admin-jira*.png,Partial,Viewed,
+Dashboards,KPI values vs independent SQL,SQL + API,08-DASHBOARD-KPI-VALIDATION.md,Yes,Pass (14 of 14),
+Dashboards,KPI vs drill-down; reaction to synthetic record,API,06-tables-dashboard-reports.spec.ts,Yes,Pass,
+Dashboards,Audience dashboards (operational / SLA / management / client / my),API payload + screenshots,b3 run,Partial,Viewed,005
+Reports,Preview / export / formula neutralising / owner-only download,API,06-tables-dashboard-reports.spec.ts,Yes,Pass,
+Reports,Report builder / definitions / schedules / queued exports,Rendered only,screenshots/desktop-reporting-*.png,Partial,Viewed,
+Tables,Search / sort / filter / pagination / empty state,Playwright,06-tables-dashboard-reports.spec.ts,Yes,Pass,
+Responsive,79 routes at 1920 / 1366 / 768 / 390,Playwright crawl,traces/ui-crawl-results.json,Yes,Pass (no overflow),017;037
+Accessibility,axe WCAG 2.2 A/AA on 79 routes; keyboard probes,axe-core + Playwright,traces/ui-crawl-results.json,Yes,Fail,018
+Performance,Page load / API calls / console / failed requests,Playwright crawl,traces/ui-crawl-results.json,Yes,Pass (dev volume; under concurrent load),
+Performance,Load and volume,Not executed,,No,Not tested,
+Security,Headers / error disclosure / input handling,API,sec run,Yes,Pass with observations,029
+Existing tests,.NET suite (755),dotnet test unmodified,traces/dotnet-existing-tests.txt,Yes,711 pass / 6 fail / 38 skipped,026
+Existing tests,Front-end unit tests (268),vitest,run output,Yes,268 pass,
+Existing tests,Project browser journeys (about 212),Not run (Edge channel; own database),,No,Not executed,026
+Audit regression suite,Playwright,Playwright,traces/playwright-regression-summary.json,Yes,See 13-END-TO-END-TEST-RESULTS.md,
+Deployment,Installer / upgrade / IIS / schema upgrade from 2.29,Document review only,,No,Not tested,
