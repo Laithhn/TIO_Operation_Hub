@@ -104,7 +104,7 @@ public static class CommitmentEndpoints
                 originalDeadlineResult = c.Status == CommitmentStatus.Completed && c.CompletedAt is not null ? (c.CompletedAt <= c.OriginalDueAt ? "OnTime" : "Late") : null,
                 overdue = c.Status == CommitmentStatus.Open && c.CurrentDueAt < now,
                 @case = caseRef, project, events, c.CreatedAt, c.UpdatedAt, c.LastReviewedAt,
-                permissions = new { canEdit = maintain, canRevise = maintain && c.Status == CommitmentStatus.Open, canComplete = maintain && c.Status == CommitmentStatus.Open, canCancel = maintain && c.Status == CommitmentStatus.Open, canReopen = maintain && c.Status != CommitmentStatus.Open }
+                permissions = new { canEdit = maintain && c.Status == CommitmentStatus.Open, canRevise = maintain && c.Status == CommitmentStatus.Open && (c.CurrentDueAt >= now || access.Me.HasRight(RightKeys.Commitments, RightKeys.Coordinate)), canComplete = maintain && c.Status == CommitmentStatus.Open, canCancel = maintain && c.Status == CommitmentStatus.Open, canReopen = maintain && c.Status != CommitmentStatus.Open }
             });
         });
 
@@ -149,6 +149,8 @@ public static class CommitmentEndpoints
             access.RequireIn(RightKeys.Commitments, RightKeys.Maintain, (await ResourceContexts.ForCommitmentAsync(db, c, ct))
                 .Merge(await ResourceContexts.ForCommitmentAsync(db, c.ClientId, c.ResponsibleTeamId, input.ProjectId, input.CaseId, ct)));
             db.ExpectVersion(ctx, c);
+            // A111: a completed or cancelled commitment is a finished record, as it already is for revisions and cancellation.
+            if (c.Status != CommitmentStatus.Open) throw new ValidationException("status", "Only open commitments can be changed. Reopen it first.");
             var check = new Check().Text("description", input.Description, 2000, "the description", true).When(input.Type is null, "type", "Select the type.")
                 .When(input.OwnerUserId is null, "ownerUserId", "Select the accountable owner.").Text("responsibleOrganization", input.ResponsibleOrganization, 150, "Responsible organization");
             access.CheckOwnerChange(check, "ownerUserId", c.OwnerUserId, input.OwnerUserId, resource: RightKeys.Commitments);
@@ -181,6 +183,10 @@ public static class CommitmentEndpoints
             access.RequireIn(RightKeys.Commitments, RightKeys.Maintain, await ResourceContexts.ForCommitmentAsync(db, c, ct));
             db.ExpectVersion(ctx, c);
             if (c.Status != CommitmentStatus.Open) throw new ValidationException("dueLocal", "Only open commitments can be revised. Reopen it first.");
+            // A111: moving a deadline that has already passed decides whether the commitment counts as kept, so it is a coordination
+            // decision, not the owner's own. Before the deadline, a revision with a reason stays with whoever maintains the commitment.
+            if (c.CurrentDueAt < clock.GetUtcNow() && !access.Me.HasRight(RightKeys.Commitments, RightKeys.Coordinate))
+                throw new ForbiddenException("The deadline has already passed. Moving it needs commitment coordination permission.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reason for the revision");
             var check = new Check();
             var zone = string.IsNullOrWhiteSpace(input.TimeZone) ? c.TimeZone : input.TimeZone;

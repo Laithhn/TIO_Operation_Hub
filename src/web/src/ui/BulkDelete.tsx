@@ -22,7 +22,7 @@ export function BulkDelete({ items, onClose, onDone }: { items: DeleteTarget[]; 
     const out: Record<string, string> = {};
     for (const i of items) {
       const p = previews.data?.[i.path];
-      try { await del(p && (p.total > 0 || p.unlink.length > 0) ? depOf(i.path)! : i.path); out[i.path] = ''; deleted++; }
+      try { await del(p && (p.total > 0 || p.unlink.length > 0) ? `${depOf(i.path)!}?expected=${p.total}` : i.path); out[i.path] = ''; deleted++; }
       catch (e) { out[i.path] = errText(e); }
       setResults({ ...out });
     }

@@ -252,6 +252,8 @@ public static class CaseEndpoints
             var c = await LoadForChangeAsync(db, id, ct);
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId, c.CoordinatorUserId);
             db.ExpectVersion(ctx, c);
+            // A111: a closed or cancelled ticket is a finished record, as it already is for its owner and its progress updates.
+            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("status", "The ticket is closed or cancelled. Reopen it before changing it.");
             var now = clock.GetUtcNow();
             var check = new Check();
             check.Text("title", input.Title, 200, "the title", true).Text("impactSummary", input.ImpactSummary, 2000, "the impact summary", true)
@@ -447,8 +449,19 @@ public static class CaseEndpoints
             var check = new Check().Text("channel", input.Channel, 60, "the channel", true).Text("note", input.Note, 1000, "Note");
             if (at > now.AddMinutes(1)) check.Add("respondedAt", "The response time is in the future.");
             if (at < (c.SlaClockStartAt ?? c.CreatedAt).AddMinutes(-1)) check.Add("respondedAt", "The response time is before the ticket was opened.");
+            // A111: once the response deadline has passed, a response time before it changes a recorded breach into "met".
+            // Only ticket coordination may record that, with a note saying what the claim rests on; the entry time is kept on the timeline.
+            var backdatedPastDeadline = c.ResponseDueAt is { } responseDue && now > responseDue && at <= responseDue;
+            if (backdatedPastDeadline)
+            {
+                if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate))
+                    throw new ForbiddenException("The response deadline has passed. Recording a response time before the deadline needs ticket coordination permission.");
+                if (string.IsNullOrWhiteSpace(input.Note)) check.Add("note", "Say what shows that the customer was answered at that time.");
+            }
             check.ThrowIfAny();
-            RecordFirstResponse(db, c, at, $"{input.Channel!.Trim()}{(string.IsNullOrWhiteSpace(input.Note) ? "" : $": {input.Note.Trim()}")}", access.Me, now);
+            var responseNote = $"{input.Channel!.Trim()}{(string.IsNullOrWhiteSpace(input.Note) ? "" : $": {input.Note.Trim()}")}";
+            if (backdatedPastDeadline) responseNote += $" (entered {now:yyyy-MM-dd HH:mm} UTC, after the response deadline had passed)";
+            RecordFirstResponse(db, c, at, responseNote, access.Me, now);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
         });
@@ -466,6 +479,17 @@ public static class CaseEndpoints
             var reason = c.ContractId is null ? Text.Clean(input.Reason) : Rules.RequireReason(input.Reason, "reason", "why the contract changes");
             check.ThrowIfAny();
             var now = clock.GetUtcNow();
+            // A111: a contract change measures the ticket again from the start, which would discard a result already reached under the
+            // current contract (met or breached). That needs ticket coordination, and the earlier result stays on the timeline.
+            var response = CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now);
+            var resolution = CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now);
+            var hasResult = c.ContractId is not null && (response is SlaState.Met or SlaState.Breached || resolution is SlaState.Met or SlaState.Breached);
+            if (hasResult)
+            {
+                if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate))
+                    throw new ForbiddenException("This ticket already has an SLA result under its contract. Changing or removing the contract needs ticket coordination permission.");
+                reason = $"{reason} (SLA result before the change under {c.SlaContractRef}: response {response}, resolution {resolution})";
+            }
             var from = c.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == c.ContractId).Select(k => k.Ref).FirstOrDefaultAsync(ct);
             var to = input.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(k => k.Id == input.ContractId).Select(k => k.Ref).FirstOrDefaultAsync(ct);
             c.ContractId = input.ContractId;
@@ -526,6 +550,13 @@ public static class CaseEndpoints
             if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("reason", "The ticket is already closed or cancelled.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the cancellation reason");
             var now = clock.GetUtcNow();
+            // A111: cancelling takes the ticket out of SLA and penalties, so a ticket that already has an SLA result needs ticket coordination.
+            if (CaseSla.HasResult(c, now))
+            {
+                if (!access.Me.HasRight(RightKeys.Cases, RightKeys.Coordinate))
+                    throw new ForbiddenException("This ticket already has an SLA result under its contract. Cancelling it needs ticket coordination permission.");
+                reason = $"{reason} (SLA result before cancelling under {c.SlaContractRef}: response {CaseSla.Now(c.ResponseSlaStatus, c.ResponseDueAt, now)}, resolution {CaseSla.Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now)})";
+            }
             c.CancelReason = reason;
             c.CancelledAt = now;
             EndWaiting(db, c, access.Me, now);
@@ -624,6 +655,7 @@ public static class CaseEndpoints
             access.RequireMaintain(RightKeys.Cases, c.ClientId, c.ResponsibleTeamId, c.OwnerUserId, c.BackupOwnerUserId);
             db.ExpectVersion(ctx, c);
             if (SlaSetsDue(c)) throw new ValidationException("dueLocal", "This ticket's due date comes from its Jira creation time and its contract's SLA.");
+            if (!CaseQuery.IsOpen(c.Status)) throw new ValidationException("dueLocal", "The ticket is closed or cancelled. Reopen it before changing its due date.");
             var reason = Rules.RequireReason(input.Reason, "reason", "the reason for the due-date change");
             var check = new Check();
             var due = input.Clear ? null : ParseDue(check, input.DueLocal, input.DueTimeZone, required: true);
