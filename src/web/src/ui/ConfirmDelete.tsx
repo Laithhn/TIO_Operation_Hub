@@ -35,9 +35,10 @@ export function ConfirmDelete({ path, what, onClose, onDone }: { path: string; w
     catch (e) { setError(errText(e)); }
     finally { setBusy(false); }
   };
+  // A111: "expected" is the number of related records listed above; the server deletes only that reviewed set.
   const goAll = async () => {
     setBusy(true); setError(null);
-    try { const r = await del<{ deleted: number }>(`${depPath!}?expected=${d!.total}`);   // A111: the server deletes only the set that was listed await finish(`${what} deleted with ${(r?.deleted ?? 1) - 1} related record(s).`); }
+    try { const r = await del<{ deleted: number }>(`${depPath!}?expected=${d!.total}`); await finish(`${what} deleted with ${(r?.deleted ?? 1) - 1} related record(s).`); }
     catch (e) { setError(errText(e)); }
     finally { setBusy(false); }
   };
