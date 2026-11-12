@@ -42,7 +42,7 @@ Same as for 2.29.0, with higher stakes: **the arithmetic is correct and every ti
 | Command Center response compliance (client filter) | 25 % (1 met / 3 breached) | **100 %** (3 met / 0 breached) | 001–003 |
 | Breached tickets in list (`sla=breached`) | 3 | 1 | 001, 002 |
 | Indicative penalty for the month | EUR 4,000 | **EUR 0** | 001–003, 011 |
-| Management dashboard "Commitments on time" | — | 100 % with the only completion re-dated after it was overdue | 005 |
+| Management dashboard "Commitments on time" | — | 100 % ("1 completed in the period": the re-dated synthetic commitment) | 005 |
 
 ## 4. New dashboards — observations
 
@@ -52,7 +52,7 @@ Same as for 2.29.0, with higher stakes: **the arithmetic is correct and every ti
 | Operational | Workload, hygiene, "at risk" threshold stated | Not validated against SQL |
 | SLA & Contracts | Shows measured, pending and *not measurable* counts with reasons; 90 % objective; previous-period delta | Rates from very small samples still shown as headline percentages ("0 %" from 1 measured); depends on mutable SLA data |
 | Management | Period-to-date compared with the same number of days of the previous period; "data trust" section | "Median time to resolve 0 d" and "+108.3 %" backlog on seed data show how volatile small numbers are; status badges ("ATTENTION" beside 100 %) are hard to interpret |
-| Client | Recorded status per client plus rule-based signals with the rule text shown | 16 of 17 seeded clients have no status: the page is only as good as manual reporting |
+| Client | Recorded status per client plus rule-based signals with the rule text shown | No seeded client has a recorded status (16 of 17 without one; the seventeenth was set by the audit): the page is only as good as manual reporting |
 
 Improvements since 2.29.0 that address earlier observations: measured-count shown beside SLA rates, previous-period comparison, reasons for not-measurable tickets, internal page scrolling instead of one very long page.
 

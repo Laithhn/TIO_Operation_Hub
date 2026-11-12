@@ -30,10 +30,10 @@ Synthetic contract: Critical 1 min response / 2 min resolution; penalty clause "
 | Step | Breached responses | Indicative penalty (ticket preview) |
 |---|---|---|
 | Four Critical tickets after their deadlines | 4 | **EUR 4,000** ("NeedsReview", breachCount 4) |
-| Ticket A: manager changes priority to Low | 3 | — |
-| Ticket B: engineer unlinks the contract | 2 | — |
-| Ticket C: engineer records a first response dated at creation | 1 | — |
-| Ticket D: manager deletes the ticket with dependents | 0 | **EUR 0** (preview empty) |
+| Ticket A: manager changes priority to Low | not read between steps | — |
+| Ticket B: engineer unlinks the contract | not read between steps | — |
+| Ticket C: engineer records a first response dated at creation | not read between steps | — |
+| Ticket D: manager deletes the ticket with dependents | 0 after all four actions | **EUR 0** (preview empty) |
 
 In the parallel SLA-only test the Command Center response rate for the client moved from **25 % (1 met, 3 breached) to 100 % (3 met, 0 breached)**; both values were captured from the API.
 
@@ -45,7 +45,7 @@ Unchanged: closed tickets accept title, impact, priority and due-date changes; c
 
 ### 2.3 "Completed on time" follows the deadline in force (P1)
 
-Unchanged, and now more visible: the Management dashboard tile *Commitments on time* showed **100 %** for a period whose only completed commitment had been overdue and re-dated by its owner.
+Unchanged, and now more visible: the Management dashboard tile *Commitments on time* showed **100 %** ("1 completed in the period") while the only commitment completed in that period was the synthetic one that had been overdue and re-dated by its owner.
 
 ### 2.4 Clocks and time bounds (P2/P3)
 
