@@ -113,11 +113,25 @@ export async function fixture(m: Hub) {
 /** Removes every synthetic record of the regression client (cases, commitments, escalations, contract, project, client). */
 export async function purgeFixture(m: Hub) {
   const client = (await m.json(`/clients?q=${PREFIX}REG&pageSize=50`)).items.find((c: any) => c.code === `${PREFIX}REG`);
-  if (client) await m.delete(`/dependents/clients/${client.id}`);
+  if (client) {
+    // A111: tickets with an SLA result are kept as evidence. Synthetic ones are cancelled by coordination first, then deleted with the client.
+    for (const c of (await m.json(`/cases?clientId=${client.id}&status=open&pageSize=200`)).items)
+      if ([c.responseSla, c.resolutionSla].some((x: string) => x === 'Met' || x === 'Breached')) await m.act(`/cases/${c.id}/cancel`, { reason: 'audit cleanup' });
+    for (const c of (await m.json(`/cases?clientId=${client.id}&status=all&pageSize=200`)).items)
+      if (c.status === 'Closed') { await m.act(`/cases/${c.id}/reopen`, { reason: 'audit cleanup', nextAction: 'n', nextReviewAt: inDays(1) }); await m.act(`/cases/${c.id}/cancel`, { reason: 'audit cleanup' }); }
+    await deleteAll(m, `/dependents/clients/${client.id}`);
+  }
   for (const u of (await m.json('/admin/users')).filter((u: any) => /tio_audit_test_(e1|e2|noedit)$/i.test(u.accountName))) {
     await m.delete(`/teams/1/members/${(await m.json('/teams/1')).members.find((x: any) => x.userId === u.id)?.id ?? 0}`);
     await (m as any).ctx.delete(`/api/v1/admin/users/${u.id}`, { data: { reason: 'audit cleanup' }, headers: { ...(m as any).headers(await m.etag(`/admin/users/${u.id}`)) } });
   }
+}
+
+/** A111: delete-with-everything states the number of related records the preview listed. */
+export async function deleteAll(m: Hub, path: string) {
+  const preview = await m.get(path);
+  const total = preview.ok() ? (await preview.json()).total : undefined;
+  return m.delete(total === undefined ? path : `${path}?expected=${total}`);
 }
 
 export async function signInAs(context: BrowserContext, account: string) {

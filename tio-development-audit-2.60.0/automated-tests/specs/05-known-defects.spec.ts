@@ -98,8 +98,9 @@ test.describe('@defect Confirmed audit findings (expected behaviour)', () => {
   test('TIO-DEV-AUDIT-011 deleting a client with everything needs the record version', async () => {
     const r = await m.post('/clients', { code: 'TIOAUDITDEL', name: `${PREFIX}delete probe`, country: 'Germany', status: 'Opportunity', ownerUserId: m.me.id });
     const id = (await r.json()).id;
-    const del = await m.delete(`/dependents/clients/${id}`);   // no If-Match, no confirmation
-    if (del.ok()) { /* already gone: the defect */ } else await m.delete(`/dependents/clients/${id}`, await m.etag(`/clients/${id}`));
+    const del = await m.delete(`/dependents/clients/${id}`);   // no reviewed count
+    const { deleteAll } = await import('./helpers');
+    await deleteAll(m, `/dependents/clients/${id}`);
     expect([412, 428]).toContain(del.status());
   });
 
