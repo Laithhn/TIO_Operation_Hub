@@ -81,9 +81,13 @@ public sealed class SetupCode(IOptions<AuthOptions> options, IWebHostEnvironment
 {
     public string FilePath => Path.GetFullPath(options.Value.SetupCodeFile, env.ContentRootPath);
 
-    /// <summary>True while no active administrator can sign in with a password.</summary>
-    public static async Task<bool> RequiredAsync(HubDbContext db, CancellationToken ct) =>
-        !await db.UserCredentials.AnyAsync(c => db.Users.Any(u => u.Id == c.UserId && u.IsActive && u.Roles.Any(r => r.AppRole!.Key == BuiltInRoles.ManagerKey || (r.AppRole.Rights & Right.Administer) == Right.Administer)), ct);
+    /// <summary>True while no active Forms account with a usable credential can administer users.</summary>
+    public static async Task<bool> RequiredAsync(HubDbContext db, CancellationToken ct)
+    {
+        var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ToListAsync(ct);
+        var candidates = users.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray()));
+        return !await RoleConflicts.HasFormsUserAdministratorAsync(db, candidates, DateTimeOffset.UtcNow, ct);
+    }
 
     public async Task EnsureAsync(HubDbContext db, CancellationToken ct)
     {

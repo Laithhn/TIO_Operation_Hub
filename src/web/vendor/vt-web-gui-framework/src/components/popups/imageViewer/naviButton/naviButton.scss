@@ -1,0 +1,43 @@
+@use "assets/styles";
+
+// The button lies in a strip of its own along one side of the image, which is what makes the whole
+// strip clickable rather than the button alone. The opacity comes from the fade hook as an inline
+// style; this rule only says how long it takes to arrive.
+//
+// Where the strip begins and ends is the geometry of the viewer, not the button's own: it reaches
+// from below the header to above the preview strip. Those measurements are handed down as custom
+// properties by imageViewer.scss, and the button adds them up in "calc()".
+.naviButton {
+  position: absolute;
+  width: 100px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: opacity styles.layoutMs(animationTime, slowMs) ease;
+
+  &.left {
+    left: var(--imageViewerPadding);
+    justify-content: start;
+  }
+
+  &.right {
+    right: var(--imageViewerPadding);
+    justify-content: end;
+  }
+
+  &:not(.isExpanded) {
+    top: calc(var(--imageViewerPadding) + var(--imageViewerHeaderHeight) + var(--imageViewerRowGap));
+    bottom: calc(var(--imageViewerPadding) + var(--imageViewerPreviewHeight) + var(--imageViewerRowGap));
+    grid-template-columns: styles.layoutPx(controls, heightLarge);
+  }
+
+  &.isExpanded {
+    top: calc(
+      var(--imageViewerPadding) + var(--imageViewerHeaderHeightExpanded) + var(--imageViewerRowGapExpanded)
+    );
+    bottom: calc(
+      var(--imageViewerPadding) + var(--imageViewerPreviewHeight) + var(--imageViewerRowGapExpanded)
+    );
+    grid-template-columns: styles.layoutPx(controls, heightDefault);
+  }
+}

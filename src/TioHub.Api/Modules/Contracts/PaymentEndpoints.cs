@@ -103,7 +103,7 @@ public static class PaymentQuery
         api.MapGet("/payments", async (long? clientId, long? ownerId, long? productId, string? country, string? q, string? state, bool? mine, DateTimeOffset? asOf,
             string? sort, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             if (state is not null && !States.Contains(state)) throw new ValidationException("state", "Unknown payment state.");
             var now = asOf ?? DateTimeOffset.UtcNow;
             var today = DateOnly.FromDateTime(now.UtcDateTime);
@@ -125,5 +125,30 @@ public static class PaymentQuery
                 summary = await SummaryAsync(db.Contracts.AsNoTracking(), f with { State = null }, now, db, days, ct)
             });
         }).WithTags("Contracts");
+
+        // A110 (owner request, 10 Nov 2026): change one payment's status without editing the contract. Same right as editing the
+        // contract's payment terms (Contracts:Maintain where the contract is). The contract's version changes too, so a contract
+        // form opened before this change cannot save the old status back over it.
+        api.MapPost("/contracts/{id:long}/payments/{paymentId:long}/status", async (long id, long paymentId, PaymentStatusInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            var c = await db.Contracts.Include(x => x.Payments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
+            access.RequireIn(RightKeys.Contracts, RightKeys.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId]));
+            var p = c.Payments.FirstOrDefault(x => x.Id == paymentId) ?? throw new NotFoundException("The payment");
+            var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+            new Check()
+                .When(input.Status is null, "status", "Select the payment status.")
+                .When(input.Status == PaymentStatus.Paid && input.PaidOn is null, "paidOn", "Enter the date it was paid.")
+                .When(input.PaidOn is { } d && d > today.AddDays(1), "paidOn", "The payment date cannot be in the future.")
+                .Text("notes", input.Notes, 1000, "Notes")
+                .ThrowIfAny();
+            p.Status = input.Status!.Value;
+            p.PaidOn = p.Status == PaymentStatus.Paid ? input.PaidOn : null;
+            if (input.Notes is not null) p.Notes = Text.Clean(input.Notes);
+            c.UpdatedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new { p.Id, status = p.Status.ToString(), p.PaidOn, p.Notes });
+        }).WithTags("Contracts");
     }
+
+    public sealed record PaymentStatusInput(PaymentStatus? Status, DateOnly? PaidOn, string? Notes);
 }

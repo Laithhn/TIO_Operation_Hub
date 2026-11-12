@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Firewall;
+using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Work;
 
@@ -21,21 +23,28 @@ public static class DocumentedImpact
         var hosted = await db.ComponentHosts.AsNoTracking().Where(h => assetIds.Contains(h.AssetId)).Select(h => h.ComponentId).ToListAsync(ct);
         componentIds.UnionWith(hosted);
 
-        // Firewall rules from or to an affected server: the other side and what it hosts are potentially affected too.
-        var rules = await db.FirewallRules.AsNoTracking().Where(r => assetIds.Contains(r.SourceAssetId) || assetIds.Contains(r.DestinationAssetId))
+        // A case viewer also needs technical and source-module access to inspect
+        // firewall details and both endpoint servers must be in scope.
+        var canSeeRules = db.CurrentUser.SeesTechnical
+            && db.CurrentUser.HasRight(RightKeys.Other, RightKeys.View)
+            && db.CurrentUser.HasRight(RightKeys.Servers, RightKeys.View);
+        var rules = await FirewallEndpoints.VisibleRules(db).AsNoTracking().Where(r => canSeeRules && (assetIds.Contains(r.SourceAssetId) || assetIds.Contains(r.DestinationAssetId)))
             .Select(r => new { r.Id, r.Purpose, r.Ports, r.Protocol, source = r.SourceAsset!.Name, destination = r.DestinationAsset!.Name, r.SourceAssetId, r.DestinationAssetId })
             .ToListAsync(ct);
         var connected = rules.SelectMany(r => new[] { r.SourceAssetId, r.DestinationAssetId }).Where(id => !assetIds.Contains(id)).ToHashSet();
         componentIds.UnionWith(await db.ComponentHosts.AsNoTracking().Where(h => connected.Contains(h.AssetId)).Select(h => h.ComponentId).ToListAsync(ct));
 
-        var components = await db.Components.AsNoTracking().Where(x => componentIds.Contains(x.Id))
+        var canSeeServers = db.CurrentUser.HasRight(RightKeys.Servers, RightKeys.View);
+        var canSeeInstallations = db.CurrentUser.HasRight(RightKeys.Installations, RightKeys.View);
+        var canSeeEnvironments = db.CurrentUser.HasRight(RightKeys.Environments, RightKeys.View);
+        var components = await db.Components.AsNoTracking().Where(x => canSeeServers && componentIds.Contains(x.Id))
             .Select(x => new { x.Id, x.Name, x.Role, x.InstallationId }).ToListAsync(ct);
         var installationIds = components.Select(x => x.InstallationId).ToHashSet();
-        var installations = await db.Installations.AsNoTracking().Where(i => installationIds.Contains(i.Id))
+        var installations = await db.Installations.AsNoTracking().Where(i => canSeeInstallations && installationIds.Contains(i.Id))
             .Select(i => new { i.Id, i.InstanceName, product = i.Product!.Code, i.EnvironmentId, environment = i.Environment!.Name, i.ClientId, client = i.Environment.Client!.Code })
             .ToListAsync(ct);
         var envIds = installations.Select(i => i.EnvironmentId).Concat(c.Environments.Select(e => e.EnvironmentId)).ToHashSet();
-        var environments = await db.Environments.AsNoTracking().Where(e => envIds.Contains(e.Id)).Select(e => new { e.Id, e.Name, e.ClientId, client = e.Client!.Code }).ToListAsync(ct);
+        var environments = await db.Environments.AsNoTracking().Where(e => canSeeEnvironments && envIds.Contains(e.Id)).Select(e => new { e.Id, e.Name, e.ClientId, client = e.Client!.Code }).ToListAsync(ct);
         return new
         {
             label = Label,

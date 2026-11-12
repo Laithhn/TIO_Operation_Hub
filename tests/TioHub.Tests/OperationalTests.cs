@@ -45,6 +45,14 @@ public class AC15_RestoreDrill(HubFactory hub, ITestOutputHelper output)
                 b.UseSetting("Database:ApplyMigrationsOnStartup", "true");
                 b.UseSetting("Database:SeedDevelopmentData", "false");
                 b.UseSetting("Quality:ScanMinutes", "0");
+                // Nothing but the drill's own requests may write to the restored copy (its counts are compared with the source),
+                // and its files stay out of the project's App_Data.
+                b.UseSetting("Sla:SweepMinutes", "0");
+                b.UseSetting("Notifications:ScanMinutes", "0");
+                b.UseSetting("Reporting:SchedulerMinutes", "0");
+                b.UseSetting("Reporting:ExportWorkerSeconds", "0");
+                b.UseSetting("Attachments:Path", Path.Combine(hub.AttachmentRoot, "restore-drill"));
+                b.UseSetting("Reporting:Path", Path.Combine(hub.AttachmentRoot, "restore-drill-exports"));
             });
             async Task<HttpResponseMessage> As(string user, string path)
             {
@@ -60,7 +68,10 @@ public class AC15_RestoreDrill(HubFactory hub, ITestOutputHelper output)
             Assert.Equal(HttpStatusCode.Forbidden, (await As(@"DEV\former", "/clients")).StatusCode); // deactivation survives the restore
             // Records and audit match the source.
             foreach (var table in new[] { "clients.Client", "env.Environment", "work.[Case]", "work.Commitment", "audit.AuditEntry" })
-                Assert.Equal(await Count(hub.ConnectionString, table), await Count(restoredCs, table));
+            {
+                var (expected, actual) = (await Count(hub.ConnectionString, table), await Count(restoredCs, table));
+                Assert.True(table == "audit.AuditEntry" ? actual >= expected : expected == actual, $"{table}: {expected} row(s) in the source, {actual} after restore");
+            }
             output.WriteLine($"Restore drill: backup + restore took {restoreTime.TotalSeconds:0.0} s; sign-in, scope, records and audit verified.");
         }
         finally

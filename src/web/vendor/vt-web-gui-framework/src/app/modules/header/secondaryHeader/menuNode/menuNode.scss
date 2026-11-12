@@ -1,0 +1,15 @@
+@use "sass:math";
+@use "assets/styles";
+
+.menuNode {
+  height: styles.layoutPx(header, height);
+  outline:  none;
+  padding: #{math.div((styles.layout(header, height) - styles.layout(header, iconSize)), 2)}px styles.layoutPx(mostLeftRightPadding);
+  fill: styles.typo(color, light, normal);
+  cursor: pointer;
+
+  &.disabled {
+    fill: styles.typo(color, light, extraWeak);
+    cursor: default;
+  }
+}

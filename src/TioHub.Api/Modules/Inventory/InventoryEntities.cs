@@ -18,6 +18,10 @@ public class Asset : Entity, IArchivable, IAccountable, IClientOwned
     public AssetType TypeCategory { get; set; }
     public string? Role { get; set; }
     [TechnicalDetail] public string? NetworkZone { get; set; }
+    /// <summary>A104: the recorded address and VLAN, and free notes on the server. Recorded configuration, not discovered. Copying a server to another environment keeps only the notes.</summary>
+    [TechnicalDetail] public string? IpAddress { get; set; }
+    [TechnicalDetail] public string? Vlan { get; set; }
+    [TechnicalDetail] public string? Notes { get; set; }
     public string? ProjectPhase { get; set; }
     public AssetLifecycle Lifecycle { get; set; } = AssetLifecycle.Unknown;
     public long? OwnerUserId { get; set; }
@@ -40,6 +44,11 @@ public class Asset : Entity, IArchivable, IAccountable, IClientOwned
     public CpuUnit? CpuUnit { get; set; }
     public decimal? RamQuantity { get; set; }
     public MemoryUnit? RamUnit { get; set; }
+    /// <summary>A110: optional GPU specification. Null = none recorded (unknown, or the server has no GPU).</summary>
+    public int? GpuCount { get; set; }
+    public string? GpuModel { get; set; }
+    public decimal? GpuMemoryQuantity { get; set; }
+    public MemoryUnit? GpuMemoryUnit { get; set; }
     public string? OsFamily { get; set; }
     public string? OsVersion { get; set; }
     public DateTimeOffset? VerifiedAt { get; set; }

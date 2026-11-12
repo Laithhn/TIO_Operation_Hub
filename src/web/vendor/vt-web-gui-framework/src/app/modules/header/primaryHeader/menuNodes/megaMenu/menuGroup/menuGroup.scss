@@ -1,0 +1,9 @@
+@use "assets/styles";
+
+.menuGroup {
+  min-width: styles.layoutPx(firstSidebar, width);
+  max-width: max-content;
+  display: flex;
+  flex: 1 1 styles.layoutPx(firstSidebar, width);
+  flex-direction: column;
+}

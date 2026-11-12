@@ -1,0 +1,56 @@
+@use "assets/styles";
+
+.header {
+  display: grid;
+  grid-auto-flow: column;
+  column-gap: styles.spacePx(xl);
+  justify-content: space-between;
+  align-items: center;
+
+  .title {
+    @include styles.typoSet(headline, $disabled: false);
+    height: 42px; // caution: value determined by the height of the headline
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    transform-origin: top;
+    transition: all styles.layoutMs(animationTime, slowMs) ease;
+  }
+
+  .subtitle {
+    display: flex;
+    column-gap: styles.spacePx(normal);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    @include styles.typoSet(valueSmall, $disabled: false);
+  }
+
+  .controlsCntr {
+    display: grid;
+    grid-auto-flow: column;
+    column-gap: styles.spacePx(xl);
+  }
+
+  .controlsSubCntr {
+    display: grid;
+    grid-auto-flow: column;
+    column-gap: styles.spacePx(small);
+    align-items: center;
+  }
+
+  &.isExpanded {
+    .title {
+      height: 0;
+      transform: scaleY(0);
+    }
+
+    .controlsCntr {
+      column-gap: styles.spacePx(large);
+    }
+
+    .controlsSubCntr {
+      column-gap: styles.spacePx(small);
+    }
+  }
+}

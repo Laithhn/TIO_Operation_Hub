@@ -58,9 +58,16 @@ public static class Cascade
         [typeof(ResponsibilityBoundary)] = "boundaries", [typeof(Team)] = "teams"
     };
     private static readonly HashSet<string> NoOwnPage = ["contacts", "boundaries", "volumes", "firewall-rules"];
+    // Domain records with independent permissions, including records without a standalone delete route.
+    private static readonly HashSet<string> IndependentRecords =
+    [
+        nameof(Client), nameof(Region), nameof(Project), nameof(Contract), nameof(ClientEnvironment), nameof(Asset),
+        nameof(Installation), nameof(Component), nameof(Volume), nameof(SharedStorage), nameof(Case), nameof(Commitment),
+        nameof(Escalation), nameof(Contact), nameof(ResponsibilityBoundary), nameof(Team), nameof(Handover), "FirewallRule"
+    ];
 
     /// <summary>Never deleted: the audit trail and logs.</summary>
-    private static readonly HashSet<Type> Never = [typeof(AuditEntry), typeof(ExportLog), typeof(Notifications.Notification),
+    private static readonly HashSet<Type> Never = [typeof(AuditEntry), typeof(ExportLog), typeof(Notifications.Notification), typeof(Organization),
         // A47: private notes are never listed or counted for someone else; a deleted client or project only clears their link (database rule).
         typeof(Notes.Notebook), typeof(Notes.NoteSection), typeof(Notes.NotePage), typeof(Notes.NoteFile)];
     /// <summary>Tables that point at any record by type name and id.</summary>
@@ -82,8 +89,75 @@ public static class Cascade
 
     public static bool Supports(string path) => Kinds.Any(k => k.Path == path);
 
-    private static string Table(IEntityType e) => $"[{e.GetSchema() ?? "dbo"}].[{e.GetTableName()}]";
-    private static string Col(IEntityType e, IProperty p) => $"[{p.GetColumnName(StoreObjectIdentifier.Table(e.GetTableName()!, e.GetSchema()))}]";
+    /// <summary>Every client and internal team an operation would touch, read from the stored rows it deletes or unlinks.</summary>
+    public sealed record Footprint(IReadOnlySet<long> ClientIds, IReadOnlySet<long> TeamIds, bool UnscopedInternal);
+
+    /// <summary>
+    /// The dependency graph is collected with unfiltered SQL and can reach other scopes through optional references. Every affected client
+    /// and team must lie inside the caller's full data scope. Previews apply this too, because they reveal labels and counts. One row out of
+    /// scope stops the whole operation with the same answer as a missing record, so nothing about the hidden row can be inferred.
+    /// Project-only visibility never suffices: a project grant does not authorize changes to a client's records.
+    /// </summary>
+    public static void RequireFootprintInScope(UserContext me, Footprint footprint)
+    {
+        if (me.IsSystem) return;
+        if (!footprint.ClientIds.All(me.HasClient) || !footprint.TeamIds.All(t => me.SeesInternal(t)) || (footprint.UnscopedInternal && !me.SeesInternal(null)))
+            throw new NotFoundException("The record");
+    }
+
+    // Access metadata rows name a scope but are not records in it; they go with the record without widening the footprint.
+    private static readonly HashSet<Type> NoFootprint = [typeof(Modules.Access.UserScope), typeof(Modules.Access.GroupMappingScope), typeof(Modules.Access.UserRightException)];
+    private static readonly string[] TeamColumns = ["TeamId", "ResponsibleTeamId", "OwningTeamId"];
+
+    private static async Task<Footprint> FootprintAsync(HubDbContext db, Plan plan, CancellationToken ct)
+    {
+        var clients = new HashSet<long>();
+        var teams = new HashSet<long>();
+        var unscoped = false;
+        async Task ReadAsync(IEntityType t, string where)
+        {
+            if (NoFootprint.Contains(t.ClrType)) return;
+            if (t.ClrType == typeof(Client) || t.ClrType == typeof(Team))
+            {
+                var ids = await db.Database.SqlQueryRaw<long>($"SELECT x.{Col(t, SingleKey(t)!)} AS [Value] FROM {Table(t)} x WHERE {where}").ToListAsync(ct);
+                (t.ClrType == typeof(Client) ? clients : teams).UnionWith(ids);
+                return;
+            }
+            var client = t.FindProperty("ClientId");
+            var team = TeamColumns.Select(t.FindProperty).FirstOrDefault(p => p is not null);
+            if (client is null && team is null) return;   // hangs from an owned row through a required reference
+            var clientSql = client is null ? "CAST(NULL AS bigint)" : $"x.{Col(t, client)}";
+            var teamSql = team is null ? "CAST(NULL AS bigint)" : $"x.{Col(t, team)}";
+            var rows = await db.Database.SqlQueryRaw<ScopeRow>($"SELECT DISTINCT {clientSql} AS [ClientId], {teamSql} AS [TeamId] FROM {Table(t)} x WHERE {where}").ToListAsync(ct);
+            foreach (var row in rows)
+            {
+                if (row.ClientId is { } c) clients.Add(c);
+                else if (row.TeamId is { } id) teams.Add(id);
+                else if (client is not null && team is not null) unscoped = true;   // an internal record without a team
+            }
+        }
+        foreach (var t in plan.Order) await ReadAsync(t, Owned(plan, t));
+        foreach (var g in plan.Unlinks.GroupBy(u => u.Child))
+        {
+            var refers = string.Join(" OR ", g.Select(u => $"x.{u.Column} IN (SELECT id FROM #own WHERE t = N'{Name(u.Parent)}')"));
+            await ReadAsync(g.Key, $"({refers})");
+        }
+        return new Footprint(clients, teams, unscoped);
+    }
+
+    private sealed class ScopeRow { public long? ClientId { get; set; } public long? TeamId { get; set; } }
+
+    /// <summary>The table names an operation owns and the columns it unlinks, for model checks without a database.</summary>
+    internal static (string[] Owned, string[] Unlinked) Describe(HubDbContext db, string path)
+    {
+        var plan = Build(db, KindOf(path));
+        return (plan.Order.Select(Name).ToArray(), plan.Unlinks.Select(u => $"{Name(u.Child)}.{u.Column}").ToArray());
+    }
+
+    // Table and column names come exclusively from the EF model; delimit them as SQL Server identifiers.
+    private static string Identifier(string value) => "[" + value.Replace("]", "]]", StringComparison.Ordinal) + "]";
+    private static string Table(IEntityType e) => $"{Identifier(e.GetSchema() ?? "dbo")}.{Identifier(e.GetTableName()!)}";
+    private static string Col(IEntityType e, IProperty p) => Identifier(p.GetColumnName(StoreObjectIdentifier.Table(e.GetTableName()!, e.GetSchema()))!);
     private static IProperty? SingleKey(IEntityType e) => e.FindPrimaryKey() is { Properties.Count: 1 } k && k.Properties[0].ClrType == typeof(long) ? k.Properties[0] : null;
     private static bool Mapped(IEntityType e) => e.GetTableName() is not null && !e.IsOwned() && e.FindPrimaryKey() is not null && !Never.Contains(e.ClrType) && e.GetViewName() is null;
 
@@ -106,7 +180,13 @@ public static class Cascade
                     if (fk.Properties.Count != 1 || !owned.Contains(fk.PrincipalEntityType) || fk.PrincipalEntityType == t) continue;
                     var prop = fk.Properties[0];
                     var scope = fk.PrincipalEntityType == root && kind.ScopeColumn == prop.Name;
-                    if (!fk.IsRequired && !scope) continue;
+                    // A project owns its contextual edges. Clearing ProjectId would promote them into the client-wide graph.
+                    var contextOwned = (t.ClrType == typeof(OrganizationRelationship) && fk.PrincipalEntityType.ClrType == typeof(Project)
+                        && prop.Name == nameof(OrganizationRelationship.ProjectId))
+                        // Clearing a scope column would turn a scoped exception into a global one, so it is removed with its scope.
+                        || (t.ClrType == typeof(Modules.Access.UserRightException)
+                            && prop.Name is nameof(Modules.Access.UserRightException.ClientId) or nameof(Modules.Access.UserRightException.ProjectId) or nameof(Modules.Access.UserRightException.TeamId));
+                    if (!fk.IsRequired && !scope && !contextOwned) continue;
                     var parentKey = fk.PrincipalKey.Properties[0];
                     var edge = new Edge(t, Col(t, prop), fk.PrincipalEntityType, Col(fk.PrincipalEntityType, parentKey));
                     if (plan.Edges.Any(x => x.Child == t && x.Column == edge.Column && x.Parent == edge.Parent)) continue;
@@ -153,7 +233,7 @@ public static class Cascade
     private static async Task CollectAsync(HubDbContext db, Plan plan, long id, CancellationToken ct)
     {
         await db.Database.ExecuteSqlRawAsync("IF OBJECT_ID('tempdb..#own') IS NOT NULL DROP TABLE #own; CREATE TABLE #own (t nvarchar(200) NOT NULL, id bigint NOT NULL, PRIMARY KEY (t, id));", ct);
-        await db.Database.ExecuteSqlRawAsync($"INSERT #own (t, id) VALUES (N'{Name(plan.Root)}', {id});", ct);
+        await db.Database.ExecuteSqlRawAsync($"INSERT #own (t, id) VALUES (N'{Name(plan.Root)}', {{0}});", [id], ct);
         foreach (var t in plan.Order.Where(t => t != plan.Root && SingleKey(t) is not null))
             await db.Database.ExecuteSqlRawAsync($"INSERT #own (t, id) SELECT DISTINCT N'{Name(t)}', x.{Col(t, SingleKey(t)!)} FROM {Table(t)} x WHERE {Where(plan, t)} AND NOT EXISTS (SELECT 1 FROM #own o WHERE o.t = N'{Name(t)}' AND o.id = x.{Col(t, SingleKey(t)!)});", ct);
     }
@@ -170,15 +250,15 @@ public static class Cascade
         {
             "ClientEnvironment" => "Environments", "Asset" => "Servers", "ComponentHost" => "Server–component links", "Client" => "Sub-clients", "ClientTeamMember" => "Project team members",
             "ResponsibilityBoundary" => "Responsibility boundaries", "FirewallRule" => "Firewall rules", "SlaTarget" => "SLA targets", "ContractEnvironment" => "Contract coverage",
-            "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
-            "CaseWaitingInterval" => "Case waiting periods", "InstallationVersionChange" => "Version changes", "ConditionReport" => "Condition reports", "DataQualityItem" => "Data-quality items",
-            "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Case–server links",
-            "CaseEnvironment" => "Case–environment links", "CaseComponent" => "Case–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
-            "CaseEvent" => "Case history entries", "CommitmentEvent" => "Commitment history entries", "EscalationEvent" => "Escalation timeline entries", "Review" => "Reviews",
-            "ProductDeveloper" => "Product developers", "TeamMember" => "Team members",
+            "ProjectProduct" => "Project products", "UserScope" => "User access scopes", "UserRightException" => "Individual permission exceptions", "GroupMappingScope" => "Group mapping scopes", "JiraReference" => "Jira references",
+            "CaseWaitingInterval" => "Ticket waiting periods", "InstallationVersionChange" => "Version changes", "ConditionReport" => "Condition reports", "DataQualityItem" => "Data-quality items",
+            "DocumentReference" => "Document references", "Attachment" => "Attachments", "ContractMilestone" => "Delivery schedule rows", "ContractFee" => "Fee lines", "ContractPayment" => "Payment terms", "MicroserviceVersion" => "Microservice versions", "HandoverItem" => "Handover items", "CaseAsset" => "Ticket–server links",
+            "CaseEnvironment" => "Ticket–environment links", "CaseComponent" => "Ticket–component links", "SharedStorage" => "Shared storage", "Volume" => "Volumes",
+            "CaseEvent" => "Ticket history entries", "CommitmentEvent" => "Commitment history entries", "EscalationEvent" => "Escalation timeline entries", "Review" => "Reviews",
+            "ProductDeveloper" => "Product developers", "ClientStatusReport" => "Client status reports", "TeamMember" => "Team members",
             _ => System.Text.RegularExpressions.Regex.Replace(t.ClrType.Name, "(?<!^)([A-Z])", " $1") + "s"
         };
-        return n.Replace("Cases", "Cases").Replace("ys", "ies");
+        return n.Replace("Cases", "Tickets").Replace("ys", "ies");
     }
 
     private sealed class Row { public long Id { get; set; } public string? Label { get; set; } }
@@ -230,9 +310,9 @@ public static class Cascade
             .MakeGenericMethod(kind.Entity).Invoke(null, [db])!;
         if (!await q.AnyAsync(e => EF.Property<long>(e, "Id") == id, ct)) throw new NotFoundException("The record");
         var labelCol = LabelColumns.Select(c => et.FindProperty(c)).FirstOrDefault(p => p is not null && p.ClrType == typeof(string));
-        var label = labelCol is null ? $"#{id}" : await db.Database.SqlQueryRaw<string>($"SELECT {Col(et, labelCol)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {id}").SingleAsync(ct);
+        var label = labelCol is null ? $"#{id}" : await db.Database.SqlQueryRaw<string>($"SELECT {Col(et, labelCol)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {{0}}", id).SingleAsync(ct);
         long? clientId = kind.Entity == typeof(Client) ? id
-            : et.FindProperty("ClientId") is { } cp ? await db.Database.SqlQueryRaw<long?>($"SELECT {Col(et, cp)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {id}").SingleAsync(ct) : null;
+            : et.FindProperty("ClientId") is { } cp ? await db.Database.SqlQueryRaw<long?>($"SELECT {Col(et, cp)} AS [Value] FROM {Table(et)} WHERE {Col(et, SingleKey(et)!)} = {{0}}", id).SingleAsync(ct) : null;
         return (label, clientId);
     }
 
@@ -240,28 +320,51 @@ public static class Cascade
 
     public static async Task<Preview> PreviewAsync(HubDbContext db, UserContext me, string path, long id, CancellationToken ct)
     {
-        me.RequireRight(Right.Delete);
         var kind = KindOf(path);
+        RightChecks.RequireRecordSection(me, kind.RecordType, "Delete");
+        me.RequireRight(RightKeys.ForRecord(kind.RecordType), RightKeys.Delete);
         var (label, _) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         await CollectAsync(db, plan, id, ct);
+        RequireFootprintInScope(me, await FootprintAsync(db, plan, ct));
         var del = await GroupsAsync(db, plan, ct);
         var unlink = await UnlinkGroupsAsync(db, plan, ct);
+        RequireDependentPermissions(me, del, unlink);
         await tx.RollbackAsync(ct);
         return new Preview(label, del.Sum(g => g.Count), del, unlink);
     }
 
     public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct)
     {
-        me.RequireRight(Right.Delete);
         var kind = KindOf(path);
+        RightChecks.RequireRecordSection(me, kind.RecordType, "Delete");
+        me.RequireRight(RightKeys.ForRecord(kind.RecordType), RightKeys.Delete);
         var (label, clientId) = await LoadAsync(db, kind, id, ct);
         var plan = Build(db, kind);
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        // Range locks keep new descendants and optional references from appearing between authorization and mutation.
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        // Take application locks before reading edges, matching graph writers' lock order.
+        if (plan.Order.Any(t => t.ClrType == typeof(Project)))
+        {
+            var projects = await db.Projects.IgnoreQueryFilters().Where(p => p.ClientId == clientId)
+                .OrderBy(p => p.ClientId).ThenBy(p => p.Id).Select(p => new { p.Id, p.ClientId }).ToListAsync(ct);
+            foreach (var project in projects)
+                await OrganizationEndpoints.LockContextAsync(project.ClientId, project.Id, db, ct);
+        }
         await CollectAsync(db, plan, id, ct);
-        var summary = (await GroupsAsync(db, plan, ct)).ToDictionary(g => g.Label, g => g.Count);
-        var unlinked = (await UnlinkGroupsAsync(db, plan, ct)).ToDictionary(g => g.Label, g => g.Count);
+        // Serializable range locks hold from here to commit, so the authorized set is the set that is changed.
+        RequireFootprintInScope(me, await FootprintAsync(db, plan, ct));
+        var deletedGroups = await GroupsAsync(db, plan, ct);
+        var unlinkedGroups = await UnlinkGroupsAsync(db, plan, ct);
+        RequireDependentPermissions(me, deletedGroups, unlinkedGroups);
+        // Raw SQL below can remove scopes, projects, or environments without EF change tracking.
+        // Invalidate the derived authorization snapshots atomically with the graph deletion.
+        await db.AdvanceAuthorizationVersionAsync(ct);
+        var summary = deletedGroups.ToDictionary(g => g.Label, g => g.Count);
+        var unlinked = unlinkedGroups.ToDictionary(g => g.Label, g => g.Count);
+        if (kind.Entity == typeof(Client))
+            await OrganizationEndpoints.PreserveClientIdentityAsync(id, db, ct);
         // Files of every attachment that goes (attached to a removed record, or owned through its client) — removed from disk after the commit.
         var att = db.Model.FindEntityType(typeof(Attachments.Attachment))!;
         var paths = new List<string>();
@@ -269,6 +372,13 @@ public static class Cascade
             paths.AddRange(await db.Database.SqlQueryRaw<string>($"SELECT {Col(att, att.FindProperty("StoredPath")!)} AS [Value] FROM {Table(att)} WHERE {Col(att, att.FindProperty("RecordType")!)} = N'{HubDbContext.EntityName(t.ClrType)}' AND {Col(att, att.FindProperty("RecordId")!)} IN (SELECT id FROM #own WHERE t = N'{Name(t)}')").ToListAsync(ct));
         if (plan.Order.Contains(att))
             paths.AddRange(await db.Database.SqlQueryRaw<string>($"SELECT x.{Col(att, att.FindProperty("StoredPath")!)} AS [Value] FROM {Table(att)} x WHERE {Owned(plan, att)}").ToListAsync(ct));
+        // A71: logo files of removed clients (the client itself and any sub-client that goes with it).
+        var clientType = db.Model.FindEntityType(typeof(Client))!;
+        if (plan.Order.Contains(clientType))
+        {
+            var logo = Col(clientType, clientType.FindProperty(nameof(Client.LogoPath))!);
+            paths.AddRange(await db.Database.SqlQueryRaw<string>($"SELECT x.{logo} AS [Value] FROM {Table(clientType)} x WHERE x.{logo} IS NOT NULL AND {Owned(plan, clientType)}").ToListAsync(ct));
+        }
         // 1. Unlink optional references (from kept rows, and between rows about to go so no order problem remains).
         foreach (var u in plan.Unlinks)
             await db.Database.ExecuteSqlRawAsync($"UPDATE {Table(u.Child)} SET {u.Column} = NULL WHERE {u.Column} IN (SELECT id FROM #own WHERE t = N'{Name(u.Parent)}');", ct);
@@ -287,6 +397,21 @@ public static class Cascade
         await tx.CommitAsync(ct);
         files.Delete(paths.Distinct());
         return Results.Ok(new { deleted = summary.Values.Sum() + 1, unlinked = unlinked.Values.Sum() });
+    }
+
+    private static void RequireDependentPermissions(UserContext me, List<Group> deleted, List<Group> unlinked)
+    {
+        // History and link cleanup inherit the owning record's permission; independent business records keep their own rights.
+        foreach (var group in deleted.Where(g => IndependentRecords.Contains(g.Type)))
+        {
+            RightChecks.RequireRecordSection(me, group.Type, "Delete");
+            me.RequireRight(RightKeys.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), RightKeys.Delete);
+        }
+        foreach (var group in unlinked.Where(g => IndependentRecords.Contains(g.Type)))
+        {
+            RightChecks.RequireRecordSection(me, group.Type, "Maintain");
+            me.RequireRight(RightKeys.ForRecord(group.Type == nameof(ClientEnvironment) ? RecordTypes.Environment : group.Type), RightKeys.Maintain);
+        }
     }
 
     public static void MapCascadeEndpoints(this RouteGroupBuilder api)

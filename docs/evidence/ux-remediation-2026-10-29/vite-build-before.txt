@@ -1,0 +1,44 @@
+../TioHub.Api/wwwroot/index.html                                       0.61 kB │ gzip:   0.39 kB
+../TioHub.Api/wwwroot/assets/layers-BWBAp2CZ.png                       0.70 kB
+../TioHub.Api/wwwroot/assets/layers-2x-Bpkbi35X.png                    1.26 kB
+../TioHub.Api/wwwroot/assets/marker-icon-hN30_KVU.png                  1.47 kB
+../TioHub.Api/wwwroot/assets/SourceCodePro-SemiBold-PvdDlFQO.woff2    12.12 kB
+../TioHub.Api/wwwroot/assets/SourceCodePro-Regular-DVU8_9LW.woff2     12.36 kB
+../TioHub.Api/wwwroot/assets/OpenSans-Italic-BSE8JA2e.woff2           18.07 kB
+../TioHub.Api/wwwroot/assets/OpenSans-SemiBoldItalic-CiS46d8x.woff2   18.41 kB
+../TioHub.Api/wwwroot/assets/OpenSans-Regular-p3YTou6l.woff2          18.88 kB
+../TioHub.Api/wwwroot/assets/OpenSans-Bold-KGIX5wQO.woff2             19.50 kB
+../TioHub.Api/wwwroot/assets/OpenSans-SemiBold-BPkKgrJ5.woff2         19.64 kB
+../TioHub.Api/wwwroot/assets/NotoSansArabic-Regular-BQZq7CHK.woff2    27.16 kB
+../TioHub.Api/wwwroot/assets/NotoSansArabic-700-CKvYBChn.woff2        27.96 kB
+../TioHub.Api/wwwroot/assets/NotoSansArabic-600-BnsJZAor.woff2        29.40 kB
+../TioHub.Api/wwwroot/assets/Clients-BfHzBgFy.css                      1.85 kB │ gzip:   0.70 kB
+../TioHub.Api/wwwroot/assets/LeafletMap-WVuN2HsW.css                  11.07 kB │ gzip:   2.72 kB
+../TioHub.Api/wwwroot/assets/ClientMap-bGdUnCJ_.css                   12.50 kB │ gzip:   2.86 kB
+../TioHub.Api/wwwroot/assets/index-BgodGwqA.css                      169.93 kB │ gzip:  29.12 kB
+../TioHub.Api/wwwroot/assets/Actions-BC6Uk3gb.js                       3.13 kB │ gzip:   1.39 kB
+../TioHub.Api/wwwroot/assets/common-CU5I8PPe.js                        3.90 kB │ gzip:   1.65 kB
+../TioHub.Api/wwwroot/assets/Quality-C0NSp2cE.js                       4.05 kB │ gzip:   1.71 kB
+../TioHub.Api/wwwroot/assets/Attachments-BaUxv0Bw.js                   4.56 kB │ gzip:   2.06 kB
+../TioHub.Api/wwwroot/assets/Configuration-CP6dXmjM.js                 7.83 kB │ gzip:   2.95 kB
+../TioHub.Api/wwwroot/assets/Firewall-CVJvwEv_.js                      8.32 kB │ gzip:   2.83 kB
+../TioHub.Api/wwwroot/assets/Commitments-JLSAJ2Iz.js                  12.97 kB │ gzip:   4.25 kB
+../TioHub.Api/wwwroot/assets/charts-q7ML-LhT.js                       15.04 kB │ gzip:   5.24 kB
+../TioHub.Api/wwwroot/assets/Escalations-BTJvBdYB.js                  16.90 kB │ gzip:   5.35 kB
+../TioHub.Api/wwwroot/assets/Teams-By7T1ef7.js                        17.25 kB │ gzip:   5.13 kB
+../TioHub.Api/wwwroot/assets/Environments-CQ-2ZEEw.js                 21.23 kB │ gzip:   6.38 kB
+../TioHub.Api/wwwroot/assets/ClientMap-CDCIR-Am.js                    25.06 kB │ gzip:   8.12 kB
+../TioHub.Api/wwwroot/assets/Notes-CIxkGjBu.js                        25.10 kB │ gzip:   8.01 kB
+../TioHub.Api/wwwroot/assets/Admin-DSe7uOIt.js                        32.98 kB │ gzip:   9.61 kB
+../TioHub.Api/wwwroot/assets/Products-DXB7NVAb.js                     33.08 kB │ gzip:   8.01 kB
+../TioHub.Api/wwwroot/assets/Cases-DlGxP6GP.js                        42.54 kB │ gzip:  11.94 kB
+../TioHub.Api/wwwroot/assets/Dashboard-CPSxuwtY.js                    44.72 kB │ gzip:  12.78 kB
+../TioHub.Api/wwwroot/assets/Inventory-DfVYbPJk.js                    52.32 kB │ gzip:  13.98 kB
+../TioHub.Api/wwwroot/assets/Reports-D4OuDmP4.js                     101.44 kB │ gzip:  28.91 kB
+../TioHub.Api/wwwroot/assets/Clients-t8X8NmCH.js                     115.69 kB │ gzip:  29.50 kB
+../TioHub.Api/wwwroot/assets/LeafletMap-D8l4s9uS.js                  165.81 kB │ gzip:  49.74 kB
+../TioHub.Api/wwwroot/assets/countries-50m-DgYPl3oJ.js               756.54 kB │ gzip: 233.04 kB
+../TioHub.Api/wwwroot/assets/index-C5_rGgrC.js                       907.43 kB │ gzip: 301.00 kB
+(!) Some chunks are larger than 900 kB after minification. Consider:
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 6.84s

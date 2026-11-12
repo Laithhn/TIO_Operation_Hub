@@ -1,0 +1,16 @@
+@use "assets/styles";
+
+
+.firstSidebar {
+  width: styles.layoutPx(firstSidebar, width);
+  grid-area: viAreaFirstSidebar;
+  display: grid;
+  grid-template-rows: 1fr;
+  row-gap: styles.spacePx(normal);
+  border-right: 1px solid styles.layout(dividerColor, soft);
+  @include styles.background(styles.layout(firstSidebar, background));
+
+  &.withTitle {
+    grid-template-rows: minmax(#{styles.layoutPx(mainToolbar, heightInMainScope)}, auto) 1fr;
+  }
+}

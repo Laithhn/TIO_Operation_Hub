@@ -38,6 +38,16 @@ public sealed class HubSettings(HubDbContext db, IMemoryCache cache)
     public async Task<HashSet<Priority>> CoveragePrioritiesAsync(CancellationToken ct) =>
         (await ListAsync(SettingKeys.CoveragePriorities, ct)).Select(v => Enum.TryParse<Priority>(v, out var c) ? c : (Priority?)null).OfType<Priority>().ToHashSet();
 
+    private async Task<int> IntAsync(string key, int fallback, int min, int max, CancellationToken ct) =>
+        int.TryParse(await GetAsync(key, "", ct), out var v) && v >= min && v <= max ? v : fallback;
+
+    /// <summary>A108: share of the target time left (percent) at or below which a running SLA clock is at risk.</summary>
+    public Task<int> SlaAtRiskPercentAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaAtRiskPercent, 25, 5, 50, ct);
+    /// <summary>A108: the internal compliance objective (percent) measured rates are compared with.</summary>
+    public Task<int> SlaComplianceTargetAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaComplianceTargetPercent, 90, 50, 100, ct);
+    /// <summary>A109: days after which a recorded client status needs review.</summary>
+    public Task<int> ClientStatusMaxAgeDaysAsync(CancellationToken ct) => IntAsync(SettingKeys.ClientStatusMaxAgeDays, 14, 1, 90, ct);
+
     public void Invalidate() => cache.Remove(CacheKey);
 }
 
@@ -46,48 +56,60 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
 {
     public UserContext Me => me;
 
-    public void RequireBusiness()
+    /// <summary>Whether an active account can be assigned before a new record has a scope.</summary>
+    public async Task<bool> HasAssignableAccessAsync(long? userId, CancellationToken ct) =>
+        userId is { } id && (await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true))?.HasAccess == true;
+
+    public void RequireAccess()
     {
-        if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business role, so it cannot see client or internal records.");
+        if (!me.HasAccess) throw new ForbiddenException("Your account has no effective access, so it cannot see client or internal records.");
     }
 
     /// <summary>TIO Manager actions: client structure (clients, regions, projects), archive/restore, triage, assignment, handovers.</summary>
-    public void RequireLeadFor(long? clientId, long? teamId = null)
+    public void RequireLeadFor(long? clientId, long? teamId = null, string resource = RightKeys.Structure)
     {
-        me.Require(Role.Manager);
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
+        RequireIn(resource, RightKeys.Coordinate, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>A31: archiving and restoring needs the Archive right.</summary>
-    public void RequireArchiveFor(long? clientId, long? teamId = null)
+    public void RequireArchiveFor(long? clientId, long? teamId = null, string resource = RightKeys.Other)
     {
-        me.RequireRight(Right.Archive);
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
+        RequireIn(resource, RightKeys.ArchiveRestore, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>Day-to-day work that any Operation Engineer may do (environments, contracts, network, products…).</summary>
-    public void RequireEngineerFor(long? clientId, long? teamId = null)
+    public void RequireEngineerFor(long? clientId, long? teamId = null, string resource = RightKeys.Other)
+        => RequireCreateFor(resource, clientId, teamId);
+
+    public void RequireCreateFor(string resource, long? clientId, long? teamId = null)
     {
-        me.Require(Role.Engineer);
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
+        RequireIn(resource, RightKeys.Create, ResourceContext.ForRecord(clientId, teamId));
     }
 
     /// <summary>Maintain a record: every Operation Engineer and the TIO Manager (owner decision, 19 Oct 2026). Ownership changes stay with the Manager (CheckOwnerChange).</summary>
-    public void RequireMaintain(long? clientId, long? teamId, params long?[] responsibleUserIds)
+    public void RequireMaintain(long? clientId, long? teamId, params long?[] responsibleUserIds) =>
+        RequireMaintain(RightKeys.Other, clientId, teamId, responsibleUserIds);
+
+    public void RequireMaintain(string resource, long? clientId, long? teamId, params long?[] responsibleUserIds) =>
+        RequireIn(resource, RightKeys.Maintain, ResourceContext.ForRecord(clientId, teamId));
+
+    /// <summary>Data scope first (hidden records answer 404), then the contextual decision. The context comes from the stored record.</summary>
+    public void RequireIn(string resource, string action, ResourceContext context)
     {
-        if (!me.SeesScope(clientId, teamId)) throw new NotFoundException("The record");
-        if (me.Can(Role.Engineer)) return;
-        throw new ForbiddenException("Your account has no role in the hub. Ask the TIO Manager.");
+        if (!me.SeesContext(context)) throw new NotFoundException("The record");
+        me.RequireRightIn(resource, action, context);
     }
 
-    /// <summary>Validates an assignee/owner: exists, active, has a business role and can access the record's scope.</summary>
+    /// <summary>Validates an assignee/owner: exists, is active, has access and can access the record's scope.</summary>
     public async Task CheckAssignableAsync(Check check, string field, long? userId, long? clientId, long? teamId, string label, CancellationToken ct, long? environmentId = null)
     {
         if (userId is null) return;
-        var u = await resolver.ForUserAsync(userId.Value, ct);
+        var u = await resolver.ForUserAsync(userId.Value, ct, directWhenGroupsUnknown: true);
         if (u is null) { check.Add(field, $"Select an existing person as {label}."); return; }
         if (!u.IsActive) { check.Add(field, $"{u.DisplayName} is deactivated and cannot be {label}."); return; }
-        var business = u.Roles.Length > 0;
+        // A83: a Vitronic team member works through Jira and holds no hub access to check.
+        if (await db.Users.AsNoTracking().AnyAsync(x => x.Id == userId && x.Classification == UserClassification.VitronicTeamMember, ct)) return;
+        var business = u.HasAccess;
         var inScope = business && (clientId is { } c
             ? u.AllClients || u.ClientIds.Contains(c) || (environmentId is { } e && u.ProjectEnvironmentIds.Contains(e))
             : u.AllInternal || (teamId is { } t && u.TeamIds.Contains(t)));
@@ -95,11 +117,11 @@ public sealed class HubAccess(HubDbContext db, UserContext me, UserResolver reso
     }
 
     /// <summary>OPS-01 / ACC-03: only the TIO Manager or Manager changes ownership; an Engineer may only take unowned work themselves.</summary>
-    public void CheckOwnerChange(Check check, string field, long? current, long? requested, bool allowSelfTakeIfUnassigned = false)
+    public void CheckOwnerChange(Check check, string field, long? current, long? requested, bool allowSelfTakeIfUnassigned = false, string resource = RightKeys.Other)
     {
-        if (current == requested || me.IsLead) return;
-        if (allowSelfTakeIfUnassigned && current is null && requested == me.UserId && me.Can(Role.Engineer)) return;
-        check.Add(field, "Only the TIO Manager can change the owner.");
+        if (current == requested || me.HasRight(resource, RightKeys.Coordinate)) return;
+        if (allowSelfTakeIfUnassigned && current is null && requested == me.UserId && me.HasRight(resource, RightKeys.Maintain)) return;
+        check.Add(field, "You do not have permission to change the owner.");
     }
 
     public async Task<UserRef?> UserRefAsync(long? id, CancellationToken ct) =>

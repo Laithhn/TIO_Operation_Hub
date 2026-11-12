@@ -1,0 +1,33 @@
+.role-matrix { margin: 16px 0 24px; padding: 18px 20px; border: 1px solid var(--line, #d9dfe7); background: var(--surface, #fff); }
+.role-matrix h2 { margin: 0 0 4px; font-size: 1.18rem; }
+.role-matrix-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: end; padding: 12px 0 16px; }
+.role-matrix-filters label { display: grid; gap: 4px; min-width: 165px; font-weight: 600; }
+.role-matrix-filters label:first-child { flex: 1; }
+.role-matrix-filters input, .role-matrix-filters select { width: 100%; font-weight: 400; }
+.role-matrix-scroll { min-width: 0; max-height: 660px; overflow: auto; scrollbar-gutter: stable; border-top: 1px solid var(--line, #d9dfe7); }
+.role-matrix-scroll:focus-visible { outline: 3px solid var(--info, #2563c9); outline-offset: -3px; }
+.role-matrix-table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: max-content; font-size: .85rem; }
+.role-matrix-table th, .role-matrix-table td { border-bottom: 1px solid #dce3ec; padding: 6px 10px; text-align: left; font-weight: 400; }
+.role-matrix-table thead th { position: sticky; top: 0; z-index: 3; background: #09274d; color: #fff; font-weight: 600; min-width: 94px; vertical-align: bottom; }
+.role-matrix-table thead th a { color: inherit; display: inline-flex; align-items: center; min-height: 24px; }
+.role-matrix-table thead th:first-child { left: 0; z-index: 5; }
+.role-matrix-table thead th:not(:first-child) { text-align: center; }
+.role-matrix-table tbody th[scope="row"] { position: sticky; left: 0; z-index: 2; background: var(--surface, #fff); width: 320px; min-width: 260px; max-width: 360px; }
+.role-matrix-table tbody th[scope="row"] code { display: block; margin-top: 2px; font-size: .75rem; color: #53667b; overflow-wrap: anywhere; }
+.role-matrix-branch th, .role-matrix-branch td { background: #dfeaf6; font-variant-numeric: tabular-nums; }
+.role-matrix-branch th { position: sticky; left: 0; z-index: 2; }
+.role-matrix-table tbody .role-matrix-branch th { background: #dfeaf6; }
+.role-matrix-filters .role-matrix-check { display: flex; align-items: center; gap: 8px; min-width: 0; min-height: 28px; flex: 0 0 auto; }
+.role-matrix-filters .role-matrix-check input { width: auto; margin: 0; }
+.role-matrix-actions { display: inline-flex; gap: 8px; margin-left: auto; }
+.role-matrix-branch .linkbtn { min-height: 28px; font-weight: 600; text-align: left; }
+.role-matrix-table td { text-align: center; }
+.role-matrix-effective { color: #136748; font-weight: 700 !important; }
+.role-matrix-blocked { color: #a05b00; font-weight: 700 !important; }
+.role-matrix-inactive { color: #6b7280; }
+.role-matrix-none { color: #6b7280; }
+@media (max-width: 760px) {
+  .role-matrix { padding: 14px 12px; }
+  .role-matrix-table tbody th[scope="row"] { width: 200px; min-width: 200px; max-width: 200px; }
+}
+.role-matrix-table thead th .badge { display: table; margin: 2px auto 0; background: var(--surface, #fff); color: var(--fg, #1a1a1a); }

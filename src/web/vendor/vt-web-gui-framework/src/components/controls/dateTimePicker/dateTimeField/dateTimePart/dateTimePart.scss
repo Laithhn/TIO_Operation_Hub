@@ -1,0 +1,53 @@
+@use "assets/styles";
+
+
+// The two directions of a status change, and they are a pair on purpose (see the controls map): a
+// status arrives instantly and leaves over the ease-out.
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
+
+.dateTimePart {
+  padding: 0 1px;
+  outline: none;
+  background: none;
+  font-size: inherit; // otherwise the input element does not overtake it from the parent
+  text-align: center;
+  color: inherit; // due to input element bitching
+  @include styles.noTextSelection;
+  // The part holding the focus takes the interaction veil a second time, over the one the pane
+  // draws for its focus-within: the pane says the picker has the focus, the part says where in it -
+  // the same sum the button shows while it is pressed. It is the veil and not the selection
+  // highlight of a text field because it marks a focus, not a selection: the part is read-only, and
+  // the keys write into whichever part carries the focus. The slot's empty value carries two layers
+  // like the veil, which keeps the shadow list transitionable - see the controls map.
+  box-shadow: #{styles.layout(controls, slotEmptyVeil)};
+  transition: box-shadow $easeOutMs ease-out;
+
+  &:focus:not(.disabled) {
+    box-shadow: #{styles.layout(controls, interactionVeil)};
+    transition-duration: $easeInMs;
+
+    @include styles.onDarkGround {
+      box-shadow: #{styles.layout(controls, interactionVeilOnDark)};
+    }
+  }
+
+  &::selection {
+    background: none;
+  }
+
+  &.disabled {
+    cursor: default;
+  }
+
+  &.placeholder:not(.disabled) {
+    color: styles.typo(color, dark, weak);
+    fill: styles.typo(color, dark, weak);
+
+    @include styles.onDarkGround {
+      color: styles.typo(color, light, weak);
+      fill: styles.typo(color, light, weak);
+    }
+  }
+}

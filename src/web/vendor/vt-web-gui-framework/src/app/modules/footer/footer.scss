@@ -1,0 +1,7 @@
+@use "assets/styles";
+
+.footer {
+  grid-area: styles.layout(footer, gridArea);
+  display: grid;
+  @include styles.background(primaryMidnight);
+}

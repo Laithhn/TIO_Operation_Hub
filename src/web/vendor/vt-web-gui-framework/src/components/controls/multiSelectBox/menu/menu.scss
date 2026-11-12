@@ -1,0 +1,40 @@
+@use "assets/styles";
+
+
+$gapBetweenHeaderAndOptions: styles.space(normal);
+
+:export {
+  gapBetweenHeaderAndOptions: $gapBetweenHeaderAndOptions;
+}
+
+
+.menu {
+  position: absolute;
+  display: grid;
+  row-gap: #{$gapBetweenHeaderAndOptions}px;
+  padding: styles.layoutPx(controlMenus, paddingTop) 0 styles.layoutPx(controlMenus, paddingBottom) 0;
+  border-radius: styles.layoutPx(controlMenus, borderRadius);
+  // the height of something sitting on its trigger - see the select box's menu
+  --glassShadow: #{styles.layout(boxShadow, anchored)};
+
+  opacity: 0;
+  // what keeps the options from running over the rounded corners
+  overflow: hidden;
+  transition: opacity styles.layoutMs(animationTime, mediumMs) ease;
+
+  @include styles.glassmorphism($strength: opaque);
+  // what floats over the page is light, whatever it covers
+  @include styles.ground(light);
+
+  &.show {
+    opacity: 1;
+  }
+
+  &:not(.showHeader) {
+    grid-template-rows: 1fr;
+  }
+
+  &.showHeader {
+    grid-template-rows: auto 1fr;
+  }
+}

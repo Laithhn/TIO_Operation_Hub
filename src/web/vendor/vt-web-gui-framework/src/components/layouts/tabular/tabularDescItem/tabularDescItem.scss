@@ -1,0 +1,31 @@
+@use "assets/styles";
+
+.tabularDescItem {
+  // The description is one lettering, and it takes the colour for the ground the tabular gives it.
+  @include styles.typoSet(hint, $disabled: false);
+
+  // the seam between two entries - see the container item's stylesheet
+  &.tabularStyleIsLine {
+    border-bottom: 1px solid styles.layout(dividerLine, dark);
+
+    @include styles.onDarkGround {
+      border-bottom-color: styles.layout(dividerLine, light);
+    }
+
+    &:not(.spaceBefore) {
+      padding-top: styles.spacePx(xxs);
+    }
+
+    &:not(.spaceAfter) {
+      padding-bottom: styles.spacePx(xxs);
+    }
+  }
+
+  &.spaceBefore {
+    padding-top: styles.spacePx(normal);
+  }
+
+  &.spaceAfter {
+    padding-bottom: styles.spacePx(normal);
+  }
+}

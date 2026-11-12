@@ -1,0 +1,12 @@
+@use "assets/styles";
+
+
+.toggleButton {
+  align-self: center;
+  cursor: pointer;
+  @include styles.typoSet(valueSmall, $disabled: null);
+
+  &.typoDisabled {
+    cursor: default;
+  }
+}

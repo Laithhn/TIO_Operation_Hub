@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Shared;
 using TioHub.Api.Security;
 
@@ -54,8 +55,9 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
     /// Checks every filter against the report's definition: unknown keys (strict mode), dates, ranges, options and ids. A client
     /// outside the caller's scope is refused; everything else is in any case limited by the scope filters of the queries.
     /// </summary>
-    public async Task<ValidFilters> ValidateAsync(ReportDefinition def, IDictionary<string, string?>? raw, bool strict, CancellationToken ct)
+    public async Task<ValidFilters> ValidateAsync(ReportDefinition def, IDictionary<string, string?>? raw, bool strict, CancellationToken ct, TimeZoneInfo? zone = null)
     {
+        RightChecks.RequireReport(access.Me, def.Key);
         var check = new Check();
         var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var labels = new List<string>();
@@ -67,7 +69,12 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
             if (value.Length > 200) { check.Add($"filters.{key}", "The value is too long."); continue; }
             if (!known.TryGetValue(key, out var f))
             {
-                if (def.ListKeys.Contains(key, StringComparer.OrdinalIgnoreCase)) { values[key] = value; continue; }
+                if (def.ListKeys.Contains(key, StringComparer.OrdinalIgnoreCase))
+                {
+                    await ValidateListFilterAsync(def.Key, key, value, check, ct);
+                    values[key] = value;
+                    continue;
+                }
                 if (strict) check.Add($"filters.{key}", $"{def.Name} has no filter '{key}'.");
                 continue;
             }
@@ -91,9 +98,8 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
                     break;
                 case FilterKind.Bool:
                     if (!bool.TryParse(value, out var b)) { check.Add($"filters.{key}", "Use true or false."); continue; }
-                    if (!b) continue;
-                    value = "true";
-                    labels.Add(f.Label);
+                    value = b ? "true" : "false";
+                    labels.Add(b ? f.Label : $"{f.Label} = No");
                     break;
                 default:
                     labels.Add($"{f.Label} contains \"{value}\"");
@@ -101,10 +107,27 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
             }
             values[f.Key] = value;
         }
-        // Ranges: the end may not be before the start.
+        if (def.Key == "assets" && values.ContainsKey("zone") && !access.Me.SeesTechnical)
+            check.Add("filters.zone", "Filtering by network zone needs the Technical detail right.");
+        // Resolve calendar days and timestamps using the same bounds and zone as report execution.
+        var context = Context(new ValidFilters(values, ""), zone ?? ZoneOf(null), clock.GetUtcNow());
+        foreach (var date in def.Filters.Where(f => f.Kind == FilterKind.Date && values.ContainsKey(f.Key)))
+        {
+            try { _ = def.Filters.Any(f => f.RangeEnd == date.Key) ? context.To(date.Key) : context.From(date.Key); }
+            catch (ArgumentOutOfRangeException) { check.Add($"filters.{date.Key}", "Enter a date within the supported calendar range."); }
+        }
         foreach (var f in def.Filters.Where(f => f.RangeEnd is not null))
-            if (values.TryGetValue(f.Key, out var a) && values.TryGetValue(f.RangeEnd!, out var b) && string.CompareOrdinal(a, b) > 0 && a.Length == 10 && b.Length == 10)
-                check.Add($"filters.{f.RangeEnd}", $"{f.Label.Replace(" from", "")}: the end date is before the start date.");
+        {
+            if (!values.ContainsKey(f.Key) || !values.TryGetValue(f.RangeEnd!, out var endValue)) continue;
+            try
+            {
+                var start = context.From(f.Key);
+                var end = context.To(f.RangeEnd!);
+                if (end is not null && DateOnly.TryParseExact(endValue, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _)) end = end.Value.AddTicks(-1);
+                if (start > end) check.Add($"filters.{f.RangeEnd}", $"{f.Label.Replace(" from", "")}: the end date is before the start date.");
+            }
+            catch (ArgumentOutOfRangeException) { /* The field error above describes the invalid calendar boundary. */ }
+        }
         check.ThrowIfAny();
         return new ValidFilters(values, string.Join("; ", labels));
     }
@@ -118,6 +141,41 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
         _ => null
     };
 
+    private async Task ValidateListFilterAsync(string report, string key, string value, Check check, CancellationToken ct)
+    {
+        var field = $"filters.{key}";
+        if (key.EndsWith("Id", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!long.TryParse(value, out var id) || id <= 0) check.Add(field, "Select a valid record.");
+            return;
+        }
+        switch (key.ToLowerInvariant())
+        {
+            case "unassigned" or "reviewoverdue" or "stale" or "coveragegap" or "deactivatedowner":
+                if (!bool.TryParse(value, out _)) check.Add(field, "Use true or false.");
+                break;
+            case "asof":
+                if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out _)) check.Add(field, "Enter a valid evaluation timestamp.");
+                break;
+            case "scope":
+                if (!Enum.TryParse<WorkScope>(value, true, out var scope) || !Enum.IsDefined(scope)) check.Add(field, "Select Client or Internal.");
+                break;
+            case "type" when report == "commitments":
+                if (!Enum.TryParse<CommitmentType>(value, true, out var type) || !Enum.IsDefined(type)) check.Add(field, "Select a valid commitment type.");
+                break;
+            case "type" when report == "contracts":
+                if (!await db.LookupValues.AsNoTracking().AnyAsync(l => l.ListName == LookupLists.ContractType && l.Code == value, ct)) check.Add(field, "Select a configured contract type.");
+                break;
+            case "due":
+                if (value is not ("overdue" or "upcoming")) check.Add(field, "Select a valid deadline filter.");
+                break;
+            case "sla":
+                if (value is not ("withContract" or "noContract" or "breached" or "responseMet" or "responseBreached" or "responsePending" or "responseNotMeasurable"
+                    or "resolutionMet" or "resolutionBreached" or "resolutionPending" or "resolutionNotMeasurable" or "approaching")) check.Add(field, "Select a valid SLA filter.");
+                break;
+        }
+    }
+
     public ReportContext Context(ValidFilters f, TimeZoneInfo zone, DateTimeOffset now)
     {
         var evaluationTime = f.Values.TryGetValue("asOf", out var value)
@@ -127,13 +185,16 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
 
     public static void RequireExport(UserContext me)
     {
-        if (!me.HasBusinessRole) throw new ForbiddenException("Reports need a business role.");
-        me.RequireGrant(Grant.Export);
+        if (!me.HasAccess) throw new ForbiddenException("Reports need a business role.");
+        me.RequireRight(RightKeys.Reporting, RightKeys.View);
+        me.RequireRight(RightKeys.PlatformExport);
     }
 
     /// <summary>One page of the report as it would be exported, with the summary for operational reports.</summary>
     public async Task<object> PreviewAsync(ReportDefinition def, ValidFilters f, TimeZoneInfo zone, int page, int pageSize, CancellationToken ct)
     {
+        RequireExport(access.Me);
+        RightChecks.RequireReport(access.Me, def.Key);
         var now = clock.GetUtcNow();
         var result = await def.RunAsync(Context(f, zone, now), (page - 1) * pageSize, pageSize, ct);
         return new
@@ -155,21 +216,27 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
         long? scheduleId, long? retryOf, CancellationToken ct)
     {
         var me = access.Me;
+        RequireExport(me);
+        me.RequireRight("ReportLibrary:Export");
+        RightChecks.RequireReportExport(me, def.Key);
         var now = clock.GetUtcNow();
         var filtersJson = JsonSerializer.Serialize(f.Values);
         var columnsJson = columns is { Count: > 0 } ? JsonSerializer.Serialize(columns) : null;
+        // Capture before any report rows are read. An older file may contain access since revoked.
+        var accessFingerprint = ExportAccessFingerprint.For(me);
         // A second identical request within seconds (double click, retry by the browser) returns the first job.
         if (scheduleId is null && retryOf is null)
         {
             var since = now.AddSeconds(-10);
             var same = await db.ExportJobs.Where(j => j.UserId == me.UserId && j.Report == def.Key && j.Format == format && j.FiltersJson == filtersJson && j.ColumnsJson == columnsJson
-                && j.TimeZone == zone.Id && j.RequestedAt >= since && j.Status != ExportStatus.Failed).OrderByDescending(j => j.Id).FirstOrDefaultAsync(ct);
+                && j.TimeZone == zone.Id && j.RequestedAt >= since && j.Status != ExportStatus.Failed && j.AccessFingerprint == accessFingerprint).OrderByDescending(j => j.Id).FirstOrDefaultAsync(ct);
             if (same is not null) return same;
         }
         var job = new ExportJob
         {
             UserId = me.UserId!.Value, Report = def.Key, ReportName = def.Name, Format = format, FiltersJson = filtersJson, FilterSummary = Cut(f.Summary, 2000), ColumnsJson = columnsJson,
-            TimeZone = zone.Id, Status = ExportStatus.Processing, RequestedAt = now, StartedAt = now, Source = source, ScheduleId = scheduleId, RetryOfId = retryOf
+            TimeZone = zone.Id, Status = ExportStatus.Processing, RequestedAt = now, StartedAt = now, Source = source, ScheduleId = scheduleId, RetryOfId = retryOf,
+            AccessFingerprint = accessFingerprint
         };
         db.ExportJobs.Add(job);
         await db.SaveChangesAsync(ct);
@@ -196,16 +263,24 @@ public sealed class ExportService(HubDbContext db, HubAccess access, HubSettings
                 job.ExpiresAt = now.AddDays(Math.Max(1, store.Options.RetentionDays));
             }
         }
-        catch (Exception ex) when (ex is not OperationCanceledException)
+        catch (OperationCanceledException)
+        {
+            job.Status = ExportStatus.Failed;
+            job.Error = "The export was cancelled. Retry to generate it again.";
+        }
+        catch (Exception ex)
         {
             log.LogError(ex, "Export {AuditId} of {Report} failed", job.AuditId, def.Key);
             job.Status = ExportStatus.Failed;
             job.Error = $"The export could not be generated (reference {job.AuditId}). Try again; if it fails again, give the reference to the application team.";
         }
         job.CompletedAt = clock.GetUtcNow();
+        // The request may have disconnected. Persist the terminal status and audit independently.
+        using var finish = new CancellationTokenSource(TimeSpan.FromSeconds(15));
         db.ExportLogs.Add(new Admin.ExportLog { UserId = job.UserId, Report = def.Key, Filters = Cut(f.Summary.Length > 0 ? f.Summary : "none", 2000), RowCount = job.RowCount ?? 0, At = now });
         await db.AuditActionAsync("Export", "Report", job.Id, def.Name, f.Values.TryGetValue("clientId", out var c) && long.TryParse(c, out var cid) ? cid : null, null,
-            new { exportId = job.AuditId, report = def.Key, format = format.ToString(), filters = f.Summary, rows = job.RowCount, status = job.Status.ToString(), error = job.Error, timeZone = zone.Id, source, requestedAt = job.RequestedAt, completedAt = job.CompletedAt }, ct);
+            new { exportId = job.AuditId, report = def.Key, format = format.ToString(), filters = f.Summary, rows = job.RowCount, status = job.Status.ToString(), error = job.Error, timeZone = zone.Id, source, requestedAt = job.RequestedAt, completedAt = job.CompletedAt }, finish.Token);
+        ct.ThrowIfCancellationRequested();
         return job;
     }
 

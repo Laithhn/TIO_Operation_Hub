@@ -15,6 +15,7 @@ public static class ReferenceData
 {
     private static readonly Dictionary<string, (string Code, string? Description)[]> Lookups = new()
     {
+        [LookupLists.OrganizationRelationshipType] = [("Client", null), ("Contractor", null), ("Subcontractor", null), ("Sub-subcontractor", null), ("Supplier", null), ("Partner", null), ("Consultant", null), ("Vendor", null), ("Service Provider", null), ("Other", null)],
         [LookupLists.ComponentRole] = [("Web", null), ("Application", null), ("Database", null), ("Import", null), ("Workflow", null), ("ANPR", null), ("Media", null), ("Reporting", null), ("Monitoring", null), ("Other", null)],
         [LookupLists.AssetRole] = [("Application server", null), ("Web server", null), ("Database server", null), ("Listener", null), ("Load balancer", null), ("Storage", null), ("Other", null)],
         [LookupLists.NetworkZone] = [("DMZ", null), ("Internal", null), ("Management", null), ("Client LAN", null)],
@@ -26,7 +27,8 @@ public static class ReferenceData
             ("Critical", "Proposed: service down for a client; criteria to be agreed before the pilot."),
             ("High", "Proposed: significant degradation; criteria to be agreed before the pilot."),
             ("Normal", "Proposed: limited impact; criteria to be agreed before the pilot."),
-            ("Low", "Proposed: no customer impact; criteria to be agreed before the pilot.")]
+            ("Low", "Proposed: no customer impact; criteria to be agreed before the pilot.")],
+        [LookupLists.ConditionLabel] = [("Unknown", null), ("Healthy", null), ("Degraded", null), ("Unavailable", null)]
     };
 
     private static readonly (string Key, string Value, string Description)[] Settings =
@@ -34,16 +36,19 @@ public static class ReferenceData
         (SettingKeys.ApprovedLinkHosts, "", "Comma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted)."),
         (SettingKeys.VaultReferencePrefix, "vault://", "Required prefix of approved vault references. The hub stores references only, never secrets."),
         (SettingKeys.CoverageCriticalities, "Critical,High", "Environment criticalities that require an active backup owner (coverage policy)."),
-        (SettingKeys.CoveragePriorities, "Critical", "Case priorities that require an active backup owner (coverage policy)."),
+        (SettingKeys.CoveragePriorities, "Critical", "Ticket priorities that require an active backup owner (coverage policy)."),
         (SettingKeys.UpcomingDays, "7", "Upcoming window for commitments, in calendar days (Section 7 proposed default)."),
         (SettingKeys.DefaultTimeZone, "UTC", "Default display time zone for new users."),
-        (SettingKeys.PaymentReminderDays, "14", "Days before a contract payment is due that its owner and the managers are reminded (1–90).")
+        (SettingKeys.PaymentReminderDays, "14", "Days before a contract payment is due that its owner and the managers are reminded (1–90)."),
+        (SettingKeys.SlaAtRiskPercent, "25", "A running contractual SLA clock is shown as at risk when this percentage of its target time, or less, is left (5–50)."),
+        (SettingKeys.SlaComplianceTargetPercent, "90", "Compliance objective in percent that the SLA and client dashboards compare measured rates with (50–100). An internal objective, not a contract term."),
+        (SettingKeys.ClientStatusMaxAgeDays, "14", "A recorded client status older than this many days is shown as needing review (1–90).")
     ];
 
     // OPS-04 pilot defaults; condition evidence interval is an implementation assumption (BRD gives no figure).
     private static readonly (string Type, ReviewScope Scope, int? Days, bool Next, string Notes)[] Policies =
     [
-        (RecordTypes.Case, ReviewScope.Record, 2, true, "Active cases every 2 calendar days and by the explicit next-review time (pilot default)."),
+        (RecordTypes.Case, ReviewScope.Record, 2, true, "Active tickets every 2 calendar days and by the explicit next-review time (pilot default)."),
         (RecordTypes.Client, ReviewScope.Record, 90, true, "Client records every 90 days and after material change (pilot default)."),
         (RecordTypes.Contact, ReviewScope.Record, 90, false, "Contact records every 90 days (pilot default)."),
         (RecordTypes.Environment, ReviewScope.Inventory, 30, true, "Environment inventory every 30 days and after material change (pilot default)."),
@@ -58,6 +63,10 @@ public static class ReferenceData
             for (var i = 0; i < values.Length; i++)
                 if (!have.Contains((list, values[i].Code)))
                     db.LookupValues.Add(new LookupValue { ListName = list, Code = values[i].Code, Label = values[i].Code, Description = values[i].Description, SortOrder = (i + 1) * 10 });
+        // A77: only an empty list is filled, because administrators may remove these statuses.
+        if (!have.Any(x => x.ListName == LookupLists.CaseStatusLabel))
+            foreach (var (s, i) in Modules.Work.CaseStatuses.Initial.Select((s, i) => (s, i)))
+                db.LookupValues.Add(new LookupValue { ListName = LookupLists.CaseStatusLabel, Code = s.Code, Label = s.Label, Category = s.Behavior.ToString(), SortOrder = (i + 1) * 10 });
         // A53: team roles typed before the list existed become list values, so they can still be chosen.
         var typed = await db.TeamMembers.Where(m => m.TeamRole != null).Select(m => m.TeamRole!).Distinct().ToListAsync(ct);
         foreach (var (role, i) in typed.Where(r => !have.Contains((LookupLists.TeamMemberRole, r)) && !Lookups[LookupLists.TeamMemberRole].Any(v => v.Code == r)).Select((r, i) => (r, i)))

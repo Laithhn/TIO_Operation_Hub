@@ -12,13 +12,28 @@ public sealed record CaseFilter(
     long? ClientId = null, long? RegionId = null, long? EnvironmentId = null, long? ProductId = null, long? TeamId = null, long? OwnerId = null,
     bool? Unassigned = null, string? Status = null, Priority? Priority = null, WorkScope? Scope = null, string? Due = null, bool? Waiting = null,
     bool? ReviewOverdue = null, bool? Stale = null, string? JiraKey = null, string? Q = null, DateTimeOffset? CreatedFrom = null, DateTimeOffset? CreatedTo = null,
-    bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null);
+    bool? CoverageGap = null, bool? DeactivatedOwner = null, string? Country = null, long? ContractId = null, string? Sla = null,
+    string? JiraSource = null, long? JiraConnectionId = null, string? JiraSpace = null,
+    IReadOnlyCollection<Priority>? Priorities = null, WaitingReason? WaitingFor = null, long? ProjectId = null);
 
 public static class CaseQuery
 {
     public static readonly CaseStatus[] Done = [CaseStatus.Closed, CaseStatus.Cancelled];
 
     public static bool IsOpen(CaseStatus s) => s is not (CaseStatus.Closed or CaseStatus.Cancelled);
+
+    /// <summary>A102: "Critical,High" as the priorities of a list link or export. Null means no priority filter; a name that is not a priority is refused.</summary>
+    public static IReadOnlyCollection<Priority>? ParsePriorities(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return null;
+        var list = new List<Priority>();
+        foreach (var part in text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (!Enum.TryParse<Priority>(part, true, out var p) || !Enum.IsDefined(p)) throw new ValidationException("priority", $"{part} is not a priority.");
+            list.Add(p);
+        }
+        return list.Count == 0 ? null : list;
+    }
 
     public static IQueryable<Case> Apply(IQueryable<Case> q, CaseFilter f, DateTimeOffset now, int upcomingDays, ReviewPolicy? policy, HubDbContext db, IReadOnlyCollection<Priority>? coveragePriorities = null)
     {
@@ -31,12 +46,15 @@ public static class CaseQuery
         if (f.OwnerId is not null) q = q.Where(c => c.OwnerUserId == f.OwnerId);
         if (f.Unassigned == true) q = q.Where(c => c.OwnerUserId == null);
         if (f.Priority is not null) q = q.Where(c => c.Priority == f.Priority);
+        if (f.Priorities is { Count: > 0 } priorities) q = q.Where(c => priorities.Contains(c.Priority));
         if (f.Scope is not null) q = q.Where(c => c.Scope == f.Scope);
         q = f.Status switch
         {
             null or "" or "open" => q.Where(c => c.Status != CaseStatus.Closed && c.Status != CaseStatus.Cancelled),
             "all" => q,
             "done" => q.Where(c => c.Status == CaseStatus.Closed || c.Status == CaseStatus.Cancelled),
+            // A77: a configured status; other values name a stage (Cancelled, or links from before A77).
+            { } code when code.StartsWith("code:", StringComparison.Ordinal) => q.Where(c => c.StatusCode == code.Substring(5)),
             _ when Enum.TryParse<CaseStatus>(f.Status, true, out var s) => q.Where(c => c.Status == s),
             _ => q
         };
@@ -53,6 +71,7 @@ public static class CaseQuery
         };
         if (f.Waiting == true) q = q.Where(c => c.WaitingReason != null);
         if (f.Waiting == false) q = q.Where(c => c.WaitingReason == null);
+        if (f.WaitingFor is not null) q = q.Where(c => c.WaitingReason == f.WaitingFor);
         if (f.ReviewOverdue == true) q = q.Where(c => c.NextReviewAt < now);
         if (f.Stale == true) q = StaleOnly(q, now, policy);
         if (!string.IsNullOrWhiteSpace(f.JiraKey))
@@ -60,8 +79,22 @@ public static class CaseQuery
             var key = f.JiraKey.Trim().ToUpperInvariant();
             q = q.Where(c => c.JiraReferences.Any(j => j.RemovedAt == null && j.IssueKey == key));
         }
-        if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || c.NextAction.Contains(f.Q));
+        if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(c => c.Title.Contains(f.Q) || c.Ref.Contains(f.Q) || c.NextAction.Contains(f.Q)
+            // A102: one search for the whole list, so it also finds a ticket by its client or Jira key.
+            || (c.Client != null && (c.Client.Name.Contains(f.Q) || c.Client.Code.Contains(f.Q)))
+            || (c.JiraSource != null && c.JiraSource.IssueKey.Contains(f.Q))
+            || c.JiraReferences.Any(j => j.RemovedAt == null && j.IssueKey.Contains(f.Q)));
         if (f.ContractId is not null) q = q.Where(c => c.ContractId == f.ContractId);
+        // A76: synchronized source of a case.
+        if (f.JiraSource == "synchronized") q = q.Where(c => c.JiraSource != null);
+        if (f.JiraSource == "notSynchronized") q = q.Where(c => c.JiraSource == null);
+        if (f.JiraConnectionId is not null) q = q.Where(c => c.JiraSource != null && c.JiraSource.JiraConnectionId == f.JiraConnectionId);
+        if (!string.IsNullOrWhiteSpace(f.JiraSpace))
+        {
+            var prefix = f.JiraSpace.Trim().ToUpperInvariant() + "-";
+            q = q.Where(c => c.JiraSource != null && c.JiraSource.IssueKey.StartsWith(prefix));
+        }
+        if (f.ProjectId is not null) q = OfProject(q, f.ProjectId.Value, db);
         // A61: contractual SLA outcome; a pending obligation whose deadline passed counts as breached (same rule as the dashboard).
         q = f.Sla switch
         {
@@ -81,8 +114,9 @@ public static class CaseQuery
                 || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt >= now && c.ResolutionDueAt <= now.AddHours(24))),
             _ => q
         };
-        if (f.CreatedFrom is not null) q = q.Where(c => c.CreatedAt >= f.CreatedFrom);
-        if (f.CreatedTo is not null) q = q.Where(c => c.CreatedAt < f.CreatedTo);
+        // A91: the period a case was opened in, so an imported case counts when its Jira issue was created.
+        if (f.CreatedFrom is not null) q = q.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) >= f.CreatedFrom);
+        if (f.CreatedTo is not null) q = q.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) < f.CreatedTo);
         if (f.DeactivatedOwner == true) q = q.Where(c => c.Owner != null && !c.Owner.IsActive);
         if (f.CoverageGap == true)
         {
@@ -91,6 +125,11 @@ public static class CaseQuery
         }
         return q;
     }
+
+    /// <summary>A108: the cases of a project — linked to one of its contracts, or affecting one of its environments (A4).</summary>
+    public static IQueryable<Case> OfProject(IQueryable<Case> q, long projectId, HubDbContext db) =>
+        q.Where(c => (c.ContractId != null && db.Contracts.Any(k => k.Id == c.ContractId && k.ProjectId == projectId))
+            || c.Environments.Any(e => db.Environments.Any(env => env.Id == e.EnvironmentId && env.ProjectId == projectId)));
 
     /// <summary>OPS-02: stale when the maximum age since meaningful review or the explicit next-review date has passed. Creation is the baseline.</summary>
     public static IQueryable<Case> StaleOnly(IQueryable<Case> q, DateTimeOffset now, ReviewPolicy? policy)

@@ -1,0 +1,19 @@
+@use "assets/styles";
+
+
+.multiSelectBoxContr {
+  @include styles.inputControlContainer();
+}
+
+
+// The pane the multiple select box rests on, holding the selection text and the icon beside it - the
+// control's whole face, which is what the interaction veil covers and what states the status. The
+// text takes whatever is left beside the icon and shortens itself with an ellipsis, a selection of
+// many options being longer than any pane.
+.multiSelectBox {
+  grid-template-columns: 1fr;
+  outline: none;
+  cursor: pointer;
+
+  @include styles.inputControlPane();
+}

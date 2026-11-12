@@ -44,7 +44,7 @@ Status values: **Implemented** = built end to end, enforced on the server and te
 | TEAM-06 | Next | Deferred (Next) | Not built; no navigation, controls or zero counts are shown. | - |
 | COM-01 | MVP | Implemented | Client or internal commitments with owner, due timestamp, original IANA zone, status, same-scope case/project link. | AC08 |
 | COM-02 | MVP | Implemented | Types: customer update, delivery, renewal action, maintenance, recorded contractual deadline, other. | AC08 |
-| COM-03 | MVP | Implemented | Upcoming/overdue/completed; completion time + evidence; Open/Completed/Cancelled with separate derived timeliness. | AC08, AC11 |
+| COM-03 | MVP | Implemented | Upcoming/overdue/completed; completion time (not in the future; early allowed, and before creation with an optional reason, A91) + evidence; Open/Completed/Cancelled with separate derived timeliness. | AC08, AC11 |
 | COM-04 | MVP | Implemented | Revision, cancellation and reopening need a reason; all events kept. | AC08 |
 | COM-05 | MVP | Implemented | Displayed as Recorded deadline, never as a verified SLA result. | UI; CSV column definitions |
 | CHG-01 | Next | Deferred (Next) | Not built; no navigation, controls or zero counts are shown. | - |
@@ -117,4 +117,5 @@ Status values: **Implemented** = built end to end, enforced on the server and te
 | Capability | Status | Notes |
 |---|---|---|
 | Geographic client map (Optional, Section 3) | Implemented | Dashboard choropleth of authorized clients by country, offline map data, click-to-filter, unknown countries listed separately. Not an MVP dependency. |
+| Audience dashboards (owner request, A108, A109) | Implemented (2.59.0; Client dashboard 2.60.0) | Operational, SLA & Contracts, Management and Client dashboards (the Project dashboard of 2.59.0 became the Client dashboard, A109). Client status is a recorded report with rule-based signals beside it — no health score (DAS-02 unchanged). DAS-06/DAS-07 stay deferred. Evidence: `AudienceDashboardRules`, `AC63_AudienceDashboards`, e2e *Audience dashboards (A108)*. |
 | Personal saved views, client follows, visual dependency diagram | Not built | Optional. |

@@ -120,7 +120,28 @@ public sealed class AttachmentStore(IOptions<AttachmentOptions> options, IWebHos
         return (relative, size, Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant());
     }
 
-    public Stream Open(string relative) => new FileStream(Full(relative), FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
+    /// <summary>A71: writes a small file that was already read and validated (a client logo) as <c>{folder}/{random id}{extension}</c>.
+    /// Folder and extension are fixed by the caller's code, never taken from the upload.</summary>
+    public async Task<string> SaveBytesAsync(byte[] data, string folder, string extension, CancellationToken ct)
+    {
+        var relative = $"{folder}/{Guid.NewGuid():N}{extension}";
+        var full = Full(relative);
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(full)!);
+        var temp = full + ".part";
+        try
+        {
+            await File.WriteAllBytesAsync(temp, data, ct);
+            File.Move(temp, full);
+        }
+        catch
+        {
+            TryDelete(temp);
+            throw;
+        }
+        return relative;
+    }
+
+    public Stream Open(string relative) =>new FileStream(Full(relative), FileMode.Open, FileAccess.Read, FileShare.Read, 81920, useAsync: true);
     public bool Exists(string relative) => File.Exists(Full(relative));
 
     public void Delete(IEnumerable<string> relatives) { foreach (var r in relatives) TryDelete(Full(r)); }
@@ -140,8 +161,24 @@ public static partial class AttachmentEndpoints
     public static readonly string[] Types = [RecordTypes.Client, RecordTypes.Region, RecordTypes.Project, RecordTypes.Contract, RecordTypes.Environment, RecordTypes.Asset,
         RecordTypes.Installation, RecordTypes.Component, RecordTypes.Case, RecordTypes.Commitment, RecordTypes.Escalation, "Product", "Team"];
 
-    public static async Task<Target?> ResolveAsync(HubDbContext db, string? type, long id, CancellationToken ct) => type switch
+    public static bool CanReadTarget(UserContext me, Target target) => target.Type switch
     {
+        RecordTypes.Client or RecordTypes.Region => target.ClientId is { } clientId && me.HasClient(clientId),
+        "Team" => me.SeesInternal(target.Id),
+        _ => true
+    };
+
+    // Attachment ownership is a snapshot. A target may later move or become inaccessible,
+    // so the snapshot alone must not authorize mutations of its files.
+    public static bool CanModifyTarget(UserContext me, Attachment attachment, Target? target) =>
+        target is not null && target.Type == attachment.RecordType && target.Id == attachment.RecordId
+        && CanReadTarget(me, target) && me.SeesScope(attachment.ClientId, attachment.TeamId)
+        && me.SeesScope(target.ClientId, target.TeamId);
+
+    public static async Task<Target?> ResolveAsync(HubDbContext db, UserContext me, string? type, long id, CancellationToken ct)
+    {
+        var target = type switch
+        {
         RecordTypes.Client => await db.Clients.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.Id, null, x.Code)).FirstOrDefaultAsync(ct),
         RecordTypes.Region => await db.Regions.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, null, x.Code)).FirstOrDefaultAsync(ct),
         RecordTypes.Project => await db.Projects.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, null, x.Code)).FirstOrDefaultAsync(ct),
@@ -154,8 +191,17 @@ public static partial class AttachmentEndpoints
         RecordTypes.Commitment => await db.Commitments.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, x.ClientId == null ? x.ResponsibleTeamId : null, x.Ref)).FirstOrDefaultAsync(ct),
         RecordTypes.Escalation => await db.Escalations.Where(x => x.Id == id).Select(x => new Target(type, x.Id, x.ClientId, null, x.Ref)).FirstOrDefaultAsync(ct),
         "Product" => await db.Products.Where(x => x.Id == id).Select(x => new Target(type, x.Id, null, null, x.Code)).FirstOrDefaultAsync(ct),
-        "Team" => await db.Teams.Where(x => x.Id == id).Select(x => new Target(type, x.Id, null, null, x.Code)).FirstOrDefaultAsync(ct),
-        _ => null
+        "Team" => await db.Teams.Where(x => x.Id == id).Select(x => new Target(type, x.Id, null, x.Id, x.Code)).FirstOrDefaultAsync(ct),
+            _ => null
+        };
+        return target is not null && CanReadTarget(me, target) ? target : null;
+    }
+
+    /// <summary>Types the preview endpoint shows inline, with the type fixed here rather than taken from the stored metadata.</summary>
+    public static readonly Dictionary<string, string> PreviewTypes = new()
+    {
+        [".pdf"] = "application/pdf", [".png"] = "image/png", [".jpg"] = "image/jpeg", [".jpeg"] = "image/jpeg",
+        [".gif"] = "image/gif", [".bmp"] = "image/bmp", [".webp"] = "image/webp"
     };
 
     [GeneratedRegex(@"[\x00-\x1F\x7F""<>|:*?\\/]+")]
@@ -186,8 +232,9 @@ public static partial class AttachmentEndpoints
 
         g.MapGet("", async (string recordType, long recordId, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
-            _ = await ResolveAsync(db, recordType, recordId, ct) ?? throw new NotFoundException("The record");
+            access.RequireAccess();
+            access.Me.RequireRight(RightKeys.ForRecord(recordType), RightKeys.AttachmentsView);
+            _ = await ResolveAsync(db, access.Me, recordType, recordId, ct) ?? throw new NotFoundException("The record");
             var rows = await db.Attachments.AsNoTracking().Include(a => a.UploadedBy).Where(a => a.RecordType == recordType && a.RecordId == recordId)
                 .OrderByDescending(a => a.CreatedAt).ToListAsync(ct);
             return Results.Ok(rows.Select(Row));
@@ -196,13 +243,14 @@ public static partial class AttachmentEndpoints
         // Multipart upload: recordType, recordId, description (optional) and one or more "files".
         g.MapPost("", async (HttpRequest req, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Engineer);
             if (!req.HasFormContentType) throw new ValidationException("files", "Send the files as a multipart form.");
             var form = await req.ReadFormAsync(ct);
             var type = form["recordType"].ToString();
+            var resource = RightKeys.ForRecord(type);
+            access.Me.RequireRight(resource, RightKeys.AttachmentsUpload);
             if (!long.TryParse(form["recordId"], out var recordId)) throw new ValidationException("recordId", "Say which record the files belong to.");
-            var target = await ResolveAsync(db, type, recordId, ct) ?? throw new NotFoundException("The record");
-            access.RequireMaintain(target.ClientId, target.TeamId);
+            var target = await ResolveAsync(db, access.Me, type, recordId, ct) ?? throw new NotFoundException("The record");
+            if (!access.Me.SeesScope(target.ClientId, target.TeamId)) throw new NotFoundException("The record");
             var description = Text.Clean(form["description"].ToString());
             var check = new Check().Text("description", description, 500, "Description");
             var files = form.Files.GetFiles("files");
@@ -248,18 +296,40 @@ public static partial class AttachmentEndpoints
 
         g.MapGet("/{id:long}/download", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            _ = await ResolveAsync(db, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
+            access.Me.RequireRight(RightKeys.ForRecord(a.RecordType), RightKeys.AttachmentsView);
+            _ = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
             if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
             // Always a download, never rendered by the browser as a page.
             return Results.Stream(store.Open(a.StoredPath), a.ContentType, a.FileName, enableRangeProcessing: true);
         });
 
+        // Attachments tab redesign (29 Oct 2026): PDFs and images shown beside the list. Same access as the download; other types are never
+        // rendered inline. The response may be framed by the hub's own pages only, and the shown document may load nothing else.
+        g.MapGet("/{id:long}/preview", async (long id, HttpContext http, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            var a = await db.Attachments.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
+            access.Me.RequireRight(RightKeys.ForRecord(a.RecordType), RightKeys.AttachmentsView);
+            _ = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct) ?? throw new NotFoundException("The file");
+            if (!PreviewTypes.TryGetValue(Path.GetExtension(a.FileName).ToLowerInvariant(), out var type))
+                throw new ValidationException("file", "This file type has no preview. Download the file to open it.");
+            if (!store.Exists(a.StoredPath)) throw new NotFoundException("The file content (it is missing from the storage folder)");
+            var h = http.Response.Headers;
+            h["X-Frame-Options"] = "SAMEORIGIN";
+            h["Content-Security-Policy"] = "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'; frame-ancestors 'self'";
+            h.ContentDisposition = new Microsoft.Net.Http.Headers.ContentDispositionHeaderValue("inline") { FileNameStar = a.FileName }.ToString();
+            return Results.Stream(store.Open(a.StoredPath), type, enableRangeProcessing: true);
+        });
+
         g.MapPut("/{id:long}", async (long id, DescriptionInput input, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            access.RequireMaintain(a.ClientId, a.TeamId);
+            var resource = RightKeys.ForRecord(a.RecordType);
+            access.Me.RequireRight(resource, RightKeys.AttachmentsUpload);
+            var target = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct);
+            if (!CanModifyTarget(access.Me, a, target)) throw new NotFoundException("The file");
             new Check().Text("description", input.Description, 500, "Description").ThrowIfAny();
             a.Description = Text.Clean(input.Description);
             await db.SaveChangesAsync(ct);
@@ -269,9 +339,12 @@ public static partial class AttachmentEndpoints
         g.MapDelete("/{id:long}", async (long id, HubDbContext db, HubAccess access, AttachmentStore store, CancellationToken ct) =>
         {
             var a = await db.Attachments.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The file");
-            if (!(a.UploadedById == access.Me.UserId && access.Me.Can(Role.Engineer)) && !access.Me.HasRight(Right.Delete))
-                throw new ForbiddenException("Only the person who uploaded the file, or someone with the Delete records right, can remove it.");
-            access.RequireMaintain(a.ClientId, a.TeamId);
+            var resource = RightKeys.ForRecord(a.RecordType);
+            if (!access.Me.HasRight(resource, RightKeys.AttachmentsDelete)
+                && !(a.UploadedById == access.Me.UserId && access.Me.HasRight(resource, RightKeys.AttachmentsDeleteOwn)))
+                throw new ForbiddenException("Removing this file needs Delete own attachments for its uploader, or Delete any attachment for this module.");
+            var target = await ResolveAsync(db, access.Me, a.RecordType, a.RecordId, ct);
+            if (!CanModifyTarget(access.Me, a, target)) throw new NotFoundException("The file");
             db.Attachments.Remove(a);
             db.AuditReason = $"File {a.FileName} removed";
             await db.SaveChangesAsync(ct);
@@ -282,3 +355,4 @@ public static partial class AttachmentEndpoints
 
     public sealed record DescriptionInput(string? Description);
 }
+

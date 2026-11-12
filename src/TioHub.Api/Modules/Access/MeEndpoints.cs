@@ -6,6 +6,7 @@ using TioHub.Api.Common;
 using TioHub.Api.Data;
 using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Shared;
+using TioHub.Api.Modules.Teams;
 using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Access;
@@ -33,10 +34,8 @@ public static class MeEndpoints
                 timeZone = user.WorkingTimeZone,
                 roles = me.Roles,
                 roleLabels = me.Roles,
-                rights = BuiltInRoles.Names(me.IsSystem ? BuiltInRoles.All : me.Rights),
-                businessRole = me.BusinessRole,
-                isAdministrator = me.IsAdministrator,
-                grants = new { export = me.Has(Grant.Export), technicalDetail = me.SeesTechnical, audit = me.Has(Grant.Audit) },
+                rights = me.EffectiveRights,
+                scopedAllowRights = me.ScopedExceptions.Where(s => s.Allow).Select(s => s.Key).Distinct(StringComparer.OrdinalIgnoreCase).ToArray(),
                 scope = new
                 {
                     allClients = me.AllClients,
@@ -44,7 +43,7 @@ public static class MeEndpoints
                     projectCount = me.ProjectIds.Count,
                     allInternal = me.AllInternal,
                     internalTeamCount = me.TeamIds.Count,
-                    hasBusinessAccess = me.HasBusinessRole && (me.AllClients || me.ClientIds.Count > 0 || me.ProjectIds.Count > 0 || me.AllInternal || me.TeamIds.Count > 0)
+                    hasBusinessAccess = me.HasAccess && (me.AllClients || me.ClientIds.Count > 0 || me.ProjectIds.Count > 0 || me.AllInternal || me.TeamIds.Count > 0)
                 },
                 app = new { version, environmentName = app.Value.EnvironmentName, supportContact = app.Value.SupportContact, devSignIn = env.IsDevelopment(), authMode = auth.Value.Mode, mustChangePassword = ctx.User.HasClaim(c => c.Type == AuthEndpoints.MustChangeClaim), map = app.Value.SafeMapTileUrl is { } tiles ? new { tileUrl = tiles, attribution = app.Value.MapAttribution } : null }
             });
@@ -60,41 +59,59 @@ public static class MeEndpoints
         });
 
         // Values every screen needs: enums, active reference lists, products, teams, Jira instances.
-        g.MapGet("/reference", async (HubDbContext db, CancellationToken ct) =>
+        g.MapGet("/reference", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             var lookups = await db.LookupValues.AsNoTracking().OrderBy(l => l.SortOrder).ThenBy(l => l.Label)
                 .Select(l => new { l.ListName, l.Code, l.Label, l.Description, l.IsRetired, l.Category }).ToListAsync(ct);
-            var products = await db.Products.AsNoTracking().OrderBy(p => p.Code)
+            var workflowLabels = new Dictionary<string, Dictionary<string, string>>
+            {
+                ["Condition"] = lookups.Where(l => l.ListName == LookupLists.ConditionLabel).ToDictionary(x => x.Code, x => x.Label),
+                ["CaseStatus"] = lookups.Where(l => l.ListName == LookupLists.CaseStatusLabel).ToDictionary(x => x.Code, x => x.Label)
+            };
+            // A77: screens that show a stage, and timeline history, read these for stages that are not statuses themselves.
+            var statusLabels = workflowLabels["CaseStatus"];
+            var firstOpened = lookups.FirstOrDefault(l => l.ListName == LookupLists.CaseStatusLabel && !l.IsRetired && l.Category == nameof(CaseStatusBehavior.Opened));
+            statusLabels.TryAdd(nameof(CaseStatus.Triaged), firstOpened?.Label ?? "Opened");
+            statusLabels.TryAdd(nameof(CaseStatus.PendingValidation), "Pending validation");
+            statusLabels.TryAdd(nameof(CaseStatus.Cancelled), "Closed (cancelled)");
+            statusLabels.TryAdd(Work.CaseStatuses.AllOpen, "All open statuses");
+            var readProducts = me.HasRight(RightKeys.Products, RightKeys.View);
+            var readTeams = me.HasRight(RightKeys.Teams, RightKeys.View);
+            var readJira = me.IsAdministrator || me.HasRight(RightKeys.Cases, RightKeys.View);
+            var products = await db.Products.AsNoTracking().Where(_ => readProducts).OrderBy(p => p.Code)
                 .Select(p => new
                 {
                     p.Id, p.Code, p.Name, p.IsActive,
                     modules = p.Modules.OrderBy(m => m.Code).Select(m => new { m.Id, m.Code, m.Name, m.IsActive }),
                     versions = p.Versions.OrderByDescending(v => v.SortKey).Select(v => new { v.Id, v.Version, v.IsActive })
                 }).ToListAsync(ct);
-            var teams = await db.Teams.AsNoTracking().OrderBy(t => t.Name).Select(t => new { t.Id, t.Code, t.Name, t.IsActive }).ToListAsync(ct);
-            var jira = await db.JiraInstances.AsNoTracking().OrderBy(j => j.Kind).Select(j => new { j.Id, j.Name, j.Kind, j.ApprovedHost, j.IsActive }).ToListAsync(ct);
+            var teams = await TeamEndpoints.VisibleTeams(db.Teams.AsNoTracking(), me).Where(_ => readTeams).OrderBy(t => t.Name).Select(t => new { t.Id, t.Code, t.Name, t.IsActive }).ToListAsync(ct);
+            var jira = await db.JiraInstances.AsNoTracking().Where(_ => readJira).OrderBy(j => j.Kind).Select(j => new { j.Id, j.Name, j.Kind, j.ApprovedHost, j.IsActive }).ToListAsync(ct);
             return Results.Ok(new
             {
                 lookups = lookups.GroupBy(l => l.ListName).ToDictionary(x => x.Key, x => x.ToList()),
                 products, teams, jiraInstances = jira,
-                enums = EnumCatalog.All,
+                enums = EnumCatalog.All, enumLabels = workflowLabels,
                 countries = Countries.All
             });
         });
 
-        // People who can be assigned in a scope (owner pickers). Business roles only; never exposes scope details.
+        // People who can be assigned in a scope (owner pickers). Never exposes scope details.
         g.MapGet("/users/assignable", async (long? clientId, long? teamId, string? q, bool? includeInactive, UserContext me, HubDbContext db, UserResolver resolver, CancellationToken ct) =>
         {
-            if (!me.HasBusinessRole) throw new ForbiddenException("Your account has no business role.");
+            if (!me.HasAccess) throw new ForbiddenException("Your account has no business access.");
+            if (!RightChecks.BusinessResources.Any(r => me.HasRight(r, RightKeys.View)))
+                throw new ForbiddenException("Viewing assignees requires access to a business module.");
             if (clientId is { } c && !me.SeesClient(c)) throw new NotFoundException("The client");
-            var users = await db.Users.AsNoTracking().Where(u => u.IsActive || (includeInactive == true && me.IsLead))
+            var canSeeInactive = me.HasRight(RightKeys.Structure, RightKeys.Coordinate);
+            var users = await db.Users.AsNoTracking().Where(u => u.IsActive || (includeInactive == true && canSeeInactive))
                 .Where(u => q == null || u.DisplayName.Contains(q) || u.AccountName.Contains(q))
                 .OrderBy(u => u.DisplayName).Select(u => new { u.Id, u.DisplayName, u.AccountName, u.IsActive }).Take(300).ToListAsync(ct);
             var result = new List<object>();
             foreach (var u in users)
             {
-                var r = await resolver.ForUserAsync(u.Id, ct);
-                if (r is null || r.Roles.Length == 0) continue;
+                var r = await resolver.ForUserAsync(u.Id, ct, directWhenGroupsUnknown: true);
+                if (r is null || !r.HasAccess) continue;
                 if (!u.IsActive) { result.Add(new { id = u.Id, name = u.DisplayName + " (deactivated)", account = u.AccountName }); continue; }
                 var ok = clientId is { } cid ? r.AllClients || r.ClientIds.Contains(cid) : teamId is { } tid ? r.AllInternal || r.TeamIds.Contains(tid) : true;
                 if (ok) result.Add(new { id = u.Id, name = u.DisplayName, account = u.AccountName });
@@ -107,7 +124,7 @@ public static class MeEndpoints
 /// <summary>Business vocabularies for the front end, so labels and options come from one place.</summary>
 public static class EnumCatalog
 {
-    public static readonly Dictionary<string, string[]> All = typeof(Role).Assembly.GetTypes()
-        .Where(t => t.IsEnum && t.Namespace == "TioHub.Api.Common" && t != typeof(Grant))
+    public static readonly Dictionary<string, string[]> All = typeof(EnumCatalog).Assembly.GetTypes()
+        .Where(t => t.IsEnum && t.Namespace == "TioHub.Api.Common")
         .ToDictionary(t => t.Name, t => Enum.GetNames(t));
 }

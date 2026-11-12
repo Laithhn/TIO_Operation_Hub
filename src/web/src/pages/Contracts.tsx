@@ -1,14 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportRights';
 import { useEffect, useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
-import { fmtDate, label } from '../format';
-import { useCan, useEnum, useForm, useLeaveGuard, useMe, useRefresh, useUrlState, useTypes } from '../hooks';
-import { ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
+import { ApiError, exportCsv, get, post, put, qs, type Paged, type UserRef } from '../api';
+import { fmtDate, fmtMoney, label } from '../format';
+import { renewalPeriod, shiftDay } from './contractRenewal';
+import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
+import { ActionDialog, ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
-import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, ExpandableText, SectionNav, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { MyNotesPanel } from './Notes';
 
 // CLI-04 contracts with recorded SLA terms. Targets are what the contract says; the hub never measures them or calculates compliance.
@@ -17,8 +20,10 @@ import { MyNotesPanel } from './Notes';
 type Row = {
   id: number; ref: string; title: string; contractReference?: string; type: string; status: string; clientId: number; clientCode: string; clientName: string;
   projectId: number; projectCode: string; projectName: string; startDate?: string; endDate?: string; noticeDeadline?: string; renewalTerms: string; supportModel: string; onSiteEngineersRequired?: number; owner?: UserRef; slaTargets: number; renewalState: string;
+  currency?: string | null; amount?: number | null;
 };
 type Target = { id?: number; priority: string; responseMinutes?: number | null; resolutionMinutes?: number | null; basis: string; notes?: string | null };
+type PenaltyForm = { id?: number; name: string; trigger: string; calculation: string; fixedAmount: string; percentage: string; referenceAmount: string; monthlyCap: string; billingTimeZone: string };
 type Detail = {
   id: number; ref: string; title: string; contractReference?: string; type: string; status: string; clientId: number;
   client: { id: number; code: string; name: string; country?: string }; project: { id: number; code: string; name: string; status: string }; owner?: UserRef;
@@ -27,6 +32,7 @@ type Detail = {
   support24x7: boolean; supportDays: string[]; supportFrom?: string; supportTo?: string; supportSummary?: string; currency?: string; slaPauseWhileWaitingOnCustomer: boolean;
   milestones: { id: number; phase: string; description?: string; completionPercent?: number; date?: string }[];
   fees: { id: number; description: string; unit?: string; quantity?: number; unitPrice?: number; total?: number }[]; feesTotal?: number;
+  penaltyClauses: (Omit<PenaltyForm, 'fixedAmount' | 'percentage' | 'referenceAmount' | 'monthlyCap'> & { fixedAmount?: number; percentage?: number; referenceAmount?: number; monthlyCap?: number; currency: string })[];
   payments: { id: number; condition: string; percentage?: number; amount?: number; dueDate?: string; status: string; paidOn?: string; notes?: string; overdue: boolean }[];
   products: { id: number; code: string; name: string }[]; environments: { id: number; name: string; type: string; region?: string }[];
   slaTargets: Target[]; slaNote: string; lastReviewedAt?: string; version: string; permissions: { canEdit: boolean; canArchive: boolean };
@@ -59,25 +65,25 @@ const RENEWAL_FILTERS = [
 export function ContractList() {
   const T = useTypes();
   const me = useMe().data!;
-  const [f, set] = useUrlState({ q: '', clientId: '', status: '', type: '', renewal: '', country: '', productId: '', sort: 'end', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ q: '', clientId: '', status: '', type: '', renewal: '', country: '', productId: '', projectId: '', sort: 'end', page: '1', pageSize: '15' });
   const q = useQuery({ queryKey: ['contracts', f], queryFn: () => get<Paged<Row>>(`/contracts${qs(f)}`) });
   const clients = useClientOptions();
   const statuses = useEnum('ContractStatus');
-  const canLead = useCan('Engineer');
+  const canLead = useRight('Contracts', 'Create');
   const filtered = f.q || f.clientId || f.status || f.type || f.renewal || f.country || f.productId;
   return (
     <>
       <PageHead title="Projects & contracts" crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, { label: 'Contract register' }]}
-        sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; cases linked to a contract are measured against them."
+        sub="Every contract of every project: recorded terms, renewal dates and SLA targets. Targets are what the contract states; tickets linked to a contract are measured against them."
         actions={<>
-          {me.grants.export && <button className="btn" onClick={() => exportCsv('contracts', f)}>Export CSV</button>}
+          {canExportReport(me, 'contracts') && <button className="btn" onClick={() => exportCsv('contracts', f)}>Export CSV</button>}
           {canLead && <Link className="btn btn-primary" to={`/contracts/new${f.clientId ? `?clientId=${f.clientId}` : ''}`}>+ New contract</Link>}
         </>} />
       <ProjectTabs value="contracts" />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v, page: '1' })} options={clients} empty="All authorized clients" />
         <SelectInput label="Renewal" value={f.renewal} onChange={v => set({ renewal: v, page: '1' })} options={RENEWAL_FILTERS} empty="Any" />
-        <SelectInput label="Type" value={f.type} onChange={v => set({ type: v, page: '1' })} options={T.options('ContractType', f.type)} empty="Any" />
+        <SelectInput label="Type" value={f.type} onChange={v => set({ type: v, page: '1' })} options={T.filterOptions('ContractType')} empty="Any" />
         {f.country && <span className="chip" style={{ alignSelf: 'end', marginBottom: 6 }}>Country: {f.country} <button className="linkbtn" onClick={() => set({ country: '' })} aria-label="Clear country filter">✕</button></span>}
       </div>
       <DataTable<Row> rowKey={c => c.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Contracts"
@@ -85,7 +91,8 @@ export function ContractList() {
           { key: 'ref', header: 'Ref', sort: 'ref', render: c => <Link to={`/contracts/${c.id}`}>{c.ref}</Link>,
             filter: <input className="input" aria-label="Search contracts" placeholder="Title or reference" value={f.q} onChange={e => set({ q: e.target.value, page: '1' })} /> },
           { key: 'title', header: 'Contract', sort: 'title', render: c => <><Link to={`/contracts/${c.id}`}>{c.title}</Link>{c.contractReference && <div className="hint">{c.contractReference}</div>}</> },
-          { key: 'project', header: 'Project', sort: 'project', render: c => <><Link to={`/projects/${c.projectId}`}>{c.projectCode}</Link><div className="hint">{c.clientCode}</div></> },
+          { key: 'client', header: 'Client', sort: 'client', render: c => <ClientDisplay id={c.clientId} code={c.clientCode} name={c.clientName} size="xs" /> },
+          { key: 'project', header: 'Project', sort: 'project', render: c => <><Link to={`/projects/${c.projectId}`}>{c.projectCode}</Link><div className="hint">{c.projectName}</div></> },
           { key: 'type', header: 'Type', render: c => T.name('ContractType', c.type) },
           { key: 'status', header: 'Status', sort: 'status', render: c => <StatusBadge value={c.status} />,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value, page: '1' })}><option value="">All</option>{statuses.map(s => <option key={s} value={s}>{label(s)}</option>)}</select> },
@@ -94,6 +101,7 @@ export function ContractList() {
           { key: 'renewal', header: 'Renewal', render: c => <RenewalBadge state={c.renewalState} /> },
           { key: 'support', header: 'Support', render: c => <>{label(c.supportModel)}{c.onSiteEngineersRequired ? <div className="hint">{c.onSiteEngineersRequired} on site required</div> : null}</> },
           { key: 'sla', header: 'SLA targets', className: 'num', render: c => c.slaTargets || <span className="muted">none</span> },
+          { key: 'amount', header: 'Contract amount', sort: 'amount', className: 'num nowrap', render: c => c.amount != null ? fmtMoney(c.amount, c.currency ?? undefined) : <span className="muted" title="No fee line with a price is recorded">Not recorded</span> },
           { key: 'owner', header: 'Owner', sort: 'owner', render: c => <Person u={c.owner} /> }, { key: 'del', header: '', className: 'row-actions', render: c => <DeleteAction path={`/contracts/${c.id}`} what={`contract ${c.ref}`} /> }
         ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s), page: '1' })} />}
@@ -126,7 +134,10 @@ export function ClientContracts({ clientId, canCreate }: { clientId: number; can
 }
 
 export function ContractDetail() {
+  const canRenew = useRight('Contracts', 'Create');
   const T = useTypes();
+  const canViewProducts = useRight('Products', 'View');
+  const canViewEnvironments = useRight('Environments', 'View');
   const { id } = useParams();
   const q = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail>(`/contracts/${id}`) });
   const nav = useNavigate();
@@ -140,12 +151,24 @@ export function ContractDetail() {
           sub={<><StatusBadge value={c.status} /> <RenewalBadge state={c.renewalState} /> {c.renewalNote && <span className="muted">{c.renewalNote}</span>}</>}
           actions={<>
             {c.permissions.canEdit && <Link className="btn btn-primary" to={`/contracts/${c.id}/edit`}>Edit</Link>}
+            {canRenew && <Link className="btn" to={`/contracts/new?renewFrom=${c.id}`}>Renew contract</Link>}
             {c.permissions.canArchive && c.status !== 'Active' && <button className="btn" onClick={() => setArchive(true)}>Archive</button>}
           <DeleteAction button path={`/contracts/${c.id}`} what={`contract ${c.ref}`} afterTo={'/contracts'} /></>} />
-        <div className="cols">
+        <ContractSummary c={c} />
+        <SectionNav label="Contract sections" items={[
+          { id: 'contract-details', label: 'Details' },
+          { id: 'contract-sla', label: 'SLA targets', count: c.slaTargets.length },
+          { id: 'contract-delivery', label: 'Delivery', count: c.milestones.length },
+          { id: 'contract-payments', label: 'Fees and payments', count: c.payments.length },
+          { id: 'contract-penalties', label: 'Penalties', count: c.penaltyClauses.length },
+          { id: 'contract-coverage', label: 'Coverage' },
+          { id: 'contract-documents', label: 'Documents' },
+          { id: 'contract-history', label: 'History' }
+        ]} />
+        <div className="cols" id="contract-details">
           <Panel title="Contract">
             <DL items={[
-              ['Client', <Link to={`/clients/${c.client.id}`}>{c.client.code} · {c.client.name}</Link>],
+              ['Client', <ClientDisplay id={c.client.id} code={c.client.code} name={c.client.name} show="both" />],
               ['Contract reference', c.contractReference ?? <Unknown />],
               ['Type', T.name('ContractType', c.type)],
               ['Project', <Link to={`/projects/${c.project.id}`}>{c.project.code} · {c.project.name}</Link>],
@@ -162,13 +185,14 @@ export function ContractDetail() {
               ['Support hours', c.supportSummary ?? <Unknown />],
               ...(c.supportHours ? [['Support notes', c.supportHours] as [string, string]] : []),
               ['On-site engineers required', c.onSiteEngineersRequired ?? <Unknown />],
-              ['Coverage', c.coverage ?? <Unknown />],
-              ['Obligations', c.obligations ? <span style={{ whiteSpace: 'pre-wrap' }}>{c.obligations}</span> : <Unknown />]
+              // A105: long service text shows a few lines; the rest opens on request, so the SLA targets stay near the top.
+              ['Coverage', c.coverage ? <ExpandableText text={c.coverage} /> : <Unknown />],
+              ['Obligations', c.obligations ? <ExpandableText text={c.obligations} /> : <Unknown />]
             ]} />
           </Panel>
         </div>
-        <Panel title="SLA targets (recorded)" pad={false}>
-          <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote} {c.slaPauseWhileWaitingOnCustomer ? 'The clock pauses while a case waits on the customer.' : 'The clock does not pause while a case waits on the customer.'} <Link to={`/cases?contractId=${c.id}&status=all`}>Cases measured against this contract</Link></p>
+        <Panel id="contract-sla" title="SLA targets (recorded)" pad={false}>
+          <p className="hint" style={{ padding: '8px 12px 0' }}>{c.slaNote} {c.slaPauseWhileWaitingOnCustomer ? 'The clock pauses while a ticket waits on the customer.' : 'The clock does not pause while a ticket waits on the customer.'} <Link to={`/cases?contractId=${c.id}&status=all`}>Tickets measured against this contract</Link></p>
           <DataTable<Target> rowKey={t => t.priority} rows={c.slaTargets} caption="SLA targets"
             columns={[
               { key: 'p', header: 'Priority', render: t => t.priority },
@@ -179,20 +203,106 @@ export function ContractDetail() {
             ]} />
         </Panel>
         <ContractTermsView c={c} />
-        <div className="cols">
+        <div id="contract-penalties" className="section-anchor"><PenaltyAssessments contractId={c.id} clauses={c.penaltyClauses} /></div>
+        <div className="cols" id="contract-coverage">
           <Panel title="Covered products (from the project)">
-            {c.products.length === 0 ? <StateMessage kind="none">The project has no products recorded.</StateMessage> : <ul className="plain">{c.products.map(p => <li key={p.id}>{p.code} · {p.name}</li>)}</ul>}
+            {!canViewProducts ? <span className="muted">Products are unavailable with your current access.</span> : c.products.length === 0 ? <StateMessage kind="none">The project has no products recorded.</StateMessage> : <ul className="plain">{c.products.map(p => <li key={p.id}>{p.code} · {p.name}</li>)}</ul>}
           </Panel>
           <Panel title="Covered environments">
-            {c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
+            {!canViewEnvironments ? <span className="muted">Environments are unavailable with your current access.</span> : c.environments.length === 0 ? <StateMessage kind="none" /> : <ul className="plain">{c.environments.map(e => <li key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></li>)}</ul>}
           </Panel>
         </div>
-        <AttachmentsPanel recordType="Contract" recordId={c.id} canEdit={c.permissions.canEdit} title="Contract and SLA documents" />
-        <HistoryPanel entityType="Contract" entityId={c.id} />
+        <div id="contract-documents" className="section-anchor"><AttachmentsWorkspace recordType="Contract" recordId={c.id} title="Contract and SLA documents" /></div>
+        <div id="contract-history" className="section-anchor"><HistoryPanel entityType="Contract" entityId={c.id} /></div>
         {archive && <ArchiveDialog what="contract" path={`/contracts/${c.id}/archive`} version={c.version} onClose={() => setArchive(false)} onDone={() => nav(`/projects/${c.project.id}`)} />}
       </>)}
     </QueryState>
   );
+}
+
+/** A105: term, renewal, SLA and payments at a glance, each linked to its section. */
+function ContractSummary({ c }: { c: Detail }) {
+  const open = c.payments.filter(p => p.status === 'Pending' || p.status === 'Invoiced');
+  const next = open.filter(p => p.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))[0];
+  const overdue = c.payments.filter(p => p.overdue).length;
+  const top = c.slaTargets[0];
+  const Item = ({ to, name, children, hint }: { to: string; name: string; children: React.ReactNode; hint?: React.ReactNode }) => (
+    <a className="summary-item" href={`#${to}`} onClick={e => { const el = document.getElementById(to); if (el) { e.preventDefault(); el.scrollIntoView({ block: 'start' }); } }}>
+      <span className="summary-label">{name}</span><span className="summary-value">{children}</span>{hint && <span className="summary-hint">{hint}</span>}
+    </a>
+  );
+  return (
+    <section className="contract-summary" aria-label="Contract summary">
+      <Item to="contract-details" name="Term" hint={c.noticeDeadline ? `Give notice by ${fmtDate(c.noticeDeadline)}` : label(c.renewalTerms)}>
+        {c.startDate ? fmtDate(c.startDate) : '?'} – {c.endDate ? fmtDate(c.endDate) : 'end unknown'}
+      </Item>
+      <Item to="contract-details" name="Renewal" hint={c.renewalNote}><RenewalBadge state={c.renewalState} /></Item>
+      <Item to="contract-sla" name="SLA targets" hint={top ? `${top.priority}: ${fmtMinutes(top.responseMinutes)} first response / ${fmtMinutes(top.resolutionMinutes)} resolution` : 'Tickets are not measured'}>
+        {c.slaTargets.length ? `${c.slaTargets.length} ${c.slaTargets.length === 1 ? 'priority' : 'priorities'}` : 'None recorded'}
+      </Item>
+      <Item to="contract-payments" name="Payments" hint={overdue ? <span className="err">{overdue} overdue</span> : next ? `${next.condition}${next.amount ? ` · ${money(next.amount, c.currency)}` : ''}` : undefined}>
+        {next ? <>Next due {fmtDate(next.dueDate!)}</> : open.length ? `${open.length} open, no due date` : c.payments.length ? 'All settled' : 'None recorded'}
+      </Item>
+    </section>
+  );
+}
+
+type PenaltyAssessment = {
+  id: number; clauseId: number; billingMonth: string; uncappedAmount: number; amount: number; breachCount: number;
+  currency: string; calculatedAt: string; reviewedAt?: string; reviewReason?: string; reviewState: string; version: string;
+  terms?: { name: string; calculation: string; fixedAmount?: number; percentage?: number; referenceAmount?: number; monthlyCap?: number; billingTimeZone?: string };
+};
+
+function PenaltyAssessments({ contractId, clauses }: { contractId: number; clauses: Detail['penaltyClauses'] }) {
+  const q = useQuery({ queryKey: ['penalty-assessments', contractId], queryFn: () => get<PenaltyAssessment[]>(`/contracts/${contractId}/penalty-assessments`) });
+  const canReview = useRight('Contracts', 'Coordinate');
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<ApiError | null>(null);
+  const toast = useToast();
+  const recalculate = async () => {
+    setError(null);
+    setBusy(true);
+    try {
+      await post(`/contracts/${contractId}/penalty-assessments/recalculate`, { reason: reason.trim() });
+      await q.refetch();
+      toast('Penalty assessment recalculated.');
+    } catch (e) {
+      setError(e instanceof ApiError ? e : new ApiError(0, { title: 'Could not recalculate the assessments. Please retry.' }));
+    } finally { setBusy(false); }
+  };
+  const confirm = async (row: PenaltyAssessment) => {
+    setError(null);
+    setBusy(true);
+    try {
+      await post(`/contracts/${contractId}/penalty-assessments/${row.id}/confirm`, { reason: reason.trim() }, row.version);
+      await q.refetch();
+      toast('Penalty assessment confirmed.');
+    } catch (e) {
+      setError(e instanceof ApiError ? e : new ApiError(0, { title: 'Could not confirm the assessment. Please retry.' }));
+    } finally { setBusy(false); }
+  };
+  return <Panel title="Penalty assessments" pad={false} actions={canReview && <button className="btn" disabled={busy || !reason.trim()} onClick={() => void recalculate()}>Recalculate</button>}>
+    <p className="hint" style={{ padding: '8px 12px 0' }}>Indicative contractual amounts only. Different recorded rates or caps are assessed separately and require review. Superseded assessments have no current charge; earlier values remain in change history. The hub does not issue credits or invoices.</p>
+    {canReview && <div style={{ padding: '8px 12px' }}><TextInput label="Reason for recalculation or confirmation" required value={reason} onChange={setReason} /></div>}
+    <FormError error={error} fields={[]} />
+    {q.isLoading ? <StateMessage kind="loading" /> : q.error ? <StateMessage kind="error">{q.error.message}</StateMessage> : !q.data?.length ? <StateMessage kind="none">No assessments have been calculated.</StateMessage> :
+      <DataTable caption="Penalty assessments" rows={q.data} rowKey={row => row.id} columns={[
+        { key: 'month', header: 'Billing month', render: row => row.billingMonth },
+        { key: 'clause', header: 'Clause', render: row => {
+          const clause = clauses.find(x => x.id === row.clauseId);
+          const money = (amount: number) => new Intl.NumberFormat(undefined, { style: 'currency', currency: row.currency }).format(amount);
+          const terms = row.terms;
+          const rate = terms?.calculation === 'FixedPerBreach' ? money(terms.fixedAmount ?? 0) : terms ? `${terms.percentage ?? 0}% of ${money(terms.referenceAmount ?? 0)}` : null;
+          return <>{terms?.name ?? clause?.name ?? `Clause ${row.clauseId}`}{terms && <div className="hint">Recorded: {rate} per breach · {terms.monthlyCap != null ? `Monthly cap ${money(terms.monthlyCap)} (${terms.billingTimeZone})` : 'Uncapped'}</div>}</>;
+        } },
+        { key: 'breaches', header: 'Breaches', className: 'num', render: row => row.breachCount },
+        { key: 'uncapped', header: 'Uncapped', className: 'num', render: row => new Intl.NumberFormat(undefined, { style: 'currency', currency: row.currency }).format(row.uncappedAmount) },
+        { key: 'assessed', header: 'Assessed', className: 'num', render: row => new Intl.NumberFormat(undefined, { style: 'currency', currency: row.currency }).format(row.amount) },
+        { key: 'review', header: 'Review', render: row => <>{row.reviewState}{row.reviewedAt && <div className="hint">{fmtDate(row.reviewedAt)} · {row.reviewReason}</div>}</> },
+        { key: 'action', header: 'Action', render: row => canReview && row.reviewState === 'NeedsReview' && <button className="linkbtn" disabled={busy || !reason.trim()} onClick={() => void confirm(row)}>Confirm</button> }
+      ]} />}
+  </Panel>;
 }
 
 type TargetForm = { priority: string; response: string; resolution: string; unit: 'min' | 'h'; basis: string; notes: string };
@@ -216,7 +326,12 @@ export function ContractForm() {
   const models = useEnum('SupportModel');
   const priorities = useEnum('Priority');
   const bases = useEnum('SlaBasis');
+  const canViewProducts = useRight('Products', 'View');
+  const canViewEnvironments = useRight('Environments', 'View');
   const existing = useQuery({ queryKey: ['contract', id], queryFn: () => get<Detail & { productIds?: number[] }>(`/contracts/${id}`), enabled: !isNew });
+  // Renewing starts a new contract from a copy of this one: nothing is saved, and the old contract is untouched, until the person saves.
+  const renewFrom = isNew ? sp.get('renewFrom') : null;
+  const source = useQuery({ queryKey: ['contract', renewFrom], queryFn: () => get<Detail & { productIds?: number[] }>(`/contracts/${renewFrom}`), enabled: !!renewFrom });
   const f = useForm({
     projectId: sp.get('projectId') ?? '', title: '', contractReference: '', type: 'SlaSupport', status: 'Draft', ownerUserId: null as number | null,
     startDate: '', endDate: '', renewalTerms: 'Unknown', noticeDays: '', supportModel: 'Unknown', supportHours: '', supportTimeZone: '', onSiteEngineersRequired: '',
@@ -224,29 +339,32 @@ export function ContractForm() {
     // A49
     support24x7: false, supportDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'] as string[], supportFrom: '08:00', supportTo: '17:00', currency: '',
     slaPauseWhileWaitingOnCustomer: false,
-    milestones: [] as MilestoneForm[], fees: [] as FeeForm[], payments: [] as PaymentForm[]
+    milestones: [] as MilestoneForm[], fees: [] as FeeForm[], payments: [] as PaymentForm[], penalties: [] as PenaltyForm[]
   });
   useLeaveGuard(f.dirty && !f.busy);
   useEffect(() => {
-    const c = existing.data;
+    const c = existing.data ?? source.data;
+    const renewing = !existing.data;
+    const period = renewing ? renewalPeriod(c?.startDate, c?.endDate) : null;
     if (c) f.reset({
-      projectId: String(c.project.id), title: c.title, contractReference: c.contractReference ?? '', type: c.type, status: c.status,
-      ownerUserId: c.owner?.id ?? null, startDate: c.startDate ?? '', endDate: c.endDate ?? '', renewalTerms: c.renewalTerms, noticeDays: c.noticeDays?.toString() ?? '',
+      projectId: String(c.project.id), title: c.title, contractReference: c.contractReference ?? '', type: c.type, status: renewing ? 'Draft' : c.status,
+      ownerUserId: c.owner?.id ?? null, startDate: period ? period.startDate : c.startDate ?? '', endDate: period ? period.endDate : c.endDate ?? '', renewalTerms: c.renewalTerms, noticeDays: c.noticeDays?.toString() ?? '',
       supportModel: c.supportModel, supportHours: c.supportHours ?? '', supportTimeZone: c.supportTimeZone ?? '', onSiteEngineersRequired: c.onSiteEngineersRequired?.toString() ?? '',
       coverage: c.coverage ?? '', obligations: c.obligations ?? '', environmentIds: c.environments.map(e => e.id), targets: c.slaTargets.map(toForm),
       support24x7: c.support24x7, supportDays: c.supportDays, supportFrom: c.supportFrom ?? '', supportTo: c.supportTo ?? '', currency: c.currency ?? '',
       slaPauseWhileWaitingOnCustomer: c.slaPauseWhileWaitingOnCustomer,
-      milestones: c.milestones.map(m => ({ id: m.id, phase: m.phase, description: m.description ?? '', completionPercent: m.completionPercent?.toString() ?? '', date: m.date ?? '' })),
-      fees: c.fees.map(x => ({ id: x.id, description: x.description, unit: x.unit ?? '', quantity: x.quantity?.toString() ?? '', unitPrice: x.unitPrice?.toString() ?? '' })),
-      payments: c.payments.map(x => ({ id: x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: x.dueDate ?? '', status: x.status, paidOn: x.paidOn ?? '', notes: x.notes ?? '' }))
+      milestones: c.milestones.map(m => ({ id: renewing ? undefined : m.id, phase: m.phase, description: m.description ?? '', completionPercent: renewing ? '' : m.completionPercent?.toString() ?? '', date: period ? shiftDay(m.date, period.shiftDays) : m.date ?? '' })),
+      fees: c.fees.map(x => ({ id: renewing ? undefined : x.id, description: x.description, unit: x.unit ?? '', quantity: x.quantity?.toString() ?? '', unitPrice: x.unitPrice?.toString() ?? '' })),
+      payments: c.payments.map(x => ({ id: renewing ? undefined : x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: period ? shiftDay(x.dueDate, period.shiftDays) : x.dueDate ?? '', status: renewing ? 'Pending' : x.status, paidOn: renewing ? '' : x.paidOn ?? '', notes: x.notes ?? '' })),
+      penalties: (c.penaltyClauses ?? []).map(x => ({ ...x, id: renewing ? undefined : x.id, fixedAmount: x.fixedAmount?.toString() ?? '', percentage: x.percentage?.toString() ?? '', referenceAmount: x.referenceAmount?.toString() ?? '', monthlyCap: x.monthlyCap?.toString() ?? '' }))
     });
-  }, [existing.data]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [existing.data, source.data]); // eslint-disable-line react-hooks/exhaustive-deps
   // The contract belongs to a project; the project gives the client and the covered products. An existing contract may move only between its client's projects.
-  const onlyClient = existing.data ? String(existing.data.clientId) : sp.get('clientId') ?? '';
+  const onlyClient = existing.data ? String(existing.data.clientId) : source.data ? String(source.data.clientId) : sp.get('clientId') ?? '';
   const projects = useQuery({ queryKey: ['projects-of', onlyClient], queryFn: () => get<Paged<{ id: number; code: string; name: string; clientId: number; clientCode: string; products: { code: string }[] }>>(`/projects?pageSize=200${onlyClient ? `&clientId=${onlyClient}` : ''}`) });
   const project = projects.data?.items.find(p => String(p.id) === f.values.projectId);
-  const clientId = project?.clientId ?? existing.data?.clientId ?? null;
-  const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`), enabled: !!clientId });
+  const clientId = project?.clientId ?? existing.data?.clientId ?? source.data?.clientId ?? null;
+  const envs = useQuery({ queryKey: ['envs-of', clientId], queryFn: () => get<Paged<{ id: number; name: string; regionCode?: string }>>(`/environments?clientId=${clientId}&pageSize=200`), enabled: !!clientId && canViewEnvironments });
   const setTarget = (i: number, patch: Partial<TargetForm>) => f.set('targets', f.values.targets.map((t, n) => (n === i ? { ...t, ...patch } : t)));
   const unused = priorities.filter(p => !f.values.targets.some(t => t.priority === p));
   const toggle = (key: 'environmentIds', v: number, on: boolean) => f.set(key, on ? [...f.values[key], v] : f.values[key].filter(x => x !== v));
@@ -264,24 +382,26 @@ export function ContractForm() {
       currency: v.currency || null, slaPauseWhileWaitingOnCustomer: v.slaPauseWhileWaitingOnCustomer,
       milestones: v.milestones.map(m => ({ id: m.id ?? null, phase: m.phase, description: m.description || null, completionPercent: num(m.completionPercent), date: m.date || null })),
       fees: v.fees.map(x => ({ id: x.id ?? null, description: x.description, unit: x.unit || null, quantity: num(x.quantity), unitPrice: num(x.unitPrice) })),
-      payments: v.payments.map(x => ({ id: x.id ?? null, condition: x.condition, percentage: num(x.percentage), amount: num(x.amount), dueDate: x.dueDate || null, status: x.status, paidOn: x.status === 'Paid' ? x.paidOn || null : null, notes: x.notes || null }))
+      payments: v.payments.map(x => ({ id: x.id ?? null, condition: x.condition, percentage: num(x.percentage), amount: num(x.amount), dueDate: x.dueDate || null, status: x.status, paidOn: x.status === 'Paid' ? x.paidOn || null : null, notes: x.notes || null })),
+      penaltyClauses: v.penalties.map(x => ({ id: x.id ?? null, name: x.name, trigger: x.trigger, calculation: x.calculation, fixedAmount: x.calculation === 'FixedPerBreach' ? num(x.fixedAmount) : null, percentage: x.calculation === 'PercentagePerBreach' ? num(x.percentage) : null, referenceAmount: x.calculation === 'PercentagePerBreach' ? num(x.referenceAmount) : null, monthlyCap: num(x.monthlyCap), billingTimeZone: x.monthlyCap ? x.billingTimeZone : null }))
     };
     const res = await f.submit(() => isNew ? post<{ id: number }>('/contracts', body) : put(`/contracts/${id}`, body, existing.data?.version).then(() => ({ id: Number(id) })));
     // Project pages, the register and dashboards show this contract too.
     if (res) { toast('Contract saved.'); refresh(); nav(`/contracts/${(res as { id: number }).id}`); }
   };
 
-  if (!isNew && existing.isLoading) return <StateMessage kind="loading" />;
+  if ((!isNew && existing.isLoading) || (renewFrom && source.isLoading)) return <StateMessage kind="loading" />;
   return (
     <>
-      <PageHead title={isNew ? 'New contract' : `Edit ${existing.data?.ref ?? ''}`} crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, ...(project ? [{ to: `/projects/${project.id}`, label: project.code }] : [])]}
+      <PageHead title={source.data ? `Renew ${source.data.ref}` : isNew ? 'New contract' : `Edit ${existing.data?.ref ?? ''}`} crumbs={[{ to: '/clients', label: 'Clients' }, { to: '/projects', label: 'Projects & contracts' }, ...(project ? [{ to: `/projects/${project.id}`, label: project.code }] : [])]}
         sub="Record what the signed contract says. Leave a value empty when it is not known yet — it is shown as Unknown, never guessed." />
+      {source.data && <div className="notice">This is a new contract, copied from {source.data.ref}. Change anything you need; nothing is saved until you press Save, and {source.data.ref} stays as it is. The dates are set to the next period, milestone and payment dates move with them, and payments start again as Pending. It starts as Draft: set it to Active once signed. Tickets from a Jira space follow it only after you link it to the space.</div>}
       <FormError error={f.error} />
       <Panel title="Contract">
         <div className="form-grid">
           <SelectInput label="Project" required value={f.values.projectId} onChange={v => f.set('projectId', v)} error={f.fieldError('projectId')}
             options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.clientCode} · ${p.code} · ${p.name}` }))} empty="— Select —"
-            hint={project ? `Client ${project.clientCode} · covered products: ${project.products.map(x => x.code).join(', ') || 'none recorded on the project'}` : 'The contract belongs to this project and covers its products.'} />
+            hint={project ? `Client ${project.clientCode}${canViewProducts ? ` · covered products: ${project.products.map(x => x.code).join(', ') || 'none recorded on the project'}` : ''}` : 'The contract belongs to this project and covers its products.'} />
           <TextInput label="Title" required value={f.values.title} onChange={v => f.set('title', v)} error={f.fieldError('title')} />
           <TextInput label="Contract reference" value={f.values.contractReference} onChange={v => f.set('contractReference', v)} error={f.fieldError('contractReference')} hint="Number on the contract document." />
           <SelectInput label="Type" required value={f.values.type} onChange={v => f.set('type', v)} options={T.options('ContractType', f.values.type)} empty={null} />
@@ -298,20 +418,20 @@ export function ContractForm() {
           <SelectInput label="Support model" value={f.values.supportModel} onChange={v => f.set('supportModel', v)} options={enumOptions(models)} empty={null} />
           <SupportHoursField v={f.values} set={(k, x) => f.set(k as never, x as never)} error={f.fieldError('supportTo') ?? f.fieldError('supportDays')} />
           <TimeZoneSelect label="Support time zone" value={f.values.supportTimeZone} onChange={v => f.set('supportTimeZone', v)} error={f.fieldError('supportTimeZone')} hint="The zone the support hours are counted in." />
-          <TextInput label="Support notes" value={f.values.supportHours} onChange={v => f.set('supportHours', v)} error={f.fieldError('supportHours')} placeholder="e.g. Public holidays excluded" />
+          <TextInput label="Support notes" wide multiline value={f.values.supportHours} onChange={v => f.set('supportHours', v)} error={f.fieldError('supportHours')} placeholder="e.g. Public holidays excluded" />
           <TextInput label="On-site engineers required" type="number" value={f.values.onSiteEngineersRequired} onChange={v => f.set('onSiteEngineersRequired', v)} error={f.fieldError('onSiteEngineersRequired')} />
           <TextInput label="Service coverage" wide multiline value={f.values.coverage} onChange={v => f.set('coverage', v)} error={f.fieldError('coverage')} />
           <TextInput label="Obligations" wide multiline value={f.values.obligations} onChange={v => f.set('obligations', v)} error={f.fieldError('obligations')} hint="Reports, staffing, maintenance windows and other duties as written in the contract." />
           <fieldset className="wide" style={{ border: 0, padding: 0 }}><legend className="flabel">Covered environments</legend>
-            {!clientId ? <span className="hint">Select the project first.</span> : (envs.data?.items ?? []).length === 0 ? <span className="hint">No environments recorded for this client.</span>
+            {!canViewEnvironments ? <span className="hint">Environments are unavailable with your current access; existing links will be preserved.</span> : !clientId ? <span className="hint">Select the project first.</span> : (envs.data?.items ?? []).length === 0 ? <span className="hint">No environments recorded for this client.</span>
               : envs.data!.items.map(e => <label key={e.id} className="check" style={{ marginRight: 14 }}><input type="checkbox" checked={f.values.environmentIds.includes(e.id)} onChange={ev => toggle('environmentIds', e.id, ev.target.checked)} /> {e.regionCode ? `${e.regionCode} / ` : ''}{e.name}</label>)}
             {f.fieldError('environmentIds') && <div className="err">{f.fieldError('environmentIds')}</div>}
           </fieldset>
         </div>
       </Panel>
       <Panel title="SLA targets (recorded)" actions={unused.length > 0 && <button className="btn" onClick={() => f.set('targets', [...f.values.targets, { priority: unused[0], response: '', resolution: '', unit: 'h', basis: 'SupportHours', notes: '' }])}>+ Target</button>}>
-        <p className="hint">One row per priority, as written in the contract. Cases linked to this contract are timed against the target for their priority; changes apply to cases linked from now on.</p>
-        <label className="check" style={{ margin: '8px 0' }}><input type="checkbox" checked={f.values.slaPauseWhileWaitingOnCustomer} onChange={e => f.set('slaPauseWhileWaitingOnCustomer', e.target.checked)} /> Pause the SLA clock while a case waits on the customer</label>
+        <p className="hint">One row per priority, as written in the contract. Tickets linked to this contract are timed against the target for their priority; changes apply to tickets linked from now on.</p>
+        <label className="check" style={{ margin: '8px 0' }}><input type="checkbox" checked={f.values.slaPauseWhileWaitingOnCustomer} onChange={e => f.set('slaPauseWhileWaitingOnCustomer', e.target.checked)} /> Pause the SLA clock while a ticket waits on the customer</label>
         {f.values.targets.length === 0 ? <StateMessage kind="none">No SLA targets recorded.</StateMessage> : (
           <table className="grid sla-edit">
             <thead><tr><th>Priority</th><th>Response</th><th>Resolution</th><th>Unit</th><th>Clock</th><th>Notes</th><th /></tr></thead>
@@ -331,6 +451,20 @@ export function ContractForm() {
           </table>
         )}
         {Object.entries(f.error?.errors ?? {}).filter(([k]) => k.startsWith('slaTargets')).map(([k, v]) => <div key={k} className="err">{v.join(' ')}</div>)}
+      </Panel>
+      <Panel title="Penalties" actions={<button className="btn" disabled={!f.values.currency} onClick={() => f.set('penalties', [...f.values.penalties, { name: '', trigger: 'ResponseSlaBreached', calculation: 'FixedPerBreach', fixedAmount: '', percentage: '', referenceAmount: '', monthlyCap: '', billingTimeZone: '' }])}>+ Clause</button>}>
+        <p className="hint">Recorded contractual terms. Breaches can be reviewed as indicative amounts; this does not issue credits or invoices. Currency is {f.values.currency || 'selected above'}.</p>
+        {f.values.penalties.map((p, i) => <div className="form-grid" key={i} style={{ borderBottom: '1px solid var(--line)', padding: '10px 0' }}>
+          <TextInput label="Clause name" required value={p.name} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, name: v } : x))} />
+          <SelectInput label="Trigger" value={p.trigger} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, trigger: v } : x))} options={[{ value: 'ResponseSlaBreached', label: 'Response SLA breached' }, { value: 'ResolutionSlaBreached', label: 'Resolution SLA breached' }]} empty={null} />
+          <SelectInput label="Calculation" value={p.calculation} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, calculation: v } : x))} options={[{ value: 'FixedPerBreach', label: 'Fixed amount per breach' }, { value: 'PercentagePerBreach', label: 'Percentage of reference amount per breach' }]} empty={null} />
+          {p.calculation === 'FixedPerBreach' ? <TextInput label={`Amount (${f.values.currency})`} type="number" value={p.fixedAmount} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, fixedAmount: v } : x))} /> : <><TextInput label="Percentage" type="number" value={p.percentage} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, percentage: v } : x))} /><TextInput label={`Reference amount (${f.values.currency})`} type="number" value={p.referenceAmount} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, referenceAmount: v } : x))} /></>}
+          <TextInput label={`Monthly cap (${f.values.currency}, optional)`} type="number" value={p.monthlyCap} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, monthlyCap: v, billingTimeZone: v ? x.billingTimeZone : '' } : x))} />
+          {!!p.monthlyCap && <TimeZoneSelect label="Billing time zone" value={p.billingTimeZone} onChange={v => f.set('penalties', f.values.penalties.map((x,n) => n === i ? { ...x, billingTimeZone: v } : x))} />}
+          <button className="linkbtn" onClick={() => f.set('penalties', f.values.penalties.filter((_,n) => n !== i))}>Remove clause</button>
+          {Object.entries(f.error?.errors ?? {}).filter(([k]) => k.toLowerCase().startsWith(`penaltyclauses[${i}]`)).map(([k, v]) => <div className="err wide" key={k}>{v.join(' ')}</div>)}
+        </div>)}
+        {f.values.penalties.length === 0 && <StateMessage kind="none">No penalty clauses recorded.</StateMessage>}
       </Panel>
       <ContractTermsEditor v={f.values} set={(k, x) => f.set(k as never, x as never)} errors={f.error?.errors ?? {}} />
       <div className="form-actions" style={{ justifyContent: 'flex-start' }}>
@@ -355,6 +489,8 @@ type ProjectDto = {
 /** A27: the project with its contracts, their SLA targets and renewal state, its products and environments. */
 export function ProjectDetail() {
   const T = useTypes();
+  const canViewProducts = useRight('Products', 'View');
+  const canViewEnvironments = useRight('Environments', 'View');
   const { id } = useParams();
   const q = useQuery({ queryKey: ['project', id], queryFn: () => get<ProjectDto>(`/projects/${id}`) });
   const nav = useNavigate();
@@ -373,15 +509,15 @@ export function ProjectDetail() {
       <div className="cols">
         <Panel title="Project">
           <DL items={[
-            ['Client', <Link to={`/clients/${p.clientId}`}>{p.clientCode} · {p.clientName}</Link>], ['Project owner', <Person u={p.owner} />],
+            ['Client', <ClientDisplay id={p.clientId} code={p.clientCode} name={p.clientName} show="both" />], ['Project owner', <Person u={p.owner} />],
             ['Service dates', p.serviceStart ? `${fmtDate(p.serviceStart)} – ${p.serviceEnd ? fmtDate(p.serviceEnd) : 'open'}` : <Unknown />],
             ['Scope', p.scopeSummary ? <span style={{ whiteSpace: 'pre-wrap' }}>{p.scopeSummary}</span> : <Unknown />]
           ]} />
         </Panel>
         <Panel title="Products and environments">
           <DL items={[
-            ['Supported products', p.products.length ? p.products.map(x => <span key={x.id} className="chip" style={{ marginRight: 6 }}>{x.code}</span>) : <span className="muted">None recorded</span>],
-            ['Environments', p.environments.length ? p.environments.map(e => <div key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></div>) : <span className="muted">None linked</span>]
+            ['Supported products', !canViewProducts ? <span className="muted">Unavailable with your current access</span> : p.products.length ? p.products.map(x => <span key={x.id} className="chip" style={{ marginRight: 6 }}>{x.code}</span>) : <span className="muted">None recorded</span>],
+            ['Environments', !canViewEnvironments ? <span className="muted">Unavailable with your current access</span> : p.environments.length ? p.environments.map(e => <div key={e.id}><Link to={`/environments/${e.id}`}>{e.region ? `${e.region} / ` : ''}{e.name}</Link> <span className="muted">· {T.name('EnvironmentType', e.type)}</span></div>) : <span className="muted">None linked</span>]
           ]} />
           <p className="hint" style={{ marginTop: 8 }}>The project's contracts cover these products.</p>
         </Panel>
@@ -402,7 +538,7 @@ export function ProjectDetail() {
           ]} />}
       </Panel>
       <MyNotesPanel projectId={p.id} />
-      <AttachmentsPanel recordType="Project" recordId={p.id} canEdit={p.permissions.canAddContract} />
+      <AttachmentsWorkspace recordType="Project" recordId={p.id} />
       <HistoryPanel entityType="Project" entityId={p.id} />
       {dialog === 'edit' && <ProjectDialog clientId={p.clientId} projectId={p.id} onClose={() => setDialog(null)} />}
       {dialog === 'archive' && <ArchiveDialog what="project" path={`/projects/${p.id}/archive`} version={p.version} onClose={() => setDialog(null)} onDone={() => nav(`/projects?clientId=${p.clientId}`)} />}
@@ -536,41 +672,59 @@ function ContractTermsEditor({ v, set, errors }: { v: TermsV; set: (k: keyof Ter
 }
 
 function ContractTermsView({ c }: { c: Detail }) {
+  const [statusOf, setStatusOf] = useState<Detail['payments'][number] | null>(null);
   const done = c.milestones.length ? Math.round(c.milestones.reduce((a, m) => a + (m.completionPercent ?? 0), 0) / c.milestones.length) : null;
   const paid = c.payments.filter(p => p.status === 'Paid').reduce((a, p) => a + (p.amount ?? 0), 0);
   const open = c.payments.filter(p => p.status === 'Pending' || p.status === 'Invoiced');
   const next = open.filter(p => p.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))[0];
   return (
     <>
-      <Panel title={`Delivery schedule${done !== null ? ` · ${done} % complete on average` : ''}`} pad={false}>
+      <Panel id="contract-delivery" title={`Delivery schedule${done !== null ? ` · ${done} % complete on average` : ''}`} pad={false}>
         {c.milestones.length === 0 ? <div className="panel-body"><StateMessage kind="none">No delivery phases recorded.</StateMessage></div> : (
-          <table className="grid"><thead><tr><th>Phase</th><th>Description</th><th>Completion</th><th>Date</th></tr></thead>
-            <tbody>{c.milestones.map(m => (
-              <tr key={m.id}><td><b>{m.phase}</b></td><td>{m.description}</td>
-                <td className="nowrap">{m.completionPercent !== undefined && m.completionPercent !== null
-                  ? <span className="progress"><span className="bar"><span style={{ width: `${m.completionPercent}%` }} /></span>{m.completionPercent} %</span> : <Unknown />}</td>
-                <td className="nowrap">{m.date ? fmtDate(m.date) : <Unknown />}</td></tr>))}</tbody></table>
+          <DataTable caption="Contract delivery schedule" rows={c.milestones} rowKey={m => m.id} columns={[
+            { key: 'phase', header: 'Phase', render: m => <b>{m.phase}</b> }, { key: 'description', header: 'Description', render: m => m.description },
+            { key: 'completion', header: 'Completion', className: 'nowrap', render: m => m.completionPercent !== undefined && m.completionPercent !== null
+              ? <span className="progress"><span className="bar"><span style={{ width: `${m.completionPercent}%` }} /></span>{m.completionPercent} %</span> : <Unknown /> },
+            { key: 'date', header: 'Date', className: 'nowrap', render: m => m.date ? fmtDate(m.date) : <Unknown /> }
+          ]} />
         )}
       </Panel>
-      <div className="cols">
+      <div className="cols" id="contract-payments">
         <Panel title={`Fees and costs${c.currency ? ` (${c.currency})` : ''}`} pad={false}>
-          {c.fees.length === 0 ? <div className="panel-body"><StateMessage kind="none">No fees recorded.</StateMessage></div> : (
-            <table className="grid"><thead><tr><th>Description</th><th>Unit</th><th className="num">Qty</th><th className="num">Unit price</th><th className="num">Total</th></tr></thead>
-              <tbody>{c.fees.map(f => <tr key={f.id}><td>{f.description}</td><td>{f.unit}</td><td className="num">{f.quantity ?? 1}</td><td className="num nowrap">{money(f.unitPrice)}</td><td className="num nowrap">{money(f.total)}</td></tr>)}</tbody>
-              <tfoot><tr><td colSpan={4} className="num"><b>Total</b></td><td className="num nowrap"><b>{money(c.feesTotal, c.currency)}</b></td></tr></tfoot></table>
-          )}
+          {c.fees.length === 0 ? <div className="panel-body"><StateMessage kind="none">No fees recorded.</StateMessage></div> : (<>
+          <DataTable caption="Contract fees and costs" rows={c.fees} rowKey={f => f.id} columns={[
+            { key: 'description', header: 'Description', render: f => f.description }, { key: 'unit', header: 'Unit', render: f => f.unit },
+            { key: 'quantity', header: 'Qty', className: 'num', render: f => f.quantity ?? 1 },
+            { key: 'unit-price', header: 'Unit price', className: 'num nowrap', render: f => money(f.unitPrice) },
+            { key: 'total', header: 'Total', className: 'num nowrap', render: f => money(f.total) }
+          ]} />
+          <p className="hint" style={{ padding: '0 12px' }}><b>Total: {money(c.feesTotal, c.currency)}</b></p>
+          </>)}
         </Panel>
         <Panel title="Payment terms" pad={false}>
           {c.payments.length === 0 ? <div className="panel-body"><StateMessage kind="none">No payment terms recorded.</StateMessage></div> : (<>
             <p className="hint" style={{ padding: '8px 12px 0', margin: 0 }}>
               {next ? <>Next due: <b>{fmtDate(next.dueDate!)}</b> — {next.condition}{next.amount ? ` (${money(next.amount, c.currency)})` : ''}. </> : open.length ? 'Open payments have no due date. ' : 'No open payments. '}
               {paid > 0 && <>Paid so far: {money(paid, c.currency)}.</>}</p>
-            <table className="grid"><thead><tr><th>Condition</th><th className="num">%</th><th className="num">Amount</th><th>Due</th><th>Status</th></tr></thead>
-              <tbody>{c.payments.map(p => (
-                <tr key={p.id}><td>{p.condition}{p.notes && <div className="hint">{p.notes}</div>}</td><td className="num">{p.percentage !== undefined && p.percentage !== null ? `${p.percentage} %` : ''}</td>
-                  <td className="num nowrap">{money(p.amount, c.currency)}</td><td className="nowrap">{p.dueDate ? fmtDate(p.dueDate) : <Unknown />}</td>
-                  <td className="nowrap"><StatusBadge value={p.status} />{p.overdue && <> <Badge tone="bad">Overdue</Badge></>}{p.paidOn && <div className="hint">paid {fmtDate(p.paidOn)}</div>}</td></tr>))}</tbody></table>
+            <DataTable caption="Contract payment terms" rows={c.payments} rowKey={p => p.id} columns={[
+              { key: 'condition', header: 'Condition', render: p => <>{p.condition}{p.notes && <div className="hint">{p.notes}</div>}</> },
+              { key: 'percentage', header: '%', className: 'num', render: p => p.percentage !== undefined && p.percentage !== null ? `${p.percentage} %` : '' },
+              { key: 'amount', header: 'Amount', className: 'num nowrap', render: p => money(p.amount, c.currency) },
+              { key: 'due', header: 'Due', className: 'nowrap', render: p => p.dueDate ? fmtDate(p.dueDate) : <Unknown /> },
+              { key: 'status', header: 'Status', className: 'nowrap', render: p => <><StatusBadge value={p.status} />{p.overdue && <> <Badge tone="bad">Overdue</Badge></>}{p.paidOn && <div className="hint">paid {fmtDate(p.paidOn)}</div>}</> },
+              // A110: the status of one payment changes here, without editing the contract.
+              ...(c.permissions.canEdit ? [{ key: 'change', header: '', className: 'row-actions', render: (p: Detail['payments'][number]) => <button className="linkbtn" onClick={() => setStatusOf(p)}>Change status</button> }] : [])
+            ]} />
           </>)}
+          {statusOf && <ActionDialog title="Change payment status" submitLabel="Save status" path={`/contracts/${c.id}/payments/${statusOf.id}/status`} onClose={() => setStatusOf(null)}
+            intro={<>Payment <b>{statusOf.condition}</b>{statusOf.amount != null ? <> ({money(statusOf.amount, c.currency)})</> : null}. The rest of the contract is not changed.</>}
+            initial={{ status: statusOf.status, paidOn: statusOf.paidOn ?? '', notes: statusOf.notes ?? '' }}
+            transform={v => ({ status: v.status || null, paidOn: v.status === 'Paid' ? v.paidOn || null : null, notes: v.notes })}
+            fields={[
+              { name: 'status', label: 'Status', kind: 'select', required: true, options: [{ value: 'Pending', label: 'Pending' }, { value: 'Invoiced', label: 'Invoiced' }, { value: 'Paid', label: 'Paid' }, { value: 'Waived', label: 'Waived' }] },
+              { name: 'paidOn', label: 'Paid on', kind: 'date', hint: 'Required when the status is Paid.' },
+              { name: 'notes', label: 'Notes', kind: 'textarea', hint: 'Optional, for example the invoice number.' }
+            ]} />}
         </Panel>
       </div>
     </>

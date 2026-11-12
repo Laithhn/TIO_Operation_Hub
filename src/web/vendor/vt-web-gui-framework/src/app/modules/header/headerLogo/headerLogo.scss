@@ -1,0 +1,21 @@
+@use "sass:math";
+@use "assets/styles";
+
+$width: math.min(styles.layout(header, logoWidth), (styles.layout(firstSidebar, width) - (2 * styles.layout(mostLeftRightPadding))));
+
+.headerLogo {
+  min-width: styles.layoutPx(firstSidebar, width);
+  outline: none;
+  fill: styles.typo(color, light, normal);
+  text-align: center;
+
+  svg {
+    width: #{$width}px;
+    height: styles.layoutPx(header, height);
+  }
+
+  img {
+    max-width: #{$width}px;
+    max-height: styles.layoutPx(header, height);
+  }
+}

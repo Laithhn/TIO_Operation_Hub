@@ -1,13 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
+import { canExportReport } from '../exportRights';
 import { useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router';
 import { exportCsv, get, post, qs, type Paged, type UserRef } from '../api';
-import { fmtDateTime, fromLocalInput, inDays, label, toLocalInput } from '../format';
-import { useCan, useEnum, useForm, useLeaveGuard, useMe, useRefresh, useUrlState } from '../hooks';
+import { fmtDateTime, fromLocalInput, inDays, label, splitTitle, toLocalInput } from '../format';
+import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
-import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, useToast, When, DeleteAction } from '../ui/kit';
+import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, StatusBadge, TextInput, TitledText, useToast, When, DeleteAction } from '../ui/kit';
+import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions, useTeamOptions } from './common';
-import { AttachmentsPanel } from './Attachments';
+import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 
 const typeLabel = (t: string) => (t === 'RecordedContractualDeadline' ? 'Recorded deadline' : label(t));
 
@@ -15,18 +17,18 @@ type Row = { id: number; ref: string; scope: string; description: string; type: 
 
 export function CommitmentList() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ status: 'open', due: '', clientId: '', teamId: '', ownerId: '', scope: '', type: '', late: '', stale: '', q: '', country: '', asOf: '', sort: 'due', page: '1', pageSize: '15' });
+  const [f, set] = useUrlState({ status: 'open', due: '', clientId: '', teamId: '', ownerId: '', scope: '', type: '', late: '', stale: '', q: '', country: '', asOf: '', projectId: '', sort: 'due', page: '1', pageSize: '15' });
   const q = useQuery({ queryKey: ['commitments', f], queryFn: () => get<Paged<Row>>(`/commitments${qs(f)}`) });
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const types = useEnum('CommitmentType');
-  const canEng = useCan('Engineer');
+  const canEng = useRight('Commitments', 'Create');
   const exportParams = Object.fromEntries(Object.entries(f).filter(([k]) => !['sort', 'page', 'pageSize'].includes(k)));
   const filtered = Object.entries(f).some(([k, v]) => !['sort', 'page', 'pageSize', 'status'].includes(k) && v);
   return (
     <>
       <PageHead title="Commitments" sub="Owned promises with deadlines in their original time zone. Waiting never pauses a deadline; late completion stays Completed with a separate timeliness result."
-        actions={<>{me.grants.export && <button className="btn" onClick={() => exportCsv('commitments', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/commitments/new">+ New Commitment</Link>}</>} />
+        actions={<>{canExportReport(me, 'commitments') && <button className="btn" onClick={() => exportCsv('commitments', exportParams)}>Export CSV</button>}{canEng && <Link className="btn btn-primary" to="/commitments/new">+ New Commitment</Link>}</>} />
       <div className="toolbar">
         <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={clients} empty="All authorized" />
         <SelectInput label="Team" value={f.teamId} onChange={v => set({ teamId: v })} options={teams} empty="All teams" />
@@ -37,9 +39,9 @@ export function CommitmentList() {
       <DataTable<Row> rowKey={r => r.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'} sort={f.sort} onSort={s => set({ sort: s })} caption="Commitments"
         columns={[
           { key: 'ref', header: 'Ref', sort: 'ref', render: r => <Link to={`/commitments/${r.id}`}>{r.ref}</Link>, filter: <input className="input" aria-label="Search commitments" placeholder="Search" value={f.q} onChange={e => set({ q: e.target.value })} /> },
-          { key: 'd', header: 'Description', render: r => <Link to={`/commitments/${r.id}`}>{r.description}</Link> },
+          { key: 'd', header: 'Description', maxWidth: '32rem', render: r => <TitledText to={`/commitments/${r.id}`} text={r.description} /> },
           { key: 't', header: 'Type', render: r => typeLabel(r.type), filter: <select className="input" aria-label="Filter by type" value={f.type} onChange={e => set({ type: e.target.value })}><option value="">All</option>{types.map(t => <option key={t} value={t}>{typeLabel(t)}</option>)}</select> },
-          { key: 'c', header: 'Client / scope', sort: 'client', render: r => r.clientCode ?? <span className="chip">Internal · {r.teamName}</span> },
+          { key: 'c', header: 'Client / scope', sort: 'client', render: r => r.clientCode ? <ClientDisplay id={r.clientId} code={r.clientCode} /> : <span className="chip">Internal · {r.teamName}</span> },
           { key: 's', header: 'Status', sort: 'status', render: r => <><StatusBadge value={r.status} />{r.completedLate === true && <Badge tone="warn">Late</Badge>}</>,
             filter: <select className="input" aria-label="Filter by status" value={f.status} onChange={e => set({ status: e.target.value })}><option value="open">Open</option><option value="all">All</option><option value="Completed">Completed</option><option value="Cancelled">Cancelled</option></select> },
           { key: 'due', header: 'Current deadline', sort: 'due', render: r => <span className={r.overdue ? 'err' : ''}>{fmtDateTime(r.currentDueAt, r.timeZone)} <span className="hint">{r.timeZone}</span>{r.overdue && ' · overdue'}</span> },
@@ -60,7 +62,7 @@ export function CommitmentForm() {
   const clients = useClientOptions();
   const teams = useTeamOptions();
   const types = useEnum('CommitmentType');
-  const canLead = useCan('Manager');
+  const canLead = useRight('Commitments', 'Coordinate');
   const f = useForm({ scope: sp.get('clientId') ? 'Client' : sp.get('teamId') ? 'Internal' : 'Client', clientId: sp.get('clientId') ?? '', responsibleTeamId: sp.get('teamId') ?? '', description: '', type: '', ownerUserId: me.id as number | null,
     dueLocal: inDays(7, 17), timeZone: me.timeZone, nextReviewAt: inDays(3), caseId: sp.get('caseId') ?? '', projectId: '' });
   useLeaveGuard(f.dirty && !f.busy);
@@ -88,7 +90,7 @@ export function CommitmentForm() {
           <TimeZoneSelect label="Original time zone" required value={v.timeZone} onChange={x => f.set('timeZone', x)} error={f.fieldError('timeZone')} hint="The deadline is kept in this zone. Ambiguous DST times need an explicit offset, e.g. 2026-10-25T02:30+02:00." />
           <TextInput label={`Next review (${me.timeZone})`} type="datetime-local" value={v.nextReviewAt} onChange={x => f.set('nextReviewAt', x)} />
           {v.scope === 'Client' && <SelectInput label="Project link (optional)" value={v.projectId} onChange={x => f.set('projectId', x)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} />}
-          {v.caseId && <TextInput label="Linked case" value={`Case #${v.caseId}`} onChange={() => {}} disabled error={f.fieldError('caseId')} />}
+          {v.caseId && <TextInput label="Linked ticket" value={`Ticket #${v.caseId}`} onChange={() => {}} disabled error={f.fieldError('caseId')} />}
         </div>
         <div className="form-actions"><button className="btn" onClick={() => nav(-1)}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Record commitment</button></div>
       </Panel>
@@ -99,7 +101,7 @@ export function CommitmentForm() {
 type Dto = {
   id: number; ref: string; scope: string; description: string; type: string; typeLabel: string; status: string; timeZone: string; client?: { id: number; code: string; name: string }; team?: { id: number; name: string };
   owner?: UserRef; coordinator?: UserRef; originalDueAt: string; originalDueLocal: string; currentDueAt: string; currentDueLocal: string; revisionCount: number; nextReviewAt?: string;
-  completedAt?: string; completionEvidence?: string; dueAtCompletion?: string; cancelReason?: string; timeliness: string; originalDeadlineResult?: string; overdue: boolean;
+  createdAt: string; completedAt?: string; completionEvidence?: string; dueAtCompletion?: string; cancelReason?: string; timeliness: string; originalDeadlineResult?: string; overdue: boolean;
   case?: { id: number; ref: string; title: string }; project?: { id: number; code: string; name: string }; lastReviewedAt?: string;
   events: { id: number; type: string; previousDueAt?: string; newDueAt?: string; completedAt?: string; reason?: string; evidence?: string; at: string; by?: string }[];
   permissions: { canEdit: boolean; canRevise: boolean; canComplete: boolean; canCancel: boolean; canReopen: boolean }; version: string;
@@ -113,7 +115,7 @@ export function CommitmentDetail() {
   const close = () => setDialog(null);
   return (
     <QueryState q={q}>{c && (<>
-      <PageHead title={`${c.ref} · ${c.description}`} crumbs={[{ to: '/commitments', label: 'Commitments' }, { label: c.ref }]}
+      <PageHead title={`${c.ref} · ${splitTitle(c.description, 80).title}`} crumbs={[{ to: '/commitments', label: 'Commitments' }, { label: c.ref }]}
         sub={<><StatusBadge value={c.status} /> {c.typeLabel} · <b>{c.timeliness}</b></>}
         actions={<>
           {c.permissions.canRevise && <button className="btn" onClick={() => setDialog('revise')}>Revise deadline</button>}
@@ -124,8 +126,9 @@ export function CommitmentDetail() {
       <div className="cols">
         <Panel title="Promise">
           <DL items={[
-            ['Scope', c.client ? <Link to={`/clients/${c.client.id}`}>{c.client.code} · {c.client.name}</Link> : `Internal · ${c.team?.name}`], ['Owner', <Person u={c.owner} />],
-            ['Type', c.typeLabel], ['Linked case', c.case ? <Link to={`/cases/${c.case.id}`}>{c.case.ref} · {c.case.title}</Link> : 'None'], ['Project', c.project ? `${c.project.code} · ${c.project.name}` : 'None'],
+            ['Description', <span style={{ whiteSpace: 'pre-wrap' }}>{c.description}</span>],
+            ['Scope', c.client ? <ClientDisplay id={c.client.id} code={c.client.code} name={c.client.name} show="both" /> : `Internal · ${c.team?.name}`], ['Owner', <Person u={c.owner} />],
+            ['Type', c.typeLabel], ['Linked ticket', c.case ? <Link to={`/cases/${c.case.id}`}>{c.case.ref} · {c.case.title}</Link> : 'None'], ['Project', c.project ? `${c.project.code} · ${c.project.name}` : 'None'],
             ['Next review', <When v={c.nextReviewAt} />], ['Last reviewed', <When v={c.lastReviewedAt} />]
           ]} />
         </Panel>
@@ -134,7 +137,7 @@ export function CommitmentDetail() {
             ['Original deadline', `${c.originalDueLocal} (${c.timeZone})`], ['Current deadline', <>{c.currentDueLocal} ({c.timeZone}){c.overdue && <> <Badge tone="bad">Overdue</Badge></>}</>],
             ['Revisions', c.revisionCount], ['Status', <StatusBadge value={c.status} />], ['Timeliness (derived)', c.timeliness],
             ['Completed', c.completedAt ? <When v={c.completedAt} /> : null], ['Evidence', c.completionEvidence], ['Deadline in force at completion', c.dueAtCompletion ? <When v={c.dueAtCompletion} /> : null],
-            ['Against original deadline', c.originalDeadlineResult ?? null], ['Cancellation reason', c.cancelReason]
+            ['Against original deadline', c.originalDeadlineResult ? label(c.originalDeadlineResult) : null], ['Cancellation reason', c.cancelReason]
           ]} />
         </Panel>
       </div>
@@ -145,15 +148,15 @@ export function CommitmentDetail() {
           {e.completedAt && <> fulfilled {fmtDateTime(e.completedAt)}</>}{e.reason && <> — {e.reason}</>}{e.evidence && <> · evidence: {e.evidence}</>}
           <div className="when">{fmtDateTime(e.at)} · {e.by ?? 'system'}</div></li>)}</ul>
       </Panel>
-      <AttachmentsPanel recordType="Commitment" recordId={c.id} canEdit={c.permissions.canEdit} />
+      <AttachmentsWorkspace recordType="Commitment" recordId={c.id} />
       <HistoryPanel entityType="Commitment" entityId={c.id} />
       {dialog === 'revise' && <ActionDialog title="Revise deadline" path={`/commitments/${id}/revise`} version={c.version} onClose={close} submitLabel="Revise" intro="The original and every earlier deadline are kept."
         initial={{ dueLocal: toLocalInput(c.currentDueAt).length ? c.currentDueLocal.slice(0, 16).replace(' ', 'T') : '', timeZone: c.timeZone }}
         fields={[{ name: 'dueLocal', label: 'New deadline (local time)', kind: 'datetime', required: true }, { name: 'timeZone', label: 'Time zone', kind: 'timezone', required: true }, { name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
-      {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro="Completion after the deadline stays Completed, with a derived late result. The time cannot be in the future or before creation."
+      {dialog === 'complete' && <ActionDialog title="Complete commitment" path={`/commitments/${id}/complete`} version={c.version} onClose={close} submitLabel="Complete" intro={`Completed before or by the deadline counts as on time; after it stays Completed with a derived late result. The time cannot be in the future. This record was created ${fmtDateTime(c.createdAt)}; if it was fulfilled before then, you can say why.`}
         initial={{ completedAt: toLocalInput(new Date().toISOString()) }}
-        fields={[{ name: 'completedAt', label: 'Fulfilled at', kind: 'datetime', required: true }, { name: 'evidence', label: 'Evidence or reference', kind: 'textarea', required: true }]}
-        transform={v => ({ completedAt: fromLocalInput(v.completedAt), evidence: v.evidence })} />}
+        fields={[{ name: 'completedAt', label: 'Fulfilled at', kind: 'datetime', required: true }, { name: 'evidence', label: 'Evidence or reference (optional)', kind: 'textarea' }, { name: 'reason', label: 'Reason, if fulfilled before this record was created (optional)', kind: 'textarea' }]}
+        transform={v => ({ completedAt: fromLocalInput(v.completedAt), evidence: v.evidence, reason: v.reason || null })} />}
       {dialog === 'cancel' && <ActionDialog title="Cancel commitment" danger path={`/commitments/${id}/cancel`} version={c.version} onClose={close} submitLabel="Cancel commitment" fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
       {dialog === 'reopen' && <ActionDialog title="Reopen commitment" path={`/commitments/${id}/reopen`} version={c.version} onClose={close} submitLabel="Reopen" intro="Previous completion or cancellation events are kept." fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} />}
     </>)}</QueryState>

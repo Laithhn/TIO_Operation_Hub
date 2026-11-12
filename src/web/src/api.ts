@@ -38,15 +38,16 @@ function xsrf(): string | undefined {
   return m ? decodeURIComponent(m[1]) : undefined;
 }
 
-type Options = { method?: string; body?: unknown; version?: string; retried?: boolean };
+/** signal cancels the request (stale previews); headers adds request headers (for example Idempotency-Key). */
+type Options = { method?: string; body?: unknown; version?: string; retried?: boolean; signal?: AbortSignal; headers?: Record<string, string> };
 
 export async function api<T>(path: string, opts: Options = {}): Promise<T> {
   const method = opts.method ?? 'GET';
-  const headers: Record<string, string> = { Accept: 'application/json' };
+  const headers: Record<string, string> = { Accept: 'application/json', ...opts.headers };
   if (opts.body !== undefined) headers['Content-Type'] = 'application/json';
   if (method !== 'GET') { const t = xsrf(); if (t) headers['X-XSRF-TOKEN'] = t; }
   if (opts.version) headers['If-Match'] = `"${opts.version}"`;
-  const res = await fetch(BASE + path, { method, headers, credentials: 'same-origin', body: opts.body === undefined ? undefined : JSON.stringify(opts.body) });
+  const res = await fetch(BASE + path, { method, headers, credentials: 'same-origin', signal: opts.signal, body: opts.body === undefined ? undefined : JSON.stringify(opts.body) });
   if (res.status === 204) return undefined as T;
   const text = await res.text();
   let data: unknown = undefined;
@@ -78,19 +79,45 @@ export async function api<T>(path: string, opts: Options = {}): Promise<T> {
 export const get = <T>(path: string) => api<T>(path);
 export const post = <T = unknown>(path: string, body?: unknown, version?: string) => api<T>(path, { method: 'POST', body: body ?? {}, version });
 export const put = <T = unknown>(path: string, body: unknown, version?: string) => api<T>(path, { method: 'PUT', body, version });
-export const del = <T = unknown>(path: string, version?: string) => api<T>(path, { method: 'DELETE', version });
+export const del = <T = unknown>(path: string, version?: string, body?: unknown) => api<T>(path, { method: 'DELETE', version, body });
 
-/** A46: multipart upload (the browser sets the boundary); same antiforgery header and error handling as the JSON calls. */
-export async function upload<T = unknown>(path: string, form: FormData): Promise<T> {
+/** Forms sign-out (header button and the password page); here rather than in pages/SignIn so the shell does not load the sign-in screens. */
+export async function signOut() {
+  try { await post('/auth/logout'); } finally { location.assign('/login?signedOut=1'); }
+}
+
+/** A46: multipart upload (the browser sets the boundary); same antiforgery header and error handling as the JSON calls. A71: PUT for the client logo. */
+export async function upload<T = unknown>(path: string, form: FormData, method: 'POST' | 'PUT' = 'POST'): Promise<T> {
   const headers: Record<string, string> = { Accept: 'application/json' };
   const t = xsrf(); if (t) headers['X-XSRF-TOKEN'] = t;
-  const res = await fetch(BASE + path, { method: 'POST', headers, credentials: 'same-origin', body: form });
+  const res = await fetch(BASE + path, { method, headers, credentials: 'same-origin', body: form });
   const text = await res.text();
   let data: unknown = undefined;
   if (text) { try { data = JSON.parse(text); } catch { data = { title: text.slice(0, 200) }; } }
   if (res.status === 413) throw new ApiError(413, { title: 'The upload is too large for the server.' });
   if (!res.ok) throw new ApiError(res.status, (data as object) ?? { title: res.statusText });
   return data as T;
+}
+
+/** The multipart upload with progress (XMLHttpRequest: fetch reports no upload progress); same headers and errors as upload(). */
+export function uploadWithProgress<T = unknown>(path: string, form: FormData, onProgress: (fraction: number) => void): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const x = new XMLHttpRequest();
+    x.open('POST', BASE + path);
+    x.withCredentials = true;
+    x.setRequestHeader('Accept', 'application/json');
+    const t = xsrf(); if (t) x.setRequestHeader('X-XSRF-TOKEN', t);
+    x.upload.onprogress = e => { if (e.lengthComputable) onProgress(e.loaded / e.total); };
+    x.onerror = () => reject(new Error('The upload failed. Check your connection.'));
+    x.onload = () => {
+      let data: unknown = undefined;
+      if (x.responseText) { try { data = JSON.parse(x.responseText); } catch { data = { title: x.responseText.slice(0, 200) }; } }
+      if (x.status === 413) reject(new ApiError(413, { title: 'The upload is too large for the server.' }));
+      else if (x.status < 200 || x.status >= 300) reject(new ApiError(x.status, (data as object) ?? { title: x.statusText }));
+      else resolve(data as T);
+    };
+    x.send(form);
+  });
 }
 
 export type Params = Record<string, string | number | boolean | null | undefined>;

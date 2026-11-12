@@ -1,12 +1,16 @@
 import { useRef, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
+import { DataTable, nodeText } from './kit';
+import { ValueField } from '../vt';
 
 // Chart kit for the dashboard. Rules (validated, see docs/DESIGN-RULES.md):
 // magnitude = one blue ramp; trend = categorical slots 1–2 with a legend + direct end labels;
 // reported condition = reserved status colours, always with a text label; text never wears the series colour.
-export const SERIES = { blue: '#2a78d6', orange: '#eb6834' };
-export const RAMP = ['#86b6ef', '#3987e5', '#256abf', '#184f95', '#0d366b'];
-export const STATUS = { good: '#0ca30c', warning: '#fab219', critical: '#d03b3b', neutral: '#a3a7b0' };
+// VtWebGuiFramework palette: series = attention (dark-text variant, >= 3:1 on offWhite) and attentionHigh; status = the framework
+// signal colours (calmingGreen, attentionHigh, signalError) used by StatusMarker; magnitude ramp = attention towards primary.
+export const SERIES = { blue: '#007db3', orange: '#e6932b' };
+export const RAMP = ['#80d9ff', '#1abbff', '#007db3', '#00507a', '#001e46'];
+export const STATUS = { good: '#5dae95', warning: '#e6932b', critical: '#b00020', neutral: '#a4abb0' };
 
 export type Bar = { key: string; label: string; value: number; link?: string | null };
 
@@ -162,6 +166,59 @@ export function TrendLines({ data, aLabel, bLabel, height = 170 }: { data: Point
   );
 }
 
+// ---------- A108: two percentage series with gaps and an objective line ----------
+export type RatePoint = { label: string; a: number | null; b: number | null };
+
+/** Rates in percent per period. A period without a measured value has no point (never drawn as 0); the dashed line is the objective. */
+export function RateLines({ data, aLabel, bLabel, target, height = 200 }: { data: RatePoint[]; aLabel: string; bLabel: string; target?: number; height?: number }) {
+  const tip = useTip();
+  const [hover, setHover] = useState<number | null>(null);
+  const values = data.flatMap(d => [d.a, d.b]).filter((v): v is number => v !== null);
+  if (values.length === 0) return <div className="viz-empty">No measured obligation in the last 12 months.</div>;
+  const W = 520, H = height, padL = 34, padR = 96, padT = 10, padB = 22;
+  const min = Math.max(0, Math.floor((Math.min(...values, target ?? 100) - 5) / 10) * 10);
+  const ticks = [0, 1, 2, 3, 4].map(i => Math.round(min + ((100 - min) * i) / 4));
+  const x = (i: number) => padL + (i * (W - padL - padR)) / Math.max(1, data.length - 1);
+  const y = (v: number) => padT + (1 - (v - min) / (100 - min)) * (H - padT - padB);
+  // Segments break at missing values, so a gap in the data is a gap in the line.
+  const path = (k: 'a' | 'b') => data.map((d, i) => (d[k] === null ? '' : `${i > 0 && data[i - 1][k] !== null ? 'L' : 'M'}${x(i)},${y(d[k]!)}`)).join('');
+  const lastOf = (k: 'a' | 'b') => { for (let i = data.length - 1; i >= 0; i--) if (data[i][k] !== null) return i; return -1; };
+  const series = [{ k: 'a' as const, label: aLabel, color: SERIES.blue }, { k: 'b' as const, label: bLabel, color: SERIES.orange }];
+  const ends = series.map(s => ({ ...s, i: lastOf(s.k) })).filter(s => s.i >= 0).map(s => ({ ...s, v: data[s.i][s.k]!, y: y(data[s.i][s.k]!) }));
+  // Keep the two end labels at least 13 px apart.
+  if (ends.length === 2 && Math.abs(ends[0].y - ends[1].y) < 13) { const up = ends[0].y <= ends[1].y ? 0 : 1; const mid = (ends[0].y + ends[1].y) / 2; ends[up].y = mid - 6.5; ends[1 - up].y = mid + 6.5; }
+  const onMove = (e: React.MouseEvent<SVGRectElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const rel = ((e.clientX - r.left) / r.width) * (W - padL - padR);
+    const i = Math.max(0, Math.min(data.length - 1, Math.round((rel / (W - padL - padR)) * (data.length - 1))));
+    setHover(i);
+    const d = data[i];
+    tip.show(e, <><b>{d.label}</b>{series.map(s => <div key={s.k}><span className="key" style={{ background: s.color }} />{s.label}: {d[s.k] === null ? 'not measured' : `${d[s.k]} %`}</div>)}</>);
+  };
+  return (
+    <div className="viz-wrap" ref={tip.ref}>
+      <div className="legend" aria-hidden="true">
+        {series.map(s => <span key={s.k}><span className="key" style={{ background: s.color }} />{s.label}</span>)}
+        {target !== undefined && <span><span className="key dash" />Objective {target} %</span>}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`${aLabel} and ${bLabel} in percent per month${target !== undefined ? `, objective ${target} %` : ''}`}>
+        {ticks.map(t => <g key={t}><line x1={padL} x2={W - padR} y1={y(t)} y2={y(t)} className="grid" /><text x={padL - 6} y={y(t) + 3} className="tick" textAnchor="end">{t} %</text></g>)}
+        {data.map((d, i) => (i % 2 === (data.length - 1) % 2) && <text key={i} x={x(i)} y={H - 6} className="tick" textAnchor="middle">{d.label}</text>)}
+        {target !== undefined && target >= min && <line x1={padL} x2={W - padR} y1={y(target)} y2={y(target)} stroke="#6b7487" strokeWidth={1.5} strokeDasharray="5 4" />}
+        {hover !== null && <line x1={x(hover)} x2={x(hover)} y1={padT} y2={H - padB} className="crosshair" />}
+        {series.map(s => <path key={s.k} d={path(s.k)} fill="none" stroke={s.color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />)}
+        {/* A value with no measured neighbour is still visible as a dot. */}
+        {series.flatMap(s => data.map((d, i) => d[s.k] !== null && (data[i - 1]?.[s.k] ?? null) === null && (data[i + 1]?.[s.k] ?? null) === null
+          ? <circle key={s.k + i} cx={x(i)} cy={y(d[s.k]!)} r={3} fill={s.color} /> : null))}
+        {series.map(s => { const i = hover ?? lastOf(s.k); return i >= 0 && data[i][s.k] !== null ? <circle key={s.k} cx={x(i)} cy={y(data[i][s.k]!)} r={4} fill={s.color} stroke="#fff" strokeWidth={2} /> : null; })}
+        {ends.map(e => <text key={e.k} x={x(e.i) + 8} y={e.y + 3} className="end-label">{e.v} % {e.label}</text>)}
+        <rect x={padL} y={padT} width={W - padL - padR} height={H - padT - padB} fill="transparent" onMouseMove={onMove} onMouseLeave={() => { setHover(null); tip.hide(); }} />
+      </svg>
+      {tip.node}
+    </div>
+  );
+}
+
 // ---------- panel with a table view ----------
 export function VizPanel({ title, sub, table, children, actions }: { title: string; sub?: ReactNode; table: { columns: string[]; rows: (string | number)[][] }; children: ReactNode; actions?: ReactNode }) {
   const [asTable, setAsTable] = useState(false);
@@ -174,8 +231,8 @@ export function VizPanel({ title, sub, table, children, actions }: { title: stri
       <div className="panel-body">
         {sub && <p className="hint" style={{ marginBottom: 8 }}>{sub}</p>}
         {asTable ? (
-          <table className="grid"><thead><tr>{table.columns.map(c => <th key={c}>{c}</th>)}</tr></thead>
-            <tbody>{table.rows.map((r, i) => <tr key={i}>{r.map((c, j) => <td key={j} className={typeof c === 'number' ? 'num' : undefined}>{c}</td>)}</tr>)}</tbody></table>
+          <DataTable<{ id: number; values: (string | number)[] }> caption={title} rows={table.rows.map((values, id) => ({ id, values }))} rowKey={r => r.id} tools={false}
+            columns={table.columns.map((header, index) => ({ key: `c${index}`, header, className: table.rows.some(r => typeof r[index] === 'number') ? 'num' : undefined, render: r => r.values[index] }))} />
         ) : children}
       </div>
     </section>
@@ -198,26 +255,65 @@ const ALIASES: Record<string, string> = {
 };
 export const normalizeCountry = (c: string) => ALIASES[c.trim().toLowerCase()] ?? c.trim();
 
-// ---------- executive KPI tile ----------
-// A headline number with an optional meter (part of a whole, same blue track) and a context line.
-// The whole tile is a link to the list whose total equals the number.
-export function Kpi({ value, label, context, part, of, partLabel, tone, to, hero, icon }: {
-  value: number | string; label: string; context?: ReactNode; part?: number; of?: number; partLabel?: string; tone?: 'critical' | 'warning'; to?: string; hero?: boolean; icon?: ReactNode;
+// ---------- KPI card (dashboards: Operations Command Center, Reporting Center) ----------
+/** The operational state of a figure. It comes from the figure's existing business rules (overdue, past a target, due soon, degraded…),
+ *  never from new thresholds. The card shows it as a text badge as well as a colour. */
+export type KpiStatus = 'critical' | 'warning' | 'healthy' | 'info' | 'neutral';
+/** A supporting line; its dot repeats the state of what the line counts. */
+export type KpiLine = { text: ReactNode; status?: KpiStatus };
+/** A real distribution of the figure: disjoint parts of `total` (the rest of the track stays empty). No decorative charts. */
+export type KpiBar = { total: number; segments: { value: number; status: KpiStatus; label: string }[] };
+
+const STATUS_TEXT: Partial<Record<KpiStatus, string>> = { critical: 'Critical', warning: 'Attention', healthy: 'OK' };
+const STATUS_GLYPH: Partial<Record<KpiStatus, string>> = { critical: '▲', warning: '●', healthy: '✓' };
+
+/**
+ * A KPI card. size "main" for the headline figures, "small" for supporting ones (the first supporting line shows, all of them are in the
+ * tooltip and the accessible name). With `to` the whole card is a link (click, Enter). `loading` keeps the card's size with placeholders;
+ * `unavailable` shows the value as not available (for example a rate with nothing measured in the period).
+ */
+export function Kpi({ label, value, icon, status = 'neutral', lines = [], bar, to, size = 'main', loading, unavailable, tooltip }: {
+  label: string; value?: number | string; icon?: ReactNode; status?: KpiStatus; lines?: KpiLine[]; bar?: KpiBar; to?: string; size?: 'main' | 'small';
+  loading?: boolean; unavailable?: boolean; tooltip?: string;
 }) {
   const nav = useNavigate();
-  const pct = part !== undefined && of ? Math.min(100, (part / of) * 100) : null;
-  const fill = tone === 'critical' ? STATUS.critical : tone === 'warning' ? STATUS.warning : SERIES.blue;
+  const statusText = loading ? undefined : STATUS_TEXT[status];
+  const texts = lines.map(l => nodeText(l.text)).filter(Boolean);
+  const shown = size === 'small' ? lines.slice(0, 1) : lines;
+  const name = [`${label}: ${loading ? 'loading' : unavailable ? 'not available' : value}`, statusText && `status ${statusText}`, ...texts, to && 'open the list'].filter(Boolean).join('. ');
+  const open = () => { if (to && !loading) nav(to); };
+  const sum = bar ? bar.segments.reduce((a, x) => a + x.value, 0) : 0;
   return (
-    <div className={`kpi${hero ? ' hero' : ''}${to ? ' link' : ''}`} role={to ? 'link' : undefined} tabIndex={to ? 0 : undefined}
-      onClick={() => to && nav(to)} onKeyDown={e => { if (to && e.key === 'Enter') nav(to); }}
-      aria-label={`${label}: ${value}${partLabel ? `. ${partLabel}` : ''}${to ? '. Open list' : ''}`}>
-      <span className="kpi-l">{icon && <span className={`kpi-ic${tone ? ` ${tone}` : ''}`} aria-hidden="true">{icon}</span>}<span className="kpi-name">{label}</span>{tone && <span className={`kpi-flag ${tone}`} aria-hidden="true">{tone === 'critical' ? '▲' : '●'}</span>}</span>
-      <span className="kpi-v">{value}</span>
-      {pct !== null && (
-        <span className="kpi-meter" aria-hidden="true"><span style={{ width: part ? `max(${pct}%, 3px)` : 0, background: fill }} /></span>
+    <div className={['kpi', size, `st-${status}`, to && 'link', loading && 'is-loading', unavailable && 'is-unavailable'].filter(Boolean).join(' ')}
+      role={to ? 'link' : 'group'} tabIndex={to ? 0 : undefined} aria-label={name} aria-busy={loading || undefined}
+      title={tooltip ?? (size === 'small' && texts.length > 1 ? texts.join(' · ') : undefined)}
+      onClick={open} onKeyDown={e => { if (e.key === 'Enter') open(); }}>
+      <div className="kpi-head">
+        {icon && <span className="kpi-ic" aria-hidden="true">{icon}</span>}
+        <span className="kpi-title">{label}</span>
+        {to && <span className="kpi-go" aria-hidden="true">›</span>}
+      </div>
+      <div className="kpi-body">
+        <span className="kpi-v">
+          {loading ? <span className="kpi-skel kpi-skel-v" /> : <ValueField value={unavailable ? 'Not available' : value} valueSize={size === 'small' ? 'large' : 'xl'} />}
+        </span>
+        {statusText && <span className="kpi-status" aria-hidden="true"><span className="kpi-glyph">{STATUS_GLYPH[status]}</span>{statusText}</span>}
+      </div>
+      {loading && size === 'main' && <span className="kpi-bar" aria-hidden="true" />}
+      {!loading && bar && bar.total > 0 && (
+        <span className="kpi-bar" aria-hidden="true" title={bar.segments.map(x => `${x.label}: ${x.value}`).join(' · ')}>
+          {bar.segments.filter(x => x.value > 0).map(x => <span key={x.label} className={`st-${x.status}`} style={{ width: `max(${(x.value / Math.max(bar.total, sum)) * 100}%, 4px)` }} />)}
+        </span>
       )}
-      {partLabel && <span className="kpi-p">{partLabel}</span>}
-      {context && <span className="kpi-c">{context}</span>}
+      {(loading || shown.length > 0) && (
+        <ul className="kpi-lines">
+          {loading
+            ? Array.from({ length: size === 'small' ? 1 : 2 }, (_, i) => <li key={i}><span className="kpi-skel kpi-skel-line" /></li>)
+            : shown.map((l, i) => (
+              <li key={i}><span className={`kpi-dot st-${l.status ?? 'neutral'}`} aria-hidden="true" /><span className="kpi-line">{l.text}</span></li>
+            ))}
+        </ul>
+      )}
     </div>
   );
 }
@@ -253,7 +349,7 @@ export function PartBar({ data, colorOf, unit }: { data: (Bar & { glyph?: string
 }
 
 // ---------- A39: categorical slots (fixed order, never cycled) ----------
-export const CAT = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
+export const CAT = ['#007db3', '#e6932b', '#1baf7a', '#eda100', '#e87ba4', '#008300', '#6250d6', '#e34948'];
 
 // ---------- A39: donut (part-to-whole, at most ~6 slices) ----------
 export function Donut({ data, colorOf, unit, centerLabel, size = 148 }: {
@@ -317,26 +413,17 @@ export type SlaRow = { priority: string; contracts: number; responseMedian?: num
 export function SlaMatrix({ rows, activeContracts }: { rows: SlaRow[]; activeContracts: number }) {
   const maxR = Math.max(1, ...rows.map(r => r.responseMedian ?? 0)), maxS = Math.max(1, ...rows.map(r => r.resolutionMedian ?? 0));
   if (rows.every(r => r.contracts === 0)) return <div className="viz-empty">No SLA targets recorded on active contracts.</div>;
-  const cell = (v: number | null | undefined, fast: number | null | undefined, max: number, color: string) => (
-    <td>
-      <div className="sla-cell">
-        <span className="sla-track"><span style={{ width: v ? `max(${(v / max) * 100}%, 3px)` : 0, background: color }} /></span>
-        <span className="sla-v">{fmtMinutes(v)}</span>
-      </div>
-      {fast !== null && fast !== undefined && fast !== v && <div className="hint">fastest {fmtMinutes(fast)}</div>}
-    </td>
-  );
-  return (
-    <table className="grid sla-matrix">
-      <thead><tr><th>Priority</th><th className="num">Contracts with a target</th><th>Response (median)</th><th>Resolution (median)</th></tr></thead>
-      <tbody>{rows.map(r => (
-        <tr key={r.priority}>
-          <td><b>{r.priority}</b></td>
-          <td className="num">{r.contracts} <span className="muted">of {activeContracts}</span></td>
-          {cell(r.responseMedian, r.responseFastest, maxR, RAMP[2])}
-          {cell(r.resolutionMedian, r.resolutionFastest, maxS, CAT[1])}
-        </tr>
-      ))}</tbody>
-    </table>
-  );
+  const cell = (v: number | null | undefined, fast: number | null | undefined, max: number, color: string) => <>
+    <div className="sla-cell">
+      <span className="sla-track"><span style={{ width: v ? `max(${(v / max) * 100}%, 3px)` : 0, background: color }} /></span>
+      <span className="sla-v">{fmtMinutes(v)}</span>
+    </div>
+    {fast !== null && fast !== undefined && fast !== v && <div className="hint">fastest {fmtMinutes(fast)}</div>}
+  </>;
+  return <DataTable<SlaRow> caption="SLA targets per priority" rows={rows} rowKey={r => r.priority} tableClassName="sla-matrix" columns={[
+    { key: 'priority', header: 'Priority', render: r => <b>{r.priority}</b> },
+    { key: 'contracts', header: 'Contracts with a target', className: 'num', render: r => <>{r.contracts} <span className="muted">of {activeContracts}</span></> },
+    { key: 'response', header: 'Response (median)', render: r => cell(r.responseMedian, r.responseFastest, maxR, RAMP[2]) },
+    { key: 'resolution', header: 'Resolution (median)', render: r => cell(r.resolutionMedian, r.resolutionFastest, maxS, CAT[1]) }
+  ]} />;
 }

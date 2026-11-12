@@ -1,55 +1,145 @@
-import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom';
+import { lazy, Suspense, type ComponentType, type ReactNode } from 'react';
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router';
 import { setDisplayZone } from './format';
 import { useMe } from './hooks';
-import { AdminArchived, AdminAudit, AdminGroups, AdminJira, AdminPolicies, AdminSettings, AdminUsers, AdminRoles, AdminRights } from './pages/Admin';
-import { CaseDetail, CaseForm, CaseList } from './pages/Cases';
-import { ClientDetail, ClientForm, ClientList, ProjectList, RegionDetail } from './pages/Clients';
-import { CommitmentDetail, CommitmentForm, CommitmentList } from './pages/Commitments';
-import { EscalationDetail, EscalationForm, EscalationList } from './pages/Escalations';
-import { NotesWorkspace } from './pages/Notes';
-import { ConfigHome, ConfigListPage } from './pages/Configuration';
-import { ContractDetail, ContractForm, ContractList, ProjectDetail } from './pages/Contracts';
-import { ActionList } from './pages/Actions';
-import { ClientMap, Dashboard } from './pages/Dashboard';
-import { MicroserviceDetail, ProductDetail, ProductForm, ProductList } from './pages/Products';
-import { ChangePasswordPage, LoginPage } from './pages/SignIn';
-import { EnvironmentDetail, EnvironmentForm, EnvironmentList } from './pages/Environments';
-import { AssetDetail, AssetList, ComponentDetail, InstallationDetail, VersionMatrix } from './pages/Inventory';
-import { FirewallRuleList } from './pages/Firewall';
-import { NotificationsPage } from './pages/Notifications';
-import { DataQuality } from './pages/Quality';
-import { Reports } from './pages/Reports';
-import { HandoverDetail, HandoverList, ReassignmentQueue, TeamDetail, TeamList } from './pages/Teams';
-import { ErrorBox, PageHead, StateMessage } from './ui/kit';
+import { hasRight, canAccessPath, isAdministrator, hasAccess } from './rights';
+import { ErrorBox, PageHead, Restricted, StateMessage } from './ui/kit';
+import { LoadBoundary } from './ui/LoadBoundary';
 import { Shell } from './ui/Shell';
+
+// GUI-13: pages load with their route (one chunk per page module), so the first screen does not download every page. The shell
+// stays in place while a page loads; in-app navigation keeps the previous page until the next one is ready (router transitions).
+function page<M, K extends keyof M & string>(load: () => Promise<M>, name: K) {
+  return lazy(() => load().then(m => ({ default: m[name] as ComponentType })));
+}
+// The sign-in screens are outside the shell and are not needed once signed in (UX-003).
+const LoginPage = page(() => import('./pages/SignIn'), 'LoginPage');
+const ChangePasswordPage = page(() => import('./pages/SignIn'), 'ChangePasswordPage');
+const AdminArchived = page(() => import('./pages/Admin'), 'AdminArchived');
+const AdminAudit = page(() => import('./pages/Admin'), 'AdminAudit');
+const AdminGroups = page(() => import('./pages/Admin'), 'AdminGroups');
+const AdminJira = page(() => import('./pages/Admin'), 'AdminJira');
+const JiraConnections = page(() => import('./pages/jira/JiraConnections'), 'JiraConnections');
+const JiraImportReview = page(() => import('./pages/jira/JiraAdminPages'), 'JiraImportReview');
+const JiraConflicts = page(() => import('./pages/jira/JiraAdminPages'), 'JiraConflicts');
+const JiraMonitoring = page(() => import('./pages/jira/JiraAdminPages'), 'JiraMonitoring');
+const AdminPolicies = page(() => import('./pages/Admin'), 'AdminPolicies');
+const AdminSettings = page(() => import('./pages/Admin'), 'AdminSettings');
+const AdminUsers = page(() => import('./pages/Admin'), 'AdminUsers');
+const AdminRoles = page(() => import('./pages/Admin'), 'AdminRoles');
+const AdminRights = page(() => import('./pages/Admin'), 'AdminRights');
+const AccessControl = page(() => import('./pages/AccessControl'), 'AccessControl');
+const MyDashboard = page(() => import('./pages/MyDashboard'), 'MyDashboard');
+const CaseDetail = page(() => import('./pages/Cases'), 'CaseDetail');
+const CaseForm = page(() => import('./pages/Cases'), 'CaseForm');
+const CaseList = page(() => import('./pages/Cases'), 'CaseList');
+const ClientDetail = page(() => import('./pages/Clients'), 'ClientDetail');
+const ClientForm = page(() => import('./pages/Clients'), 'ClientForm');
+const ClientList = page(() => import('./pages/Clients'), 'ClientList');
+const ProjectList = page(() => import('./pages/Clients'), 'ProjectList');
+const RegionDetail = page(() => import('./pages/Clients'), 'RegionDetail');
+const CommitmentDetail = page(() => import('./pages/Commitments'), 'CommitmentDetail');
+const CommitmentForm = page(() => import('./pages/Commitments'), 'CommitmentForm');
+const CommitmentList = page(() => import('./pages/Commitments'), 'CommitmentList');
+const EscalationDetail = page(() => import('./pages/Escalations'), 'EscalationDetail');
+const EscalationForm = page(() => import('./pages/Escalations'), 'EscalationForm');
+const EscalationList = page(() => import('./pages/Escalations'), 'EscalationList');
+const NotesWorkspace = page(() => import('./pages/Notes'), 'NotesWorkspace');
+const ConfigHome = page(() => import('./pages/Configuration'), 'ConfigHome');
+const ConfigListPage = page(() => import('./pages/Configuration'), 'ConfigListPage');
+const ConfigCategoryPage = page(() => import('./pages/Configuration'), 'ConfigCategoryPage');
+const ContractDetail = page(() => import('./pages/Contracts'), 'ContractDetail');
+const ContractForm = page(() => import('./pages/Contracts'), 'ContractForm');
+const ContractList = page(() => import('./pages/Contracts'), 'ContractList');
+const ProjectDetail = page(() => import('./pages/Contracts'), 'ProjectDetail');
+const ActionList = page(() => import('./pages/Actions'), 'ActionList');
+const ClientMap = page(() => import('./pages/ClientMap'), 'ClientMap');
+const Dashboard = page(() => import('./pages/Dashboard'), 'Dashboard');
+// A108: one dashboard per audience and question, routed inside this page.
+const Dashboards = page(() => import('./pages/Dashboards'), 'Dashboards');
+const MicroserviceDetail = page(() => import('./pages/Products'), 'MicroserviceDetail');
+const ProductDetail = page(() => import('./pages/Products'), 'ProductDetail');
+const ProductForm = page(() => import('./pages/Products'), 'ProductForm');
+const ProductList = page(() => import('./pages/Products'), 'ProductList');
+const EnvironmentDetail = page(() => import('./pages/Environments'), 'EnvironmentDetail');
+const EnvironmentForm = page(() => import('./pages/Environments'), 'EnvironmentForm');
+const EnvironmentList = page(() => import('./pages/Environments'), 'EnvironmentList');
+const AssetDetail = page(() => import('./pages/Inventory'), 'AssetDetail');
+const AssetList = page(() => import('./pages/Inventory'), 'AssetList');
+const ComponentDetail = page(() => import('./pages/Inventory'), 'ComponentDetail');
+const InstallationDetail = page(() => import('./pages/Inventory'), 'InstallationDetail');
+const VersionMatrix = page(() => import('./pages/Inventory'), 'VersionMatrix');
+const FirewallRuleList = page(() => import('./pages/Firewall'), 'FirewallRuleList');
+const NotificationsPage = page(() => import('./pages/Notifications'), 'NotificationsPage');
+const DataQuality = page(() => import('./pages/Quality'), 'DataQuality');
+const Reports = page(() => import('./pages/Reports'), 'Reports');
+const HandoverDetail = page(() => import('./pages/Teams'), 'HandoverDetail');
+const HandoverList = page(() => import('./pages/Teams'), 'HandoverList');
+const ReassignmentQueue = page(() => import('./pages/Teams'), 'ReassignmentQueue');
+const TeamDetail = page(() => import('./pages/Teams'), 'TeamDetail');
+const TeamList = page(() => import('./pages/Teams'), 'TeamList');
 
 function Root() {
   const me = useMe();
+  const loc = useLocation();
   // Set during render (not in an effect) so pages opened directly already show and parse times in the user's zone.
   setDisplayZone(me.data?.timeZone);
   if (me.isLoading) return <div style={{ padding: 24 }}><StateMessage kind="loading" /></div>;
   if (me.data?.app.mustChangePassword) return <Navigate to="/account/password" replace />;
   if (me.error) return <div style={{ padding: 24 }}><ErrorBox error={me.error} /></div>;
-  return <Shell><Outlet /></Shell>;
+  return <Shell><LoadBoundary resetKey={loc.pathname}>{!canAccessPath(me.data, loc.pathname, loc.search)
+    ? <><PageHead title="Access denied" /><Restricted need="Your roles do not grant the permissions required for this page. Ask an administrator to review your access." help="role" /></>
+    : <Suspense fallback={<StateMessage kind="loading" />}><Outlet /></Suspense>}</LoadBoundary></Shell>;
 }
 
+/** Sign-in pages render without the shell, so they get their own loading and failure states. */
+function Outside({ children }: { children: ReactNode }) {
+  return <LoadBoundary><Suspense fallback={<div style={{ padding: 24 }}><StateMessage kind="loading" /></div>}>{children}</Suspense></LoadBoundary>;
+}
+
+function Overview() {
+  const me = useMe().data!;
+  if (!hasAccess(me)) return isAdministrator(me) ? <Navigate to="/admin/users" replace /> : <NoAccess />;
+  return <Dashboard />;
+}
+
+/** A100: engineers start on their own work and managers on everything they can see. The same test decides the dashboard's default view. A link with filters still opens the overview. */
 function Home() {
   const me = useMe().data!;
-  if (!me.businessRole) return me.isAdministrator ? <Navigate to="/admin/users" replace /> : <NoAccess />;
-  return <Dashboard />;
+  const { search } = useLocation();
+  if (hasAccess(me) && !search && !hasRight(me, 'ClientStructure', 'Coordinate') && hasRight(me, 'MyDashboard', 'View')) return <Navigate to="/my-dashboard" replace />;
+  return <Overview />;
 }
 
 function MapHome() {
   const me = useMe().data!;
-  if (!me.businessRole) return me.isAdministrator ? <Navigate to="/admin/users" replace /> : <NoAccess />;
+  if (!hasAccess(me)) return isAdministrator(me) ? <Navigate to="/admin/users" replace /> : <NoAccess />;
   return <ClientMap />;
 }
 
 function NoAccess() {
   return (<>
     <PageHead title="No business access" />
-    <StateMessage kind="restricted">Your account has no business role or scope, so client and internal records are not shown. Ask an Application Administrator.</StateMessage>
+    <Restricted need="Your account has no business role or scope, so client and internal records are not shown." help="role" />
   </>);
+}
+
+function AdminRoute({ children }: { children: ReactNode }) {
+  const me = useMe();
+  if (me.isLoading) return <StateMessage kind="loading" />;
+  if (me.error) return <ErrorBox error={me.error} />;
+  if (!isAdministrator(me.data)) return <><PageHead title="Access denied" /><Restricted need="The Administration right is required for this page." help="role" /></>;
+  return <>{children}</>;
+}
+
+/**
+ * GUI-01: the Reporting Center lives at /reporting-center. On a server where SQL Server Reporting Services holds the http.sys URL
+ * reservation http://+:80/Reports/ (the default SSRS web portal), every full page load of /reports - typing it, refreshing, a bookmark,
+ * a notification link opened in a new tab - is answered by the SSRS Report Manager, not by the hub. Old in-app links still work.
+ */
+function LegacyReports() {
+  const loc = useLocation();
+  return <Navigate to={`/reporting-center${loc.pathname.replace(/^\/reports/, '')}${loc.search}`} replace />;
 }
 
 function NotFound() {
@@ -57,16 +147,21 @@ function NotFound() {
 }
 
 export const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
-  { path: '/account/password', element: <ChangePasswordPage /> },
+  { path: '/login', element: <Outside><LoginPage /></Outside> },
+  { path: '/account/password', element: <Outside><ChangePasswordPage /></Outside> },
   {
     path: '/', element: <Root />, children: [
       { index: true, element: <Home /> },
+      { path: 'overview', element: <Overview /> },
       { path: 'map', element: <MapHome /> },
+      { path: 'dashboards/*', element: <Dashboards /> },
       { path: 'actions', element: <ActionList /> },
       { path: 'notifications', element: <NotificationsPage /> },
       { path: 'data-quality', element: <DataQuality /> },
-      { path: 'reports', element: <Reports /> },
+      // A70: the center's areas are sub-routes (overview, library, builder, my reports, schedules, history, templates).
+      { path: 'reporting-center/*', element: <Reports /> },
+      { path: 'reports', element: <LegacyReports /> },
+      { path: 'reports/*', element: <LegacyReports /> },
       { path: 'clients', element: <ClientList /> },
       { path: 'clients/new', element: <ClientForm /> },
       { path: 'clients/:id', element: <ClientDetail /> },
@@ -93,6 +188,7 @@ export const router = createBrowserRouter([
       { path: 'assets', element: <AssetList /> },
       { path: 'assets/:id', element: <AssetDetail /> },
       { path: 'firewall-rules', element: <FirewallRuleList /> },
+      { path: 'my-dashboard', element: <MyDashboard /> },
       { path: 'cases', element: <CaseList /> },
       { path: 'cases/new', element: <CaseForm /> },
       { path: 'cases/:id', element: <CaseDetail /> },
@@ -111,19 +207,25 @@ export const router = createBrowserRouter([
       { path: 'handovers/:id', element: <HandoverDetail /> },
       { path: 'reassignment', element: <ReassignmentQueue /> },
       { path: 'admin', element: <Navigate to="/admin/users" replace /> },
-      { path: 'admin/users', element: <AdminUsers /> },
-      { path: 'admin/groups', element: <AdminGroups /> },
+      { path: 'admin/access', element: <AdminRoute><AccessControl /></AdminRoute> },
+      { path: 'admin/users', element: <AdminRoute><AdminUsers /></AdminRoute> },
+      { path: 'admin/groups', element: <AdminRoute><AdminGroups /></AdminRoute> },
       // A34: one page per configuration list; the old single page and the zones link point to it.
-      { path: 'admin/config', element: <ConfigHome /> },
-      { path: 'admin/config/:slug', element: <ConfigListPage /> },
+      { path: 'admin/config', element: <AdminRoute><ConfigHome /></AdminRoute> },
+      { path: 'admin/config/category/:category', element: <AdminRoute><ConfigCategoryPage /></AdminRoute> },
+      { path: 'admin/config/:slug', element: <AdminRoute><ConfigListPage /></AdminRoute> },
       { path: 'admin/reference', element: <Navigate to="/admin/config" replace /> },
       { path: 'admin/network-zones', element: <Navigate to="/admin/config/network-zones" replace /> },
-      { path: 'admin/roles', element: <AdminRoles /> },
-      { path: 'admin/rights', element: <AdminRights /> },
+      { path: 'admin/roles', element: <AdminRoute><AdminRoles /></AdminRoute> },
+      { path: 'admin/rights', element: <AdminRoute><AdminRights /></AdminRoute> },
       { path: 'admin/products', element: <Navigate to="/products" replace /> },
-      { path: 'admin/policies', element: <AdminPolicies /> },
-      { path: 'admin/jira', element: <AdminJira /> },
-      { path: 'admin/settings', element: <AdminSettings /> },
+      { path: 'admin/policies', element: <AdminRoute><AdminPolicies /></AdminRoute> },
+      { path: 'admin/jira', element: <AdminRoute><AdminJira /></AdminRoute> },
+      { path: 'admin/integrations/jira', element: <AdminRoute><JiraConnections /></AdminRoute> },
+      { path: 'admin/integrations/jira/review', element: <AdminRoute><JiraImportReview /></AdminRoute> },
+      { path: 'admin/integrations/jira/conflicts', element: <AdminRoute><JiraConflicts /></AdminRoute> },
+      { path: 'admin/integrations/jira/monitoring', element: <AdminRoute><JiraMonitoring /></AdminRoute> },
+      { path: 'admin/settings', element: <AdminRoute><AdminSettings /></AdminRoute> },
       { path: 'admin/audit', element: <AdminAudit /> },
       { path: 'admin/archived', element: <AdminArchived /> },
       { path: '*', element: <NotFound /> }

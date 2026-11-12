@@ -1,0 +1,25 @@
+@use "assets/styles";
+
+
+.incDecControls {
+  display: grid;
+  align-content: center;
+}
+
+
+.incIcon {
+  @include styles.typoSet(valueSmall);
+
+  &.clickable {
+    cursor: pointer;
+  }
+}
+
+
+.decIcon {
+  @include styles.typoSet(valueSmall);
+
+  &.clickable {
+    cursor: pointer;
+  }
+}

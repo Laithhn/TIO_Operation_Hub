@@ -31,6 +31,11 @@ public class Client : Entity, IArchivable, IAccountable, IClientOwned
     public DateTimeOffset? ArchivedAt { get; set; }
     public long? ArchivedById { get; set; }
     public string? ArchiveReason { get; set; }
+    /// <summary>A71: optional logo, stored on disk under the attachment storage root as <c>logos/{random id}</c> (never in this table).</summary>
+    public string? LogoPath { get; set; }
+    public string? LogoContentType { get; set; }
+    /// <summary>A71: random value renewed on every upload; part of the logo URL so a replaced logo is never served from a browser cache.</summary>
+    public string? LogoVersion { get; set; }
     public long? ScopeClientId => Id;
     public List<Region> Regions { get; set; } = [];
     public List<Project> Projects { get; set; } = [];
@@ -84,6 +89,22 @@ public class Project : Entity, IArchivable, IClientOwned
     public string? ArchiveReason { get; set; }
     public long? ScopeClientId => ClientId;
     public List<ProjectProduct> Products { get; set; } = [];
+}
+
+/// <summary>
+/// A108/A109: a manually recorded client status with its reason, kept as history (like an environment condition report, ENV-04).
+/// The latest report is the client's status; it is a person's judgement, not a calculated health score (DAS-02).
+/// </summary>
+public class ClientStatusReport
+{
+    public long Id { get; set; }
+    public long ClientId { get; set; }
+    public ReportedStatus Status { get; set; }
+    public string Summary { get; set; } = "";
+    public DateOnly? NextReviewOn { get; set; }
+    public long? RecordedById { get; set; }
+    public User? RecordedBy { get; set; }
+    public DateTimeOffset RecordedAt { get; set; }
 }
 
 public class ProjectProduct

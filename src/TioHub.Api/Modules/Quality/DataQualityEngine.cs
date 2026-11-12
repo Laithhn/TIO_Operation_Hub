@@ -31,7 +31,7 @@ public sealed class DataQualityEngine(HubDbContext db, FreshnessService fresh, H
         {
             [CountryUnknown] = "Country unknown (onboarding follow-up)",
             [MissingOwner] = "Missing owner",
-            [UnknownEnvironment] = "Unknown environment on case",
+            [UnknownEnvironment] = "Unknown environment on ticket",
             [UnknownVersion] = "Unknown installed version",
             [StaleReview] = "Stale review",
             [ConditionNeedsVerification] = "Condition needs verification",
@@ -59,6 +59,7 @@ public sealed class DataQualityEngine(HubDbContext db, FreshnessService fresh, H
                 item.RecordLabel = f.Label;
                 item.ClientId = f.ClientId;
                 item.EnvironmentId = f.EnvironmentId;
+                item.TeamId = f.TeamId;
                 item.CoordinatorUserId ??= f.Coordinator;
                 continue;
             }

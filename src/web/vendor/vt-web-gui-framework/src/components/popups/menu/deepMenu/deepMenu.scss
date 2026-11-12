@@ -1,0 +1,25 @@
+@use "assets/styles";
+
+
+// The list of one menu level. Level zero lies in the card the menu opens, every deeper level in a
+// card of its own (see DeepMenu.tsx), so the list carries no ground, no shadow and no position -
+// the card does all three. What it carries is the vertical padding, which DeepMenu.tsx reads back
+// as space.small to grow a submenu's anchor by, so the two have to stay one value.
+.deepMenu {
+  padding: styles.spacePx(small) 0;
+  // The level fades in as it mounts - by an animation, not by a class a state switches on one
+  // render later: the first frame already is the animation's start, so nothing has to be hidden
+  // first and no effect has to set a state.
+  animation: fadeIn styles.layoutMs(animationTime, mediumMs) ease;
+}
+
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

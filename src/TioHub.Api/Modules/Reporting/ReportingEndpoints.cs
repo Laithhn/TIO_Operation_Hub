@@ -22,19 +22,14 @@ public static class ReportingEndpoints
     {
         "csv" => ExportFormat.Csv,
         "xlsx" or "excel" => ExportFormat.Xlsx,
-        "pdf" => throw new ValidationException("format", "PDF is not available yet: use CSV or Excel."),
+        "pdf" => throw new ValidationException("format", "PDF is available for the Tickets report in the Report Builder; for this report use CSV or Excel."),
         _ => throw new ValidationException("format", "Choose CSV or Excel.")
     };
 
     private static ReportDefinition Report(string key) => ReportCatalog.Find(key) ?? throw new NotFoundException("The report");
 
-    private static object Dto(ExportJob j, string? user = null, bool mine = true) => new
-    {
-        j.Id, j.AuditId, j.Report, j.ReportName, format = j.Format.ToString().ToLowerInvariant(), status = j.Status.ToString(), j.FilterSummary, j.TimeZone,
-        j.RequestedAt, j.CompletedAt, j.RowCount, j.FileSize, j.FileName, j.ExpiresAt, j.Error, j.Source, j.ScheduleId, j.RetryOfId, user,
-        canDownload = mine && j.Status == ExportStatus.Completed && j.StoredPath != null,
-        canRetry = mine && j.Status is ExportStatus.Failed or ExportStatus.Expired
-    };
+    // A70: one job shape for catalog and builder exports (Pending is shown as "Queued").
+    private static object Dto(ExportJob j, UserContext viewer, string? user = null) => BuilderEndpoints.JobDto(j, user, viewer);
 
     public static void MapReportingEndpoints(this RouteGroupBuilder api)
     {
@@ -43,11 +38,13 @@ public static class ReportingEndpoints
         g.MapGet("/catalog", (UserContext me) =>
         {
             ExportService.RequireExport(me);
-            return Results.Ok(ReportCatalog.All.Select(r => new
+            var readable = RightChecks.ReadableReports(me);
+            return Results.Ok(ReportCatalog.All.Where(r => readable.Contains(r.Key)).Select(r => new
             {
                 r.Key, r.Name, r.Category, r.Description, r.Icon, r.Operational,
                 formats = new[] { new { key = "csv", label = "CSV", available = true, note = (string?)null }, new { key = "xlsx", label = "Excel (.xlsx)", available = true, note = (string?)null },
-                    new { key = "pdf", label = "PDF", available = false, note = (string?)"A formatted PDF layout is not available yet." } },
+                    new { key = "pdf", label = "PDF", available = false, note = (string?)(r.Key == "cases" ? "PDF is available in the Tickets Report Builder (Build report)." : "A formatted PDF layout is available for the Tickets report only.") } },
+                builder = r.Key == "cases",
                 filters = r.Filters.Select(f => new { f.Key, f.Label, kind = f.Kind.ToString(), f.Advanced, f.Options, f.Hint, f.RangeEnd }),
                 columns = r.Columns
             }));
@@ -60,12 +57,13 @@ public static class ReportingEndpoints
             var zone = Zones.Find(me.TimeZone) ?? TimeZoneInfo.Utc;
             var local = TimeZoneInfo.ConvertTime(now, zone).Date;
             var today = new DateTimeOffset(local, zone.GetUtcOffset(local));
-            var mine = db.ExportJobs.AsNoTracking().Where(j => j.UserId == me.UserId);
+            var readable = RightChecks.ReadableReports(me);
+            var mine = db.ExportJobs.AsNoTracking().Where(j => j.UserId == me.UserId && readable.Contains(j.Report));
             return Results.Ok(new
             {
-                availableReports = ReportCatalog.All.Count,
+                availableReports = readable.Length,
                 exportsToday = await mine.CountAsync(j => j.Status == ExportStatus.Completed && j.RequestedAt >= today, ct),
-                scheduledReports = await db.ReportSchedules.AsNoTracking().CountAsync(s => s.OwnerUserId == me.UserId && s.IsActive, ct),
+                scheduledReports = await db.ReportSchedules.AsNoTracking().CountAsync(s => s.OwnerUserId == me.UserId && readable.Contains(s.Report) && s.IsActive, ct),
                 failedExports = await mine.CountAsync(j => j.Status == ExportStatus.Failed && j.RequestedAt >= now.AddDays(-30), ct),
                 retentionDays = store.Options.RetentionDays,
                 maxRows = store.Options.MaxRows
@@ -76,7 +74,7 @@ public static class ReportingEndpoints
         {
             ExportService.RequireExport(me);
             var def = Report(key);
-            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct);
+            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct, svc.ZoneOf(input.TimeZone));
             var page = Math.Max(1, input.Page ?? 1);
             var size = Math.Clamp(input.PageSize ?? 25, 1, 100);
             return Results.Ok(await svc.PreviewAsync(def, f, svc.ZoneOf(input.TimeZone), page, size, ct));
@@ -88,22 +86,24 @@ public static class ReportingEndpoints
             var def = Report(key);
             var format = ParseFormat(input.Format);
             ExportService.CheckColumns(def, input.Columns);
-            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct);
+            var f = await svc.ValidateAsync(def, input.Filters, strict: true, ct, svc.ZoneOf(input.TimeZone));
             var job = await svc.ExportAsync(def, f, format, input.Columns, svc.ZoneOf(input.TimeZone), "Reporting Center", null, null, ct);
-            return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job));
+            return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job, me));
         });
 
-        // History: your own exports; with the Audit permission, everyone's (details only — a file is only ever downloaded by its owner).
+        // History: your own exports; with the Change history right, everyone's (details only — a file is only ever downloaded by its owner).
         g.MapGet("/exports", async (string? report, string? status, string? from, string? to, long? userId, string? scope, string? sort, int? page, int? pageSize,
             HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var all = scope == "all";
-            if (all && !me.Has(Grant.Audit)) throw new ForbiddenException("Viewing everyone's exports needs the Audit permission.");
-            var q = db.ExportJobs.AsNoTracking().AsQueryable();
+            if (all && !me.HasRight(RightKeys.Audit)) throw new ForbiddenException("Viewing everyone's exports needs the Change history right.");
+            var readable = RightChecks.ReadableReports(me);
+            var q = db.ExportJobs.AsNoTracking().Where(j => readable.Contains(j.Report));
             if (!all) q = q.Where(j => j.UserId == me.UserId);
             else if (userId is not null) q = q.Where(j => j.UserId == userId);
             if (!string.IsNullOrWhiteSpace(report)) q = q.Where(j => j.Report == report);
+            if (status == "Queued") status = nameof(ExportStatus.Pending);
             if (Enum.TryParse<ExportStatus>(status, true, out var st)) q = q.Where(j => j.Status == st);
             var zone = Zones.Find(me.TimeZone) ?? TimeZoneInfo.Utc;
             DateTimeOffset? Day(string? d, int add) => DateOnly.TryParseExact(d, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var x)
@@ -121,52 +121,45 @@ public static class ReportingEndpoints
                 _ => q.OrderByDescending(j => j.RequestedAt).ThenByDescending(j => j.Id)
             };
             var paged = await q.Select(j => new { j, user = db.Users.Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefault() }).ToPagedAsync(PageQuery.From(page, pageSize), ct);
-            return Results.Ok(new Paged<object>(paged.Items.Select(x => Dto(x.j, x.user, x.j.UserId == me.UserId)).ToList(), paged.Page, paged.PageSize, paged.TotalCount));
+            return Results.Ok(new Paged<object>(paged.Items.Select(x => Dto(x.j, me, x.user)).ToList(), paged.Page, paged.PageSize, paged.TotalCount));
         });
 
         g.MapGet("/exports/{id:long}", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, ct);
-            // Someone else's export is "not found" unless the caller holds the Audit permission (no existence leak).
-            if (j is null || (j.UserId != me.UserId && !me.Has(Grant.Audit))) throw new NotFoundException("The export");
+            // Someone else's export is "not found" unless the caller holds the Change history right (no existence leak).
+            if (j is null || (j.UserId != me.UserId && !me.HasRight(RightKeys.Audit))) throw new NotFoundException("The export");
+            RightChecks.RequireReport(me, j.Report);
             var user = await db.Users.AsNoTracking().Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefaultAsync(ct);
-            var columns = j.ColumnsJson is null ? null : JsonSerializer.Deserialize<List<string>>(j.ColumnsJson);
-            return Results.Ok(new { export = Dto(j, user, j.UserId == me.UserId), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(j.FiltersJson), columns, j.StartedAt });
+            var details = BuilderEndpoints.CanSeeJobDetails(j, me);
+            var columns = !details || j.ColumnsJson is null ? null : JsonSerializer.Deserialize<List<string>>(j.ColumnsJson);
+            return Results.Ok(new { export = Dto(j, me, user), filters = details ? JsonSerializer.Deserialize<Dictionary<string, string>>(j.FiltersJson) : null, columns, j.StartedAt });
         });
 
-        g.MapGet("/exports/{id:long}/download", async (long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct) =>
-        {
-            ExportService.RequireExport(me);
-            var j = await db.ExportJobs.FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
-            if (j.Status == ExportStatus.Expired || (j.ExpiresAt is { } e && e < clock.GetUtcNow()))
-                return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file has expired", detail: "Export files are kept for a limited time. Generate the report again (Retry).");
-            if (j.Status != ExportStatus.Completed || j.StoredPath is null) throw new ValidationException("status", "This export has no file.");
-            var stream = store.Open(j.StoredPath);
-            if (stream is null) return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file is no longer available", detail: "Generate the report again (Retry).");
-            await db.AuditActionAsync("Download", "Report", j.Id, j.ReportName, null, null, new { exportId = j.AuditId, j.FileName }, ct);
-            await db.SaveChangesAsync(ct);
-            return Results.File(stream, j.Format == ExportFormat.Xlsx ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv; charset=utf-8", j.FileName);
-        });
+        g.MapGet("/exports/{id:long}/download", (long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct) => DownloadAsync(id, db, me, store, clock, ct));
 
         g.MapPost("/exports/{id:long}/retry", async (long id, HubDbContext db, ExportService svc, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
             var j = await db.ExportJobs.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
+            if (!BuilderEndpoints.CanSeeJobDetails(j, me)) throw new ForbiddenException("Your access may have changed since this export was requested. Create a new report instead.");
+            if (j.DefinitionJson is not null) throw new ValidationException("status", "Retry a Report Builder export with POST /reporting/exports/{id}/retry.");
             if (j.Status is not (ExportStatus.Failed or ExportStatus.Expired)) throw new ValidationException("status", "Only a failed or expired export can be generated again.");
             var def = Report(j.Report);
             // The filters are validated again under the caller's current access.
-            var f = await svc.ValidateAsync(def, JsonSerializer.Deserialize<Dictionary<string, string?>>(j.FiltersJson), strict: false, ct);
+            var f = await svc.ValidateAsync(def, JsonSerializer.Deserialize<Dictionary<string, string?>>(j.FiltersJson), strict: true, ct, svc.ZoneOf(j.TimeZone));
             var cols = j.ColumnsJson is null ? null : JsonSerializer.Deserialize<List<string>>(j.ColumnsJson);
             var job = await svc.ExportAsync(def, f, j.Format, cols, svc.ZoneOf(j.TimeZone), j.Source == "Schedule" ? "Reporting Center" : j.Source, null, j.Id, ct);
-            return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job));
+            return Results.Created($"/api/v1/reports/exports/{job.Id}", Dto(job, me));
         });
 
         // ---- saved filter presets (private to their owner) ----
         g.MapGet("/presets", async (string? report, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var list = await db.ReportPresets.AsNoTracking().Where(p => p.UserId == me.UserId && (report == null || p.Report == report)).OrderBy(p => p.Name).ToListAsync(ct);
+            var readable = RightChecks.ReadableReports(me);
+            var list = await db.ReportPresets.AsNoTracking().Where(p => p.UserId == me.UserId && readable.Contains(p.Report) && (report == null || p.Report == report)).OrderBy(p => p.Name).ToListAsync(ct);
             return Results.Ok(list.Select(p => new { p.Id, p.Report, p.Name, filters = JsonSerializer.Deserialize<Dictionary<string, string>>(p.FiltersJson), p.CreatedAt }));
         });
         g.MapPost("/presets", async (PresetInput input, HubDbContext db, ExportService svc, UserContext me, TimeProvider clock, CancellationToken ct) =>
@@ -196,14 +189,17 @@ public static class ReportingEndpoints
         g.MapGet("/schedules", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var list = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Where(s => s.OwnerUserId == me.UserId).OrderBy(s => s.Name).ToListAsync(ct);
+            var readable = RightChecks.ReadableReports(me);
+            var list = await db.ReportSchedules.AsNoTracking().Include(s => s.Recipients).ThenInclude(r => r.User).Include(s => s.SavedReport).Where(s => s.OwnerUserId == me.UserId && readable.Contains(s.Report)).OrderBy(s => s.Name).ToListAsync(ct);
             return Results.Ok(list.Select(ScheduleDto));
         });
         g.MapGet("/schedules/{id:long}", async (long id, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            var s = await db.ReportSchedules.AsNoTracking().Include(x => x.Recipients).ThenInclude(r => r.User).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
-            return Results.Ok(new { schedule = ScheduleDto(s), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(s.FiltersJson) });
+            var s = await db.ReportSchedules.AsNoTracking().Include(x => x.Recipients).ThenInclude(r => r.User).Include(x => x.SavedReport).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
+            RightChecks.RequireReport(me, s.Report);
+            return Results.Ok(new { schedule = ScheduleDto(s), filters = JsonSerializer.Deserialize<Dictionary<string, string>>(s.FiltersJson),
+                options = s.OptionsJson is null ? null : JsonSerializer.Deserialize<BuilderExportOptions>(s.OptionsJson, new JsonSerializerOptions(JsonSerializerDefaults.Web)) });
         });
         g.MapPost("/schedules", async (ScheduleInput input, HubDbContext db, ExportService svc, UserResolver resolver, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
@@ -218,6 +214,7 @@ public static class ReportingEndpoints
         {
             ExportService.RequireExport(me);
             var s = await db.ReportSchedules.Include(x => x.Recipients).FirstOrDefaultAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct) ?? throw new NotFoundException("The schedule");
+            if (s.SavedReportId is not null) throw new ValidationException("savedReportId", "This schedule runs a saved report: change it with PATCH /reporting/schedules/{id}.");
             await ApplyAsync(s, input, db, svc, resolver, me, clock, ct);
             await db.SaveChangesAsync(ct);
             return Results.NoContent();
@@ -237,19 +234,57 @@ public static class ReportingEndpoints
         g.MapGet("/schedules/{id:long}/runs", async (long id, int? page, int? pageSize, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             ExportService.RequireExport(me);
-            if (!await db.ReportSchedules.AnyAsync(x => x.Id == id && x.OwnerUserId == me.UserId, ct)) throw new NotFoundException("The schedule");
+            var readable = RightChecks.ReadableReports(me);
+            if (!await db.ReportSchedules.AnyAsync(x => x.Id == id && x.OwnerUserId == me.UserId && readable.Contains(x.Report), ct)) throw new NotFoundException("The schedule");
             var paged = await db.ExportJobs.AsNoTracking().Where(j => j.ScheduleId == id).OrderByDescending(j => j.RequestedAt).ThenByDescending(j => j.Id)
                 .Select(j => new { j, user = db.Users.Where(u => u.Id == j.UserId).Select(u => u.DisplayName).FirstOrDefault() }).ToPagedAsync(PageQuery.From(page, pageSize), ct);
-            return Results.Ok(new Paged<object>(paged.Items.Select(x => Dto(x.j, x.user, x.j.UserId == me.UserId)).ToList(), paged.Page, paged.PageSize, paged.TotalCount));
+            return Results.Ok(new Paged<object>(paged.Items.Select(x => Dto(x.j, me, x.user)).ToList(), paged.Page, paged.PageSize, paged.TotalCount));
         });
     }
 
-    private static object ScheduleDto(ReportSchedule s) => new
+    public static object ScheduleDto(ReportSchedule s) => new
     {
-        s.Id, s.Name, s.Report, reportName = ReportCatalog.Find(s.Report)?.Name ?? s.Report, s.FilterSummary, format = s.Format.ToString().ToLowerInvariant(), frequency = s.Frequency.ToString(),
+        s.Id, s.Name, s.Report, reportName = s.SavedReport?.Name ?? ReportCatalog.Find(s.Report)?.Name ?? s.Report, s.SavedReportId, builder = s.SavedReportId != null, s.FilterSummary, format = s.Format.ToString().ToLowerInvariant(), frequency = s.Frequency.ToString(),
         s.DayOfWeek, s.DayOfMonth, time = s.TimeOfDay.ToString("HH:mm", CultureInfo.InvariantCulture), s.TimeZone, s.IsActive, s.NextRunAt, s.LastRunAt, s.LastOutcome,
         recipients = s.Recipients.Select(r => new { id = r.UserId, name = r.User?.DisplayName })
     };
+
+    /// <summary>Streams an export file to the user it was generated for, after checking status and retention; every download is audited.</summary>
+    public static async Task<IResult> DownloadAsync(long id, HubDbContext db, UserContext me, ExportStore store, TimeProvider clock, CancellationToken ct)
+    {
+        ExportService.RequireExport(me);
+        var j = await db.ExportJobs.FirstOrDefaultAsync(x => x.Id == id && x.UserId == me.UserId, ct) ?? throw new NotFoundException("The export");
+        RightChecks.RequireReportExport(me, j.Report);
+        if (!ExportAccessFingerprint.IsCurrent(j.AccessFingerprint, me))
+            throw new ForbiddenException("Your access may have changed since this file was generated. Generate the report again.");
+        if (j.Status == ExportStatus.Expired || (j.ExpiresAt is { } e && e < clock.GetUtcNow()))
+        {
+            if (j.StoredPath is not null) store.Delete(j.StoredPath);
+            j.StoredPath = null;
+            j.Status = ExportStatus.Expired;
+            await db.SaveChangesAsync(ct);
+            return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file has expired", detail: "Export files are kept for a limited time. Generate the report again (Retry).");
+        }
+        if (j.Status != ExportStatus.Completed || j.StoredPath is null) throw new ValidationException("status", "This export has no file.");
+        var stream = store.Open(j.StoredPath);
+        if (stream is null)
+        {
+            j.Status = ExportStatus.Expired;
+            j.StoredPath = null;
+            await db.SaveChangesAsync(ct);
+            return Results.Problem(statusCode: StatusCodes.Status410Gone, title: "The file is no longer available", detail: "Generate the report again (Retry).");
+        }
+        await db.AuditActionAsync("Download", "Report", j.Id, j.ReportName, null, null, new { exportId = j.AuditId, j.FileName }, ct);
+        await db.SaveChangesAsync(ct);
+        ReportingMetrics.Downloads.Add(1);
+        var type = j.Format switch
+        {
+            ExportFormat.Xlsx => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ExportFormat.Pdf => "application/pdf",
+            _ => "text/csv; charset=utf-8"
+        };
+        return Results.File(stream, type, j.FileName);
+    }
 
     private static async Task<IResult> SetActiveAsync(long id, bool active, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct)
     {
@@ -270,7 +305,7 @@ public static class ReportingEndpoints
         if (def is null) check.Add("report", "Select a report.");
         ExportFormat format = ExportFormat.Csv;
         try { format = ParseFormat(input.Format); } catch (ValidationException ex) { check.Add("format", ex.Message); }
-        if (input.Frequency is null) check.Add("frequency", "Select daily, weekly or monthly.");
+        if (input.Frequency is null || !Enum.IsDefined(input.Frequency.Value)) check.Add("frequency", "Select daily, weekly or monthly.");
         if (input.Frequency == ScheduleFrequency.Weekly && input.DayOfWeek is not (>= 0 and <= 6)) check.Add("dayOfWeek", "Select the weekday.");
         if (input.Frequency == ScheduleFrequency.Monthly && input.DayOfMonth is not (>= 1 and <= 28)) check.Add("dayOfMonth", "Select a day from 1 to 28.");
         if (!TimeOnly.TryParseExact(input.Time ?? "", "HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var time)) check.Add("time", "Enter the time as HH:mm.");
@@ -282,12 +317,12 @@ public static class ReportingEndpoints
         foreach (var id in ids)
         {
             // Recipients are hub users who may export themselves; each receives only what their own access allows.
-            var r = await resolver.ForUserAsync(id, ct);
+            var r = await resolver.ForUserAsync(id, ct, directWhenGroupsUnknown: true);
             if (r is null || !r.IsActive) check.Add("recipientIds", $"Recipient #{id} is not an active hub user.");
-            else if ((r.Grants & Grant.Export) != Grant.Export || r.Roles.Length == 0) check.Add("recipientIds", $"{r.DisplayName} does not have the Export permission.");
+            else if (!r.Holds(RightKeys.PlatformExport) || !r.HasAccess) check.Add("recipientIds", $"{r.DisplayName} does not have the Export files right.");
         }
         check.ThrowIfAny();
-        var f = await svc.ValidateAsync(def!, input.Filters, strict: true, ct);
+        var f = await svc.ValidateAsync(def!, input.Filters, strict: true, ct, zone);
         s.Name = input.Name!.Trim();
         s.Report = def!.Key;
         s.FiltersJson = JsonSerializer.Serialize(f.Values);
@@ -309,7 +344,7 @@ public static class ReportingEndpoints
 /// <summary>
 /// A62: runs due schedules and removes expired export files. Each recipient's file is generated in its own scope with that
 /// recipient's directly assigned roles and scopes (directory-group access is not used outside a sign-in), so a scheduled file
-/// never contains more than the recipient could see; a recipient who lost the Export permission gets a failed run instead.
+/// never contains more than the recipient could see; a recipient who lost the Export files right gets a failed run instead.
 /// </summary>
 public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Extensions.Options.IOptions<ReportingOptions> options, ILogger<ReportScheduler> log) : BackgroundService
 {
@@ -352,22 +387,37 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         using (var scope = scopes.CreateScope())
             due = await scope.ServiceProvider.GetRequiredService<HubDbContext>().ReportSchedules.AsNoTracking().Include(s => s.Recipients)
                 .Where(s => s.IsActive && s.NextRunAt <= now).OrderBy(s => s.NextRunAt).Take(20).ToListAsync(ct);
-        foreach (var s in due)
+        int processed = 0;
+        foreach (var candidate in due)
         {
+            using var scope = scopes.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
+            await using var transaction = await db.Database.BeginTransactionAsync(ct);
+            // A schedule occurrence must be claimed across overlapping workers before any recipient file is generated.
+            var resource = $"TioHub:ReportSchedule:{candidate.Id}";
+            var acquired = await db.Database.SqlQuery<int>($"""
+                DECLARE @result int;
+                EXEC @result = sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive', @LockOwner='Transaction', @LockTimeout=0;
+                SELECT @result AS [Value];
+                """).ToListAsync(ct);
+            if (acquired[0] < 0) continue;
+            var s = await db.ReportSchedules.Include(x => x.Recipients).FirstOrDefaultAsync(x => x.Id == candidate.Id, ct);
+            if (s is null || !s.IsActive || s.NextRunAt > now) continue;
             int ok = 0, failed = 0;
             foreach (var r in s.Recipients)
             {
                 if (await RunForAsync(scopes, s, r.UserId, ct)) ok++; else failed++;
             }
-            using var scope = scopes.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
-            var row = await db.ReportSchedules.FirstAsync(x => x.Id == s.Id, ct);
-            row.LastRunAt = now;
-            row.LastOutcome = failed == 0 ? $"Completed for {ok} recipient(s)" : $"{ok} completed, {failed} failed";
-            row.NextRunAt = ScheduleClock.Next(row.Frequency, row.DayOfWeek, row.DayOfMonth, row.TimeOfDay, Zones.Find(row.TimeZone) ?? TimeZoneInfo.Utc, now);
+            s.LastRunAt = now;
+            s.LastOutcome = s.SavedReportId is not null
+                ? (failed == 0 ? $"Queued for {ok} recipient(s)" : $"{ok} queued, {failed} failed")
+                : failed == 0 ? $"Completed for {ok} recipient(s)" : $"{ok} completed, {failed} failed";
+            s.NextRunAt = ScheduleClock.Next(s.Frequency, s.DayOfWeek, s.DayOfMonth, s.TimeOfDay, Zones.Find(s.TimeZone) ?? TimeZoneInfo.Utc, now);
             await db.SaveChangesAsync(ct);
+            await transaction.CommitAsync(ct);
+            processed++;
         }
-        return due.Count;
+        return processed;
     }
 
     private static async Task<bool> RunForAsync(IServiceScopeFactory scopes, ReportSchedule s, long userId, CancellationToken ct)
@@ -384,8 +434,8 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         else if (user is null || !user.IsActive) refusal = "The recipient is not an active hub user.";
         else
         {
-            resolved = await AccessCalculator.ComputeAsync(db, user, [], ct);
-            if (resolved.Roles.Length == 0 || (resolved.Grants & Grant.Export) != Grant.Export) refusal = "The recipient no longer has the Export permission.";
+            resolved = await ScheduledExportAccess.ResolveAsync(db, user.Id, sp.GetRequiredService<TimeProvider>(), ct);
+            if (resolved is null || !resolved.HasAccess || !resolved.Holds(RightKeys.PlatformExport)) refusal = "The recipient's current export authority could not be established.";
         }
         if (refusal is not null)
         {
@@ -400,12 +450,26 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
             }
             return false;
         }
+        if (s.SavedReportId is { } savedId)
+        {
+            // A70: a saved builder report is queued for the export worker, which validates it again under this recipient's access.
+            var saved = await db.SavedReports.AsNoTracking().FirstOrDefaultAsync(r => r.Id == savedId, ct);
+            db.ExportJobs.Add(new ExportJob
+            {
+                UserId = userId, Report = "cases", ReportName = saved?.Name ?? "Tickets report", Format = s.Format, FiltersJson = "{}", FilterSummary = s.FilterSummary, TimeZone = s.TimeZone,
+                Status = saved is null ? ExportStatus.Failed : ExportStatus.Pending, RequestedAt = now, CompletedAt = saved is null ? now : null, Error = saved is null ? "The saved report no longer exists." : null,
+                Source = "Schedule", ScheduleId = s.Id, SavedReportId = saved?.Id, DefinitionJson = saved?.DefinitionJson ?? "{}", OptionsJson = s.OptionsJson, CutoffAt = now
+            });
+            await db.SaveChangesAsync(ct);
+            sp.GetRequiredService<ExportQueue>().Signal();
+            return saved is not null;
+        }
         sp.GetRequiredService<UserContext>().Set(resolved!);
         var svc = sp.GetRequiredService<ExportService>();
         ExportJob job;
         try
         {
-            var f = await svc.ValidateAsync(def!, JsonSerializer.Deserialize<Dictionary<string, string?>>(s.FiltersJson), strict: false, ct);
+            var f = await svc.ValidateAsync(def!, JsonSerializer.Deserialize<Dictionary<string, string?>>(s.FiltersJson), strict: true, ct, svc.ZoneOf(s.TimeZone));
             job = await svc.ExportAsync(def!, f, s.Format, null, Zones.Find(s.TimeZone) ?? TimeZoneInfo.Utc, "Schedule", s.Id, null, ct);
         }
         catch (ValidationException ex)
@@ -422,8 +486,8 @@ public sealed class ReportScheduler(IServiceScopeFactory scopes, Microsoft.Exten
         db.Notifications.Add(new Notification
         {
             UserId = userId, Kind = "Report", Title = job.Status == ExportStatus.Completed ? $"Scheduled report ready: {s.Name}" : $"Scheduled report failed: {s.Name}",
-            Body = job.Status == ExportStatus.Completed ? $"{job.ReportName}, {job.RowCount} row(s)." : job.Error, Link = $"/reports?tab=history&export={job.Id}",
-            Key = $"report:{s.Id}:{userId}:{now:yyyyMMddHHmm}", CreatedAt = now
+            Body = job.Status == ExportStatus.Completed ? $"{job.ReportName}, {job.RowCount} row(s)." : job.Error, Link = $"/reporting-center?tab=history&export={job.Id}",
+            Key = $"report:{s.Id}:{userId}:{job.Id}", CreatedAt = now
         });
         await db.SaveChangesAsync(ct);
         return job.Status == ExportStatus.Completed;

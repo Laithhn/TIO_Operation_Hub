@@ -1,0 +1,10 @@
+@use "assets/styles";
+
+.title {
+  margin: 0 auto;
+  line-height: styles.layoutPx(header, height);
+  font-size: styles.typo(fontSize, small);
+  font-weight: styles.typo(fontWeight, semibold);
+  color: styles.typo(color, light, normal);
+  white-space: nowrap;
+}

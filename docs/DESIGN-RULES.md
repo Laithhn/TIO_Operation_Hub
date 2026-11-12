@@ -1,3 +1,7 @@
+> **2.55 (A103):** the executive overview's exception below no longer applies: KPI cards are square like every other panel. Lists use `FilterBar`, row actions use the small menu in `DeleteAction`, and figures that must stay compact use `.stat-strip`.
+>
+> **Superseded for the look (2.34, DECISIONS A68):** the frontend now follows VtWebGuiFramework 3.6.1. Tokens, frame, controls and icons are described in [FRONTEND-ARCHITECTURE.md](FRONTEND-ARCHITECTURE.md). The rules below for empty states, validation messages, status text labels and chart semantics still apply; the colours and geometry below are historical.
+
 # Design rules derived from the reference screenshot
 
 Reference: VITS "Wanted Plate Management" screen, captured at about 2000 × 722 px (desktop, 1:1 CSS pixels assumed).
@@ -98,3 +102,18 @@ Components: `src/web/src/ui/charts.tsx` (`HBars`, `Columns`, `TrendLines`, `Coun
 | Contract renewals | Columns: expired = critical red, renewal due = warning amber, end date unknown = neutral gray, current = blue, draft = lightest ramp step; every column labelled and linked to the matching contract list. Badges on contract pages use the same words. |
 
 Fixed 19 Oct: the column chart's `.cols` class collided with the two-column page layout `.cols` (Client 360, detail pages); the chart now uses `.colchart`.
+
+## Audience dashboards (10 Nov 2026, A108)
+
+Pages: `src/web/src/pages/Dashboards.tsx`; styles under “A108” in `app.css` (`ad-*`); chart `RateLines` in `ui/charts.tsx`. They use the executive style of the Command Center (8 px cards, KPI tiles, bands) and the validated chart palette above — no new colours.
+
+| Element | Rule |
+|---|---|
+| One question per page | Operational = now (no period picker, 60 s refresh); SLA & Contracts and Management = a period with the comparison stated in the page head; Project = one project. Filters sit in one row above the content and stay in the URL. |
+| KPI tiles | Same `Kpi` component as the Command Center; every tile with a list behind it opens that list. A rate or median without records reads **Not available**, never 0. Changes against the previous period show ▲/▼ with the number; green or red follows whether the direction is good for that figure, and the arrow and number carry the meaning without colour. |
+| SLA clock | A 6 px meter (share of the target used) with the text beside it: obligation, time left or breached by, percent used. Blue = running, amber = at risk, red = breached; the words say the same. |
+| Stacked bars | Workload by priority uses the ordinal blue ramp (darker = more urgent) with 2 px gaps; breaches by obligation use categorical slots 1–2 (blue, orange). Legend always shown; total as text; every chart has a Table view. |
+| Rate trend | `RateLines`: two series in percent, a gap (no point) where nothing was measured, isolated values as dots, a dashed neutral line for the objective named in the legend, crosshair tooltip, end labels kept 13 px apart. One axis. |
+| Timelines | Contract terms: one bar per contract on a shared three-year axis, state by reserved status colour **and** the state in words in the table, a diamond at the notice deadline, a red line at today; each bar is a keyboard link whose label carries the dates. Milestones: filled = complete, red = late, hollow = planned, with label, date and percent as text. |
+| Project status | The recorded status is the largest text on the page, on a dark tinted block (green / amber / red / neutral grey for *Not recorded*) with a glyph (● ▲ ■ ○) and the words, its reason, who recorded it and when. Signals are bordered tiles with a text badge (On track, Watch, Off track, Unknown) and their facts; the rule is the tile's tooltip. Unknown is neutral grey, never green. The agreement line under the signals is green only when the signals are consistent with the recorded status. |
+| Portfolio | One row per project: recorded status as a badge, one glyph per signal with an accessible label and tooltip (state and facts), legend under the table. |

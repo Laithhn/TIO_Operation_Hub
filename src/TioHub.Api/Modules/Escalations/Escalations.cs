@@ -137,7 +137,7 @@ public static class EscalationEndpoints
         g.MapGet("", async (long? clientId, long? projectId, long? contractId, long? caseId, string? status, string? channel, Priority? priority, int? level, long? ownerId, bool? overdue,
             string? q, string? country, long? productId, string? sort, int? page, int? pageSize, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var now = DateTimeOffset.UtcNow;
             var f = new EscalationFilter(clientId, projectId, contractId, caseId, status, channel, priority, level, ownerId, overdue, q, country, productId);
             var query = EscalationQuery.Apply(db.Escalations.AsNoTracking(), f, now, db);
@@ -162,15 +162,16 @@ public static class EscalationEndpoints
 
         g.MapGet("/{id:long}", async (long id, HttpContext ctx, HubDbContext db, HubAccess access, CancellationToken ct) =>
         {
-            access.RequireBusiness();
+            access.RequireAccess();
             var e = await db.Escalations.AsNoTracking().Include(x => x.Client).Include(x => x.Owner).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The escalation");
             var now = DateTimeOffset.UtcNow;
-            var events = await db.EscalationEvents.AsNoTracking().Where(x => x.EscalationId == id).OrderBy(x => x.At).ThenBy(x => x.Id)
+            var canHistory = access.Me.HasRight(RightKeys.Other, RightKeys.HistoryView) && access.Me.HasRight(RightKeys.Audit);
+            var events = await db.EscalationEvents.AsNoTracking().Where(x => canHistory && x.EscalationId == id).OrderBy(x => x.At).ThenBy(x => x.Id)
                 .Select(x => new { x.Id, x.Type, x.Status, x.Channel, x.Outgoing, x.Level, x.Note, x.At, by = x.By == null ? null : x.By.DisplayName }).ToListAsync(ct);
             var project = e.ProjectId is null ? null : await db.Projects.AsNoTracking().Where(x => x.Id == e.ProjectId).Select(x => new { x.Id, x.Code, x.Name }).FirstOrDefaultAsync(ct);
             var contract = e.ContractId is null ? null : await db.Contracts.AsNoTracking().Where(x => x.Id == e.ContractId).Select(x => new { x.Id, x.Ref, x.Title }).FirstOrDefaultAsync(ct);
             var caseRef = e.CaseId is null ? null : await db.Cases.AsNoTracking().Where(x => x.Id == e.CaseId).Select(x => new { x.Id, x.Ref, x.Title }).FirstOrDefaultAsync(ct);
-            var edit = access.Me.SeesScope(e.ClientId, null) && access.Me.Can(Role.Engineer);
+            var edit = access.Me.SeesScope(e.ClientId, null) && access.Me.HasRight(RightKeys.Other, RightKeys.Maintain);
             var active = Escalation.Active.Contains(e.Status);
             return ctx.WithETag(e, new
             {
@@ -183,13 +184,13 @@ public static class EscalationEndpoints
                 responseOverdue = e.Status == EscalationStatus.Open && e.ResponseDueAt < now,
                 project, contract, @case = caseRef, events, e.CreatedAt, e.UpdatedAt,
                 nextStatuses = edit ? Moves[e.Status] : [],
-                permissions = new { canEdit = edit, canLog = edit, canRaise = edit && active && e.Level < 3, canChangeOwner = edit && access.Me.IsLead }
+                permissions = new { canEdit = edit, canLog = edit, canRaise = edit && active && e.Level < 3, canChangeOwner = edit && access.Me.HasRight(RightKeys.Other, RightKeys.Coordinate) }
             });
         });
 
         g.MapPost("", async (EscalationInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
-            access.Me.Require(Role.Engineer);
+            access.Me.RequireRight(RightKeys.Other, RightKeys.Create);
             var now = clock.GetUtcNow();
             var e = new Escalation { Status = EscalationStatus.Open };
             await ApplyAsync(e, input, null, db, access, now, ct);
@@ -203,7 +204,7 @@ public static class EscalationEndpoints
         g.MapPut("/{id:long}", async (long id, EscalationInput input, HttpContext ctx, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var e = await db.Escalations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The escalation");
-            access.RequireMaintain(e.ClientId, null);
+            access.RequireMaintain(RightKeys.Other, e.ClientId, null);
             db.ExpectVersion(ctx, e);
             var before = e.OwnerUserId;
             await ApplyAsync(e, input, e, db, access, clock.GetUtcNow(), ct);
@@ -216,9 +217,10 @@ public static class EscalationEndpoints
         g.MapPost("/{id:long}/communications", async (long id, CommunicationInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var e = await db.Escalations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The escalation");
-            access.RequireMaintain(e.ClientId, null);
+            access.RequireMaintain(RightKeys.Other, e.ClientId, null);
             var now = clock.GetUtcNow();
             var check = new Check().Text("note", input.Note, 2000, "what was said or sent", required: true)
+                .When((input.At ?? now) < e.ReceivedAt, "at", "The communication cannot be before the escalation was received.")
                 .When(input.At > now.AddMinutes(5), "at", "The time cannot be in the future.");
             var channel = await new LookupService(db).CheckAsync(check, "channel", LookupLists.EscalationChannel, input.Channel, "the channel", null, ct, required: true);
             check.ThrowIfAny();
@@ -239,9 +241,10 @@ public static class EscalationEndpoints
         g.MapPost("/{id:long}/status", async (long id, StatusInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var e = await db.Escalations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The escalation");
-            access.RequireMaintain(e.ClientId, null);
+            access.RequireMaintain(RightKeys.Other, e.ClientId, null);
             var now = clock.GetUtcNow();
             var check = new Check().When(input.Status is null, "status", "Select the new status.").Text("note", input.Note, 2000, "Note")
+                .When(now < e.ReceivedAt, "status", "The status cannot change before the escalation was received. Correct the receipt time first.")
                 .Text("resolutionSummary", input.ResolutionSummary, 2000, "the resolution");
             var to = input.Status ?? e.Status;
             if (input.Status is not null && !Moves[e.Status].Contains(to)) check.Add("status", $"An escalation that is {Label(e.Status)} cannot become {Label(to)}.");
@@ -263,8 +266,9 @@ public static class EscalationEndpoints
         g.MapPost("/{id:long}/raise-level", async (long id, NoteInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
         {
             var e = await db.Escalations.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The escalation");
-            access.RequireMaintain(e.ClientId, null);
+            access.RequireMaintain(RightKeys.Other, e.ClientId, null);
             var check = new Check().Text("note", input.Note, 2000, "the reason", required: true)
+                .When(clock.GetUtcNow() < e.ReceivedAt, "note", "The level cannot change before the escalation was received. Correct the receipt time first.")
                 .When(e.Level >= 3, "note", "The escalation is already at the highest level (3).")
                 .When(!Escalation.Active.Contains(e.Status), "note", "Only an active escalation can be raised.");
             check.ThrowIfAny();
@@ -293,16 +297,31 @@ public static class EscalationEndpoints
         var channel = await new LookupService(db).CheckAsync(check, "channel", LookupLists.EscalationChannel, i.Channel, "the channel", existing?.Channel, ct, required: true);
         if (existing is null)
         {
-            if (i.OwnerUserId is not null && i.OwnerUserId != access.Me.UserId && !access.Me.IsLead) check.Add("ownerUserId", "Only the TIO Manager can make someone else the owner. Choose yourself.");
+            if (i.OwnerUserId is not null && i.OwnerUserId != access.Me.UserId && !access.Me.HasRight(RightKeys.Other, RightKeys.Coordinate)) check.Add("ownerUserId", "Other operations coordination permission is required to assign someone else. Choose yourself.");
         }
         else access.CheckOwnerChange(check, "ownerUserId", existing.OwnerUserId, i.OwnerUserId);
         await access.CheckAssignableAsync(check, "ownerUserId", i.OwnerUserId, i.ClientId, null, "the owner", ct);
         // Links must belong to the same client (or one of its sub-clients' records belong to the sub-client itself).
         if (i.ProjectId is not null && !await db.Projects.AnyAsync(p => p.Id == i.ProjectId && p.ClientId == i.ClientId, ct)) check.Add("projectId", "Select a project of this client.");
         if (i.ContractId is not null && !await db.Contracts.AnyAsync(c => c.Id == i.ContractId && c.ClientId == i.ClientId, ct)) check.Add("contractId", "Select a contract of this client.");
-        if (i.CaseId is not null && !await db.Cases.AnyAsync(c => c.Id == i.CaseId && c.ClientId == i.ClientId, ct)) check.Add("caseId", "Select a case of this client.");
+        if (i.CaseId is not null && !await db.Cases.AnyAsync(c => c.Id == i.CaseId && c.ClientId == i.ClientId, ct)) check.Add("caseId", "Select a ticket of this client.");
+        var receivedAt = i.ReceivedAt ?? existing?.ReceivedAt ?? now;
+        if (existing is not null && receivedAt != existing.ReceivedAt)
+        {
+            // The Created event describes receipt itself; later history must keep its actual times.
+            var precedesHistory = existing.AcknowledgedAt < receivedAt || existing.ResolvedAt < receivedAt || existing.ClosedAt < receivedAt
+                || await db.EscalationEvents.AnyAsync(x => x.EscalationId == e.Id && x.Type != EscalationEventType.Created && x.At < receivedAt, ct);
+            if (precedesHistory) check.Add("receivedAt", "Receipt cannot be after an existing communication or lifecycle event.");
+        }
+        if (existing is not null && i.OwnerUserId != existing.OwnerUserId && now < receivedAt)
+            check.Add("receivedAt", "Receipt cannot be after the owner change. Correct the receipt time first.");
         check.ThrowIfAny();
-        if (existing is null) access.RequireMaintain(i.ClientId, null);
+        if (existing is not null && receivedAt != existing.ReceivedAt)
+        {
+            var receiptEvents = await db.EscalationEvents.Where(x => x.EscalationId == e.Id && x.Type == EscalationEventType.Created).ToListAsync(ct);
+            foreach (var receiptEvent in receiptEvents) receiptEvent.At = receivedAt;
+        }
+        if (existing is null) access.RequireCreateFor(RightKeys.Other, i.ClientId);
         e.ClientId = i.ClientId!.Value;
         e.ProjectId = i.ProjectId;
         e.ContractId = i.ContractId;
@@ -321,7 +340,7 @@ public static class EscalationEndpoints
         e.CounterpartPhone = e.CounterpartName is null ? null : Text.Clean(c?.Phone);
         e.CounterpartMobile = e.CounterpartName is null ? null : Text.Clean(c?.Mobile);
         e.CounterpartEmail = e.CounterpartName is null ? null : Text.Clean(c?.Email);
-        e.ReceivedAt = i.ReceivedAt ?? existing?.ReceivedAt ?? now;
+        e.ReceivedAt = receivedAt;
         e.OwnerUserId = i.OwnerUserId!.Value;
         e.ResponseDueAt = i.ResponseDueAt;
         e.ResolutionDueAt = i.ResolutionDueAt;

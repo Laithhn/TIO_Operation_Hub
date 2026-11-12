@@ -2,16 +2,6 @@ namespace TioHub.Api.Common;
 
 // Business vocabularies fixed by the BRD (Sections 5–6). Configurable lists (component roles, zones, phases…) are lookup values instead.
 
-/// <summary>Owner decision (19 Oct 2026): two roles only. The TIO Manager also administers users and settings.</summary>
-public enum Role { Engineer, Manager }
-
-/// <summary>Separate grants that no role implies (Section 3): export, technical detail, audit history.</summary>
-[Flags]
-public enum Grant { None = 0, Export = 1, TechnicalDetail = 2, Audit = 4 }
-
-/// <summary>A31: rights held by configurable roles. Viewing needs no right.</summary>
-[Flags]
-public enum Right { None = 0, Edit = 1, Manage = 2, Archive = 4, Delete = 8, Export = 16, TechnicalDetail = 32, Audit = 64, Administer = 128 }
 
 public enum ScopeKind { Client, Project, InternalTeam }
 
@@ -24,6 +14,9 @@ public enum ClientStatus { Opportunity, Active, Archived }
 public enum HostingType { Unknown, OnPrem, Cloud }
 
 public enum ProjectStatus { Planned, Active, OnHold, Completed, Archived }
+
+/// <summary>A108/A109: the status a person records for a client (a recorded judgement with a reason, never a calculated score). 2.59.0 recorded it per project.</summary>
+public enum ReportedStatus { OnTrack, AtRisk, OffTrack }
 
 public enum EnvironmentType { Production, Staging, UAT, Test, DR, Other }
 
@@ -56,6 +49,11 @@ public enum CaseType { Incident, Request, ProblemFollowUp, MaintenanceCoordinati
 public enum Priority { Critical, High, Normal, Low }
 
 public enum CaseStatus { New, Triaged, InProgress, PendingValidation, Closed, Cancelled }
+/// <summary>A77: what a configured case status does. See Modules/Work/CaseStatuses.cs.</summary>
+public enum CaseStatusBehavior { Initial, Opened, Active, WaitingForCustomer, Resolved, Closed, Reopened }
+
+/// <summary>A83: what kind of person a user is, for SLA and business rules. Sign-in is separate: see User.LoginEnabled.</summary>
+public enum UserClassification { Standard, VitronicTeamMember }
 
 public enum WaitingReason { Customer, InternalTeam, Vendor, PlannedChange }
 

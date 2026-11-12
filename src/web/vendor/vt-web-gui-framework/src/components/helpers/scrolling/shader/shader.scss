@@ -1,0 +1,41 @@
+@use "assets/styles";
+
+
+$shaderDim: styles.space(xl);
+
+:export {
+  shaderDim: $shaderDim,
+}
+
+
+.shader {
+  position: absolute;
+
+  &.top {
+    left: 0;
+    width: 100%;
+    top: 0;
+    height: #{$shaderDim}px;
+  }
+
+  &.bottom {
+    left: 0;
+    width: 100%;
+    bottom: 0;
+    height: #{$shaderDim}px;
+  }
+
+  &.left {
+    left: 0;
+    width: #{$shaderDim}px;
+    top: 0;
+    height: 100%;
+  }
+
+  &.right {
+    right: 0;
+    width: #{$shaderDim}px;
+    top: 0;
+    height: 100%;
+  }
+}

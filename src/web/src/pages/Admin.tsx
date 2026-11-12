@@ -1,31 +1,49 @@
+import { hasRight, resourceForRecord, canAudit, isAdministrator } from '../rights';
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router';
 import { del, get, post, put, qs, type Paged } from '../api';
-import { fmtDateTime, label } from '../format';
-import { useForm, useMe, useRefresh, useUrlState } from '../hooks';
+import { fmtDateTime, fromLocalInput, label } from '../format';
+import { useForm, useMe, useRight, useRefresh, useUrlState } from '../hooks';
 import { ActionDialog, computerZone, TimeZoneSelect, timeZoneOptions } from '../ui/pickers';
-import { Badge, Checkbox, DataTable, Dialog, FormError, PageHead, Pager, Panel, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
+import { configCrumbs } from '../configRegistry';
+import { Badge, Checkbox, DataTable, Dialog, ErrorBox, FormError, PageHead, Pager, Panel, Restricted, RowMenu, SelectInput, StateMessage, TextInput, useToast, DeleteAction } from '../ui/kit';
 import { Changes, RecordLink } from './common';
+import type { RightDefinition, RoleDef } from './adminRightsModel';
+import { RoleAccessMatrix } from './RoleAccessMatrix';
+import { initialRightsPrefs, RoleRightsEditor } from './RightsEditor';
+import { UserScopeEditor, type UserScope, type UserScopeSelection } from './UserScopeEditor';
+import './admin-rights.css';
 
 function AdminOnly({ children }: { children: React.ReactNode }) {
   const me = useMe().data!;
-  if (!me.isAdministrator) return <StateMessage kind="restricted">This page needs the Administration right.</StateMessage>;
+  if (!isAdministrator(me)) return <Restricted need="This page needs the Administration right." />;
   return <>{children}</>;
 }
 
-type Scope = { kind: 'Client' | 'Project' | 'InternalTeam'; clientId?: number | null; projectId?: number | null; teamId?: number | null };
-type UserRow = { id: number; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; roles: string[]; roleId?: number; roleName?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
+type Scope = UserScope;
+type UserRow = { id: number; classification?: string; loginEnabled?: boolean; accountName: string; displayName: string; email?: string; workingTimeZone: string; isActive: boolean; deactivatedAt?: string; deactivationReason?: string; lastSignInAt?: string; mappedGroups?: string; mappedGroupsAvailable: boolean; roleIds: number[]; roles: { id: number; name: string; isActive: boolean }[]; directoryRoles: { id: number; name: string; isActive: boolean; group: string }[]; allClients: boolean; allInternal: boolean; scopes: Scope[]; version: string };
+export type UserDialogTargets = Targets;
 type Targets = { clients: { id: number; code: string; name: string; archived: boolean }[]; projects: { id: number; code: string; name: string; clientId: number }[]; teams: { id: number; code: string; name: string }[] };
 
-// A31: configurable roles and rights (Administration → Roles, Rights).
-type RightDef = { key: string; label: string; description: string };
-type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; rights: string[]; userCount: number; version: string };
-const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ rights: RightDef[]; roles: RoleDef[] }>('/admin/roles') });
+const useRoles = () => useQuery({ queryKey: ['admin-roles'], queryFn: () => get<{ catalog: RightDefinition[]; roles: RoleDef[] }>('/admin/roles') });
 
 type SignInState = { userId: number; state: 'Active' | 'TemporaryPassword' | 'Locked'; lockedUntil?: string; changedAt: string };
 
+/** A105: what a user sees, in a few words ("All clients", "3 clients · 1 team"). */
+function scopeSummary(u: UserRow): string {
+  if (u.allClients && u.allInternal) return 'All clients and teams';
+  const n = (kind: string) => u.scopes.filter(x => x.kind === kind).length;
+  const parts = [u.allClients ? 'All clients' : n('Client') ? `${n('Client')} client${n('Client') > 1 ? 's' : ''}` : '',
+    n('Project') ? `${n('Project')} project${n('Project') > 1 ? 's' : ''}` : '',
+    u.allInternal ? 'All teams' : n('InternalTeam') ? `${n('InternalTeam')} team${n('InternalTeam') > 1 ? 's' : ''}` : ''].filter(Boolean);
+  return parts.length ? parts.join(' · ') : 'No data scope';
+}
+
 export function AdminUsers() {
+  const canCreate = useRight('AdminUsers', 'Create');
+  const canMaintain = useRight('AdminUsers', 'Maintain');
+  const canDelete = useRight('AdminUsers', 'Delete');
   const me = useMe().data!;
   const forms = me.app.authMode.toLowerCase() === 'forms';
   const q = useQuery({ queryKey: ['admin-users'], queryFn: () => get<UserRow[]>('/admin/users') });
@@ -35,33 +53,81 @@ export function AdminUsers() {
   const targets = useQuery({ queryKey: ['scope-targets'], queryFn: () => get<Targets>('/admin/scope-targets') });
   const [edit, setEdit] = useState<UserRow | 'new' | null>(null);
   const [deact, setDeact] = useState<UserRow | null>(null);
+  const [remove, setRemove] = useState<UserRow | null>(null);
+  const [login, setLogin] = useState<UserRow | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Users and access" sub="Each user holds one role; what a role may do is set on the Rights page."
-        actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>+ New User</button>} />
-      <DataTable<UserRow> rowKey={u => u.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Name', render: u => <button className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button> }, { key: 'a', header: 'Account', render: u => <span className="mono">{u.accountName}</span> },
-        { key: 'r', header: 'Role', render: u => u.roleName ? <span className="chip">{u.roleName}</span> : <Badge tone="warn">No role — cannot sign in</Badge> },
-        ...(forms ? [] : [{ key: 'm', header: 'Mapped groups', render: (u: UserRow) => u.mappedGroups }]),
-        { key: 'st', header: 'Status', render: u => u.isActive ? <Badge tone="good">Active</Badge> : <Badge tone="bad">Deactivated</Badge> },
-        ...(forms ? [{ key: 'pw', header: 'Password', render: (u: UserRow) => {
-          const st = stateOf(u.id);
-          return !st ? <Badge tone="warn">Not set</Badge> : st.state === 'Locked' ? <Badge tone="bad">Locked until {fmtDateTime(st.lockedUntil)}</Badge>
-            : st.state === 'TemporaryPassword' ? <Badge tone="info">Temporary</Badge> : <Badge tone="good">Set</Badge>;
-        } }] : []),
-        { key: 'l', header: 'Last sign-in', render: u => fmtDateTime(u.lastSignInAt) },
-        { key: 'x', header: '', render: u => <span className="nowrap">
-          {forms && u.id !== me.id && u.isActive && <button className="linkbtn" style={{ marginRight: 10 }} onClick={() => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) })}>{stateOf(u.id) ? 'Reset password' : 'Set password'}</button>}
-          <button className="linkbtn" onClick={() => setDeact(u)}>{u.isActive ? 'Deactivate' : 'Reactivate'}</button>
-        </span> }
+      <PageHead title="Users" sub="Create and edit accounts, assign roles and data scope. Rights come from roles; set them on the Rights page."
+        actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New User</button>} />
+      <DataTable<UserRow> rowKey={u => u.id} rows={q.data} loading={q.isLoading} error={q.error} columnsKey="admin-users"
+        details={u => <dl className="row-details-list">
+          <div><dt>Account</dt><dd className="mono wrap-anywhere">{u.accountName}</dd></div>
+          {u.email && <div><dt>Email</dt><dd>{u.email}</dd></div>}
+          <div><dt>Mapped groups</dt><dd>{u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : 'Unavailable — refresh required'}</dd></div>
+          {u.deactivatedAt && <div><dt>Deactivated</dt><dd>{fmtDateTime(u.deactivatedAt)}{u.deactivationReason ? ` · ${u.deactivationReason}` : ''}</dd></div>}
+        </dl>}
+        columns={[
+        // A105: who the person is, their role, whether they can sign in and what they see come first. Technical identifiers sit under
+        // the name (shortened) and in the expanded row; account actions are in the row menu.
+        { key: 'n', header: 'Name', render: u => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(u)}>{u.displayName}</button>
+          <div className="hint mono ellipsis" title={u.accountName}>{u.accountName}</div></> },
+        { key: 'r', header: 'Role', render: u => u.roles.length + u.directoryRoles.length === 0 ? <Badge tone="warn">No role</Badge> : <>
+          {u.roles.map(r => <span key={r.id} className="chip">{r.name}{!r.isActive && ' (inactive)'}</span>)}
+          {u.directoryRoles.map(r => <span key={`${r.group}/${r.id}`} className="chip" title={`Inherited from the directory group ${r.group}`}>{r.name} · from directory</span>)}</> },
+        { key: 'cl', header: 'Sign-in', render: u => {
+          const st = forms ? stateOf(u.id) : undefined;
+          if (!u.isActive) return <Badge tone="bad">Deactivated</Badge>;
+          if (u.loginEnabled === false) return <><Badge tone="warn">No sign-in</Badge>{u.classification === 'VitronicTeamMember' && <div className="hint">Vitronic team member</div>}</>;
+          if (forms && !st) return <Badge tone="warn">Password not set</Badge>;
+          if (st?.state === 'Locked') return <Badge tone="bad">Locked until {fmtDateTime(st.lockedUntil)}</Badge>;
+          if (st?.state === 'TemporaryPassword') return <Badge tone="info">Temporary password</Badge>;
+          return <Badge tone="good">Can sign in</Badge>;
+        } },
+        { key: 'sc', header: 'Scope', render: u => <span className="nowrap">{scopeSummary(u)}</span> },
+        { key: 'l', header: 'Last sign-in', render: u => u.lastSignInAt ? <span className="nowrap">{fmtDateTime(u.lastSignInAt)}</span> : <span className="muted">Never</span> },
+        { key: 'a', header: 'Account', defaultHidden: true, render: u => <span className="mono">{u.accountName}</span> },
+        { key: 'm', header: 'Mapped groups', defaultHidden: true, render: (u: UserRow) => u.mappedGroupsAvailable ? (u.mappedGroups || 'None') : <span title="An authenticated sign-in must refresh the directory group snapshot.">Unavailable — refresh required</span> },
+        { key: 'x', header: '', className: 'row-actions', render: u => <RowMenu what={u.displayName} items={[
+          { label: 'Edit user', hidden: !canMaintain, onClick: () => setEdit(u) },
+          { label: u.loginEnabled ? 'Remove sign-in' : 'Grant sign-in', hidden: !(canMaintain && u.classification === 'VitronicTeamMember' && u.id !== me.id), onClick: () => setLogin(u) },
+          { label: 'Password options', hidden: !(canMaintain && forms && u.id !== me.id && u.isActive && u.loginEnabled !== false), onClick: () => setPw({ id: u.id, name: u.displayName, account: u.accountName, first: !stateOf(u.id) }) },
+          { label: u.isActive ? 'Deactivate' : 'Reactivate', hidden: !canMaintain, danger: u.isActive, onClick: () => setDeact(u) },
+          { label: 'Delete', ariaLabel: `Delete ${u.displayName}`, hidden: !(canDelete && u.id !== me.id), danger: true, onClick: () => setRemove(u) }
+        ]} /> }
       ]} />
       {edit && targets.data && <UserDialog user={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)}
         onCreated={forms ? (u => setPw({ ...u, first: true })) : undefined} />}
       {pw && <PasswordDialog user={pw} onClose={() => setPw(null)} />}
+      {login && <ActionDialog title={`${login.loginEnabled ? 'Remove sign-in of' : 'Grant sign-in to'} ${login.displayName}`} danger={login.loginEnabled} path={`/admin/users/${login.id}/login-access`} version={login.version} submitLabel={login.loginEnabled ? 'Remove sign-in' : 'Grant sign-in'} onClose={() => setLogin(null)}
+        intro={login.loginEnabled ? 'Their sessions end at once. They stay a Vitronic team member, and SLA records do not change.' : 'They stay a Vitronic team member, and SLA records do not change. Rights still come from their roles.'}
+        fields={[...(login.loginEnabled ? [] : [{ name: 'accountName', label: 'Sign-in account', hint: 'The organization account or sign-in name they will use. Leave empty to keep the current one.' }]), { name: 'reason', label: 'Reason', kind: 'textarea' as const, required: true }]}
+        transform={v => ({ enabled: !login.loginEnabled, reason: v.reason, accountName: v.accountName || null })} />}
+      {remove && <DeleteUserDialog user={remove} onClose={() => setRemove(null)} />}
       {deact && <ActionDialog title={deact.isActive ? `Deactivate ${deact.displayName}` : `Reactivate ${deact.displayName}`} danger={deact.isActive} path={`/admin/users/${deact.id}/${deact.isActive ? 'deactivate' : 'reactivate'}`} version={deact.version}
         intro={deact.isActive ? 'History and identity are kept. Their active records appear in the reassignment queue; nothing is reassigned automatically. Active sessions lose access immediately.' : undefined}
         fields={[{ name: 'reason', label: 'Reason', kind: 'textarea', required: true }]} submitLabel={deact.isActive ? 'Deactivate' : 'Reactivate'} onClose={() => setDeact(null)} />}
     </AdminOnly>
+  );
+}
+
+function DeleteUserDialog({ user, onClose }: { user: UserRow; onClose: () => void }) {
+  const f = useForm({ reason: '' });
+  const toast = useToast();
+  const refresh = useRefresh();
+  const remove = async () => {
+    const ok = await f.submit(async v => {
+      await del(`/admin/users/${user.id}`, user.version, { reason: v.reason });
+      return true;
+    });
+    if (ok) { toast('User deleted.'); refresh(); onClose(); }
+  };
+  return (
+    <Dialog title={`Delete ${user.displayName}`} onClose={onClose}>
+      <p>The account and its sign-in details will be deleted. The account cannot be deleted while retained records or audit history refer to it; deactivate it to preserve that history.</p>
+      <FormError error={f.error} fields={['reason']} />
+      <TextInput label="Reason" required multiline value={f.values.reason} onChange={v => f.set('reason', v)} error={f.fieldError('reason')} maxLength={500} />
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-danger" disabled={f.busy || !f.values.reason.trim()} onClick={remove}>Delete user</button></div>
+    </Dialog>
   );
 }
 
@@ -70,6 +136,8 @@ function PasswordDialog({ user, onClose }: { user: { id: number; name: string; a
   const f = useForm({ temporaryPassword: '' });
   const toast = useToast();
   const refresh = useRefresh();
+  const availability = useQuery({ queryKey: ['password-reset-availability', user.id], queryFn: () => get<{ available: boolean; reason?: string | null }>(`/admin/users/${user.id}/password-reset-availability`), retry: false, refetchOnMount: 'always' });
+  const available = !availability.isFetching && !availability.error && availability.data?.available === true;
   const generate = () => {
     // Random blocks from a CSPRNG: readable to pass on, long enough for the policy.
     const a = new Uint32Array(4);
@@ -82,18 +150,20 @@ function PasswordDialog({ user, onClose }: { user: { id: number; name: string; a
   };
   return (
     <Dialog title={`${user.first ? 'Set' : 'Reset'} password for ${user.name}`} onClose={onClose}>
-      <p className="hint" style={{ marginTop: 0 }}>Account <span className="mono">{user.account}</span>. The person must choose their own password at the next sign-in. {user.first ? '' : 'Their current sessions end and a lock is cleared.'}</p>
-      <FormError error={f.error} />
-      <div className="form-grid">
-        <TextInput label="Temporary password" required wide value={f.values.temporaryPassword} onChange={v => f.set('temporaryPassword', v)} error={f.fieldError('temporaryPassword')}
-          hint="At least 12 characters, not containing the account name. It is shown only here; the hub stores only a hash." />
-      </div>
-      <div className="form-actions"><button className="btn" onClick={generate}>Generate</button><span style={{ flex: 1 }} /><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy || !f.values.temporaryPassword} onClick={save}>Save password</button></div>
+      {availability.isFetching ? <StateMessage kind="loading" /> : availability.error ? <StateMessage kind="error">Password options could not be checked. Close this dialog and try again.</StateMessage> : !availability.data?.available ? <StateMessage kind="restricted">{availability.data?.reason || 'Password reset is unavailable for this account.'}</StateMessage> : <>
+        <p className="hint" style={{ marginTop: 0 }}>Account <span className="mono">{user.account}</span>. The person must choose their own password at the next sign-in. {user.first ? '' : 'Their current sessions end and a lock is cleared.'}</p>
+        <FormError error={f.error} />
+        <div className="form-grid">
+          <TextInput label="Temporary password" required wide value={f.values.temporaryPassword} onChange={v => f.set('temporaryPassword', v)} error={f.fieldError('temporaryPassword')}
+            hint="At least 12 characters, not containing the account name. It is shown only here; the hub stores only a hash." />
+        </div>
+      </>}
+      <div className="form-actions">{available && <button className="btn" onClick={generate}>Generate</button>}<span style={{ flex: 1 }} /><button className="btn" onClick={onClose}>Cancel</button>{available && <button className="btn btn-primary" disabled={f.busy || !f.values.temporaryPassword} onClick={save}>Save password</button>}</div>
     </Dialog>
   );
 }
 
-function UserDialog({ user, onClose, onCreated }: { user: UserRow | null; targets?: Targets; onClose: () => void; onCreated?: (u: { id: number; name: string; account: string }) => void }) {
+export function UserDialog({ user, targets, onClose, onCreated, initialName, createPath = '/admin/users' }: { user: UserRow | null; targets: Targets; onClose: () => void; onCreated?: (u: { id: number; name: string; account: string }) => void; initialName?: string; createPath?: string }) {
   const me = useMe().data!;
   const forms = me.app.authMode.toLowerCase() === 'forms';
   // A44: a new user starts in the configured default time zone, or this computer's when the default is still the shipped UTC.
@@ -101,87 +171,160 @@ function UserDialog({ user, onClose, onCreated }: { user: UserRow | null; target
   const configured = settings.data?.find(s => s.key === 'DefaultTimeZone')?.value;
   const defaultZone = configured && configured !== 'UTC' ? configured : computerZone();
   const f = useForm({
-    accountName: user?.accountName ?? '', displayName: user?.displayName ?? '', email: user?.email ?? '', workingTimeZone: user?.workingTimeZone ?? defaultZone,
-    roleId: user?.roleId ? String(user.roleId) : ''
+    accountName: user?.accountName ?? '', displayName: user?.displayName ?? initialName ?? '', email: user?.email ?? '', workingTimeZone: user?.workingTimeZone ?? defaultZone,
+    roleIds: user?.roleIds?.map(String) ?? []
   });
+  const [scope, setScope] = useState<UserScopeSelection>(() => ({ allClients: user?.allClients ?? false, allInternal: user?.allInternal ?? false, scopes: user?.scopes ?? [] }));
   const roles = useRoles();
+  const access = useQuery({ queryKey: ['admin-user-access', user?.id], queryFn: () => get<{
+    effectiveRights: { key: string; label: string; module: string; riskLevel: string; sources: string[] }[];
+    restrictedRights: { key: string; label: string; module: string; restrictionReason?: string }[];
+    scopes: { allClients: boolean; clientIds: number[]; projectIds: number[]; allInternal: boolean; teamIds: number[] } | null;
+  }>(`/admin/users/${user!.id}/access`), enabled: !!user });
   const toast = useToast();
   const refresh = useRefresh();
   const self = user?.id === me.id;
   const save = async () => {
     const v = f.values;
-    // Every role sees all clients and teams; what it may do comes from its rights.
-    const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleId: v.roleId ? Number(v.roleId) : null, roles: [],
-      allClients: true, allInternal: true, export: true, technicalDetail: true, audit: true, scopes: [] };
-    const res = await f.submit(() => (user ? put(`/admin/users/${user.id}`, body, user.version).then(() => ({ id: user.id })) : post<{ id: number }>('/admin/users', body)));
+    const body = { accountName: v.accountName, displayName: v.displayName, email: v.email, workingTimeZone: v.workingTimeZone, roleIds: v.roleIds.map(Number), ...scope };
+    const res = await f.submit(() => (user ? put(`/admin/users/${user.id}`, body, user.version).then(() => ({ id: user.id })) : post<{ id: number }>(createPath, body)));
     if (res) {
       toast('User saved; changes apply to active sessions at once.'); refresh(); onClose();
       if (!user && onCreated && res.id) onCreated({ id: res.id, name: v.displayName, account: v.accountName });
     }
   };
   return (
-    <Dialog title={user ? `User ${user.displayName}` : 'New user'} onClose={onClose}>
-      {self && <div className="notice warn">You cannot change your own role.</div>}
+    <Dialog title={user ? `User ${user.displayName}` : 'New user'} onClose={onClose} wide>
+      {self && <div className="notice warn">You cannot change your own roles or data scope.</div>}
       <FormError error={f.error} />
+      <h3 className="ud-heading">Account</h3>
       <div className="form-grid">
-        <TextInput label={forms ? 'Account name (used to sign in)' : 'Organization account (DOMAIN\name)'} required value={f.values.accountName} onChange={v => f.set('accountName', v)} disabled={!!user} error={f.fieldError('accountName')} />
+        <TextInput label={forms ? 'Account name (used to sign in)' : 'Organization account (DOMAIN\\name)'} required value={f.values.accountName} onChange={v => f.set('accountName', v)} disabled={!!user} error={f.fieldError('accountName')} />
         <TextInput label="Display name" required value={f.values.displayName} onChange={v => f.set('displayName', v)} error={f.fieldError('displayName')} />
         <TextInput label="Email" value={f.values.email} onChange={v => f.set('email', v)} />
         <TimeZoneSelect label="Working time zone" required value={f.values.workingTimeZone} onChange={v => f.set('workingTimeZone', v)} error={f.fieldError('workingTimeZone')} />
-        <SelectInput label="Role" required value={f.values.roleId} onChange={v => f.set('roleId', v)} disabled={self} error={f.fieldError('roleId') ?? f.fieldError('roles')}
-          options={(roles.data?.roles ?? []).map(r => ({ value: String(r.id), label: r.name }))} empty="— Select —"
-          hint={roles.data?.roles.find(r => String(r.id) === f.values.roleId)?.description ?? 'What each role may do is set under Administration → Rights.'} />
+        <fieldset className="field wide ud-group" disabled={self}>
+          <legend>Roles</legend>
+          <div className="hint">Rights from active roles combine. Data scope is set separately below and decides which records those rights reach.</div>
+          <div className="ud-roles">{(roles.data?.roles ?? []).map(r => <label key={r.id} className={`ud-role${f.values.roleIds.includes(String(r.id)) ? ' on' : ''}`}>
+            <input type="checkbox" checked={f.values.roleIds.includes(String(r.id))}
+              onChange={e => f.set('roleIds', e.target.checked ? [...f.values.roleIds, String(r.id)] : f.values.roleIds.filter(id => id !== String(r.id)))} />
+            <span><b>{r.name}</b>{r.description ? <small className="hint">{r.description}</small> : null}</span>
+          </label>)}</div>
+          {f.fieldError('roleIds') && <div className="field-error">{f.fieldError('roleIds')}</div>}
+          {(user?.directoryRoles.length ?? 0) > 0 && <div className="hint">From directory groups, not editable here: {user!.directoryRoles.map(r => `${r.name} (${r.group})`).join(', ')}.</div>}
+        </fieldset>
       </div>
+      <UserScopeEditor value={scope} targets={targets} onChange={setScope} disabled={self} />
+      {f.fieldError('scopes') && <div className="field-error">{f.fieldError('scopes')}</div>}
+      {user && <section className="form-section">
+        <h3>Effective access</h3>
+        {access.isLoading ? <StateMessage kind="loading" /> : access.error ? <ErrorBox error={access.error} /> : <>
+          <p className="hint">This shows saved access; unsaved role changes are not included. An operation can still depend on data scope, ownership and workflow. For more detail, see Access review.</p>
+          <dl className="ud-summary">
+            <div><dt>Effective rights</dt><dd>{access.data?.effectiveRights.length ?? 0}</dd></div>
+            {access.data?.scopes && <><div><dt>Clients</dt><dd>{access.data.scopes.allClients ? 'All' : access.data.scopes.clientIds.length}</dd></div>
+              <div><dt>Projects</dt><dd>{access.data.scopes.allClients ? 'All' : access.data.scopes.projectIds.length}</dd></div>
+              <div><dt>Internal teams</dt><dd>{access.data.scopes.allInternal ? 'All' : access.data.scopes.teamIds.length}</dd></div></>}
+          </dl>
+          <p className="sr-only">{access.data?.effectiveRights.length ?? 0} effective rights from roles and individual exceptions.</p>
+          <details><summary>Show effective rights</summary><ul>{access.data?.effectiveRights.map(p => <li key={p.key}>
+            <strong>{p.label}</strong> <code>{p.key}</code> <span className="hint">from {p.sources.join(', ') || 'no active role source'}</span>
+          </li>)}</ul></details>
+          <details><summary>Show rights not held</summary><ul>{access.data?.restrictedRights.map(p => <li key={p.key}>{p.label} <code>{p.key}</code>{p.restrictionReason && <span className="hint"> {p.restrictionReason}</span>}</li>)}</ul></details>
+        </>}
+      </section>}
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy || self} onClick={save}>Save user</button></div>
     </Dialog>
   );
 }
 
-type Mapping = { id: number; groupName: string; role?: string; allClients: boolean; allInternal: boolean; grants: string[]; scopes: Scope[]; version: string };
+type Mapping = { id: number; groupName: string; roleIds: number[]; roles: string[]; allClients: boolean; allInternal: boolean; scopes: Scope[]; version: string };
 
 export function AdminGroups() {
+  const canCreate = useRight('AdminGroups', 'Create');
+  const canMaintain = useRight('AdminGroups', 'Maintain');
   const q = useQuery({ queryKey: ['mappings'], queryFn: () => get<Mapping[]>('/admin/group-mappings') });
-  const [open, setOpen] = useState(false);
+  const targets = useQuery({ queryKey: ['scope-targets'], queryFn: () => get<Targets>('/admin/scope-targets') });
+  const [edit, setEdit] = useState<Mapping | 'new' | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Organization group mappings" sub="Members of a mapped group are admitted at sign-in with these roles, scopes and grants." actions={<button className="btn btn-primary" onClick={() => setOpen(true)}>+ New Mapping</button>} />
+      <PageHead title="Directory group mappings" sub="Members of a mapped group are admitted at sign-in and inherit these roles and this data scope." actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New mapping</button>} />
       <DataTable<Mapping> rowKey={m => m.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'g', header: 'Group', render: m => <span className="mono">{m.groupName}</span> }, { key: 'r', header: 'Role', render: m => m.role ? label(m.role) : '—' },
-        { key: 's', header: 'Scope', render: m => [m.allClients && 'All clients', m.allInternal && 'All internal', m.scopes.length && `${m.scopes.length} scope(s)`].filter(Boolean).join(', ') || 'None' },
-        { key: 'gr', header: 'Grants', render: m => m.grants.join(', ') }
+        { key: 'g', header: 'Group', render: m => canMaintain ? <button className="linkbtn mono" onClick={() => setEdit(m)}>{m.groupName}</button> : <span className="mono">{m.groupName}</span> },
+        { key: 'r', header: 'Roles', render: m => m.roles.length ? m.roles.map(r => <span key={r} className="chip">{r}</span>) : <span className="muted">None</span> },
+        { key: 's', header: 'Scope', render: m => [m.allClients && 'All clients', m.allInternal && 'All internal', m.scopes.length && `${m.scopes.length} scope(s)`].filter(Boolean).join(', ') || 'None' }
       ]} />
-      {open && <ActionDialog title="New group mapping" path="/admin/group-mappings" onClose={() => setOpen(false)} submitLabel="Create"
-        fields={[{ name: 'groupName', label: 'Group (DOMAIN\\Group)', required: true }, { name: 'role', label: 'Role', kind: 'select', options: [{ value: 'Engineer', label: 'Operation Engineer (built-in)' }, { value: 'Manager', label: 'TIO Manager (built-in)' }] },
-          { name: 'allClients', label: 'All clients (yes/no)', kind: 'select', options: [{ value: 'yes', label: 'Yes' }] }, { name: 'export', label: 'Export grant', kind: 'select', options: [{ value: 'yes', label: 'Yes' }] }]}
-        transform={v => ({ groupName: v.groupName, role: v.role || null, allClients: v.allClients === 'yes', allInternal: false, export: v.export === 'yes', technicalDetail: false, audit: false, scopes: [] })} />}
+      {edit && targets.data && <MappingDialog mapping={edit === 'new' ? null : edit} targets={targets.data} onClose={() => setEdit(null)} />}
     </AdminOnly>
   );
 }
 
+function MappingDialog({ mapping, targets, onClose }: { mapping: Mapping | null; targets: Targets; onClose: () => void }) {
+  const f = useForm({ groupName: mapping?.groupName ?? '', roleIds: mapping?.roleIds.map(String) ?? [] });
+  const [scope, setScope] = useState<UserScopeSelection>(() => ({ allClients: mapping?.allClients ?? false, allInternal: mapping?.allInternal ?? false, scopes: mapping?.scopes ?? [] }));
+  const roles = useRoles();
+  const toast = useToast();
+  const refresh = useRefresh();
+  const save = async () => {
+    const body = { groupName: f.values.groupName, roleIds: f.values.roleIds.map(Number), ...scope };
+    const ok = await f.submit(async () => { if (mapping) await put(`/admin/group-mappings/${mapping.id}`, body, mapping.version); else await post('/admin/group-mappings', body); return true; });
+    if (ok) { toast('Mapping saved; it applies to members at their next request.'); refresh(); onClose(); }
+  };
+  return <Dialog title={mapping ? `Mapping ${mapping.groupName}` : 'New group mapping'} onClose={onClose}>
+    <FormError error={f.error} fields={['groupName', 'roleIds', 'scopes', 'allClients', 'allInternal']} />
+    <div className="form-grid">
+      <TextInput label="Group (DOMAIN\Group)" required value={f.values.groupName} onChange={v => f.set('groupName', v)} error={f.fieldError('groupName')} />
+      <fieldset className="field wide">
+        <legend>Roles</legend>
+        <div className="hint">Members inherit these roles in addition to any they hold directly.</div>
+        {(roles.data?.roles ?? []).filter(r => r.isActive || f.values.roleIds.includes(String(r.id))).map(r => <label key={r.id} className="check-row">
+          <input type="checkbox" checked={f.values.roleIds.includes(String(r.id))}
+            onChange={e => f.set('roleIds', e.target.checked ? [...f.values.roleIds, String(r.id)] : f.values.roleIds.filter(id => id !== String(r.id)))} />
+          <span>{r.name}{!r.isActive && <> <Badge tone="warn">Inactive</Badge></>}</span>
+        </label>)}
+        {f.fieldError('roleIds') && <div className="field-error">{f.fieldError('roleIds')}</div>}
+      </fieldset>
+    </div>
+    <UserScopeEditor value={scope} targets={targets} onChange={setScope} />
+    {f.fieldError('scopes') && <div className="field-error">{f.fieldError('scopes')}</div>}
+    <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Save mapping</button></div>
+  </Dialog>;
+}
+
 type LookupRow = { id: number; listName: string; code: string; label: string; description?: string; sortOrder: number; isRetired: boolean; version: string };
 
-/** A31: Administration → Roles &amp; rights. Rows are rights, columns are roles. */
-/** A40 (owner request, 20 Oct 2026): roles and rights on separate pages. Roles: who exists and who holds them. */
+/** Roles: what each role is called, whether it is active, who holds it and how roles compare. What a role may do is set on the Rights page. */
 export function AdminRoles() {
+  const canCreate = useRight('AdminRoles', 'Create');
+  const canMaintain = useRight('AdminRoles', 'Maintain');
+  const canDelete = useRight('AdminRoles', 'Delete');
+  const canSeeUsers = useRight('AdminUsers', 'View');
   const q = useRoles();
   const [edit, setEdit] = useState<RoleDef | 'new' | null>(null);
+  const [clone, setClone] = useState<RoleDef | null>(null);
   const [remove, setRemove] = useState<RoleDef | null>(null);
+  const [holdersOf, setHoldersOf] = useState<RoleDef | null>(null);
   const toast = useToast();
   const refresh = useRefresh();
   const d = q.data;
   return (
     <AdminOnly>
-      <PageHead title="Roles" sub="Each user holds one role. Add roles for the way your team works; what each role may do is set on the Rights page."
-        actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
+      <PageHead title="Roles" sub="A person can hold several roles and their rights combine. Set what each role may do on the Rights page."
+        actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button disabled={!canCreate} className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
       <DataTable<RoleDef> caption="Roles" rowKey={r => r.id} rows={d?.roles} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Role', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>}</> },
-        { key: 'd', header: 'Description', render: r => r.description ?? <span className="muted">—</span> },
-        { key: 'u', header: 'Users', className: 'num', render: r => r.userCount },
-        { key: 'r', header: 'Rights', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">View only</span>
-          : r.rights.map(k => d?.rights.find(x => x.key === k)?.label ?? k).join(', ') },
-        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button className="linkbtn" onClick={() => setEdit(r)}>Edit</button>{!r.key && <> <button className="linkbtn danger-link" onClick={() => setRemove(r)}>Delete</button></>}</> }
+        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>} {r.isLocked && <Badge>Protected</Badge>} {!r.isActive && <Badge tone="warn">Inactive</Badge>}</> },
+        { key: 'd', header: 'Description', maxWidth: '18rem', render: r => r.description ?? <span className="muted">—</span> },
+        { key: 'u', header: 'Active users', className: 'num', render: r => canSeeUsers ? <button className="linkbtn rights-holders" onClick={() => setHoldersOf(r)} aria-label={`${r.userCount} active users hold ${r.name}: show who`}>{r.userCount}</button> : r.userCount },
+        // GUI-11: a count with the full list on request, so a long list of rights never widens the table past its actions.
+        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">No rights</span>
+          : <RightsSummary role={r.name} items={r.rights.map(k => { const p = d?.catalog.find(x => x.key === k); return p ? `${p.featureLabel}: ${p.label}` : k; })} /> },
+        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button> {canMaintain && <Link className="linkbtn" to={`/admin/rights?role=${r.id}`} aria-label={`Rights of ${r.name}`}>Rights</Link>} {canDelete && !r.key && <RowMenu what={`role ${r.name}`} items={[{ label: 'Delete', danger: true, ariaLabel: `Delete role ${r.name}`, onClick: () => setRemove(r) }]} />}</> }
       ]} />
+      {d && <RoleAccessMatrix roles={d.roles} catalog={d.catalog} editable={canMaintain} />}
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
+      {clone && <RoleCloneDialog role={clone} onClose={() => setClone(null)} />}
+      {holdersOf && <RoleHoldersDialog role={holdersOf} onClose={() => setHoldersOf(null)} />}
       {remove && <Dialog title={`Delete role ${remove.name}`} onClose={() => setRemove(null)}>
         <p>{remove.userCount > 0 ? `${remove.userCount} user(s) hold this role. Give them another role first.` : 'Nobody holds this role. Delete it?'}</p>
         <div className="form-actions"><button className="btn" onClick={() => setRemove(null)}>Cancel</button>
@@ -193,70 +336,82 @@ export function AdminRoles() {
   );
 }
 
-/** A40: rights per role as a matrix; a tick saves at once. */
-export function AdminRights() {
-  const q = useRoles();
-  const toast = useToast();
-  const refresh = useRefresh();
-  const [busy, setBusy] = useState<string | null>(null);
-  // The tick shows at once; it is undone if the save fails.
-  const [pending, setPending] = useState<Record<string, boolean>>({});
-  const d = q.data;
-  const toggle = async (r: RoleDef, key: string, on: boolean) => {
-    setBusy(`${r.id}-${key}`);
-    setPending(p => ({ ...p, [`${r.id}-${key}`]: on }));
-    try {
-      await put(`/admin/roles/${r.id}`, { name: r.name, description: r.description ?? null, rights: on ? [...r.rights, key] : r.rights.filter(k => k !== key) }, r.version);
-      await refresh();
-      toast(`${r.name}: ${d?.rights.find(x => x.key === key)?.label ?? key} ${on ? 'granted' : 'removed'}.`);
-    } catch (e) { toast((e as Error).message); await refresh(); }
-    finally { setBusy(null); setPending(p => { const n = { ...p }; delete n[`${r.id}-${key}`]; return n; }); }
-  };
-  return (
-    <AdminOnly>
-      <PageHead title="Rights" sub="Every role can view clients and records. Tick what each role may do; each change is saved and applies to signed-in users at once. The TIO Manager role always keeps every right."
-        actions={<Link className="btn" to="/admin/roles">Manage roles</Link>} />
-      {!d ? <StateMessage kind="loading" /> : (
-        <Panel pad={false}>
-          <div className="table-wrap">
-            <table className="grid rights-matrix">
-              <caption className="sr-only">Rights per role</caption>
-              <thead><tr><th>Right</th>{d.roles.map(r => <th key={r.id} className="c">{r.name}<div className="hint">{r.userCount} user(s){r.key ? ' · built-in' : ''}</div></th>)}</tr></thead>
-              <tbody>
-                <tr><td>View clients &amp; records<div className="hint">Every role</div></td>{d.roles.map(r => <td key={r.id} className="c" aria-label={`${r.name}: yes`}>✔</td>)}</tr>
-                {d.rights.map(x => (
-                  <tr key={x.key}><td>{x.label}<div className="hint">{x.description}</div></td>
-                    {d.roles.map(r => {
-                      const on = r.isLocked || (pending[`${r.id}-${x.key}`] ?? r.rights.includes(x.key));
-                      return <td key={r.id} className="c">
-                        <input type="checkbox" className="right-box" checked={on} disabled={r.isLocked || busy !== null} onChange={e => toggle(r, x.key, e.target.checked)}
-                          aria-label={`${x.label} for ${r.name}`} title={r.isLocked ? 'The TIO Manager role always keeps every right' : undefined} />
-                        {busy === `${r.id}-${x.key}` && <span className="spin" />}
-                      </td>;
-                    })}</tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Panel>
-      )}
-    </AdminOnly>
-  );
+function RoleHoldersDialog({ role, onClose }: { role: RoleDef; onClose: () => void }) {
+  const q = useQuery({ queryKey: ['role-holders', role.id], queryFn: () => get<{ id: number; displayName: string; accountName: string; isActive: boolean }[]>(`/admin/roles/${role.id}/holders`) });
+  return <Dialog title={`Who holds ${role.name}`} onClose={onClose}>
+    <p className="hint">People assigned this role directly. Members of mapped directory groups can inherit it too; see Directory group mappings.</p>
+    {q.isLoading ? <StateMessage kind="loading" /> : q.error ? <ErrorBox error={q.error} /> : !q.data?.length ? <StateMessage kind="none">Nobody holds this role directly.</StateMessage>
+      : <ul className="plain">{q.data.map(u => <li key={u.id}>{u.displayName} <span className="mono">{u.accountName}</span>{!u.isActive && <> <Badge tone="warn">Deactivated</Badge></>}</li>)}</ul>}
+    <div className="form-actions"><button className="btn" onClick={onClose}>Close</button></div>
+  </Dialog>;
 }
 
-function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => void }) {
-  const f = useForm({ name: role?.name ?? '', description: role?.description ?? '' });
+function RoleCloneDialog({ role, onClose }: { role: RoleDef; onClose: () => void }) {
+  const f = useForm({ name: `${role.name} copy`, description: role.description ?? '' });
   const toast = useToast();
   const refresh = useRefresh();
   const nav = useNavigate();
   const save = async () => {
-    // A new role starts with Edit and Export; its rights are then set on the Rights page.
-    const ok = await f.submit(async v => {
-      const body = { ...v, rights: role?.rights ?? ['Edit', 'Export'] };
-      if (role) await put(`/admin/roles/${role.id}`, body, role.version); else await post('/admin/roles', body);
-      return true;
+    const result = await f.submit(v => post<{ id: number }>(`/admin/roles/${role.id}/clone`, { name: v.name, description: v.description }));
+    if (result) { toast('Role cloned. Review its rights before assigning it to users.'); refresh(); onClose(); nav(`/admin/rights?role=${result.id}`); }
+  };
+  return <Dialog title={`Clone ${role.name}`} onClose={onClose}>
+    <FormError error={f.error} fields={['name', 'description', 'rights']} />
+    <div className="form-grid">
+      <TextInput label="New role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} />
+      <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} />
+    </div>
+    <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Clone role</button></div>
+  </Dialog>;
+}
+
+/** The rights of a role as a count that opens the full list (keyboard: the summary is a button). Filter and export read the full list. */
+function RightsSummary({ role, items }: { role: string; items: string[] }) {
+  return (
+    <details className="rights-summary" data-text={items.join(', ')}>
+      <summary aria-label={`${items.length} right${items.length === 1 ? '' : 's'} of ${role}: show the list`}>{items.length} right{items.length === 1 ? '' : 's'}</summary>
+      <ul>{items.map(i => <li key={i}>{i}</li>)}</ul>
+    </details>
+  );
+}
+
+/** Rights: the catalog, and which rights a role holds. Code owns the catalog; this page only assigns. Edits are staged until reviewed and saved. */
+export function AdminRights() {
+  const q = useRoles();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [selected, setSelected] = useState(searchParams.get('role') ?? '');
+  const [dirty, setDirty] = useState(false);
+  // Held here so that moving between roles keeps the search and the comparison in use.
+  const [prefs, setPrefs] = useState(() => initialRightsPrefs(searchParams.get('right') ?? ''));
+  const d = q.data;
+  const role = d?.roles.find(r => String(r.id) === selected) ?? d?.roles.find(r => !r.isLocked) ?? d?.roles[0];
+  const selectRole = (id: string) => {
+    if (dirty && !window.confirm('Discard the unsaved changes before selecting another role?')) return;
+    setDirty(false); setSelected(id);
+    setSearchParams(p => { p.set('role', id); return p; }, { replace: true });
+  };
+  return <AdminOnly>
+    <PageHead title="Rights" sub="Choose a role and assign rights from the catalog. Nothing changes until you review and save."
+      actions={<><Link className="btn" to="/admin/audit?category=Access">Access history</Link><Link className="btn" to="/admin/roles">Manage roles</Link></>} />
+    {q.error && <ErrorBox error={q.error} />}
+    {!d ? !q.error && <StateMessage kind="loading" /> : !role ? <StateMessage kind="none">Create a role before assigning rights.</StateMessage>
+      : <RoleRightsEditor key={role.id} role={role} roles={d.roles} catalog={d.catalog} prefs={prefs} onPrefs={setPrefs}
+        onRoleChange={selectRole} onDirty={setDirty} reload={async () => (await q.refetch()).data?.roles.find(r => r.id === role.id)} />}
+  </AdminOnly>;
+}
+
+function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => void }) {
+  const f = useForm({ name: role?.name ?? '', description: role?.description ?? '', isActive: role?.isActive ?? true });
+  const toast = useToast();
+  const refresh = useRefresh();
+  const nav = useNavigate();
+  const save = async () => {
+    // A new role starts with no rights; they are assigned on the Rights page, where they are reviewed.
+    const result = await f.submit(async v => {
+      if (role) { await put(`/admin/roles/${role.id}`, v, role.version); return { id: role.id }; }
+      return post<{ id: number }>('/admin/roles', { ...v, rights: [] });
     });
-    if (ok) { toast(role ? 'Role saved.' : 'Role added. Set its rights on the Rights page.'); refresh(); onClose(); if (!role) nav('/admin/rights'); }
+    if (result) { toast(role ? 'Role saved.' : 'Role added. Set its rights on the Rights page.'); refresh(); onClose(); if (!role) nav(`/admin/rights?role=${result.id}`); }
   };
   return (
     <Dialog title={role ? `Role ${role.name}` : 'New role'} onClose={onClose}>
@@ -264,6 +419,8 @@ function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => vo
       <div className="form-grid">
         <TextInput label="Role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} maxLength={60} />
         <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} maxLength={300} />
+        {role && <Checkbox label="Role is active" checked={f.values.isActive} onChange={v => f.set('isActive', v)} disabled={role.isLocked}
+          hint={role.isLocked ? 'The protected TIO Manager role cannot be deactivated.' : 'An inactive role gives nobody any rights.'} />}
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Save role</button></div>
     </Dialog>
@@ -276,21 +433,24 @@ export function AdminNetworkZones() {
 }
 
 export function AdminReference({ fixedList, title = 'Reference lists', sub }: { fixedList?: string; title?: string; sub?: string } = {}) {
+  const canCreate = useRight('AdminConfig', 'Create');
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['admin-lookups'], queryFn: () => get<LookupRow[]>('/admin/lookups') });
   const [picked, setList] = useState('');
   const list = fixedList ?? picked;
   const [edit, setEdit] = useState<LookupRow | 'new' | null>(null);
   const lists = [...new Set((q.data ?? []).map(l => l.listName))];
+  const fixedWorkflow = list === 'ConditionLabel';
   return (
     <AdminOnly>
-      <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />
+      <PageHead title={title} sub={sub ?? 'Retired values stay valid on existing records; codes are never renamed, so history keeps its meaning.'} actions={canCreate && !fixedWorkflow && <button className="btn btn-primary" onClick={() => setEdit('new')}>{fixedList ? '+ New zone' : '+ New Value'}</button>} />
       {!fixedList && <div className="toolbar"><SelectInput label="List" value={list} onChange={setList} options={lists.map(l => ({ value: l, label: label(l) }))} empty="All lists" /></div>}
       <DataTable<LookupRow> rowKey={l => l.id} rows={q.data?.filter(l => !list || l.listName === list)} loading={q.isLoading} error={q.error} columns={[
         { key: 'l', header: 'List', render: l => label(l.listName) }, { key: 'c', header: 'Code', render: l => <span className="mono">{l.code}</span> }, { key: 'b', header: 'Label', render: l => l.label },
         { key: 'd', header: 'Description', render: l => l.description }, { key: 's', header: 'Order', className: 'num', render: l => l.sortOrder },
-        { key: 'r', header: 'Status', render: l => l.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'e', header: '', render: l => <button className="linkbtn" onClick={() => setEdit(l)}>Edit</button> }, { key: 'del', header: '', className: 'row-actions', render: l => <DeleteAction path={`/admin/lookups/${l.id}`} what={`${l.label}`} /> }
+        { key: 'r', header: 'Status', render: l => fixedWorkflow ? <Badge tone="good">Fixed workflow value</Badge> : l.isRetired ? <Badge>Retired</Badge> : <Badge tone="good">Active</Badge> }, { key: 'e', header: '', render: l => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(l)}>Edit</button> }, ...(!fixedWorkflow ? [{ key: 'del', header: '', className: 'row-actions', render: (l: LookupRow) => <DeleteAction path={`/admin/lookups/${l.id}`} what={`${l.label}`} /> }] : [])
       ]} />
-      {edit === 'new' && (fixedList
+      {edit === 'new' && (fixedWorkflow ? null : fixedList
         ? <ActionDialog title="New network zone" path="/admin/lookups" onClose={() => setEdit(null)} submitLabel="Add zone"
             fields={[{ name: 'label', label: 'Zone name', required: true }, { name: 'description', label: 'Description' }, { name: 'sortOrder', label: 'Sort order' }]}
             transform={v => ({ listName: fixedList, code: v.label.trim(), label: v.label, description: v.description, sortOrder: Number(v.sortOrder) || 100, isRetired: false })} />
@@ -299,8 +459,8 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
             transform={v => ({ ...v, sortOrder: Number(v.sortOrder) || 100, isRetired: false })} />)}
       {edit && edit !== 'new' && <ActionDialog title={`Edit ${edit.code}`} path={`/admin/lookups/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={{ label: edit.label, description: edit.description ?? '', sortOrder: String(edit.sortOrder), isRetired: edit.isRetired ? 'yes' : '' }}
-        fields={[{ name: 'label', label: 'Label', required: true }, { name: 'description', label: 'Description' }, { name: 'sortOrder', label: 'Sort order' }, { name: 'isRetired', label: 'Retired', kind: 'select', options: [{ value: 'yes', label: 'Retired' }] }]}
-        transform={v => ({ listName: edit.listName, code: edit.code, label: v.label, description: v.description, sortOrder: Number(v.sortOrder) || 0, isRetired: v.isRetired === 'yes' })} />}
+        fields={fixedWorkflow ? [{ name: 'label', label: 'Display label', required: true }] : [{ name: 'label', label: 'Label', required: true }, { name: 'description', label: 'Description' }, { name: 'sortOrder', label: 'Sort order' }, { name: 'isRetired', label: 'Retired', kind: 'select', options: [{ value: 'yes', label: 'Retired' }] }]}
+        transform={v => fixedWorkflow ? ({ listName: edit.listName, code: edit.code, label: v.label, description: edit.description, sortOrder: edit.sortOrder, isRetired: edit.isRetired }) : ({ listName: edit.listName, code: edit.code, label: v.label, description: v.description, sortOrder: Number(v.sortOrder) || 0, isRetired: v.isRetired === 'yes' })} />}
     </AdminOnly>
   );
 }
@@ -309,20 +469,22 @@ export function AdminReference({ fixedList, title = 'Reference lists', sub }: { 
 type Policy = { id: number; recordType: string; scope: string; maxAgeDays?: number; usesNextReviewDate: boolean; effectiveFrom: string; notes?: string; isActive: boolean; version: string };
 
 export function AdminPolicies() {
+  const canCreate = useRight('AdminConfig', 'Create');
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['policies'], queryFn: () => get<Policy[]>('/review-policies') });
   const [edit, setEdit] = useState<Policy | 'new' | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Review policies" sub="Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments."
-        actions={<button className="btn btn-primary" onClick={() => setEdit('new')}>+ New Policy</button>} />
+      <PageHead title="Review policies" crumbs={configCrumbs('review-policies')} sub="Maximum age and/or explicit next-review date per record type and review scope. Record types without a policy are reported as data-quality exceptions. Pilot defaults, not SLA commitments."
+        actions={canCreate && <button className="btn btn-primary" onClick={() => setEdit('new')}>+ New Policy</button>} />
       <DataTable<Policy> rowKey={p => p.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 't', header: 'Record type', render: p => p.recordType }, { key: 's', header: 'Scope', render: p => label(p.scope) }, { key: 'm', header: 'Max age (days)', className: 'num', render: p => p.maxAgeDays ?? '—' },
+        { key: 't', header: 'Record type', render: p => p.recordType === 'Asset' ? 'Server' : label(p.recordType) }, { key: 's', header: 'Scope', render: p => label(p.scope) }, { key: 'm', header: 'Max age (days)', className: 'num', render: p => p.maxAgeDays ?? '—' },
         { key: 'n', header: 'Uses next-review date', render: p => p.usesNextReviewDate ? 'Yes' : 'No' }, { key: 'e', header: 'Effective from', render: p => p.effectiveFrom }, { key: 'no', header: 'Notes', render: p => p.notes },
-        { key: 'a', header: 'Status', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Inactive</Badge> }, { key: 'x', header: '', render: p => <button className="linkbtn" onClick={() => setEdit(p)}>Edit</button> }
+        { key: 'a', header: 'Status', render: p => p.isActive ? <Badge tone="good">Active</Badge> : <Badge>Inactive</Badge> }, { key: 'x', header: '', render: p => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(p)}>Edit</button> }
       ]} />
-      {edit && <ActionDialog title={edit === 'new' ? 'New review policy' : `Edit ${edit.recordType} / ${edit.scope}`} path={edit === 'new' ? '/review-policies' : `/review-policies/${edit.id}`} method={edit === 'new' ? 'POST' : 'PUT'} version={edit === 'new' ? undefined : edit.version} onClose={() => setEdit(null)} submitLabel="Save"
+      {edit && <ActionDialog title={edit === 'new' ? 'New review policy' : `Edit ${edit.recordType === 'Asset' ? 'Server' : label(edit.recordType)} / ${label(edit.scope)}`} path={edit === 'new' ? '/review-policies' : `/review-policies/${edit.id}`} method={edit === 'new' ? 'POST' : 'PUT'} version={edit === 'new' ? undefined : edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={edit === 'new' ? {} : { recordType: edit.recordType, scope: edit.scope, maxAgeDays: edit.maxAgeDays?.toString() ?? '', usesNextReviewDate: edit.usesNextReviewDate ? 'yes' : '', notes: edit.notes ?? '' }}
-        fields={[{ name: 'recordType', label: 'Record type', kind: 'select', required: true, options: ['Client', 'Contact', 'Region', 'Project', 'Environment', 'Installation', 'Asset', 'Case', 'Commitment'].map(x => ({ value: x, label: x })) },
+        fields={[{ name: 'recordType', label: 'Record type', kind: 'select', required: true, options: ['Client', 'Contact', 'Region', 'Project', 'Environment', 'Installation', 'Asset', 'Case', 'Commitment'].map(x => ({ value: x, label: x === 'Asset' ? 'Server' : label(x) })) },
           { name: 'scope', label: 'Scope', kind: 'select', required: true, options: ['Record', 'Inventory', 'Condition', 'Dependencies', 'Contacts'].map(x => ({ value: x, label: x })) },
           { name: 'maxAgeDays', label: 'Maximum age (days)' }, { name: 'usesNextReviewDate', label: 'Also use explicit next-review date', kind: 'select', options: [{ value: 'yes', label: 'Yes' }] }, { name: 'notes', label: 'Notes' }]}
         transform={v => ({ recordType: v.recordType, scope: v.scope, maxAgeDays: v.maxAgeDays ? Number(v.maxAgeDays) : null, usesNextReviewDate: v.usesNextReviewDate === 'yes', notes: v.notes, isActive: true })} />}
@@ -331,14 +493,15 @@ export function AdminPolicies() {
 }
 
 export function AdminJira() {
+  const canMaintain = useRight('AdminConfig', 'Maintain');
   const q = useQuery({ queryKey: ['admin-jira'], queryFn: () => get<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string }[]>('/admin/jira-instances') });
   const [edit, setEdit] = useState<{ id: number; name: string; kind: string; approvedHost: string; isActive: boolean; version: string } | null>(null);
   return (
     <AdminOnly>
-      <PageHead title="Jira instances" sub="The two disconnected Jira systems. Only the approved HTTPS host is stored for validating manual ticket links; the hub never calls Jira." />
+      <PageHead title="Jira instances" crumbs={configCrumbs('jira-instances')} sub="The two Jira systems. Only the approved HTTPS host is stored here, for validating manual ticket links; these entries never call Jira. Synchronization is configured under Jira Connections." />
       <DataTable rowKey={j => j.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
         { key: 'n', header: 'Name', render: j => j.name }, { key: 'k', header: 'Kind', render: j => label(j.kind) }, { key: 'h', header: 'Approved host', render: j => j.approvedHost || <Badge tone="warn">Not configured</Badge> },
-        { key: 'x', header: '', render: j => <button className="linkbtn" onClick={() => setEdit(j)}>Edit</button> }
+        { key: 'x', header: '', render: j => <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(j)}>Edit</button> }
       ]} />
       {edit && <ActionDialog title={`Edit ${edit.name}`} path={`/admin/jira-instances/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save"
         initial={{ name: edit.name, approvedHost: edit.approvedHost }} fields={[{ name: 'name', label: 'Name', required: true }, { name: 'approvedHost', label: 'Approved host (no https://)' }]}
@@ -347,43 +510,101 @@ export function AdminJira() {
   );
 }
 
+/** A105: settings under readable names and groups; the stored key stays visible as secondary information. */
+type SettingRow = { id: number; key: string; value: string; description?: string; version: string };
+const SETTING_INFO: Record<string, { label: string; group: string; dateValue?: boolean; readOnly?: boolean }> = {
+  DefaultTimeZone: { label: 'Default time zone for new users', group: 'General' },
+  'Dashboard.UpcomingDays': { label: 'Upcoming window for commitments (days)', group: 'General' },
+  ApprovedLinkHosts: { label: 'Approved document link hosts', group: 'Links and security' },
+  VaultReferencePrefix: { label: 'Vault reference prefix', group: 'Links and security' },
+  'Coverage.EnvironmentCriticalities': { label: 'Environment criticalities that need a backup owner', group: 'Backup coverage' },
+  'Coverage.CasePriorities': { label: 'Ticket priorities that need a backup owner', group: 'Backup coverage' },
+  'Contracts.PaymentReminderDays': { label: 'Payment reminder (days before due)', group: 'Contracts' },
+  'Jira.ContractsByDateFrom': { label: 'Jira tickets take their contract by creation date since', group: 'Jira', dateValue: true },
+  'Jira.PrioritiesFollowJiraFrom': { label: 'Jira tickets take their priority from Jira since', group: 'Jira', dateValue: true }
+};
+const SETTING_GROUPS = ['General', 'Links and security', 'Backup coverage', 'Contracts', 'Jira', 'Other'];
+const settingInfo = (s: SettingRow) => SETTING_INFO[s.key] ?? { label: label(s.key.split('.').pop() ?? s.key), group: 'Other' };
+const isInstant = (v: string) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v);
+
+function SettingValue({ s }: { s: SettingRow }) {
+  if (!s.value) return <span className="muted">Empty (open decision)</span>;
+  if (s.key === 'DefaultTimeZone') return <>{timeZoneOptions().find(o => o.value === s.value)?.label ?? s.value}</>;
+  if (isInstant(s.value)) return <span className="nowrap" title={s.value}>{fmtDateTime(s.value)}</span>;
+  if (s.value.includes(',')) return <>{s.value.split(',').map(v => v.trim()).filter(Boolean).map(v => <span key={v} className="chip">{label(v)}</span>)}</>;
+  return <>{s.value}</>;
+}
+
+function SettingDescription({ text }: { text?: string }) {
+  if (!text) return null;
+  if (text.length <= 110) return <span>{text}</span>;
+  return <details className="setting-desc"><summary>{text.slice(0, 100).replace(/\s+\S*$/, '')}… <span className="linkbtn">More</span></summary>{text}</details>;
+}
+
 export function AdminSettings() {
-  const q = useQuery({ queryKey: ['admin-settings'], queryFn: () => get<{ id: number; key: string; value: string; description?: string; version: string }[]>('/admin/settings') });
-  const [edit, setEdit] = useState<{ id: number; key: string; value: string; version: string } | null>(null);
+  const canMaintain = useRight('AdminSettings', 'Maintain');
+  const q = useQuery({ queryKey: ['admin-settings'], queryFn: () => get<SettingRow[]>('/admin/settings') });
+  const [edit, setEdit] = useState<SettingRow | null>(null);
+  const groups = SETTING_GROUPS.map(g => ({ g, rows: (q.data ?? []).filter(s => settingInfo(s).group === g) })).filter(x => x.rows.length > 0);
   return (
     <AdminOnly>
-      <PageHead title="Settings" sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
-      <DataTable rowKey={s => s.id} rows={q.data} loading={q.isLoading} error={q.error} columns={[
-        { key: 'k', header: 'Setting', render: s => <span className="mono">{s.key}</span> }, { key: 'v', header: 'Value', render: s => s.key === 'DefaultTimeZone' && s.value ? timeZoneOptions().find(o => o.value === s.value)?.label ?? s.value : s.value || <span className="muted">Empty (open decision)</span> },
-        { key: 'd', header: 'Description', render: s => s.description }, { key: 'x', header: '', render: s => <button className="linkbtn" onClick={() => setEdit(s)}>Edit</button> }
-      ]} />
+      <PageHead title="Settings" crumbs={configCrumbs('settings')} sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
+      {q.isLoading || q.error ? <DataTable rowKey={(s: SettingRow) => s.id} rows={undefined} loading={q.isLoading} error={q.error} columns={[]} />
+        : groups.map(({ g, rows }) => <Panel key={g} title={g} pad={false}>
+          <DataTable<SettingRow> caption={`${g} settings`} tools={false} rowKey={s => s.id} rows={rows} fit columns={[
+            { key: 'k', header: 'Setting', render: s => <><b>{settingInfo(s).label}</b><div className="hint mono" title="Stored key">{s.key}</div></> },
+            { key: 'v', header: 'Value', render: s => <SettingValue s={s} /> },
+            { key: 'd', header: 'What it does', render: s => <SettingDescription text={s.description} /> },
+            { key: 'x', header: '', className: 'row-actions', render: s => !settingInfo(s).dateValue && <button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(s)} aria-label={`Edit ${settingInfo(s).label}`}>Edit</button> }
+          ]} />
+        </Panel>)}
       <AttachmentStorage />
       {edit && edit.key === 'DefaultTimeZone' && <ZoneSettingDialog setting={edit} onClose={() => setEdit(null)} />}
-      {edit && edit.key !== 'DefaultTimeZone' && <ActionDialog title={`Edit ${edit.key}`} path={`/admin/settings/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save" initial={{ value: edit.value }} fields={[{ name: 'value', label: 'Value', required: true }]} />}
+      {edit && edit.key !== 'DefaultTimeZone' && <ActionDialog title={`Edit ${settingInfo(edit).label}`} path={`/admin/settings/${edit.id}`} method="PUT" version={edit.version} onClose={() => setEdit(null)} submitLabel="Save"
+        intro={edit.description} initial={{ value: edit.value }} fields={[{ name: 'value', label: 'Value', required: true, hint: `Stored as ${edit.key}.` }]} />}
     </AdminOnly>
   );
 }
 
 type Audit = { id: number; at: string; userName?: string; action: string; category: string; entityType: string; entityId?: number; entityLabel?: string; clientId?: number; reason?: string; changes?: string };
 
+/** A105: record types under the names the screens use; a typed "Ticket" or "Server" finds the stored "Case" or "Asset". */
+const AUDIT_TYPES = ['Client', 'Region', 'Project', 'Contract', 'Contact', 'Environment', 'Installation', 'Asset', 'Component', 'Volume', 'Case', 'Commitment', 'Escalation', 'Handover', 'Product', 'Team', 'AppUser', 'AppRole'];
+const auditTypeCode = (v: string) => { const t = v.trim().toLowerCase(); return AUDIT_TYPES.find(c => c.toLowerCase() === t || label(c).toLowerCase() === t) ?? v.trim(); };
+
 export function AdminAudit() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ entityType: '', action: '', category: '', page: '1', pageSize: '25' });
-  const allowed = me.grants.audit || me.isAdministrator;
-  const q = useQuery({ queryKey: ['audit', f], queryFn: () => get<Paged<Audit>>(`/admin/audit${qs(f)}`), enabled: allowed, retry: false });
+  // A105: people's changes first; background work (Jira synchronization, scans) is one choice away instead of filling the list.
+  const [f, set] = useUrlState({ entityType: '', action: '', category: '', actor: 'people', user: '', fromDate: '', toDate: '', page: '1', pageSize: '25' });
+  const allowed = canAudit(me) || isAdministrator(me);
+  const params = {
+    entityType: f.entityType ? auditTypeCode(f.entityType) : '', action: f.action, category: f.category, actor: f.actor === 'all' ? '' : f.actor, user: f.user.trim(),
+    from: f.fromDate ? fromLocalInput(`${f.fromDate}T00:00`) ?? '' : '', to: f.toDate ? new Date(Date.parse(fromLocalInput(`${f.toDate}T00:00`) ?? '') + 86400000).toISOString() : '',
+    page: f.page, pageSize: f.pageSize
+  };
+  const q = useQuery({ queryKey: ['audit', params], queryFn: () => get<Paged<Audit>>(`/admin/audit${qs(params)}`), enabled: allowed, retry: false });
   const ex = useQuery({ queryKey: ['exports-log'], queryFn: () => get<Paged<{ id: number; at: string; report: string; filters: string; rowCount: number; user?: string }>>('/admin/exports?pageSize=10'), enabled: allowed, retry: false });
+  const filtered = !!(f.entityType || f.action || f.category || f.user || f.fromDate || f.toDate);
+  const page1 = (v: Record<string, string>) => set({ ...v, page: '1' });
   return (
     <>
       <PageHead title="Change history" sub="Append-only audit with actor, time, record and before/after values. Restricted technical values are masked without the Technical detail grant; only records in your scope are listed." />
       <div className="toolbar">
-        <TextInput label="Record type" value={f.entityType} onChange={v => set({ entityType: v })} placeholder="Client, Case…" />
-        <SelectInput label="Action" value={f.action} onChange={v => set({ action: v })} options={['Create', 'Update', 'StatusChange', 'OwnerChange', 'Archive', 'Restore', 'AccessChange', 'AccessGranted', 'AccessRevoked', 'Export', 'Remove'].map(a => ({ value: a, label: label(a) }))} empty="Any" />
-        <SelectInput label="Category" value={f.category} onChange={v => set({ category: v })} options={[{ value: 'Business', label: 'Business records' }, { value: 'Access', label: 'Access administration' }]} empty="Any" />
+        <SelectInput label="Activity" value={f.actor} onChange={v => page1({ actor: v })} empty={null}
+          options={[{ value: 'people', label: 'Changes by people' }, { value: 'system', label: 'Background work (Jira sync, scans)' }, { value: 'all', label: 'All activity' }]} />
+        <TextInput label="Person" value={f.user} onChange={v => page1({ user: v })} placeholder="Account name" />
+        <TextInput label="Record type" value={f.entityType} onChange={v => page1({ entityType: v })} placeholder="Client, Ticket…" list="audit-record-types" />
+        <datalist id="audit-record-types">{AUDIT_TYPES.map(t => <option key={t} value={label(t)} />)}</datalist>
+        <SelectInput label="Action" value={f.action} onChange={v => page1({ action: v })} options={['Create', 'Update', 'StatusChange', 'OwnerChange', 'Archive', 'Restore', 'AccessChange', 'AccessGranted', 'AccessRevoked', 'Export', 'Remove'].map(a => ({ value: a, label: label(a) }))} empty="Any" />
+        <SelectInput label="Category" value={f.category} onChange={v => page1({ category: v })} options={[{ value: 'Business', label: 'Business records' }, { value: 'Access', label: 'Access administration' }]} empty="Any" />
+        <TextInput label="From" type="date" value={f.fromDate} onChange={v => page1({ fromDate: v })} />
+        <TextInput label="To" type="date" value={f.toDate} onChange={v => page1({ toDate: v })} />
       </div>
-      <DataTable<Audit> rowKey={a => a.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={f.entityType || f.action ? 'nomatch' : 'none'} columns={[
-        { key: 'at', header: 'When', render: a => <span className="nowrap">{fmtDateTime(a.at)}</span> }, { key: 'u', header: 'By', render: a => a.userName },
-        { key: 'ac', header: 'Action', render: a => label(a.action) }, { key: 'r', header: 'Record', render: a => a.entityId ? <RecordLink type={a.entityType} id={a.entityId}>{a.entityType} · {a.entityLabel ?? a.entityId}</RecordLink> : `${a.entityType} · ${a.entityLabel ?? ''}` },
-        { key: 'rs', header: 'Reason', render: a => a.reason }, { key: 'c', header: 'Changes', render: a => <Changes json={a.changes} /> }
+      <DataTable<Audit> rowKey={a => a.id} rows={q.data?.items} loading={q.isLoading} error={q.error} empty={filtered ? 'nomatch' : 'none'}
+        emptyMessage={!filtered && f.actor === 'people' ? <>No changes by people yet. <button type="button" className="linkbtn" onClick={() => page1({ actor: 'all' })}>Show all activity</button></> : undefined} columns={[
+        { key: 'at', header: 'When', render: a => <span className="nowrap">{fmtDateTime(a.at)}</span> }, { key: 'u', header: 'By', render: a => a.userName && a.userName !== 'system' ? a.userName : <span className="muted">System</span> },
+        { key: 'ac', header: 'Action', render: a => label(a.action) }, { key: 'r', header: 'Record', render: a => a.entityId ? <RecordLink type={a.entityType} id={a.entityId}>{label(a.entityType)} · {a.entityLabel ?? a.entityId}</RecordLink> : `${label(a.entityType)} · ${a.entityLabel ?? ''}` },
+        { key: 'rs', header: 'Reason', render: a => a.reason }, { key: 'c', header: 'Changes (before → after)', render: a => <Changes json={a.changes} /> }
       ]} />
       {q.data && <Pager page={q.data.page} pageSize={q.data.pageSize} total={q.data.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
       {ex.data && <Panel title="Recent exports" pad={false}><DataTable rowKey={e => e.id} rows={ex.data.items} columns={[
@@ -396,16 +617,17 @@ export function AdminAudit() {
 type Archived = { recordType: string; id: number; label: string; clientId?: number; archivedAt: string; archiveReason?: string; version: string };
 
 export function AdminArchived() {
+  const me = useMe().data;
   const [type, setType] = useState('');
   const q = useQuery({ queryKey: ['archived', type], queryFn: () => get<Archived[]>(`/admin/archived${qs({ recordType: type })}`) });
   const [restore, setRestore] = useState<Archived | null>(null);
   return (
     <>
-      <PageHead title="Archived records" sub="Archived records keep their history and links. Restore needs a Team Lead or Manager role in the record's scope; client aliases stay reserved." />
-      <div className="toolbar"><SelectInput label="Record type" value={type} onChange={setType} options={['Client', 'Region', 'Project', 'Contact', 'Environment', 'Installation', 'Asset', 'Component'].map(t => ({ value: t, label: t }))} empty="All" /></div>
+      <PageHead title="Archived records" sub="Archived records keep their history and links. Restore needs Archive and restore permission for the record type within its scope; client aliases stay reserved." />
+      <div className="toolbar"><SelectInput label="Record type" value={type} onChange={setType} options={['Client', 'Region', 'Project', 'Contract', 'Contact', 'Environment', 'Installation', 'Asset', 'Component'].map(t => ({ value: t, label: t }))} empty="All" /></div>
       <DataTable<Archived> rowKey={a => `${a.recordType}-${a.id}`} rows={q.data} loading={q.isLoading} error={q.error} empty={type ? 'nomatch' : 'none'} columns={[
         { key: 't', header: 'Type', render: a => a.recordType }, { key: 'l', header: 'Record', render: a => a.label }, { key: 'w', header: 'Archived', render: a => fmtDateTime(a.archivedAt) },
-        { key: 'r', header: 'Reason', render: a => a.archiveReason }, { key: 'x', header: '', render: a => <button className="linkbtn" onClick={() => setRestore(a)}>Restore</button> }
+        { key: 'r', header: 'Reason', render: a => a.archiveReason }, { key: 'x', header: '', render: a => hasRight(me, resourceForRecord(a.recordType), 'ArchiveRestore') && <button className="linkbtn" onClick={() => setRestore(a)}>Restore</button> }
       ]} />
       {restore && <ActionDialog title={`Restore ${restore.recordType}`} path={`/admin/archived/${restore.recordType}/${restore.id}/restore`} onClose={() => setRestore(null)} submitLabel="Restore"
         intro="Restore re-checks scope, parent records and name conflicts." fields={[{ name: 'reason', label: 'Restore reason', kind: 'textarea', required: true }]} />}
@@ -440,13 +662,14 @@ function ZoneSettingDialog({ setting, onClose }: { setting: { id: number; key: s
 type Storage = { location: string; path?: string; defaultLocation: string; overridden: boolean; maxFileMB: number; maxFilesPerUpload: number; extensions: string[]; files: number; bytes: number;
   defaults: { maxFileMB: number; maxFilesPerUpload: number; extensions: string[] }; blocked: string[]; limits: { maxFileMB: number; maxFilesPerUpload: number } };
 function AttachmentStorage() {
+  const canMaintain = useRight('AdminSettings', 'Maintain');
   const q = useQuery({ queryKey: ['attachment-storage'], queryFn: () => get<Storage>('/admin/attachment-storage') });
   const [edit, setEdit] = useState(false);
   const d = q.data;
   if (!d) return null;
   const mb = (b: number) => (b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
   return (
-    <Panel title="File attachments" actions={<button className="btn" onClick={() => setEdit(true)}>Edit</button>}>
+    <Panel title="File attachments" actions={<button disabled={!canMaintain} className="btn" onClick={() => setEdit(true)}>Edit</button>}>
       <dl className="dl">
         <dt>Storage folder</dt><dd><span className="mono">{d.location}</span>{!d.path && <span className="hint"> (configuration default)</span>}</dd>
         <dt>Stored now</dt><dd>{d.files} file(s), {mb(d.bytes)}</dd>

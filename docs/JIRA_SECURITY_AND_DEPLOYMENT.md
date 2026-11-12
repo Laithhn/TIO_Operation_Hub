@@ -1,0 +1,66 @@
+# Jira integration: security and deployment (A76)
+
+## Credentials
+
+| Provider | Stored in the database | Where the token is |
+|---|---|---|
+| Encrypted on the server (`DataProtected`) | Ciphertext in `jira.JiraCredential`, in its own table and excluded from the change history | Encrypted with the ASP.NET Core data-protection key ring |
+| Environment variable (`EnvironmentVariable`) | Only the variable's name, which must start with `TIOHUB_JIRA_` | App-pool environment |
+
+No API returns a token. Responses carry only whether one exists, the provider, the reference and the rotation date. Tokens are not logged, and audit entries cannot contain them.
+
+**Not implemented:** Azure Key Vault, which the mockup shows, because it needs a new package and a real vault to verify against. The two providers sit behind `JiraSecretStore`, where a vault provider would be added. This is open decision 4.
+
+### Data-protection keys become important
+
+`OPERATIONS.md` used to say losing these keys only signs users out. With the encrypted provider, losing them also makes stored Jira tokens unreadable. Recovery is to enter the token again with **Rotate credentials**; no other data is affected.
+
+A deployed application keeps its keys in `%ProgramData%\TioHub\DataProtection-Keys`, with no setting (A85). The folder is outside every application folder and only the app-pool identity, SYSTEM and administrators can use it, so a new package folder, an upgrade or a restart keeps tokens readable. If the app-pool identity changes, grant the new one Modify on that folder; the application refuses to start with a clear message until then. Back up the folder, and keep it apart from the database backups if you can.
+
+Several servers using one database, or a move to a new server, still need the same keys. Copy the folder to the new server, or use the setting below.
+
+**For several servers,** set `DataProtection__KeysFolder` (or `DataProtection:KeysFolder` in `appsettings.Production.json`) to a full path outside the application folder, the same one on every server and instance using this database:
+
+1. Create the folder and give only the app-pool identity and administrators access. **The keys in it are not encrypted at rest,** so that a copy works on another server; these permissions are their protection.
+2. Set the value and restart. The application refuses to start if the path is relative or it cannot write there.
+3. Users are signed out once, and forms in open pages must be reloaded, because the keys are new. Tokens stored earlier cannot be read: enter them again with **Rotate credentials**.
+4. Back up the folder, and keep it apart from the database backups if you can: together they can decrypt the stored tokens. `Backup-TioHub.ps1` does not copy it.
+
+Leaving the value empty keeps the default behavior.
+
+The environment-variable provider does not depend on the keys at all; each server then needs the variable.
+
+## Other protections
+
+| Risk | Protection |
+|---|---|
+| Writing to Jira | No writing operation exists; `JiraReadOnlyHandler` refuses it at the HTTP layer |
+| Reaching internal addresses through a connection | HTTPS only, allowed host suffixes, no credentials or ports in the URL, redirects not followed |
+| Token in an error message | Errors are built from the HTTP status only |
+| Script in Jira content | Stored and rendered as plain text; ADF is converted without HTML |
+| Credentials pasted into Jira text | Not stored (IAM-03) |
+| One client seeing another's data | Client scope filters on the new tables; another client's name shows as "Another client"; existing case filters apply to imported cases |
+| Restricted Jira comments | Text returned by the server to case coordinators only |
+| Two servers running one space | Lease by conditional update |
+| Space owned twice | Filtered unique index in the database, not only application checks |
+| CSRF, sign-in, audit | Existing antiforgery, authentication and audit apply to all new endpoints |
+
+Atlassian account: use a dedicated service account with **read access only** to the spaces in scope. Restricted comments visible to that account are imported, so its project roles decide what reaches the hub.
+
+## Deployment
+
+1. Back up the database and the data-protection keys.
+2. Run `database/04-access-control-upgrade-review.sql` if your procedure includes it, then have the DBA apply `database/01-schema.sql`. The `JiraIntegration` migration only adds the `jira` schema, `work.CaseComment` and one defaulted column; existing references become `Manual`.
+3. Deploy. `Jira__Enabled` is on by default (A88), and nothing synchronizes until a client is enabled. Use `Jira__Enabled=false` on a restored copy or test server. Keep `Database__ApplyMigrationsOnStartup=false`.
+4. Allow outbound HTTPS from the server to the Jira site and `api.atlassian.com`. The hub made no outbound calls before this release, so **firewalls may need a change**.
+5. Configure IIS as in the operations guide.
+6. Follow *First use* in the operations guide.
+
+The application identity needs ordinary read and write on the new schema; `database/02-app-login.sql` grants this database-wide.
+
+## Not yet verified
+
+- A real Jira Cloud site, including scoped tokens and the gateway.
+- The real rate limits and volumes.
+- The IIS always-running setup on a server.
+- The upgrade script against a restored UAT backup, which the project's practice requires before UAT.

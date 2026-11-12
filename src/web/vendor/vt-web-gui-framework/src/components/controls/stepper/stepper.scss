@@ -1,0 +1,194 @@
+@use "sass:math";
+@use "assets/styles";
+
+$iconDim: 24;
+$sepShortEdge: 2;
+$sepLongEdge: 40;
+
+// -------------------------------------------------------------------------------------------------
+// The stepper
+// -------------------------------------------------------------------------------------------------
+
+.stepper {
+  display: flex;
+
+  &.vertical {
+    flex-direction: column;
+    //padding: styles.spacePx(normal) 0;
+  }
+
+  &.horizontal {
+    flex-direction: row;
+    //padding: 0 styles.spacePx(normal);
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+// A step of the stepper
+// -------------------------------------------------------------------------------------------------
+
+.stepperStep {
+  //width: 100%;
+  display: grid;
+
+  background: none;
+  //outline: none;
+  font-size: styles.typo(fontSize, small);
+  font-weight: styles.typo(fontWeight, normal);
+  color: styles.typo(color, dark, normal);
+  fill: styles.typo(color, dark, normal);
+
+  //&:focus { outline: none; }
+  //&::-moz-focus-inner { border: 0; }
+
+  &.vertical {
+    grid-template-rows: #{math.div($sepLongEdge, 2)}px auto #{math.div($sepLongEdge, 2)}px;
+    grid-template-columns: #{$iconDim}px auto;
+    grid-template-areas:
+      "sepBefore caption"
+      "icon caption"
+      "sepAfter caption";
+
+    gap: 0 styles.spacePx(small);
+
+    padding: 0 0 0 styles.layoutPx(mostLeftRightPadding);
+
+    .caption {
+      text-align: start;
+      align-self: center;
+    }
+  }
+
+  &.horizontal {
+    grid-template-rows: #{$iconDim}px auto;
+    grid-template-columns: minmax(#{math.div($sepLongEdge, 2)}px, 1fr) #{$iconDim}px minmax(#{math.div($sepLongEdge, 2)}px, 1fr);
+    grid-template-areas:
+      "sepBefore icon sepAfter"
+      "caption caption caption";
+
+    gap: styles.spacePx(xs) 0;
+
+    padding: styles.layoutPx(mostLeftRightPadding) 0 0 0;
+
+    .caption {
+      justify-self: center;
+      padding: 0 12px;
+      text-align: center;
+    }
+  }
+
+  .icon {
+    width: #{$iconDim}px;
+    height: #{$iconDim}px;
+    grid-area: icon;
+    display: grid;
+    place-items: center;
+    border: 1px solid styles.typo(color, dark, normal);
+    border-radius: #{math.div($iconDim, 2)}px;
+    opacity: 0.2;
+    transition: border-color 0.1s ease, background 0.1s ease, box-shadow 0.1s ease, color 0.1s ease, opacity 0.1s ease;
+  }
+
+  .caption {
+    //width: 100%;
+    grid-area: caption;
+    white-space: pre-wrap;
+    text-overflow: ellipsis;
+    opacity: 0.3;
+    overflow: hidden;
+    transition: opacity 0.1s ease;
+  }
+
+  &.active {
+    .icon {
+      border: 0 none;
+      box-shadow: styles.layout(boxShadow, level1);
+      background: styles.color(offWhite);
+      font-size: styles.typo(fontSize, normal);
+      color: styles.typo(color, dark, attention);
+      fill: styles.typo(color, dark, attention);
+      opacity: 1;
+    }
+
+    .caption {
+      color: styles.typo(color, dark, attention);
+      fill: styles.typo(color, dark, attention);
+      opacity: 1;
+    }
+  }
+
+  &.done {
+    .icon {
+      border: 0 none;
+      background: styles.color(active);
+      color: styles.typo(color, light, normal);
+      fill: styles.typo(color, light, normal);
+      opacity: 1;
+    }
+
+    .caption {
+      opacity: 0.7;
+    }
+  }
+
+  &.selectable {
+    cursor: pointer;
+
+    &:not(.done):not(.active) {
+      .icon {
+        opacity: 0.5;
+      }
+
+      .caption {
+        opacity: 0.5;
+      }
+    }
+
+    &:not(.active) {
+      &:hover {
+        .icon {
+          box-shadow: styles.layout(boxShadow, level1);
+        }
+      }
+    }
+  }
+}
+
+body[dir="rtl"] {
+  .stepperStep {
+    padding: 0 styles.layoutPx(mostLeftRightPadding) 0 0;
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+// Separators before and after a stepper step
+// -------------------------------------------------------------------------------------------------
+
+.stepperStepSepBefore, .stepperStepSepAfter {
+  background: styles.typo(color, dark, normal);
+  opacity: 0.2;
+
+  &.vertical {
+    width: #{$sepShortEdge}px;
+    height: #{math.div($sepLongEdge, 2)}px;
+    justify-self: center;
+  }
+  &.horizontal {
+    width: 100%;
+    height: #{$sepShortEdge}px;
+    align-self: center;
+  }
+
+  &.done {
+    background: styles.color(active);
+    opacity: 1;
+  }
+}
+
+.stepperStepSepBefore {
+  grid-area: sepBefore;
+}
+
+.stepperStepSepAfter {
+  grid-area: sepAfter;
+}

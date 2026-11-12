@@ -5,8 +5,35 @@ using TioHub.Api.Common;
 using TioHub.Api.Modules.Inventory;
 using TioHub.Api.Modules.Quality;
 using TioHub.Api.Modules.Shared;
+using TioHub.Api.Security;
 
 namespace TioHub.Tests;
+
+public class PermissionRegistryTests
+{
+    [Fact]
+    public void Registry_keys_are_unique_stable_action_keys_with_hierarchy_metadata()
+    {
+        var entries = RightsCatalog.All;
+        Assert.NotEmpty(entries);
+        Assert.Equal(entries.Length, entries.Select(x => x.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count());
+        Assert.All(entries, entry =>
+        {
+            Assert.False(string.IsNullOrWhiteSpace(entry.Label));
+            Assert.False(string.IsNullOrWhiteSpace(entry.Module));
+            Assert.Contains(entry.Kind, new[] { "Access", "Action" });
+            Assert.All(entry.Requires, required => Assert.NotNull(RightsCatalog.Find(required)));
+            Assert.Contains(entry.RiskLevel, new[] { "Normal", "High" });
+        });
+    }
+
+    [Fact]
+    public void Deprecated_registry_keys_are_not_implicitly_replaced_by_display_names()
+    {
+        Assert.Contains(RightsCatalog.All, x => x.Key == "Cases:Delete");
+        Assert.DoesNotContain(RightsCatalog.All, x => x.Key == "Cases:Permanently delete tickets");
+    }
+}
 
 public class GuardTests
 {
@@ -126,12 +153,12 @@ public class CsvTests
     public void Export_has_generation_time_zone_filters_and_column_definitions()
     {
         var bytes = Csv.Build("Cases", "DEV\\manager", "status=open", TimeZoneInfo.FindSystemTimeZoneById("Asia/Riyadh"), new DateTimeOffset(2026, 10, 16, 9, 0, 0, TimeSpan.Zero),
-            [new CsvColumn<string>("Title", "Case title", s => s)], ["=bad"]);
+            [new CsvColumn<string>("Title", "Ticket title", s => s)], ["=bad"]);
         var text = Encoding.UTF8.GetString(bytes);
         Assert.Contains("Generated,2026-10-16 12:00 +03:00", text);
         Assert.Contains("Time zone,Asia/Riyadh", text);
         Assert.Contains("Filters,status=open", text);
-        Assert.Contains("Column: Title,Case title", text);
+        Assert.Contains("Column: Title,Ticket title", text);
         Assert.Contains("'=bad", text);
     }
 }
@@ -189,18 +216,19 @@ public class StructuralTests
     [Fact]
     public void No_entity_has_a_password_secret_or_token_field()
     {
-        var bad = ApiAssembly.GetTypes().Where(t => t.Namespace?.StartsWith("TioHub.Api.Modules") == true && t.IsClass)
+        // A76: JiraAuth.Token is the in-memory value of one Jira call. It is no entity field, and JiraAuth.ToString omits it.
+        var bad = ApiAssembly.GetTypes().Where(t => t.Namespace?.StartsWith("TioHub.Api.Modules") == true && t.IsClass && t != typeof(TioHub.Api.Modules.Jira.JiraAuth))
             .SelectMany(t => t.GetProperties().Select(p => $"{t.Name}.{p.Name}"))
             .Where(n => n.Contains("Password", StringComparison.OrdinalIgnoreCase) || n.EndsWith("Secret", StringComparison.OrdinalIgnoreCase) || n.EndsWith(".Token", StringComparison.OrdinalIgnoreCase) || n.Contains("PrivateKey", StringComparison.OrdinalIgnoreCase))
             .ToList();
         Assert.Empty(bad);
     }
 
-    /// <summary>AC-16: no Jira or client-system integration — the API makes no outbound HTTP calls.</summary>
+    /// <summary>AC-16 as changed by A76: the read-only Jira client is the only outbound HTTP in the API; there is no other integration.</summary>
     [Fact]
-    public void Api_has_no_outbound_http_client_dependencies()
+    public void Only_the_read_only_jira_client_makes_outbound_http_calls()
     {
-        var types = ApiAssembly.GetTypes();
+        var types = ApiAssembly.GetTypes().Where(t => t != typeof(TioHub.Api.Modules.Jira.JiraApiClient));
         var uses = types.SelectMany(t => t.GetConstructors().SelectMany(c => c.GetParameters()).Select(p => p.ParameterType)
                 .Concat(t.GetFields(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).Select(f => f.FieldType)))
             .Where(t => t == typeof(HttpClient) || t.Name == "IHttpClientFactory").ToList();

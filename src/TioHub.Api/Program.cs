@@ -30,6 +30,7 @@ builder.Services.AddScoped<UserContext>();
 builder.Services.AddScoped<UserResolver>();
 builder.Services.AddSingleton<SetupCode>(); // used only in forms mode; the setup endpoint answers 404 otherwise
 builder.Services.AddHubServices();
+builder.Services.AddHubDataProtection(config, builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing") ? null : HubDataProtection.DefaultFolder);
 
 var connectionString = config.GetConnectionString("TioHub");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -98,7 +99,7 @@ builder.Services.AddOpenApi("v1", o => o.AddDocumentTransformer((doc, _, _) =>
 {
     doc.Info.Title = "TIO Operations Hub API";
     doc.Info.Version = "v1";
-    doc.Info.Description = "Versioned REST API of the TIO Operations Hub. Every operation enforces sign-in, role, scope and grants on the server. No Jira integration exists.";
+    doc.Info.Description = "Versioned REST API of the TIO Operations Hub. Every operation enforces sign-in, rights and data scope on the server. The Jira integration reads from Jira Cloud and never writes to it.";
     return Task.CompletedTask;
 }));
 
@@ -111,6 +112,9 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
     if (config.GetValue("Database:ApplyMigrationsOnStartup", false))
         await db.Database.MigrateAsync();
+    // Stop before seeding, backfills, or hosted services touch a schema from an older release.
+    (await DatabaseReadiness.CheckAsync(db, CancellationToken.None)).RequireReady();
+    await RightsCatalog.SynchronizeAsync(db, CancellationToken.None);
     if (config.GetValue("Database:SeedReferenceData", true))
         await ReferenceData.SeedAsync(db);
     if (config.GetValue("Database:SeedDevelopmentData", false))
@@ -134,6 +138,16 @@ using (var scope = app.Services.CreateScope())
     await TioHub.Api.Modules.Attachments.StorageSettings.LoadAsync(db, attachmentStore, CancellationToken.None);
     // A61: start of first-response tracking, resolution times from the status history, first SLA evaluation (re-runnable).
     await TioHub.Api.Modules.Work.CaseSla.BackfillAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
+    // A93: once, existing tickets of Jira spaces take their contract from their creation date.
+    await TioHub.Api.Modules.Jira.JiraSpaceContracts.ReconcileOnceAsync(db, DateTimeOffset.UtcNow, app.Logger, CancellationToken.None);
+    // A96: once, existing tickets take the priority already read from Jira.
+    if (!await db.Settings.AnyAsync(s => s.Key == TioHub.Api.Modules.Admin.SettingKeys.JiraPrioritiesFrom))
+    {
+        var moved = await scope.ServiceProvider.GetRequiredService<TioHub.Api.Modules.Jira.JiraCaseBridge>().ReconcilePrioritiesAsync(null, DateTimeOffset.UtcNow, CancellationToken.None);
+        db.Settings.Add(new TioHub.Api.Modules.Admin.AppSetting { Key = TioHub.Api.Modules.Admin.SettingKeys.JiraPrioritiesFrom, Value = DateTimeOffset.UtcNow.ToString("O"), Description = "When synchronized tickets began to take their priority from Jira (A96)." });
+        await db.SaveChangesAsync();
+        if (moved > 0) app.Logger.LogInformation("Jira priorities: {Moved} ticket(s) changed", moved);
+    }
     attachmentStore.Prepare();
 }
 
@@ -177,11 +191,14 @@ app.Use(async (ctx, next) =>
 
 app.MapGet("/api/health/live", () => Results.Ok(new { status = "live" })).AllowAnonymous().ExcludeFromDescription();
 app.MapGet("/api/health/ready", async (HubDbContext db, CancellationToken ct) =>
-    await db.Database.CanConnectAsync(ct) ? Results.Ok(new { status = "ready" }) : Results.Json(new { status = "database unreachable" }, statusCode: 503))
+{
+    var readiness = await DatabaseReadiness.CheckAsync(db, ct);
+    return Results.Json(new { status = readiness.Status }, statusCode: readiness.Ready ? 200 : 503);
+})
     .AllowAnonymous().ExcludeFromDescription();
 app.MapOpenApi("/openapi/{documentName}.json");
 
-app.MapGroup("/api/v1").MapHubModules();
+app.MapGroup("/api/v1").AddEndpointFilter<EndpointRightsFilter>().AddEndpointFilter<AuthorizationAdministrationFilter>().MapHubModules();
 
 app.Map("/api/{**rest}", (HttpContext ctx) => ProblemWriter.WriteAsync(ctx, 404, "Not found", "There is no API endpoint at this address.")).ExcludeFromDescription();
 // The SPA shell holds no data (every /api call is authorized), so it loads without a session and shows the sign-in page.

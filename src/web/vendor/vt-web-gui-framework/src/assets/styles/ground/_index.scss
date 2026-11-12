@@ -1,0 +1,127 @@
+@use "sass:map";
+@use "../color";
+@use "../layout";
+
+
+// The ground is what a component sits on, light or dark, and it travels as the inherited custom
+// property "--ground": a surface with a background of its own sets it, and every component inside
+// reads it instead of being told through a prop. "html" sets "light" (see index.scss), so the app
+// root and the portal element of the popups start from the same ground.
+//
+// **This module is the one place that spells the property and its query.** The property is part
+// of the framework's public contract - a consumer's stylesheet may read it as well - and every
+// other stylesheet of the framework reaches it through the mixins below.
+//
+// **An element never reads its own ground.** A style query tests the nearest ancestor, so a
+// carrier's own rules see the ground it sits on, and only its descendants see the ground it sets.
+// That is what lets a section draw its shadow for the ground below it while its content letters
+// itself for the section's own colour. A component that has to style its own element by its own
+// colour does so through a class instead.
+
+
+// Function to return the ground a colour of the palette makes as a background, "light" or "dark" -
+// or null for a key without a ground of its own ("invisible"). It is for an element whose ground is
+// a colour painted by another element, a marker lying behind it rather than around it.
+@function groundOf($colorKey) {
+  @return map.get(color.$ground, $colorKey);
+}
+
+
+// Mixin to set the ground an element passes on to its descendants: "light" or "dark".
+@mixin ground($ground) {
+  @if ($ground != light and $ground != dark) {
+    @error "ground(): unknown ground \"#{$ground}\" - use light or dark.";
+  }
+
+  --ground: #{$ground};
+}
+
+
+// Mixin to paint a colour of the palette as the background and to set the ground that colour
+// makes, both from the colour key. A key without a ground of its own - "invisible", which lets the
+// ground below show through - sets none, so the inherited ground stays in force.
+@mixin background($colorKey) {
+  background: color.color($colorKey);
+
+  $ground: groundOf($colorKey);
+
+  @if ($ground != null) {
+    @include ground($ground);
+  }
+}
+
+
+// Mixin to write the dark-ground branch of a rule. Its content applies while the nearest ancestor
+// carries "--ground: dark"; the light-ground values stand outside it, in the rule itself.
+//
+// A query adds no specificity, where a class did: the branch wins over the light rule only by
+// coming after it. Write each branch directly after the declarations it replaces, inside the same
+// rule.
+@mixin onDarkGround {
+  @container style(--ground: dark) {
+    @content;
+  }
+}
+
+
+// Mixin to write the dark-ground branch of a rule on an element whose own ground may be known - its
+// own background colour, or the word of the call site. The classes "groundDark" and "groundLight"
+// on the element state that ground and win; without either, the ground the element sits on
+// decides, as with onDarkGround. The component sets the two classes, which its CSS module has to
+// declare.
+//
+// The branch carries one class more than the light rule it belongs to - ":not(.groundLight)" in
+// the query, ".groundDark" beside it - so it wins over that rule wherever it stands, and a later
+// rule of the same weight as the branch wins over it by position.
+@mixin onDarkGroundOrClass {
+  @include onDarkGround {
+    &:not(.groundLight) {
+      @content;
+    }
+  }
+
+  &.groundDark {
+    @content;
+  }
+}
+
+
+// Mixin to draw the pane of a component placed on a surface - a section, a tabular, a table, a
+// value field, an image: a 1px edge, the contact shadow of a body lying on the surface, and with
+// $inner the lit rim and the inner glow that make the pane read as glass. $strength is "tinted"
+// (the surfaceTinted of the controls map, what the styling prop boxShadow="contact" casts) or
+// "full" (the surface, the pane of an element that is clicked). Edge and shadow take the form of
+// the ground the element sits on; rim and glow are the same on both. An image takes the pane
+// without $inner, the rim and the glow being inset shadows that would lie over the picture.
+//
+// The layers ride in slots of their own, so that a component can lay a status layer over them
+// without restating the pane. Their names are the pane's alone: a slot is inherited, and a
+// control inside the component reading a slot of the same name would take the component's pane.
+@mixin contactPane($strength: tinted, $inner: true) {
+  @if ($strength != tinted and $strength != full) {
+    @error "contactPane(): unknown strength \"#{$strength}\" - use tinted or full.";
+  }
+
+  $set: surfaceTinted;
+  @if ($strength == full) {
+    $set: surface;
+  }
+
+  --contactPaneShadow: #{layout.layout(controls, $set, contact, dark)};
+  --contactPaneBorderColor: #{layout.layout(controls, $set, border, dark)};
+  @if ($inner) {
+    --contactPaneRim: #{layout.layout(controls, $set, rim)};
+    --contactPaneGlow: #{layout.layout(controls, $set, glow)};
+  } @else {
+    --contactPaneRim: #{layout.layout(controls, slotEmptyInset)};
+    --contactPaneGlow: #{layout.layout(controls, slotEmptyInset)};
+  }
+
+  border: 1px solid var(--contactPaneBorderColor);
+  box-shadow: var(--contactPaneShadow), var(--contactPaneRim), var(--contactPaneGlow);
+
+  @include onDarkGround {
+    --contactPaneShadow: #{layout.layout(controls, $set, contact, light)};
+    --contactPaneBorderColor: #{layout.layout(controls, $set, border, light)};
+  }
+}

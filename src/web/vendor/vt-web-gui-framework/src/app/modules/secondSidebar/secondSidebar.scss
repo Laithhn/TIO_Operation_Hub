@@ -1,0 +1,19 @@
+@use "assets/styles";
+
+
+.secondSidebar {
+  position: relative;
+  grid-area: viAreaSecondSidebar;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid styles.layout(dividerColor, soft);
+  @include styles.background(styles.layout(secondSidebar, background));
+}
+
+
+body[dir="rtl"] {
+  .secondSidebar {
+    border-left: 0 none;
+    border-right: 1px solid styles.layout(dividerColor, soft);
+  }
+}

@@ -33,6 +33,8 @@ public class Case : Entity, IClientOwned, IAccountable
     public string? ResponsibleOrganization { get; set; }
     public long? CoordinatorUserId { get; set; }
     public CaseStatus Status { get; set; } = CaseStatus.New;
+    /// <summary>A77: the configured status people see, a code of the case status list. <see cref="Status"/> is the stage the rules read.</summary>
+    public string StatusCode { get; set; } = "";
     public string? ProgressSummary { get; set; }
     public WaitingReason? WaitingReason { get; set; }
     public DateTimeOffset? WaitingSince { get; set; }
@@ -52,8 +54,16 @@ public class Case : Entity, IClientOwned, IAccountable
     public DateTimeOffset? ClosedAt { get; set; }
     public DateTimeOffset? CancelledAt { get; set; }
     public int ReopenCount { get; set; }
-    /// <summary>Start of the current cycle after a reopen; creation time otherwise. Age since creation is kept separately (Section 7).</summary>
+    /// <summary>Start of the current cycle after a reopen; creation time otherwise. Age since opening is kept separately (Section 7, A91).</summary>
     public DateTimeOffset CycleStartedAt { get; set; }
+    /// <summary>A78: when the Jira issue was created. The SLA clock of a synchronized case starts here instead of at the hub's creation time.</summary>
+    public DateTimeOffset? SlaClockStartAt { get; set; }
+    /// <summary>A91: when the case was opened: the Jira creation time of a synchronized case, otherwise the hub creation time (<c>CreatedAt</c>, the import time of an imported case). Case age and opened reporting use it. Not stored: database queries write <c>c.SlaClockStartAt ?? c.CreatedAt</c>.</summary>
+    public DateTimeOffset OpenedAt => SlaClockStartAt ?? CreatedAt;
+    /// <summary>A79: the client's contact the Jira issue is assigned to. The case waits on the customer while this is set; the owner stays accountable.</summary>
+    public string? ClientRepresentative { get; set; }
+    /// <summary>A80: the Vitronic team member the Jira issue is assigned to, when that person has no hub account and so cannot be the owner.</summary>
+    public string? InternalAssignee { get; set; }
     public DateTimeOffset? LastReviewedAt { get; set; }
 
     // ---- A61: contractual SLA (see CaseSla) ----
@@ -77,6 +87,12 @@ public class Case : Entity, IClientOwned, IAccountable
     public bool SlaPauseOnCustomerWaiting { get; set; }
     public string? SlaContractRef { get; set; }
     public DateTimeOffset? SlaAppliedAt { get; set; }
+    /// <summary>A93: the Jira space has contracts, but none covers this ticket's creation date, so it is Not measurable.</summary>
+    public bool SlaNoCoveringContract { get; set; }
+    /// <summary>A90: from the contract's start date: work opened before it is not measured against the contract.</summary>
+    public DateOnly? SlaContractStart { get; set; }
+    /// <summary>A63: penalty terms copied from the contract when the case is linked, so later contract edits do not rewrite its basis.</summary>
+    public string? PenaltyTermsSnapshotJson { get; set; }
     // Results (recomputed on every save of the case and by the SLA sweep).
     /// <summary>Contractual response deadline. Separate from <see cref="DueAt"/>, which is the operational due date the team agreed.</summary>
     public DateTimeOffset? ResponseDueAt { get; set; }
@@ -96,6 +112,8 @@ public class Case : Entity, IClientOwned, IAccountable
     public List<CaseComponent> Components { get; set; } = [];
     public List<JiraReference> JiraReferences { get; set; } = [];
     public List<CaseWaitingInterval> WaitingIntervals { get; set; } = [];
+    /// <summary>A76: the Jira issue this case is synchronized from, when it has one.</summary>
+    public Jira.JiraCaseMapping? JiraSource { get; set; }
 }
 
 public class CaseEnvironment { public long CaseId { get; set; } public long EnvironmentId { get; set; } public long ClientId { get; set; } }
@@ -120,7 +138,9 @@ public enum CaseEventType
     Created, Triaged, Started, ValidationRequested, Closed, Cancelled, Reopened, WaitingStarted, WaitingEnded,
     OwnerChanged, PriorityChanged, DueChanged, ScopeChanged, Progress, Reviewed, JiraAdded, JiraRemoved, EvidenceException,
     // A61
-    FirstResponse, ContractChanged
+    FirstResponse, ContractChanged,
+    // A77
+    StatusChanged
 }
 
 /// <summary>Timeline (WRK-06): retains previous owner, priority, status, due date and material scope changes with reasons.</summary>
@@ -137,7 +157,7 @@ public class CaseEvent
     public DateTimeOffset At { get; set; }
 }
 
-/// <summary>One of the two disconnected Jira systems. The hub never calls it (Section 3).</summary>
+/// <summary>One of the two Jira systems. References are manual; only the Jira connections of A76 read from a Customer Cloud site.</summary>
 public class JiraInstance : Entity
 {
     public string Name { get; set; } = "";
@@ -146,6 +166,9 @@ public class JiraInstance : Entity
     public string ApprovedHost { get; set; } = "";
     public bool IsActive { get; set; } = true;
 }
+
+/// <summary>A76: how a reference came to the case. Manual references behave as before; source references are kept while the case is synchronized.</summary>
+public enum JiraReferenceOrigin { Manual, ImportedSource, AdoptedSource }
 
 /// <summary>Manual reference: instance + normalized key + approved HTTPS URL (WRK-03). Unique per case/instance/key, not by key alone.</summary>
 public class JiraReference : Entity
@@ -157,6 +180,7 @@ public class JiraReference : Entity
     public string IssueKey { get; set; } = "";
     public string Url { get; set; } = "";
     public string? ReuseReason { get; set; }
+    public JiraReferenceOrigin Origin { get; set; }
     /// <summary>Removal keeps the row and its audit history.</summary>
     public DateTimeOffset? RemovedAt { get; set; }
     public long? RemovedById { get; set; }

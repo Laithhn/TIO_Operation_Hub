@@ -9,7 +9,7 @@ One dependable operational view of TIO's clients (with or without regions), thei
 | Front end | React 18 + TypeScript + Vite + TanStack Query (`src/web`), built into the API's `wwwroot` |
 | Tests | xUnit unit + SQL Server acceptance tests (`tests/TioHub.Tests`), Playwright browser journeys in Microsoft Edge (`tests/e2e`) |
 
-The hub never calls Jira, vaults, client systems or messaging: Jira tickets are stored as manual references only. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
+The hub never calls vaults, client systems or messaging. It reads from Jira Cloud and never writes to it (A76, off by default); other Jira tickets are stored as manual references. SLA targets are recorded from contracts, and client cases linked to a contract are measured against them (response and resolution, A61). Four audience dashboards (A108) sit beside the Executive overview: Operational (what to act on today), SLA & Contracts (measured compliance and contract lifecycle), Management (trends and the project portfolio) and Project (the recorded project status with rule-based signals). The Reporting Center (A62) previews and exports reports as CSV or Excel, keeps an export history and runs scheduled reports inside the hub.
 
 ## Documents
 
@@ -21,6 +21,21 @@ The hub never calls Jira, vaults, client systems or messaging: Jira tickets are 
 | [docs/DESIGN-RULES.md](docs/DESIGN-RULES.md) | Design rules from the reference screenshot, tokens, components, visual comparison |
 | [docs/API.md](docs/API.md) / [docs/openapi-v1.json](docs/openapi-v1.json) | API conventions and full OpenAPI document |
 | [docs/OPERATIONS.md](docs/OPERATIONS.md) | Deployment (IIS + SQL Server), configuration, backup, restore, rollback |
+| [docs/AUTHORIZATION-DISCOVERY.md](docs/AUTHORIZATION-DISCOVERY.md) | Existing authorization architecture, coverage gaps, and rollout risks |
+| [docs/RIGHTS-ADMIN-GUIDE.md](docs/RIGHTS-ADMIN-GUIDE.md) | Users, roles and rights for administrators |
+| [docs/RIGHTS-DEVELOPER-GUIDE.md](docs/RIGHTS-DEVELOPER-GUIDE.md) | Adding endpoints and rights |
+| [docs/RIGHTS-MODEL-DESIGN.md](docs/RIGHTS-MODEL-DESIGN.md) | The rights model, old-to-new mapping, open owner decisions |
+| [docs/RIGHTS-MODEL-UPGRADE.md](docs/RIGHTS-MODEL-UPGRADE.md) | Upgrade checks, procedure and rollback |
+| [docs/RIGHTS-COVERAGE-MATRIX.md](docs/RIGHTS-COVERAGE-MATRIX.md) / [docs/RIGHTS-UI-COVERAGE.md](docs/RIGHTS-UI-COVERAGE.md) | Every right and API operation; every screen and control |
+| [docs/RELEASE-NOTES-2.44.1.md](docs/RELEASE-NOTES-2.44.1.md) | Roles comparison matrix and 2.44.1 deployment notes |
+| [docs/RELEASE-NOTES-2.45.0.md](docs/RELEASE-NOTES-2.45.0.md) | Scoped exceptions, scope-aware cascade, security corrections, upgrade |
+| [docs/RELEASE-VALIDATION-2.45.0.md](docs/RELEASE-VALIDATION-2.45.0.md) | What was verified for 2.45.0 and what still must be |
+| [docs/AUTHORIZATION-AUDIT-2.45.md](docs/AUTHORIZATION-AUDIT-2.45.md) | Endpoint audit findings and open items |
+| [docs/JIRA_INTEGRATION_ARCHITECTURE.md](docs/JIRA_INTEGRATION_ARCHITECTURE.md) | Jira integration: architecture, data model, API use |
+| [docs/JIRA_BUSINESS_LOGIC_MAPPING.md](docs/JIRA_BUSINESS_LOGIC_MAPPING.md) | What Jira may change on a case, SLA onboarding, open owner decisions |
+| [docs/JIRA_UI_IMPLEMENTATION.md](docs/JIRA_UI_IMPLEMENTATION.md) | The eight screens and deviations from the approved mockups |
+| [docs/JIRA_SYNC_OPERATIONS_GUIDE.md](docs/JIRA_SYNC_OPERATIONS_GUIDE.md) | First use, schedule, monitoring, rollback |
+| [docs/JIRA_SECURITY_AND_DEPLOYMENT.md](docs/JIRA_SECURITY_AND_DEPLOYMENT.md) | Credentials, protections, deployment steps |
 | [docs/TEST-RESULTS.md](docs/TEST-RESULTS.md) | Actual test results and known gaps |
 
 ## Run locally
@@ -53,12 +68,26 @@ Development sign-in uses fictional accounts; switch user with the selector in th
 | `DEV\engineer`, `DEV\engineer2`, `DEV\viewer` | Operation Engineers |
 | `DEV\admin` | TIO Manager |
 
-Two roles only (DECISIONS A22): both see every client, technical detail and change history, and can export.
+These accounts hold the two built-in roles. Roles are configurable: see [docs/RIGHTS-ADMIN-GUIDE.md](docs/RIGHTS-ADMIN-GUIDE.md).
 
 Development sign-in is refused at start-up in any environment other than Development and Testing.
 
 Front-end hot reload (API running): `cd src/web && npm run dev` → http://localhost:5173.
 On networks that block `registry.npmjs.org`, the committed `.npmrc` files use `registry.npmjs.com` (same official registry).
+
+### Running Claude Code and Codex side by side
+
+`AGENTS.md` is the shared engineering guide; `CLAUDE.md` imports it. Use a separate Git worktree/branch for each tool, and start each instance with `build/Start-Dev.ps1` so it gets its own database and ports. The instance name is part of the LocalDB name, so Claude and Codex can migrate their own copies independently.
+
+Start the API in one PowerShell session. For Codex use:
+
+```powershell
+.\build\Start-Dev.ps1 -Instance Codex
+```
+
+For Claude, use `-Instance Claude -ApiPort 5194 -WebPort 5174`. Start each web client in another PowerShell session with the matching command plus `-Web`, such as `build/Start-Dev.ps1 -Instance Claude -ApiPort 5194 -WebPort 5174 -Web`; for Codex, use `build/Start-Dev.ps1 -Instance Codex -Web`. API tests create a unique database per test; Playwright creates a unique database per run. Set `TIOHUB_E2E_PORT` to a different value (for example `5196`) when running Playwright from both tools at once, and `TIOHUB_E2E_SQL` if using a test SQL Server instead of LocalDB.
+
+Create production packages only from the intended Git commit with `build/Build-Release.ps1`; that script is the release source of truth and includes the matching API, built web client, migration script, deployment guide, and `BUILD-INFO.txt` with source commit and dirty-tree status. Review the version, commit, working-tree status and SHA-256 together before distributing the package. `CLAUDE.md` imports `AGENTS.md`, so contributor rules have one source of truth; product design and behavior decisions live in `docs/DECISIONS.md` and `docs/`.
 
 ## Tests
 
@@ -66,7 +95,7 @@ On networks that block `registry.npmjs.org`, the committed `.npmrc` files use `r
 dotnet test tests/TioHub.Tests
 ```
 
-Uses LocalDB by default; set `TIOHUB_TEST_SQL` to another SQL Server instance. Browser journeys (start nothing else on port 5096):
+Uses LocalDB by default; set `TIOHUB_TEST_SQL` to another SQL Server instance, and `TIOHUB_TEST_SQL_AUTH` (for example `User Id=sa;Password=…`) when that server needs a SQL login instead of Windows authentication (a Linux container). Browser journeys (start nothing else on port 5096):
 
 ```bash
 cd tests/e2e && npm ci && npx playwright test

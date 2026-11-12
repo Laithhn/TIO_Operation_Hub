@@ -1,0 +1,36 @@
+@use "assets/styles";
+
+
+$slotEmptyVeil: styles.layout(controls, slotEmptyVeil);
+$easeInMs: styles.layoutMs(controls, interactionEaseInMs);
+$easeOutMs: styles.layoutMs(controls, interactionEaseOutMs);
+
+
+.proposal {
+  width: 100%;
+  height: styles.layoutPx(controlMenus, optionHeight);
+  padding: 0 styles.layoutPx(controlMenus, optionPaddingRight) 0 styles.layoutPx(controlMenus, optionPaddingLeft);
+  text-align: start;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  cursor: pointer;
+  @include styles.noTextSelection;
+  // The same appearance the select box's options carry, and for the same reason: the proposal list
+  // marks its selection with a marker covering one row, so a row is a bounded area and takes the
+  // veil. See option.scss of the select box's menu.
+  --statusVeil: #{$slotEmptyVeil};
+  box-shadow: var(--statusVeil);
+  transition: box-shadow var(--statusEaseMs, #{$easeOutMs}) ease-out;
+
+  @include styles.typoSet(valueSmall, $lineHeight: #{styles.layout(controls, heightDefault) + 2}px);
+
+  &:hover, &:focus-visible {
+    --statusVeil: #{styles.layout(controls, interactionVeil)};
+    --statusEaseMs: #{$easeInMs};
+  }
+
+  &.italic {
+    font-style: italic;
+  }
+}

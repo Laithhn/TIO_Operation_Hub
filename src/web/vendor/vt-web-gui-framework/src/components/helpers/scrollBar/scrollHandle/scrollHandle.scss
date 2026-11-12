@@ -1,0 +1,93 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+$scrollWayThickness: styles.layout(scrolling, scrollBarThickness); // total thickness of the scrollway
+$scrollBarHandleOuterThickness: styles.space(normal); // can also be thicker than the scroll way
+// The thickness of the handle while the scroll bar is hovered or used by a pointer. The inner
+// handle draws at it and reads it from the custom property this box hands down (below).
+$scrollBarHandleThicknessHover: 8;
+// The room between the handle and the edge of its box: the hovered handle is centred in the box, and
+// the resting one lines up with the hovered one's outer edge instead of with the box's centre - so
+// the two share one edge, the one towards the scroll way's outer side, and the handle grows inwards
+// under the pointer. The inner handle knows nothing of this: the box places it by aligning it to
+// that side and keeping this room free there.
+$scrollBarHandleInset: math.div(($scrollBarHandleOuterThickness - $scrollBarHandleThicknessHover), 2);
+
+
+.scrollHandle {
+  // The inner handle is a stylesheet of its own and cannot read the Sass variable.
+  --scrollBarHandleThicknessHover: #{$scrollBarHandleThicknessHover}px;
+  position: absolute;
+  display: flex;
+  cursor: pointer;
+  touch-action: none;
+
+  &.smoothScrolling {
+    transition: transform styles.layoutMs(animationTime, slowMs) linear;
+  }
+
+  &.verticalStart, &.verticalEnd {
+    width: #{$scrollBarHandleOuterThickness}px;
+    top: 0;
+    align-items: center;
+  }
+
+  // The sides are the logical ones, so a right-to-left document mirrors them by itself: the handle
+  // of the bar at the start keeps to the start, the one at the end to the end.
+  &.verticalStart {
+    left: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2)}px;
+    justify-content: flex-start;
+    padding-inline-start: #{$scrollBarHandleInset}px;
+
+    &.outside {
+      left: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2) - $scrollWayThickness}px;
+    }
+  }
+
+  &.verticalEnd {
+    right: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2)}px;
+    justify-content: flex-end;
+    padding-inline-end: #{$scrollBarHandleInset}px;
+
+    &.outside {
+      right: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2) - $scrollWayThickness}px;
+    }
+  }
+
+  &.horizontal {
+    left: 0;
+    bottom: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2)}px;
+    height: #{$scrollBarHandleOuterThickness}px;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: #{$scrollBarHandleInset}px;
+
+    &.outside {
+      bottom: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2) - $scrollWayThickness}px;
+    }
+  }
+}
+
+
+body[dir="rtl"] {
+  .scrollHandle {
+    &.verticalStart {
+      left: auto;
+      right: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2)}px;
+
+      &.outside {
+        right: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2) - $scrollWayThickness}px;
+      }
+    }
+
+    &.verticalEnd {
+      left: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2)}px;
+      right: auto;
+
+      &.outside {
+        left: #{math.div(($scrollWayThickness - $scrollBarHandleOuterThickness), 2) - $scrollWayThickness}px;
+      }
+    }
+  }
+}

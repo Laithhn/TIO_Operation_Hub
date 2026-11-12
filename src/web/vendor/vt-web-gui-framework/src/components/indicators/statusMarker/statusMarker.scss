@@ -1,0 +1,63 @@
+@use "assets/styles";
+
+.statusMarker {
+  display: inline-flex;
+
+  svg {
+    transform-origin: center;
+  }
+
+  span {
+    align-self: baseline;
+    visibility: hidden;
+  }
+
+  .symbol {
+    transform-origin: 12px 7.5px;
+  }
+
+  &.ok {
+    .background {
+      fill: styles.color(calmingGreen);
+    }
+    .symbol {
+      fill: styles.typo(color, light, normal);
+    }
+  }
+
+  &.warning {
+    .background {
+      fill: styles.color(attentionHigh);
+    }
+    .symbol {
+      fill: styles.typo(color, dark, normal);
+    }
+  }
+
+  &.error {
+    .background {
+      fill: styles.color(signalError);
+    }
+    .symbol {
+      fill: styles.typo(color, light, normal);
+    }
+  }
+
+  &.unknown {
+    .background {
+      fill: styles.color("darkGray");
+    }
+    .symbol {
+      fill: styles.typo(color, light, normal);
+    }
+  }
+
+  &.inactive {
+    .background {
+      fill: styles.color("gray");
+    }
+    .symbol {
+      fill: styles.typo(color, dark, extraWeak);
+    }
+  }
+}

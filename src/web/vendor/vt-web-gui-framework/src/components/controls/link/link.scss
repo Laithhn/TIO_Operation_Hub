@@ -1,0 +1,13 @@
+@use "assets/styles";
+
+
+.linkExternalIcon {
+  margin: 0 0 0 styles.spacePx(xxs);
+}
+
+
+body[dir="rtl"] {
+  .linkExternalIcon {
+    margin: 0 styles.spacePx(xs) 0 0;
+  }
+}

@@ -1,0 +1,6 @@
+@use "assets/styles";
+
+
+.mainScope {
+  grid-area: styles.layout(mainScope, gridArea);
+}

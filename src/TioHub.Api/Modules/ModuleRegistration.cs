@@ -24,6 +24,8 @@ public static class ModuleRegistration
     {
         services.AddOptions<Attachments.AttachmentOptions>().BindConfiguration("Attachments");
         services.AddSingleton<Attachments.AttachmentStore>();
+        services.AddOptions<Clients.ClientLogoOptions>().BindConfiguration("ClientLogos");
+        services.AddSingleton<IDirectoryGroupLookup, WindowsDirectoryGroupLookup>();
         services.AddScoped<HubSettings>();
         services.AddScoped<HubAccess>();
         services.AddScoped<FreshnessService>();
@@ -32,6 +34,10 @@ public static class ModuleRegistration
         services.AddScoped<Dashboard>();
         services.AddScoped<Insights>();
         services.AddScoped<CommandCenter>();
+        services.AddScoped<ClientInsight>();
+        services.AddScoped<OperationalDashboard>();
+        services.AddScoped<SlaContractsDashboard>();
+        services.AddScoped<ManagementDashboard>();
         services.AddHostedService<DataQualityScanner>();
         services.AddHostedService<Notifications.NotificationScanner>();
         services.AddHostedService<Work.SlaSweep>();
@@ -40,6 +46,20 @@ public static class ModuleRegistration
         services.AddSingleton<ExportStore>();
         services.AddScoped<ExportService>();
         services.AddHostedService<ReportScheduler>();
+        // A70: Cases Report Builder and asynchronous exports
+        services.AddScoped<CasesReportService>();
+        services.AddSingleton<ExportQueue>();
+        services.AddHostedService<ExportWorker>();
+        // A76: Jira Cloud synchronization (read-only)
+        services.AddOptions<Jira.JiraOptions>().BindConfiguration("Jira");
+        services.AddTransient<Jira.JiraReadOnlyHandler>();
+        services.AddHttpClient<Jira.IJiraApiClient, Jira.JiraApiClient>(c => c.DefaultRequestHeaders.UserAgent.ParseAdd("TioOperationsHub"))
+            .AddHttpMessageHandler<Jira.JiraReadOnlyHandler>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
+        services.AddScoped<Jira.JiraSecretStore>();
+        services.AddScoped<Jira.JiraCaseBridge>();
+        services.AddScoped<Jira.JiraSyncService>();
+        services.AddSingleton<Jira.JiraSyncSignal>();
+        services.AddHostedService<Jira.JiraSyncWorker>();
         return services;
     }
 
@@ -48,19 +68,25 @@ public static class ModuleRegistration
         api.MapAuthEndpoints();
         api.MapMeEndpoints();
         api.MapClientEndpoints();
+        api.MapOrganizationEndpoints();
         api.MapEnvironmentEndpoints();
         api.MapCatalogueEndpoints();
         api.MapInventoryEndpoints();
         api.MapCloneEndpoints();
         api.MapRoleEndpoints();
+        api.MapRoleConflictEndpoints();
         api.MapFirewallEndpoints();
         api.MapDeleteEndpoints();
         api.MapCascadeEndpoints();
         Attachments.AttachmentEndpoints.MapAttachmentEndpoints(api);
         Attachments.StorageSettings.MapStorageSettingsEndpoints(api);
+        Clients.ClientLogos.MapClientLogoEndpoints(api);
         Notes.NoteEndpoints.MapNoteEndpoints(api);
         api.MapNotificationEndpoints();
         api.MapCaseEndpoints();
+        Jira.JiraCaseEndpoints.MapJiraCaseEndpoints(api);
+        Jira.JiraClientEndpoints.MapJiraClientEndpoints(api);
+        Jira.JiraAdminEndpoints.MapJiraAdminEndpoints(api);
         api.MapCommitmentEndpoints();
         api.MapEscalationEndpoints();
         api.MapContractEndpoints();
@@ -68,10 +94,14 @@ public static class ModuleRegistration
         api.MapTeamEndpoints();
         api.MapQualityEndpoints();
         api.MapDashboardEndpoints();
+        api.MapAudienceDashboardEndpoints();
         api.MapOverviewEndpoints();
         api.MapSearchExportEndpoints();
         api.MapReportingEndpoints();
+        api.MapBuilderEndpoints();
         api.MapAdminEndpoints();
+        api.MapAccessSimulationEndpoints();
+        api.MapUserRightExceptionEndpoints();
         return api;
     }
 }

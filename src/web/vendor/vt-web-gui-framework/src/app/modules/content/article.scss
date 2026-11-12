@@ -1,0 +1,32 @@
+@use "assets/styles";
+@use "assets/styles/nativeElements";
+
+
+.article {
+  @include styles.background(styles.layout(content, articleBackground));
+  opacity: 1;
+  // A stacking context of its own, for the reason given in dashboard.scss.
+  isolation: isolate;
+
+  &.fadeOut {
+    opacity: 0;
+    transition: opacity styles.layoutMs(animationTime, contentFadeOutMs) ease;
+  }
+
+  article {
+    max-width: styles.layoutPx(content, articleMaxWidth);
+    margin: 0 auto;
+    padding: 0 styles.spacePx(normal);
+
+    @include nativeElements.nativeElements();
+  }
+}
+
+
+body[dir="rtl"] {
+  .article {
+    article {
+      @include nativeElements.nativeElementsAddForRtl();
+    }
+  }
+}

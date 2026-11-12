@@ -1,0 +1,66 @@
+@use "assets/styles";
+
+
+// The column a leading icon takes, and the room a trailing icon keeps to the caption. LongMenu.tsx
+// measures the width of a menu from both, so they leave through the export below.
+$leadingIconColumnWidth: styles.space(large);
+$trailingIconMargin: styles.space(large);
+
+:export {
+  leadingIconColumnWidth: $leadingIconColumnWidth;
+  trailingIconMargin: $trailingIconMargin;
+}
+
+
+.menuItem {
+  width: 100%;
+  height: styles.layoutPx(controlMenus, optionHeight);
+  display: grid;
+  grid-template-columns: auto;
+  grid-template-areas: "text";
+  align-items: center;
+  padding: 0 styles.layoutPx(controlMenus, optionPaddingRight) 0 styles.layoutPx(controlMenus, optionPaddingLeft);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  @include styles.menuEntry($markActiveCaption: true);
+
+  &.isLeadingIconOnly {
+    grid-template-columns: #{$leadingIconColumnWidth}px auto;
+    grid-template-areas: "leadingIcon text";
+  }
+
+  &.isTrailingIconOnly {
+    grid-template-columns: auto auto;
+    grid-template-areas: "text trailingIcon";
+  }
+
+  &.areBothIcons {
+    grid-template-columns: #{$leadingIconColumnWidth}px auto auto;
+    grid-template-areas: "leadingIcon text trailingIcon";
+  }
+}
+
+
+.leadingIcon {
+  grid-area: leadingIcon;
+}
+
+
+.caption {
+ grid-area: text;
+}
+
+
+.trailingIcon {
+  grid-area: trailingIcon;
+  justify-self: end;
+  margin: 0 0 0 #{$trailingIconMargin}px;
+}
+
+
+body[dir='rtl'] {
+  .trailingIcon {
+    margin: 0 #{$trailingIconMargin}px 0 0;
+  }
+}

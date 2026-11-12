@@ -1,0 +1,29 @@
+@use "sass:math";
+@use "assets/styles";
+
+
+.menuWrapper {
+  position: relative;
+  width: 100%;
+}
+
+
+.menu {
+  position: absolute;
+  left: 0;
+  right: -#{math.div(styles.layout(firstSidebar, markerWidth), 2) + 1}px;
+  top: 0;
+  bottom: 0;
+  padding-right: #{math.div(styles.layout(firstSidebar, markerWidth), 2) + 1}px;
+  overflow: hidden;
+}
+
+
+body[dir="rtl"] {
+  .menu {
+    left: -#{math.div(styles.layout(firstSidebar, markerWidth), 2) + 1}px;
+    right: 0;
+    padding-left: #{math.div(styles.layout(firstSidebar, markerWidth), 2) + 1}px;
+    padding-right: 0;
+  }
+}

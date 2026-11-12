@@ -1,17 +1,14 @@
+import { canViewTab, hasRight } from './rights';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useBlocker, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useBlocker, useSearchParams } from 'react-router';
 import { ApiError, get } from './api';
 import { label } from './format';
 
-// A31: configurable roles with rights. 'Engineer' / 'Manager' remain shorthand for the Edit and Manage rights.
-export type Role = 'Engineer' | 'Manager';
-export type RightKey = 'Edit' | 'Manage' | 'Archive' | 'Delete' | 'Export' | 'TechnicalDetail' | 'Audit' | 'Administer';
-const SHORTHAND: Record<Role, RightKey> = { Engineer: 'Edit', Manager: 'Manage' };
-
 export type Me = {
-  id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: RightKey[]; businessRole: Role | null; isAdministrator: boolean;
-  grants: { export: boolean; technicalDetail: boolean; audit: boolean };
+  id: number; account: string; displayName: string; timeZone: string; roles: string[]; roleLabels: string[]; rights: string[];
+  /** Rights allowed only for some clients, projects or teams. They open the page; the record's own flags decide its actions. */
+  scopedAllowRights?: string[];
   scope: { allClients: boolean; clientCount: number; projectCount: number; allInternal: boolean; internalTeamCount: number; hasBusinessAccess: boolean };
   app: { version: string; environmentName: string; supportContact: string; devSignIn: boolean; authMode: string; mustChangePassword: boolean; map: { tileUrl: string; attribution: string } | null };
 };
@@ -23,26 +20,30 @@ export type Reference = {
   teams: { id: number; code: string; name: string; isActive: boolean }[];
   jiraInstances: { id: number; name: string; kind: string; approvedHost: string; isActive: boolean }[];
   enums: Record<string, string[]>;
+  enumLabels: Record<string, Record<string, string>>;
   countries: string[];
 };
 
 export function useMe() {
-  return useQuery({ queryKey: ['me'], queryFn: () => get<Me>('/me'), staleTime: 5 * 60_000, retry: false });
+  return useQuery({ queryKey: ['me'], queryFn: () => get<Me>('/me'), staleTime: 10_000, refetchInterval: 15_000, refetchOnWindowFocus: true, retry: false });
 }
 
 export function useReference(enabled = true) {
   return useQuery({ queryKey: ['reference'], queryFn: () => get<Reference>('/reference'), staleTime: 60_000, enabled });
 }
 
-/** UI hint only; the server checks every request again. */
-export function useCan(right: Role | RightKey): boolean {
-  const me = useMe().data;
-  const key = (SHORTHAND as Record<string, RightKey>)[right] ?? right;
-  return !!me?.rights?.includes(key as RightKey);
+/** UI hint only; the API enforces the same right on every request. */
+export function useRight(resource: string, action: string): boolean {
+  return hasRight(useMe().data, resource, action);
 }
 
 export function useEnum(name: string): string[] {
   return useReference().data?.enums[name] ?? [];
+}
+
+export function useEnumLabel(name: 'Condition' | 'CaseStatus') {
+  const labels = useReference().data?.enumLabels?.[name] ?? {};
+  return (code: string) => labels[code] ?? label(code);
 }
 
 export function useLookup(list: string, keep?: string | null) {
@@ -52,15 +53,18 @@ export function useLookup(list: string, keep?: string | null) {
 
 /**
  * A34: configured types (environment, server, contract and case types). name() shows the configured label, category() the built-in
- * behaviour (for example LogicalEndpoint), options() the active values plus the record's current one.
+ * behaviour (for example LogicalEndpoint), options() the active values plus the record's current one; filterOptions() includes historical values.
  */
 export function useTypes() {
   const ref = useReference().data;
   const all = (list: string) => ref?.lookups[list] ?? [];
   return {
+    all,
     name: (list: string, code?: string | null) => (code ? all(list).find(l => l.code === code)?.label ?? label(code) : ''),
     category: (list: string, code?: string | null) => (code ? all(list).find(l => l.code === code)?.category ?? code : undefined),
-    options: (list: string, keep?: string | null) => all(list).filter(l => !l.isRetired || l.code === keep).map(l => ({ value: l.code, label: l.label }))
+    options: (list: string, keep?: string | null) => all(list).filter(l => !l.isRetired || l.code === keep).map(l => ({ value: l.code, label: l.label })),
+    // Filters must still find historical records after their configured type has been retired.
+    filterOptions: (list: string) => all(list).map(l => ({ value: l.code, label: l.isRetired ? `${l.label} (retired)` : l.label }))
   };
 }
 
@@ -92,6 +96,15 @@ export function useUrlState<T extends Record<string, string>>(defaults: T): [T, 
   return [state, set];
 }
 
+/** A102: a search field kept in the URL. It survives changing pages, and follows the URL when something else clears it. */
+export function useUrlSearch(value: string, apply: (v: string) => void): [string, (v: string) => void] {
+  const [text, setText] = useState(value);
+  const debounced = useDebounced(text);
+  useEffect(() => { if (debounced !== value) apply(debounced); }, [debounced]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (value !== debounced) setText(value); }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+  return [text, setText];
+}
+
 export function useDebounced<T>(value: T, ms = 300): T {
   const [v, setV] = useState(value);
   useEffect(() => { const t = setTimeout(() => setV(value), ms); return () => clearTimeout(t); }, [value, ms]);
@@ -108,12 +121,16 @@ export function useForm<T extends Record<string, unknown>>(initial: T) {
   const [error, setError] = useState<ApiError | null>(null);
   const [busy, setBusy] = useState(false);
   const dirty = useMemo(() => JSON.stringify(values) !== JSON.stringify(base), [values, base]);
+  // The tab-close guard reads a ref: a successful submit clears it at once, so a page that navigates right after
+  // saving (location.assign, e.g. sign-in) is not asked "Leave site?" before React has re-rendered.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
 
   useEffect(() => {
-    const h = (e: BeforeUnloadEvent) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } };
+    const h = (e: BeforeUnloadEvent) => { if (dirtyRef.current) { e.preventDefault(); e.returnValue = ''; } };
     window.addEventListener('beforeunload', h);
     return () => window.removeEventListener('beforeunload', h);
-  }, [dirty]);
+  }, []);
 
   const set = useCallback(<K extends keyof T>(k: K, v: T[K]) => setValues(p => ({ ...p, [k]: v })), []);
   const reset = useCallback((v: T) => { setValues(v); setBase(v); setError(null); }, []);
@@ -123,6 +140,7 @@ export function useForm<T extends Record<string, unknown>>(initial: T) {
     setError(null);
     try {
       const r = await fn(values);
+      dirtyRef.current = false;
       setBase(values);
       return r;
     } catch (e) {
@@ -146,4 +164,14 @@ export function useLeaveGuard(dirty: boolean) {
       else blocker.reset();
     }
   }, [blocker]);
+}
+
+/** Selected denied tabs never render; changing rights immediately reselects an allowed section. */
+export function usePermittedTab(resource: string, keys: string[], initial = keys[0]) {
+  const me = useMe().data;
+  const [params] = useSearchParams();
+  const [requested, setRequested] = useState(params.get('tab') ?? initial);
+  const allowed = keys.filter(key => canViewTab(me, resource, key));
+  const selected = allowed.includes(requested) ? requested : allowed[0] ?? '';
+  return [selected, setRequested, allowed] as const;
 }

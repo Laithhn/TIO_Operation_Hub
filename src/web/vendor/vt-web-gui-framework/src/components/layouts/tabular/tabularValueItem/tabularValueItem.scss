@@ -1,0 +1,74 @@
+@use "assets/styles";
+
+.tabularValueItem {
+  display: grid;
+  grid-template-areas: "label value";
+  gap: 0 styles.spacePx(small);
+  grid-auto-flow: column;
+  align-items: baseline;
+
+  // the seam between two entries - see the container item's stylesheet
+  &.tabularStyleIsLine {
+    border-bottom: 1px solid styles.layout(dividerLine, dark);
+
+    @include styles.onDarkGround {
+      border-bottom-color: styles.layout(dividerLine, light);
+    }
+  }
+
+  // The fallback ground, overruled by the colour the tabular hands down as an inline style - see the
+  // container item's stylesheet.
+  &.tabularStyleIsBackground {
+    @include styles.background("lightGray");
+  }
+
+  &.withHint {
+    grid-template-areas: "label hint value";
+  }
+
+  &.withSubLabel {
+    grid-template-areas: "label value" "subLabel value";
+  }
+
+  &.withHintAndSubLabel {
+    grid-template-areas: "label hint value" "subLabel subLabel value";
+  }
+
+  // The four letterings take the colour for the ground from typoSet: an item with a colour of its
+  // own sets that ground itself, and one without passes on the tabular's.
+  .label {
+    grid-area: label;
+    @include styles.typoSet(label, $disabled: false);
+  }
+
+  .hint {
+    grid-area: hint;
+    @include styles.typoSet(hint, $disabled: false);
+  }
+
+  .subLabel {
+    grid-area: subLabel;
+    @include styles.typoSet(hint, $disabled: false);
+  }
+
+  .value {
+    grid-area: value;
+    justify-self: end;
+    text-align: right;
+
+    @include styles.typoSet(value);
+
+    &:after {
+      content: '\200b'; // zero width space
+      visibility: hidden;
+    }
+  }
+}
+
+body[dir="rtl"] {
+  .tabularValueItem {
+    .value {
+      text-align: left;
+    }
+  }
+}

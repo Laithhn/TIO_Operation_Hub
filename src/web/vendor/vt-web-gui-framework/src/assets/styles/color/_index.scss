@@ -1,0 +1,72 @@
+@use "sass:list";
+@use "sass:map";
+
+
+// Global definitions of the colors.
+// To be able to export this map into TypeScript by NodeJS script scssToTypeScript.js, it must have
+// prefix "/* export */" and all values inside the map have to be valid CSS (no SCSS). The map can
+// contain further nested maps.
+
+/* export */ $color: (
+  primary:         #001e46, // RGB: 0, 30, 70. Use a light font, if this color is used as background.
+  primaryMidnight: #00122b, // RGB: 0, 18, 43. Only for dark backgrounds (e.g. a lightbox) with a light font.
+  attention:       #00b3ff, // RGB: 0, 179, 255.
+  attentionHigh:   #e6932b, // RGB: 230, 147, 43.
+  calmingGreen:    #5dae95, // RGB: 93, 174, 149. Use a light font, if this color is used as background.
+  impulseGreen:    #2ff3e0, // RGB: 47, 243, 224.
+  signalOk:        #5dae95, // same as calmingGreen
+  signalWarning:   #e6932b, // same as attentionHigh
+  signalError:     #b00020, // RGB: 176, 0, 32. Use a light font, if this color is used as background.
+  offWhite:        #fafbfc, // RGB: 250, 251, 252.
+  paleGray:        #f4f6f7, // RGB: 244, 246, 247. A transparent version of structureSilver with 3% transparency.
+  "lightGray":     #e8ebed, // RGB: 232, 235, 237. A transparent version of structureSilver with 9% transparency.
+  "gray":          #a4abb0, // RGB: 164, 171, 176. A transparent version of structureSilver with 44% transparency.
+  "darkGray":      #647078, // RGB: 100, 112, 120. A transparent version of structureSilver with 77% transparency. Use a light font, if this color is used as background.
+  structureSilver: #374650, // RGB: 55, 70, 80. The base of all shades of gray. Use a light font, if this color is used as background.
+  invisible:       rgba(0,0,0,0),
+);
+
+
+// The ground each colour makes as a background, light or dark - the one statement of which colours
+// ask for a light lettering. The mixin background() of the ground module reads it in SCSS, the
+// function isDarkColor() in TypeScript. "invisible" has no entry: a transparent background lets the
+// ground below show through instead of setting one of its own.
+/* export */ $ground: (
+  primary:         dark,
+  primaryMidnight: dark,
+  attention:       light,
+  attentionHigh:   light,
+  calmingGreen:    dark,
+  impulseGreen:    light,
+  signalOk:        dark,
+  signalWarning:   light,
+  signalError:     dark,
+  offWhite:        light,
+  paleGray:        light,
+  "lightGray":     light,
+  "gray":          light,
+  "darkGray":      dark,
+  structureSilver: dark,
+);
+
+
+// Function to get a color value from map "$color". For example: color(offWhite).
+@function color($keys...) {
+  @return map.get($color, $keys...);
+}
+
+
+// Function to return an rgba() function with a color value from map "$color", extended by an
+// numeric alpha value between 0 and 1. This alpha value must be given as last argument. For example
+// use it like colorA(primary, 0.35) to get "rgba(#001e46, 0.35)".
+@function colorA($keys...) {
+  $numKeys: list.length($keys);
+  $alpha: list.nth($keys, $numKeys);
+  $newKeys: ();
+
+  @for $i from 1 through ($numKeys - 1) {
+    $newKeys: list.append($newKeys, list.nth($keys, $i));
+  }
+
+  @return rgba(map.get($color, $newKeys...), $alpha);
+}

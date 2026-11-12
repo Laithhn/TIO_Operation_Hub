@@ -60,7 +60,7 @@ export function inDays(days: number, hour = 9): string {
 export function label(v?: string | null): string {
   if (!v) return '';
   const special: Record<string, string> = {
-    TIO: 'TIO', OtherItdDivision: 'Other ITD division', CustomerIT: 'Customer IT', UAT: 'UAT', DR: 'DR', VM: 'VM', vCPU: 'vCPU', PhysicalCore: 'Physical core',
+    Case: 'Ticket', Cases: 'Tickets', TIO: 'TIO', OtherItdDivision: 'Other ITD division', CustomerIT: 'Customer IT', UAT: 'UAT', DR: 'DR', VM: 'VM', vCPU: 'vCPU', PhysicalCore: 'Physical core',
     GB: 'GB', GiB: 'GiB', TB: 'TB', TiB: 'TiB', TCP: 'TCP', UDP: 'UDP', ICMP: 'ICMP', NAT: 'NAT', CustomerCloud: 'Customer Cloud', InternalOnPrem: 'Internal On-prem',
     LogicalEndpoint: 'Logical endpoint', RecordedContractualDeadline: 'Recorded deadline',
     Manager: 'TIO Manager', Engineer: 'Operation Engineer', OnPrem: 'On-prem', OneWay: 'One way', Dependencies: 'Firewall rules', TCPandUDP: 'TCP and UDP'
@@ -73,4 +73,18 @@ export function label(v?: string | null): string {
 export function qty(v?: number | null, unit?: string | null): string {
   if (v === null || v === undefined) return 'Unknown';
   return `${v}${unit ? ' ' + label(unit) : ''}`;
+}
+
+/**
+ * A105: a long description as a short title and the rest, for lists where one long text would make a row very tall.
+ * The title is the first line or first sentence, cut at a word near `max` characters; the rest follows it.
+ */
+export function splitTitle(text: string, max = 90): { title: string; rest: string } {
+  const t = (text ?? '').trim();
+  const line = t.split(/\r?\n/)[0].trim();
+  const sentence = line.match(/^(.{20,}?[.!?])\s/)?.[1] ?? line;
+  if (sentence.length <= max) return { title: sentence, rest: t.slice(sentence.length).trim() };
+  const cut = sentence.slice(0, max);
+  const at = cut.lastIndexOf(' ') > max * 0.6 ? cut.lastIndexOf(' ') : max;
+  return { title: cut.slice(0, at).replace(/[\s,;:.-]+$/, '') + '…', rest: '…' + t.slice(at).trim() };
 }

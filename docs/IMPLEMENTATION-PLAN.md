@@ -25,9 +25,9 @@ outside this session). The application is therefore built fresh against the stan
 src/TioHub.Api
   Common/          shared kernel: base entity, errors, validation, paging, CSV, time zones, link and secret guards
   Data/            HubDbContext (scope filters, audit-in-transaction), migrations, seeders
-  Security/        sign-in, user resolution, effective permissions (role + scope + grants)
+  Security/        sign-in, user resolution, the rights catalog, the endpoint table, effective rights
   Modules/
-    Access/        users, roles, scopes, grants, group mappings
+    Access/        users, roles, rights, scopes, exceptions, group mappings
     Clients/       clients, regions, projects, contacts, responsibility boundaries, Client 360
     Environments/  environments, condition reports, Environment 360
     Catalogue/     products, modules, versions, installations, version matrix
@@ -61,8 +61,8 @@ there are no speculative repositories or message buses.
 ## Technical assumptions (reversible, recorded here and in `docs/DECISIONS.md`)
 
 - Approved organization sign-in = Windows Integrated authentication through IIS (as the existing environment uses AD). Can be swapped for OIDC/Entra ID.
-- Users may hold several roles. Business data access needs a business role **and** a scope grant (client, project or internal team).
-  Application Administrator alone sees no client data; Export, Technical detail and Audit are separate grants.
+- Users may hold several roles. Business data access needs a right from a role **and** a data scope (client, project or internal team).
+  Application Administrator alone sees no client data; Export, Technical detail and Change history are separate rights.
 - Project scope grants the client summary plus records linked to that project (environments and their inventory, commitments, cases touching those environments).
 - Restore requires Team Lead or Manager within scope (administration alone is insufficient).
 - Approved link hosts, vault-reference prefix, coverage policy and review policies are configurable settings seeded with placeholder-safe defaults (no real hosts).
