@@ -1,6 +1,14 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.62.0', date: '12 November 2026', changes: [
+      'Tickets show their configured status in search, client and environment overviews; the Tickets report offers the configured statuses.',
+      'Change history records the saved id for items created in the same save, and shows large numbers exactly.',
+      'Hidden export details now explain why they are unavailable.',
+      'The ticket list uses the configured ticket type; the select-all column and phone notification layout are fixed.'
+    ]
+  },
+  {
     version: '2.61.0', date: '12 November 2026', changes: [
       'A result already reached under an SLA (met or breached) stays when the ticket priority changes; only what is still running takes the new target.',
       'Changing or removing the contract of a ticket that has an SLA result, or cancelling such a ticket, needs ticket coordination. The earlier result is kept on the timeline.',
