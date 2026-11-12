@@ -1680,7 +1680,7 @@ public class AC43_DeleteWithDependents(HubFactory hub) : Scenario(hub)
         Assert.Equal(0, ((await m.Get($"/dependents/clients/{c}")).Body!["delete"]!.AsArray().FirstOrDefault(g => g!["label"]!.GetValue<string>() == "Escalations")?["count"]?.GetValue<int>()) ?? 0);
 
         // Delete everything: the client and what it owns go; the sub-client stays as a main client; other clients are untouched.
-        var r = await m.Send(HttpMethod.Delete, $"/dependents/clients/{c}");
+        var r = await m.DeleteAll($"/dependents/clients/{c}");
         Assert.Equal(HttpStatusCode.OK, r.Status);
         Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/clients/{c}")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/assets/{app}")).Status);
@@ -1697,7 +1697,7 @@ public class AC43_DeleteWithDependents(HubFactory hub) : Scenario(hub)
         var srv = await m.Create("/assets", new { environmentId = env2, name = "stg01", type = "VM", ownerUserId = m.UserId });
         var pe = (await m.Get($"/dependents/environments/{env2}")).Body!;
         Assert.Contains(pe["delete"]!.AsArray(), g => g!["label"]!.GetValue<string>() == "Servers" && g["count"]!.GetValue<int>() == 1);
-        Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/environments/{env2}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await m.DeleteAll($"/dependents/environments/{env2}")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/assets/{srv}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/environments/{keepEnv}")).Status);
     }
@@ -1832,7 +1832,7 @@ public class AC46_Attachments(HubFactory hub) : Scenario(hub)
         var before = Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories).Length;
         var preview = (await m.Get($"/dependents/clients/{c}")).Body!;
         Assert.Contains(preview["delete"]!.AsArray(), g => g!["label"]!.GetValue<string>() == "Attachments");
-        Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/clients/{c}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await m.DeleteAll($"/dependents/clients/{c}")).Status);
         Assert.DoesNotContain(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories), f => File.ReadAllBytes(f).SequenceEqual(letter));
         Assert.True(Directory.GetFiles(Hub.AttachmentRoot, "*", SearchOption.AllDirectories).Length <= before - 3);
     }
@@ -1974,7 +1974,7 @@ public class AC47_PersonalNotes(HubFactory hub) : Scenario(hub)
         var linked = await e.Create("/notes/pages", new { sectionId = section, title = "Client call", clientId = c2, contentHtml = "<p>Call notes</p>" });
         var preview = (await m.Get($"/dependents/clients/{c2}")).Body!;
         Assert.DoesNotContain("Note", preview.ToJsonString());
-        Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/clients/{c2}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await m.DeleteAll($"/dependents/clients/{c2}")).Status);
         var after = (await e.Get($"/notes/pages/{linked}")).Body!;
         Assert.Null(after["clientId"]);
         Assert.True(after["linkGone"]!.GetValue<bool>());

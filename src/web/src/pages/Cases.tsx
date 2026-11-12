@@ -264,7 +264,7 @@ export function CaseDetail() {
       <PageHead title={`${c.ref} · ${c.title}`} crumbs={[{ to: '/cases', label: 'Tickets' }, ...(c.client ? [{ to: `/clients/${c.client.id}`, label: c.client.code }] : [{ label: 'Internal' }]), { label: c.ref }]}
         sub={<><StatusBadge value={c.statusCode} enumName="CaseStatus" />{c.status === 'Cancelled' && <span className="chip">Cancelled</span>} <StatusBadge value={c.priority} /> {T.name('CaseType', c.type)} · {c.scope === 'Internal' ? 'Internal work' : 'Client-related'} {c.waiting && <Badge tone="warn">Waiting on {label(c.waiting.reason)}</Badge>} {c.overdue && <Badge tone="bad">Overdue</Badge>} {c.ownerDeactivated && <Badge tone="bad">Owner deactivated</Badge>}</>}
         actions={<>
-          {p.canEdit && <Link className="btn" to={`/cases/${id}/edit`}>Edit</Link>}
+          {p.canEdit && open && <Link className="btn" to={`/cases/${id}/edit`}>Edit</Link>}
           {p.canTriage && <button className="btn btn-primary" onClick={() => setDialog('triage')}>Triage</button>}
           {p.canAssign && open && <button className="btn" onClick={() => setDialog('assign')}>{c.unassigned ? 'Assign' : 'Reassign'}</button>}
           {p.canStart && <button className="btn btn-primary" onClick={() => setDialog('start')}>Start work</button>}

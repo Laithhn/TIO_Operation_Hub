@@ -7,7 +7,7 @@
   },
   "servers": [
     {
-      "url": "http://127.0.0.1:5198/"
+      "url": "http://127.0.0.1:5094/"
     }
   ],
   "paths": {
@@ -1835,6 +1835,50 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/v1/contracts/{id}/payments/{paymentId}/status": {
+      "post": {
+        "tags": [
+          "Contracts"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "paymentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PaymentStatusInput"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "OK"
@@ -5118,6 +5162,18 @@
               "pattern": "^-?(?:0|[1-9]\\d*)$",
               "type": "integer",
               "format": "int64"
+            }
+          },
+          {
+            "name": "expected",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": [
+                "integer",
+                "string"
+              ],
+              "format": "int32"
             }
           }
         ],
@@ -10606,7 +10662,7 @@
         }
       }
     },
-    "/api/v1/dashboard/projects": {
+    "/api/v1/dashboard/clients": {
       "get": {
         "tags": [
           "Dashboard"
@@ -10663,7 +10719,7 @@
         }
       }
     },
-    "/api/v1/dashboard/projects/{id}": {
+    "/api/v1/dashboard/clients/{id}": {
       "get": {
         "tags": [
           "Dashboard"
@@ -10687,10 +10743,10 @@
         }
       }
     },
-    "/api/v1/projects/{id}/status-reports": {
+    "/api/v1/clients/{id}/status-reports": {
       "get": {
         "tags": [
-          "Projects"
+          "Clients"
         ],
         "parameters": [
           {
@@ -10712,7 +10768,7 @@
       },
       "post": {
         "tags": [
-          "Projects"
+          "Clients"
         ],
         "parameters": [
           {
@@ -12922,6 +12978,40 @@
             "type": [
               "null",
               "string"
+            ]
+          },
+          "gpuCount": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": [
+              "null",
+              "integer",
+              "string"
+            ],
+            "format": "int32"
+          },
+          "gpuModel": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "gpuMemoryQuantity": {
+            "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
+            "type": [
+              "null",
+              "number",
+              "string"
+            ],
+            "format": "double"
+          },
+          "gpuMemoryUnit": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MemoryUnit"
+              }
             ]
           }
         }
@@ -17158,6 +17248,39 @@
           null
         ]
       },
+      "PaymentStatusInput": {
+        "required": [
+          "status",
+          "paidOn",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentStatus"
+              }
+            ]
+          },
+          "paidOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
       "PenaltyCalculation": {
         "enum": [
           "FixedPerBreach",
@@ -17648,14 +17771,6 @@
           }
         }
       },
-      "ProjectReportedStatus": {
-        "enum": [
-          "OnTrack",
-          "AtRisk",
-          "OffTrack",
-          null
-        ]
-      },
       "ProjectStatus": {
         "enum": [
           "Planned",
@@ -17902,6 +18017,14 @@
           }
         },
         "additionalProperties": false
+      },
+      "ReportedStatus": {
+        "enum": [
+          "OnTrack",
+          "AtRisk",
+          "OffTrack",
+          null
+        ]
       },
       "ResolveInput": {
         "required": [
@@ -18814,7 +18937,7 @@
                 "type": "null"
               },
               {
-                "$ref": "#/components/schemas/ProjectReportedStatus"
+                "$ref": "#/components/schemas/ReportedStatus"
               }
             ]
           },

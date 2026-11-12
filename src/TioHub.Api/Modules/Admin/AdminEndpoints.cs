@@ -413,12 +413,17 @@ public static class AdminEndpoints
             var ids = me.ClientIds;
             var allInt = me.AllInternal;
             var teams = me.TeamIds;
+            var globalTypes = HubDbContext.GlobalAuditTypes.ToList();
+            var myId = me.UserId;
             q = q.Where(a =>
                 (canAccess && a.Category == "Access") ||
                 (canBusiness && a.Category != "Access" && (
                     (a.ClientId != null && (all || ids.Contains(a.ClientId.Value))) ||
                     (a.ClientId == null && a.TeamId != null && (allInt || teams.Contains(a.TeamId.Value))) ||
-                    (a.ClientId == null && a.TeamId == null && a.EntityType != "Case" && a.EntityType != "Commitment"))));
+                    // A111: entries without a client or team are global catalogue and configuration history. Anything else without
+                    // a scope (older child rows, handovers) is shown only to a reader with full scope, or to its own author.
+                    (a.ClientId == null && a.TeamId == null && a.EntityType != "Case" && a.EntityType != "Commitment"
+                        && ((all && allInt) || globalTypes.Contains(a.EntityType) || a.UserId == myId)))));
             if (!string.IsNullOrWhiteSpace(entityType)) q = q.Where(a => a.EntityType == entityType);
             if (entityId is not null) q = q.Where(a => a.EntityId == entityId);
             if (clientId is not null) q = q.Where(a => a.ClientId == clientId);
@@ -441,7 +446,10 @@ public static class AdminEndpoints
         g.MapGet("/exports", async (int? page, int? pageSize, HubDbContext db, UserContext me, CancellationToken ct) =>
         {
             if (!me.HasRight(RightKeys.Audit)) throw new ForbiddenException("Viewing the export log needs the Change history right.");
-            return Results.Ok(await db.ExportLogs.AsNoTracking().OrderByDescending(e => e.Id)
+            // A111: the filter text of an export can name clients. A reader without full scope sees only their own exports.
+            var full = me.AllClients && me.AllInternal;
+            var myId = me.UserId;
+            return Results.Ok(await db.ExportLogs.AsNoTracking().Where(e => full || e.UserId == myId).OrderByDescending(e => e.Id)
                 .Select(e => new { e.Id, e.At, e.Report, e.Filters, e.RowCount, user = db.Users.Where(u => u.Id == e.UserId).Select(u => u.AccountName).FirstOrDefault() })
                 .ToPagedAsync(PageQuery.From(page, pageSize), ct));
         });

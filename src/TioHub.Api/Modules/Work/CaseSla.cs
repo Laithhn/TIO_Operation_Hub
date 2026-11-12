@@ -279,8 +279,21 @@ public static class CaseSla
             {
                 var k = contracts.FirstOrDefault(x => x.Id == c.ContractId);
                 var entry = db.Entry(c);
+                // A111: on a priority change alone, an obligation that already has its result (met, breached, or pending past its
+                // deadline) keeps the target it was measured against; only obligations still running take the new priority's target.
+                var priorityOnly = entry.State == EntityState.Modified && !entry.Property(nameof(Case.ContractId)).IsModified;
+                var keepResponse = priorityOnly && HasResult(entry, nameof(Case.ResponseSlaStatus), nameof(Case.ResponseDueAt), now);
+                var keepResolution = priorityOnly && HasResult(entry, nameof(Case.ResolutionSlaStatus), nameof(Case.ResolutionDueAt), now);
+                var (responseMinutes, resolutionMinutes, basis) = (c.SlaResponseMinutes, c.SlaResolutionMinutes, c.SlaBasis);
                 // A61 refreshes SLA targets on priority changes; A63 retains the original penalty terms until a link changes.
                 Snapshot(c, k, k?.SlaTargets ?? [], now, refreshPenaltyTerms: entry.State == EntityState.Added || entry.Property(nameof(Case.ContractId)).IsModified);
+                if (k is not null && (keepResponse || keepResolution))
+                {
+                    if (keepResponse) c.SlaResponseMinutes = responseMinutes;
+                    if (keepResolution) c.SlaResolutionMinutes = resolutionMinutes;
+                    // One basis per ticket: a kept result decides it, so that result is not counted on another clock.
+                    c.SlaBasis = basis;
+                }
             }
         }
         var caseIds = entries.Select(e => e.Entity.Id).Where(id => id != 0).ToList();
@@ -292,6 +305,28 @@ public static class CaseSla
             var waits = stored.Where(w => w.CaseId == c.Id && tracked.All(t => t.Id != w.Id)).Concat(tracked.Where(t => t.CaseId == c.Id && (c.Id != 0 || c.WaitingIntervals.Contains(t)))).ToList();
             Evaluate(c, waits, now, trackingFrom);
         }
+    }
+
+    /// <summary>
+    /// A111: tickets that have an SLA result under a contract (response or resolution met or breached, or pending past the deadline).
+    /// Such a ticket is evidence for compliance figures and penalties: it is not deleted, and its contract link, priority targets and
+    /// cancellation are protected. A cancelled ticket has no result (not applicable) and is not matched.
+    /// </summary>
+    public static IQueryable<Case> WithResult(IQueryable<Case> cases, DateTimeOffset now) => cases.Where(c => c.ContractId != null
+        && (c.ResponseSlaStatus == SlaState.Met || c.ResponseSlaStatus == SlaState.Breached || (c.ResponseSlaStatus == SlaState.Pending && c.ResponseDueAt < now)
+            || c.ResolutionSlaStatus == SlaState.Met || c.ResolutionSlaStatus == SlaState.Breached || (c.ResolutionSlaStatus == SlaState.Pending && c.ResolutionDueAt < now)));
+
+    public static bool HasResult(Case c, DateTimeOffset now) => c.ContractId is not null
+        && (Now(c.ResponseSlaStatus, c.ResponseDueAt, now) is SlaState.Met or SlaState.Breached || Now(c.ResolutionSlaStatus, c.ResolutionDueAt, now) is SlaState.Met or SlaState.Breached);
+
+    public const string DeleteRefusal = "has an SLA result under its contract and is kept as evidence for compliance and penalties. A ticket raised by mistake can be cancelled by ticket coordination, with a reason; a cancelled ticket can be deleted.";
+
+    /// <summary>A111: the obligation had its result before this save: met, breached, or still stored as pending with its deadline passed.</summary>
+    private static bool HasResult(Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<Case> entry, string statusProperty, string dueProperty, DateTimeOffset now)
+    {
+        var status = (SlaState)entry.Property(statusProperty).OriginalValue!;
+        var due = (DateTimeOffset?)entry.Property(dueProperty).OriginalValue;
+        return Now(status, due, now) is SlaState.Met or SlaState.Breached;
     }
 
     /// <summary>A61: clears the snapshot and results of cases whose contract link was removed outside the case endpoints (cascade delete).</summary>

@@ -1,0 +1,8 @@
+{
+  "name": "tio-hub-audit-regression",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Independent audit regression suite for the TIO Operations Hub (development environment only).",
+  "scripts": { "test": "playwright test --trace off" },
+  "devDependencies": { "@playwright/test": "1.63.0" }
+}

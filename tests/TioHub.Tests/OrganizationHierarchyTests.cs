@@ -240,7 +240,7 @@ public class OrganizationHierarchyTests(HubFactory hub) : Scenario(hub)
         var sourceOrg = await Root(m, source);
         var destinationOrg = await Root(m, destination);
         await m.Create(Edges(destination), Edge(destinationOrg, sourceOrg, "Contractor"));
-        Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/clients/{source}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await m.DeleteAll($"/dependents/clients/{source}")).Status);
         var preserved = await m.Get($"/organizations/{sourceOrg}");
         Assert.Equal(HttpStatusCode.OK, preserved.Status);
         Assert.Null(preserved.Body!["clientId"]);

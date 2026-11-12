@@ -335,7 +335,27 @@ public static class Cascade
         return new Preview(label, del.Sum(g => g.Count), del, unlink);
     }
 
-    public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct)
+    /// <summary>
+    /// A111: tickets with an SLA result are evidence. Deleting them, or deleting the contract they were measured against (which would
+    /// clear the result), is refused, whichever record the deletion starts from.
+    /// </summary>
+    private static async Task RequireNoSlaEvidenceAsync(HubDbContext db, Plan plan, CancellationToken ct)
+    {
+        async Task<List<long>> OwnedAsync(Type type) => plan.Order.Any(t => t.ClrType == type) || plan.Root.ClrType == type
+            ? await db.Database.SqlQueryRaw<long>($"SELECT id AS [Value] FROM #own WHERE t = N'{type.Name}'").ToListAsync(ct) : [];
+        var caseIds = await OwnedAsync(typeof(Case));
+        var contractIds = await OwnedAsync(typeof(Contract));
+        if (caseIds.Count == 0 && contractIds.Count == 0) return;
+        var refs = await CaseSla.WithResult(db.Cases.IgnoreQueryFilters().AsNoTracking(), DateTimeOffset.UtcNow)
+            .Where(c => caseIds.Contains(c.Id) || (c.ContractId != null && contractIds.Contains(c.ContractId.Value)))
+            .OrderBy(c => c.Id).Select(c => c.Ref).Take(6).ToListAsync(ct);
+        if (refs.Count == 0) return;
+        var named = string.Join(", ", refs.Take(5)) + (refs.Count > 5 ? " and more" : "");
+        throw new ConflictException($"This would delete or unlink tickets that have an SLA result ({named}). Such a ticket {CaseSla.DeleteRefusal}",
+            new() { ["record"] = [$"Tickets with an SLA result: {named}."] });
+    }
+
+    public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct, int? expected = null)
     {
         var kind = KindOf(path);
         RightChecks.RequireRecordSection(me, kind.RecordType, "Delete");
@@ -358,6 +378,12 @@ public static class Cascade
         var deletedGroups = await GroupsAsync(db, plan, ct);
         var unlinkedGroups = await UnlinkGroupsAsync(db, plan, ct);
         RequireDependentPermissions(me, deletedGroups, unlinkedGroups);
+        // A111: the caller states how many related records it was shown; the server deletes only that reviewed set.
+        // Checked after the permission checks, so a caller without the rights is still told so.
+        if (expected is null) throw new PreconditionRequiredException();
+        if (deletedGroups.Sum(g => g.Count) != expected)
+            throw new DbUpdateConcurrencyException("The records that belong to this one changed after they were listed.");
+        await RequireNoSlaEvidenceAsync(db, plan, ct);
         // Raw SQL below can remove scopes, projects, or environments without EF change tracking.
         // Invalidate the derived authorization snapshots atomically with the graph deletion.
         await db.AdvanceAuthorizationVersionAsync(ct);
@@ -418,6 +444,7 @@ public static class Cascade
     {
         var g = api.MapGroup("/dependents").WithTags("Delete");
         g.MapGet("/{kind}/{id:long}", async (string kind, long id, HubDbContext db, UserContext me, CancellationToken ct) => Results.Ok(await PreviewAsync(db, me, kind, id, ct)));
-        g.MapDelete("/{kind}/{id:long}", async (string kind, long id, HubDbContext db, UserContext me, Attachments.AttachmentStore files, CancellationToken ct) => await DeleteAsync(db, files, me, kind, id, ct));
+        // A111: "expected" is the number of related records the preview listed (its total). Without it: 428. If it no longer matches: 412.
+        g.MapDelete("/{kind}/{id:long}", async (string kind, long id, int? expected, HubDbContext db, UserContext me, Attachments.AttachmentStore files, CancellationToken ct) => await DeleteAsync(db, files, me, kind, id, ct, expected));
     }
 }

@@ -170,14 +170,14 @@ public sealed class ScopedExceptionSqlIntegrationTests
         });
         var actor = await hub.As(account);
         Assert.Equal(HttpStatusCode.NotFound, (await actor.Get($"/dependents/contracts/{first.Id}")).Status);
-        var outOfScope = await actor.Send(HttpMethod.Delete, $"/dependents/contracts/{first.Id}");
+        var outOfScope = await actor.DeleteAll($"/dependents/contracts/{first.Id}");
         Assert.Equal(HttpStatusCode.NotFound, outOfScope.Status);
         Assert.Equal(HttpStatusCode.OK, (await admin.Get($"/contracts/{first.Id}")).Status);
 
         // In scope: the same actor previews and deletes without global scope.
         var preview = await actor.Get($"/dependents/contracts/{second.Id}");
         Assert.Equal(HttpStatusCode.OK, preview.Status);
-        var deleted = await actor.Send(HttpMethod.Delete, $"/dependents/contracts/{second.Id}");
+        var deleted = await actor.DeleteAll($"/dependents/contracts/{second.Id}");
         Assert.True(deleted.Status == HttpStatusCode.OK, $"{(int)deleted.Status}: {deleted.Text}");
         Assert.Equal(HttpStatusCode.NotFound, (await admin.Get($"/contracts/{second.Id}")).Status);
     });
@@ -200,7 +200,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         // The parent is visible, but deleting it would unlink a sub-client outside the actor's scope.
         Assert.Equal(HttpStatusCode.OK, (await actor.Get($"/clients/{parent}")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await actor.Get($"/dependents/clients/{parent}")).Status);
-        Assert.Equal(HttpStatusCode.NotFound, (await actor.Send(HttpMethod.Delete, $"/dependents/clients/{parent}")).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await actor.DeleteAll($"/dependents/clients/{parent}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await admin.Get($"/clients/{parent}")).Status);
         Assert.Equal(parent, (await admin.Get($"/clients/{child}")).Body!["parentClientId"]!.GetValue<long>());
     });
@@ -233,7 +233,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         var (_, id) = await Person(hub, admin, ContractsMaintain, roleHolds: true);
         Assert.Equal(HttpStatusCode.NoContent, (await SetExceptions(admin, id, new { key = ContractsMaintain, effect = "Deny", clientId })).Status);
         Assert.Contains("exception", (await admin.Get($"/dependents/clients/{clientId}")).Text, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal(HttpStatusCode.OK, (await admin.Send(HttpMethod.Delete, $"/dependents/clients/{clientId}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await admin.DeleteAll($"/dependents/clients/{clientId}")).Status);
         Assert.Empty((await admin.Get(Exceptions(id))).Body!["exceptions"]!.AsArray());
     });
 

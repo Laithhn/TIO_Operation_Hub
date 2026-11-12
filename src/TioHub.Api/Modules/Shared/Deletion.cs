@@ -178,6 +178,9 @@ public static partial class Deletion
             // A visible case may link to environments outside the caller's project. Deletion
             // removes the whole case and its links, not just the visible portion.
             if (x.ClientId is { } cid) RequireWholeClientScope(access.Me, cid);
+            // A111: a ticket with an SLA result is evidence and is not deleted.
+            if (Work.CaseSla.HasResult(x, DateTimeOffset.UtcNow))
+                throw new ConflictException($"Ticket {x.Ref} {Work.CaseSla.DeleteRefusal}", new() { ["record"] = ["Has an SLA result under its contract."] });
             return await RunAsync(db, files, access.Me, x, RecordTypes.Case, id, $"Ticket {x.Ref}", async () =>
             {
                 await db.CaseEnvironments.Where(r => r.CaseId == id).ExecuteDeleteAsync(ct);

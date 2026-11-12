@@ -1,0 +1,344 @@
+[
+[
+"01-auth-roles.spec.ts",
+"target is the development build (guard for every other test)",
+"passed",
+49
+],
+[
+"01-auth-roles.spec.ts",
+"unknown account is refused by the API",
+"passed",
+22
+],
+[
+"01-auth-roles.spec.ts",
+"state-changing call without antiforgery token is refused",
+"passed",
+13
+],
+[
+"01-auth-roles.spec.ts",
+"engineer cannot reach administration endpoints",
+"passed",
+34
+],
+[
+"01-auth-roles.spec.ts",
+"engineer cannot create clients, triage or reopen (Manage right)",
+"passed",
+17
+],
+[
+"01-auth-roles.spec.ts",
+"navigation hides Administration for an engineer and shows it for the manager",
+"passed",
+999
+],
+[
+"01-auth-roles.spec.ts",
+"protected admin route shows a refusal to an engineer",
+"passed",
+265
+],
+[
+"02-navigation.spec.ts",
+"every main section opens from the top bar without console errors",
+"passed",
+985
+],
+[
+"02-navigation.spec.ts",
+"deep link, refresh and back/forward keep the page and its filters",
+"passed",
+823
+],
+[
+"02-navigation.spec.ts",
+"unknown route shows the not-found page",
+"passed",
+245
+],
+[
+"02-navigation.spec.ts",
+"missing record shows a not-found message",
+"passed",
+276
+],
+[
+"02-navigation.spec.ts",
+"keyboard: skip link is first and focus is visible",
+"passed",
+893
+],
+[
+"02-navigation.spec.ts",
+"@defect top navigation tabs are fully visible at 1366x768",
+"failed",
+378
+],
+[
+"03-cases-ui-crud.spec.ts",
+"empty submit shows a summary and field errors, and marks fields invalid",
+"passed",
+560
+],
+[
+"03-cases-ui-crud.spec.ts",
+"create, find in list, open, cancel, and see it in the timeline",
+"passed",
+1968
+],
+[
+"03-cases-ui-crud.spec.ts",
+"double click on Create sends one request",
+"passed",
+532
+],
+[
+"03-cases-ui-crud.spec.ts",
+"leaving a dirty form asks for confirmation",
+"passed",
+1006
+],
+[
+"03-cases-ui-crud.spec.ts",
+"offline save keeps the entered values and reports the failure",
+"passed",
+609
+],
+[
+"03-cases-ui-crud.spec.ts",
+"server error on the list is shown with a trace id",
+"passed",
+3752
+],
+[
+"03-cases-ui-crud.spec.ts",
+"@defect read-only route guard: engineer-only form is not offered to a role without Edit",
+"failed",
+5711
+],
+[
+"04-business-rules.spec.ts",
+"case creation validates mandatory fields, lengths, time zones and secrets",
+"passed",
+47
+],
+[
+"04-business-rules.spec.ts",
+"case lifecycle: only valid transitions, optimistic concurrency, evidence on closure",
+"passed",
+412
+],
+[
+"04-business-rules.spec.ts",
+"two saves with the same version: one wins, one gets 412",
+"passed",
+56
+],
+[
+"04-business-rules.spec.ts",
+"contract SLA: target snapshot, single first response, contract of another client refused",
+"passed",
+127
+],
+[
+"04-business-rules.spec.ts",
+"contracts: date order, SLA target sanity, payment rules",
+"passed",
+32
+],
+[
+"04-business-rules.spec.ts",
+"commitments: reason for revision, completion time sanity, late result kept",
+"passed",
+1594
+],
+[
+"04-business-rules.spec.ts",
+"escalations: status path, mandatory resolution and reasons, level bounds",
+"passed",
+113
+],
+[
+"04-business-rules.spec.ts",
+"attachments: dangerous types refused, read needs access, delete limited to uploader",
+"passed",
+78
+],
+[
+"04-business-rules.spec.ts",
+"personal notes are private and sanitized",
+"passed",
+53
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-001 a priority change does not erase a recorded SLA breach",
+"failed",
+60435
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-002 an engineer cannot remove the contract from a breached case",
+"failed",
+60395
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-003 a first response cannot be back-dated after the deadline has passed without manager approval",
+"failed",
+60475
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-004 a closed case cannot be edited",
+"failed",
+202
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-004 the due date of a closed case cannot be changed",
+"failed",
+155
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-005 an owner cannot turn a missed commitment into \"Completed on time\" by revising the deadline alone",
+"failed",
+1563
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-006 identical case submissions in quick succession create one record",
+"failed",
+35
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created",
+"failed",
+23
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-008 a completed commitment cannot be edited",
+"failed",
+1555
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-009 a contract reference is unique within a client",
+"failed",
+21
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-010 another engineer cannot cancel a commitment they do not own",
+"failed",
+41
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-011 deleting a client with everything needs the record version",
+"failed",
+204
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received",
+"failed",
+17
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-013 an invalid enum value is reported against its field",
+"failed",
+13
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"case list: search, status filter, sort and pagination agree with the API",
+"passed",
+1051
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"empty search shows a distinct empty state",
+"passed",
+739
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"every dashboard KPI equals the size of its drill-down list",
+"passed",
+150
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"a new overdue synthetic case moves Open, Overdue and Unassigned by exactly one",
+"passed",
+199
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"overview page shows the same open-case figure as the API",
+"passed",
+619
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"report preview, CSV export and list agree; formulas are neutralised; download is owner-only",
+"passed",
+88
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at desktop 1920x1080",
+"passed",
+4148
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at laptop 1366x768",
+"passed",
+4112
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at tablet 768x1024",
+"passed",
+3948
+],
+[
+"07-responsive-journeys.spec.ts",
+"@defect no horizontal page overflow at mobile 390x844",
+"failed",
+895
+],
+[
+"07-responsive-journeys.spec.ts",
+"below 900 px the section menu becomes a drawer",
+"passed",
+411
+],
+[
+"07-responsive-journeys.spec.ts",
+"incident lifecycle: create, triage, assign, respond, wait, validate, close, audit history",
+"passed",
+250
+],
+[
+"07-responsive-journeys.spec.ts",
+"cross-module consistency: a case appears on the client page, in search and in the report",
+"passed",
+498
+],
+[
+"07-responsive-journeys.spec.ts",
+"cleanup: every synthetic regression record is removed",
+"passed",
+277
+]
+]

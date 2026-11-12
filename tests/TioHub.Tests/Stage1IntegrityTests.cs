@@ -121,7 +121,7 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         foreach (var path in new[] { $"/clients/{client}", $"/environments/{env}", $"/contracts/{contract}", $"/cases/{work}", $"/teams/{team}" })
             Assert.Equal(HttpStatusCode.Forbidden, (await limited.Send(HttpMethod.Delete, path)).Status);
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Get($"/dependents/clients/{client}")).Status);
-        Assert.Equal(HttpStatusCode.Forbidden, (await limited.Send(HttpMethod.Delete, $"/dependents/clients/{client}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await limited.DeleteAll($"/dependents/clients/{client}")).Status);
         var product = await m.Create("/products", new { code = U("PR"), name = "Unused product", isActive = true });
         Assert.Equal(HttpStatusCode.NoContent, (await limited.Send(HttpMethod.Delete, $"/products/{product}", ifMatch: await limited.Version($"/products/{product}"))).Status);
     }
@@ -134,18 +134,18 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         var env = await NewEnv(client, "Cascade child");
         var structureDelete = await Limited("ClientStructure:Delete");
         Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.Get($"/dependents/clients/{client}")).Status);
-        Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.Send(HttpMethod.Delete, $"/dependents/clients/{client}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.DeleteAll($"/dependents/clients/{client}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/environments/{env}")).Status);
         var both = await Limited("ClientStructure:Delete", "Environments:Delete");
-        var deletedClient = await both.Send(HttpMethod.Delete, $"/dependents/clients/{client}");
+        var deletedClient = await both.DeleteAll($"/dependents/clients/{client}");
         Assert.True(deletedClient.Status == HttpStatusCode.OK, deletedClient.Text);
 
         var other = await NewClient();
         var project = await Project(m, other);
         var keptEnv = await m.Create("/environments", new { clientId = other, projectId = project, name = "Keep this environment", type = "Production", criticality = "Normal", ownerUserId = m.UserId });
-        Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.Send(HttpMethod.Delete, $"/dependents/projects/{project}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await structureDelete.DeleteAll($"/dependents/projects/{project}")).Status);
         var unlinker = await Limited("Projects:Delete", "Environments:Maintain");
-        var deletedProject = await unlinker.Send(HttpMethod.Delete, $"/dependents/projects/{project}");
+        var deletedProject = await unlinker.DeleteAll($"/dependents/projects/{project}");
         Assert.True(deletedProject.Status == HttpStatusCode.OK, deletedProject.Text);
         Assert.Null((await m.Get($"/environments/{keptEnv}")).Body!["projectId"]);
     }
@@ -263,7 +263,7 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         var component = await m.Create("/components", new { installationId = inst, name = "Web", role = "Web", ownerUserId = m.UserId, hostAssetIds = new[] { asset } });
         var limited = await Limited("Installations:Delete");
         Assert.Equal(HttpStatusCode.Forbidden, (await limited.Send(HttpMethod.Delete, $"/installations/{inst}")).Status);
-        Assert.Equal(HttpStatusCode.Forbidden, (await limited.Send(HttpMethod.Delete, $"/dependents/installations/{inst}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await limited.DeleteAll($"/dependents/installations/{inst}")).Status);
         Assert.Single((await m.Get($"/components/{component}")).Body!["hosts"]!.AsArray());
         var both = await Limited("Installations:Delete", "Servers:Delete");
         Assert.Equal(HttpStatusCode.NoContent, (await both.Send(HttpMethod.Delete, $"/installations/{inst}")).Status);
@@ -286,10 +286,10 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         var flags = (await coordinator.Get($"/handovers/{handover}")).Body!["permissions"]!;
         Assert.True(flags["canCancel"]!.GetValue<bool>());
         var limited = await Limited("ClientStructure:Delete");
-        Assert.Equal(HttpStatusCode.Forbidden, (await limited.Send(HttpMethod.Delete, $"/dependents/clients/{client}")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await limited.DeleteAll($"/dependents/clients/{client}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await m.Get($"/handovers/{handover}")).Status);
         var both = await Limited("ClientStructure:Delete", "Teams:Delete");
-        Assert.Equal(HttpStatusCode.OK, (await both.Send(HttpMethod.Delete, $"/dependents/clients/{client}")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await both.DeleteAll($"/dependents/clients/{client}")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await m.Get($"/handovers/{handover}")).Status);
     }
 
@@ -312,7 +312,8 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
         var me = await http.GetAsync("/api/v1/me");
         var cookie = me.Headers.GetValues("Set-Cookie").First(x => x.StartsWith("XSRF-TOKEN="));
         http.DefaultRequestHeaders.Add("X-XSRF-TOKEN", Uri.UnescapeDataString(cookie.Split(';')[0]["XSRF-TOKEN=".Length..]));
-        var deleting = http.DeleteAsync($"/api/v1/dependents/projects/{project}");
+        var listed = (await limited.Get($"/dependents/projects/{project}")).Body?["total"]?.GetValue<int>();
+        var deleting = http.DeleteAsync($"/api/v1/dependents/projects/{project}{(listed is null ? "" : $"?expected={listed}")}");
         try
         {
             await barrier.Reached.Task.WaitAsync(TimeSpan.FromSeconds(20));
@@ -401,7 +402,7 @@ public class Stage1IntegrityTests(HubFactory hub) : Scenario(hub)
             Assert.Contains(preview["delete"]!.AsArray(), x => x!["type"]!.GetValue<string>() == "OrganizationRelationship");
             Assert.DoesNotContain(preview["unlink"]!.AsArray(), x => x!["type"]!.GetValue<string>() == "OrganizationRelationship");
         }
-        var deleted = await m.Send(HttpMethod.Delete, cascade ? $"/dependents/projects/{project}" : $"/projects/{project}");
+        var deleted = cascade ? await m.DeleteAll($"/dependents/projects/{project}") : await m.Send(HttpMethod.Delete, $"/projects/{project}");
         Assert.True(deleted.Status is HttpStatusCode.OK or HttpStatusCode.NoContent, deleted.Text);
         using var scope = Hub.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();

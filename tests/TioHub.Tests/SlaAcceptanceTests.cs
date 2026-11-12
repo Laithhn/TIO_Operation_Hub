@@ -182,8 +182,8 @@ public class AC61_ContractualSla(HubFactory hub) : Scenario(hub)
         // Deleting a contract with everything that belongs to it unlinks its cases, which are then no longer measured.
         var k3 = await m.Create("/contracts", Contract(project, m.UserId, 60, "FIC-SLA-3"));
         var gone = await SlaCase(m, c, k3);
-        await m.Ok($"/cases/{gone}/first-response", new { channel = "Email" }, V(gone));
-        Assert.Equal(HttpStatusCode.OK, (await m.Send(HttpMethod.Delete, $"/dependents/contracts/{k3}")).Status);
+        // A111: only while the ticket has no SLA result yet; with a result the deletion is refused (RecordIntegrityTests).
+        Assert.Equal(HttpStatusCode.OK, (await m.DeleteAll($"/dependents/contracts/{k3}")).Status);
         var gd = (await m.Get($"/cases/{gone}")).Body!;
         Assert.Null(gd["contract"]);
         Assert.Null(gd["sla"]!["applied"]);

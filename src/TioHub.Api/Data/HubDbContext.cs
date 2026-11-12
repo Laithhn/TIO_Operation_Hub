@@ -1580,11 +1580,15 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
                 await AdvanceAuthorizationVersionAsync(ct);
             var n = await base.SaveChangesAsync(acceptAllChangesOnSuccess, ct);
             var correlation = Activity.Current?.TraceId.ToString();
+            var parentScopes = new Dictionary<(string, long), (long?, long?)>();
             foreach (var p in pending)
             {
                 // TIO-BUG-002: before-values were captured before the save; the after-values of a modified row are read now, once
                 // generated keys are fixed up, so a foreign key to a row added in the same save records its real id, not EF's temporary one.
                 var changes = p.State == EntityState.Added ? AddedValues(p.Entry) : p.State == EntityState.Modified ? WithSavedValues(p.Entry, p.Changes!) : p.Changes!;
+                // A111: rows that do not carry a client themselves (SLA targets, payments, timeline events, project products…) take the
+                // client or team of the record they belong to, so the change history follows the reader's data scope.
+                var (scopeClient, scopeTeam) = await AuditScopeAsync(p.Entry.Entity, parentScopes, ct);
                 AuditEntries.Add(new AuditEntry
                 {
                     At = now,
@@ -1595,8 +1599,8 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
                     EntityType = EntityName(p.Entry.Entity.GetType()),
                     EntityId = KeyOf(p.Entry),
                     EntityLabel = LabelOf(p.Entry.Entity),
-                    ClientId = ClientOf(p.Entry.Entity),
-                    TeamId = TeamOf(p.Entry.Entity),
+                    ClientId = scopeClient,
+                    TeamId = scopeTeam,
                     Reason = AuditReason,
                     Changes = changes.Count == 0 ? null : JsonSerializer.Serialize(changes, AuditJson),
                     CorrelationId = correlation
@@ -1724,6 +1728,51 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         HandoverItem h => h.ClientId,
         ContractEnvironment c => c.ClientId,
         _ => null
+    };
+
+    /// <summary>
+    /// A111: the client or internal team an audit entry belongs to. A row with its own client or team keeps it; a child row is
+    /// resolved through its parent (contract, project, ticket, commitment, escalation or team). Null for global records.
+    /// </summary>
+    private async Task<(long? Client, long? Team)> AuditScopeAsync(object entity, Dictionary<(string, long), (long?, long?)> cache, CancellationToken ct)
+    {
+        var client = ClientOf(entity);
+        var team = TeamOf(entity);
+        if (client is not null || team is not null) return (client, team);
+        long? Parent(string property) => entity.GetType().GetProperty(property)?.GetValue(entity) as long?;
+        async Task<(long?, long?)> Via(string kind, long id, Func<Task<(long?, long?)>> load) =>
+            cache.TryGetValue((kind, id), out var known) ? known : cache[(kind, id)] = await load();
+        if (entity is Team t) return (null, t.Id == 0 ? null : t.Id);
+        if (entity is TeamMember member) return (null, member.TeamId);
+        if (Parent("ContractId") is { } contractId)
+            return await Via("Contract", contractId, async () => (await Contracts.IgnoreQueryFilters().Where(x => x.Id == contractId).Select(x => (long?)x.ClientId).FirstOrDefaultAsync(ct), null));
+        if (Parent("ProjectId") is { } projectId)
+            return await Via("Project", projectId, async () => (await Projects.IgnoreQueryFilters().Where(x => x.Id == projectId).Select(x => (long?)x.ClientId).FirstOrDefaultAsync(ct), null));
+        if (Parent("CaseId") is { } caseId)
+            return await Via("Case", caseId, async () =>
+            {
+                var c = await Cases.IgnoreQueryFilters().Where(x => x.Id == caseId).Select(x => new { x.ClientId, x.ResponsibleTeamId }).FirstOrDefaultAsync(ct);
+                return c is null ? (null, null) : (c.ClientId, c.ClientId is null ? c.ResponsibleTeamId : null);
+            });
+        if (Parent("CommitmentId") is { } commitmentId)
+            return await Via("Commitment", commitmentId, async () =>
+            {
+                var c = await Commitments.IgnoreQueryFilters().Where(x => x.Id == commitmentId).Select(x => new { x.ClientId, x.ResponsibleTeamId }).FirstOrDefaultAsync(ct);
+                return c is null ? (null, null) : (c.ClientId, c.ClientId is null ? c.ResponsibleTeamId : null);
+            });
+        if (Parent("EscalationId") is { } escalationId)
+            return await Via("Escalation", escalationId, async () => (await Escalations.IgnoreQueryFilters().Where(x => x.Id == escalationId).Select(x => (long?)x.ClientId).FirstOrDefaultAsync(ct), null));
+        return (null, null);
+    }
+
+    /// <summary>
+    /// A111: entity types whose history has no client or team because the record is global configuration or catalogue data
+    /// (products, versions, configured lists, review policies). Only these unscoped entries are shown to a reader without full scope.
+    /// </summary>
+    public static readonly HashSet<string> GlobalAuditTypes = new(StringComparer.Ordinal)
+    {
+        nameof(Product), nameof(ProductModule), nameof(ProductFeature), nameof(ProductMicroservice), nameof(ProductVersion),
+        nameof(MicroserviceVersion), nameof(ProductDeveloper), nameof(LookupValue), nameof(ReviewPolicy)
     };
 
     private static long? TeamOf(object entity) => entity switch
