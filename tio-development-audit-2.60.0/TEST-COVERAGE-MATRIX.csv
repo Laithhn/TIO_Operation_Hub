@@ -3,7 +3,7 @@ Environment,Development verification incl. Jira disabled,Config + runtime inspec
 Authentication,Development identities / unknown account / antiforgery,API + Playwright,01-auth-roles.spec.ts,Yes,Pass,
 Authentication,Forms and Windows sign-in,Not testable in this build,,No,Blocked,029
 Authorization,Administration endpoints and self-escalation,API,SEC-ADM; SEC-01..07; ROLE-04,Yes,Pass,
-Authorization,Per-client data scope: lists / 40 record routes / writes / dashboards / search / reports,API + Playwright,b3 run; 08-scope-and-penalties.spec.ts,Yes,Pass,
+Authorization,Per-client data scope: lists / 34 record routes / writes / dashboards / search / reports,API + Playwright,b3 run; 08-scope-and-penalties.spec.ts,Yes,Pass,
 Authorization,Change history and export log under scope,API,08-scope-and-penalties.spec.ts @defect,Yes,Fail,035
 Authorization,Route guards by right,Playwright,03-cases-ui-crud.spec.ts,Yes,Pass (fixed since 2.29.0),020
 Authorization,Record ownership inside a scope,API,OWN-01; COM-29,Yes,Fail (by design),010

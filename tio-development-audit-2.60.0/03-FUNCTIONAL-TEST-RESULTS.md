@@ -20,7 +20,7 @@ Everything listed as working in the first audit still works: validation, lifecyc
 
 New and verified:
 
-- **Per-client data scope.** A scoped engineer saw 1 of 18 clients, 6 of 31 tickets, 3 of 19 contracts; **40 record routes of another client answered 404 (two 403)**, five write attempts answered 404, creating a ticket on another client or linking another client's contract or ticket was refused. Dashboards, search, report previews and exports were filtered. One gap: change history (035).
+- **Per-client data scope.** A scoped engineer saw 1 of 18 clients, 6 of 31 tickets, 3 of 19 contracts; **34 record routes of another client answered 404 (two of them 403)**, five write attempts answered 404, creating a ticket on another client or linking another client's contract or ticket was refused. Dashboards, search, report previews and exports were filtered. One gap: change history (035).
 - **Granular rights.** Engineers are refused on administration and on create/archive/delete of client structure with a message naming the missing right; self-escalation through the user endpoint is refused.
 - **Configurable statuses.** Change-status cannot cross stages (cannot close, cannot skip triage); closing still needs outcome and evidence.
 - **Comments, client status reports, organisations, role cloning, user deletion with reason.**

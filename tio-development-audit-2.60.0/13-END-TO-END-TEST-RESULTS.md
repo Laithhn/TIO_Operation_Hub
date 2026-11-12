@@ -8,7 +8,7 @@
 | 4 | Management reporting | Known records → Tickets report preview → compare with list → CSV export → download → other user | **Pass.** Counts equal; owner-only download; formulas neutralised |
 | 5 | Cross-module consistency | Ticket → search → client's active work → filtered ticket list → dashboard counters before/after → cancel | **Pass** |
 | 6 | Invalid workflow | Wrong order, missing data, stale version, wrong role, cross-stage status change | **Pass for transitions; fail for post-closure edits and SLA/penalty integrity** (001–005, 008) |
-| 7 | Data scope (new) | Scoped engineer against lists, 40 record routes, writes, dashboards, search, reports, change history | **Pass except change history** (035) |
+| 7 | Data scope (new) | Scoped engineer against lists, 34 record routes, writes, dashboards, search, reports, change history | **Pass except change history** (035) |
 
 ## Automated suite — 63 tests, Chromium 1366×768
 
