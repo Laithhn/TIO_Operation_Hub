@@ -3,7 +3,7 @@
 Recorded on 16 October 2026 on a Windows 11 developer machine (SQL Server LocalDB 15.0, .NET SDK 10.0.401, Node 22.23.3, Microsoft Edge).
 Re-run with the commands in the README; results below are from actual runs, not expectations.
 
-**A111 record integrity (12 November 2026, after the independent audit of 2.60.0; not released, version unchanged) — verified on a Linux container, not the usual Windows machine** (Ubuntu 24.04, .NET SDK 10.0.115, SQL Server 2022 in a throwaway local container through `TIOHUB_TEST_SQL`/`TIOHUB_TEST_SQL_AUTH`, Node 22, Chromium). Re-run on Windows with LocalDB and Edge before a release.
+**2.61.0 (12 November 2026, record integrity A111, after the independent audit of 2.60.0) — verified on a Linux container, not the usual Windows machine** (Ubuntu 24.04, .NET SDK 10.0.115, SQL Server 2022 in a throwaway local container through `TIOHUB_TEST_SQL`/`TIOHUB_TEST_SQL_AUTH`, Node 22, Chromium). Re-run on Windows with LocalDB and Edge before a release.
 
 - Front end: `tsc -b` and `vite build` clean (entry chunk 900.63 kB, budget 902 kB); **268 front-end unit tests passed**.
 - `dotnet test tests/TioHub.Tests` (full run, 760 tests): **717 passed, 38 skipped, 5 failed**. The five failures are the environment ones already recorded for this container on 2.59.0 and reproduced on unmodified 2.60.0: `OrganizationMigrationTests`, `SchemaReadinessTests` and `GranularAuthorizationUpgradeTests` (Windows authentication, SSPI), `AC62_ReportingCenter` and `AC46_Attachments` (files on disk). `AC60_OperationsCommandCenter`, which failed once on unmodified 2.60.0 in this container, passed in this run and looks time-dependent.

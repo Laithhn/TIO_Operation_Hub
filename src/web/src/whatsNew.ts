@@ -1,6 +1,17 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.61.0', date: '12 November 2026', changes: [
+      'A result already reached under an SLA (met or breached) stays when the ticket priority changes; only what is still running takes the new target.',
+      'Changing or removing the contract of a ticket that has an SLA result, or cancelling such a ticket, needs ticket coordination. The earlier result is kept on the timeline.',
+      'After the response deadline has passed, a first response dated before it needs ticket coordination and a note.',
+      'Closed tickets and completed commitments can no longer be edited. Reopen them first.',
+      'A commitment deadline that has already passed is moved by commitment coordination only.',
+      'Tickets with an SLA result cannot be deleted, alone or with their client, project or contract.',
+      'Change history and the export log show only what belongs to the clients and teams you can see.'
+    ]
+  },
+  {
     version: '2.60.0', date: '10 November 2026', changes: [
       'The Project dashboard is now the Client dashboard: one recorded status per client, with signals across all its projects.',
       'The Management dashboard lists clients in its portfolio instead of projects.',
