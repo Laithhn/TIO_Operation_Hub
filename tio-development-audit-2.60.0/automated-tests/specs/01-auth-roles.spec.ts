@@ -15,7 +15,7 @@ test.describe('Authentication and role-based behaviour', () => {
   });
 
   test('state-changing call without antiforgery token is refused', async ({ request }) => {
-    const r = await request.post('/api/v1/cases', { data: {}, headers: { Cookie: `tiohub-dev-user=${encodeURIComponent(ENGINEER)}` } }); // no X-XSRF-TOKEN header
+    const r = await request.post('/api/v1/cases', { data: {}, headers: { Cookie: `tiohub-dev-user=${encodeURIComponent(MANAGER)}` } }); // a valid identity, but no X-XSRF-TOKEN header
     expect(r.status()).toBe(400);
   });
 

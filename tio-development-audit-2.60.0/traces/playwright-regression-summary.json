@@ -1,0 +1,443 @@
+[
+[
+"01-auth-roles.spec.ts",
+"target is the development build (guard for every other test)",
+"passed",
+55,
+""
+],
+[
+"01-auth-roles.spec.ts",
+"unknown account is refused by the API",
+"passed",
+29,
+""
+],
+[
+"01-auth-roles.spec.ts",
+"state-changing call without antiforgery token is refused",
+"passed",
+17,
+""
+],
+[
+"01-auth-roles.spec.ts",
+"engineer cannot reach administration endpoints",
+"passed",
+142,
+""
+],
+[
+"01-auth-roles.spec.ts",
+"engineer cannot create clients, triage or reopen (Manage right)",
+"passed",
+17,
+""
+],
+[
+"01-auth-roles.spec.ts",
+"administration is offered to the manager and refused to an engineer, in rights and in the browser",
+"passed",
+1074,
+""
+],
+[
+"01-auth-roles.spec.ts",
+"an engineer starts on My dashboard (A100)",
+"passed",
+356,
+""
+],
+[
+"02-navigation.spec.ts",
+"main sections open from the top bar without console errors",
+"passed",
+1145,
+""
+],
+[
+"02-navigation.spec.ts",
+"sections that do not fit are reachable from the More menu",
+"passed",
+421,
+""
+],
+[
+"02-navigation.spec.ts",
+"deep link, refresh and back/forward keep the page and its filters",
+"passed",
+1155,
+""
+],
+[
+"02-navigation.spec.ts",
+"@defect unknown route says the page does not exist",
+"failed",
+5231,
+"Error: expect(locator).toHaveText(expected) failed\n\nLocator: getByRole('heading', { level: 1 })\nExpected pattern: /not found/i\nReceive"
+],
+[
+"02-navigation.spec.ts",
+"missing record shows a not-found message with guidance",
+"passed",
+747,
+""
+],
+[
+"02-navigation.spec.ts",
+"keyboard: skip link is first and focus is visible",
+"passed",
+1343,
+""
+],
+[
+"02-navigation.spec.ts",
+"top navigation links are fully inside the viewport at 1366x768",
+"passed",
+1263,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"empty submit shows a summary and field errors, and marks fields invalid",
+"passed",
+1181,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"create, find in list, open, cancel, and see it in the timeline",
+"passed",
+3725,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"double click on Create sends one request",
+"passed",
+1405,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"leaving a dirty form asks for confirmation",
+"passed",
+1773,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"offline save keeps the entered values and reports the failure",
+"passed",
+1455,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"server error on the list is shown with a trace id",
+"passed",
+3738,
+""
+],
+[
+"03-cases-ui-crud.spec.ts",
+"route guard: the create form is not offered to a role without rights",
+"passed",
+1890,
+""
+],
+[
+"04-business-rules.spec.ts",
+"case creation validates mandatory fields, lengths, time zones and secrets",
+"passed",
+57,
+""
+],
+[
+"04-business-rules.spec.ts",
+"case lifecycle: only valid transitions, optimistic concurrency, evidence on closure",
+"passed",
+661,
+""
+],
+[
+"04-business-rules.spec.ts",
+"two saves with the same version: one wins, one gets 412",
+"passed",
+71,
+""
+],
+[
+"04-business-rules.spec.ts",
+"contract SLA: target snapshot, single first response, contract of another client refused",
+"passed",
+232,
+""
+],
+[
+"04-business-rules.spec.ts",
+"contracts: date order, SLA target sanity, payment rules",
+"passed",
+72,
+""
+],
+[
+"04-business-rules.spec.ts",
+"commitments: reason for revision, completion time sanity, late result kept",
+"passed",
+1648,
+""
+],
+[
+"04-business-rules.spec.ts",
+"escalations: status path, mandatory resolution and reasons, level bounds",
+"passed",
+168,
+""
+],
+[
+"04-business-rules.spec.ts",
+"attachments: dangerous types refused, read needs access, delete limited to uploader",
+"passed",
+109,
+""
+],
+[
+"04-business-rules.spec.ts",
+"personal notes are private and sanitized",
+"passed",
+64,
+""
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"case list: search, status filter, sort and pagination agree with the API",
+"passed",
+3273,
+""
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"empty search shows a distinct empty state",
+"passed",
+1537,
+""
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"every dashboard KPI equals the size of its drill-down list",
+"passed",
+175,
+""
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"a new overdue synthetic case moves Open, Overdue and Unassigned by exactly one",
+"passed",
+253,
+""
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"overview page shows the same open-case figure as the API",
+"passed",
+1209,
+""
+],
+[
+"06-tables-dashboard-reports.spec.ts",
+"report preview, CSV export and list agree; formulas are neutralised; download is owner-only",
+"passed",
+127,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at desktop 1920x1080",
+"passed",
+6512,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at laptop 1366x768",
+"passed",
+6484,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at tablet 768x1024",
+"passed",
+6328,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"no horizontal page overflow at mobile 390x844",
+"passed",
+6368,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"below 900 px the section menu becomes a drawer",
+"passed",
+409,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"incident lifecycle: create, triage, assign, respond, wait, validate, close, audit history",
+"passed",
+476,
+""
+],
+[
+"07-responsive-journeys.spec.ts",
+"cross-module consistency: a case appears on the client page, in search and in the report",
+"passed",
+1519,
+""
+],
+[
+"08-scope-and-penalties.spec.ts",
+"lists show only records of clients in scope",
+"passed",
+241,
+""
+],
+[
+"08-scope-and-penalties.spec.ts",
+"records of another client answer 404 on read and write",
+"passed",
+588,
+""
+],
+[
+"08-scope-and-penalties.spec.ts",
+"dashboards, search and reports follow the scope",
+"passed",
+508,
+""
+],
+[
+"08-scope-and-penalties.spec.ts",
+"@defect change history does not show child records of clients outside the scope",
+"failed",
+71,
+"Error: expect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 77\n\n- Array []\n+ A"
+],
+[
+"08-scope-and-penalties.spec.ts",
+"TIO-260-AUDIT-001/002/003/011 an indicative penalty is not removed by priority change, contract unlink, back-dated response or delete",
+"failed",
+61634,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 4000\nReceived: 0"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-001 a priority change does not erase a recorded SLA breach",
+"failed",
+60658,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Breached\"\nReceived: \"Pending\""
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-002 an engineer cannot remove the contract from a breached case",
+"failed",
+60578,
+"Error: expect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 400\nReceived:    204"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-003 a first response cannot be back-dated after the deadline has passed without manager approval",
+"failed",
+60631,
+"Error: expect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 400\nReceived:    204"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-004 a closed case cannot be edited",
+"failed",
+255,
+"Error: expect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 400\nReceived:    204"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-004 the due date of a closed case cannot be changed",
+"failed",
+222,
+"Error: expect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 400\nReceived:    204"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-005 an owner cannot turn a missed commitment into \"Completed on time\" by revising the deadline alone",
+"failed",
+1599,
+"Error: expect(received).not.toBe(expected) // Object.is equality\n\nExpected: not \"Completed on time\""
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-006 identical case submissions in quick succession create one record",
+"failed",
+111,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 1\nReceived: 3"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-007 a due date in the past is refused when a case or commitment is created",
+"failed",
+32,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 422\nReceived: 201"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-008 a completed commitment cannot be edited",
+"failed",
+1587,
+"Error: expect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 400\nReceived:    204"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-009 a contract reference is unique within a client",
+"failed",
+34,
+"Error: expect(received).toBeGreaterThanOrEqual(expected)\n\nExpected: >= 400\nReceived:    201"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-010 another engineer cannot cancel a commitment they do not own",
+"failed",
+49,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 403\nReceived: 204"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-011 deleting a client with everything needs the record version",
+"failed",
+2528,
+"Error: expect(received).toContain(expected) // indexOf\n\nExpected value: 200\nReceived array: [412, 428]"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-012 escalation targets cannot be earlier than the time it was received",
+"failed",
+25,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 422\nReceived: 201"
+],
+[
+"05-known-defects.spec.ts",
+"TIO-DEV-AUDIT-013 an invalid enum value is reported against its field",
+"failed",
+14,
+"Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 422\nReceived: 400"
+],
+[
+"07-responsive-journeys.spec.ts",
+"cleanup: every synthetic regression record is removed",
+"passed",
+1563,
+""
+]
+]
