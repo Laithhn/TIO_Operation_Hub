@@ -118,7 +118,7 @@ public sealed class AuthorizationBoundarySqlIntegrationTests
         Assert.Equal(HttpStatusCode.OK, (await scoped.Get($"/projects/{projectId}")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await scoped.Send(HttpMethod.Delete, $"/clients/{clientId}")).Status);
         Assert.Equal(HttpStatusCode.NotFound, (await scoped.Get($"/dependents/clients/{clientId}")).Status);
-        Assert.Equal(HttpStatusCode.NotFound, (await scoped.Send(HttpMethod.Delete, $"/dependents/clients/{clientId}")).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await scoped.DeleteAll($"/dependents/clients/{clientId}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await admin.Get($"/clients/{clientId}")).Status);
         Assert.Equal(HttpStatusCode.OK, (await admin.Get($"/projects/{projectId}")).Status);
     });

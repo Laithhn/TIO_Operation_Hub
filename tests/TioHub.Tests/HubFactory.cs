@@ -154,6 +154,14 @@ public sealed class Api(HttpClient http, HttpStatusCode signIn)
         return new Res(res.StatusCode, json, res.Headers.ETag?.Tag.Trim('"'), text);
     }
 
+    /// <summary>A111: delete-with-everything states the number of related records the preview listed.</summary>
+    public async Task<Res> DeleteAll(string path)
+    {
+        var preview = await Get(path);
+        // Without the right to preview there is no count; the server then answers for the permission, as before.
+        return await Send(HttpMethod.Delete, preview.Body?["total"] is { } total ? $"{path}?expected={total.GetValue<int>()}" : path);
+    }
+
     public Task<Res> Get(string path) => Send(HttpMethod.Get, path);
     public Task<Res> Post(string path, object? body = null, string? ifMatch = null) => Send(HttpMethod.Post, path, body ?? new { }, ifMatch);
     public Task<Res> Put(string path, object body, string? ifMatch = null) => Send(HttpMethod.Put, path, body, ifMatch);

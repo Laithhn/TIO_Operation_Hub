@@ -357,8 +357,6 @@ public static class Cascade
 
     public static async Task<IResult> DeleteAsync(HubDbContext db, Attachments.AttachmentStore files, UserContext me, string path, long id, CancellationToken ct, int? expected = null)
     {
-        // A111: the caller states how many records it was shown; the server deletes only that reviewed set.
-        if (expected is null) throw new PreconditionRequiredException();
         var kind = KindOf(path);
         RightChecks.RequireRecordSection(me, kind.RecordType, "Delete");
         me.RequireRight(RightKeys.ForRecord(kind.RecordType), RightKeys.Delete);
@@ -380,6 +378,9 @@ public static class Cascade
         var deletedGroups = await GroupsAsync(db, plan, ct);
         var unlinkedGroups = await UnlinkGroupsAsync(db, plan, ct);
         RequireDependentPermissions(me, deletedGroups, unlinkedGroups);
+        // A111: the caller states how many related records it was shown; the server deletes only that reviewed set.
+        // Checked after the permission checks, so a caller without the rights is still told so.
+        if (expected is null) throw new PreconditionRequiredException();
         if (deletedGroups.Sum(g => g.Count) != expected)
             throw new DbUpdateConcurrencyException("The records that belong to this one changed after they were listed.");
         await RequireNoSlaEvidenceAsync(db, plan, ct);

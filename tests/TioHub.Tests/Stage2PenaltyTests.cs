@@ -213,7 +213,8 @@ public class Stage2PenaltyTests(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
-    public async Task Priority_refreshes_sla_targets_but_only_unlinking_and_relinking_refreshes_penalty_terms()
+    // A111 narrows A66: the response of this ticket is already breached, so it keeps the target it was measured against.
+    public async Task Priority_keeps_a_reached_sla_result_and_only_unlinking_and_relinking_refreshes_penalty_terms()
     {
         var (m, client, contract, clause) = await Agreement();
         var id = await LinkedCase(m, client, contract);
@@ -225,9 +226,11 @@ public class Stage2PenaltyTests(HubFactory hub) : Scenario(hub)
             (await db.Set<ContractPenaltyClause>().SingleAsync(x => x.Id == clause)).FixedAmount = 500m;
             await db.SaveChangesAsync();
             var c = await db.Cases.SingleAsync(x => x.Id == id);
+            var measuredAgainst = c.SlaResponseMinutes;
             c.Priority = Priority.Normal;
             await db.SaveChangesAsync();
-            Assert.Equal(120, c.SlaResponseMinutes);
+            Assert.Equal(SlaState.Breached, c.ResponseSlaStatus);
+            Assert.Equal(measuredAgainst, c.SlaResponseMinutes);
             Assert.Equal(original, c.PenaltyTermsSnapshotJson);
         }
         await m.Ok($"/cases/{id}/contract", new { contractId = (long?)null, reason = "Relink test" }, await m.Version($"/cases/{id}"));
