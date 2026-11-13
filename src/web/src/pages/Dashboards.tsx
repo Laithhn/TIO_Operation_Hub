@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
@@ -700,16 +700,16 @@ export function ManagementDashboard() {
 type Cli = {
   evaluatedAt: string;
   client: { id: number; code: string; name: string; recordStatus: string; owner?: string | null; country?: string | null; products: { id: number; code: string; name: string }[] };
-  projects: { id: number; code: string; name: string; status: string; running: boolean; owner?: string | null; serviceStart?: string | null; serviceEnd?: string | null; contracts: number }[];
+  projects: { id: number; code: string; name: string; status: string; running: boolean; owner?: string | null; serviceStart?: string | null; serviceEnd?: string | null; contracts: number; inYears: boolean }[];
   status: {
     recorded?: { status: string; summary: string; nextReviewOn?: string | null; recordedAt: string; recordedBy?: string | null; ageDays: number } | null;
     agreement: string; agreementText: string; stale: boolean; maxAgeDays: number; canRecord: boolean;
     history: { id: number; status: string; summary: string; nextReviewOn?: string | null; recordedAt: string; recordedBy?: string | null }[];
   };
   signals: SignalT[];
-  contracts: { id: number; ref: string; title: string; type: string; status: string; startDate?: string | null; endDate?: string | null; noticeDeadline?: string | null; state: string; projectId: number; projectCode?: string | null }[];
+  contracts: { id: number; ref: string; title: string; type: string; status: string; startDate?: string | null; endDate?: string | null; noticeDeadline?: string | null; state: string; projectId: number; projectCode?: string | null; inYears: boolean }[];
   milestones: { contractId: number; contractRef: string; phase: string; description?: string | null; date?: string | null; percent?: number | null; state: string }[];
-  payments: { id: number; contractId: number; contractRef: string; condition: string; amount?: number | null; currency?: string | null; dueDate?: string | null; status: string; paidOn?: string | null; state: string }[];
+  payments: { id: number; contractId: number; contractRef: string; condition: string; amount?: number | null; currency?: string | null; dueDate?: string | null; status: string; paidOn?: string | null; state: string; yearDate?: string | null; inYears: boolean }[];
   cases: { open: number; overdue: number; link: string; byPriority: BarT[]; list: { id: number; ref: string; title: string; priority: string; status: string; owner?: string | null; dueAt?: string | null; overdue: boolean }[] };
   sla: { target: number; windowDays: number; response: Tally; resolution: Tally; openBreached: number; link: string };
   escalations: { id: number; ref: string; title: string; level: number; status: string; owner: string; receivedAt: string; overdue: boolean }[];
@@ -717,62 +717,133 @@ type Cli = {
   environments: { id: number; name: string; type: string; condition: ConditionT; reason?: string | null; installations: { product: string; version?: string | null }[] }[];
   team: { note: string; members: { userId: number; name: string; role: string; active: boolean }[] };
   activity: { at: string; text: string; link: string }[];
+  // A113 Client 360: the selected years and the sections worked out for them.
+  period: { all: boolean; years: number[]; label: string; contiguous: boolean; current: number; firstYear: number; lastYear: number; timeZone: string; from?: string | null; to?: string | null };
+  tickets: { opened: number; open: number; closed: number; overdue: number; openOtherYears: number; link: string; linkExact: boolean; byPriority: BarT[];
+    list: { id: number; ref: string; title: string; priority: string; status: string; owner?: string | null; dueAt?: string | null; overdue: boolean }[] };
+  slaYears: { target: number; response: Tally; resolution: Tally; openBreached: number; tickets: number; link: string };
+  escalationsYears: { raised: number; active: number; overdue: number; activeOtherYears: number; link: string;
+    list: { id: number; ref: string; title: string; level: number; status: string; active: boolean; owner: string; receivedAt: string; overdue: boolean }[] };
+  commitmentsYears: { due: number; open: number; overdue: number; completed: number; completedLate: number; openOtherYears: number; link: string;
+    list: { id: number; ref: string; description: string; dueAt: string; owner?: string | null; overdue: boolean }[] };
+  paymentsOverdueOtherYears: number;
 };
 const PAY_STATE: Record<string, { tone: Tone; label: string }> = {
   paid: { tone: 'good', label: 'Paid' }, waived: { tone: 'neutral', label: 'Waived' }, overdue: { tone: 'bad', label: 'Overdue' }, due: { tone: 'warn', label: 'Due soon' },
   upcoming: { tone: 'neutral', label: 'Upcoming' }, closed: { tone: 'neutral', label: 'Contract terminated' }
 };
-const VERDICT_CLASS: Record<string, string> = { OnTrack: 'good', AtRisk: 'warn', OffTrack: 'bad' };
+const CONTRACT_STATE: Record<string, string> = { Current: 'Current', RenewalDue: 'Renewal due', EndDateUnknown: 'End date unknown', Expired: 'Ended, still Active', Draft: 'Draft', Ended: 'Ended', Terminated: 'Terminated' };
 const PROJECT_STATUS: Record<string, string> = { Planned: 'Planned', Active: 'Active', OnHold: 'On hold', Completed: 'Completed', Archived: 'Archived' };
 
-/** Milestones on one time axis: filled = complete, red = late, hollow = planned; a line at today. */
-function MilestoneTimeline({ items }: { items: Cli['milestones'] }) {
-  const dated = items.filter(m => m.date);
-  if (dated.length === 0) return <div className="viz-empty">No dated milestone is recorded on the client's contracts.</div>;
-  const times = dated.map(m => new Date(m.date!).getTime());
-  const now = Date.now();
-  const lo = Math.min(...times, now), hi = Math.max(...times, now);
-  const pad = Math.max((hi - lo) * 0.06, 86400000 * 3);
-  const W = 760, L = 16, R = 16, H = 132, mid = 62;
-  const x = (t: number) => L + ((t - (lo - pad)) / (hi - lo + 2 * pad)) * (W - L - R);
-  const today = x(now);
+/** A113: the years Client 360 covers — any set of calendar years, ticked together, or all years. '' in the address = this year. */
+function YearPicker({ period, value, onChange }: { period: Cli['period']; value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === 'Escape' : !box.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', close); document.addEventListener('keydown', close);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
+  }, [open]);
+  const years: number[] = [];
+  for (let y = period.lastYear; y >= period.firstYear; y--) years.push(y);
+  // The ticks follow the address at once, not the figures still loading for it.
+  const all = value === 'all';
+  const chosen = new Set(all ? [] : value ? value.split(',').map(Number).filter(Number.isInteger) : [period.current]);
+  const set = (ys: number[]) => {
+    const sorted = [...new Set(ys)].sort((a, b) => a - b);
+    onChange(sorted.length === 1 && sorted[0] === period.current ? '' : sorted.join(','));
+  };
+  const toggle = (y: number) => {
+    // From All years, a click on a year starts a new selection with that year.
+    if (all) { set([y]); return; }
+    const next = new Set(chosen);
+    if (next.has(y)) next.delete(y); else next.add(y);
+    if (next.size > 0) set([...next]);
+  };
   return (
-    <div className="viz-wrap">
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Milestones: ${dated.map(m => `${m.phase} ${fmtDate(m.date)} ${m.state}`).join('; ')}`}>
-        <line x1={L} x2={W - R} y1={mid} y2={mid} stroke="#e2e4e8" strokeWidth={4} strokeLinecap="round" />
-        <line x1={L} x2={today} y1={mid} y2={mid} stroke={SERIES.blue} strokeWidth={4} strokeLinecap="round" />
-        <line x1={today} x2={today} y1={mid - 20} y2={mid + 20} stroke={STATUS.critical} strokeWidth={2} />
-        <text x={today} y={mid + 33} className="tick" textAnchor="middle" style={{ fill: STATUS.critical, fontWeight: 600 }}>Today</text>
-        {dated.map((m, i) => {
-          const xx = x(new Date(m.date!).getTime());
-          const up = i % 2 === 0;
-          const anchor = xx < 110 ? 'start' : xx > W - 110 ? 'end' : 'middle';
-          const fill = m.state === 'Done' ? SERIES.blue : m.state === 'Late' ? STATUS.critical : '#fff';
-          return (
-            <g key={i}>
-              <title>{`${m.phase} · ${fmtDate(m.date)} · ${m.percent ?? 0} % complete · ${m.state} (${m.contractRef})`}</title>
-              <circle cx={xx} cy={mid} r={7} fill={fill} stroke={m.state === 'Planned' ? RAMP[3] : '#fff'} strokeWidth={2} />
-              <text x={xx} y={up ? mid - 30 : mid + 50} className="end-label" textAnchor={anchor}>{m.phase.length > 26 ? `${m.phase.slice(0, 25)}…` : m.phase}</text>
-              <text x={xx} y={up ? mid - 17 : mid + 63} className="tick" textAnchor={anchor} style={m.state === 'Late' ? { fill: STATUS.critical, fontWeight: 600 } : undefined}>
-                {fmtDate(m.date)} · {m.percent ?? 0} %{m.state === 'Late' ? ' · late' : ''}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
-      <div className="legend"><span><span className="key" style={{ background: SERIES.blue }} />Complete</span><span><span className="key" style={{ background: STATUS.critical }} />Late</span><span>○ Planned</span></div>
+    <div className="field c360-years" ref={box}>
+      <span className="label" id="c360-years-l">Years</span>
+      <button type="button" className="c360-years-btn" aria-haspopup="true" aria-expanded={open} aria-labelledby="c360-years-l c360-years-v" onClick={() => setOpen(v => !v)}>
+        <span id="c360-years-v">{yearsText(period)}</span><span aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div className="c360-years-pop" role="group" aria-label="Choose years">
+          <div className="c360-years-presets">
+            <button type="button" className="linkbtn" onClick={() => set([period.current])}>This year</button>
+            <button type="button" className="linkbtn" onClick={() => set([period.current - 1, period.current])}>Last 2 years</button>
+            <button type="button" className="linkbtn" onClick={() => onChange('all')}>All years</button>
+          </div>
+          <p className="hint">{all ? 'All years are included. Click a year to choose years instead.' : 'Tick one or more years.'}</p>
+          <div className="c360-years-list">
+            {years.map(y => (
+              <label key={y} className="check">
+                <input type="checkbox" checked={all || chosen.has(y)} onChange={() => toggle(y)} />
+                {y}{y === period.current ? ' (this year)' : ''}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+function yearsText(p: Cli['period']) {
+  if (p.all) return 'All years';
+  if (p.years.length === 1 && p.years[0] === p.current) return `This year (${p.current})`;
+  return p.label;
+}
+const inText = (p: Cli['period']) => (p.all ? 'in any year' : `in ${p.label}`);
 
-/** A109: what is the status of this client — the recorded status first, the rule-based signals beside it, the records of all its projects below. */
+/** Totals per currency: "AED 80,000 · USD 2,000"; terms without an amount are counted, not summed. */
+function money(rows: Cli['payments']) {
+  const by = new Map<string, number>();
+  for (const r of rows) if (r.amount != null) by.set(r.currency ?? '', (by.get(r.currency ?? '') ?? 0) + r.amount);
+  if (by.size === 0) return rows.length ? 'No amount' : '0';
+  return [...by].map(([c, n]) => `${c ? `${c} ` : ''}${n.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`).join(' · ');
+}
+const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+function C360Section({ id, no, title, hint, children, actions }: { id: string; no: string; title: string; hint?: ReactNode; children: ReactNode; actions?: ReactNode }) {
+  return (
+    <section className="panel c360-sec" id={id} aria-labelledby={`${id}-h`}>
+      <div className="c360-sec-head">
+        <h2 id={`${id}-h`}><span className="c360-no">{no}</span>{title}</h2>
+        {hint && <span className="hint">{hint}</span>}
+        {actions && <span className="c360-sec-act">{actions}</span>}
+      </div>
+      <div className="c360-sec-body">{children}</div>
+    </section>
+  );
+}
+function C360Row({ to, title, right, sub, tone }: { to: string; title: ReactNode; right?: ReactNode; sub?: ReactNode; tone?: Tone }) {
+  return (
+    <li className="c360-row">
+      <div className="c360-row-top"><Link to={to}>{title}</Link>{right && <span className={tone ? `c360-right t-${tone}` : 'c360-right'}>{right}</span>}</div>
+      {sub && <div className="c360-row-sub">{sub}</div>}
+    </li>
+  );
+}
+
+const PAY_BUCKETS = [
+  { key: 'paid', label: 'Paid', glyph: '●', tone: 'good', states: ['paid'] },
+  { key: 'upcoming', label: 'Upcoming', glyph: '○', tone: 'info', states: ['upcoming', 'due'] },
+  { key: 'overdue', label: 'Overdue', glyph: '■', tone: 'bad', states: ['overdue'] }
+] as const;
+const C360_SECTIONS = ['projects', 'contracts', 'payments', 'sla', 'tickets', 'escalations', 'commitments'] as const;
+
+/** A113 (owner request, 12 Nov 2026): Client 360 — one client, seven sections, for the years the reader ticks. The recorded status and its signals stay one click away. */
 export function ClientDashboard() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ clientId: '' });
+  const [f, set] = useUrlState({ clientId: '', years: '' });
   const [dialog, setDialog] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSignals, setShowSignals] = useState(false);
+  const [showHow, setShowHow] = useState(false);
+  const [allPayments, setAllPayments] = useState(false);
+  const [allProjects, setAllProjects] = useState(false);
   const list = useQuery({ queryKey: ['dash-clients'], queryFn: () => get<{ items: PortfolioRow[] }>('/dashboard/clients') });
-  const q = useQuery({ queryKey: ['dash-client', f.clientId], queryFn: () => get<Cli>(`/dashboard/clients/${f.clientId}`), enabled: !!f.clientId, placeholderData: keepPreviousData });
+  const q = useQuery({ queryKey: ['dash-client', f.clientId, f.years], queryFn: () => get<Cli>(`/dashboard/clients/${f.clientId}${qs({ years: f.years || undefined })}`), enabled: !!f.clientId, placeholderData: keepPreviousData });
   const refresh = useRefreshAll(['dash-client', 'dash-clients']);
   // Open on the first client of the list (the one needing most attention) when none is chosen.
   useEffect(() => { if (!f.clientId && list.data?.items.length) set({ clientId: String(list.data.items[0].id) }); }, [f.clientId, list.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -782,169 +853,242 @@ export function ClientDashboard() {
   if (d && !options.some(o => o.value === String(d.client.id))) options.unshift({ value: String(d.client.id), label: `${d.client.code} · ${d.client.name}` });
   const rec = d?.status.recorded;
   const words = rec ? STATUS_WORDS[rec.status] : null;
-  return (
-    <div className="dash">
-      <PageHead title="Client dashboard"
-        sub={<>What is the status of this client, across its projects? {d && <span className="cc-fresh">As of {fmtDateTime(d.evaluatedAt)} ({me.timeZone}).</span>}</>}
-        actions={<>
-          <button className="btn" onClick={refresh} disabled={q.isFetching}>{q.isFetching ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
-          {d && <Link className="btn" to={`/clients/${d.client.id}`}>Client record</Link>}
-          {d?.status.canRecord && <button className="btn btn-primary" onClick={() => setDialog(true)}>Update status</button>}
-        </>} />
-      <div className="toolbar ad-filters">
-        <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={options} empty={null} wide />
-      </div>
+  const go = (key: string) => document.getElementById(`c360-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  if (!d) return (
+    <div className="dash c360">
+      <PageHead title="Client 360" crumbs={[{ to: '/dashboards', label: 'Dashboard' }, { label: 'Client 360' }]} />
+      <div className="toolbar ad-filters"><SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={options} empty={null} wide /></div>
       {(list.isLoading || q.isLoading) && <StateMessage kind="loading" />}
       {q.error && <StateMessage kind="error">The client could not be loaded. It may not exist, or you may not have access to it.</StateMessage>}
       {list.data && list.data.items.length === 0 && !f.clientId && <StateMessage kind="none">No Active client and no running project is recorded.</StateMessage>}
-      {d && <>
-        <section className="ad-verdict panel" aria-label="Client status">
-          <div className={`ad-verdict-main ${rec ? VERDICT_CLASS[rec.status] : 'none'}`}>
-            <span className="ad-verdict-q">Client status — recorded by a person</span>
-            <span className="ad-verdict-st"><span aria-hidden="true">{words?.glyph ?? '○'}</span> {words?.label ?? 'Not recorded'}</span>
-            <span className="ad-verdict-why">{rec ? rec.summary : 'Nobody has recorded a status for this client yet. The signals on the right are worked out from its records; they do not replace a recorded status.'}</span>
-            {rec && <span className="ad-verdict-by">Recorded by {rec.recordedBy ?? 'an unknown user'} · {fmtDateTime(rec.recordedAt)} ({rec.ageDays} d ago){rec.nextReviewOn ? ` · next review ${fmtDate(rec.nextReviewOn)}` : ''}</span>}
-            {d.status.history.length > 1 && <button className="linkbtn ad-verdict-hist" aria-expanded={showHistory} onClick={() => setShowHistory(v => !v)}>{showHistory ? 'Hide history' : `Status history (${d.status.history.length})`}</button>}
+    </div>
+  );
+
+  const p = d.period;
+  const yearProjects = d.projects.filter(x => x.inYears);
+  const yearContracts = d.contracts.filter(x => x.inYears);
+  const yearPayments = d.payments.filter(x => x.inYears);
+  const bucket = (states: readonly string[]) => yearPayments.filter(x => states.includes(x.state));
+  const shownPayments = allPayments ? d.payments : yearPayments.filter(x => x.state !== 'waived' && x.state !== 'closed');
+  const waived = yearPayments.filter(x => x.state === 'waived').length;
+  const closed = yearPayments.filter(x => x.state === 'closed').length;
+  const undated = d.payments.filter(x => !x.yearDate).length;
+  const renewals = yearContracts.filter(x => x.state === 'RenewalDue').length;
+  const t = d.tickets, sla = d.slaYears, esc = d.escalationsYears, com = d.commitmentsYears;
+  const kpis: Record<typeof C360_SECTIONS[number], { label: string; value: string | number; sub: string; warn?: boolean }> = {
+    projects: { label: 'Projects', value: yearProjects.length, sub: 'Service in selected years' },
+    contracts: { label: 'Contracts', value: yearContracts.length, sub: renewals ? `${plural(renewals, 'renewal')} due now` : 'Terms in selected years', warn: renewals > 0 },
+    payments: { label: 'Payments', value: yearPayments.length, sub: bucket(['overdue']).length ? `${bucket(['overdue']).length} overdue` : 'Dated in selected years', warn: bucket(['overdue']).length > 0 },
+    sla: { label: 'SLA', value: sla.resolution.rate === null ? '—' : `${sla.resolution.rate} %`, sub: sla.resolution.rate === null ? 'Nothing measured' : 'Resolution met', warn: sla.resolution.rate !== null && sla.resolution.rate < sla.target },
+    tickets: { label: 'Tickets', value: t.opened, sub: `Opened · ${t.open} open`, warn: t.overdue > 0 },
+    escalations: { label: 'Escalations', value: esc.raised, sub: `Raised · ${esc.active} active`, warn: esc.active > 0 },
+    commitments: { label: 'Commitments', value: com.due, sub: `Due · ${com.open} open`, warn: com.overdue > 0 }
+  };
+
+  return (
+    <div className="dash c360">
+      <PageHead title="Client 360" crumbs={[{ to: '/dashboards', label: 'Dashboard' }, { label: 'Client 360' }]}
+        actions={<>
+          <button className="btn" onClick={refresh} disabled={q.isFetching}>{q.isFetching ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
+          <Link className="btn" to={`/clients/${d.client.id}`}>Client record</Link>
+          {d.status.canRecord && <button className="btn btn-primary" onClick={() => setDialog(true)}>Update status</button>}
+        </>} />
+
+      <section className="panel c360-head" aria-label="Client and years">
+        <div className="c360-pick">
+          <SelectInput label="Client" value={f.clientId} onChange={v => set({ clientId: v })} options={options} empty={null} wide />
+          <YearPicker period={p} value={f.years} onChange={v => set({ years: v })} />
+          <div className="c360-status" role="region" aria-label="Client status">
+            <span className={`c360-status-st ${rec ? STATUS_WORDS[rec.status]?.tone : 'neutral'}`}>
+              <span aria-hidden="true">{words?.glyph ?? '○'}</span> Recorded client status: <b className="ad-verdict-st">{words?.label ?? 'Not recorded'}</b>
+              {rec && <> · {fmtDate(rec.recordedAt)}</>}
+            </span>
+            <span className="hint">As of {fmtDateTime(d.evaluatedAt)} ({me.timeZone})</span>
+            <span className="c360-status-links">
+              <button className="linkbtn" aria-expanded={showSignals} onClick={() => setShowSignals(v => !v)}>{showSignals ? 'Hide signals' : 'Signals behind the status'}</button>
+              {d.status.history.length > 0 && <button className="linkbtn" aria-expanded={showHistory} onClick={() => setShowHistory(v => !v)}>{showHistory ? 'Hide history' : `Status history (${d.status.history.length})`}</button>}
+            </span>
           </div>
-          <div className="ad-verdict-side">
-            <div className="panel-head"><h2>Signals behind the status</h2><span className="hint">Rule-based and explainable — hover a signal for its rule, click for its records</span></div>
-            <div className="ad-signals">
-              {d.signals.map(s => (
-                <Link key={s.key} to={s.link ?? '#'} className="ad-signal" title={s.rule}>
-                  <span className="ad-signal-t">{s.label}</span>
-                  <SignalBadge state={s.state} />
-                  <span className="ad-signal-x">{s.text}</span>
-                </Link>
-              ))}
-            </div>
-            <p className={`ad-agree ${d.status.agreement.toLowerCase()}`} role="status">
-              {d.status.agreement === 'Agree' ? '✓ ' : d.status.agreement === 'NoStatus' ? '○ ' : '▲ '}{d.status.agreementText}
-            </p>
-          </div>
-        </section>
-        {showHistory && (
-          <Card title="Status history" sub="Every recorded status is kept; the newest is the client's status.">
-            <table className="grid"><thead><tr><th>Recorded</th><th>Status</th><th>Reason</th><th>By</th><th>Next review</th></tr></thead><tbody>
-              {d.status.history.map(h => <tr key={h.id}><td className="nowrap">{fmtDateTime(h.recordedAt)}</td><td><StatusWords status={h.status} /></td><td>{h.summary}</td><td>{h.recordedBy ?? '—'}</td><td className="nowrap">{h.nextReviewOn ? fmtDate(h.nextReviewOn) : '—'}</td></tr>)}
-            </tbody></table>
-          </Card>
+        </div>
+        <p className="c360-facts">
+          {d.client.recordStatus} · {d.client.country ?? 'Country not recorded'} · Account owner: {d.client.owner ?? <Badge tone="warn">Unassigned</Badge>}
+          {d.client.products.length > 0 && <> · Products: {d.client.products.map(x => x.code).join(', ')}</>}
+        </p>
+        <p className="c360-facts">
+          {p.all ? 'All years' : `Calendar ${p.years.length === 1 ? 'year' : 'years'}: ${p.label}`} · 1 Jan – 31 Dec of each year ({p.timeZone}) · Statuses are as they are now ·{' '}
+          <button className="linkbtn" aria-expanded={showHow} onClick={() => setShowHow(v => !v)}>{showHow ? '▾' : '▸'} How years apply</button>
+        </p>
+        {showHow && (
+          <ul className="c360-how">
+            <li><b>Projects and contracts</b> count when their service or contract term overlaps a selected year. An unknown start or end is treated as open-ended.</li>
+            <li><b>Payments</b> count in the year they were paid (paid terms) or are due (all others). A term without a date is in no year.</li>
+            <li><b>SLA and tickets</b> cover the tickets opened in the selected years; the SLA uses those with a linked contract.</li>
+            <li><b>Escalations</b> count in the year they were raised; <b>commitments</b> in the year of the deadline in force.</li>
+            <li>Open items, overdue items and recorded statuses are as they are today, whatever years are selected.</li>
+          </ul>
         )}
+        {(rec || d.status.agreement !== 'NoStatus') && d.status.agreement !== 'Agree' && (
+          <p className={`ad-agree ${d.status.agreement.toLowerCase()}`} role="status">{d.status.agreement === 'NoStatus' ? '○ ' : '▲ '}{d.status.agreementText}</p>
+        )}
+        {rec && <p className="c360-facts">“{rec.summary}” — {rec.recordedBy ?? 'an unknown user'}, {rec.ageDays} d ago{rec.nextReviewOn ? ` · next review ${fmtDate(rec.nextReviewOn)}` : ''}</p>}
+      </section>
 
-        <section className="panel ad-facts" aria-label="Client facts">
-          <div><span>Client</span><b>{d.client.code}</b> · {d.client.name}</div>
-          <div><span>Account owner</span>{d.client.owner ?? <Badge tone="warn">Unassigned</Badge>}</div>
-          <div><span>Record status · country</span>{d.client.recordStatus} · {d.client.country ?? <span className="muted">Not recorded</span>}</div>
-          <div><span>Products</span>{d.client.products.length ? d.client.products.map(p => p.code).join(', ') : <span className="muted">None recorded</span>}</div>
-          <div><span>Contracts</span>{d.contracts.length ? d.contracts.map((c, i) => <span key={c.id}>{i > 0 && ' · '}<Link to={`/contracts/${c.id}`}>{c.ref}</Link> <span className="muted">{c.status}</span></span>) : <span className="muted">None recorded</span>}</div>
-        </section>
+      {showSignals && (
+        <Card title="Signals behind the status" sub="Rule-based and explainable — hover a signal for its rule, click for its records. They do not replace the recorded status.">
+          <div className="ad-signals">
+            {d.signals.map(s => (
+              <Link key={s.key} to={s.link ?? '#'} className="ad-signal" title={s.rule}>
+                <span className="ad-signal-t">{s.label}</span><SignalBadge state={s.state} /><span className="ad-signal-x">{s.text}</span>
+              </Link>
+            ))}
+          </div>
+          <p className={`ad-agree ${d.status.agreement.toLowerCase()}`}>{d.status.agreementText}</p>
+        </Card>
+      )}
+      {showHistory && (
+        <Card title="Status history" sub="Every recorded status is kept; the newest is the client's status.">
+          <table className="grid"><thead><tr><th>Recorded</th><th>Status</th><th>Reason</th><th>By</th><th>Next review</th></tr></thead><tbody>
+            {d.status.history.map(h => <tr key={h.id}><td className="nowrap">{fmtDateTime(h.recordedAt)}</td><td><StatusWords status={h.status} /></td><td>{h.summary}</td><td>{h.recordedBy ?? '—'}</td><td className="nowrap">{h.nextReviewOn ? fmtDate(h.nextReviewOn) : '—'}</td></tr>)}
+          </tbody></table>
+        </Card>
+      )}
 
-        <Card title="Projects" sub="The client's projects. Its status, signals and figures cover all of them.">
-          {d.projects.length === 0 ? <div className="viz-empty">No project is recorded for this client.</div> : (
-            <table className="grid"><thead><tr><th>Project</th><th>Status</th><th>Manager</th><th>Service</th><th className="num">Contracts</th></tr></thead><tbody>
-              {d.projects.map(p => (
-                <tr key={p.id} className={p.running ? undefined : 'muted'}>
-                  <td><Link to={`/projects/${p.id}`}>{p.code}</Link> {p.name}</td>
-                  <td>{PROJECT_STATUS[p.status] ?? p.status}</td>
-                  <td>{p.owner ?? <Badge tone="warn">Unassigned</Badge>}</td>
-                  <td className="nowrap">{p.serviceStart ? fmtDate(p.serviceStart) : 'Unknown'} → {p.serviceEnd ? fmtDate(p.serviceEnd) : 'Unknown'}</td>
-                  <td className="num">{p.contracts}</td>
+      <nav className="c360-kpis" aria-label="Client 360 summary">
+        {C360_SECTIONS.map(k => (
+          <button key={k} type="button" className={`c360-kpi${kpis[k].warn ? ' warn' : ''}`} onClick={() => go(k)}>
+            <span className="c360-kpi-l">{kpis[k].label}</span><b>{kpis[k].value}</b><span className="c360-kpi-s">{kpis[k].sub}</span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="c360-grid">
+        <C360Section id="c360-projects" no="1.1" title="Projects" hint="Status · manager · service dates">
+          <p className="c360-lead">{plural(yearProjects.length, 'project')} · service overlaps {p.all ? 'any year' : p.label}{d.projects.length > yearProjects.length && <> · {d.projects.length - yearProjects.length} outside the years</>}</p>
+          {d.projects.length === 0 ? <p className="hint">No project is recorded for this client.</p> : (
+            <ul className="c360-list">
+              {(allProjects ? d.projects : yearProjects).map(x => (
+                <C360Row key={x.id} to={`/projects/${x.id}`} title={<><b>{x.code}</b> · {x.name}</>} right={PROJECT_STATUS[x.status] ?? x.status}
+                  sub={<>{x.owner ?? 'Manager unassigned'} · Service: {x.serviceStart ? fmtDate(x.serviceStart) : 'unknown'} – {x.serviceEnd ? fmtDate(x.serviceEnd) : 'unknown'} · {plural(x.contracts, 'contract')}{!x.inYears && ' · outside the years'}</>} />
+              ))}
+            </ul>
+          )}
+          {d.projects.length > yearProjects.length && <button className="linkbtn" onClick={() => setAllProjects(v => !v)}>{allProjects ? 'Show the selected years only' : `Show all ${d.projects.length} projects`}</button>}
+        </C360Section>
+
+        <C360Section id="c360-contracts" no="1.2" title="Contracts" hint="Terms · expiry · renewal" actions={<Link className="linkbtn" to={`/contracts?clientId=${d.client.id}`}>All contracts</Link>}>
+          <p className="c360-lead">{plural(yearContracts.length, 'contract')} · terms overlap {p.all ? 'any year' : p.label} · {plural(renewals, 'renewal')} due now</p>
+          {yearContracts.length === 0 ? <p className="hint">No contract term overlaps the selected years.</p> : (
+            <ul className="c360-list">
+              {yearContracts.map(x => (
+                <C360Row key={x.id} to={`/contracts/${x.id}`} title={<><b>{x.ref}</b> · {x.title}</>} right={CONTRACT_STATE[x.state] ?? x.status} tone={x.state === 'RenewalDue' || x.state === 'EndDateUnknown' ? 'warn' : x.state === 'Expired' ? 'bad' : undefined}
+                  sub={<>{x.projectCode ?? 'No project'} · {x.startDate ? `From ${fmtDate(x.startDate)} · ` : ''}{x.endDate ? `Ends ${fmtDate(x.endDate)}` : 'End date unknown'}{x.noticeDeadline ? ` · notice by ${fmtDate(x.noticeDeadline)}` : ''}</>} />
+              ))}
+            </ul>
+          )}
+        </C360Section>
+
+        <C360Section id="c360-payments" no="1.3" title="Payments" hint={`Paid / due dates ${inText(p)}`}>
+          <div className="c360-pay">
+            {PAY_BUCKETS.map(b => {
+              const rows = bucket(b.states);
+              return (
+                <div key={b.key} className={`c360-pay-b ${b.key}`}>
+                  <span className={`c360-pay-l t-${b.tone}`}><span aria-hidden="true">{b.glyph}</span> {b.label}</span>
+                  <b>{money(rows)}</b>
+                  <span className="hint">{plural(rows.length, 'payment')}{b.key === 'upcoming' && rows.some(r => r.state === 'due') ? ' · includes due soon' : ''}</span>
+                </div>
+              );
+            })}
+          </div>
+          {d.paymentsOverdueOtherYears > 0 && <p className="t-bad"><b>▲ {plural(d.paymentsOverdueOtherYears, 'more payment')} overdue from other years.</b></p>}
+          <div className="c360-pay-head">
+            <span className="hint">{allPayments ? `All payment terms of the client · ${d.payments.length}` : `Payment terms ${inText(p)} · showing ${shownPayments.length} of ${yearPayments.length}`}</span>
+            {(d.payments.length > shownPayments.length || allPayments) && <button className="linkbtn" onClick={() => setAllPayments(v => !v)}>{allPayments ? 'Show the selected years only' : 'Show all payment terms'}</button>}
+          </div>
+          {shownPayments.length === 0 ? <p className="hint">No payment term is dated in the selected years.</p> : (
+            <table className="grid"><thead><tr><th>Payment</th><th>Contract</th><th>State</th><th>Date</th><th className="num">Amount</th></tr></thead><tbody>
+              {shownPayments.map(x => (
+                <tr key={x.id} className={x.inYears ? undefined : 'muted'}>
+                  <td><Link to={`/contracts/${x.contractId}`}>{x.condition}</Link></td>
+                  <td>{x.contractRef}</td>
+                  <td><Badge tone={PAY_STATE[x.state]?.tone ?? 'neutral'}>{PAY_STATE[x.state]?.label ?? x.state}</Badge></td>
+                  <td className="nowrap">{x.paidOn ? `Paid ${fmtDate(x.paidOn)}` : x.dueDate ? `Due ${fmtDate(x.dueDate)}` : <span className="muted">No date</span>}</td>
+                  <td className="num nowrap">{x.amount != null ? fmtMoney(x.amount, x.currency) : <span className="muted">No amount</span>}</td>
                 </tr>
               ))}
             </tbody></table>
           )}
-        </Card>
+          <p className="hint">Selected years: {waived} waived{closed ? `, ${closed} on terminated contracts` : ''}. {undated} without a date, in no year. Recorded contract payment terms — not invoicing or accounting. Amounts stay in their own currency.</p>
+        </C360Section>
 
-        <Band id="delivery" icon="project" title="Delivery" hint="Milestones and payment terms recorded on the client's contracts, in all its projects">
-          <div className="ad-grid ad-2-1">
-            <VizPanel title="Milestone timeline" sub="Planned dates and recorded completion. Late = the planned date passed and completion is below 100 %."
-              table={{ columns: ['Milestone', 'Contract', 'Planned', 'Complete %', 'State'], rows: d.milestones.map(m => [m.phase, m.contractRef, m.date ? fmtDate(m.date) : 'No date', m.percent ?? 0, m.state]) }}>
-              <MilestoneTimeline items={d.milestones} />
-            </VizPanel>
-            <Card title="Payment schedule" sub="Recorded contract payment terms — not invoicing or accounting.">
-              {d.payments.length === 0 ? <div className="viz-empty">No payment terms recorded.</div> : (
-                <table className="grid"><tbody>
-                  {d.payments.map(p => (
-                    <tr key={p.id}>
-                      <td><Link to={`/contracts/${p.contractId}`}>{p.condition}</Link><div className="hint">{p.contractRef}</div></td>
-                      <td><Badge tone={PAY_STATE[p.state]?.tone ?? 'neutral'}>{PAY_STATE[p.state]?.label ?? p.state}</Badge></td>
-                      <td className="num nowrap">{p.amount != null ? fmtMoney(p.amount, p.currency) : <span className="muted">No amount</span>}</td>
-                      <td className="nowrap">{p.paidOn ? `paid ${fmtDate(p.paidOn)}` : p.dueDate ? `due ${fmtDate(p.dueDate)}` : <span className="muted">no date</span>}</td>
-                    </tr>
-                  ))}
-                </tbody></table>
-              )}
-            </Card>
-          </div>
-        </Band>
+        <C360Section id="c360-sla" no="1.4" title="SLA" hint={`Tickets opened ${inText(p)}`} actions={<Link className="linkbtn" to={sla.link}>Tickets</Link>}>
+          {sla.tickets === 0 ? <p className="hint">No ticket with a linked contract was opened in the selected years, so nothing is measured.</p> : <>
+            {([['First response', sla.response], ['Resolution', sla.resolution]] as const).map(([name, x]) => (
+              <div key={name} className="c360-rate">
+                <span>{name}</span><b className={x.rate === null ? 'muted' : x.rate < sla.target ? 't-bad' : 't-good'}>{pctText(x.rate)}</b>
+                {x.rate !== null && <Meter value={x.rate} tone={x.rate < sla.target - 10 ? 'critical' : x.rate < sla.target ? 'warning' : undefined} label={`${name}: ${x.rate} %`} />}
+                <span className="hint">{x.met} met · {x.breached} breached · {x.pending} pending · {x.notMeasurable} not measurable</span>
+              </div>
+            ))}
+          </>}
+          <p className={sla.openBreached ? 't-bad' : 't-good'}>{sla.openBreached ? <b>▲ {plural(sla.openBreached, 'open ticket')} with a breached target</b> : '0 open tickets with a breached target'} · opened {inText(p)}</p>
+          <p className="hint">Rates use met + breached obligations. Pending and not measurable are shown separately. Objective: {sla.target} % (setting).</p>
+        </C360Section>
 
-        <Band id="service" icon="case" title="Service" hint="The client's tickets, escalations and commitments">
-          <div className="ad-grid ad-3">
-            <VizPanel title="Open tickets by priority" sub={<>{d.cases.open} open{d.cases.overdue ? <>, <b className="t-bad">{d.cases.overdue} overdue</b></> : ''}. Darker = more urgent. Click a bar for the tickets.</>}
-              actions={<Link className="linkbtn" to={d.cases.link}>All tickets</Link>}
-              table={{ columns: ['Priority', 'Open tickets'], rows: d.cases.byPriority.map(b => [b.label, b.value]) }}>
-              <HBars data={d.cases.byPriority} colorOf={b => PRIORITY_OF[b.key]} unit="open ticket(s)" empty="No open ticket." />
-            </VizPanel>
-            <Card title={`Contractual SLA — last ${d.sla.windowDays} days`} sub={<>Measured compliance of the client's tickets against the {d.sla.target} % objective.</>} actions={<Link className="linkbtn" to={d.sla.link}>Tickets</Link>}>
-              {([['First response', d.sla.response], ['Resolution', d.sla.resolution]] as const).map(([name, t]) => (
-                <div key={name} className="ad-rate">
-                  <span>{name}</span><b>{pctText(t.rate)}</b>
-                  {t.rate !== null && <Meter value={t.rate} tone={t.rate < d.sla.target - 10 ? 'critical' : t.rate < d.sla.target ? 'warning' : undefined} label={`${name}: ${t.rate} %`} />}
-                  <span className="hint">{t.met} met · {t.breached} breached · {t.pending} pending · {t.notMeasurable} not measurable</span>
-                </div>
+        <C360Section id="c360-tickets" no="1.5" title="Tickets" hint={`Opened ${inText(p)} · current status`} actions={<Link className="linkbtn" to={t.link}>{t.linkExact ? 'Open the list' : 'All tickets of the client'}</Link>}>
+          <p className="c360-lead">{t.opened} opened · {t.open} currently open · <span className={t.overdue ? 't-bad' : undefined}>{t.overdue} overdue</span></p>
+          <p className="c360-prio">{t.byPriority.slice().reverse().map(b => <span key={b.key}>{b.label}: <b>{b.value}</b></span>)}</p>
+          {t.list.length === 0 ? <p className="hint">No open ticket opened in the selected years.</p> : (
+            <ul className="c360-list">
+              {t.list.map(x => (
+                <C360Row key={x.id} to={`/cases/${x.id}`} title={<><b>{x.ref}</b> · {x.title}</>} right={x.priority} tone={PRIORITY_TONE[x.priority] === 'bad' ? 'bad' : PRIORITY_TONE[x.priority] === 'warn' ? 'warn' : undefined}
+                  sub={<>{x.owner ?? 'Unassigned'} · {x.status} · {x.dueAt ? <>{x.overdue ? <span className="t-bad">Overdue since {fmtDate(x.dueAt)}</span> : `Due ${fmtDate(x.dueAt)}`}</> : 'No deadline'}</>} />
               ))}
-              {d.sla.openBreached > 0 && <p className="t-bad"><b>▲ {d.sla.openBreached} open ticket(s) have breached a target.</b></p>}
-              <h3 className="ad-sub">Active escalations</h3>
-              {d.escalations.length === 0 ? <p className="hint">None.</p> : (
-                <ul className="ad-list">{d.escalations.map(e => <li key={e.id}><Link to={`/escalations/${e.id}`}>{e.ref}</Link> · level {e.level} · {e.title} <span className="muted">· {e.owner}</span>{e.overdue && <> <Badge tone="bad">Past a target</Badge></>}</li>)}</ul>
-              )}
-            </Card>
-            <Card title="Open commitments" sub="The client's open commitments, the earliest first.">
-              {d.commitments.length === 0 ? <div className="viz-empty">No open commitment.</div> : (
-                <table className="grid"><tbody>
-                  {d.commitments.map(c => <tr key={c.id}><td className="nowrap">{dueText(c.dueAt)}</td><td><Link to={`/commitments/${c.id}`}>{c.ref}</Link> {c.description}</td><td>{c.owner ?? <Badge tone="warn">Unassigned</Badge>}</td></tr>)}
-                </tbody></table>
-              )}
-            </Card>
-          </div>
-        </Band>
+            </ul>
+          )}
+          {t.open > t.list.length && <p className="hint">Showing {t.list.length} of {t.open} open, the most urgent first.</p>}
+          {t.openOtherYears > 0 && <p className="hint">{plural(t.openOtherYears, 'more open ticket')} opened in other years.</p>}
+        </C360Section>
 
-        <Band id="estate" icon="server" title="Environments, team and activity">
-          <div className="ad-grid ad-3">
-            <Card title="Environments" sub="Manually reported condition and installed versions.">
-              {d.environments.length === 0 ? <div className="viz-empty">No environment is recorded for this client.</div> : (
-                <div className="ad-envs two">
-                  {d.environments.map(e => (
-                    <Link key={e.id} to={`/environments/${e.id}`} className={`ad-env ${ENV_CLASS[e.condition.reported] ?? 'x'}`}>
-                      <b>{e.name}</b><ConditionBadge c={e.condition} />
-                      <span className="hint">{e.installations.length ? e.installations.map(i => `${i.product} ${i.version ?? '(version unknown)'}`).join(' · ') : 'No installation recorded'}</span>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </Card>
-            <Card title="Team" sub={d.team.note}>
-              {d.team.members.length === 0 ? <div className="viz-empty">No team member recorded for this client.</div> : (
-                <table className="grid"><tbody>{d.team.members.map(m => <tr key={m.userId}><td>{m.name}{!m.active && <> <Badge tone="warn">Deactivated</Badge></>}</td><td className="muted">{m.role}</td></tr>)}</tbody></table>
-              )}
-            </Card>
-            <Card title="Recent activity" sub="Worked out from the client's records, newest first.">
-              {d.activity.length === 0 ? <div className="viz-empty">Nothing recent.</div> : (
-                <ul className="ad-timeline">{d.activity.map((a, i) => <li key={i}><span className="hint">{fmtDateTime(a.at)}</span><Link to={a.link}>{a.text}</Link></li>)}</ul>
-              )}
-            </Card>
-          </div>
-        </Band>
-        <p className="hint">The status is a person's recorded judgement, never a calculated score. Signals are rules over the client's records; missing data is Unknown, never On track. A status older than {d.status.maxAgeDays} days is flagged for review (setting <i>Dashboard.ClientStatusMaxAgeDays</i>).</p>
-        {dialog && <ActionDialog title="Update client status" submitLabel="Record status" path={`/clients/${d.client.id}/status-reports`} onClose={() => setDialog(false)}
-          intro={<>Record what you judge the status of <b>{d.client.code}</b> to be, across its projects, and why. The previous status stays in the history.</>}
-          initial={{ status: rec?.status ?? '' }}
-          transform={v => ({ status: v.status || null, summary: v.summary, nextReviewOn: v.nextReviewOn || null })}
-          fields={[
-            { name: 'status', label: 'Status', kind: 'select', required: true, options: [{ value: 'OnTrack', label: 'On track' }, { value: 'AtRisk', label: 'At risk' }, { value: 'OffTrack', label: 'Off track' }] },
-            { name: 'summary', label: 'Reason — what is behind this status', kind: 'textarea', required: true, hint: 'One or two sentences a manager can act on (up to 1,000 characters).' },
-            { name: 'nextReviewOn', label: 'Next review', kind: 'date', hint: `Optional. Without a date the status is flagged for review after ${d.status.maxAgeDays} days.` }
-          ]} />}
-      </>}
+        <C360Section id="c360-escalations" no="1.6" title="Escalations" hint="Owner · level · follow-up" actions={<Link className="linkbtn" to={esc.link}>All escalations</Link>}>
+          <p className="c360-lead">{esc.raised} raised · {esc.active} currently active{esc.overdue ? <> · <span className="t-bad">{esc.overdue} past a target</span></> : ''} · {p.all ? 'any year' : `raised in ${p.label}`}</p>
+          {esc.list.length === 0 ? <p className="hint">No escalation was raised in the selected years.</p> : (
+            <ul className="c360-list">
+              {esc.list.map(x => (
+                <C360Row key={x.id} to={`/escalations/${x.id}`} title={<><b>{x.ref}</b> · {x.title}</>} right={`Level ${x.level}`} tone={x.overdue || x.level >= 3 ? 'bad' : x.active ? 'warn' : undefined}
+                  sub={<>{x.owner} · {x.active ? (x.overdue ? <span className="t-bad">Active, past a target</span> : 'Active') : x.status} · raised {fmtDate(x.receivedAt)}</>} />
+              ))}
+            </ul>
+          )}
+          {esc.activeOtherYears > 0 && <p className="hint">{plural(esc.activeOtherYears, 'more active escalation')} raised in other years.</p>}
+        </C360Section>
+
+        <C360Section id="c360-commitments" no="1.7" title="Commitments" hint="Owner · deadline" actions={<Link className="linkbtn" to={com.link}>All commitments</Link>}>
+          <p className="c360-lead">{com.due} due · {com.open} currently open · <span className={com.overdue ? 't-bad' : undefined}>{com.overdue} overdue</span> · {com.completed} completed{com.completedLate ? ` (${com.completedLate} late)` : ''}</p>
+          {com.list.length === 0 ? <p className="hint">No open commitment is due in the selected years.</p> : (
+            <ul className="c360-list">
+              {com.list.map(x => (
+                <C360Row key={x.id} to={`/commitments/${x.id}`} title={<><b>{x.ref}</b> · {x.description}</>} right={`Due ${fmtDate(x.dueAt)}`} tone={x.overdue ? 'bad' : undefined}
+                  sub={<>{x.owner ?? <Badge tone="warn">Unassigned</Badge>}{x.overdue && <> · <span className="t-bad">Overdue</span></>}</>} />
+              ))}
+            </ul>
+          )}
+          {com.open > com.list.length && <p className="hint">Showing {com.list.length} of {com.open} open, the earliest first.</p>}
+          {com.openOtherYears > 0 && <p className="hint">{plural(com.openOtherYears, 'more open commitment')} due in other years.</p>}
+        </C360Section>
+      </div>
+
+      <p className="hint">The status is a person's recorded judgement, never a calculated score. Signals are rules over the client's records; missing data is Unknown, never On track. A status older than {d.status.maxAgeDays} days is flagged for review (setting <i>Dashboard.ClientStatusMaxAgeDays</i>).</p>
+      {dialog && <ActionDialog title="Update client status" submitLabel="Record status" path={`/clients/${d.client.id}/status-reports`} onClose={() => setDialog(false)}
+        intro={<>Record what you judge the status of <b>{d.client.code}</b> to be, across its projects, and why. The previous status stays in the history.</>}
+        initial={{ status: rec?.status ?? '' }}
+        transform={v => ({ status: v.status || null, summary: v.summary, nextReviewOn: v.nextReviewOn || null })}
+        fields={[
+          { name: 'status', label: 'Status', kind: 'select', required: true, options: [{ value: 'OnTrack', label: 'On track' }, { value: 'AtRisk', label: 'At risk' }, { value: 'OffTrack', label: 'Off track' }] },
+          { name: 'summary', label: 'Reason — what is behind this status', kind: 'textarea', required: true, hint: 'One or two sentences a manager can act on (up to 1,000 characters).' },
+          { name: 'nextReviewOn', label: 'Next review', kind: 'date', hint: `Optional. Without a date the status is flagged for review after ${d.status.maxAgeDays} days.` }
+        ]} />}
     </div>
   );
 }

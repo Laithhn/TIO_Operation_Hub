@@ -97,6 +97,14 @@ public static class ClientSignals
         return (response, resolution, openBreached);
     }
 
+    /// <summary>A113: the contractual SLA of the given tickets (those with a linked contract), and how many of them are open with a breached target.</summary>
+    public static (Tally Response, Tally Resolution, int OpenBreached) SlaOf(IReadOnlyCollection<CaseFact> cases, DateTimeOffset now)
+    {
+        var rows = cases.Where(c => c.ContractId != null).ToList();
+        return (Tally.Of(rows.Select(c => CaseSla.Now(c.Response, c.ResponseDueAt, now))), Tally.Of(rows.Select(c => CaseSla.Now(c.Resolution, c.ResolutionDueAt, now))),
+            rows.Count(c => CaseQuery.IsOpen(c.Status) && (CaseSla.Now(c.Response, c.ResponseDueAt, now) == SlaState.Breached || CaseSla.Now(c.Resolution, c.ResolutionDueAt, now) == SlaState.Breached)));
+    }
+
     public static List<Signal> Evaluate(ClientFacts f, DateTimeOffset now, SignalSettings s)
     {
         var today = DateOnly.FromDateTime(now.UtcDateTime);
@@ -239,6 +247,57 @@ public static class ClientSignals
     }
 }
 
+/// <summary>
+/// A113: the years Client 360 covers. Any set of calendar years (1 Jan – 31 Dec in the reader's time zone), or all years.
+/// Query value: <c>all</c>, or years separated by commas (<c>2024,2026</c>); empty = the current year.
+/// </summary>
+public sealed class YearSelection
+{
+    public const int MaxYears = 30;
+    public bool All { get; private init; }
+    public IReadOnlyList<int> Years { get; private init; } = [];
+    public TimeZoneInfo Zone { get; private init; } = TimeZoneInfo.Utc;
+
+    public static YearSelection Parse(string? value, DateTimeOffset now, TimeZoneInfo zone)
+    {
+        var current = TimeZoneInfo.ConvertTime(now, zone).Year;
+        if (string.IsNullOrWhiteSpace(value)) return new YearSelection { Years = [current], Zone = zone };
+        if (value.Trim().Equals("all", StringComparison.OrdinalIgnoreCase)) return new YearSelection { All = true, Zone = zone };
+        var years = new SortedSet<int>();
+        foreach (var part in value.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!int.TryParse(part, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var y) || y < 2000 || y > current + 10)
+                throw new ValidationException("years", $"Choose years between 2000 and {current + 10}, or all years.");
+            years.Add(y);
+        }
+        if (years.Count == 0) throw new ValidationException("years", "Choose at least one year.");
+        if (years.Count > MaxYears) throw new ValidationException("years", $"Choose at most {MaxYears} years, or all years.");
+        return new YearSelection { Years = [.. years], Zone = zone };
+    }
+
+    /// <summary>The selected years form one unbroken range (lists can then be opened with one date range).</summary>
+    public bool Contiguous => All || Years[^1] - Years[0] + 1 == Years.Count;
+
+    public bool Contains(DateOnly d) => All || Years.Contains(d.Year);
+    public bool Contains(DateTimeOffset t) => All || Years.Contains(TimeZoneInfo.ConvertTime(t, Zone).Year);
+
+    /// <summary>A period [start, end] overlaps a selected year. An unknown start or end is open-ended.</summary>
+    public bool Overlaps(DateOnly? start, DateOnly? end) =>
+        All || Years.Any(y => (start ?? DateOnly.MinValue) <= new DateOnly(y, 12, 31) && (end ?? DateOnly.MaxValue) >= new DateOnly(y, 1, 1));
+
+    private DateTimeOffset Start(int year)
+    {
+        var local = new DateTime(year, 1, 1, 0, 0, 0, DateTimeKind.Unspecified);
+        return new DateTimeOffset(local, Zone.GetUtcOffset(local));
+    }
+
+    /// <summary>Instants bounding the selection (from the first selected year's start to the end of the last); null when all years.</summary>
+    public (DateTimeOffset From, DateTimeOffset To)? Bounds => All ? null : (Start(Years[0]), Start(Years[^1] + 1));
+
+    public string Label => All ? "All years" : Years.Count == 1 ? Years[0].ToString(System.Globalization.CultureInfo.InvariantCulture)
+        : Contiguous ? $"{Years[0]}–{Years[^1]}" : string.Join(", ", Years);
+}
+
 /// <summary>A109: loads client facts through the caller's scope filters and builds the client dashboard and the client portfolio rows.</summary>
 public sealed class ClientInsight(HubDbContext db, HubSettings settings, FreshnessService fresh)
 {
@@ -354,10 +413,12 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
     public static bool CanRecord(UserContext me, long clientId, ClientStatus status) =>
         status != ClientStatus.Archived && me.SeesContext(ResourceContext.ForRecord(clientId, null)) && me.HasRightIn(RightKeys.Structure, RightKeys.Maintain, ResourceContext.ForRecord(clientId, null));
 
-    /// <summary>The client dashboard: recorded status, signals and the records behind them, across all the client's projects.</summary>
-    public async Task<object> ClientAsync(long id, UserContext me, CancellationToken ct)
+    /// <summary>The client dashboard (Client 360, A113): recorded status, signals and the records behind them, across all the client's projects,
+    /// with the seven sections worked out for the selected years.</summary>
+    public async Task<object> ClientAsync(long id, UserContext me, CancellationToken ct, string? years = null)
     {
         var now = DateTimeOffset.UtcNow;
+        var sel = YearSelection.Parse(years, now, Zones.Find(me.TimeZone) ?? TimeZoneInfo.Utc);
         var f = (await LoadAsync(db.Clients.Where(c => c.Id == id), now, ct)).FirstOrDefault() ?? throw new NotFoundException("The client");
         var s = await SettingsAsync(ct);
         var today = DateOnly.FromDateTime(now.UtcDateTime);
@@ -389,14 +450,96 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
         activity.AddRange(f.Milestones.Where(m => ClientSignals.IsLate(m, today)).Select(m => (new DateTimeOffset(m.Date!.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), $"Milestone “{m.Phase}” of {m.ContractRef} passed its planned date ({m.Percent ?? 0} % complete)", $"/contracts/{m.ContractId}")));
         activity.AddRange(f.Payments.Where(p => ClientSignals.IsOpenPayment(p) && p.DueDate < today).Select(p => (new DateTimeOffset(p.DueDate!.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero), $"Payment “{p.Condition}” of {p.ContractRef} became overdue", $"/contracts/{p.ContractId}")));
 
+        // ---- A113 Client 360: the records of the selected years, loaded through the same scope filters ----
+        var bounds = sel.Bounds;
+        var caseQ = db.Cases.AsNoTracking().Where(c => c.ClientId == id && c.Status != CaseStatus.Cancelled);
+        if (bounds is { } cb) caseQ = caseQ.Where(c => (c.SlaClockStartAt ?? c.CreatedAt) >= cb.From && (c.SlaClockStartAt ?? c.CreatedAt) < cb.To);
+        var yCases = (await caseQ.Select(c => new CaseFact(c.Id, c.Ref, c.Title, c.Priority, c.Status, c.SlaClockStartAt ?? c.CreatedAt, c.DueAt, c.ContractId, c.Owner == null ? null : c.Owner.DisplayName,
+            c.ResponseSlaStatus, c.ResponseDueAt, c.ResolutionSlaStatus, c.ResolutionDueAt)).ToListAsync(ct)).Where(c => sel.Contains(c.CreatedAt)).ToList();
+        var escQ = db.Escalations.AsNoTracking().Where(e => e.ClientId == id);
+        if (bounds is { } eb) escQ = escQ.Where(e => e.ReceivedAt >= eb.From && e.ReceivedAt < eb.To);
+        var yEscs = (await escQ.Select(e => new { e.Id, e.Ref, e.Title, e.Level, e.Status, e.ReceivedAt, e.ResponseDueAt, e.ResolutionDueAt, owner = e.Owner!.DisplayName }).ToListAsync(ct))
+            .Where(e => sel.Contains(e.ReceivedAt)).ToList();
+        var comQ = db.Commitments.AsNoTracking().Where(c => c.ClientId == id && c.Status != CommitmentStatus.Cancelled);
+        if (bounds is { } mb) comQ = comQ.Where(c => c.CurrentDueAt >= mb.From && c.CurrentDueAt < mb.To);
+        var yComs = (await comQ.Select(c => new { c.Id, c.Ref, c.Description, c.CurrentDueAt, c.Status, c.CompletedLate, owner = c.Owner == null ? null : c.Owner.DisplayName }).ToListAsync(ct))
+            .Where(c => sel.Contains(c.CurrentDueAt)).ToList();
+        var firstCase = await db.Cases.AsNoTracking().Where(c => c.ClientId == id && c.Status != CaseStatus.Cancelled).MinAsync(c => (DateTimeOffset?)(c.SlaClockStartAt ?? c.CreatedAt), ct);
+
+        static bool ActiveEsc(EscalationStatus s) => s is EscalationStatus.Open or EscalationStatus.Acknowledged or EscalationStatus.InProgress;
+        bool EscLate(DateTimeOffset? resolutionDue, DateTimeOffset? responseDue, EscalationStatus s) =>
+            (resolutionDue != null && resolutionDue < now) || (s == EscalationStatus.Open && responseDue != null && responseDue < now);
+        var yOpen = yCases.Where(c => CaseQuery.IsOpen(c.Status)).ToList();
+        var (yResponse, yResolution, yOpenBreached) = ClientSignals.SlaOf(yCases, now);
+        string YearCaseLink(string extra)
+        {
+            var parts = new List<string> { $"clientId={id}", "status=all" };
+            if (bounds is { } lb && sel.Contiguous) { parts.Add($"createdFrom={Uri.EscapeDataString(lb.From.ToString("O"))}"); parts.Add($"createdTo={Uri.EscapeDataString(lb.To.ToString("O"))}"); }
+            if (extra.Length > 0) parts.Add(extra);
+            return "/cases?" + string.Join("&", parts);
+        }
+        // The years a reader can choose: from the earliest record of the client to the latest dated term, at least last year to next year.
+        var current = TimeZoneInfo.ConvertTime(now, sel.Zone).Year;
+        var known = f.Projects.Select(p => p.ServiceStart?.Year).Concat(f.Contracts.Select(c => c.StartDate?.Year)).Concat(f.Payments.Select(p => (p.PaidOn ?? p.DueDate)?.Year))
+            .Append(firstCase is null ? null : TimeZoneInfo.ConvertTime(firstCase.Value, sel.Zone).Year).OfType<int>().Where(y => y >= 2000).ToList();
+        var lastKnown = f.Payments.Select(p => p.DueDate?.Year).Concat(f.Contracts.Select(c => c.EndDate?.Year)).OfType<int>().Where(y => y <= current + 10).ToList();
+        var firstYear = Math.Min(current - 1, known.Count == 0 ? current : known.Min());
+        var lastYear = Math.Max(current + 1, lastKnown.Count == 0 ? current : lastKnown.Max());
+        static DateOnly? PaymentDate(PaymentFact p) => p.Status == PaymentStatus.Paid ? p.PaidOn ?? p.DueDate : p.DueDate;
+        var overdueOther = f.Payments.Count(p => ClientSignals.IsOpenPayment(p) && p.DueDate < today && !sel.Contains(p.DueDate!.Value));
+
+        var period = new
+        {
+            all = sel.All, years = sel.Years, label = sel.Label, contiguous = sel.Contiguous, current, firstYear, lastYear, timeZone = sel.Zone.Id,
+            from = bounds?.From, to = bounds?.To
+        };
+        var tickets = new
+        {
+            opened = yCases.Count, open = yOpen.Count, closed = yCases.Count - yOpen.Count, overdue = yOpen.Count(c => c.DueAt < now),
+            openOtherYears = open.Count(c => !sel.Contains(c.CreatedAt)),
+            link = YearCaseLink(""), linkExact = sel.Contiguous,
+            byPriority = Enum.GetValues<Priority>().Select(pr => new { key = pr.ToString(), label = pr.ToString(), value = yOpen.Count(c => c.Priority == pr) }).ToList(),
+            list = yOpen.OrderBy(c => c.Priority).ThenBy(c => c.DueAt ?? DateTimeOffset.MaxValue).Take(8)
+                .Select(c => new { c.Id, c.Ref, c.Title, priority = c.Priority.ToString(), status = c.Status.ToString(), c.Owner, c.DueAt, overdue = c.DueAt < now }).ToList()
+        };
+        var slaYears = new
+        {
+            target = s.ComplianceTarget, response = T(yResponse), resolution = T(yResolution), openBreached = yOpenBreached,
+            tickets = yCases.Count(c => c.ContractId != null), link = YearCaseLink("sla=withContract")
+        };
+        var escalationsYears = new
+        {
+            raised = yEscs.Count, active = yEscs.Count(e => ActiveEsc(e.Status)), overdue = yEscs.Count(e => ActiveEsc(e.Status) && EscLate(e.ResolutionDueAt, e.ResponseDueAt, e.Status)),
+            activeOtherYears = f.Escalations.Count(e => !sel.Contains(e.ReceivedAt)), link = $"/escalations?clientId={id}",
+            list = yEscs.OrderByDescending(e => ActiveEsc(e.Status)).ThenByDescending(e => e.Level).ThenByDescending(e => e.ReceivedAt).Take(8).Select(e => new
+            {
+                e.Id, e.Ref, e.Title, e.Level, status = e.Status.ToString(), active = ActiveEsc(e.Status), e.owner, e.ReceivedAt,
+                overdue = ActiveEsc(e.Status) && EscLate(e.ResolutionDueAt, e.ResponseDueAt, e.Status)
+            }).ToList()
+        };
+        var commitmentsYears = new
+        {
+            due = yComs.Count, open = yComs.Count(c => c.Status == CommitmentStatus.Open), overdue = yComs.Count(c => c.Status == CommitmentStatus.Open && c.CurrentDueAt < now),
+            completed = yComs.Count(c => c.Status == CommitmentStatus.Completed), completedLate = yComs.Count(c => c.CompletedLate == true),
+            openOtherYears = f.Commitments.Count(c => !sel.Contains(c.DueAt)), link = $"/commitments?clientId={id}",
+            list = yComs.Where(c => c.Status == CommitmentStatus.Open).OrderBy(c => c.CurrentDueAt).Take(8)
+                .Select(c => new { c.Id, c.Ref, c.Description, dueAt = c.CurrentDueAt, c.owner, overdue = c.CurrentDueAt < now }).ToList()
+        };
+
         return new
         {
             evaluatedAt = now,
+            period,
+            tickets,
+            slaYears,
+            escalationsYears,
+            commitmentsYears,
+            paymentsOverdueOtherYears = overdueOther,
             client = new { f.Id, f.Code, f.Name, recordStatus = f.RecordStatus.ToString(), f.Owner, f.OwnerUserId, f.Country, products },
             projects = f.Projects.OrderByDescending(p => Running.Contains(p.Status)).ThenBy(p => p.Code).Select(p => new
             {
                 p.Id, p.Code, p.Name, status = p.Status.ToString(), running = Running.Contains(p.Status), p.Owner, p.ServiceStart, p.ServiceEnd,
-                contracts = f.Contracts.Count(k => k.ProjectId == p.Id)
+                contracts = f.Contracts.Count(k => k.ProjectId == p.Id), inYears = sel.Overlaps(p.ServiceStart, p.ServiceEnd)
             }).ToList(),
             status = new
             {
@@ -409,14 +552,16 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
             contracts = f.Contracts.OrderByDescending(c => c.Status == ContractStatus.Active).ThenBy(c => c.StartDate).Select(c =>
             {
                 var k = new Contract { Status = c.Status, EndDate = c.EndDate, NoticeDays = c.NoticeDays };
-                return new { c.Id, c.Ref, c.Title, c.Type, status = c.Status.ToString(), c.StartDate, c.EndDate, noticeDeadline = k.NoticeDeadline, state = ContractQuery.State(k, now), c.ProjectId, c.ProjectCode };
+                return new { c.Id, c.Ref, c.Title, c.Type, status = c.Status.ToString(), c.StartDate, c.EndDate, noticeDeadline = k.NoticeDeadline, state = ContractQuery.State(k, now), c.ProjectId, c.ProjectCode, inYears = sel.Overlaps(c.StartDate, c.EndDate) };
             }).ToList(),
             milestones = f.Milestones.Where(m => m.ContractStatus != ContractStatus.Terminated).OrderBy(m => m.Date ?? DateOnly.MaxValue).ThenBy(m => m.SortOrder)
                 .Select(m => new { m.ContractId, m.ContractRef, m.Phase, m.Description, m.Date, percent = m.Percent, state = ClientSignals.MilestoneState(m, today) }).ToList(),
             payments = f.Payments.OrderBy(p => p.DueDate ?? DateOnly.MaxValue).ThenBy(p => p.SortOrder).Select(p => new
             {
                 p.Id, p.ContractId, p.ContractRef, p.Condition, p.Amount, p.Currency, p.DueDate, status = p.Status.ToString(), p.PaidOn,
-                state = PaymentQuery.StateOf(new PaymentRow { ContractStatus = p.ContractStatus, DueDate = p.DueDate, Status = p.Status }, today, reminder)
+                state = PaymentQuery.StateOf(new PaymentRow { ContractStatus = p.ContractStatus, DueDate = p.DueDate, Status = p.Status }, today, reminder),
+                // A113: a paid term counts in the year it was paid (its due date when no paid date is recorded); any other term in the year it is due. No date = not in any year.
+                yearDate = PaymentDate(p), inYears = PaymentDate(p) is { } pd && sel.Contains(pd)
             }).ToList(),
             cases = new
             {

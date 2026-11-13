@@ -50,10 +50,10 @@ public static class AudienceDashboardEndpoints
             return Results.Ok(new { evaluatedAt = now, items = await insight.PortfolioAsync(clientId, country, productId, ownerId, now, ct) });
         });
 
-        g.MapGet("/clients/{id:long}", async (long id, ClientInsight insight, HubAccess access, CancellationToken ct) =>
+        g.MapGet("/clients/{id:long}", async (long id, string? years, ClientInsight insight, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();
-            return Results.Ok(await insight.ClientAsync(id, access.Me, ct));
+            return Results.Ok(await insight.ClientAsync(id, access.Me, ct, years));
         });
 
         // ---- client status reports: recorded by a person, kept as history ----

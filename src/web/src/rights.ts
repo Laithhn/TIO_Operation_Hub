@@ -71,7 +71,7 @@ export function routePermissions(pathname: string): string[] {
 
 /** A108: the audience dashboards: path, menu label, icon and right (Dashboard:View is needed too, through the right's prerequisite). */
 export const audienceDashboards = [['operational', 'Operational', 'case', 'OperationalDashboard'], ['sla', 'SLA & Contracts', 'matrix', 'SlaContractsDashboard'],
-  ['management', 'Management', 'team', 'ManagementDashboard'], ['client', 'Client', 'clients', 'ClientDashboard']] as const;
+  ['management', 'Management', 'team', 'ManagementDashboard'], ['client', 'Client 360', 'clients', 'ClientDashboard']] as const;
 
 const routeAreas: Record<string, string> = {
   map: 'ClientMap', actions: 'ActionList', 'data-quality': 'DataQuality', handovers: 'Handovers', reassignment: 'Reassignment'

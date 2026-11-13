@@ -1,6 +1,13 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.63.0', date: '13 November 2026', changes: [
+      'The Client dashboard is now Client 360: projects, contracts, payments (paid, upcoming, overdue), SLA, tickets, escalations and commitments for one client on one page.',
+      'Choose one or several years together, or all years; the page keeps the choice in its address. Open or overdue items from other years are still mentioned.',
+      'Summary tiles at the top jump to each section; the signals behind the client status are one click away.'
+    ]
+  },
+  {
     version: '2.62.0', date: '12 November 2026', changes: [
       'Tickets show their configured status in search, client and environment overviews; the Tickets report offers the configured statuses.',
       'Change history records the saved id for items created in the same save, and shows large numbers exactly.',

@@ -22,6 +22,48 @@ public class AudienceDashboardRules
     private static StatusFact St(ReportedStatus s, int ageDays = 1, DateOnly? next = null) => new(1, s, "Because", next, Now.AddDays(-ageDays), "PM");
 
     [Fact]
+    public void Client_360_years_are_any_set_of_calendar_years_or_all()
+    {
+        // Empty = this year, in the reader's time zone: 31 Dec 22:00 UTC is already 2027 in Dubai.
+        var dubai = Zones.Find("Asia/Dubai")!;
+        var eve = new DateTimeOffset(2026, 12, 31, 22, 0, 0, TimeSpan.Zero);
+        Assert.Equal([2026], YearSelection.Parse(null, Now, dubai).Years);
+        Assert.Equal([2027], YearSelection.Parse("", eve, dubai).Years);
+
+        // Several years ticked together, in any order, need not be adjacent.
+        var gap = YearSelection.Parse("2026, 2024,2026", Now, dubai);
+        Assert.Equal([2024, 2026], gap.Years);
+        Assert.False(gap.Contiguous);
+        Assert.Equal("2024, 2026", gap.Label);
+        Assert.True(gap.Contains(new DateOnly(2024, 3, 1)));
+        Assert.False(gap.Contains(new DateOnly(2025, 3, 1)));
+        // Year boundaries follow the reader's time zone: 31 Dec 2025 21:00 UTC is 1 Jan 2026 in Dubai, 19:00 UTC is still 2025 there.
+        Assert.True(gap.Contains(new DateTimeOffset(2025, 12, 31, 21, 0, 0, TimeSpan.Zero)));
+        Assert.False(gap.Contains(new DateTimeOffset(2025, 12, 31, 19, 0, 0, TimeSpan.Zero)));
+        Assert.True(gap.Contains(new DateTimeOffset(2023, 12, 31, 20, 0, 0, TimeSpan.Zero)));
+        Assert.Equal(new DateTimeOffset(2024, 1, 1, 0, 0, 0, TimeSpan.FromHours(4)), gap.Bounds!.Value.From);
+        Assert.Equal(new DateTimeOffset(2027, 1, 1, 0, 0, 0, TimeSpan.FromHours(4)), gap.Bounds!.Value.To);
+
+        // A period overlaps when any selected year falls inside it; an unknown end is open-ended.
+        Assert.True(gap.Overlaps(new DateOnly(2025, 6, 1), new DateOnly(2026, 2, 1)));
+        Assert.False(gap.Overlaps(new DateOnly(2025, 1, 1), new DateOnly(2025, 12, 31)));
+        Assert.True(gap.Overlaps(new DateOnly(2020, 1, 1), null));
+        Assert.True(gap.Overlaps(null, null));
+
+        var range = YearSelection.Parse("2025,2026", Now, TimeZoneInfo.Utc);
+        Assert.True(range.Contiguous);
+        Assert.Equal("2025–2026", range.Label);
+        var all = YearSelection.Parse("ALL", Now, TimeZoneInfo.Utc);
+        Assert.True(all.All);
+        Assert.Null(all.Bounds);
+        Assert.True(all.Contains(new DateOnly(2001, 1, 1)));
+
+        // Anything else is refused, not guessed.
+        foreach (var bad in new[] { "abc", "1999", "2040", "2026;2025", "-2026", ",", "2026.5" })
+            Assert.Equal("years", Assert.Throws<ValidationException>(() => YearSelection.Parse(bad, Now, TimeZoneInfo.Utc)).Errors.Keys.Single());
+    }
+
+    [Fact]
     public void A_client_without_records_is_unknown_never_on_track()
     {
         var signals = ClientSignals.Evaluate(new ClientFacts(), Now, S);
@@ -226,6 +268,30 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.Contains(onEnv, ids);
         Assert.Contains(onContract, ids);
         Assert.Contains(direct, ids);
+
+        // A113 Client 360: all years covers every record; a year without records shows none, and still says what is open elsewhere.
+        var all = (await m.Get($"/dashboard/clients/{c}?years=all")).Body!;
+        Assert.True(all["period"]!["all"]!.GetValue<bool>());
+        Assert.Equal(3, all["tickets"]!["opened"]!.GetValue<int>());
+        Assert.Equal(3, all["tickets"]!["open"]!.GetValue<int>());
+        Assert.Equal(1, all["slaYears"]!["tickets"]!.GetValue<int>());
+        Assert.All(all["projects"]!.AsArray(), x => Assert.True(x!["inYears"]!.GetValue<bool>()));
+        Assert.True(all["payments"]![0]!["inYears"]!.GetValue<bool>());
+        Assert.Equal(0, all["paymentsOverdueOtherYears"]!.GetValue<int>());
+        Assert.Equal(3, (await m.Get(all["tickets"]!["link"]!.GetValue<string>() + "&pageSize=50")).Body!["totalCount"]!.GetValue<int>());
+        var old = (await m.Get($"/dashboard/clients/{c}?years=2020,2022")).Body!;
+        Assert.Equal([2020, 2022], old["period"]!["years"]!.AsArray().Select(x => x!.GetValue<int>()));
+        Assert.False(old["period"]!["contiguous"]!.GetValue<bool>());
+        Assert.Equal(0, old["tickets"]!["opened"]!.GetValue<int>());
+        Assert.Equal(3, old["tickets"]!["openOtherYears"]!.GetValue<int>());
+        Assert.Equal(0, old["slaYears"]!["tickets"]!.GetValue<int>());
+        Assert.False(old["payments"]![0]!["inYears"]!.GetValue<bool>());
+        Assert.Equal(1, old["paymentsOverdueOtherYears"]!.GetValue<int>());
+        Assert.All(old["contracts"]!.AsArray(), x => Assert.False(x!["inYears"]!.GetValue<bool>()));
+        // The contiguous range opens the ticket list with the same dates; this one does not, so its list is the client's.
+        Assert.DoesNotContain("createdFrom", old["tickets"]!["link"]!.GetValue<string>());
+        Assert.Contains("createdFrom", (await m.Get($"/dashboard/clients/{c}?years=2020,2021")).Body!["tickets"]!["link"]!.GetValue<string>());
+        Assert.NotNull((await m.Get($"/dashboard/clients/{c}?years=twenty")).Error("years"));
 
         // A second project's late milestone counts for the same client: two late milestones are Off track.
         await m.Create("/contracts", new
