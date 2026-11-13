@@ -42,6 +42,8 @@ public class Notification
 public static class NotificationKinds
 {
     public const string Assigned = "Assigned", Overdue = "Overdue", DueSoon = "DueSoon", Renewal = "Renewal", Team = "Team", Handover = "Handover", PaymentDue = "PaymentDue", PaymentOverdue = "PaymentOverdue";
+    /// <summary>A114: a commitment's dependencies put its deadline at risk (AtRisk) or past it, or one was cancelled (ForecastLate).</summary>
+    public const string AtRisk = "AtRisk", ForecastLate = "ForecastLate";
 }
 
 /// <summary>
@@ -52,8 +54,8 @@ public static class NotificationKinds
 public static class NotificationSeverity
 {
     public const string Critical = "critical", Action = "action", Info = "info";
-    public static readonly string[] CriticalKinds = [NotificationKinds.Overdue, NotificationKinds.PaymentOverdue];
-    public static readonly string[] ActionKinds = [NotificationKinds.DueSoon, NotificationKinds.PaymentDue, NotificationKinds.Renewal, NotificationKinds.Handover];
+    public static readonly string[] CriticalKinds = [NotificationKinds.Overdue, NotificationKinds.PaymentOverdue, NotificationKinds.ForecastLate];
+    public static readonly string[] ActionKinds = [NotificationKinds.DueSoon, NotificationKinds.PaymentDue, NotificationKinds.Renewal, NotificationKinds.Handover, NotificationKinds.AtRisk];
 
     public static string Of(string kind) => CriticalKinds.Contains(kind) ? Critical : ActionKinds.Contains(kind) ? Action : Info;
 
@@ -186,14 +188,45 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
             Add(c.OwnerUserId!.Value, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, $"Ticket {c.Ref} is {(overdue ? "overdue" : "due soon")}", c.Title, $"/cases/{c.Id}",
                 $"case-{(overdue ? "overdue" : "due")}:{c.Id}:{c.DueAt:yyyyMMddHHmm}");
         }
+        // A114: the follow-up owner of an External commitment is reminded earlier (setting Commitments.ExternalReminderDays).
+        var settings = await db.Settings.AsNoTracking().Where(s => s.Key == SettingKeys.ExternalReminderDays || s.Key == SettingKeys.DependencyWarningDays).ToDictionaryAsync(s => s.Key, s => s.Value, ct);
+        var externalSoon = now.AddDays(int.TryParse(settings.GetValueOrDefault(SettingKeys.ExternalReminderDays), out var ed) && ed is >= 1 and <= 30 ? ed : 5);
+        var warningDays = int.TryParse(settings.GetValueOrDefault(SettingKeys.DependencyWarningDays), out var wd) && wd is >= 0 and <= 30 ? wd : 2;
         var commitments = await db.Commitments.IgnoreQueryFilters().AsNoTracking()
-            .Where(c => c.OwnerUserId != null && c.Status == CommitmentStatus.Open && c.CurrentDueAt < soon)
-            .Select(c => new { c.Id, c.Ref, c.Description, c.OwnerUserId, c.CurrentDueAt }).ToListAsync(ct);
+            .Where(c => c.OwnerUserId != null && c.Status == CommitmentStatus.Open && (c.CurrentDueAt < soon || (c.Direction == CommitmentDirection.External && c.CurrentDueAt < externalSoon)))
+            .Select(c => new { c.Id, c.Ref, c.Title, c.Description, c.OwnerUserId, c.CurrentDueAt, c.Direction, party = c.ResponsibleOrganization }).ToListAsync(ct);
         foreach (var c in commitments)
         {
             var overdue = c.CurrentDueAt < now;
-            Add(c.OwnerUserId!.Value, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, $"Commitment {c.Ref} is {(overdue ? "overdue" : "due soon")}", c.Description,
+            var title = c.Direction == CommitmentDirection.External
+                ? $"External commitment {c.Ref} ({c.party}) is {(overdue ? "overdue" : "due soon")}"
+                : $"Commitment {c.Ref} is {(overdue ? "overdue" : "due soon")}";
+            Add(c.OwnerUserId!.Value, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, title, c.Title,
                 $"/commitments/{c.Id}", $"commitment-{(overdue ? "overdue" : "due")}:{c.Id}:{c.CurrentDueAt:yyyyMMddHHmm}");
+        }
+        // A114: commitments whose dependencies put the deadline at risk, for the owner and the project manager
+        // (the project's owner, or the client's project manager when no project is linked). A new forecast day is a new notice and the old one resolves:
+        // an overdue dependency moves the forecast every scan, so the key holds the day, not the minute.
+        var forecasts = await DependencyRules.OpenForecastsAsync(db, db.Commitments.IgnoreQueryFilters(), now, warningDays, ct);
+        if (forecasts.Count > 0)
+        {
+            var ids = forecasts.Where(f => f.Value.Health is DependencyHealth.AtRisk or DependencyHealth.WillBeLate or DependencyHealth.Blocked).Select(f => f.Key).ToList();
+            var risky = await db.Commitments.IgnoreQueryFilters().AsNoTracking().Where(c => ids.Contains(c.Id))
+                .Select(c => new
+                {
+                    c.Id, c.Ref, c.Title, c.OwnerUserId,
+                    projectOwner = c.ProjectId == null ? null : db.Projects.IgnoreQueryFilters().Where(p => p.Id == c.ProjectId).Select(p => p.OwnerUserId).FirstOrDefault(),
+                    clientOwner = c.ClientId == null ? null : db.Clients.IgnoreQueryFilters().Where(x => x.Id == c.ClientId).Select(x => x.OwnerUserId).FirstOrDefault()
+                }).ToListAsync(ct);
+            foreach (var c in risky)
+            {
+                var f = forecasts[c.Id];
+                var critical = f.Health is DependencyHealth.WillBeLate or DependencyHealth.Blocked;
+                var what = f.Health switch { DependencyHealth.Blocked => "blocked by a cancelled dependency", DependencyHealth.WillBeLate => "forecast late", _ => "at risk" };
+                foreach (var u in new[] { c.OwnerUserId, c.projectOwner ?? c.clientOwner }.OfType<long>().Distinct())
+                    Add(u, critical ? NotificationKinds.ForecastLate : NotificationKinds.AtRisk, $"Commitment {c.Ref} {c.Title}: {what}", f.Message,
+                        $"/commitments/{c.Id}", $"commitment-risk:{c.Id}:{f.Health}:{f.ForecastAt:yyyyMMdd}");
+            }
         }
         // A41: active escalations past (or within 2 days of) their resolution target, for their owners.
         var escalations = await db.Escalations.IgnoreQueryFilters().AsNoTracking()
@@ -240,7 +273,7 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
         var keys = current.Keys.Select(x => x.Key).Distinct().ToList();
         var recurring = db.Notifications.Where(n =>
             n.Key.StartsWith("case-due:") || n.Key.StartsWith("case-overdue:") ||
-            n.Key.StartsWith("commitment-due:") || n.Key.StartsWith("commitment-overdue:") ||
+            n.Key.StartsWith("commitment-due:") || n.Key.StartsWith("commitment-overdue:") || n.Key.StartsWith("commitment-risk:") ||
             n.Key.StartsWith("escalation-due:") || n.Key.StartsWith("escalation-overdue:") ||
             n.Key.StartsWith("contract-") || n.Key.StartsWith("payment-due:") || n.Key.StartsWith("payment-overdue:"));
         var existingAlerts = await recurring.Where(n => n.ResolvedAt == null || keys.Contains(n.Key)).ToListAsync(ct);

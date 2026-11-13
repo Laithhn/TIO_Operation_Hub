@@ -375,6 +375,8 @@ public static class AdminEndpoints
             if (s.Key == SettingKeys.SlaAtRiskPercent && (!int.TryParse(value, out var ar) || ar < 5 || ar > 50)) throw new ValidationException("value", "Enter a percentage between 5 and 50.");
             if (s.Key == SettingKeys.SlaComplianceTargetPercent && (!int.TryParse(value, out var ctp) || ctp < 50 || ctp > 100)) throw new ValidationException("value", "Enter a percentage between 50 and 100.");
             if (s.Key == SettingKeys.ClientStatusMaxAgeDays && (!int.TryParse(value, out var sd) || sd < 1 || sd > 90)) throw new ValidationException("value", "Enter a number of days between 1 and 90.");
+            if (s.Key == SettingKeys.DependencyWarningDays && (!int.TryParse(value, out var dw) || dw < 0 || dw > 30)) throw new ValidationException("value", "Enter a number of days between 0 and 30.");
+            if (s.Key == SettingKeys.ExternalReminderDays && (!int.TryParse(value, out var er) || er < 1 || er > 30)) throw new ValidationException("value", "Enter a number of days between 1 and 30.");
             s.Value = value;
             await db.SaveChangesAsync(ct);
             settings.Invalidate();

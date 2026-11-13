@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Commitment titles, external parties and dependencies (2.64.0, A114)
+
+`database/01-schema.sql` changes existing data in this release: migration `CommitmentDependencies` adds `Title`, `Direction`, `ExternalOrganizationId` and `LateCauseCommitmentId` to `work.Commitment`, `CauseCommitmentId` to `work.CommitmentEvent` and the table `work.CommitmentDependency`, and fills the title of every existing commitment from the first line of its description (the description is kept). Take the deployment backup first; going back needs it. Try the script on a restored UAT copy before the live database. The two new settings (`Commitments.DependencyWarningDays`, `Commitments.ExternalReminderDays`) are seeded at the next start without changing existing values. The application identity needs no new permission.
+
 ### Server IP address, VLAN and notes (2.56.0, A104)
 
 The `AssetNetworkDetails` migration only adds three nullable columns to `inventory.Asset`; apply the regenerated `database/01-schema.sql` as usual, before deploying the application files. `database/maintenance/load-sewar-infrastructure.sql` then loads the Sewar infrastructure. It reports and rolls back by default; read its header before applying it.

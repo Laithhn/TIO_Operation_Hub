@@ -10,8 +10,8 @@ export type NoticePage = { items: Notice[]; page: number; pageSize: number; tota
 /** Severity of notices written by an older server (no severity field): the same rule as NotificationSeverity on the server. */
 export function severityOf(n: Pick<Notice, 'kind' | 'severity'>): Severity {
   if (n.severity) return n.severity;
-  if (n.kind === 'Overdue' || n.kind === 'PaymentOverdue') return 'critical';
-  if (['DueSoon', 'PaymentDue', 'Renewal', 'Handover'].includes(n.kind)) return 'action';
+  if (n.kind === 'Overdue' || n.kind === 'PaymentOverdue' || n.kind === 'ForecastLate') return 'critical';
+  if (['DueSoon', 'PaymentDue', 'Renewal', 'Handover', 'AtRisk'].includes(n.kind)) return 'action';
   return 'info';
 }
 
@@ -32,6 +32,8 @@ export function chipOf(n: Notice): string {
     case 'PaymentDue': return 'Payment due';
     case 'Renewal': return 'Needs attention';
     case 'Handover': return 'To acknowledge';
+    case 'AtRisk': return 'At risk';
+    case 'ForecastLate': return 'Forecast late';
     case 'Team': return 'Project team';
     case 'Report': return 'Report';
     default: return 'Assigned';
@@ -86,6 +88,8 @@ function groupTitle(kind: string, plural: string, n: number): string {
     case 'PaymentDue': return `${n} payments coming due`;
     case 'Renewal': return `${n} contracts need a renewal decision`;
     case 'Assigned': return `${n} ${plural} assigned to you`;
+    case 'AtRisk': return `${n} ${plural} at risk from their dependencies`;
+    case 'ForecastLate': return `${n} ${plural} forecast late`;
     default: return `${n} ${plural}`;
   }
 }

@@ -88,6 +88,7 @@ public static class ModuleRegistration
         Jira.JiraClientEndpoints.MapJiraClientEndpoints(api);
         Jira.JiraAdminEndpoints.MapJiraAdminEndpoints(api);
         api.MapCommitmentEndpoints();
+        api.MapCommitmentDependencyEndpoints();
         api.MapEscalationEndpoints();
         api.MapContractEndpoints();
         api.MapPaymentEndpoints();

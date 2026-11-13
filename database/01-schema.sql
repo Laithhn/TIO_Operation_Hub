@@ -10571,12 +10571,12 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20261110131024_ServerGpuContractText'
 )
 BEGIN
-    DECLARE @var nvarchar(max);
-    SELECT @var = QUOTENAME([d].[name])
+    DECLARE @var32 nvarchar(max);
+    SELECT @var32 = QUOTENAME([d].[name])
     FROM [sys].[default_constraints] [d]
     INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
     WHERE ([d].[parent_object_id] = OBJECT_ID(N'[contracts].[Contract]') AND [c].[name] = N'SupportHours');
-    IF @var IS NOT NULL EXEC(N'ALTER TABLE [contracts].[Contract] DROP CONSTRAINT ' + @var + ';');
+    IF @var32 IS NOT NULL EXEC(N'ALTER TABLE [contracts].[Contract] DROP CONSTRAINT ' + @var32 + ';');
     ALTER TABLE [contracts].[Contract] ALTER COLUMN [SupportHours] nvarchar(max) NULL;
 END;
 
@@ -10585,12 +10585,12 @@ IF NOT EXISTS (
     WHERE [MigrationId] = N'20261110131024_ServerGpuContractText'
 )
 BEGIN
-    DECLARE @var1 nvarchar(max);
-    SELECT @var1 = QUOTENAME([d].[name])
+    DECLARE @var33 nvarchar(max);
+    SELECT @var33 = QUOTENAME([d].[name])
     FROM [sys].[default_constraints] [d]
     INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
     WHERE ([d].[parent_object_id] = OBJECT_ID(N'[contracts].[Contract]') AND [c].[name] = N'Obligations');
-    IF @var1 IS NOT NULL EXEC(N'ALTER TABLE [contracts].[Contract] DROP CONSTRAINT ' + @var1 + ';');
+    IF @var33 IS NOT NULL EXEC(N'ALTER TABLE [contracts].[Contract] DROP CONSTRAINT ' + @var33 + ';');
     ALTER TABLE [contracts].[Contract] ALTER COLUMN [Obligations] nvarchar(max) NULL;
 END;
 
@@ -10633,6 +10633,164 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
     VALUES (N'20261110131024_ServerGpuContractText', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[CommitmentEvent] ADD [CauseCommitmentId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[Commitment] ADD [Direction] nvarchar(40) NOT NULL DEFAULT N'Ours';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[Commitment] ADD [ExternalOrganizationId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[Commitment] ADD [LateCauseCommitmentId] bigint NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[Commitment] ADD [Title] nvarchar(200) NOT NULL DEFAULT N'';
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    EXEC(N'UPDATE [work].[Commitment] SET [Title] = LEFT(LTRIM(RTRIM(REPLACE(CASE WHEN CHARINDEX(NCHAR(10), [Description]) > 0
+            THEN LEFT([Description], CHARINDEX(NCHAR(10), [Description]) - 1) ELSE [Description] END, NCHAR(13), N''''))), 200)
+        WHERE [Title] = N'''';
+    UPDATE [work].[Commitment] SET [Title] = LEFT(LTRIM(RTRIM(REPLACE(REPLACE([Description], NCHAR(13), N'' ''), NCHAR(10), N'' ''))), 200)
+        WHERE [Title] = N'''';
+    UPDATE [work].[Commitment] SET [Title] = [Ref] WHERE [Title] = N'''';');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE TABLE [work].[CommitmentDependency] (
+        [Id] bigint NOT NULL IDENTITY,
+        [CommitmentId] bigint NOT NULL,
+        [DependsOnCommitmentId] bigint NOT NULL,
+        [LeadTimeDays] int NOT NULL,
+        [Note] nvarchar(500) NULL,
+        [CreatedAt] datetimeoffset NOT NULL,
+        [CreatedById] bigint NULL,
+        CONSTRAINT [PK_CommitmentDependency] PRIMARY KEY ([Id]),
+        CONSTRAINT [CK_CommitmentDependency_NotSelf] CHECK ([CommitmentId] <> [DependsOnCommitmentId]),
+        CONSTRAINT [FK_CommitmentDependency_Commitment_CommitmentId] FOREIGN KEY ([CommitmentId]) REFERENCES [work].[Commitment] ([Id]),
+        CONSTRAINT [FK_CommitmentDependency_Commitment_DependsOnCommitmentId] FOREIGN KEY ([DependsOnCommitmentId]) REFERENCES [work].[Commitment] ([Id])
+    );
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE INDEX [IX_CommitmentEvent_CauseCommitmentId] ON [work].[CommitmentEvent] ([CauseCommitmentId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE INDEX [IX_Commitment_Direction_ExternalOrganizationId] ON [work].[Commitment] ([Direction], [ExternalOrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE INDEX [IX_Commitment_ExternalOrganizationId] ON [work].[Commitment] ([ExternalOrganizationId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE INDEX [IX_Commitment_LateCauseCommitmentId] ON [work].[Commitment] ([LateCauseCommitmentId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE UNIQUE INDEX [IX_CommitmentDependency_CommitmentId_DependsOnCommitmentId] ON [work].[CommitmentDependency] ([CommitmentId], [DependsOnCommitmentId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    CREATE INDEX [IX_CommitmentDependency_DependsOnCommitmentId] ON [work].[CommitmentDependency] ([DependsOnCommitmentId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[Commitment] ADD CONSTRAINT [FK_Commitment_Commitment_LateCauseCommitmentId] FOREIGN KEY ([LateCauseCommitmentId]) REFERENCES [work].[Commitment] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[Commitment] ADD CONSTRAINT [FK_Commitment_Organization_ExternalOrganizationId] FOREIGN KEY ([ExternalOrganizationId]) REFERENCES [clients].[Organization] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    ALTER TABLE [work].[CommitmentEvent] ADD CONSTRAINT [FK_CommitmentEvent_Commitment_CauseCommitmentId] FOREIGN KEY ([CauseCommitmentId]) REFERENCES [work].[Commitment] ([Id]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113053901_CommitmentDependencies'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261113053901_CommitmentDependencies', N'10.0.13');
 END;
 
 COMMIT;

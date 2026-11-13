@@ -42,8 +42,8 @@ public static class SearchExportEndpoints
             // TIO-BUG-001: the subtitle shows the configured status label, as the ticket list and detail do, not the internal stage.
             var statusLabels = tickets.Count == 0 ? new Dictionary<string, string>() : await CaseStatuses.LabelsAsync(db, ct);
             hits.AddRange(tickets.Select(c => new SearchHit(c.jira is null ? "Tickets" : "Jira references", $"{c.Ref} · {c.Title}", c.jira is null ? $"{c.client} · {CaseStatuses.LabelOf(statusLabels, c.StatusCode)}" : $"{c.jira} · {c.client}", $"/cases/{c.Id}")));
-            hits.AddRange((await db.Commitments.AsNoTracking().Where(c => access.Me.HasRight(RightKeys.Commitments, RightKeys.View) && (c.Ref.Contains(t) || c.Description.Contains(t))).Take(n).Select(c => new { c.Id, c.Ref, c.Description, c.Status }).ToListAsync(ct))
-                .Select(c => new SearchHit("Commitments", $"{c.Ref} · {c.Description}", c.Status.ToString(), $"/commitments/{c.Id}")));
+            hits.AddRange((await db.Commitments.AsNoTracking().Where(c => access.Me.HasRight(RightKeys.Commitments, RightKeys.View) && (c.Ref.Contains(t) || c.Title.Contains(t) || c.Description.Contains(t))).Take(n).Select(c => new { c.Id, c.Ref, c.Title, c.Status }).ToListAsync(ct))
+                .Select(c => new SearchHit("Commitments", $"{c.Ref} · {c.Title}", c.Status.ToString(), $"/commitments/{c.Id}")));
             hits.AddRange((await db.Escalations.AsNoTracking().Where(e => access.Me.HasRight(RightKeys.Other, RightKeys.View) && (e.Ref.Contains(t) || e.Title.Contains(t) || (e.ChannelReference != null && e.ChannelReference.Contains(t)))).OrderByDescending(e => e.Id).Take(n)
                     .Select(e => new { e.Id, e.Ref, e.Title, e.Status, code = e.Client!.Code }).ToListAsync(ct))
                 .Select(e => new SearchHit("Escalations", $"{e.Ref} · {e.Title}", $"{e.code} · {e.Status}", $"/escalations/{e.Id}")));

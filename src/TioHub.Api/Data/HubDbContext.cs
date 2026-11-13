@@ -116,6 +116,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
     public DbSet<PenaltyAssessment> PenaltyAssessments => Set<PenaltyAssessment>();
     public DbSet<Commitment> Commitments => Set<Commitment>();
     public DbSet<CommitmentEvent> CommitmentEvents => Set<CommitmentEvent>();
+    public DbSet<CommitmentDependency> CommitmentDependencies => Set<CommitmentDependency>();
     public DbSet<Escalation> Escalations => Set<Escalation>();
     public DbSet<EscalationEvent> EscalationEvents => Set<EscalationEvent>();
     public DbSet<Team> Teams => Set<Team>();
@@ -826,7 +827,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Ref).HasMaxLength(20).HasDefaultValueSql("CONCAT('CM-', NEXT VALUE FOR [work].[CommitmentNumbers])").ValueGeneratedOnAdd();
             e.Property(x => x.Ref).Metadata.SetAfterSaveBehavior(Microsoft.EntityFrameworkCore.Metadata.PropertySaveBehavior.Ignore);
             e.HasIndex(x => x.Ref).IsUnique();
+            e.Property(x => x.Title).HasMaxLength(200).HasDefaultValue("");
             e.Property(x => x.Description).HasMaxLength(2000);
+            e.Property(x => x.Direction).HasDefaultValue(CommitmentDirection.Ours);
+            e.HasOne<Organization>().WithMany().HasForeignKey(x => x.ExternalOrganizationId);
+            e.HasIndex(x => new { x.Direction, x.ExternalOrganizationId });
+            e.HasOne<Commitment>().WithMany().HasForeignKey(x => x.LateCauseCommitmentId);
+            e.HasMany(x => x.Dependencies).WithOne().HasForeignKey(x => x.CommitmentId);
             e.Property(x => x.TimeZone).HasMaxLength(64);
             e.Property(x => x.CompletionEvidence).HasMaxLength(1000);
             e.Property(x => x.CancelReason).HasMaxLength(1000);
@@ -854,6 +861,17 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Reason).HasMaxLength(1000);
             e.Property(x => x.Evidence).HasMaxLength(1000);
             e.HasOne(x => x.By).WithMany().HasForeignKey(x => x.ById);
+            e.HasOne<Commitment>().WithMany().HasForeignKey(x => x.CauseCommitmentId);
+        });
+        // A114: a dependency is seen with the commitment that waits for it.
+        m.Entity<CommitmentDependency>(e =>
+        {
+            e.ToTable("CommitmentDependency", "work", t => t.HasCheckConstraint("CK_CommitmentDependency_NotSelf", "[CommitmentId] <> [DependsOnCommitmentId]"));
+            e.Property(x => x.Note).HasMaxLength(500);
+            e.HasIndex(x => new { x.CommitmentId, x.DependsOnCommitmentId }).IsUnique();
+            e.HasIndex(x => x.DependsOnCommitmentId);
+            e.HasOne(x => x.DependsOn).WithMany().HasForeignKey(x => x.DependsOnCommitmentId).OnDelete(DeleteBehavior.NoAction);
+            e.HasQueryFilter(ScopeFilter, x => Sys || Commitments.Any(c => c.Id == x.CommitmentId));
         });
 
         // ---- escalations (A41) ----

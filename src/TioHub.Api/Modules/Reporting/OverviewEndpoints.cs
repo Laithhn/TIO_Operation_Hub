@@ -70,7 +70,7 @@ public static class OverviewEndpoints
                 .Select(x => new { x.Id, x.Ref, x.Title, x.Status, x.StatusCode, x.Priority, owner = x.Owner == null ? "Unassigned" : x.Owner.DisplayName, x.DueAt, overdue = x.DueAt != null && x.DueAt < now, x.WaitingReason, x.NextAction })
                 .ToListAsync(ct);
             var commitments = await db.Commitments.AsNoTracking().Where(x => x.ClientId == id && x.Status == CommitmentStatus.Open).OrderBy(x => x.CurrentDueAt)
-                .Select(x => new { x.Id, x.Ref, x.Description, x.Type, x.CurrentDueAt, x.TimeZone, overdue = x.CurrentDueAt < now, owner = x.Owner == null ? null : x.Owner.DisplayName }).ToListAsync(ct);
+                .Select(x => new { x.Id, x.Ref, x.Title, x.Description, x.Type, x.CurrentDueAt, x.TimeZone, overdue = x.CurrentDueAt < now, owner = x.Owner == null ? null : x.Owner.DisplayName }).ToListAsync(ct);
             var projects = access.Me.HasRight(RightKeys.Projects, RightKeys.View)
                 ? await db.Projects.AsNoTracking().Where(x => x.ClientId == id).OrderBy(x => x.Name)
                     .Select(x => new { x.Id, x.Code, x.Name, x.Status, owner = x.Owner == null ? null : x.Owner.DisplayName, x.ServiceStart, x.ServiceEnd }).ToListAsync(ct)

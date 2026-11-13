@@ -400,12 +400,12 @@ public static class PortfolioData
             var zone = TimeZoneInfo.FindSystemTimeZoneById(tz);
             return new DateTimeOffset(local, zone.GetUtcOffset(local)).ToUniversalTime();
         }
-        void Commit(Client? c, Team? team, string? project, User owner, string desc, CommitmentType type, int month, string tz, string outcome, string? note = null, params (int Month, string Reason)[] revisions)
+        Commitment Commit(Client? c, Team? team, string? project, User owner, string desc, CommitmentType type, int month, string tz, string outcome, string? note = null, params (int Month, string Reason)[] revisions)
         {
             var original = MonthEnd(month, tz);
             var m = new Commitment
             {
-                Scope = c is null ? WorkScope.Internal : WorkScope.Client, ClientId = c?.Id, ResponsibleTeamId = c is null ? team!.Id : null, Description = desc, Type = type, OwnerUserId = owner.Id,
+                Scope = c is null ? WorkScope.Internal : WorkScope.Client, ClientId = c?.Id, ResponsibleTeamId = c is null ? team!.Id : null, Title = desc, Type = type, OwnerUserId = owner.Id,
                 OriginalDueAt = original, CurrentDueAt = original, TimeZone = tz, ProjectId = project is null ? null : projects[project].Id, NextReviewAt = now.AddDays(7), LastReviewedAt = now.AddDays(-3)
             };
             var created = new DateTimeOffset(2026, Math.Max(5, month - 1), 20, 8, 0, 0, TimeSpan.Zero);
@@ -430,6 +430,7 @@ public static class PortfolioData
             }
             db.Commitments.Add(m);
             m.CreatedAt = created;
+            return m;
         }
         const string Dxb = "Asia/Dubai", Ruh = "Asia/Riyadh", Bgw = "Asia/Baghdad";
         // Dubai Police
@@ -441,6 +442,37 @@ public static class PortfolioData
         Commit(dp, null, "DP-OYOON-AIPM", leadDel, "AI Project Management – Phase 1: System Administration", CommitmentType.Delivery, 7, Dxb, "ontime");
         Commit(dp, null, "DP-OYOON-AIPM", leadDel, "AI Project Management – Phase 2: Rasd Operation", CommitmentType.Delivery, 8, Dxb, "late:12");
         Commit(dp, null, "DP-OYOON-AIPM", leadDel, "AI Project Management – Phase 3: Analytics Module", CommitmentType.Delivery, 9, Dxb, "open");
+        // A114: an external party's delivery that ours waits for (fictional supplier; 7 days of integration leave 1 day of buffer, so it shows At risk).
+        var supplier = new Organization { Name = "Example Camera Supplier GmbH", OrganizationType = "External party" };
+        db.Organizations.Add(supplier);
+        await db.SaveChangesAsync(ct);
+        static DateTimeOffset At(DateTimeOffset day, string tz)
+        {
+            var zone = TimeZoneInfo.FindSystemTimeZoneById(tz);
+            var local = new DateTime(day.Year, day.Month, day.Day, 17, 0, 0, DateTimeKind.Unspecified);
+            return new DateTimeOffset(local, zone.GetUtcOffset(local)).ToUniversalTime();
+        }
+        var extDue = At(now.AddDays(10), "Europe/Berlin");
+        var ext = new Commitment
+        {
+            Scope = WorkScope.Client, ClientId = dp.Id, ProjectId = projects["DP-OYOON-AIPM"].Id, Title = "Speed enforcement cameras and pilot capability",
+            Description = "Operational attended speed enforcement and pilot capability, ready for integration.", Type = CommitmentType.Delivery,
+            Direction = CommitmentDirection.External, ExternalOrganizationId = supplier.Id, ResponsibleParty = ResponsibleParty.Vendor, ResponsibleOrganization = supplier.Name,
+            OwnerUserId = leadDel.Id, OriginalDueAt = extDue, CurrentDueAt = extDue, TimeZone = "Europe/Berlin", NextReviewAt = now.AddDays(3), LastReviewedAt = now.AddDays(-1)
+        };
+        ext.Events.Add(new CommitmentEvent { Type = CommitmentEventType.Created, NewDueAt = extDue, At = now.AddDays(-5), ById = leadDel.Id });
+        db.Commitments.Add(ext);
+        var oursDue = At(now.AddDays(18), Dxb);
+        var ours = new Commitment
+        {
+            Scope = WorkScope.Client, ClientId = dp.Id, ProjectId = projects["DP-OYOON-AIPM"].Id, Title = "Deliver speed enforcement pilot to Dubai Police",
+            Description = "Integrated speed enforcement pilot on our software, handed over after SIT, with operator training.", Type = CommitmentType.Delivery,
+            OwnerUserId = leadDel.Id, OriginalDueAt = oursDue, CurrentDueAt = oursDue, TimeZone = Dxb, NextReviewAt = now.AddDays(3), LastReviewedAt = now.AddDays(-1)
+        };
+        ours.Events.Add(new CommitmentEvent { Type = CommitmentEventType.Created, NewDueAt = oursDue, At = now.AddDays(-5), ById = leadDel.Id });
+        db.Commitments.Add(ours);
+        await db.SaveChangesAsync(ct);
+        ours.Dependencies.Add(new CommitmentDependency { DependsOnCommitmentId = ext.Id, LeadTimeDays = 7, Note = "Integration with our software and SIT", CreatedAt = now.AddDays(-5), CreatedById = leadDel.Id });
         // Tahakom
         Commit(tah, null, "TAH-SLA", engTah, "Tahakom release 17.7 and hotfix 17.7.1", CommitmentType.Delivery, 6, Ruh, "ontime");
         Commit(tah, null, "TAH-SLA", engTah, "Tahakom release 17.8 and hotfix 17.8.1", CommitmentType.Delivery, 7, Ruh, "late:5");

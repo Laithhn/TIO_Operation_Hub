@@ -713,7 +713,7 @@ type Cli = {
   cases: { open: number; overdue: number; link: string; byPriority: BarT[]; list: { id: number; ref: string; title: string; priority: string; status: string; owner?: string | null; dueAt?: string | null; overdue: boolean }[] };
   sla: { target: number; windowDays: number; response: Tally; resolution: Tally; openBreached: number; link: string };
   escalations: { id: number; ref: string; title: string; level: number; status: string; owner: string; receivedAt: string; overdue: boolean }[];
-  commitments: { id: number; ref: string; description: string; dueAt: string; owner?: string | null; overdue: boolean }[];
+  commitments: { id: number; ref: string; title: string; dueAt: string; owner?: string | null; overdue: boolean }[];
   environments: { id: number; name: string; type: string; condition: ConditionT; reason?: string | null; installations: { product: string; version?: string | null }[] }[];
   team: { note: string; members: { userId: number; name: string; role: string; active: boolean }[] };
   activity: { at: string; text: string; link: string }[];
@@ -725,7 +725,7 @@ type Cli = {
   escalationsYears: { raised: number; active: number; overdue: number; activeOtherYears: number; link: string;
     list: { id: number; ref: string; title: string; level: number; status: string; active: boolean; owner: string; receivedAt: string; overdue: boolean }[] };
   commitmentsYears: { due: number; open: number; overdue: number; completed: number; completedLate: number; openOtherYears: number; link: string;
-    list: { id: number; ref: string; description: string; dueAt: string; owner?: string | null; overdue: boolean }[] };
+    list: { id: number; ref: string; title: string; dueAt: string; owner?: string | null; overdue: boolean }[] };
   paymentsOverdueOtherYears: number;
 };
 const PAY_STATE: Record<string, { tone: Tone; label: string }> = {
@@ -1069,7 +1069,7 @@ export function ClientDashboard() {
           {com.list.length === 0 ? <p className="hint">No open commitment is due in the selected years.</p> : (
             <ul className="c360-list">
               {com.list.map(x => (
-                <C360Row key={x.id} to={`/commitments/${x.id}`} title={<><b>{x.ref}</b> · {x.description}</>} right={`Due ${fmtDate(x.dueAt)}`} tone={x.overdue ? 'bad' : undefined}
+                <C360Row key={x.id} to={`/commitments/${x.id}`} title={<><b>{x.ref}</b> · {x.title}</>} right={`Due ${fmtDate(x.dueAt)}`} tone={x.overdue ? 'bad' : undefined}
                   sub={<>{x.owner ?? <Badge tone="warn">Unassigned</Badge>}{x.overdue && <> · <span className="t-bad">Overdue</span></>}</>} />
               ))}
             </ul>

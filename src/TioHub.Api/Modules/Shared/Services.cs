@@ -47,6 +47,8 @@ public sealed class HubSettings(HubDbContext db, IMemoryCache cache)
     public Task<int> SlaComplianceTargetAsync(CancellationToken ct) => IntAsync(SettingKeys.SlaComplianceTargetPercent, 90, 50, 100, ct);
     /// <summary>A109: days after which a recorded client status needs review.</summary>
     public Task<int> ClientStatusMaxAgeDaysAsync(CancellationToken ct) => IntAsync(SettingKeys.ClientStatusMaxAgeDays, 14, 1, 90, ct);
+    /// <summary>A114: buffer (calendar days) below which a commitment's dependencies put it at risk.</summary>
+    public Task<int> DependencyWarningDaysAsync(CancellationToken ct) => IntAsync(SettingKeys.DependencyWarningDays, 2, 0, 30, ct);
 
     public void Invalidate() => cache.Remove(CacheKey);
 }

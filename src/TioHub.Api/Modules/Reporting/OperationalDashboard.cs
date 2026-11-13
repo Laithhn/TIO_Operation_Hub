@@ -83,7 +83,7 @@ public sealed class OperationalDashboard(HubDbContext db, HubSettings settings, 
         var in24 = now.AddHours(24);
         var casesDue24 = await Cases(baseCase with { Due = "24h" }).CountAsync(ct);
         var casesOverdue = await Cases(baseCase with { Due = "overdue" }).CountAsync(ct);
-        var comOpen = await Coms(baseCom).Select(c => new { c.Id, c.Ref, c.Description, c.ClientId, code = c.Client == null ? null : c.Client.Code, owner = c.Owner == null ? null : c.Owner.DisplayName, c.CurrentDueAt, c.Type }).ToListAsync(ct);
+        var comOpen = await Coms(baseCom).Select(c => new { c.Id, c.Ref, c.Title, c.ClientId, code = c.Client == null ? null : c.Client.Code, owner = c.Owner == null ? null : c.Owner.DisplayName, c.CurrentDueAt, c.Type }).ToListAsync(ct);
 
         // ---- running SLA clocks (client cases with a contract and a pending obligation) ----
         var clockCases = await Cases(baseCase with { Scope = WorkScope.Client, Sla = "withContract" })
@@ -101,7 +101,7 @@ public sealed class OperationalDashboard(HubDbContext db, HubSettings settings, 
         foreach (var c in dueCases.Where(c => !queue.ContainsKey(c.Id)))
             queue[c.Id] = new QueueRow("Case", c.Id, c.Ref, c.Title, c.ClientId, c.code, c.Priority.ToString(), c.owner, c.OwnerUserId is null, null, c.DueAt, c.DueAt!.Value, c.NextAction, c.WaitingReason?.ToString(), $"/cases/{c.Id}");
         var rows = queue.Values.Concat(comOpen.Where(c => c.CurrentDueAt <= in24).Select(c =>
-            new QueueRow("Commitment", c.Id, c.Ref, c.Description, c.ClientId, c.code, null, c.owner, c.owner is null, null, c.CurrentDueAt, c.CurrentDueAt, null, null, $"/commitments/{c.Id}")))
+            new QueueRow("Commitment", c.Id, c.Ref, c.Title, c.ClientId, c.code, null, c.owner, c.owner is null, null, c.CurrentDueAt, c.CurrentDueAt, null, null, $"/commitments/{c.Id}")))
             .OrderBy(r => r.Deadline).ToList();
 
         // ---- production environments: manually reported condition ----
@@ -129,7 +129,7 @@ public sealed class OperationalDashboard(HubDbContext db, HubSettings settings, 
         var maintenance = await Cases(baseCase).Where(c => c.TypeCategory == CaseType.MaintenanceCoordination && c.DueAt != null && c.DueAt > now && c.DueAt <= week)
             .Select(c => new { c.Id, c.Ref, c.Title, code = c.Client == null ? null : c.Client.Code, c.DueAt }).ToListAsync(ct);
         var upcoming = comOpen.Where(c => c.CurrentDueAt > now && c.CurrentDueAt <= week)
-            .Select(c => new { kind = "Commitment", c.Id, c.Ref, title = c.Description, client = c.code, at = c.CurrentDueAt, link = $"/commitments/{c.Id}" })
+            .Select(c => new { kind = "Commitment", c.Id, c.Ref, title = c.Title, client = c.code, at = c.CurrentDueAt, link = $"/commitments/{c.Id}" })
             .Concat(maintenance.Select(c => new { kind = "Maintenance", c.Id, c.Ref, title = c.Title, client = c.code, at = c.DueAt!.Value, link = $"/cases/{c.Id}" }))
             .OrderBy(x => x.at).Take(12).ToList();
 

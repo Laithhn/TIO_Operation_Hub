@@ -95,3 +95,19 @@ describe('relative time', () => {
     expect(relativeTime(new Date(now + 60_000).toISOString(), now)).toBe('Just now');
   });
 });
+
+// A114: dependency alerts on commitments.
+describe('dependency alerts', () => {
+  it('treats a forecast-late commitment as critical and an at-risk one as action required', () => {
+    expect(severityOf({ kind: 'ForecastLate' })).toBe('critical');
+    expect(severityOf({ kind: 'AtRisk' })).toBe('action');
+    expect(chipOf(n({ kind: 'ForecastLate', title: 'Commitment CM-1009 Pilot: forecast late' }))).toBe('Forecast late');
+    expect(chipOf(n({ kind: 'AtRisk', title: 'Commitment CM-1010 Pilot: at risk' }))).toBe('At risk');
+  });
+  it('groups several at-risk commitments under one heading', () => {
+    const items = [1, 2].map(i => n({ kind: 'AtRisk', title: `Commitment CM-10${i} Pilot: at risk`, entityType: 'Commitment', link: `/commitments/${i}` }));
+    const entry = buildSections(items)[0].entries[0];
+    expect(entry.type).toBe('group');
+    if (entry.type === 'group') expect(entry.title).toBe('2 commitments at risk from their dependencies');
+  });
+});

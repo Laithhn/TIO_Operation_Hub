@@ -63,7 +63,13 @@ public enum CommitmentType { CustomerUpdate, Delivery, RenewalAction, Maintenanc
 
 public enum CommitmentStatus { Open, Completed, Cancelled }
 
-public enum CommitmentEventType { Created, Revised, Completed, Cancelled, Reopened, Reviewed, OwnerChanged }
+public enum CommitmentEventType { Created, Revised, Completed, Cancelled, Reopened, Reviewed, OwnerChanged, DependencyAdded, DependencyRemoved }
+
+/// <summary>A114: who delivers. Ours = we promised it (to a client or internally); External = an external party promised it to us.</summary>
+public enum CommitmentDirection { Ours, External }
+
+/// <summary>A114: derived from a commitment's dependencies; never stored.</summary>
+public enum DependencyHealth { OnTrack, AtRisk, WillBeLate, Blocked }
 
 public enum HandoverStatus { PendingAcknowledgment, Completed, CompletedByException, Cancelled }
 

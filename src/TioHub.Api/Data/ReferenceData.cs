@@ -42,7 +42,9 @@ public static class ReferenceData
         (SettingKeys.PaymentReminderDays, "14", "Days before a contract payment is due that its owner and the managers are reminded (1–90)."),
         (SettingKeys.SlaAtRiskPercent, "25", "A running contractual SLA clock is shown as at risk when this percentage of its target time, or less, is left (5–50)."),
         (SettingKeys.SlaComplianceTargetPercent, "90", "Compliance objective in percent that the SLA and client dashboards compare measured rates with (50–100). An internal objective, not a contract term."),
-        (SettingKeys.ClientStatusMaxAgeDays, "14", "A recorded client status older than this many days is shown as needing review (1–90).")
+        (SettingKeys.ClientStatusMaxAgeDays, "14", "A recorded client status older than this many days is shown as needing review (1–90)."),
+        (SettingKeys.DependencyWarningDays, "2", "A commitment is at risk when its dependencies leave less than this many calendar days of buffer (0–30)."),
+        (SettingKeys.ExternalReminderDays, "5", "Days before an External commitment is due that its follow-up owner is reminded (1–30).")
     ];
 
     // OPS-04 pilot defaults; condition evidence interval is an implementation assumption (BRD gives no figure).

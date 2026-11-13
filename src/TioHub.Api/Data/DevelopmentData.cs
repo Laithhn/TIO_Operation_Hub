@@ -263,7 +263,7 @@ public static class DevelopmentData
         {
             var m = new Commitment
             {
-                Scope = c is null ? WorkScope.Internal : WorkScope.Client, ClientId = c?.Id, ResponsibleTeamId = team?.Id, Description = desc, Type = t, OwnerUserId = owner.Id,
+                Scope = c is null ? WorkScope.Internal : WorkScope.Client, ClientId = c?.Id, ResponsibleTeamId = team?.Id, Title = desc, Type = t, OwnerUserId = owner.Id,
                 OriginalDueAt = due, CurrentDueAt = due, TimeZone = tz, CaseId = k?.Id, ProjectId = p?.Id, NextReviewAt = now.AddDays(3), LastReviewedAt = now.AddDays(-1)
             };
             m.Events.Add(new CommitmentEvent { Type = CommitmentEventType.Created, NewDueAt = due, At = now.AddDays(-7), ById = owner.Id });

@@ -163,7 +163,7 @@ export function CommitmentsTab({ c, createTo }: { c: CaseDto; createTo?: string 
             <tbody>{shown.map(m => (
               <tr key={m.id}>
                 <td className="nowrap"><Link to={`/commitments/${m.id}`}>{m.ref}</Link></td>
-                <td><TitledText text={m.description} /></td>
+                <td><TitledText text={m.title || m.description} /></td>
                 <td className="nowrap"><StatusBadge value={m.status} /></td>
                 <td className="nowrap">due {fmtDateTime(m.currentDueAt)}{m.timeZone && <div className="hint">{m.timeZone}</div>}</td>
               </tr>

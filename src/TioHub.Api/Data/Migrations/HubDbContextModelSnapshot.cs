@@ -2206,11 +2206,24 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<string>("Direction")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)")
+                        .HasDefaultValue("Ours");
+
                     b.Property<DateTimeOffset?>("DueAtCompletion")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<long?>("ExternalOrganizationId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset?>("LastReviewedAt")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("LateCauseCommitmentId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTimeOffset?>("NextReviewAt")
                         .HasColumnType("datetimeoffset");
@@ -2267,6 +2280,13 @@ namespace TioHub.Api.Data.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(40)
@@ -2288,6 +2308,10 @@ namespace TioHub.Api.Data.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("ExternalOrganizationId");
+
+                    b.HasIndex("LateCauseCommitmentId");
+
                     b.HasIndex("OwnerUserId");
 
                     b.HasIndex("ProjectId");
@@ -2299,9 +2323,51 @@ namespace TioHub.Api.Data.Migrations
 
                     b.HasIndex("UpdatedById");
 
+                    b.HasIndex("Direction", "ExternalOrganizationId");
+
                     b.HasIndex("Status", "CurrentDueAt");
 
                     b.ToTable("Commitment", "work");
+                });
+
+            modelBuilder.Entity("TioHub.Api.Modules.Commitments.CommitmentDependency", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("CommitmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<long?>("CreatedById")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("DependsOnCommitmentId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("LeadTimeDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DependsOnCommitmentId");
+
+                    b.HasIndex("CommitmentId", "DependsOnCommitmentId")
+                        .IsUnique();
+
+                    b.ToTable("CommitmentDependency", "work", t =>
+                        {
+                            t.HasCheckConstraint("CK_CommitmentDependency_NotSelf", "[CommitmentId] <> [DependsOnCommitmentId]");
+                        });
                 });
 
             modelBuilder.Entity("TioHub.Api.Modules.Commitments.CommitmentEvent", b =>
@@ -2316,6 +2382,9 @@ namespace TioHub.Api.Data.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<long?>("ById")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("CauseCommitmentId")
                         .HasColumnType("bigint");
 
                     b.Property<long>("CommitmentId")
@@ -2346,6 +2415,8 @@ namespace TioHub.Api.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ById");
+
+                    b.HasIndex("CauseCommitmentId");
 
                     b.HasIndex("CommitmentId");
 
@@ -7692,6 +7763,16 @@ namespace TioHub.Api.Data.Migrations
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("TioHub.Api.Modules.Clients.Organization", null)
+                        .WithMany()
+                        .HasForeignKey("ExternalOrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Commitments.Commitment", null)
+                        .WithMany()
+                        .HasForeignKey("LateCauseCommitmentId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("TioHub.Api.Modules.Access.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerUserId")
@@ -7719,11 +7800,33 @@ namespace TioHub.Api.Data.Migrations
                     b.Navigation("ResponsibleTeam");
                 });
 
+            modelBuilder.Entity("TioHub.Api.Modules.Commitments.CommitmentDependency", b =>
+                {
+                    b.HasOne("TioHub.Api.Modules.Commitments.Commitment", null)
+                        .WithMany("Dependencies")
+                        .HasForeignKey("CommitmentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("TioHub.Api.Modules.Commitments.Commitment", "DependsOn")
+                        .WithMany()
+                        .HasForeignKey("DependsOnCommitmentId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("DependsOn");
+                });
+
             modelBuilder.Entity("TioHub.Api.Modules.Commitments.CommitmentEvent", b =>
                 {
                     b.HasOne("TioHub.Api.Modules.Access.User", "By")
                         .WithMany()
                         .HasForeignKey("ById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("TioHub.Api.Modules.Commitments.Commitment", null)
+                        .WithMany()
+                        .HasForeignKey("CauseCommitmentId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("TioHub.Api.Modules.Commitments.Commitment", null)
@@ -9139,6 +9242,8 @@ namespace TioHub.Api.Data.Migrations
 
             modelBuilder.Entity("TioHub.Api.Modules.Commitments.Commitment", b =>
                 {
+                    b.Navigation("Dependencies");
+
                     b.Navigation("Events");
                 });
 

@@ -185,19 +185,21 @@ public static class ReportCatalog
             Filters = [Client, Team, Owner, Product,
                 new("status", "Status", FilterKind.Select, Options: ["open", "all", "done", .. Names<CommitmentStatus>()], Hint: "Empty = open commitments."),
                 .. Range("dueFrom", "dueTo", "Deadline"), .. Range("completedFrom", "completedTo", "Completed", true),
-                new("late", "Completed late only", FilterKind.Bool, true), new("q", "Description or reference contains", FilterKind.Text, true)],
-            ListKeys = ["scope", "type", "due", "stale", "projectId", "caseId", "deactivatedOwner", "country", "asOf"],
+                new("late", "Completed late only", FilterKind.Bool, true), new("q", "Title, description, external party or reference contains", FilterKind.Text, true)],
+            ListKeys = ["scope", "type", "due", "stale", "projectId", "caseId", "deactivatedOwner", "country", "asOf", "direction", "externalOrganizationId"],
             Query = async (x, ct) =>
             {
                 var f = new CommitmentFilter(x.L("clientId"), x.L("teamId"), x.L("ownerId"), x.E<WorkScope>("scope"), x.E<CommitmentType>("type"), x.S("status"), x.S("due"), x.B("late"), x.B("stale"),
-                    x.L("projectId"), x.L("caseId"), x.S("q"), x.From("completedFrom"), x.To("completedTo"), x.B("deactivatedOwner"), x.S("country"), x.L("productId"));
+                    x.L("projectId"), x.L("caseId"), x.S("q"), x.From("completedFrom"), x.To("completedTo"), x.B("deactivatedOwner"), x.S("country"), x.L("productId"),
+                    x.E<CommitmentDirection>("direction"), x.L("externalOrganizationId"));
                 var q = CommitmentQuery.Apply(x.Db.Commitments.AsNoTracking(), f, x.Now, await x.Settings.UpcomingDaysAsync(ct), x.Db);
                 if (x.From("dueFrom") is { } df) q = q.Where(c => c.CurrentDueAt >= df);
                 if (x.To("dueTo") is { } dt) q = q.Where(c => c.CurrentDueAt < dt);
                 return q.OrderBy(c => c.CurrentDueAt).Select(CommitmentEndpoints.Row(x.Now));
             },
             Cols = [
-                new("Reference", "Commitment reference", r => r.Ref), new("Description", "Promise", r => r.Description),
+                new("Reference", "Commitment reference", r => r.Ref), new("Title", "Promise", r => r.Title), new("Description", "Optional longer text", r => r.Description),
+                new("Direction", "Ours, or External (an external party delivers to us)", r => r.Direction.ToString()), new("External party", "Who delivers an External commitment", r => r.ExternalParty),
                 new("Type", "Recorded contractual deadlines are manual entries, not verified SLA results", r => r.Type), new("Status", "Open, Completed or Cancelled", r => r.Status),
                 new("Client", "Client alias; empty for internal", r => r.ClientCode), new("Team", "Responsible team", r => r.TeamName), new("Owner", "Accountable owner", r => r.OwnerName),
                 new("Original deadline", "First recorded deadline", r => r.OriginalDueAt), new("Current deadline", "Deadline in force", r => r.CurrentDueAt),
@@ -442,7 +444,7 @@ public static class ReportCatalog
                 return (metrics, [new("By team", ["Team", "Commitments", "Completed", "On time", "Overdue"], By(r => r.TeamId, r => r.TeamName)), new("By client", ["Client", "Commitments", "Completed", "On time", "Overdue"], By(r => r.ClientId, r => r.ClientCode ?? "Internal"))]);
             },
             Cols = [
-                new("Reference", "Commitment reference", r => r.Ref), new("Description", "Promise", r => r.Description), new("Client", "Client alias; empty for internal", r => r.ClientCode),
+                new("Reference", "Commitment reference", r => r.Ref), new("Title", "Promise", r => r.Title), new("Client", "Client alias; empty for internal", r => r.ClientCode),
                 new("Team", "Responsible team", r => r.TeamName), new("Owner", "Accountable owner", r => r.OwnerName), new("Status", "Open, Completed or Cancelled", r => r.Status),
                 new("Deadline", "Deadline in force", r => r.CurrentDueAt), new("Revisions", "Deadline revisions", r => r.RevisionCount), new("Completed", "Completion time", r => r.CompletedAt),
                 new("On time", "Completed by the deadline in force", r => r.Status == CommitmentStatus.Completed ? r.CompletedLate == false : null), new("Overdue", "Open and past the deadline", r => r.Overdue)]

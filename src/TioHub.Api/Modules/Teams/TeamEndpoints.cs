@@ -161,7 +161,7 @@ public static class TeamEndpoints
                 .Select(c => new { c.Id, c.Ref, c.Title, c.Status, c.Priority, c.OwnerUserId, c.BackupOwnerUserId, backupActive = c.BackupOwner == null || c.BackupOwner.IsActive, c.WaitingReason, c.DueAt, c.NextReviewAt, c.NextAction })
                 .ToListAsync(ct);
             var commitments = await db.Commitments.AsNoTracking().Where(c => c.Status == CommitmentStatus.Open && c.ResponsibleTeamId == id)
-                .Select(c => new { c.Id, c.Ref, c.Description, c.OwnerUserId, c.CurrentDueAt, c.TimeZone }).ToListAsync(ct);
+                .Select(c => new { c.Id, c.Ref, c.Title, c.Description, c.OwnerUserId, c.CurrentDueAt, c.TimeZone }).ToListAsync(ct);
             var people = team.Members.Where(m => m.IsActive).OrderBy(m => m.User!.DisplayName).Select(m => new
             {
                 m.UserId, name = m.User!.DisplayName, active = m.User.IsActive, timeZone = m.User.WorkingTimeZone, m.TeamRole,
@@ -402,7 +402,7 @@ public static class TeamEndpoints
         assets = await db.Assets.AsNoTracking().Where(x => canSeeAsset && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Asset, x.Id, label = x.Name }).ToListAsync(ct),
         components = await db.Components.AsNoTracking().Where(x => canSeeComponent && x.OwnerUserId == ownerId).Select(x => new { recordType = RecordTypes.Component, x.Id, label = x.Name }).ToListAsync(ct),
         cases = await db.Cases.AsNoTracking().Where(x => canSeeCase && x.OwnerUserId == ownerId && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled).Select(x => new { recordType = RecordTypes.Case, x.Id, label = x.Ref + " · " + x.Title }).ToListAsync(ct),
-        commitments = await db.Commitments.AsNoTracking().Where(x => canSeeCommitment && x.OwnerUserId == ownerId && x.Status == CommitmentStatus.Open).Select(x => new { recordType = RecordTypes.Commitment, x.Id, label = x.Ref + " · " + x.Description }).ToListAsync(ct)
+        commitments = await db.Commitments.AsNoTracking().Where(x => canSeeCommitment && x.OwnerUserId == ownerId && x.Status == CommitmentStatus.Open).Select(x => new { recordType = RecordTypes.Commitment, x.Id, label = x.Ref + " · " + x.Title }).ToListAsync(ct)
     };
     }
 
@@ -430,7 +430,7 @@ public static class TeamEndpoints
         list.AddRange(await db.Assets.AsNoTracking().Where(x => canSeeAsset && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Asset, x.Id, x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
         list.AddRange(await db.Components.AsNoTracking().Where(x => canSeeComponent && x.Owner != null && !x.Owner.IsActive).Select(x => new QueueItem(RecordTypes.Component, x.Id, x.Name, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
         list.AddRange(await db.Cases.AsNoTracking().Where(x => canSeeCase && x.Owner != null && !x.Owner.IsActive && x.Status != CaseStatus.Closed && x.Status != CaseStatus.Cancelled).Select(x => new QueueItem(RecordTypes.Case, x.Id, x.Ref + " · " + x.Title, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
-        list.AddRange(await db.Commitments.AsNoTracking().Where(x => canSeeCommitment && x.Owner != null && !x.Owner.IsActive && x.Status == CommitmentStatus.Open).Select(x => new QueueItem(RecordTypes.Commitment, x.Id, x.Ref + " · " + x.Description, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
+        list.AddRange(await db.Commitments.AsNoTracking().Where(x => canSeeCommitment && x.Owner != null && !x.Owner.IsActive && x.Status == CommitmentStatus.Open).Select(x => new QueueItem(RecordTypes.Commitment, x.Id, x.Ref + " · " + x.Title, x.ClientId, x.Owner!.DisplayName, x.Owner.Id, "Owner deactivated")).ToListAsync(ct));
         return list;
     }
 
@@ -496,7 +496,7 @@ public sealed class OwnedRecord(string type, long id, long? clientId, long? team
             case RecordTypes.Asset: { var x = await db.Assets.FirstOrDefaultAsync(r => r.Id == id, ct); return x is null ? null : new(type, x.Id, x.ClientId, null, x.Name, x.OwnerUserId, x, u => x.OwnerUserId = u); }
             case RecordTypes.Component: { var x = await db.Components.FirstOrDefaultAsync(r => r.Id == id, ct); return x is null ? null : new(type, x.Id, x.ClientId, null, x.Name, x.OwnerUserId, x, u => x.OwnerUserId = u); }
             case RecordTypes.Case: { var x = await db.Cases.FirstOrDefaultAsync(r => r.Id == id, ct); return x is null ? null : new(type, x.Id, x.ClientId, x.ResponsibleTeamId, $"{x.Ref} · {x.Title}", x.OwnerUserId, x, u => { x.OwnerUserId = u; if (x.BackupOwnerUserId == u) x.BackupOwnerUserId = null; }); }
-            case RecordTypes.Commitment: { var x = await db.Commitments.FirstOrDefaultAsync(r => r.Id == id, ct); return x is null ? null : new(type, x.Id, x.ClientId, x.ResponsibleTeamId, $"{x.Ref} · {x.Description}", x.OwnerUserId, x, u => x.OwnerUserId = u); }
+            case RecordTypes.Commitment: { var x = await db.Commitments.FirstOrDefaultAsync(r => r.Id == id, ct); return x is null ? null : new(type, x.Id, x.ClientId, x.ResponsibleTeamId, $"{x.Ref} · {x.Title}", x.OwnerUserId, x, u => x.OwnerUserId = u); }
             default: return null;
         }
     }

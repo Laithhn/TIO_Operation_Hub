@@ -83,6 +83,10 @@ public static class SettingKeys
     public const string SlaComplianceTargetPercent = "Dashboard.SlaComplianceTargetPercent";
     /// <summary>A109: a recorded client status older than this is shown as needing review (2.59.0 named it Dashboard.ProjectStatusMaxAgeDays).</summary>
     public const string ClientStatusMaxAgeDays = "Dashboard.ClientStatusMaxAgeDays";
+    /// <summary>A114: a commitment whose dependencies leave less buffer than this (calendar days) is at risk.</summary>
+    public const string DependencyWarningDays = "Commitments.DependencyWarningDays";
+    /// <summary>A114: how many days ahead the follow-up owner of an External commitment is reminded of its due date.</summary>
+    public const string ExternalReminderDays = "Commitments.ExternalReminderDays";
 }
 
 /// <summary>Append-only audit (NFR-03). The application login has no UPDATE/DELETE permission on this table in production.</summary>

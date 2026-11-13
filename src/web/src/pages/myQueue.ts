@@ -1,6 +1,6 @@
 /** A102: one queue of a person's tickets and commitments, most urgent first, each with a clear next step. */
 export type QueueTicket = { id: number; ref: string; title: string; priority: string; statusCode: string; dueAt?: string | null; overdue: boolean; waitingReason?: string | null; nextAction?: string | null; reviewOverdue?: boolean; clientCode?: string | null };
-export type QueueCommitment = { id: number; ref: string; description: string; currentDueAt: string; overdue: boolean; clientCode?: string | null };
+export type QueueCommitment = { id: number; ref: string; title?: string; description: string; currentDueAt: string; overdue: boolean; clientCode?: string | null };
 export type QueueItem = { key: string; kind: 'Ticket' | 'Commitment'; to: string; ref: string; title: string; clientCode?: string | null; priority?: string; statusCode?: string; dueAt?: string | null; overdue: boolean; nextStep: string };
 
 const URGENT = ['Critical', 'High'];
@@ -21,7 +21,7 @@ function urgency(i: QueueItem): [number, number, number] {
 export function buildQueue(tickets: QueueTicket[], commitments: QueueCommitment[]): QueueItem[] {
   const items: QueueItem[] = [
     ...tickets.map((t): QueueItem => ({ key: `t${t.id}`, kind: 'Ticket', to: `/cases/${t.id}`, ref: t.ref, title: t.title, clientCode: t.clientCode, priority: t.priority, statusCode: t.statusCode, dueAt: t.dueAt, overdue: t.overdue, nextStep: ticketStep(t) })),
-    ...commitments.map((c): QueueItem => ({ key: `c${c.id}`, kind: 'Commitment', to: `/commitments/${c.id}`, ref: c.ref, title: c.description, clientCode: c.clientCode, dueAt: c.currentDueAt, overdue: c.overdue, nextStep: c.overdue ? 'Deliver it, or agree a new date' : 'Deliver by the due date' }))
+    ...commitments.map((c): QueueItem => ({ key: `c${c.id}`, kind: 'Commitment', to: `/commitments/${c.id}`, ref: c.ref, title: c.title || c.description, clientCode: c.clientCode, dueAt: c.currentDueAt, overdue: c.overdue, nextStep: c.overdue ? 'Deliver it, or agree a new date' : 'Deliver by the due date' }))
   ];
   return items.sort((a, b) => {
     const x = urgency(a), y = urgency(b);

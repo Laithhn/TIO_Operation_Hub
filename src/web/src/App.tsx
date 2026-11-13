@@ -41,6 +41,7 @@ const RegionDetail = page(() => import('./pages/Clients'), 'RegionDetail');
 const CommitmentDetail = page(() => import('./pages/Commitments'), 'CommitmentDetail');
 const CommitmentForm = page(() => import('./pages/Commitments'), 'CommitmentForm');
 const CommitmentList = page(() => import('./pages/Commitments'), 'CommitmentList');
+const ExternalReliability = page(() => import('./pages/Commitments'), 'ExternalReliability');
 const EscalationDetail = page(() => import('./pages/Escalations'), 'EscalationDetail');
 const EscalationForm = page(() => import('./pages/Escalations'), 'EscalationForm');
 const EscalationList = page(() => import('./pages/Escalations'), 'EscalationList');
@@ -195,6 +196,7 @@ export const router = createBrowserRouter([
       { path: 'cases/:id/edit', element: <CaseForm /> },
       { path: 'commitments', element: <CommitmentList /> },
       { path: 'commitments/new', element: <CommitmentForm /> },
+      { path: 'commitments/external', element: <ExternalReliability /> },
       { path: 'commitments/:id', element: <CommitmentDetail /> },
       { path: 'notes', element: <NotesWorkspace /> },
       { path: 'escalations', element: <EscalationList /> },

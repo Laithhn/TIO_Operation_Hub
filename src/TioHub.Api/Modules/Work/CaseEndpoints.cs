@@ -101,7 +101,7 @@ public static class CaseEndpoints
             var events = await db.CaseEvents.AsNoTracking().Where(e => canHistory && access.Me.HasRight("tab.Cases.timeline:View") && e.CaseId == id).OrderByDescending(e => e.At).ThenByDescending(e => e.Id)
                 .Select(e => new { e.Id, e.Type, e.FromValue, e.ToValue, e.Note, e.At, by = e.By == null ? null : e.By.DisplayName }).ToListAsync(ct);
             var commitments = await db.Commitments.AsNoTracking().Where(m => canCommitments && m.CaseId == id)
-                .Select(m => new { m.Id, m.Ref, m.Description, m.Status, m.CurrentDueAt, m.TimeZone }).ToListAsync(ct);
+                .Select(m => new { m.Id, m.Ref, m.Title, m.Description, m.Status, m.CurrentDueAt, m.TimeZone }).ToListAsync(ct);
             var users = await access.UserRefsAsync([c.CoordinatorUserId, c.EvidenceExceptionApprovedById, c.EvidenceExceptionFollowUpOwnerId], ct);
             var waitingSeconds = c.WaitingIntervals.Sum(w => ((w.EndedAt ?? now) - w.StartedAt).TotalSeconds);
             var statusFromJira = await db.JiraCaseMappings.AsNoTracking().AnyAsync(m => m.CaseId == c.Id, ct);

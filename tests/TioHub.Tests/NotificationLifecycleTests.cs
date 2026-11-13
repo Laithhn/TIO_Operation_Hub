@@ -39,7 +39,8 @@ public class A72_NotificationLifecycle(HubFactory hub) : Scenario(hub)
         var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
         var rows = await db.Notifications.AsNoTracking().Where(n => n.Kind == NotificationKinds.Overdue && (n.Link == $"/commitments/{longOne}" || n.Link == $"/commitments/{other}")).ToListAsync();
         var shortened = rows.First(n => n.Link == $"/commitments/{longOne}");
-        Assert.Equal(500, shortened.Body!.Length);
+        // A114: the notice shows the commitment's title, which a description-only caller gets from the description, shortened to 200.
+        Assert.Equal(200, shortened.Body!.Length);
         Assert.EndsWith("…", shortened.Body);
         Assert.Equal("A short description", rows.First(n => n.Link == $"/commitments/{other}").Body);
         await Scan(DateTimeOffset.UtcNow); // and the next scan, which updates the same alert, still succeeds

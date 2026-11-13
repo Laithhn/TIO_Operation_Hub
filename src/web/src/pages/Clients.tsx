@@ -286,7 +286,7 @@ type Overview = {
   structure: string; regions: { id: number; code: string; name: string; owner?: string; environments: EnvCard[] }[]; directEnvironments: EnvCard[];
   counts: { environments: number; installations: number; environmentsWithInstallations: number; openCases: number; overdueCases: number; openCommitments: number; overdueCommitments: number };
   infrastructure: Infra | null; cases: { id: number; ref: string; title: string; /** Internal stage. */ status: string; /** Configured status (TIO-BUG-001). */ statusCode: string; priority: string; owner: string; dueAt?: string; overdue: boolean; waitingReason?: string; nextAction: string }[];
-  commitments: { id: number; ref: string; description: string; type: string; currentDueAt: string; timeZone: string; overdue: boolean; owner?: string }[];
+  commitments: { id: number; ref: string; title?: string; description: string; type: string; currentDueAt: string; timeZone: string; overdue: boolean; owner?: string }[];
   projects: { id: number; code: string; name: string; status: string; owner?: string; serviceStart?: string; serviceEnd?: string }[];
   contacts?: { id: number; name: string; role?: string; organization?: string; email?: string; phone?: string; authorizedSupport: boolean }[];
   boundaries?: BoundaryRow[];
@@ -478,7 +478,7 @@ export function ClientDetail() {
         {activeTab === 'escalations' && <Panel title="Escalations" pad={false} actions={canOtherCreate && <Link className="btn" to={`/escalations/new?clientId=${id}`}>+ Escalation</Link>}><EscalationTable clientId={Number(id)} compact /></Panel>}
         {o && activeTab === 'commitments' && (
           <Panel title={`Open commitments (${o.commitments.length})`} actions={<Link className="btn" to={`/commitments?clientId=${id}`}>Open list</Link>}>
-            {o.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.commitments.map(m => <li key={m.id}><Link to={`/commitments/${m.id}`}>{m.ref}</Link> {m.description} {m.overdue && <Badge tone="bad">Overdue</Badge>}<div className="when">{m.type === 'RecordedContractualDeadline' ? 'Recorded deadline' : label(m.type)} · due <When v={m.currentDueAt} /> · {m.owner}</div></li>)}</ul>}
+            {o.commitments.length === 0 ? <StateMessage kind="none" /> : <ul className="timeline">{o.commitments.map(m => <li key={m.id}><Link to={`/commitments/${m.id}`}>{m.ref}</Link> {m.title || m.description} {m.overdue && <Badge tone="bad">Overdue</Badge>}<div className="when">{m.type === 'RecordedContractualDeadline' ? 'Recorded deadline' : label(m.type)} · due <When v={m.currentDueAt} /> · {m.owner}</div></li>)}</ul>}
           </Panel>
         )}
         {o && activeTab === 'infra' && o.infrastructure && <Panel title="Infrastructure (recorded)" actions={<Link className="btn" to={`/assets?clientId=${id}`}>Asset list</Link>}><InfraSummary i={o.infrastructure} /></Panel>}

@@ -19,7 +19,7 @@ export type CaseDto = {
   freshness: FreshnessT; reviewOverdue: boolean; overdue: boolean;
   environments: { id: number; name: string; type: string; regionCode?: string }[]; assets: { id: number; name: string; type: string }[]; components: { id: number; name: string; role: string; installation: string }[];
   jiraReferences: { id: number; instance: string; kind: string; jiraInstanceId: number; issueKey: string; url: string; reuseReason?: string; origin: string }[]; jiraSource?: JiraSource; removedJiraReferences: { id: number; instance: string; issueKey: string; removedAt: string }[];
-  commitments: { id: number; ref: string; description: string; status: string; currentDueAt: string; timeZone: string }[];
+  commitments: { id: number; ref: string; title?: string; description: string; status: string; currentDueAt: string; timeZone: string }[];
   events: { id: number; type: string; fromValue?: string; toValue?: string; note?: string; at: string; by?: string }[];
   contract?: { id: number; ref: string; title: string; status: string }; contractFromJiraSpace: boolean;
   sla: CaseSlaT;

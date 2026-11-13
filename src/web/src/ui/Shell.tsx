@@ -67,6 +67,7 @@ const SECTIONS: Section[] = [
   ] },
   { key: 'commitments', label: 'Commitments', to: '/commitments', match: /^\/commitments/, show: biz, side: [
     { to: '/commitments', label: 'All commitments', icon: 'commitment', end: true },
+    { to: '/commitments/external', label: 'External reliability', icon: 'report' },
     { to: '/commitments/new', label: 'New commitment', icon: 'plus', show: action('Commitments', 'Create') }
   ] },
   // A47: personal notes, for every signed-in user.

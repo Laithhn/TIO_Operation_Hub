@@ -520,10 +520,12 @@ const SETTING_INFO: Record<string, { label: string; group: string; dateValue?: b
   'Coverage.EnvironmentCriticalities': { label: 'Environment criticalities that need a backup owner', group: 'Backup coverage' },
   'Coverage.CasePriorities': { label: 'Ticket priorities that need a backup owner', group: 'Backup coverage' },
   'Contracts.PaymentReminderDays': { label: 'Payment reminder (days before due)', group: 'Contracts' },
+  'Commitments.DependencyWarningDays': { label: 'Dependency buffer below which a commitment is at risk (days)', group: 'Commitments' },
+  'Commitments.ExternalReminderDays': { label: 'External commitment reminder (days before due)', group: 'Commitments' },
   'Jira.ContractsByDateFrom': { label: 'Jira tickets take their contract by creation date since', group: 'Jira', dateValue: true },
   'Jira.PrioritiesFollowJiraFrom': { label: 'Jira tickets take their priority from Jira since', group: 'Jira', dateValue: true }
 };
-const SETTING_GROUPS = ['General', 'Links and security', 'Backup coverage', 'Contracts', 'Jira', 'Other'];
+const SETTING_GROUPS = ['General', 'Links and security', 'Backup coverage', 'Commitments', 'Contracts', 'Jira', 'Other'];
 const settingInfo = (s: SettingRow) => SETTING_INFO[s.key] ?? { label: label(s.key.split('.').pop() ?? s.key), group: 'Other' };
 const isInstant = (v: string) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(v);
 

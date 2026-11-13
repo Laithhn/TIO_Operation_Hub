@@ -1,6 +1,14 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.64.0', date: '13 November 2026', changes: [
+      'Commitments have a title and an optional description; existing ones took their title from the first line of the description.',
+      'Record what an external party promised you: choose "An external party, to us" and pick the external party.',
+      'Add dependencies to a commitment with a lead time: the page forecasts the delivery and shows On track, At risk, Will be late or Blocked; the owner and the project manager are told.',
+      'Revise deadline suggests the forecast and can name the dependency that caused it; External reliability shows how each external party delivers.'
+    ]
+  },
+  {
     version: '2.63.0', date: '13 November 2026', changes: [
       'The Client dashboard is now Client 360: projects, contracts, payments (paid, upcoming, overdue), SLA, tickets, escalations and commitments for one client on one page.',
       'Choose one or several years together, or all years; the page keeps the choice in its address. Open or overdue items from other years are still mentioned.',

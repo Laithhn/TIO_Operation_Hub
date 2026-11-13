@@ -28,7 +28,7 @@ public sealed record EnvFact(long Id, string Name, string Type, EnvironmentType 
 public sealed record CaseFact(long Id, string Ref, string Title, Priority Priority, CaseStatus Status, DateTimeOffset CreatedAt, DateTimeOffset? DueAt, long? ContractId, string? Owner,
     SlaState Response, DateTimeOffset? ResponseDueAt, SlaState Resolution, DateTimeOffset? ResolutionDueAt);
 public sealed record EscFact(long Id, string Ref, string Title, int Level, EscalationStatus Status, DateTimeOffset ReceivedAt, DateTimeOffset? ResponseDueAt, DateTimeOffset? ResolutionDueAt, string Owner);
-public sealed record CommitFact(long Id, string Ref, string Description, DateTimeOffset DueAt, string? Owner);
+public sealed record CommitFact(long Id, string Ref, string Title, DateTimeOffset DueAt, string? Owner);
 public sealed record StatusFact(long Id, ReportedStatus Status, string Summary, DateOnly? NextReviewOn, DateTimeOffset RecordedAt, string? RecordedBy);
 
 /// <summary>Everything the signals of one client are worked out from. Loaded through the caller's scope filters.</summary>
@@ -350,7 +350,7 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
             .ToLookup(x => x.ClientId, x => x.fact);
 
         var commitments = (await db.Commitments.AsNoTracking().Where(c => c.Status == CommitmentStatus.Open && c.ClientId != null && nullableIds.Contains(c.ClientId))
-            .Select(c => new { clientId = c.ClientId!.Value, fact = new CommitFact(c.Id, c.Ref, c.Description, c.CurrentDueAt, c.Owner == null ? null : c.Owner.DisplayName) }).ToListAsync(ct))
+            .Select(c => new { clientId = c.ClientId!.Value, fact = new CommitFact(c.Id, c.Ref, c.Title, c.CurrentDueAt, c.Owner == null ? null : c.Owner.DisplayName) }).ToListAsync(ct))
             .ToLookup(x => x.clientId, x => x.fact);
 
         var status = (await db.ClientStatusReports.AsNoTracking().Where(r => ids.Contains(r.ClientId)
@@ -462,7 +462,7 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
             .Where(e => sel.Contains(e.ReceivedAt)).ToList();
         var comQ = db.Commitments.AsNoTracking().Where(c => c.ClientId == id && c.Status != CommitmentStatus.Cancelled);
         if (bounds is { } mb) comQ = comQ.Where(c => c.CurrentDueAt >= mb.From && c.CurrentDueAt < mb.To);
-        var yComs = (await comQ.Select(c => new { c.Id, c.Ref, c.Description, c.CurrentDueAt, c.Status, c.CompletedLate, owner = c.Owner == null ? null : c.Owner.DisplayName }).ToListAsync(ct))
+        var yComs = (await comQ.Select(c => new { c.Id, c.Ref, c.Title, c.CurrentDueAt, c.Status, c.CompletedLate, owner = c.Owner == null ? null : c.Owner.DisplayName }).ToListAsync(ct))
             .Where(c => sel.Contains(c.CurrentDueAt)).ToList();
         var firstCase = await db.Cases.AsNoTracking().Where(c => c.ClientId == id && c.Status != CaseStatus.Cancelled).MinAsync(c => (DateTimeOffset?)(c.SlaClockStartAt ?? c.CreatedAt), ct);
 
@@ -523,7 +523,7 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
             completed = yComs.Count(c => c.Status == CommitmentStatus.Completed), completedLate = yComs.Count(c => c.CompletedLate == true),
             openOtherYears = f.Commitments.Count(c => !sel.Contains(c.DueAt)), link = $"/commitments?clientId={id}",
             list = yComs.Where(c => c.Status == CommitmentStatus.Open).OrderBy(c => c.CurrentDueAt).Take(8)
-                .Select(c => new { c.Id, c.Ref, c.Description, dueAt = c.CurrentDueAt, c.owner, overdue = c.CurrentDueAt < now }).ToList()
+                .Select(c => new { c.Id, c.Ref, c.Title, dueAt = c.CurrentDueAt, c.owner, overdue = c.CurrentDueAt < now }).ToList()
         };
 
         return new
@@ -578,7 +578,7 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
                 e.Id, e.Ref, e.Title, e.Level, status = e.Status.ToString(), e.Owner, e.ReceivedAt, e.ResponseDueAt, e.ResolutionDueAt,
                 overdue = (e.ResolutionDueAt != null && e.ResolutionDueAt < now) || (e.Status == EscalationStatus.Open && e.ResponseDueAt != null && e.ResponseDueAt < now)
             }).ToList(),
-            commitments = f.Commitments.OrderBy(c => c.DueAt).Take(8).Select(c => new { c.Id, c.Ref, c.Description, dueAt = c.DueAt, c.Owner, overdue = c.DueAt < now }).ToList(),
+            commitments = f.Commitments.OrderBy(c => c.DueAt).Take(8).Select(c => new { c.Id, c.Ref, c.Title, dueAt = c.DueAt, c.Owner, overdue = c.DueAt < now }).ToList(),
             environments = f.Environments.OrderBy(e => e.TypeCategory).ThenBy(e => e.Name).Select(e => new
             {
                 e.Id, e.Name, e.Type, condition = EnvironmentEndpoints.ConditionView(e.Condition, e.ObservedAt, s.ConditionPolicy, now), reason = e.Reason,

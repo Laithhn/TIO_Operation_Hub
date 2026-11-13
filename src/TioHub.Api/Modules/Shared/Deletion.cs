@@ -201,7 +201,13 @@ public static partial class Deletion
             var x = await Load(db.Commitments.Where(c => c.Id == id), "The commitment", ct);
             if (x.ClientId is { } cid) Scope(access, cid);
             return await RunAsync(db, files, access.Me, x, RecordTypes.Commitment, id, $"Commitment {x.Ref}", async () =>
-                await db.CommitmentEvents.Where(r => r.CommitmentId == id).ExecuteDeleteAsync(ct), ct);
+            {
+                // A114: links to and from other commitments go with it; those that waited for it keep their history, without the link.
+                await db.CommitmentDependencies.IgnoreQueryFilters().Where(r => r.CommitmentId == id || r.DependsOnCommitmentId == id).ExecuteDeleteAsync(ct);
+                await db.CommitmentEvents.IgnoreQueryFilters().Where(r => r.CauseCommitmentId == id && r.CommitmentId != id).ExecuteUpdateAsync(u => u.SetProperty(r => r.CauseCommitmentId, (long?)null), ct);
+                await db.Commitments.IgnoreQueryFilters().Where(r => r.LateCauseCommitmentId == id).ExecuteUpdateAsync(u => u.SetProperty(r => r.LateCauseCommitmentId, (long?)null), ct);
+                await db.CommitmentEvents.Where(r => r.CommitmentId == id).ExecuteDeleteAsync(ct);
+            }, ct);
         }).WithTags("Delete");
         api.MapDelete("/escalations/{id:long}", async (long id, HubDbContext db, HubAccess access, Attachments.AttachmentStore files, CancellationToken ct) =>
         {

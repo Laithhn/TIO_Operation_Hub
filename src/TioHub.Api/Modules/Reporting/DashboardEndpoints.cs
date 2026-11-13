@@ -128,7 +128,7 @@ public sealed class Dashboard(HubDbContext db, HubSettings settings, FreshnessSe
         {
             if (!Want(category)) return;
             var rows = await CommitmentQuery.Apply(db.Commitments.AsNoTracking(), f, now, windowDays ?? days, db).Select(CommitmentEndpoints.Row(now)).ToListAsync(ct);
-            list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Commitment, r.Id, r.Ref, r.Description, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), null, r.CurrentDueAt, $"/commitments/{r.Id}")));
+            list.AddRange(rows.Select(r => new ActionItem(category, RecordTypes.Commitment, r.Id, r.Ref, r.Title, r.ClientId, r.ClientCode, r.OwnerName ?? "Unassigned", reason(r), null, r.CurrentDueAt, $"/commitments/{r.Id}")));
         }
 
         await AddCases("Unassigned", baseCase with { Unassigned = true }, _ => "No owner assigned");
