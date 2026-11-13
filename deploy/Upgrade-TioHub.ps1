@@ -92,9 +92,20 @@ if ($WhatIfPreference) {
   Write-Host 'WhatIf: readiness verification is skipped because no upgrade was applied.'
   return
 }
+# A trailing slash in -Url would produce '//api/health/ready', which the SPA fallback answers with index.html.
+$healthUrl = "$($Url.TrimEnd('/'))/api/health/ready"
 $ready = $false
+$last = 'no response'
 for ($i = 0; $i -lt 12 -and -not $ready; $i++) {
-  try { $r = Invoke-RestMethod "$Url/api/health/ready" -UseBasicParsing -TimeoutSec 10; $ready = $r.status -eq 'ready' } catch { Start-Sleep -Seconds 5 }
+  try {
+    $r = Invoke-RestMethod $healthUrl -UseBasicParsing -TimeoutSec 10
+    $ready = $r.status -eq 'ready'
+    if (-not $ready) { $last = if ($r.status) { "status '$($r.status)'" } else { 'a response that is not the health JSON' } }
+  } catch {
+    $last = $_.Exception.Message
+    try { $body = $_.ErrorDetails.Message | ConvertFrom-Json; if ($body.status) { $last = "status '$($body.status)'" } } catch {}
+  }
+  if (-not $ready) { Start-Sleep -Seconds 5 }
 }
-if ($ready) { Ok "$Url/api/health/ready -> ready. Upgrade to $version finished." }
-else { throw "Upgrade verification failed: application is not ready. Check $appDir\logs for database availability or missing migrations. To roll back: stop the site, replace $appDir with $previous (keep App_Data and logs), start." }
+if ($ready) { Ok "$healthUrl -> ready. Upgrade to $version finished." }
+else { throw "Upgrade verification failed: $healthUrl returned $last. Check $appDir\logs for database availability or missing migrations. To roll back: stop the site, replace $appDir with $previous (keep App_Data and logs), start." }
