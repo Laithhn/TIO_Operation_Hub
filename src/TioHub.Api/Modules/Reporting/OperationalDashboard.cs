@@ -55,7 +55,7 @@ public sealed class OperationalDashboard(HubDbContext db, HubSettings settings, 
     public async Task<object> BuildAsync(string? view, long? teamId, long? clientId, long? productId, UserContext me, CancellationToken ct)
     {
         var now = DateTimeOffset.UtcNow;
-        view = Views.Contains(view) ? view! : "mine";
+        view = Views.Contains(view) ? view! : "all";
         var myTeams = await db.Teams.AsNoTracking().Where(t => me.TeamIds.Contains(t.Id)).OrderBy(t => t.Name).Select(t => new { t.Id, t.Name }).ToListAsync(ct);
         // Team view: the chosen team, else the caller's first team; without any team it shows everything the caller can see.
         long? team = view == "team" ? teamId ?? myTeams.FirstOrDefault()?.Id : view == "all" ? teamId : null;

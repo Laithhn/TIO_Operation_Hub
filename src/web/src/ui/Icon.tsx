@@ -9,7 +9,7 @@ const MAP: Record<string, string> = {
   plus: 'ADD', search: 'SEARCH', escalation: 'ALERT', note: 'NOTEBOOK', user: 'USER', chevron: 'NAVILEFT',
   down: 'NAVIDOWN', menu: 'BURGERMENU', close: 'CLOSE', online: 'CLOUDCONNECTED', download: 'EXPORT', signout: 'LOGOUT',
   lock: 'LOCK', key: 'KEY', storage: 'DATABASEINFO', map: 'MAP', filter: 'FILTER', calendar: 'CALENDAR', warning: 'WARNING',
-  error: 'ERROR', ok: 'OK', info: 'INFO', edit: 'EDIT', delete: 'TRASH', copy: 'COPY', excel: 'EXCEL', attachment: 'ATTACHEMENT'
+  error: 'ERROR', ok: 'OK', info: 'INFO', edit: 'EDIT', delete: 'TRASH', copy: 'COPY', excel: 'EXCEL', attachment: 'ATTACHEMENT', payment: 'MONEY'
 };
 
 /** The framework has no plain bell, only an alarm glyph, so notifications use this outline of the hub's own (owner request). */

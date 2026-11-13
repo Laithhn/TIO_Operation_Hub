@@ -158,6 +158,7 @@ public static class RightsCatalog
         ("SlaContractsDashboard", "Dashboard", "SLA & Contracts dashboard", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View]),
         ("ManagementDashboard", "Dashboard", "Management dashboard", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View]),
         ("ClientDashboard", "Dashboard", "Client dashboard", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View]),
+        ("PaymentsDashboard", "Dashboard", "Payments dashboard", RightKeys.KeyOf(RightKeys.Dashboard, RightKeys.View), [RightKeys.View, RightKeys.Export]),
         ("Handovers", "Teams", "Handovers", RightKeys.KeyOf(RightKeys.Teams, RightKeys.View), [RightKeys.View, RightKeys.Create, RightKeys.Maintain]),
         ("Reassignment", "Teams", "Reassignment queue", RightKeys.KeyOf(RightKeys.Teams, RightKeys.View), [RightKeys.View]),
         ("ReportOverview", "Reporting Center", "Overview", RightKeys.KeyOf(RightKeys.Reporting, RightKeys.View), [RightKeys.View]),

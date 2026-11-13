@@ -235,6 +235,8 @@ public static class EndpointRights
         ["GET /dashboard/sla-contracts"] = Rights("SlaContractsDashboard:View"),
         ["GET /dashboard/management"] = Rights("ManagementDashboard:View"),
         ["GET /dashboard/clients"] = Rights("ClientDashboard:View"),
+        ["GET /dashboard/payments"] = Rights("PaymentsDashboard:View", "Contracts:View").Note("Filtering by product also needs Products:View, checked in the handler."),
+        ["GET /dashboard/payments/export"] = Rights("PaymentsDashboard:Export", "Contracts:Export", "Platform:Export", "Contracts:View").Note("Filtering by product also needs Products:View, checked in the handler."),
         ["GET /dashboard/clients/{id:long}"] = Rights("ClientDashboard:View").Also("ClientStructure:Maintain"),
         ["GET /dashboard/me"] = Rights("MyDashboard:View"),
         ["GET /dashboard/insights"] = Rights("Cases:View", "ClientStructure:View", "Commitments:View", "Contracts:View", "Dashboard:View", "Environments:View", "Installations:View", "OtherOperations:View", "Products:View", "Projects:View", "Servers:View", "Teams:View"),

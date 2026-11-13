@@ -152,7 +152,7 @@ const ENV_CLASS: Record<string, string> = { Healthy: 'h', Degraded: 'd', Unavail
 /** A108: what an engineer or a team must act on today — everything as of now. */
 export function OperationalDashboard() {
   const me = useMe().data!;
-  const [f, set] = useUrlState({ view: 'mine', teamId: '', clientId: '', productId: '' });
+  const [f, set] = useUrlState({ view: 'all', teamId: '', clientId: '', productId: '' });
   const [allEnvs, setAllEnvs] = useState(false);
   const q = useQuery({ queryKey: ['dash-operational', f], queryFn: () => get<Ops>(`/dashboard/operational${qs(f)}`), placeholderData: keepPreviousData, refetchInterval: 60000 });
   const clients = useClientOptions();
@@ -279,7 +279,7 @@ export function OperationalDashboard() {
 }
 
 /** Horizontal bars split into ordered parts (priority): one hue ramp, 2 px gaps, total in text. */
-function StackBars({ rows, names, colors, empty }: { rows: { key: string; label: string; link?: string; parts: number[] }[]; names: string[]; colors: string[]; empty: string }) {
+function StackBars({ rows, names, colors, empty, what = 'open' }: { rows: { key: string; label: string; link?: string; parts: number[] }[]; names: string[]; colors: string[]; empty: string; what?: string }) {
   const nav = useNavigate();
   const max = Math.max(1, ...rows.map(r => r.parts.reduce((a, b) => a + b, 0)));
   if (rows.length === 0) return <div className="viz-empty">{empty}</div>;
@@ -288,7 +288,7 @@ function StackBars({ rows, names, colors, empty }: { rows: { key: string; label:
       <ul className="hbars ad-stack">
         {rows.map(r => {
           const total = r.parts.reduce((a, b) => a + b, 0);
-          const text = `${r.label}: ${total} open — ${r.parts.map((v, i) => `${names[i]} ${v}`).join(', ')}`;
+          const text = `${r.label}: ${total.toLocaleString('en-GB', { maximumFractionDigits: 2 })} ${what} — ${r.parts.map((v, i) => `${names[i]} ${v}`).join(', ')}`;
           return (
             <li key={r.key}>
               <span className="hb-label" title={r.label}>{r.label}</span>
@@ -297,7 +297,7 @@ function StackBars({ rows, names, colors, empty }: { rows: { key: string; label:
                 <span className="ad-stack-bar" style={{ width: `${(total / max) * 100}%` }}>
                   {r.parts.map((v, i) => v > 0 && <span key={i} style={{ flexGrow: v, background: colors[i] }} />)}
                 </span>
-                <span className="hb-value">{total}</span>
+                <span className="hb-value">{total.toLocaleString('en-GB', { maximumFractionDigits: 0 })}</span>
               </span>
             </li>
           );
@@ -1093,6 +1093,223 @@ export function ClientDashboard() {
   );
 }
 
+// =====================================================================================================================
+// Payments dashboard (A115)
+// =====================================================================================================================
+
+type PartT = { count: number; amounts: { currency: string; value: number }[] };
+type PayItem = {
+  id: number; contractId: number; contractRef: string; contractTitle: string; clientId: number; clientCode: string; clientName?: string | null; owner?: string | null;
+  condition: string; percentage?: number | null; amount?: number | null; currency?: string | null; dueDate?: string | null; status: string; paidOn?: string | null;
+  bucket: 'paid' | 'upcoming' | 'overdue' | null; state: string; daysOverdue?: number | null; daysToDue?: number | null; products: string[];
+};
+type PayDash = {
+  evaluatedAt: string; today: string; reminderDays: number;
+  period: Cli['period'];
+  clientIds: number[];
+  options: { clients: { id: number; code: string; name: string }[]; owners: { id: number; name: string }[]; products?: { id: number; code: string; name: string }[] | null; currencies: string[] };
+  totals: { paid: PartT; upcoming: PartT; overdue: PartT; dueSoon: PartT; all: PartT; waived: number; closed: number; undated: number };
+  overdueOtherYears: PartT;
+  timeline: { unit: 'month' | 'year'; rows: { key: string; label: string; paid: PartT; upcoming: PartT; overdue: PartT }[] };
+  aging: { key: string; label: string; part: PartT }[];
+  byClient: { clientId: number; code: string; name: string; paid: PartT; upcoming: PartT; overdue: PartT; terms: number }[];
+  items: PayItem[];
+};
+
+/** "AED 80,000 · USD 2,000"; terms without an amount are counted, not summed, and currencies are never added together. */
+function partMoney(p: PartT) {
+  if (p.amounts.length === 0) return p.count ? 'No amount' : '0';
+  return p.amounts.map(a => `${a.currency ? `${a.currency} ` : ''}${a.value.toLocaleString('en-GB', { maximumFractionDigits: 2 })}`).join(' · ');
+}
+const PAY_COLORS = { paid: STATUS.good, upcoming: SERIES.blue, overdue: STATUS.critical };
+const PAY_VIEWS = [{ key: 'all', label: 'All' }, { key: 'overdue', label: 'Overdue' }, { key: 'upcoming', label: 'Upcoming' }, { key: 'paid', label: 'Paid' }] as const;
+
+type PickOption = { value: string; label: string; sub?: string };
+/**
+ * A115: a multi-select filter of the Payments dashboard — any set of values ticked together, or all of them. '' in the address = all.
+ * Used for clients, contract owners, products and currencies.
+ */
+function CheckPicker({ id, label, noun, nouns, options, value, onChange, findable }: {
+  id: string; label: string; noun: string; nouns: string; options: PickOption[]; value: string; onChange: (v: string) => void; findable?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [find, setFind] = useState('');
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent | KeyboardEvent) => { if (e instanceof KeyboardEvent ? e.key === 'Escape' : !box.current?.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener('mousedown', close); document.addEventListener('keydown', close);
+    return () => { document.removeEventListener('mousedown', close); document.removeEventListener('keydown', close); };
+  }, [open]);
+  // The ticks follow the address at once, not the figures still loading for it.
+  const chosen = new Set(value ? value.split(',') : []);
+  const all = chosen.size === 0;
+  const set = (vs: string[]) => onChange([...new Set(vs)].sort((a, c) => (/^\d+$/.test(a) && /^\d+$/.test(c) ? Number(a) - Number(c) : a.localeCompare(c))).join(','));
+  const toggle = (v: string) => {
+    const next = new Set(chosen);
+    if (next.has(v)) next.delete(v); else next.add(v);
+    set([...next]);
+  };
+  const needle = find.trim().toLowerCase();
+  const shown = options.filter(o => !needle || o.label.toLowerCase().includes(needle) || (o.sub ?? '').toLowerCase().includes(needle));
+  const text = all ? `All ${nouns}` : chosen.size === 1 ? (options.find(o => chosen.has(o.value))?.label ?? `1 ${noun}`) : `${chosen.size} ${nouns}`;
+  return (
+    <div className="field c360-years pay-pick" ref={box}>
+      <span className="label" id={`${id}-l`}>{label}</span>
+      <button type="button" className="c360-years-btn" aria-haspopup="true" aria-expanded={open} aria-labelledby={`${id}-l ${id}-v`} onClick={() => setOpen(v => !v)}>
+        <span id={`${id}-v`}>{text}</span><span aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div className="c360-years-pop pay-pick-pop" role="group" aria-label={`Choose ${nouns}`}>
+          <div className="c360-years-presets">
+            <button type="button" className="linkbtn" onClick={() => onChange('')}>All {nouns}</button>
+            {shown.length > 0 && needle && <button type="button" className="linkbtn" onClick={() => set([...chosen, ...shown.map(o => o.value)])}>Tick the {shown.length} shown</button>}
+          </div>
+          {findable && <input className="input pay-pick-find" type="search" aria-label={`Find a ${noun}`} placeholder={`Find a ${noun}`} value={find} onChange={e => setFind(e.target.value)} />}
+          <p className="hint">{all ? `All ${nouns} are included. Tick some to choose them only.` : `${chosen.size} ticked. Untick all to include every ${noun}.`}</p>
+          <div className="c360-years-list pay-pick-list">
+            {shown.length === 0 && <span className="hint">{options.length ? `No ${noun} matches.` : `No ${noun} with a payment term is in view.`}</span>}
+            {shown.map(o => (
+              <label key={o.value} className="check" title={o.sub ?? o.label}>
+                <input type="checkbox" checked={chosen.has(o.value)} onChange={() => toggle(o.value)} />
+                <b>{o.label}</b>{o.sub && <span className="muted">{o.sub}</span>}
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** A115 (owner request, 13 Nov 2026): every contract payment term in view — Paid, Upcoming and Overdue — for any years and any clients. */
+export function PaymentsDashboard() {
+  const me = useMe().data!;
+  const [f, set] = useUrlState({ years: '', clientIds: '', ownerIds: '', productIds: '', currencies: '', view: 'all' });
+  const params = { years: f.years || undefined, clientIds: f.clientIds || undefined, ownerIds: f.ownerIds || undefined, productIds: f.productIds || undefined, currencies: f.currencies || undefined };
+  const q = useQuery({ queryKey: ['dash-payments', params], queryFn: () => get<PayDash>(`/dashboard/payments${qs(params)}`), placeholderData: keepPreviousData });
+  // A115: the Excel file is the same view; the server checks the export rights again.
+  const mayExport = canExport(me) && hasRight(me, 'PaymentsDashboard', 'Export') && hasRight(me, 'Contracts', 'Export');
+  const refresh = useRefreshAll(['dash-payments']);
+  const [showHow, setShowHow] = useState(false);
+  const d = q.data;
+  const p = d?.period;
+  const client360 = hasRight(me, 'ClientDashboard', 'View');
+  const active = [f.years, f.clientIds, f.ownerIds, f.productIds, f.currencies].filter(Boolean).length;
+  const o = d?.options;
+  const rows = (d?.items ?? []).filter(x => f.view === 'all' ? x.bucket !== null : x.bucket === f.view);
+  // One currency in view: the chart shows amounts; several: it shows the number of terms, as amounts are never added across currencies.
+  const currencies = new Set((d?.items ?? []).filter(x => x.bucket && x.amount != null).map(x => x.currency ?? ''));
+  const oneCurrency = currencies.size === 1 ? [...currencies][0] : null;
+  const val = (part: PartT) => (oneCurrency !== null ? part.amounts.find(a => a.currency === oneCurrency)?.value ?? 0 : part.count);
+  const unitText = oneCurrency !== null ? (oneCurrency || 'amount') : 'terms';
+  return (
+    <div className="dash">
+      <PageHead title="Payments dashboard"
+        sub={<>Contract payment terms that are paid, upcoming or overdue. {d && <span className="cc-fresh">As of {fmtDateTime(d.evaluatedAt)} ({me.timeZone}).</span>}</>}
+        actions={<>
+          <button className="btn" onClick={refresh} disabled={q.isFetching}>{q.isFetching ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
+          <Link className="btn" to="/contracts">Contract register</Link>
+          {mayExport && <a className="btn btn-primary" href={`/api/v1/dashboard/payments/export${qs(params)}`} download>Export to Excel</a>}
+        </>} />
+      <div className="toolbar ad-filters pay-filters">
+        {p ? <YearPicker period={p} value={f.years} onChange={v => set({ years: v })} /> : <div className="field c360-years"><span className="label">Years</span><span className="c360-years-btn">This year</span></div>}
+        <CheckPicker id="pay-clients" label="Clients" noun="client" nouns="clients" findable value={f.clientIds} onChange={v => set({ clientIds: v })}
+          options={(o?.clients ?? []).map(c => ({ value: String(c.id), label: c.code, sub: c.name }))} />
+        <CheckPicker id="pay-owners" label="Contract owners" noun="owner" nouns="owners" findable value={f.ownerIds} onChange={v => set({ ownerIds: v })}
+          options={(o?.owners ?? []).map(x => ({ value: String(x.id), label: x.name }))} />
+        {o?.products && <CheckPicker id="pay-products" label="Products" noun="product" nouns="products" findable value={f.productIds} onChange={v => set({ productIds: v })}
+          options={o.products.map(x => ({ value: String(x.id), label: x.code, sub: x.name }))} />}
+        <CheckPicker id="pay-currencies" label="Currencies" noun="currency" nouns="currencies" value={f.currencies} onChange={v => set({ currencies: v })}
+          options={(o?.currencies ?? []).map(c => ({ value: c, label: c }))} />
+        {active > 0 && <div className="cc-active"><span className="chip">{active} filter(s) active</span>
+          <button className="btn" onClick={() => set({ years: '', clientIds: '', ownerIds: '', productIds: '', currencies: '' })}>Reset filters</button></div>}
+      </div>
+      {p && <p className="hint cc-scope">
+        {p.all ? 'All years' : `Calendar ${p.years.length === 1 ? 'year' : 'years'}: ${p.label}`} ({p.timeZone}) · {d!.clientIds.length ? plural(d!.clientIds.length, 'client') : 'all clients in view'}{f.ownerIds || f.productIds || f.currencies ? ' · narrowed by owner, product or currency' : ''} ·{' '}
+        <button className="linkbtn" aria-expanded={showHow} onClick={() => setShowHow(v => !v)}>{showHow ? '▾' : '▸'} How payments are counted</button>
+      </p>}
+      {showHow && d && (
+        <ul className="hint pay-how">
+          <li><b>Paid</b> terms count in the year they were paid (the due date when no paid date is recorded).</li>
+          <li><b>Upcoming</b> terms are Pending or Invoiced and not yet due; <b>due soon</b> means due within {d.reminderDays} days (setting <i>Contracts.PaymentReminderDays</i>). They count in the year they are due.</li>
+          <li><b>Overdue</b> terms are Pending or Invoiced with a due date before today. They count in the year they were due.</li>
+          <li>Waived terms, open terms of terminated contracts and terms without a date are not in the three totals. Amounts stay in their own currency. These are recorded contract payment terms — not invoicing or accounting.</li>
+        </ul>
+      )}
+      {q.isLoading && <StateMessage kind="loading" />}
+      {q.error && <StateMessage kind="error">The dashboard could not be loaded. Try Refresh.</StateMessage>}
+      {d && p && <>
+        <div className="c360-pay pay-totals">
+          {PAY_BUCKETS.map(b => {
+            const part = d.totals[b.key];
+            return (
+              <button key={b.key} type="button" className={`c360-pay-b ${b.key} pay-tile${f.view === b.key ? ' on' : ''}`} aria-pressed={f.view === b.key}
+                onClick={() => set({ view: f.view === b.key ? 'all' : b.key })}>
+                <span className={`c360-pay-l t-${b.tone}`}><span aria-hidden="true">{b.glyph}</span> {b.label}</span>
+                <b>{partMoney(part)}</b>
+                <span className="hint">{plural(part.count, 'payment term')}{b.key === 'upcoming' && d.totals.dueSoon.count ? ` · ${d.totals.dueSoon.count} due within ${d.reminderDays} days` : ''}</span>
+              </button>
+            );
+          })}
+        </div>
+        {d.overdueOtherYears.count > 0 && <p className="t-bad"><b>▲ {plural(d.overdueOtherYears.count, 'more payment term')} overdue from other years ({partMoney(d.overdueOtherYears)}).</b>{' '}
+          <button className="linkbtn" onClick={() => set({ years: 'all' })}>Show all years</button></p>}
+
+        <div className="ad-grid ad-2">
+          <VizPanel title={d.timeline.unit === 'month' ? `By month — ${p.label}` : 'By year'}
+            sub={<>{oneCurrency !== null ? `Amounts in ${oneCurrency || 'the contract currency'}` : 'Number of payment terms (several currencies are in view, and they are never added together)'}, by the month or year each term counts in.</>}
+            table={{ columns: [d.timeline.unit === 'month' ? 'Month' : 'Year', 'Paid', 'Upcoming', 'Overdue'], rows: d.timeline.rows.map(r => [r.label, partMoney(r.paid), partMoney(r.upcoming), partMoney(r.overdue)]) }}>
+            <StackBars rows={d.timeline.rows.map(r => ({ key: r.key, label: r.label, parts: [val(r.paid), val(r.upcoming), val(r.overdue)] }))} what={unitText}
+              names={['Paid', 'Upcoming', 'Overdue']} colors={[PAY_COLORS.paid, PAY_COLORS.upcoming, PAY_COLORS.overdue]} empty="No payment term is dated in the selected years." />
+          </VizPanel>
+          <VizPanel title="Overdue — how late" sub="Overdue terms in the selected years, by days past the due date."
+            table={{ columns: ['Days overdue', 'Terms', 'Amount'], rows: d.aging.map(a => [a.label, a.part.count, partMoney(a.part)]) }}>
+            <HBars data={d.aging.map(a => ({ key: a.key, label: a.label, value: a.part.count }))} color={STATUS.critical} unit="term(s)" empty="Nothing is overdue in the selected years." />
+          </VizPanel>
+        </div>
+
+        <Card title="By client" sub="Clients with payment terms in the selected years, the most overdue first. Click a client to show only its terms.">
+          {d.byClient.length === 0 ? <p className="hint">No payment term is dated in the selected years.</p> : (
+            <div style={{ overflowX: 'auto' }}><table className="grid"><thead><tr><th>Client</th><th className="num">Paid</th><th className="num">Upcoming</th><th className="num">Overdue</th><th className="num">Terms</th></tr></thead><tbody>
+              {d.byClient.map(c => (
+                <tr key={c.clientId}>
+                  <td><button className="linkbtn" onClick={() => set({ clientIds: String(c.clientId) })} title="Show only this client">{c.code}</button>
+                    {c.name && <span className="muted"> · {c.name}</span>}
+                    {client360 && <> · <Link to={`/dashboards/client?clientId=${c.clientId}`}>Client 360</Link></>}</td>
+                  <td className="num nowrap">{c.paid.count ? <>{partMoney(c.paid)}<div className="hint">{c.paid.count}</div></> : <span className="muted">—</span>}</td>
+                  <td className="num nowrap">{c.upcoming.count ? <>{partMoney(c.upcoming)}<div className="hint">{c.upcoming.count}</div></> : <span className="muted">—</span>}</td>
+                  <td className={`num nowrap${c.overdue.count ? ' t-bad' : ''}`}>{c.overdue.count ? <><b>{partMoney(c.overdue)}</b><div className="hint">{c.overdue.count}</div></> : <span className="muted">—</span>}</td>
+                  <td className="num">{c.terms}</td>
+                </tr>
+              ))}
+            </tbody></table></div>
+          )}
+        </Card>
+
+        <div style={{ marginTop: 'var(--gap)' }}>
+          <Card title="Payment terms" sub={<>Overdue first (oldest due date first), then upcoming (soonest first), then paid (latest first). {d.totals.waived ? `${plural(d.totals.waived, 'waived term')} not shown. ` : ''}{d.totals.closed ? `${plural(d.totals.closed, 'open term')} on terminated contracts not shown. ` : ''}{d.totals.undated ? `${plural(d.totals.undated, 'open term')} without a due date, in no year.` : ''}</>}
+            actions={<div className="seg" role="group" aria-label="Show">{PAY_VIEWS.map(v => (
+              <button key={v.key} type="button" aria-pressed={f.view === v.key} onClick={() => set({ view: v.key })}>
+                {v.label} ({v.key === 'all' ? d.totals.all.count : d.totals[v.key].count})</button>))}</div>}>
+            <DataTable<PayItem> rowKey={r => r.id} rows={rows} tools={false} empty="none" caption="Payment terms" pageSize={25} columns={[
+              { key: 'cl', header: 'Client', render: r => <><b>{r.clientCode}</b>{r.clientName && <div className="hint">{r.clientName}</div>}</> },
+              { key: 'k', header: 'Contract', className: 'nowrap', render: r => <><Link to={`/contracts/${r.contractId}`}>{r.contractRef}</Link><div className="hint">{r.contractTitle}</div></> },
+              { key: 'c', header: 'Payment', render: r => <>{r.condition}{r.percentage != null && <span className="muted"> · {r.percentage} %</span>}</> },
+              { key: 's', header: 'State', render: r => <><Badge tone={PAY_STATE[r.state]?.tone ?? 'neutral'}>{PAY_STATE[r.state]?.label ?? r.state}</Badge>{r.status === 'Invoiced' && r.bucket !== 'paid' && <div className="hint">Invoiced</div>}</> },
+              { key: 'd', header: 'Date', className: 'nowrap', render: r => r.bucket === 'paid' ? <>Paid {fmtDate(r.paidOn ?? r.dueDate)}{r.dueDate && <div className="hint">Due {fmtDate(r.dueDate)}</div>}</>
+                : <>Due {fmtDate(r.dueDate)}<div className={r.daysOverdue ? 'hint t-bad' : 'hint'}>{r.daysOverdue ? `${plural(r.daysOverdue, 'day')} overdue` : r.daysToDue === 0 ? 'Due today' : `in ${plural(r.daysToDue ?? 0, 'day')}`}</div></> },
+              { key: 'a', header: 'Amount', className: 'num nowrap', render: r => r.amount != null ? fmtMoney(r.amount, r.currency) : <span className="muted">No amount</span> },
+              { key: 'o', header: 'Contract owner', render: r => r.owner ?? <span className="muted">Unassigned</span> },
+              ...(o?.products ? [{ key: 'p', header: 'Products', render: (r: PayItem) => r.products.length ? r.products.join(', ') : <span className="muted">—</span> }] : [])
+            ]} />
+          </Card>
+        </div>
+      </>}
+    </div>
+  );
+}
+
 /** A108: /dashboards opens the first dashboard the person may use; the four dashboards are routed here, each behind its own right. */
 function DashboardsHome() {
   const me = useMe().data!;
@@ -1108,6 +1325,7 @@ export function Dashboards() {
       <Route path="sla" element={<SlaContractsDashboard />} />
       <Route path="management" element={<ManagementDashboard />} />
       <Route path="client" element={<ClientDashboard />} />
+      <Route path="payments" element={<PaymentsDashboard />} />
       {/* A109: the 2.59.0 address of the Project dashboard. */}
       <Route path="project" element={<Navigate to="/dashboards/client" replace />} />
     </Routes>

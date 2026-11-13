@@ -1,6 +1,14 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.65.0', date: '13 November 2026', changes: [
+      'New Payments dashboard (Dashboard → Payments): every contract payment term as Paid, Upcoming or Overdue, with amounts per currency.',
+      'Filter by years, clients, contract owners, products and currencies — tick one or several of each; the page keeps the choice in its address.',
+      'See payments by month or year, overdue terms by how late they are, and totals per client; Export to Excel gives the same view as a workbook.',
+      'The Operational dashboard opens on Everything by default, and its Show switch no longer overlaps the Client filter.'
+    ]
+  },
+  {
     version: '2.64.0', date: '13 November 2026', changes: [
       'Commitments have a title and an optional description; existing ones took their title from the first line of the description.',
       'Record what an external party promised you: choose "An external party, to us" and pick the external party.',

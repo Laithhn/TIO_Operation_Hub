@@ -75,6 +75,10 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Payments dashboard rights (2.65.0, A115)
+
+Migration `PaymentsDashboard` changes no table. It adds the rights `PaymentsDashboard:View` and `PaymentsDashboard:Export`, grants View to every role holding `Dashboard:View` and `Contracts:View`, grants Export to those of them holding `Contracts:Export`, and raises the authorization version so signed-in users pick the rights up. Person exceptions and other grants are not touched. Apply the regenerated `database/01-schema.sql` before deploying the application files; the application identity needs no new permission. Review the granted roles under Administration → Roles afterwards (proposed default).
+
 ### Commitment titles, external parties and dependencies (2.64.0, A114)
 
 `database/01-schema.sql` changes existing data in this release: migration `CommitmentDependencies` adds `Title`, `Direction`, `ExternalOrganizationId` and `LateCauseCommitmentId` to `work.Commitment`, `CauseCommitmentId` to `work.CommitmentEvent` and the table `work.CommitmentDependency`, and fills the title of every existing commitment from the first line of its description (the description is kept). Take the deployment backup first; going back needs it. Try the script on a restored UAT copy before the live database. The two new settings (`Commitments.DependencyWarningDays`, `Commitments.ExternalReminderDays`) are seeded at the next start without changing existing values. The application identity needs no new permission.

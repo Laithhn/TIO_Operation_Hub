@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import appSource from './App.tsx?raw';
 import reportsSource from './pages/Reports.tsx?raw';
 import { canAccessPath } from './rights';
-import { keys } from './rightsRequirements.json';
+import { keys, requires } from './rightsRequirements.json';
 import type { Me } from './hooks';
 
 // A101: a page cannot exist outside the rights. Add a route and this fails until rights.ts says which right opens it.
@@ -35,6 +35,17 @@ describe('every page is in the rights', () => {
     expect(canAccessPath(person(keys), '/a-page-nobody-registered')).toBe(false);
     expect(canAccessPath(person(keys), '/admin/a-page-nobody-registered')).toBe(false);
     expect(canAccessPath(person(keys), '/reporting-center/a-page-nobody-registered')).toBe(false);
+  });
+
+  it('the Payments dashboard has its own right (A115)', () => {
+    expect(canAccessPath(person(keys), '/dashboards/payments')).toBe(true);
+    expect(canAccessPath(person(keys.filter(k => k !== 'PaymentsDashboard:View')), '/dashboards/payments')).toBe(false);
+  });
+
+  it('the Payments dashboard export right needs the dashboard (A115)', () => {
+    const i = keys.indexOf('PaymentsDashboard:Export');
+    expect(i).toBeGreaterThan(-1);
+    expect(requires[i].map(r => keys[r])).toEqual(['PaymentsDashboard:View']);
   });
 
   it('My dashboard has its own right, which also needs ticket access', () => {

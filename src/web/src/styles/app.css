@@ -727,8 +727,8 @@ table.grid th .grid-sort{white-space:nowrap}
 .mp-list{max-height:240px;overflow:auto;display:grid;gap:2px}
 .mp-opt{padding:2px 2px}
 .mp-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:6px}
-.person-cell{display:inline-flex;align-items:center;gap:6px}
-.person-initials{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-size:11px;font-weight:600}
+.person-cell{display:inline-flex;align-items:center;gap:6px}
+.person-initials{flex:none;display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;color:#fff;font-size:11px;font-weight:600}
 .chip-pick{border:0;padding:0;margin:0}
 .chip-pick-list{display:flex;flex-wrap:wrap;gap:4px}
 .chip-toggle{border:1px solid var(--line-strong);background:var(--surface);color:var(--fg-2);font-size:var(--fs);padding:2px 9px;cursor:pointer}
@@ -1048,7 +1048,7 @@ a.ad-env:hover{background:var(--row-hover);text-decoration:none}
 
 .dash .ad-filters{background:var(--surface);padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin-bottom:10px;border:1px solid var(--line)}
 .dash .ad-filters .field{min-width:140px;flex:1 1 160px;margin:0}
-.dash .ad-filters .field.ad-view{flex:0 0 auto;min-width:0}
+.dash .ad-filters .field.ad-view{flex:0 0 auto;min-width:0;width:auto}
 
 /* A113 Client 360: one client, seven numbered sections, for the years the reader ticks. */
 .dash .panel.c360-head{padding:12px 16px;margin-bottom:var(--gap);overflow:visible;position:relative;z-index:2}
@@ -1061,6 +1061,16 @@ a.ad-env:hover{background:var(--row-hover);text-decoration:none}
 .c360-years-presets{display:flex;flex-wrap:wrap;gap:4px 12px;padding-bottom:6px;border-bottom:1px solid var(--line);margin-bottom:6px}
 .c360-years-list{display:grid;grid-template-columns:repeat(2,max-content);gap:4px 16px;max-height:240px;overflow-x:hidden;overflow-y:auto;margin:4px 0}
 .c360-years-list .check{display:flex;gap:6px;align-items:center;font-size:12.5px;white-space:nowrap}
+/* A115 Payments dashboard */
+.dash .ad-filters .field.pay-pick,.dash .pay-filters .field.c360-years{flex:0 0 auto;min-width:220px;position:relative}
+.pay-pick-pop{min-width:300px}
+.pay-pick-find{width:100%;margin:2px 0 4px}
+.c360-years-list.pay-pick-list{grid-template-columns:minmax(0,1fr);max-height:280px}
+.pay-pick-list .check{overflow:hidden;text-overflow:ellipsis}
+.pay-how{margin:0 0 10px 18px}
+.pay-tile{border:0;border-bottom:3px solid var(--line-strong);text-align:left;cursor:pointer;font:inherit;color:inherit}
+.pay-tile:hover{background:var(--surface-3,var(--surface))}.pay-tile:focus-visible{outline:2px solid var(--navy);outline-offset:1px}
+.pay-tile.on{box-shadow:inset 0 0 0 2px var(--navy)}
 .c360-status{margin-left:auto;display:flex;flex-direction:column;align-items:flex-end;gap:2px;font-size:12.5px;text-align:right}
 .c360-status-st b.ad-verdict-st{font-size:inherit;display:inline;font-weight:700}
 .c360-status-st.good{color:var(--good)}.c360-status-st.warn{color:#7a5200}.c360-status-st.bad{color:var(--bad)}.c360-status-st.neutral{color:var(--fg-2)}

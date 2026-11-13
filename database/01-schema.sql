@@ -10796,3 +10796,42 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113063436_PaymentsDashboard'
+)
+BEGIN
+    DECLARE @now datetimeoffset = SYSDATETIMEOFFSET();
+    INSERT [iam].[RightDefinition] ([Key],[Label],[Description],[Module],[Feature],[Kind],[RiskLevel],[DisplayOrder],[IsActive],[CreatedAt],[UpdatedAt])
+    SELECT v.[Key], v.[Label], v.[Description], N'Dashboard', N'PaymentsDashboard', v.[Kind], N'Normal', 0, 1, @now, @now
+    FROM (VALUES
+        (N'PaymentsDashboard:View', N'View', N'Access', N'View in Payments dashboard. Data, ownership and scope checks still apply.'),
+        (N'PaymentsDashboard:Export', N'Export', N'Action', N'Export in Payments dashboard. Data, ownership and scope checks still apply.')
+    ) v ([Key],[Label],[Kind],[Description])
+    WHERE NOT EXISTS (SELECT 1 FROM [iam].[RightDefinition] d WHERE d.[Key] = v.[Key]);
+    INSERT [iam].[RoleRight] ([AppRoleId],[RightKey])
+    SELECT r.[AppRoleId], N'PaymentsDashboard:View' FROM [iam].[RoleRight] r
+    WHERE r.[RightKey] = N'Dashboard:View'
+      AND EXISTS (SELECT 1 FROM [iam].[RoleRight] c WHERE c.[AppRoleId] = r.[AppRoleId] AND c.[RightKey] = N'Contracts:View')
+      AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[AppRoleId] AND x.[RightKey] = N'PaymentsDashboard:View');
+    INSERT [iam].[RoleRight] ([AppRoleId],[RightKey])
+    SELECT r.[AppRoleId], N'PaymentsDashboard:Export' FROM [iam].[RoleRight] r
+    WHERE r.[RightKey] = N'PaymentsDashboard:View'
+      AND EXISTS (SELECT 1 FROM [iam].[RoleRight] c WHERE c.[AppRoleId] = r.[AppRoleId] AND c.[RightKey] = N'Contracts:Export')
+      AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[AppRoleId] AND x.[RightKey] = N'PaymentsDashboard:Export');
+    UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261113063436_PaymentsDashboard'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261113063436_PaymentsDashboard', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

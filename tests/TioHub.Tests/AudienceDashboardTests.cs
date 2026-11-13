@@ -64,6 +64,42 @@ public class AudienceDashboardRules
     }
 
     [Fact]
+    public void Payments_dashboard_buckets_years_and_client_selection()
+    {
+        PaymentRow R(PaymentStatus s, DateOnly? due, DateOnly? paid = null, ContractStatus k = ContractStatus.Active, decimal? amount = 100m, string currency = "AED") =>
+            new() { Status = s, DueDate = due, PaidOn = paid, ContractStatus = k, Amount = amount, Currency = currency };
+        // Paid / Upcoming (due soon or later) / Overdue; waived, terminated and undated open terms are in no bucket.
+        Assert.Equal("paid", PaymentsDashboard.BucketOf(R(PaymentStatus.Paid, Today.AddDays(-3), Today), Today, 14));
+        Assert.Equal("overdue", PaymentsDashboard.BucketOf(R(PaymentStatus.Invoiced, Today.AddDays(-1)), Today, 14));
+        Assert.Equal("upcoming", PaymentsDashboard.BucketOf(R(PaymentStatus.Pending, Today), Today, 14));
+        Assert.Equal("upcoming", PaymentsDashboard.BucketOf(R(PaymentStatus.Pending, Today.AddDays(300)), Today, 14));
+        Assert.Null(PaymentsDashboard.BucketOf(R(PaymentStatus.Pending, null), Today, 14));
+        Assert.Null(PaymentsDashboard.BucketOf(R(PaymentStatus.Waived, Today.AddDays(-9)), Today, 14));
+        Assert.Null(PaymentsDashboard.BucketOf(R(PaymentStatus.Pending, Today.AddDays(-9), k: ContractStatus.Terminated), Today, 14));
+        // A paid term counts in the year it was paid, else its due year (A113 rule).
+        Assert.Equal(new DateOnly(2026, 1, 4), PaymentsDashboard.YearDate(R(PaymentStatus.Paid, new DateOnly(2025, 12, 20), new DateOnly(2026, 1, 4))));
+        Assert.Equal(new DateOnly(2025, 12, 20), PaymentsDashboard.YearDate(R(PaymentStatus.Paid, new DateOnly(2025, 12, 20))));
+        Assert.Equal(new DateOnly(2025, 12, 20), PaymentsDashboard.YearDate(R(PaymentStatus.Invoiced, new DateOnly(2025, 12, 20))));
+        // Amounts per currency, never added together; terms without an amount are counted only.
+        var part = PaymentsDashboard.PartOf([R(PaymentStatus.Paid, Today, amount: 50m), R(PaymentStatus.Paid, Today, amount: 25m), R(PaymentStatus.Paid, Today, amount: 70m, currency: "USD"), R(PaymentStatus.Paid, Today, amount: null)]);
+        Assert.Equal(4, part.Count);
+        Assert.Equal([new PaymentsDashboard.Amount("AED", 75m), new PaymentsDashboard.Amount("USD", 70m)], part.Amounts);
+        // Client selection: empty = all clients; IDs in any order, repeated once; anything else is refused.
+        Assert.Empty(PaymentsDashboard.ParseClients(null));
+        Assert.Equal([3L, 7L], PaymentsDashboard.ParseClients(" 7,3,7 "));
+        foreach (var bad in new[] { "x", "-1", "0", "1;2", "1.5" })
+            Assert.Equal("clientIds", Assert.Throws<ValidationException>(() => PaymentsDashboard.ParseClients(bad)).Errors.Keys.Single());
+        Assert.Throws<ValidationException>(() => PaymentsDashboard.ParseClients(string.Join(",", Enumerable.Range(1, PaymentsDashboard.MaxClients + 1))));
+        // Owners and products the same way; currencies are codes, compared without case.
+        Assert.Equal([5L], PaymentsDashboard.Filters.Parse(null, null, "5", null, null).OwnerIds);
+        Assert.Equal("ownerIds", Assert.Throws<ValidationException>(() => PaymentsDashboard.Filters.Parse(null, null, "me", null, null)).Errors.Keys.Single());
+        Assert.Equal("productIds", Assert.Throws<ValidationException>(() => PaymentsDashboard.Filters.Parse(null, null, null, "x", null)).Errors.Keys.Single());
+        Assert.Equal(["AED", "USD"], PaymentsDashboard.ParseCurrencies("usd, AED,Usd"));
+        foreach (var bad in new[] { "US D", "€", "TOOLONGCODE1", "A;B" })
+            Assert.Equal("currencies", Assert.Throws<ValidationException>(() => PaymentsDashboard.ParseCurrencies(bad)).Errors.Keys.Single());
+    }
+
+    [Fact]
     public void A_client_without_records_is_unknown_never_on_track()
     {
         var signals = ClientSignals.Evaluate(new ClientFacts(), Now, S);
@@ -378,6 +414,145 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await denied.Get($"/clients/{c}/status-reports")).Status);
         // The other dashboards do not depend on it.
         Assert.Equal(HttpStatusCode.OK, (await denied.Get("/dashboard/management")).Status);
+    }
+
+    [Fact]
+    public async Task Payments_dashboard_right_allows_and_denies_access()
+    {
+        var allowed = await ViewerWithout();
+        var denied = await ViewerWithout("PaymentsDashboard:View");
+        var noContracts = await ViewerWithout("Contracts:View");
+        Assert.Equal(HttpStatusCode.OK, (await allowed.Get("/dashboard/payments")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await denied.Get("/dashboard/payments")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await noContracts.Get("/dashboard/payments")).Status);
+        // The other dashboards do not depend on it.
+        Assert.Equal(HttpStatusCode.OK, (await denied.Get("/dashboard/management")).Status);
+        // The dashboard area needs every business View right (Dashboard:View), Products:View included, so nobody without it opens the page;
+        // the handler still checks Products:View before filtering by product, as the contract register does.
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await ViewerWithout("Products:View")).Get("/dashboard/payments?productIds=1")).Status);
+
+        // The Excel export needs its own right, contract export and the platform's export right; viewing alone is not enough.
+        Assert.Equal(HttpStatusCode.Forbidden, (await allowed.Get("/dashboard/payments/export")).Status);
+        Assert.Equal(HttpStatusCode.OK, (await (await Exporter()).Get("/dashboard/payments/export")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await Exporter("PaymentsDashboard:Export")).Get("/dashboard/payments/export")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await Exporter("Contracts:Export")).Get("/dashboard/payments/export")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await Exporter("Platform:Export")).Get("/dashboard/payments/export")).Status);
+    }
+
+    /// <summary>A role with every View and Export right except the given ones.</summary>
+    private async Task<Api> Exporter(params string[] excluded)
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var keys = RightsCatalog.All.Where(p => p.Action.EndsWith("View", StringComparison.Ordinal) || p.Action == RightKeys.Export).Select(p => p.Key);
+        var rights = Fixture.Rights(keys, Flag.Export).Concat(["PaymentsDashboard:Export"]).Distinct().Except(excluded).ToArray();
+        var roleId = await m.Create("/admin/roles", new { name = U("A115"), rights });
+        var account = $@"DEV\{U("a115")}";
+        await m.Create("/admin/users", new { accountName = account, displayName = "A115 test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
+        return await Hub.As(account);
+    }
+
+    [Fact]
+    public async Task Payments_dashboard_shows_paid_upcoming_and_overdue_for_the_chosen_years_and_clients()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var norole = await Hub.As("DEV\\" + U("norole").ToLowerInvariant());
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        async Task<long> Contract(long client, string currency, object[] payments)
+        {
+            var project = await m.Create("/projects", new { clientId = client, code = U("PRJ"), name = "Fictional payments", status = "Active", ownerUserId = m.UserId });
+            return await m.Create("/contracts", new
+            {
+                projectId = project, title = "Fictional delivery", contractReference = U("FIC-PAY"), type = "SlaSupport", status = "Active", ownerUserId = m.UserId,
+                startDate = "2025-01-01", endDate = "2028-12-31", renewalTerms = "RenewalByAgreement", noticeDays = 30, supportModel = "Remote", supportTimeZone = "Asia/Dubai", support24x7 = true, currency,
+                payments
+            });
+        }
+        object Pay(string condition, decimal? amount, DateOnly? due, string status = "Pending", DateOnly? paidOn = null) =>
+            new { condition, percentage = (decimal?)null, amount, dueDate = due, status, paidOn };
+        var a = await NewClient();
+        var b = await NewClient();
+        await Contract(a, "AED", [
+            Pay("Advance", 1000m, new DateOnly(2025, 3, 1), "Paid", new DateOnly(2025, 3, 10)),
+            Pay("Delivery", 400m, today.AddDays(-10), "Invoiced"),
+            Pay("Go-live", 300m, today.AddDays(5)),
+            Pay("Retention", null, today.AddDays(200)),
+            Pay("Waived fee", 50m, today.AddDays(-5), "Waived"),
+            Pay("Open-ended", 10m, null)
+        ]);
+        await Contract(b, "USD", [Pay("Licence", 700m, today.AddDays(-40))]);
+
+        var d = (await m.Get($"/dashboard/payments?years=all&clientIds={b},{a}")).Body!;
+        var t = d["totals"]!;
+        static int N(JsonNode part) => part["count"]!.GetValue<int>();
+        static decimal Amt(JsonNode part, string cur) => part["amounts"]!.AsArray().Single(x => x!["currency"]!.GetValue<string>() == cur)!["value"]!.GetValue<decimal>();
+        Assert.Equal(1, N(t["paid"]!));
+        Assert.Equal(1000m, Amt(t["paid"]!, "AED"));
+        Assert.Equal(2, N(t["overdue"]!));
+        Assert.Equal(400m, Amt(t["overdue"]!, "AED"));
+        Assert.Equal(700m, Amt(t["overdue"]!, "USD"));
+        Assert.Equal(2, N(t["upcoming"]!));
+        Assert.Single(t["upcoming"]!["amounts"]!.AsArray()); // the retention has no amount: counted, not summed
+        Assert.Equal(1, N(t["dueSoon"]!));
+        Assert.Equal(1, t["waived"]!.GetValue<int>());
+        Assert.Equal(1, t["undated"]!.GetValue<int>());
+        var items = d["items"]!.AsArray();
+        Assert.Equal(5, items.Count); // waived and undated terms are counted, not listed
+        Assert.Equal(5, items.Count(x => x!["bucket"] is not null));
+        Assert.Equal("overdue", items[0]!["bucket"]!.GetValue<string>());
+        Assert.Equal(40, items[0]!["daysOverdue"]!.GetValue<int>());
+        Assert.Equal([a, b], d["clientIds"]!.AsArray().Select(x => x!.GetValue<long>()).Order());
+        Assert.Equal(2, d["byClient"]!.AsArray().Count);
+        Assert.Equal(1, N(d["aging"]!.AsArray().Single(x => x!["key"]!.GetValue<string>() == "31-60")!["part"]!));
+        // The picker offers every client with a payment term in view.
+        Assert.Contains(d["options"]!["clients"]!.AsArray(), c => c!["id"]!.GetValue<long>() == a);
+        Assert.Contains("USD", d["options"]!["currencies"]!.AsArray().Select(x => x!.GetValue<string>()));
+        Assert.Contains(d["options"]!["owners"]!.AsArray(), x => x!["id"]!.GetValue<long>() == m.UserId);
+
+        // Contract owner and currency, also multi-select.
+        var usd = (await m.Get($"/dashboard/payments?years=all&clientIds={a},{b}&currencies=usd")).Body!["totals"]!;
+        Assert.Equal(1, N(usd["overdue"]!));
+        Assert.Equal(0, N(usd["paid"]!));
+        Assert.Equal(2, N((await m.Get($"/dashboard/payments?years=all&clientIds={a},{b}&currencies=AED,USD")).Body!["totals"]!["overdue"]!));
+        Assert.Equal(2, N((await m.Get($"/dashboard/payments?years=all&clientIds={a},{b}&ownerIds={m.UserId}")).Body!["totals"]!["overdue"]!));
+        Assert.Equal(0, N((await m.Get($"/dashboard/payments?years=all&clientIds={a},{b}&ownerIds=999999999")).Body!["totals"]!["all"]!));
+
+        // The Excel file is the same view, and the export is audited.
+        var file = await m.Http.GetAsync($"/api/v1/dashboard/payments/export?years=all&clientIds={a},{b}&currencies=USD");
+        Assert.Equal(HttpStatusCode.OK, file.StatusCode);
+        Assert.Equal("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", file.Content.Headers.ContentType!.MediaType);
+        Assert.EndsWith(".xlsx", file.Content.Headers.ContentDisposition!.FileNameStar ?? file.Content.Headers.ContentDisposition.FileName!.Trim('"'));
+        using (var zip = new System.IO.Compression.ZipArchive(new MemoryStream(await file.Content.ReadAsByteArrayAsync())))
+        {
+            string Sheet(int n) { using var r = new StreamReader(zip.GetEntry($"xl/worksheets/sheet{n}.xml")!.Open()); return r.ReadToEnd(); }
+            Assert.Contains("Licence", Sheet(2));
+            Assert.DoesNotContain("Delivery", Sheet(2)); // AED terms are filtered out, as on the page
+            Assert.Contains("USD", Sheet(1));
+        }
+        using (var scope = Hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
+            Assert.True(await db.AuditEntries.IgnoreQueryFilters().AnyAsync(e => e.Action == "Export" && e.EntityType == "PaymentsDashboard" && e.UserId == m.UserId));
+        }
+
+        // One client only.
+        var onlyA = (await m.Get($"/dashboard/payments?years=all&clientIds={a}")).Body!["totals"]!;
+        Assert.Equal(1, N(onlyA["overdue"]!));
+        Assert.Equal(1, N(onlyA["paid"]!));
+
+        // One year: the 2025 term was paid in 2025; what is overdue now from another year is reported apart.
+        var y2025 = (await m.Get($"/dashboard/payments?years=2025&clientIds={a},{b}")).Body!;
+        Assert.Equal(1, N(y2025["totals"]!["paid"]!));
+        Assert.Equal("month", y2025["timeline"]!["unit"]!.GetValue<string>());
+        Assert.Equal(12, y2025["timeline"]!["rows"]!.AsArray().Count);
+        var overdueNotIn2025 = new[] { today.AddDays(-10), today.AddDays(-40) }.Count(x => x.Year != 2025);
+        Assert.Equal(overdueNotIn2025, N(y2025["overdueOtherYears"]!));
+        // Several years: by year.
+        var two = (await m.Get($"/dashboard/payments?years=2025,{today.Year}&clientIds={a}")).Body!;
+        Assert.Equal("year", two["timeline"]!["unit"]!.GetValue<string>());
+
+        Assert.NotNull((await m.Get("/dashboard/payments?clientIds=abc")).Error("clientIds"));
+        Assert.NotNull((await m.Get("/dashboard/payments?years=1999")).Error("years"));
+        Assert.Equal(HttpStatusCode.Forbidden, (await norole.Get("/dashboard/payments")).Status);
     }
 
     [Fact]

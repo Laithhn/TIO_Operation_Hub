@@ -43,6 +43,24 @@ public static class AudienceDashboardEndpoints
             return Results.Ok(await dash.BuildAsync(period, country, teamId, productId, access.Me, ct));
         });
 
+        // A115: Paid, Upcoming and Overdue payment terms for any years, clients, contract owners, products and currencies, and the same view in Excel.
+        g.MapGet("/payments", async (string? years, string? clientIds, string? ownerIds, string? productIds, string? currencies, PaymentsDashboard dash, HubAccess access, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            return Results.Ok(await dash.BuildAsync(PaymentsDashboard.Filters.Parse(years, clientIds, ownerIds, productIds, currencies), access.Me, ct));
+        });
+
+        g.MapGet("/payments/export", async (string? years, string? clientIds, string? ownerIds, string? productIds, string? currencies, PaymentsDashboard dash, HubAccess access, HubDbContext db, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            var f = PaymentsDashboard.Filters.Parse(years, clientIds, ownerIds, productIds, currencies);
+            var (bytes, name, rows) = await dash.ExportAsync(f, access.Me, ct);
+            // Exports are audited with the filters used, never the data itself (as the other exports).
+            await db.AuditActionAsync("Export", "PaymentsDashboard", null, "Payments dashboard", f.ClientIds.Count == 1 ? f.ClientIds[0] : null, null,
+                new { years = years ?? "", clients = f.ClientIds, owners = f.OwnerIds, products = f.ProductIds, f.Currencies, rows }, ct);
+            return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name);
+        });
+
         g.MapGet("/clients", async (long? clientId, string? country, long? productId, long? ownerId, ClientInsight insight, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();
