@@ -4,20 +4,62 @@
     {
       "name": "tio-hub",
       "runtimeExecutable": "dotnet",
-      "runtimeArgs": ["run", "--project", "src/TioHub.Api", "--launch-profile", "http"],
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "src/TioHub.Api",
+        "--launch-profile",
+        "http"
+      ],
       "port": 5094
     },
     {
       "name": "tio-hub-claude",
       "runtimeExecutable": "powershell",
-      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "$env:ASPNETCORE_ENVIRONMENT='Development'; & ./build/Start-Dev.ps1 -Instance Claude -ApiPort 5194"],
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$env:ASPNETCORE_ENVIRONMENT='Development'; & ./build/Start-Dev.ps1 -Instance Claude -ApiPort 5194"
+      ],
       "port": 5194
     },
     {
       "name": "tio-web-claude",
       "runtimeExecutable": "powershell",
-      "runtimeArgs": ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", "$env:Path = (Resolve-Path ./.tools/node).Path + ';' + $env:Path; $env:TIOHUB_API_URL='http://127.0.0.1:5194'; $env:TIOHUB_WEB_PORT='5174'; Set-Location src/web; npm run dev -- --host 127.0.0.1"],
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$env:Path = (Resolve-Path ./.tools/node).Path + ';' + $env:Path; $env:TIOHUB_API_URL='http://127.0.0.1:5194'; $env:TIOHUB_WEB_PORT='5174'; Set-Location src/web; npm run dev -- --host 127.0.0.1"
+      ],
       "port": 5174
+    },
+    {
+      "name": "tio-hub-qa-preview",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$env:ASPNETCORE_ENVIRONMENT='Development'; $env:ConnectionStrings__TioHub='Server=(localdb)\\TioHubQALocalDB;Database=TioHub_Preview_Claude;Trusted_Connection=True;TrustServerCertificate=True'; $env:Database__DevelopmentDataProfile='Fictional'; $env:ASPNETCORE_URLS='http://127.0.0.1:5197'; dotnet run --project src/TioHub.Api --no-launch-profile"
+      ],
+      "port": 5197
+    },
+    {
+      "name": "tio-web-qa-preview",
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-Command",
+        "$env:Path = (Resolve-Path ./.tools/node).Path + ';' + $env:Path; $env:TIOHUB_API_URL='http://127.0.0.1:5197'; $env:TIOHUB_WEB_PORT='5175'; Set-Location src/web; npm run dev -- --host 127.0.0.1"
+      ],
+      "port": 5175
     }
   ]
 }
