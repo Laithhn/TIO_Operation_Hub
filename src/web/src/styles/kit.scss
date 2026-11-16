@@ -226,6 +226,21 @@ table.grid { width: 100%; border-collapse: collapse; font-size: vt.typo(fontSize
   .g { padding: vt.spacePx(xs) vt.spacePx(normal) vt.spacePx(xxs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: vt.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
 }
 
+// A118: the searchable list that opens under every native dropdown (ui/SelectSearch.tsx); above dialogs and toasts.
+.select-search { position: fixed; z-index: 95; display: flex; flex-direction: column; background: vt.color(offWhite); box-shadow: vt.layout(boxShadow, anchored);
+  font-size: vt.typo(fontSize, small); font-weight: vt.typo(fontWeight, normal); text-transform: none; letter-spacing: normal; text-align: left;
+  .select-search-input { flex: none; border: 0; border-bottom: 1px solid #{vt.layout(dividerColor, dark)}; width: 100%; padding: vt.spacePx(xs) vt.spacePx(small); background: transparent;
+    &:focus { outline: none; border-bottom-color: vt.color(impulseGreen); } }
+  ul { list-style: none; margin: 0; padding: vt.spacePx(xxs) 0; overflow: auto; flex: 1 1 auto; min-height: 0; }
+  [role="option"] { padding: vt.spacePx(xxs) vt.spacePx(small); color: vt.typo(color, dark, normal); cursor: pointer; overflow-wrap: anywhere;
+    &[aria-selected="true"] { background: vt.colorA(structureSilver, 0.12); }
+    &.current { font-weight: vt.typo(fontWeight, semibold); }
+    &[aria-disabled="true"] { color: vt.typo(color, dark, weak); cursor: default; }
+  }
+  .g { padding: vt.spacePx(xs) vt.spacePx(small) vt.spacePx(xxs); font-size: vt.typo(fontSize, xs); color: vt.typo(color, dark, weak); font-weight: vt.typo(fontWeight, bold); text-transform: uppercase; letter-spacing: .04em; }
+  .none { padding: vt.spacePx(xs) vt.spacePx(small); color: vt.typo(color, dark, weak); }
+}
+
 // ---------- tables (ui/kit.tsx DataTable): framework Toolbar and Cards above a native table in the framework DataTable look ----------
 .vt-table { display: flex; flex-direction: column; min-width: 0; max-width: 100%; overflow: visible;
   .table-search { width: 260px; min-width: 0; }

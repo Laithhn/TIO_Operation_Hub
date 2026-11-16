@@ -6,7 +6,7 @@ import './styles/kit.scss';
 import './styles/app.css';
 import './styles/frame.scss';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { StrictMode } from 'react';
+import { lazy, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { RouterProvider } from 'react-router';
@@ -14,6 +14,9 @@ import { ApiError } from './api';
 import { router } from './App';
 import { ToastProvider } from './ui/kit';
 import { createVtStore } from './vt/store';
+
+// A118: searchable dropdowns load in their own small chunk, so the entry chunk stays inside its budget.
+const SelectSearch = lazy(() => import('./ui/SelectSearch').then(m => ({ default: m.SelectSearch })));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +32,7 @@ createVtStore().then(vtStore => {
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
             <RouterProvider router={router} />
+            <Suspense fallback={null}><SelectSearch /></Suspense>
           </ToastProvider>
         </QueryClientProvider>
       </Provider>
