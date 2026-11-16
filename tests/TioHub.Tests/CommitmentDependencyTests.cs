@@ -289,6 +289,37 @@ public class CommitmentDependencyTests(HubFactory hub) : Scenario(hub)
     }
 
     [Fact]
+    public async Task Editing_changes_the_promise_keeps_the_deadline_and_needs_the_maintain_right()
+    {
+        var (m, _, ext, ours) = await ChainAsync(10, 20, 2);
+        var before = (await m.Get($"/commitments/{ext}")).Body!;
+        var newParty = await PartyAsync(m, U("Other Supplier"));
+        // The edit dialog's payload: shown fields changed, hidden ones (coordinator, ticket, responsible party) sent back as read.
+        var edit = new { title = "Pilot capability v2", description = "Speed enforcement", type = "Delivery", ownerUserId = m.UserId, responsibleParty = before["responsibleParty"]!.GetValue<string>(),
+            responsibleOrganization = (string?)null, coordinatorUserId = (long?)null, externalOrganizationId = newParty, nextReviewAt = (string?)null, caseId = (long?)null, projectId = (long?)null };
+
+        var reader = await Hub.As(HubFactory.Manager);
+        var roleId = await reader.Create("/admin/roles", new { name = U("Edit reader"), rights = Fixture.Rights(["Commitments:View", "Commitments:DetailsView"], Flag.None) });
+        var account = $@"DEV\{U("editr")}";
+        await reader.Create("/admin/users", new { accountName = account, displayName = "Edit reader", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
+        var viewer = await Hub.As(account);
+        var seen = (await viewer.Get($"/commitments/{ext}")).Body!;
+        Assert.False(seen["permissions"]!["canEdit"]!.GetValue<bool>());
+        Assert.Equal(HttpStatusCode.Forbidden, (await viewer.Put($"/commitments/{ext}", edit, await viewer.Version($"/commitments/{ext}"))).Status);
+
+        Assert.True(before["permissions"]!["canEdit"]!.GetValue<bool>());
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/commitments/{ext}", edit, await m.Version($"/commitments/{ext}"))).Status);
+        var after = (await m.Get($"/commitments/{ext}")).Body!;
+        Assert.Equal("Pilot capability v2", after["title"]!.GetValue<string>());
+        Assert.Equal("Speed enforcement", after["description"]!.GetValue<string>());
+        Assert.Equal(newParty, after["externalParty"]!["id"]!.GetValue<long>());
+        Assert.Equal(before["currentDueAt"]!.ToJsonString(), after["currentDueAt"]!.ToJsonString());
+        Assert.Equal(0, after["revisionCount"]!.GetValue<int>());
+        // The dependency still stands after the edit.
+        Assert.Single((await m.Get($"/commitments/{ours}")).Body!["forecast"]!["dependencies"]!.AsArray());
+    }
+
+    [Fact]
     public async Task The_owner_and_the_project_manager_are_told_when_a_dependency_puts_the_deadline_at_risk()
     {
         var (m, client, ext, ours) = await ChainAsync(10, 12, 7);

@@ -172,7 +172,7 @@ type Forecast = { health?: Health | null; forecastAt?: string | null; bufferDays
 type Dto = {
   id: number; ref: string; scope: string; title: string; description: string; type: string; typeLabel: string; status: string; timeZone: string; direction: string; externalParty?: { id: number; name: string } | null;
   client?: { id: number; code: string; name: string }; team?: { id: number; name: string };
-  owner?: UserRef; coordinator?: UserRef; originalDueAt: string; originalDueLocal: string; currentDueAt: string; currentDueLocal: string; revisionCount: number; nextReviewAt?: string;
+  owner?: UserRef; coordinator?: UserRef; responsibleParty?: string | null; responsibleOrganization?: string | null; originalDueAt: string; originalDueLocal: string; currentDueAt: string; currentDueLocal: string; revisionCount: number; nextReviewAt?: string;
   createdAt: string; completedAt?: string; completionEvidence?: string; dueAtCompletion?: string; cancelReason?: string; timeliness: string; originalDeadlineResult?: string; overdue: boolean;
   case?: { id: number; ref: string; title: string }; project?: { id: number; code: string; name: string }; lastReviewedAt?: string;
   forecast?: Forecast | null; lateCause?: { id: number; ref: string; title: string; party?: string | null } | null;
@@ -282,6 +282,49 @@ function EditDependencyDialog({ c, d, onClose }: { c: Dto; d: DepView; onClose: 
   );
 }
 
+/** Edit the promise of an open commitment. The deadline changes only through Revise deadline, so its history is kept. */
+function EditCommitmentDialog({ c, onClose }: { c: Dto; onClose: () => void }) {
+  const me = useMe().data!;
+  const types = useEnum('CommitmentType');
+  const canLead = useRight('Commitments', 'Coordinate');
+  const toast = useToast();
+  const refresh = useRefresh();
+  const external = c.direction === 'External';
+  const f = useForm({ title: c.title, description: c.description ?? '', type: c.type, ownerUserId: (c.owner?.id ?? null) as number | null,
+    externalOrganizationId: c.externalParty ? String(c.externalParty.id) : '', nextReviewAt: toLocalInput(c.nextReviewAt), projectId: c.project ? String(c.project.id) : '' });
+  const v = f.values;
+  const projects = useQuery({ queryKey: ['projects-of', String(c.client?.id ?? '')], queryFn: () => get<Paged<{ id: number; code: string; name: string }>>(`/projects?clientId=${c.client!.id}&pageSize=100`), enabled: !!c.client });
+  const ownerLabel = external ? 'Follow-up owner (our team)' : 'Accountable owner';
+  const run = async () => {
+    // Fields the dialog does not show (coordinator, linked ticket, responsible party) are sent back unchanged: the update replaces them.
+    const ok = await f.submit(async x => {
+      await put(`/commitments/${c.id}`, { title: x.title, description: x.description || null, type: x.type || null, ownerUserId: x.ownerUserId,
+        responsibleParty: c.responsibleParty ?? null, responsibleOrganization: external ? null : c.responsibleOrganization ?? null, coordinatorUserId: c.coordinator?.id ?? null,
+        externalOrganizationId: external ? toNum(x.externalOrganizationId) : null, nextReviewAt: x.nextReviewAt ? fromLocalInput(x.nextReviewAt) : null,
+        caseId: c.case?.id ?? null, projectId: c.client ? toNum(x.projectId) : null }, c.version);
+      return true;
+    });
+    if (ok) { toast('Commitment changed.'); await refresh(); onClose(); }
+  };
+  return (
+    <Dialog title={`Edit ${c.ref}`} onClose={onClose} wide>
+      <FormError error={f.error} fields={['title', 'description', 'type', 'ownerUserId', 'externalOrganizationId', 'projectId']} />
+      <div className="form-grid">
+        {external && <ExternalPartyPicker value={v.externalOrganizationId} onChange={x => f.set('externalOrganizationId', x)} error={f.fieldError('externalOrganizationId')} />}
+        <TextInput label="Title" required wide maxLength={200} value={v.title} onChange={x => f.set('title', x)} error={f.fieldError('title')} />
+        <TextInput label="Description" wide multiline maxLength={2000} value={v.description} onChange={x => f.set('description', x)} error={f.fieldError('description')} />
+        <SelectInput label="Type" required value={v.type} onChange={x => f.set('type', x)} options={types.map(t => ({ value: t, label: typeLabel(t) }))} error={f.fieldError('type')} />
+        {canLead ? <UserPicker label={ownerLabel} required value={v.ownerUserId} onChange={x => f.set('ownerUserId', x)} clientId={c.client?.id ?? null} teamId={c.client ? null : c.team?.id ?? null} error={f.fieldError('ownerUserId')} empty="— Select —" />
+          : <TextInput label={ownerLabel} value={c.owner?.name ?? '—'} onChange={() => {}} disabled hint="Only a Team Lead can change the owner." />}
+        <TextInput label={`Next review (${me.timeZone})`} type="datetime-local" value={v.nextReviewAt} onChange={x => f.set('nextReviewAt', x)} />
+        {c.client && <SelectInput label="Project link (optional)" value={v.projectId} onChange={x => f.set('projectId', x)} options={(projects.data?.items ?? []).map(p => ({ value: String(p.id), label: `${p.code} · ${p.name}` }))} empty="None" error={f.fieldError('projectId')} />}
+      </div>
+      <p className="hint">Scope and direction cannot change. To move the deadline, use <b>Revise deadline</b> so the original and earlier deadlines stay in the history.</p>
+      <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy || !f.dirty} onClick={run}>{f.busy ? 'Saving…' : 'Save'}</button></div>
+    </Dialog>
+  );
+}
+
 export function CommitmentDetail() {
   const { id } = useParams();
   const q = useQuery({ queryKey: ['commitment', id], queryFn: () => get<Dto>(`/commitments/${id}`) });
@@ -297,6 +340,7 @@ export function CommitmentDetail() {
       <PageHead title={`${c.ref} · ${c.title}`} crumbs={[{ to: '/commitments', label: 'Commitments' }, { label: c.ref }]}
         sub={<><StatusBadge value={c.status} /> {c.direction === 'External' && <span className="chip">External · {c.externalParty?.name}</span>} {c.typeLabel} · <b>{c.timeliness}</b> {fc?.health && <HealthBadge value={fc.health} />}</>}
         actions={<>
+          {c.permissions.canEdit && <button className="btn" onClick={() => setDialog('edit')}>Edit</button>}
           {c.permissions.canRevise && <button className="btn" onClick={() => setDialog('revise')}>Revise deadline</button>}
           {c.permissions.canComplete && <button className="btn btn-primary" onClick={() => setDialog('complete')}>Complete</button>}
           {c.permissions.canCancel && <button className="btn btn-danger" onClick={() => setDialog('cancel')}>Cancel</button>}
@@ -338,6 +382,7 @@ export function CommitmentDetail() {
       </Panel>
       <AttachmentsWorkspace recordType="Commitment" recordId={c.id} />
       <HistoryPanel entityType="Commitment" entityId={c.id} />
+      {dialog === 'edit' && <EditCommitmentDialog c={c} onClose={close} />}
       {dialog === 'add-dependency' && <AddDependencyDialog c={c} onClose={close} />}
       {dialog === 'edit-dependency' && dep && <EditDependencyDialog c={c} d={dep} onClose={close} />}
       {dialog === 'remove-dependency' && dep && <ActionDialog title={`Remove dependency on ${dep.ref}`} danger path={`/commitments/${id}/dependencies/${dep.dependencyId}/remove`} version={c.version} onClose={close} submitLabel="Remove"
