@@ -1,6 +1,12 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.66.0', date: '16 November 2026', changes: [
+      'Every dropdown can now be searched: click it or start typing, and only the matching choices are listed. Arrow keys and Enter choose, Escape closes the list.',
+      'Commitments can be edited: Edit on an open commitment changes its title, description, type, external party, owner, next review and project link.'
+    ]
+  },
+  {
     version: '2.65.0', date: '13 November 2026', changes: [
       'New Payments dashboard (Dashboard → Payments): every contract payment term as Paid, Upcoming or Overdue, with amounts per currency.',
       'Filter by years, clients, contract owners, products and currencies — tick one or several of each; the page keeps the choice in its address.',
