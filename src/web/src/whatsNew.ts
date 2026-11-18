@@ -1,6 +1,11 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.67.0', date: '18 November 2026', changes: [
+      'Client 360: when you update a client status, the reason is now "Comments / feedback" — free text of any length, with line breaks kept as typed.'
+    ]
+  },
+  {
     version: '2.66.0', date: '16 November 2026', changes: [
       'Every dropdown can now be searched: click it or start typing, and only the matching choices are listed. Arrow keys and Enter choose, Escape closes the list.',
       'Commitments can be edited: Edit on an open commitment changes its title, description, type, external party, owner, next review and project link.'
