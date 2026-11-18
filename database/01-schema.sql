@@ -10835,3 +10835,30 @@ END;
 COMMIT;
 GO
 
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261118072809_ClientStatusFreeText'
+)
+BEGIN
+    DECLARE @var nvarchar(max);
+    SELECT @var = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[clients].[ClientStatusReport]') AND [c].[name] = N'Summary');
+    IF @var IS NOT NULL EXEC(N'ALTER TABLE [clients].[ClientStatusReport] DROP CONSTRAINT ' + @var + ';');
+    ALTER TABLE [clients].[ClientStatusReport] ALTER COLUMN [Summary] nvarchar(max) NOT NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261118072809_ClientStatusFreeText'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261118072809_ClientStatusFreeText', N'10.0.13');
+END;
+
+COMMIT;
+GO

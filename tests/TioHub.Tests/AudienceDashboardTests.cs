@@ -374,6 +374,12 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.All(history, x => Assert.False(string.IsNullOrEmpty(x!["recordedBy"]?.GetValue<string>())));
         Assert.Null((await m.Get($"/dashboard/clients/{empty}")).Body!["status"]!["recorded"]);
 
+        // A119: comments / feedback are free text — far past the old 1,000-character cap, line breaks kept.
+        var longFeedback = "Client feedback from the steering meeting:\n" + string.Join("\n", Enumerable.Range(1, 120).Select(i => $"Point {i}: the client asked for a follow-up on this item."));
+        Assert.True(longFeedback.Length > 5000);
+        await m.Create($"/clients/{c}/status-reports", new { status = "AtRisk", summary = longFeedback });
+        Assert.Equal(longFeedback, (await m.Get($"/clients/{c}/status-reports")).Body!.AsArray()[0]!["summary"]!.GetValue<string>());
+
         // The portfolio: one row per client, with the same status and signals, and its running projects counted.
         var row = (await m.Get($"/dashboard/clients?clientId={c}")).Body!["items"]!.AsArray().Single(x => Id(x) == c)!;
         Assert.Equal("AtRisk", row["status"]!.GetValue<string>());

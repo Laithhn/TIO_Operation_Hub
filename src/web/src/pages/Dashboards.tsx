@@ -931,7 +931,7 @@ export function ClientDashboard() {
         {(rec || d.status.agreement !== 'NoStatus') && d.status.agreement !== 'Agree' && (
           <p className={`ad-agree ${d.status.agreement.toLowerCase()}`} role="status">{d.status.agreement === 'NoStatus' ? '○ ' : '▲ '}{d.status.agreementText}</p>
         )}
-        {rec && <p className="c360-facts">“{rec.summary}” — {rec.recordedBy ?? 'an unknown user'}, {rec.ageDays} d ago{rec.nextReviewOn ? ` · next review ${fmtDate(rec.nextReviewOn)}` : ''}</p>}
+        {rec && <p className="c360-facts" style={{ whiteSpace: 'pre-wrap' }}>“{rec.summary}” — {rec.recordedBy ?? 'an unknown user'}, {rec.ageDays} d ago{rec.nextReviewOn ? ` · next review ${fmtDate(rec.nextReviewOn)}` : ''}</p>}
       </section>
 
       {showSignals && (
@@ -948,8 +948,8 @@ export function ClientDashboard() {
       )}
       {showHistory && (
         <Card title="Status history" sub="Every recorded status is kept; the newest is the client's status.">
-          <table className="grid"><thead><tr><th>Recorded</th><th>Status</th><th>Reason</th><th>By</th><th>Next review</th></tr></thead><tbody>
-            {d.status.history.map(h => <tr key={h.id}><td className="nowrap">{fmtDateTime(h.recordedAt)}</td><td><StatusWords status={h.status} /></td><td>{h.summary}</td><td>{h.recordedBy ?? '—'}</td><td className="nowrap">{h.nextReviewOn ? fmtDate(h.nextReviewOn) : '—'}</td></tr>)}
+          <table className="grid"><thead><tr><th>Recorded</th><th>Status</th><th>Comments / feedback</th><th>By</th><th>Next review</th></tr></thead><tbody>
+            {d.status.history.map(h => <tr key={h.id}><td className="nowrap">{fmtDateTime(h.recordedAt)}</td><td><StatusWords status={h.status} /></td><td style={{ whiteSpace: 'pre-wrap' }}>{h.summary}</td><td>{h.recordedBy ?? '—'}</td><td className="nowrap">{h.nextReviewOn ? fmtDate(h.nextReviewOn) : '—'}</td></tr>)}
           </tbody></table>
         </Card>
       )}
@@ -1086,7 +1086,7 @@ export function ClientDashboard() {
         transform={v => ({ status: v.status || null, summary: v.summary, nextReviewOn: v.nextReviewOn || null })}
         fields={[
           { name: 'status', label: 'Status', kind: 'select', required: true, options: [{ value: 'OnTrack', label: 'On track' }, { value: 'AtRisk', label: 'At risk' }, { value: 'OffTrack', label: 'Off track' }] },
-          { name: 'summary', label: 'Reason — what is behind this status', kind: 'textarea', required: true, hint: 'One or two sentences a manager can act on (up to 1,000 characters).' },
+          { name: 'summary', label: 'Comments / feedback', kind: 'textarea', required: true, hint: 'Free text — anything behind this status, as long as you need.' },
           { name: 'nextReviewOn', label: 'Next review', kind: 'date', hint: `Optional. Without a date the status is flagged for review after ${d.status.maxAgeDays} days.` }
         ]} />}
     </div>

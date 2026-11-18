@@ -93,7 +93,8 @@ public static class AudienceDashboardEndpoints
             var today = DateOnly.FromDateTime(now.UtcDateTime);
             var check = new Check();
             check.When(input.Status is null, "status", "Select the client status.")
-                 .Text("summary", input.Summary, 1000, "the reason for this status", required: true)
+                 // A119: comments / feedback are free text with no length cap (nvarchar(max)); the secret check still applies.
+                 .Text("summary", input.Summary, int.MaxValue, "your comments / feedback", required: true)
                  .When(c.Status == ClientStatus.Archived, "status", "An archived client takes no new status.")
                  .When(input.NextReviewOn is { } d && d < today.AddDays(-1), "nextReviewOn", "The next review date cannot be in the past.")
                  .When(input.NextReviewOn is { } far && far > today.AddDays(366), "nextReviewOn", "Choose a next review date within a year.");

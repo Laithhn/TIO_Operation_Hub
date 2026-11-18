@@ -1568,8 +1568,8 @@ namespace TioHub.Api.Data.Migrations
 
                     b.Property<string>("Summary")
                         .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

@@ -342,7 +342,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
         m.Entity<ClientStatusReport>(e =>
         {
             e.ToTable("ClientStatusReport", "clients");
-            e.Property(x => x.Summary).HasMaxLength(1000);
+            e.Property(x => x.Summary).HasColumnType("nvarchar(max)"); // A119: comments / feedback, free text without a length cap
             e.HasIndex(x => new { x.ClientId, x.RecordedAt });
             e.HasOne<Client>().WithMany().HasForeignKey(x => x.ClientId);
             e.HasOne(x => x.RecordedBy).WithMany().HasForeignKey(x => x.RecordedById);
