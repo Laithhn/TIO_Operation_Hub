@@ -19,6 +19,8 @@ export default defineConfig({
   testDir: '.',
   // These intercept every request and run under their own configs, with no server or database.
   testIgnore: /-isolated\.spec\.ts$/,
+  // Afterwards drops this run's database and those of ended runs (drop-e2e-database.ts); TIOHUB_E2E_KEEP_DATABASE=1 keeps them.
+  globalTeardown: './drop-e2e-database.ts',
   timeout: 60_000,
   workers: 1,
   reporter: [['list'], ['html', { open: 'never', outputFolder: 'playwright-report' }]],
