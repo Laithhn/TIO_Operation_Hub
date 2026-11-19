@@ -69,10 +69,16 @@ export function routePermissions(pathname: string): string[] {
   return required;
 }
 
-/** A108: the audience dashboards: path, menu label, icon and right (Dashboard:View is needed too, through the right's prerequisite). */
-export const audienceDashboards = [['operational', 'Operational', 'case', 'OperationalDashboard'], ['sla', 'SLA & Contracts', 'matrix', 'SlaContractsDashboard'],
-  ['management', 'Management', 'team', 'ManagementDashboard'], ['client', 'Client 360', 'clients', 'ClientDashboard'],
-  ['payments', 'Payments', 'payment', 'PaymentsDashboard']] as const;
+/**
+ * A108: the audience dashboards: path, menu label, icon and right (Dashboard:View is needed too, through the right's prerequisite).
+ * A122 (owner request, 19 Nov 2026): menu order Client 360, Operational, Financial (the Payments dashboard), then the rest.
+ * Management is no longer in the menu (`menu: false`) but still opens by its address.
+ */
+export const audienceDashboards = [['client', 'Client 360', 'clients', 'ClientDashboard'], ['operational', 'Operational', 'case', 'OperationalDashboard'],
+  ['payments', 'Financial', 'payment', 'PaymentsDashboard'], ['sla', 'SLA & Contracts', 'matrix', 'SlaContractsDashboard'],
+  ['management', 'Management', 'team', 'ManagementDashboard']] as const;
+/** The dashboards shown in the side menu, in menu order. */
+export const menuDashboards = audienceDashboards.filter(d => d[0] !== 'management');
 
 const routeAreas: Record<string, string> = {
   map: 'ClientMap', actions: 'ActionList', 'data-quality': 'DataQuality', handovers: 'Handovers', reassignment: 'Reassignment'

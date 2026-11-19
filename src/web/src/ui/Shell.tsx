@@ -1,4 +1,4 @@
-import { canAccessPath, hasRight, hasAnyAction, canExport, canAudit, seesTechnical, isAdministrator, hasAccess , audienceDashboards } from '../rights';
+import { canAccessPath, hasRight, hasAnyAction, canExport, canAudit, seesTechnical, isAdministrator, hasAccess , menuDashboards } from '../rights';
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router';
 import { signOut } from '../api';
@@ -27,15 +27,16 @@ const integrations = (m: Me) => isAdministrator(m) && hasRight(m, 'AdminIntegrat
 // MVP navigation only: deferred (Next/Later) modules have no entries.
 const SECTIONS: Section[] = [
   { key: 'dash', label: 'Dashboard', to: '/', match: /^\/($|my-dashboard|overview|map|dashboards|actions|notifications|data-quality)/, show: biz, side: [
+    // A122 (owner request): My dashboard, Client 360, Operational, Financial first; then the rest. Notifications is reached from the header bell.
     { to: '/my-dashboard', label: 'My dashboard', icon: 'user' },
+    // A108: one dashboard per audience and question; each has its own right.
+    ...menuDashboards.filter(d => d[0] !== 'sla').map(([to, label, icon, right]) => ({ to: `/dashboards/${to}`, label, icon, show: (m: Me) => hasRight(m, right, 'View') })),
     // For managers it is the start page; for others the start page is My dashboard, so the overview has its own address.
     { to: '/', label: 'Executive overview', icon: 'dashboard', end: true, show: m => hasRight(m, 'ClientStructure', 'Coordinate') || !hasRight(m, 'MyDashboard', 'View') },
     { to: '/overview', label: 'Executive overview', icon: 'dashboard', show: m => !hasRight(m, 'ClientStructure', 'Coordinate') && hasRight(m, 'MyDashboard', 'View') },
-    // A108: one dashboard per audience and question; each has its own right.
-    ...audienceDashboards.map(([to, label, icon, right]) => ({ to: `/dashboards/${to}`, label, icon, show: (m: Me) => hasRight(m, right, 'View') })),
+    ...menuDashboards.filter(d => d[0] === 'sla').map(([to, label, icon, right]) => ({ to: `/dashboards/${to}`, label, icon, show: (m: Me) => hasRight(m, right, 'View') })),
     { to: '/map', label: 'Client map', icon: 'region' },
     { to: '/actions', label: 'Action list', icon: 'list' },
-    { to: '/notifications', label: 'Notifications', icon: 'bell' },
     { to: '/data-quality', label: 'Data quality', icon: 'quality' },
     // Engineers read the change history here; the TIO Manager has it under Administration.
     { to: '/admin/audit', label: 'Change history', icon: 'history', show: m => !isAdministrator(m) && canAudit(m) }

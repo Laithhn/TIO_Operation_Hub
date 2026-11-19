@@ -280,8 +280,8 @@ Each right's prerequisites apply too. All record operations also enforce data sc
 | `SlaContractsDashboard:View` | SLA & Contracts dashboard | View | Access | Normal | `Dashboard:View` |
 | `ManagementDashboard:View` | Management dashboard | View | Access | Normal | `Dashboard:View` |
 | `ClientDashboard:View` | Client dashboard | View | Access | Normal | `Dashboard:View` |
-| `PaymentsDashboard:View` | Payments dashboard | View | Access | Normal | `Dashboard:View` |
-| `PaymentsDashboard:Export` | Payments dashboard | Export | Action | Normal | `PaymentsDashboard:View` |
+| `PaymentsDashboard:View` | Financial dashboard | View | Access | Normal | `Dashboard:View` |
+| `PaymentsDashboard:Export` | Financial dashboard | Export | Action | Normal | `PaymentsDashboard:View` |
 
 ### Reporting Center
 

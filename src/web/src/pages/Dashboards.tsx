@@ -4,7 +4,7 @@ import { Link, Navigate, Route, Routes, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
 import { useMe, useUrlState } from '../hooks';
-import { audienceDashboards, canExport, hasRight } from '../rights';
+import { menuDashboards, canExport, hasRight } from '../rights';
 import { HBars, Kpi as BaseKpi, RAMP, RateLines, SERIES, STATUS, TrendLines, VizPanel, type KpiStatus } from '../ui/charts';
 import { Icon } from '../ui/Icon';
 import { ActionDialog } from '../ui/pickers';
@@ -1205,7 +1205,7 @@ export function PaymentsDashboard() {
   const unitText = oneCurrency !== null ? (oneCurrency || 'amount') : 'terms';
   return (
     <div className="dash">
-      <PageHead title="Payments dashboard"
+      <PageHead title="Financial dashboard"
         sub={<>Contract payment terms that are paid, upcoming or overdue. {d && <span className="cc-fresh">As of {fmtDateTime(d.evaluatedAt)} ({me.timeZone}).</span>}</>}
         actions={<>
           <button className="btn" onClick={refresh} disabled={q.isFetching}>{q.isFetching ? <><span className="spin" /> Refreshing…</> : 'Refresh'}</button>
@@ -1313,7 +1313,7 @@ export function PaymentsDashboard() {
 /** A108: /dashboards opens the first dashboard the person may use; the four dashboards are routed here, each behind its own right. */
 function DashboardsHome() {
   const me = useMe().data!;
-  const first = audienceDashboards.find(d => hasRight(me, d[3], 'View'));
+  const first = menuDashboards.find(d => hasRight(me, d[3], 'View'));
   return first ? <Navigate to={`/dashboards/${first[0]}`} replace /> : <Navigate to="/" replace />;
 }
 

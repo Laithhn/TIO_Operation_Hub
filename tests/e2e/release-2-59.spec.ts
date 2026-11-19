@@ -31,8 +31,9 @@ test.describe('Audience dashboards (A108, A109)', () => {
     await expect(page.getByRole('heading', { name: 'Contract lifecycle' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Renewal & notice watchlist' })).toBeVisible();
 
-    // Management: the portfolio lists clients and links to the client dashboard.
-    await side.getByRole('link', { name: 'Management' }).click();
+    // Management: no longer in the menu (A122); still opens by its address. The portfolio lists clients and links to the client dashboard.
+    await expect(side.getByRole('link', { name: 'Management' })).toHaveCount(0);
+    await page.goto('/dashboards/management');
     await expect(page.getByRole('heading', { level: 1, name: 'Management dashboard' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Data trust' })).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Client portfolio' })).toBeVisible();

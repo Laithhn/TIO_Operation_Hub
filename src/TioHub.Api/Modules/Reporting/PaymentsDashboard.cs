@@ -253,7 +253,7 @@ public sealed class PaymentsDashboard(HubDbContext db)
 
         var summary = new List<IReadOnlyList<object?>>
         {
-            new object?[] { "Payments dashboard", null, null, null },
+            new object?[] { "Financial dashboard", null, null, null },
             new object?[] { "Generated", local.DateTime, $"{me.AccountName} · {zone.Id}", null },
             new object?[] { "Years", v.Sel.Label, "Calendar years. Paid terms count in the year paid, others in the year due.", null },
             new object?[] { "Clients", Names(f.ClientIds, id => v.ClientById.GetValueOrDefault(id)?.Code, "All clients in view"), null, null },
