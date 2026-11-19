@@ -246,7 +246,7 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
         foreach (var c in contracts)
         {
             var state = ContractQuery.State(new Contract { Status = c.Status, EndDate = c.EndDate, NoticeDays = c.NoticeDays }, now);
-            var title = state switch { "Expired" => $"Contract {c.Ref} has ended but is still Active", "EndDateUnknown" => $"Contract {c.Ref} has no end date", _ => $"Contract {c.Ref}: renewal due" };
+            var title = state switch { "Expired" => $"Contract {c.Ref} has ended but is still Active", "EndDateUnknown" => $"Contract {c.Ref} has no end date", _ => $"Contract {c.Ref} needs a renewal decision" };
             foreach (var u in managers.Append(c.OwnerUserId ?? 0).Where(u => u != 0).Distinct())
                 Add(u, NotificationKinds.Renewal, title, c.Title, $"/contracts/{c.Id}", $"contract-{state}:{c.Id}:{c.EndDate:yyyyMMdd}");
         }
@@ -262,10 +262,13 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
         foreach (var p in payments)
         {
             var overdue = p.DueDate < today;
-            var amount = p.Amount is { } a ? $" ({a:N2} {p.Currency})" : "";
-            var title = overdue ? $"Payment overdue on contract {p.Ref}{amount}" : $"Payment due {p.DueDate:dd MMM yyyy} on contract {p.Ref}{amount}";
+            // A121: the title names the payment; the amount and condition are its description ("2,430,000 SAR · Second payment").
+            // Rows written before 2.70 carry the amount in the title; the scan rewrites title and body of every active alert.
+            var amount = p.Amount is { } a ? $"{a.ToString("#,0.##", System.Globalization.CultureInfo.InvariantCulture)} {p.Currency}".Trim() : null;
+            var title = overdue ? $"Payment overdue on contract {p.Ref}" : $"Payment due {p.DueDate:dd MMM yyyy} on contract {p.Ref}";
+            var body = string.Join(" · ", new[] { amount, p.Condition }.Where(x => !string.IsNullOrWhiteSpace(x)));
             foreach (var u in managers.Append(p.OwnerUserId ?? 0).Where(u => u != 0).Distinct())
-                Add(u, overdue ? NotificationKinds.PaymentOverdue : NotificationKinds.PaymentDue, title, p.Condition, $"/contracts/{p.contractId}",
+                Add(u, overdue ? NotificationKinds.PaymentOverdue : NotificationKinds.PaymentDue, title, body, $"/contracts/{p.contractId}",
                     $"payment-{(overdue ? "overdue" : "due")}:{p.Id}:{p.DueDate:yyyyMMdd}");
         }
 
@@ -410,7 +413,7 @@ public static class NotificationEndpoints
             await VisibleNotifications(db, me).Where(n => n.Id == id && n.ReadAt == null).ExecuteUpdateAsync(s => s.SetProperty(n => n.ReadAt, clock.GetUtcNow()), ct);
             return Results.NoContent();
         });
-        // A72: several notices at once (a group in the pop-up); only the caller's own rows are touched, others are ignored.
+        // A72: several notices at once; only the caller's own rows are touched, others are ignored. A121: the UI no longer groups notices, kept for API clients.
         g.MapPost("/read", async (IdsInput input, HubDbContext db, UserContext me, TimeProvider clock, CancellationToken ct) =>
         {
             var ids = (input.Ids ?? []).Distinct().ToList();

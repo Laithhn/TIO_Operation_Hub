@@ -44,10 +44,10 @@ const CASES = [caseRow(101, 'Incident', 'WaitingForCustomer'), caseRow(102, 'Old
 const notice = (id: number, kind: string, title: string, entityType: string, extra: Record<string, unknown> = {}) =>
   ({ id, kind, title, body: null, link: `/contracts/${id}`, createdAt: ago(2), readAt: null, resolvedAt: null, severity: kind.includes('Overdue') ? 'critical' : 'action', entityType, ...extra });
 const NOTICES = [
-  notice(1, 'PaymentOverdue', 'Payment overdue on contract CT-1001 (146,400.00 AED)', 'Payment'),
-  notice(2, 'PaymentOverdue', 'Payment overdue on contract CT-1002 (12,000.00 AED)', 'Payment'),
-  notice(3, 'PaymentOverdue', 'Payment overdue on contract CT-1003 (9,500.00 AED)', 'Payment'),
-  notice(4, 'PaymentOverdue', 'Payment overdue on contract CT-1004 (1,250.00 AED)', 'Payment'),
+  notice(1, 'PaymentOverdue', 'Payment overdue on contract CT-1001', 'Payment', { body: '146,400 AED · Instalment 1' }),
+  notice(2, 'PaymentOverdue', 'Payment overdue on contract CT-1002', 'Payment', { body: '12,000 AED · Instalment 2' }),
+  notice(3, 'PaymentOverdue', 'Payment overdue on contract CT-1003', 'Payment', { body: '9,500 AED · Instalment 3' }),
+  notice(4, 'PaymentOverdue', 'Payment overdue on contract CT-1004', 'Payment', { body: '1,250 AED · Instalment 4' }),
   notice(5, 'Renewal', 'Contract CT-2002 for Fictional Very Long Client Name Incorporated Regional Operations has no end date recorded anywhere', 'Contract', { body: 'Support contract with a deliberately long description that must wrap on a phone' }),
   notice(6, 'Overdue', 'Commitment CM-1006 is overdue', 'Commitment', { link: '/commitments/6' })
 ];
@@ -103,7 +103,7 @@ async function application(page: Page) {
 type Box = { x: number; y: number; width: number; height: number };
 const overlaps = (a: Box, b: Box) => a.x < b.x + b.width - 0.5 && b.x < a.x + a.width - 0.5 && a.y < b.y + b.height - 0.5 && b.y < a.y + a.height - 0.5;
 
-/** Every visible notification card: its title must not intersect its badge or action, and the action must be inside the viewport. */
+/** Every visible notification row: its title must not intersect its action, and the action must be inside the viewport. (A121: rows carry no badge.) */
 async function checkCards(page: Page, scope: string) {
   const cards = page.locator(`${scope} .ntf`);
   const n = await cards.count();
@@ -113,10 +113,9 @@ async function checkCards(page: Page, scope: string) {
     const card = cards.nth(i);
     if (!(await card.isVisible())) continue;
     const title = await card.locator(':scope > .ntf-main > .ntf-title').boundingBox();
-    const chip = await card.locator(':scope > .ntf-side > .ntf-chip').boundingBox();
     const act = await card.locator(':scope > .ntf-side > .ntf-act').first().boundingBox();
     expect(title).not.toBeNull();
-    for (const other of [chip, act]) if (other) expect(overlaps(title!, other), `card ${i}: title overlaps badge/action at ${width}px`).toBe(false);
+    if (act) expect(overlaps(title!, act), `card ${i}: title overlaps action at ${width}px`).toBe(false);
     if (act) { expect(act.x).toBeGreaterThanOrEqual(0); expect(act.x + act.width).toBeLessThanOrEqual(width + 1); }
   }
   const widths = await page.evaluate(() => ({ doc: document.documentElement.scrollWidth, view: innerWidth }));
@@ -125,20 +124,16 @@ async function checkCards(page: Page, scope: string) {
 
 test.describe('TIO-BUG-004 notifications layout', () => {
   for (const [w, h] of [[390, 844], [360, 740], [768, 1024], [1440, 900]] as const) {
-    test(`grouped and single notifications do not overlap at ${w}x${h}`, async ({ page }) => {
+    test(`every notification is its own row and nothing overlaps at ${w}x${h}`, async ({ page }) => {
       const { writes } = await application(page);
       await page.setViewportSize({ width: w, height: h });
       await page.goto('/notifications');
-      const group = page.locator('.ntf-page .ntf-group').filter({ hasText: '4 overdue payments' });
-      await expect(group).toBeVisible();
+      // A121: no grouped summaries — the four overdue payments are four rows.
+      await expect(page.locator('.ntf-page .ntf')).toHaveCount(NOTICES.length);
+      await expect(page.locator('.ntf-page .ntf').filter({ hasText: /Payment overdue on contract CT-100\d/ })).toHaveCount(4);
+      await expect(page.locator('.ntf-page .ntf-group')).toHaveCount(0);
       await checkCards(page, '.ntf-page');
       await page.screenshot({ path: `test-results/audit-004-notifications-${w}.png`, fullPage: true });
-      // Expanded group: members are laid out the same way, and the toggle is reachable by keyboard.
-      const toggle = group.getByRole('button', { name: /View payments \(4\)/ });
-      await toggle.focus();
-      await page.keyboard.press('Enter');
-      await expect(group.getByRole('button', { name: /Hide \(4\)/ })).toHaveAttribute('aria-expanded', 'true');
-      await checkCards(page, '.ntf-page');
       expect(writes, 'layout checks change no notification').toEqual([]);
     });
   }

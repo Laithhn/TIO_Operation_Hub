@@ -12,7 +12,7 @@ async function signIn(page: Page, account = 'DEV\\manager') {
 
 const ago = (days: number) => new Date(Date.now() - days * 86400_000).toISOString();
 const ITEMS = [
-  { id: 901, kind: 'PaymentOverdue', title: 'Payment overdue on contract CT-1002 (146,400.00 AED)', body: '30 % on acceptance', link: '/contracts/2', createdAt: ago(6), readAt: null, resolvedAt: null, severity: 'critical', entityType: 'Payment' },
+  { id: 901, kind: 'PaymentOverdue', title: 'Payment overdue on contract CT-1002', body: '146,400 AED · 30 % on acceptance', link: '/contracts/2', createdAt: ago(6), readAt: null, resolvedAt: null, severity: 'critical', entityType: 'Payment' },
   { id: 902, kind: 'Overdue', title: 'Commitment CM-1006 is overdue', body: 'Root cause report', link: '/commitments/6', createdAt: ago(6), readAt: null, resolvedAt: null, severity: 'critical', entityType: 'Commitment' },
   { id: 903, kind: 'Overdue', title: 'Commitment CM-1004 is overdue', body: 'Customer update', link: '/commitments/4', createdAt: ago(7), readAt: ago(1), resolvedAt: null, severity: 'critical', entityType: 'Commitment' },
   { id: 904, kind: 'Renewal', title: 'Contract CT-1004 has no end date', body: 'Support contract', link: '/contracts/4', createdAt: ago(2), readAt: null, resolvedAt: null, severity: 'action', entityType: 'Contract' },
@@ -48,7 +48,7 @@ const openBell = async (page: Page) => {
 test.describe('A72 notification pop-up', () => {
   test.beforeEach(async ({ page }) => { await signIn(page); });
 
-  test('header, tabs with counts, severity sections in order, grouped commitments and readable times', async ({ page }) => {
+  test('header, tabs with counts, one flat list in severity order with a severity icon per row', async ({ page }) => {
     const calls: string[] = [];
     await stub(page, calls);
     await page.goto('/');
@@ -57,22 +57,35 @@ test.describe('A72 notification pop-up', () => {
     await expect(pop.getByRole('heading', { name: 'Notifications' })).toBeVisible();
     await expect(pop.getByLabel('4 unread')).toHaveText('4');
     await expect(pop.getByRole('tab')).toHaveText(['All', 'Unread (4)', 'Critical (3)']);
-    await expect(pop.locator('.ntf-sec-head')).toHaveText([/Critical \/ overdue/i, /Action required/i, /Informational/i]);
-    // Sorted by severity: the payment first; the two overdue commitments as one group card.
-    const critical = pop.getByRole('region', { name: 'Critical / overdue' });
-    await expect(critical.locator('.ntf-title').first()).toHaveText('2 overdue commitments');
-    await expect(critical).toContainText('CM-1006 and CM-1004 require attention.');
-    await expect(critical.getByText('Payment overdue on contract CT-1002 (146,400.00 AED)')).toBeVisible();
-    await expect(critical.locator('.ntf-chip').first()).toHaveText('Overdue');
-    await expect(critical.getByText('6 days ago').first()).toBeVisible();
-    await expect(critical.locator('time').first()).toHaveAttribute('title', /\d/);
-    // Expanding the group shows each commitment with its own state and action.
-    await critical.getByRole('button', { name: 'View commitments (2)' }).click();
-    await expect(critical.getByRole('button', { name: 'View commitment: Commitment CM-1006 is overdue' })).toBeVisible();
-    await expect(critical.locator('.ntf.nested.unread')).toHaveCount(1);
-    // Action required and informational cards with their actions.
+    // A121: every notice is its own row — no groups, section headings or status badges; critical first, newest first within a severity.
+    const rows = pop.locator('.ntf');
+    await expect(rows.locator('.ntf-title')).toHaveText([
+      'Commitment CM-1006 is overdue', 'Payment overdue on contract CT-1002', 'Commitment CM-1004 is overdue',   // equal times: higher id first
+      'Contract CT-1004 has no end date', 'Client TAK: you are now the project manager'
+    ]);
+    await expect(pop.locator('.ntf-group, .ntf-sec-head, .ntf-chip')).toHaveCount(0);
+    const payment = rows.filter({ hasText: 'Payment overdue on contract CT-1002' });
+    await expect(rows.nth(0).getByRole('img', { name: 'Critical' })).toBeVisible();
+    await expect(rows.nth(2).getByRole('img', { name: 'Critical' })).toBeVisible();      // read, still critical
+    await expect(rows.nth(3).getByRole('img', { name: 'Action required' })).toBeVisible();
+    await expect(rows.nth(4).getByRole('img', { name: 'Information' })).toBeVisible();
+    // Description, then category and one relative time; unread rows are bold with a dot, the read one is not.
+    await expect(payment.locator('.ntf-body')).toHaveText('146,400 AED · 30 % on acceptance');
+    await expect(payment.locator('.ntf-meta')).toContainText('Payment · 6 days ago');
+    await expect(payment.locator('time')).toHaveCount(1);
+    await expect(payment.locator('time')).toHaveAttribute('title', /\d/);
+    await expect(pop.locator('.ntf.unread')).toHaveCount(4);
+    await expect(rows.nth(2)).not.toHaveClass(/unread/);
+    expect(await rows.nth(0).locator('.ntf-title').evaluate(e => Number(getComputedStyle(e).fontWeight))).toBeGreaterThan(
+      await rows.nth(2).locator('.ntf-title').evaluate(e => Number(getComputedStyle(e).fontWeight)));
+    // No tinted cards or coloured left borders.
+    const looks = await rows.evaluateAll(els => els.map(e => { const s = getComputedStyle(e); return `${s.backgroundColor}|${s.borderLeftWidth}`; }));
+    expect(new Set(looks).size).toBe(1);
+    expect(looks[0].split('|')[1]).toBe('0px');
+    // A Review action per row.
+    await expect(pop.getByRole('button', { name: /^Review / })).toHaveCount(5);
     await expect(pop.getByRole('button', { name: 'Review contract: Contract CT-1004 has no end date' })).toBeVisible();
-    await expect(pop.getByRole('button', { name: 'View client: Client TAK: you are now the project manager' })).toBeVisible();
+    await expect(pop.getByRole('link', { name: 'Open Notification Center' })).toBeVisible();
     await pop.screenshot({ path: 'test-results/visual-notifications-popup.png' });
     const box = await pop.boundingBox();
     expect(box!.width).toBeGreaterThanOrEqual(400);
@@ -105,9 +118,49 @@ test.describe('A72 notification pop-up', () => {
     await stub(page, calls);
     await page.goto('/');
     const pop = await openBell(page);
-    await pop.getByRole('button', { name: 'Review payment: Payment overdue on contract CT-1002 (146,400.00 AED)' }).click();
+    await pop.getByRole('button', { name: 'Review payment: Payment overdue on contract CT-1002' }).click();
     await expect(page).toHaveURL(/\/contracts\/2$/);
     expect(calls).toContain('POST /api/v1/notifications/901/read');
+  });
+
+  test('a click anywhere on a row opens its record; arrow keys move between the rows', async ({ page }) => {
+    const calls: string[] = [];
+    await stub(page, calls);
+    await page.goto('/');
+    let pop = await openBell(page);
+    const row = pop.locator('.ntf').filter({ hasText: 'Commitment CM-1006 is overdue' });
+    await row.locator('.ntf-meta').click();
+    await expect(page).toHaveURL(/\/commitments\/6$/);
+    expect(calls).toContain('POST /api/v1/notifications/902/read');
+    await expect(pop).toBeHidden();
+    pop = await openBell(page);
+    await pop.getByRole('button', { name: 'Review commitment: Commitment CM-1006 is overdue' }).focus();
+    await page.keyboard.press('ArrowDown');
+    await expect(pop.getByRole('button', { name: /^Review payment/ })).toBeFocused();
+    await page.keyboard.press('ArrowUp');
+    await expect(pop.getByRole('button', { name: 'Review commitment: Commitment CM-1006 is overdue' })).toBeFocused();
+  });
+
+  test('only the list scrolls: header, tabs and footer stay in view', async ({ page }) => {
+    await page.route(/\/api\/v1\/notifications(\?.*)?$/, r => {
+      const items = Array.from({ length: 30 }, (_, i) => ({ ...ITEMS[i % ITEMS.length], id: 1000 + i, title: `${ITEMS[i % ITEMS.length].title} #${i}` }));
+      return r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ items, page: 1, pageSize: 50, totalCount: 30, unreadCount: 24, criticalCount: 18 }) });
+    });
+    await page.route(/\/api\/v1\/notifications\/unread-count$/, r => r.fulfill({ status: 200, contentType: 'application/json', body: '{"count":24}' }));
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto('/');
+    const pop = await openBell(page);
+    await expect(pop.locator('.ntf')).toHaveCount(30);
+    const list = pop.locator('.ntf-list');
+    expect(await list.evaluate(e => e.scrollHeight > e.clientHeight)).toBe(true);
+    await list.evaluate(e => { e.scrollTop = e.scrollHeight; });
+    await expect(pop.getByRole('heading', { name: 'Notifications' })).toBeInViewport();
+    await expect(pop.getByRole('tab', { name: 'All' })).toBeInViewport();
+    await expect(pop.getByRole('link', { name: 'Open Notification Center' })).toBeInViewport();
+    // The scrollbar never covers an action: every Review button ends inside the list's content box.
+    const inner = await list.evaluate(e => e.getBoundingClientRect().left + e.clientLeft + e.clientWidth);
+    const right = await pop.locator('.ntf-act').evaluateAll(els => Math.max(...els.map(e => e.getBoundingClientRect().right)));
+    expect(right).toBeLessThanOrEqual(inner);
   });
 
   test('a failed load says so and offers to try again', async ({ page }) => {

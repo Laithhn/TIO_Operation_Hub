@@ -2109,9 +2109,12 @@ public class AC49_ContractTermsAndPayments(HubFactory hub) : Scenario(hub)
             var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
             await TioHub.Api.Modules.Notifications.NotificationScanner.ScanAsync(db, DateTimeOffset.UtcNow, CancellationToken.None);
         }
-        var notes = (await e.Get("/notifications?pageSize=100")).Body!["items"]!.AsArray().Where(n => n!["link"]!.GetValue<string>() == $"/contracts/{id}").Select(n => n!["title"]!.GetValue<string>()).ToList();
-        Assert.Contains(notes, t => t.StartsWith("Payment overdue") && t.Contains("45,000.00 AED"));
-        Assert.Contains(notes, t => t.StartsWith("Payment due") && t.Contains("60,000.00 AED"));
+        var rows = (await e.Get("/notifications?pageSize=100")).Body!["items"]!.AsArray().Where(n => n!["link"]!.GetValue<string>() == $"/contracts/{id}")
+            .Select(n => (Title: n!["title"]!.GetValue<string>(), Body: n["body"]?.GetValue<string>() ?? "")).ToList();
+        var notes = rows.Select(r => r.Title).ToList();
+        // A121: the title names the payment; the amount and condition are the description ("45,000 AED · condition").
+        Assert.Contains(rows, r => r.Title.StartsWith("Payment overdue") && !r.Title.Contains("AED") && r.Body.StartsWith("45,000 AED · "));
+        Assert.Contains(rows, r => r.Title.StartsWith("Payment due") && !r.Title.Contains("AED") && r.Body.StartsWith("60,000 AED · "));
         Assert.Equal(2, notes.Count(t => t.StartsWith("Payment")));
         Assert.Contains((await m.Get("/notifications?pageSize=100")).Body!["items"]!.AsArray(), n => n!["title"]!.GetValue<string>().StartsWith("Payment due") && n["link"]!.GetValue<string>() == $"/contracts/{id}");
     }

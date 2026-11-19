@@ -8,13 +8,14 @@ import { useDebounced, useUrlState } from '../hooks';
 import { Icon } from '../ui/Icon';
 import { Badge, Checkbox, DataTable, PageHead, Pager, StateMessage, Tabs, useToast, type Column } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
-import { buildSections, chipOf, entityOf, relativeTime, severityOf, type Entry, type Notice, type NoticePage } from './notificationModel';
+import { entityOf, relativeTime, SEVERITY, sortNotices, toneOf, type Notice, type NoticePage } from './notificationModel';
 import './Notifications.css';
 
 /**
  * A38: the notifications center — assignments, due and overdue work, contract renewals and payments, for every role.
- * A72: severity sections (critical, action required, informational, resolved), grouped related alerts, contextual actions, relative times,
- * and read state kept apart from business resolution (an alert is resolved by the server when its condition clears, never by reading it).
+ * A72: severity order (critical, action required, informational, resolved), relative times, and read state kept apart from business
+ * resolution (an alert is resolved by the server when its condition clears, never by reading it).
+ * A121: one flat list — every notice is its own row with one severity icon on the left; no groups, section headings, badges or coloured cards.
  */
 
 function When({ iso }: { iso: string }) {
@@ -33,86 +34,62 @@ function useNoticeActions() {
   return {
     canMaintain, canDelete,
     read: (n: Notice) => !canMaintain || n.readAt ? Promise.resolve() : run(() => post(`/notifications/${n.id}/read`), 'The notification could not be marked as read.'),
-    readMany: (list: Notice[]) => {
-      const ids = (canMaintain ? list : []).filter(n => !n.readAt).map(n => n.id);
-      return ids.length ? run(() => post('/notifications/read', { ids }), 'The notifications could not be marked as read.') : Promise.resolve();
-    },
     readAll: () => !canMaintain ? Promise.resolve() : run(() => post('/notifications/read-all'), 'The notifications could not be marked as read.'),
     remove: (n: Notice) => !canDelete ? Promise.resolve() : run(() => del(`/notifications/${n.id}`), 'The notification could not be deleted.')
   };
 }
 
-/** One notice: icon, title, description, source and time, status chip (text, not colour alone), unread dot and its action. */
-function NoticeCard({ n, onOpen, extra, nested }: { n: Notice; onOpen: (n: Notice) => void; extra?: React.ReactNode; nested?: boolean }) {
-  const sev = n.resolvedAt ? 'resolved' : severityOf(n);
+/**
+ * One notice: severity icon (with a written label), title (bold while unread), description, category and time, unread dot and Review.
+ * A click anywhere on the row does what Review does; buttons and links inside the row keep their own action.
+ */
+function NoticeRow({ n, onOpen, extra }: { n: Notice; onOpen: (n: Notice) => void; extra?: React.ReactNode }) {
+  const tone = toneOf(n);
+  const sev = SEVERITY[tone];
   const canMaintain = useRight('Notifications', 'Maintain');
   const e = entityOf(n);
   const unread = !n.readAt && !n.resolvedAt;
+  const actionable = !!n.link || (canMaintain && unread);
+  const rowClick = (ev: React.MouseEvent) => {
+    if (!actionable || (ev.target as HTMLElement).closest('button, a, input, select, textarea, label')) return;
+    if (window.getSelection()?.toString()) return;   // selecting text to copy is not a click
+    onOpen(n);
+  };
   return (
-    <div className={`ntf ntf-${sev}${unread ? ' unread' : ''}${nested ? ' nested' : ''}`} data-notice={n.id}>
-      <span className="ntf-dot" aria-hidden="true" />
-      {!nested && <span className="ntf-icon" aria-hidden="true"><Icon name={e.icon} size={18} /></span>}
+    <li className={`ntf ntf-${tone}${unread ? ' unread' : ''}${actionable ? ' actionable' : ''}`} data-notice={n.id} onClick={rowClick}>
+      <span className="ntf-sev"><Icon name={sev.icon} size={22} title={sev.label} /></span>
       <div className="ntf-main">
         <div className="ntf-title">{n.title}</div>
-        {n.body && <div className="ntf-body">{n.body}</div>}
-        <div className="ntf-meta">{!nested && <>{e.source} · </>}<When iso={n.createdAt} />{unread && <span className="sr"> · Unread</span>}</div>
+        {n.body && <div className="ntf-body" title={n.body}>{n.body}</div>}
+        <div className="ntf-meta">{e.label} · <When iso={n.createdAt} />{unread && <span className="sr"> · Unread</span>}</div>
       </div>
       <div className="ntf-side">
-        <span className="ntf-chip">{chipOf(n)}</span>
-        {n.link ? <button type="button" className="ntf-act" onClick={() => onOpen(n)} aria-label={`${e.action}: ${n.title}`}>{e.action}</button>
-          : canMaintain && unread && <button type="button" className="ntf-act" onClick={() => onOpen(n)}>Mark as read</button>}
+        <span className="ntf-dot" aria-hidden="true" />
+        {n.link ? <button type="button" className="ntf-act" onClick={() => onOpen(n)} aria-label={`Review ${e.noun}: ${n.title}`}>Review <Icon name="ARROWTOPRIGHT" size={14} /></button>
+          : canMaintain && unread && <button type="button" className="ntf-act" onClick={() => onOpen(n)} aria-label={`Mark as read: ${n.title}`}>Mark as read</button>}
         {extra}
       </div>
-    </div>
+    </li>
   );
 }
 
-/** Related alerts as one card ("2 overdue commitments"); expanding shows each one with its own state and action. */
-function GroupCard({ g, onOpen, onReadAll, extra }: { g: Extract<Entry, { type: 'group' }>; onOpen: (n: Notice) => void; onReadAll: (l: Notice[]) => void; extra?: (n: Notice) => React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const first = g.notices[0];
-  const e = entityOf(first);
-  const canMaintain = useRight('Notifications', 'Maintain');
-  const unread = g.notices.filter(n => !n.readAt).length;
-  const sev = severityOf(first);
-  const id = `ntf-g-${first.id}`;
-  return (
-    <div className={`ntf-group ntf-${sev}${unread ? ' unread' : ''}`}>
-      <div className="ntf">
-        <span className="ntf-dot" aria-hidden="true" />
-        <span className="ntf-icon" aria-hidden="true"><Icon name={e.icon} size={18} /></span>
-        <div className="ntf-main">
-          <div className="ntf-title">{g.title}</div>
-          {g.body && <div className="ntf-body">{g.body}</div>}
-          <div className="ntf-meta">{e.source} · <When iso={first.createdAt} />{unread > 0 && <span className="sr"> · {unread} unread</span>}</div>
-        </div>
-        <div className="ntf-side">
-          <span className="ntf-chip">{chipOf(first)}</span>
-          <button type="button" className="ntf-act" aria-expanded={open} aria-controls={id} onClick={() => setOpen(o => !o)}>{open ? 'Hide' : `View ${e.plural}`} ({g.notices.length})</button>
-        </div>
-      </div>
-      {open && (
-        <div className="ntf-members" id={id}>
-          {g.notices.map(n => <NoticeCard key={n.id} n={n} onOpen={onOpen} nested extra={extra?.(n)} />)}
-          {canMaintain && unread > 0 && <button type="button" className="linkbtn ntf-group-read" onClick={() => onReadAll(g.notices)}>Mark these {g.notices.length} as read</button>}
-        </div>
-      )}
-    </div>
-  );
+/** Up and down arrows move between the rows' Review buttons; Tab still walks every control. */
+function rowKeys(e: ReactKeyboardEvent<HTMLUListElement>) {
+  if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+  const acts = Array.from(e.currentTarget.querySelectorAll<HTMLButtonElement>('.ntf-act'));
+  const i = acts.indexOf(document.activeElement as HTMLButtonElement);
+  if (i < 0) return;
+  e.preventDefault();
+  acts[Math.min(acts.length - 1, Math.max(0, i + (e.key === 'ArrowDown' ? 1 : -1)))].focus();
 }
 
-function NoticeSections({ items, onOpen, onReadAll, extra }: { items: Notice[]; onOpen: (n: Notice) => void; onReadAll: (l: Notice[]) => void; extra?: (n: Notice) => React.ReactNode }) {
+/** The flat list, in severity then recency order. */
+function NoticeList({ items, onOpen, extra }: { items: Notice[]; onOpen: (n: Notice) => void; extra?: (n: Notice) => React.ReactNode }) {
+  if (items.length === 0) return null;
   return (
-    <>
-      {buildSections(items).map(s => (
-        <section key={s.key} className={`ntf-section ntf-sec-${s.key}`} aria-label={s.label}>
-          <h3 className="ntf-sec-head"><Icon name={s.icon} size={16} /> {s.label}</h3>
-          {s.entries.map(en => en.type === 'one'
-            ? <NoticeCard key={en.notice.id} n={en.notice} onOpen={onOpen} extra={extra?.(en.notice)} />
-            : <GroupCard key={en.key} g={en} onOpen={onOpen} onReadAll={onReadAll} extra={extra} />)}
-        </section>
-      ))}
-    </>
+    <ul className="ntf-items" aria-label="Notifications" onKeyDown={rowKeys}>
+      {sortNotices(items).map(n => <NoticeRow key={n.id} n={n} onOpen={onOpen} extra={extra?.(n)} />)}
+    </ul>
   );
 }
 
@@ -176,10 +153,10 @@ export function NotificationPopover({ onClose }: { onClose: () => void }) {
         {list.isLoading && <div className="state-msg"><span className="spin" /> Loading…</div>}
         {list.isError && <div className="state-msg ntf-error" role="alert">Notifications could not be loaded. <button type="button" className="linkbtn" onClick={() => list.refetch()}>Try again</button></div>}
         {d && d.items.length === 0 && <div className="state-msg ntf-empty">{EMPTY[filter]}</div>}
-        {d && <NoticeSections items={d.items} onOpen={openNotice} onReadAll={act.readMany} />}
-        {d && d.totalCount > d.items.length && <p className="hint ntf-more">{d.totalCount - d.items.length} more in the notifications center.</p>}
+        {d && <NoticeList items={d.items} onOpen={openNotice} />}
+        {d && d.totalCount > d.items.length && <p className="hint ntf-more">{d.totalCount - d.items.length} more in the Notification Center.</p>}
       </div>
-      <div className="bell-foot"><Link to="/notifications" onClick={onClose}><Icon name="list" size={16} /> Open the notifications center</Link></div>
+      <div className="bell-foot"><Link to="/notifications" onClick={onClose}><Icon name="OPEN" size={18} /> Open Notification Center <Icon name="ARROWRIGHT" size={16} /></Link></div>
     </div>
   );
 }
@@ -265,7 +242,7 @@ export function NotificationsPage() {
   const d = q.data;
   const filtered = !!(f.q || f.severity || f.status);
   const tools = (x: Notice) => <span className="ntf-row-actions">
-    {act.canMaintain && !x.readAt && !x.resolvedAt && <button type="button" className="linkbtn" onClick={() => act.read(x)} aria-label={`Mark as read: ${x.title}`}>Mark as read</button>}
+    {act.canMaintain && x.link && !x.readAt && !x.resolvedAt && <button type="button" className="linkbtn" onClick={() => act.read(x)} aria-label={`Mark as read: ${x.title}`}>Mark as read</button>}
     <button disabled={!act.canDelete} type="button" className="linkbtn danger-link" onClick={() => act.remove(x)} aria-label={`Delete notification ${x.title}`}>Delete</button>
   </span>;
   return (
@@ -293,7 +270,7 @@ export function NotificationsPage() {
         {q.isLoading && <StateMessage kind="loading" />}
         {q.isError && <StateMessage kind="error">Notifications could not be loaded. <button className="linkbtn" onClick={() => q.refetch()}>Try again</button></StateMessage>}
         {d && d.items.length === 0 && <StateMessage kind={filtered ? 'nomatch' : 'none'}>{filtered ? 'No notifications match these filters.' : f.show === 'unread' ? "You're all caught up. No unread notifications." : f.show === 'critical' ? 'Nothing critical or overdue right now.' : payments ? 'No payment reminders yet.' : 'No notifications yet.'}</StateMessage>}
-        {d && <NoticeSections items={d.items} onOpen={openNotice} onReadAll={act.readMany} extra={tools} />}
+        {d && <NoticeList items={d.items} onOpen={openNotice} extra={tools} />}
       </div>
       {d && d.totalCount > 0 && <Pager page={d.page} pageSize={d.pageSize} total={d.totalCount} onPage={p => set({ page: String(p) })} onSize={s => set({ pageSize: String(s) })} />}
     </>

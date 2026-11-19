@@ -1,6 +1,8 @@
-// A72: how notifications are presented — severity sections, grouping, actions and relative times. Pure functions (unit-tested).
+// A72 / A121: how notifications are presented — one flat list, one severity icon per notice, actions and relative times. Pure functions (unit-tested).
+// A121 (owner request, 19 Nov 2026): related alerts are no longer grouped ("4 overdue payments"); every notice is its own row.
 
 export type Severity = 'critical' | 'action' | 'info';
+export type Tone = Severity | 'resolved';
 export type Notice = {
   id: number; kind: string; title: string; body?: string | null; link?: string | null; createdAt: string; readAt?: string | null; resolvedAt?: string | null;
   severity?: Severity; entityType?: string | null;
@@ -15,52 +17,42 @@ export function severityOf(n: Pick<Notice, 'kind' | 'severity'>): Severity {
   return 'info';
 }
 
-export const SECTION: Record<Severity | 'resolved', { label: string; icon: string }> = {
-  critical: { label: 'Critical / overdue', icon: 'error' },
+/** What the row's icon shows: a resolved alert (its business condition cleared) reads as resolved; otherwise its severity, read or not. */
+export const toneOf = (n: Pick<Notice, 'kind' | 'severity' | 'resolvedAt'>): Tone => n.resolvedAt ? 'resolved' : severityOf(n);
+
+/** The one severity icon on the left of each row, with a written label so severity is never colour alone. */
+export const SEVERITY: Record<Tone, { label: string; icon: string }> = {
+  critical: { label: 'Critical', icon: 'ATTENTION' },   // circle with an exclamation mark (framework glyph)
   action: { label: 'Action required', icon: 'warning' },
-  info: { label: 'Informational', icon: 'info' },
+  info: { label: 'Information', icon: 'info' },
   resolved: { label: 'Resolved', icon: 'ok' }
 };
-const ORDER: (Severity | 'resolved')[] = ['critical', 'action', 'info', 'resolved'];
+const RANK: Record<Tone, number> = { critical: 0, action: 1, info: 2, resolved: 3 };
 
-/** The short status written on each card (never colour alone). */
-export function chipOf(n: Notice): string {
-  if (n.resolvedAt) return 'Resolved';
-  switch (n.kind) {
-    case 'Overdue': case 'PaymentOverdue': return 'Overdue';
-    case 'DueSoon': return 'Due soon';
-    case 'PaymentDue': return 'Payment due';
-    case 'Renewal': return 'Needs attention';
-    case 'Handover': return 'To acknowledge';
-    case 'AtRisk': return 'At risk';
-    case 'ForecastLate': return 'Forecast late';
-    case 'Team': return 'Project team';
-    case 'Report': return 'Report';
-    default: return 'Assigned';
-  }
+/**
+ * Critical, action required, information, then resolved; newest first within each, and the higher id first on equal times.
+ * The same order as the server's sort=severity, so a page keeps its order whichever side sorts it.
+ */
+export function sortNotices(items: Notice[]): Notice[] {
+  return [...items].sort((a, b) => RANK[toneOf(a)] - RANK[toneOf(b)] || b.createdAt.localeCompare(a.createdAt) || b.id - a.id);
 }
 
-type EntityInfo = { icon: string; source: string; action: string; plural: string; list?: string };
-/** Per record type: icon, where it comes from, the action on the card and, for groups, the list page. Routes are those of App.tsx. */
+type EntityInfo = { label: string; noun: string };
+/** Per record type: the category written under each notice and the noun in the Review button's accessible name. */
 export const ENTITY: Record<string, EntityInfo> = {
-  Payment: { icon: 'MONEY', source: 'Payment management', action: 'Review payment', plural: 'payments', list: '/notifications?show=payments' },
-  Contract: { icon: 'DOCUMENT', source: 'Contract management', action: 'Review contract', plural: 'contracts', list: '/contracts' },
-  Commitment: { icon: 'commitment', source: 'Commitment management', action: 'View commitment', plural: 'commitments', list: '/commitments' },
-  Case: { icon: 'case', source: 'Ticket management', action: 'View ticket', plural: 'tickets', list: '/cases' },
-  Escalation: { icon: 'escalation', source: 'Escalations', action: 'View escalation', plural: 'escalations', list: '/escalations' },
-  Client: { icon: 'clients', source: 'Client management', action: 'View client', plural: 'clients', list: '/clients' },
-  Project: { icon: 'project', source: 'Projects', action: 'View project', plural: 'projects', list: '/projects' },
-  Environment: { icon: 'app', source: 'Environments', action: 'View environment', plural: 'environments' },
-  Server: { icon: 'server', source: 'Servers', action: 'View server', plural: 'servers' },
-  Handover: { icon: 'handover', source: 'Handovers', action: 'Open handovers', plural: 'handovers', list: '/handovers' },
-  Report: { icon: 'report', source: 'Reporting Center', action: 'Open report', plural: 'reports' }
+  Payment: { label: 'Payment', noun: 'payment' },
+  Contract: { label: 'Contract', noun: 'contract' },
+  Commitment: { label: 'Commitment', noun: 'commitment' },
+  Case: { label: 'Ticket', noun: 'ticket' },
+  Escalation: { label: 'Escalation', noun: 'escalation' },
+  Client: { label: 'Client', noun: 'client' },
+  Project: { label: 'Project', noun: 'project' },
+  Environment: { label: 'Environment', noun: 'environment' },
+  Server: { label: 'Server', noun: 'server' },
+  Handover: { label: 'Handover', noun: 'handover' },
+  Report: { label: 'Report', noun: 'report' }
 };
-export const entityOf = (n: Notice): EntityInfo => (n.entityType && ENTITY[n.entityType]) || { icon: 'bell', source: 'TIO Operations Hub', action: 'Open', plural: 'notices' };
-
-/** Record references in a title, e.g. CT-1002 or CM-1006. */
-export function refOf(title: string): string | null {
-  return /\b[A-Z][A-Z0-9]*-\d+\b/.exec(title)?.[0] ?? null;
-}
+export const entityOf = (n: Pick<Notice, 'entityType'>): EntityInfo => (n.entityType && ENTITY[n.entityType]) || { label: 'Notification', noun: 'notification' };
 
 /** "Just now", "5 minutes ago", "2 hours ago", "Yesterday", "6 days ago"; older than four weeks: null (show the date). */
 export function relativeTime(iso: string, now = Date.now()): string | null {
@@ -74,64 +66,4 @@ export function relativeTime(iso: string, now = Date.now()): string | null {
   if (d === 1) return 'Yesterday';
   if (d < 28) return `${d} days ago`;
   return null;
-}
-
-export type Entry = { type: 'one'; notice: Notice } | { type: 'group'; key: string; kind: string; notices: Notice[]; title: string; body: string };
-export type Section = { key: Severity | 'resolved'; label: string; icon: string; entries: Entry[]; unread: number };
-
-const listText = (refs: string[]) => refs.length <= 1 ? refs.join('') : refs.length <= 3 ? `${refs.slice(0, -1).join(', ')} and ${refs[refs.length - 1]}` : `${refs.slice(0, 3).join(', ')} and ${refs.length - 3} more`;
-
-function groupTitle(kind: string, plural: string, n: number): string {
-  switch (kind) {
-    case 'Overdue': case 'PaymentOverdue': return `${n} overdue ${plural}`;
-    case 'DueSoon': return `${n} ${plural} due soon`;
-    case 'PaymentDue': return `${n} payments coming due`;
-    case 'Renewal': return `${n} contracts need a renewal decision`;
-    case 'Assigned': return `${n} ${plural} assigned to you`;
-    case 'AtRisk': return `${n} ${plural} at risk from their dependencies`;
-    case 'ForecastLate': return `${n} ${plural} forecast late`;
-    default: return `${n} ${plural}`;
-  }
-}
-
-/**
- * Sections by severity (critical, action required, informational, then resolved), each sorted newest first; only sections that have notices.
- * Open notices of the same kind about the same type of record are grouped when there are at least `min` of them; every notice keeps its own
- * read and resolved state and stays reachable inside the group.
- */
-export function buildSections(items: Notice[], min = 2): Section[] {
-  const by = new Map<Severity | 'resolved', Notice[]>();
-  for (const n of items) {
-    const k = n.resolvedAt ? 'resolved' : severityOf(n);
-    if (!by.has(k)) by.set(k, []);
-    by.get(k)!.push(n);
-  }
-  return ORDER.filter(k => by.has(k)).map(k => {
-    const list = [...by.get(k)!].sort((a, b) => b.createdAt.localeCompare(a.createdAt) || b.id - a.id);
-    const entries: Entry[] = [];
-    if (k === 'resolved') list.forEach(n => entries.push({ type: 'one', notice: n }));
-    else {
-      const groups = new Map<string, Notice[]>();
-      for (const n of list) {
-        const g = `${n.kind}|${n.entityType ?? ''}`;
-        if (!groups.has(g)) groups.set(g, []);
-        groups.get(g)!.push(n);
-      }
-      const done = new Set<string>();
-      for (const n of list) {
-        const g = `${n.kind}|${n.entityType ?? ''}`;
-        const members = groups.get(g)!;
-        if (members.length < min || !n.entityType) { entries.push({ type: 'one', notice: n }); continue; }
-        if (done.has(g)) continue;
-        done.add(g);
-        const refs = members.map(x => refOf(x.title)).filter((x): x is string => !!x);
-        const needs = k === 'info' ? '' : members.length === 1 ? ' requires attention' : ' require attention';
-        entries.push({
-          type: 'group', key: g, kind: n.kind, notices: members, title: groupTitle(n.kind, entityOf(n).plural, members.length),
-          body: refs.length ? `${listText(refs)}${needs}.` : ''
-        });
-      }
-    }
-    return { key: k, ...SECTION[k], entries, unread: list.filter(n => !n.readAt && !n.resolvedAt).length };
-  });
 }

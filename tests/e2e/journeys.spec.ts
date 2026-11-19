@@ -952,7 +952,7 @@ test.describe('Release 2.14 (owner requests of 20 Oct 2026)', () => {
     await bell.click();
     const pop = page.getByRole('dialog', { name: 'Notifications' });
     await expect(pop).toBeVisible();
-    await pop.getByRole('link', { name: 'Open the notifications center' }).click();
+    await pop.getByRole('link', { name: 'Open Notification Center' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Notifications' })).toBeVisible();
     await expect(page.getByRole('tab', { name: /Unread/ })).toBeVisible();
   });
