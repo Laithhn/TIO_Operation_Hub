@@ -1,6 +1,12 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.69.0', date: '19 November 2026', changes: [
+      'Roles: no role is built in any more. TIO Manager and Operation Engineer can be edited, cloned and managed like any other role.',
+      'A role can be set to "Always hold every right", including rights added in later releases. ITD Manager now has this setting.'
+    ]
+  },
+  {
     version: '2.68.0', date: '19 November 2026', changes: [
       'Clearer icons: Users shows people and Roles shows an ID card in the Administration menu; Reassignment queue shows a single person.'
     ]

@@ -1,0 +1,12 @@
+# TIO Operations Hub 2.69.0
+
+Prepared 19 November 2026. **This release changes the database:** run `database/01-schema.sql` (idempotent) before deploying the application files. It applies one new migration, `20261119110108_AllRightsRoles`, which changes existing role data once (see below). Take the usual database backup first: going back needs it. The application refuses to start until the migration is applied.
+
+- **No built-in roles; ITD Manager holds every right** (A120, owner request).
+  - **TIO Manager** and **Operation Engineer** are ordinary roles now. They lose the *built-in* and *Protected* badges and can be renamed, given other rights, cloned, deactivated and (once nobody holds them) deleted like any role.
+  - Any role can be set to **Always holds every right** (Administration → Roles → Edit). Such a role holds every right, including rights added in later releases. It cannot be deactivated or deleted. Only someone holding every right can change the setting, nobody can change it on a role they hold, and at least one active role must keep it.
+  - **What the upgrade does, once:** TIO Manager keeps exactly the rights it has today (they are stored on it) but stops getting new rights automatically. The active role named exactly **ITD Manager** gets *Always holds every right*. If that role is missing, renamed or inactive when the script runs, TIO Manager keeps the setting instead; then set it on ITD Manager by hand (someone holding every right who does not hold ITD Manager) and clear it from TIO Manager if wanted. Names, descriptions and other rights are not touched.
+  - **After deploying, check:** Administration → Roles shows *All rights* on ITD Manager, and no role shows *built-in*.
+  - API: roles return `holdsAllRights` instead of `key` and `isLocked`; `POST/PUT /admin/roles` accept `holdsAllRights`.
+
+**Rights, configuration and seed data.** No new right: changing the setting uses *Roles: Maintain* plus holding every right. No new setting or configuration list. On a fresh install, TIO Manager is the role that holds every right (no ITD Manager exists there).
