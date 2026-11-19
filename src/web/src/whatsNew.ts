@@ -1,6 +1,13 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.70.0', date: '19 November 2026', changes: [
+      'Notifications are one simple list: every payment, commitment and contract alert has its own row instead of being grouped ("4 overdue payments").',
+      'An icon on the left shows how urgent each notification is: red for critical, orange for action required, blue for information, green when resolved. Unread notifications are bold with a blue dot.',
+      'Click Review, or anywhere on a notification, to open its record. Payment notifications show the amount and payment condition under the title.'
+    ]
+  },
+  {
     version: '2.69.0', date: '19 November 2026', changes: [
       'Roles: no role is built in any more. TIO Manager and Operation Engineer can be edited, cloned and managed like any other role.',
       'A role can be set to "Always hold every right", including rights added in later releases. ITD Manager now has this setting.',
