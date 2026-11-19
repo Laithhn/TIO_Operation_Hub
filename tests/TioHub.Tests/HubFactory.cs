@@ -95,12 +95,14 @@ public sealed class HubFactory : WebApplicationFactory<Program>, IAsyncLifetime
         return r.Body!["items"]!.AsArray().First(x => x!["code"]!.GetValue<string>() == code)!["id"]!.GetValue<long>();
     }
 
-    /// <summary>A role id by built-in key or by name.</summary>
+    /// <summary>A role id by name. "Manager" is the first role that holds every right, "Engineer" is Operation Engineer (A120: no built-in keys).</summary>
     public async Task<long> RoleId(string role)
     {
         var manager = await As(Manager);
         var roles = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray();
-        return roles.First(r => r!["key"]?.GetValue<string>() == role || r!["name"]!.GetValue<string>() == role)!["id"]!.GetValue<long>();
+        if (role == TioHub.Api.Security.RoleAccess.ManagerKey) return roles.First(r => r!["holdsAllRights"]!.GetValue<bool>())!["id"]!.GetValue<long>();
+        if (role == TioHub.Api.Security.RoleAccess.EngineerKey) role = TioHub.Api.Security.RoleAccess.DefaultEngineerName;
+        return roles.First(r => r!["name"]!.GetValue<string>() == role)!["id"]!.GetValue<long>();
     }
 
     public async Task<long> UserId(string account)

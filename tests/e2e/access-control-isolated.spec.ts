@@ -55,7 +55,7 @@ async function application(page: Page, initialExceptions: RightException[] = [])
         simulationUrl = route.request().url();
         data = { status: 'conditional', reason: 'Right and scope pass; operation checks still apply.', right: 'Cases:View', scope: 'client', roles: ['Engineer'], missingPrerequisites: [] };
       }
-      else if (path === '/api/v1/admin/roles') data = { catalog, roles: [{ id: 2, name: 'Engineer', isActive: true, isLocked: false, userCount: 1, rights: [], version: 'role-v1' }, { id: 3, name: 'Reviewer', isActive: true, isLocked: false, userCount: 0, rights: [], version: 'role-v1' }] };
+      else if (path === '/api/v1/admin/roles') data = { catalog, roles: [{ id: 2, name: 'Engineer', isActive: true, holdsAllRights: false, userCount: 1, rights: [], version: 'role-v1' }, { id: 3, name: 'Reviewer', isActive: true, holdsAllRights: false, userCount: 0, rights: [], version: 'role-v1' }] };
       else if (path === '/api/v1/admin/roles/conflicts' && route.request().method() === 'PUT') { conflictUpdate = { body: route.request().postDataJSON(), ifMatch: route.request().headers()['if-match'], ifNoneMatch: route.request().headers()['if-none-match'] }; return route.fulfill({ status: 204 }); }
       else if (path === '/api/v1/admin/roles/conflicts') data = { pairs: [], version: null };
       else if (path === '/api/v1/admin/scope-targets') data = { clients: [{ id: 10, code: 'C10', name: 'Client Ten', archived: false }], projects: [{ id: 11, code: 'P11', name: 'Project Eleven', clientId: 10 }], teams: [{ id: 20, code: 'T20', name: 'Team Twenty' }] };

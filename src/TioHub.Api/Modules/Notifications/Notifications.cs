@@ -239,7 +239,7 @@ public sealed class NotificationScanner(IServiceScopeFactory scopes, IConfigurat
             Add(e.OwnerUserId, overdue ? NotificationKinds.Overdue : NotificationKinds.DueSoon, $"Escalation {e.Ref} is {(overdue ? "overdue" : "due soon")}", e.Title,
                 $"/escalations/{e.Id}", $"escalation-{(overdue ? "overdue" : "due")}:{e.Id}:{e.ResolutionDueAt:yyyyMMddHHmm}");
         }
-        var managers = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Roles.Any(r => r.AppRole!.Key == BuiltInRoles.ManagerKey || r.AppRole.Rights.Any(x => x.RightKey == "ClientStructure:Coordinate")))
+        var managers = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Roles.Any(r => r.AppRole!.HoldsAllRights || r.AppRole.Rights.Any(x => x.RightKey == "ClientStructure:Coordinate")))
             .Select(u => u.Id).ToListAsync(ct);
         var contracts = await ContractQuery.Apply(db.Contracts.IgnoreQueryFilters().AsNoTracking().Where(c => c.ArchivedAt == null), new ContractFilter(Renewal: "attention"), now, db)
             .Select(c => new { c.Id, c.Ref, c.Title, c.OwnerUserId, c.Status, c.EndDate, c.NoticeDays }).ToListAsync(ct);

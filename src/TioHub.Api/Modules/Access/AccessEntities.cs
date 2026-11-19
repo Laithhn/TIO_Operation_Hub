@@ -38,9 +38,9 @@ public class AppRole : Entity
 {
     public string Name { get; set; } = "";
     public string? Description { get; set; }
-    public string? Key { get; set; }
     public bool IsActive { get; set; } = true;
-    public bool IsLocked => Key == "Manager";
+    /// <summary>A120: holds every right in the catalog, including rights added by later releases. Such a role cannot be deactivated or deleted.</summary>
+    public bool HoldsAllRights { get; set; }
     public List<RoleRight> Rights { get; set; } = [];
 }
 

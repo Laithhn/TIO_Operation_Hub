@@ -169,7 +169,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
             name = U("EscalatedRole"), rights = Fixture.Rights(new[] { "Cases:View", "Cases:Delete" }, Flag.None)
         })).Status);
 
-        var managerRole = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray().Single(r => r!["isLocked"]!.GetValue<bool>())!;
+        var managerRole = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["holdsAllRights"]!.GetValue<bool>())!;
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await delegated.Post("/admin/users", new
         {
             accountName = $@"DEV\{U("escalation")}", displayName = "Must not receive privileged role", workingTimeZone = "UTC",
@@ -210,7 +210,7 @@ public sealed class GranularAuthorizationTests(HubFactory hub) : Scenario(hub)
     {
         var manager = await Hub.As(HubFactory.Manager);
         var engineer = (await manager.Get("/admin/roles")).Body!["roles"]!.AsArray()
-            .Single(role => role!["key"]?.GetValue<string>() == BuiltInRoles.EngineerKey)!;
+            .Single(role => role!["name"]!.GetValue<string>() == RoleAccess.DefaultEngineerName)!;
         var engineerKeys = engineer["rights"]!.AsArray().Select(key => key!.GetValue<string>()).ToArray();
         var delegatedRole = await manager.Create("/admin/roles", new
         {

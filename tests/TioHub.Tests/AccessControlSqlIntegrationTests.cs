@@ -104,7 +104,7 @@ public sealed class AccessControlSqlIntegrationTests
         var admin = await hub.As(HubFactory.Manager);
         var first = await Role(admin, "Cases:View");
         var roles = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray();
-        var engineer = roles.Single(r => r!["key"]?.GetValue<string>() == BuiltInRoles.EngineerKey)!["id"]!.GetValue<long>();
+        var engineer = roles.Single(r => r!["name"]!.GetValue<string>() == RoleAccess.DefaultEngineerName)!["id"]!.GetValue<long>();
         var account = $@"DEV\{Unique("directory")}";
         await admin.Create("/admin/users", UserInput(account, [first], []));
         var reader = await hub.As(account);

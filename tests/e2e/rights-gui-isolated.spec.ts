@@ -7,10 +7,10 @@ const catalog: { key: string; module: string; riskLevel: string }[] = JSON.parse
 const mime: Record<string, string> = { '.js': 'text/javascript', '.css': 'text/css', '.html': 'text/html', '.svg': 'image/svg+xml', '.woff2': 'font/woff2' };
 const keys = (...modules: string[]) => catalog.filter(r => modules.includes(r.module)).map(r => r.key);
 const roles = () => [
-  { id: 1, key: 'manager', name: 'TIO Manager', description: 'Full authority.', isActive: true, isLocked: true, userCount: 2, rights: catalog.map(r => r.key), version: 'r1' },
-  { id: 2, key: 'engineer', name: 'Operation Engineer', description: 'Day to day operations.', isActive: true, isLocked: false, userCount: 9, rights: keys('Tickets', 'Dashboard', 'Commitments'), version: 'r1' },
-  { id: 3, name: 'Client Viewer', description: 'Read only client work.', isActive: true, isLocked: false, userCount: 4, rights: catalog.filter(r => r.key.endsWith(':View')).map(r => r.key), version: 'r1' },
-  { id: 4, name: 'Old role', isActive: false, isLocked: false, userCount: 0, rights: keys('Notes'), version: 'r1' }
+  { id: 1, name: 'ITD Manager', description: 'Full authority.', isActive: true, holdsAllRights: true, userCount: 2, rights: catalog.map(r => r.key), version: 'r1' },
+  { id: 2, name: 'Operation Engineer', description: 'Day to day operations.', isActive: true, holdsAllRights: false, userCount: 9, rights: keys('Tickets', 'Dashboard', 'Commitments'), version: 'r1' },
+  { id: 3, name: 'Client Viewer', description: 'Read only client work.', isActive: true, holdsAllRights: false, userCount: 4, rights: catalog.filter(r => r.key.endsWith(':View')).map(r => r.key), version: 'r1' },
+  { id: 4, name: 'Old role', isActive: false, holdsAllRights: false, userCount: 0, rights: keys('Notes'), version: 'r1' }
 ];
 
 async function application(page: Page) {
@@ -136,10 +136,10 @@ test('moving to another role keeps the search and the comparison, and puts the r
   await expect(page.getByRole('combobox', { name: 'Compare with role' })).toHaveValue('');
 });
 
-test('the protected role cannot be edited in the grid', async ({ page }) => {
+test('a role holding every right cannot be edited in the grid', async ({ page }) => {
   await application(page);
   await page.goto('/admin/rights?role=1');
-  await expect(box(page, 'Tickets: Permanently delete unused records for TIO Manager')).toBeDisabled();
+  await expect(box(page, 'Tickets: Permanently delete unused records for ITD Manager')).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Grant shown rights in Tickets' })).toBeDisabled();
 });
 
@@ -160,7 +160,7 @@ test('Roles shows how far each role reaches and can narrow to the differences', 
   await application(page);
   await page.goto('/admin/roles');
   const matrix = page.getByRole('region', { name: 'Role and right comparison' });
-  await expect(matrix.getByLabel(/^TIO Manager: \d+ of \d+ assigned$/).first()).toBeVisible();
+  await expect(matrix.getByLabel(/^ITD Manager: \d+ of \d+ assigned$/).first()).toBeVisible();
   const status = page.locator('.role-matrix-filters [role=status]');
   const all = await status.textContent();
   await page.getByRole('checkbox', { name: 'Only where roles differ' }).check();

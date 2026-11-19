@@ -66,7 +66,7 @@ public sealed class FormsRecoverySqlIntegrationTests
             var code = await File.ReadAllTextAsync(hub.SetupFile);
             using var scope = hub.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<HubDbContext>();
-            var managerRoleId = (await BuiltInRoles.EnsureAsync(db, CancellationToken.None))[BuiltInRoles.ManagerKey];
+            var managerRoleId = (await RoleAccess.EnsureAsync(db, CancellationToken.None))[RoleAccess.ManagerKey];
             var user = new User { AccountName = "old.manager", DisplayName = "Old manager", WorkingTimeZone = "UTC", IsActive = false };
             user.Roles.Add(new UserRole { AppRoleId = managerRoleId });
             db.Users.Add(user);

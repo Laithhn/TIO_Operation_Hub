@@ -189,10 +189,7 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.HasIndex(x => x.Name).IsUnique();
             e.Property(x => x.Description).HasMaxLength(300);
             e.Property(x => x.IsActive).HasDefaultValue(true);
-            e.Property(x => x.Key).HasMaxLength(20);
-            e.HasIndex(x => x.Key).IsUnique().HasFilter("[Key] IS NOT NULL");
             e.HasMany(x => x.Rights).WithOne(x => x.AppRole).HasForeignKey(x => x.AppRoleId).OnDelete(DeleteBehavior.Cascade);
-            e.Ignore(x => x.IsLocked);
         });
         m.Entity<AuthorizationVersion>(e =>
         {

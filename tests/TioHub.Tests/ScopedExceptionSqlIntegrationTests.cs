@@ -189,7 +189,7 @@ public sealed class ScopedExceptionSqlIntegrationTests
         object Body(string code, long? parent) => new { code, name = "Cascade " + code, country = "Oman", status = "Active", ownerUserId = admin.UserId, parentClientId = parent };
         var parent = await admin.Create("/clients", Body(Unique("P").ToUpperInvariant(), null));
         var child = await admin.Create("/clients", Body(Unique("C").ToUpperInvariant(), parent));
-        var manager = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == "Manager")!["id"]!.GetValue<long>();
+        var manager = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["holdsAllRights"]!.GetValue<bool>())!["id"]!.GetValue<long>();
         var account = $@"DEV\{Unique("partial")}";
         await admin.Create("/admin/users", new
         {
@@ -246,9 +246,9 @@ public sealed class ScopedExceptionSqlIntegrationTests
         var now = DateTimeOffset.UtcNow;
         Assert.True(await AdministratorRecovery.RemainsAsync(db, resolver, now, default));
         // Remove every administrator's standing, leaving only a holder of a custom role named like one but without the permission.
-        var managerRole = await db.AppRoles.AsNoTracking().SingleAsync(r => r.Key == "Manager");
+        var managerRole = await db.AppRoles.AsNoTracking().SingleAsync(r => r.HoldsAllRights);
         await db.UserRoles.Where(r => r.AppRoleId == managerRole.Id).ExecuteDeleteAsync();
-        await db.GroupMappings.Where(m => m.Roles.Any(r => r.AppRole!.Key == BuiltInRoles.ManagerKey)).ExecuteDeleteAsync();
+        await db.GroupMappings.Where(m => m.Roles.Any(r => r.AppRole!.HoldsAllRights)).ExecuteDeleteAsync();
         db.ChangeTracker.Clear();
         Assert.False(await AdministratorRecovery.RemainsAsync(db, resolver, now, default));
         // The target's proposed roles count once they carry effective administration.

@@ -387,32 +387,57 @@ public static class RightsCatalog
     }
 }
 
-/// <summary>The protected TIO Manager role always holds every right, so administration can never be lost. Operation Engineer can be changed like any other role.</summary>
-public static class BuiltInRoles
+/// <summary>
+/// A120: no role is built in. A role marked <see cref="AppRole.HoldsAllRights"/> holds the whole catalog, including rights added by later
+/// releases, whatever is stored for it. At least one active role always carries the mark, so administration can never be lost.
+/// </summary>
+public static class RoleAccess
 {
+    /// <summary>Lookup slots for demo and test seeding only; nothing about a role is stored under these names.</summary>
     public const string ManagerKey = "Manager";
     public const string EngineerKey = "Engineer";
+    public const string DefaultFullAccessName = "TIO Manager";
+    public const string DefaultEngineerName = "Operation Engineer";
 
-    /// <summary>The rights a role carries. The protected role holds the whole catalog, whatever is stored.</summary>
-    public static IEnumerable<string> KeysOf(AppRole role) => role.IsLocked ? RightsCatalog.AllKeys : role.Rights.Select(p => p.RightKey);
+    /// <summary>The rights a role carries. A role that holds all rights carries the whole catalog, whatever is stored.</summary>
+    public static IEnumerable<string> KeysOf(AppRole role) => role.HoldsAllRights ? RightsCatalog.AllKeys : role.Rights.Select(p => p.RightKey);
 
-    /// <summary>Creates the two built-in roles when missing and returns their ids by key (seeds and bootstrap).</summary>
+    /// <summary>Ids of the active roles that hold every right.</summary>
+    public static Task<long[]> FullAccessRoleIdsAsync(HubDbContext db, CancellationToken ct) =>
+        db.AppRoles.AsNoTracking().Where(r => r.HoldsAllRights && r.IsActive).OrderBy(r => r.Id).Select(r => r.Id).ToArrayAsync(ct);
+
+    /// <summary>
+    /// The role given to the first administrator (setup and directory bootstrap, which only run while nobody can administer the hub).
+    /// Uses the oldest active role that holds every right. Only when none exists does it mark the role named TIO Manager, or create it.
+    /// </summary>
+    public static async Task<long> EnsureFullAccessRoleAsync(HubDbContext db, CancellationToken ct)
+    {
+        var existing = await db.AppRoles.Where(r => r.HoldsAllRights && r.IsActive).OrderBy(r => r.Id).FirstOrDefaultAsync(ct);
+        if (existing is not null) return existing.Id;
+        var role = await db.AppRoles.FirstOrDefaultAsync(r => r.Name == DefaultFullAccessName, ct);
+        if (role is null)
+        {
+            role = new AppRole { Name = DefaultFullAccessName, Description = "Runs the TIO team; administers the hub." };
+            db.AppRoles.Add(role);
+        }
+        role.HoldsAllRights = true;
+        role.IsActive = true;
+        await db.SaveChangesAsync(ct);
+        return role.Id;
+    }
+
+    /// <summary>Demo and test seeding: a role holding every right, and Operation Engineer by name (created with the engineer defaults when missing).</summary>
     public static async Task<Dictionary<string, long>> EnsureAsync(HubDbContext db, CancellationToken ct)
     {
-        var roles = await db.AppRoles.Where(r => r.Key != null).ToListAsync(ct);
-        AppRole Get(string key, string name, string description, string[] rights)
+        var manager = await EnsureFullAccessRoleAsync(db, ct);
+        var engineer = await db.AppRoles.FirstOrDefaultAsync(r => r.Name == DefaultEngineerName, ct);
+        if (engineer is null)
         {
-            var role = roles.FirstOrDefault(x => x.Key == key);
-            if (role is not null) return role;
-            role = new AppRole { Key = key, Name = name, Description = description };
-            foreach (var right in rights) role.Rights.Add(new RoleRight { RightKey = right });
-            db.AppRoles.Add(role);
-            roles.Add(role);
-            return role;
+            engineer = new AppRole { Name = DefaultEngineerName, Description = "Day-to-day operations work on every client." };
+            foreach (var right in RightsCatalog.EngineerDefault) engineer.Rights.Add(new RoleRight { RightKey = right });
+            db.AppRoles.Add(engineer);
+            await db.SaveChangesAsync(ct);
         }
-        var manager = Get(ManagerKey, "TIO Manager", "Runs the TIO team; administers the hub. Always holds every right.", RightsCatalog.AllKeys);
-        var engineer = Get(EngineerKey, "Operation Engineer", "Day-to-day operations work on every client.", RightsCatalog.EngineerDefault);
-        if (manager.Id == 0 || engineer.Id == 0) await db.SaveChangesAsync(ct);
-        return new() { [ManagerKey] = manager.Id, [EngineerKey] = engineer.Id };
+        return new() { [ManagerKey] = manager, [EngineerKey] = engineer.Id };
     }
 }

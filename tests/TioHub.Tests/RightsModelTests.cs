@@ -413,7 +413,7 @@ public sealed class RightsLifecycleTests(HubFactory hub)
         Assert.NotNull(refused.Error("rights"));
         var within = await delegated.Post("/admin/roles", new { name = U("Within "), rights = new[] { "Cases:View" } });
         Assert.Equal(HttpStatusCode.Created, within.Status);
-        var manager = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == BuiltInRoles.ManagerKey)!["id"]!.GetValue<long>();
+        var manager = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["holdsAllRights"]!.GetValue<bool>())!["id"]!.GetValue<long>();
         var assign = await delegated.Post("/admin/users", Body($@"DEV\{U("x")}", [manager]));
         Assert.Equal(HttpStatusCode.UnprocessableEntity, assign.Status);
     }
@@ -422,7 +422,7 @@ public sealed class RightsLifecycleTests(HubFactory hub)
     public async Task The_protected_role_keeps_every_right_and_cannot_be_reduced()
     {
         var m = await hub.As(HubFactory.Manager);
-        var row = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == BuiltInRoles.ManagerKey)!;
+        var row = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => r!["holdsAllRights"]!.GetValue<bool>())!;
         Assert.Equal(RightsCatalog.AllKeys.Length, row["rights"]!.AsArray().Count);
         var id = row["id"]!.GetValue<long>();
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await m.Put($"/admin/roles/{id}", new { name = row["name"]!.GetValue<string>(), rights = new[] { "Cases:View" } }, row["version"]!.GetValue<string>())).Status);

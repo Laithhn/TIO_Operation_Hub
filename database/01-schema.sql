@@ -10835,19 +10835,18 @@ END;
 COMMIT;
 GO
 
-
 BEGIN TRANSACTION;
 IF NOT EXISTS (
     SELECT * FROM [admin].[__EFMigrationsHistory]
     WHERE [MigrationId] = N'20261118072809_ClientStatusFreeText'
 )
 BEGIN
-    DECLARE @var nvarchar(max);
-    SELECT @var = QUOTENAME([d].[name])
+    DECLARE @var34 nvarchar(max);
+    SELECT @var34 = QUOTENAME([d].[name])
     FROM [sys].[default_constraints] [d]
     INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
     WHERE ([d].[parent_object_id] = OBJECT_ID(N'[clients].[ClientStatusReport]') AND [c].[name] = N'Summary');
-    IF @var IS NOT NULL EXEC(N'ALTER TABLE [clients].[ClientStatusReport] DROP CONSTRAINT ' + @var + ';');
+    IF @var34 IS NOT NULL EXEC(N'ALTER TABLE [clients].[ClientStatusReport] DROP CONSTRAINT ' + @var34 + ';');
     ALTER TABLE [clients].[ClientStatusReport] ALTER COLUMN [Summary] nvarchar(max) NOT NULL;
 END;
 
@@ -10862,3 +10861,79 @@ END;
 
 COMMIT;
 GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    ALTER TABLE [iam].[AppRole] ADD [HoldsAllRights] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    EXEC(N'INSERT INTO [iam].[RoleRight] ([AppRoleId], [RightKey]) SELECT r.[Id], d.[Key] FROM [iam].[AppRole] r CROSS JOIN [iam].[RightDefinition] d WHERE r.[Key] = N''Manager'' AND d.[IsActive] = 1 AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[Id] AND x.[RightKey] = d.[Key]);');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    EXEC(N'UPDATE [iam].[AppRole] SET [HoldsAllRights] = 1 WHERE [IsActive] = 1 AND [Key] IS NULL AND LTRIM(RTRIM([Name])) = N''ITD Manager'';');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    EXEC(N'UPDATE [iam].[AppRole] SET [HoldsAllRights] = 1, [IsActive] = 1 WHERE [Key] = N''Manager'' AND NOT EXISTS (SELECT 1 FROM [iam].[AppRole] f WHERE f.[HoldsAllRights] = 1);');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    EXEC(N'UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    DROP INDEX [IX_AppRole_Key] ON [iam].[AppRole];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    DECLARE @var35 nvarchar(max);
+    SELECT @var35 = QUOTENAME([d].[name])
+    FROM [sys].[default_constraints] [d]
+    INNER JOIN [sys].[columns] [c] ON [d].[parent_column_id] = [c].[column_id] AND [d].[parent_object_id] = [c].[object_id]
+    WHERE ([d].[parent_object_id] = OBJECT_ID(N'[iam].[AppRole]') AND [c].[name] = N'Key');
+    IF @var35 IS NOT NULL EXEC(N'ALTER TABLE [iam].[AppRole] DROP CONSTRAINT ' + @var35 + ';');
+    ALTER TABLE [iam].[AppRole] DROP COLUMN [Key];
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119110108_AllRightsRoles'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261119110108_AllRightsRoles', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

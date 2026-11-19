@@ -44,7 +44,7 @@ public static class DevelopmentData
         foreach (var j in await db.JiraInstances.ToListAsync(ct))
             if (string.IsNullOrEmpty(j.ApprovedHost)) j.ApprovedHost = j.Kind == JiraInstanceKind.CustomerCloud ? "customer-demo.example.net" : "jira.internal.example.com";
 
-        var builtInRoles = await BuiltInRoles.EnsureAsync(db, ct);
+        var builtInRoles = await RoleAccess.EnsureAsync(db, ct);
 
         User U(string account, string name, string tz, bool allClients, bool allInternal, params string[] roles)
         {
@@ -53,13 +53,13 @@ public static class DevelopmentData
             db.Users.Add(u);
             return u;
         }
-        var manager = U("DEV\\manager", "Mara Okafor (demo manager)", "Asia/Riyadh", true, true, BuiltInRoles.ManagerKey);
-        var lead = U("DEV\\lead", "Leon Brandt (demo lead)", "Asia/Dubai", true, true, BuiltInRoles.ManagerKey);
-        var eng1 = U("DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Riyadh", true, true, BuiltInRoles.EngineerKey);
-        var eng2 = U("DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Dubai", true, true, BuiltInRoles.EngineerKey);
-        var viewer = U("DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", true, true, BuiltInRoles.EngineerKey);
-        var admin = U("DEV\\admin", "Adam Reyes (demo administrator)", "UTC", true, true, BuiltInRoles.ManagerKey);
-        var former = U("DEV\\former", "Farid Haddad (demo, deactivated)", "Asia/Riyadh", true, true, BuiltInRoles.EngineerKey);
+        var manager = U("DEV\\manager", "Mara Okafor (demo manager)", "Asia/Riyadh", true, true, RoleAccess.ManagerKey);
+        var lead = U("DEV\\lead", "Leon Brandt (demo lead)", "Asia/Dubai", true, true, RoleAccess.ManagerKey);
+        var eng1 = U("DEV\\engineer", "Esra Demir (demo engineer)", "Asia/Riyadh", true, true, RoleAccess.EngineerKey);
+        var eng2 = U("DEV\\engineer2", "Kofi Mensah (demo engineer)", "Asia/Dubai", true, true, RoleAccess.EngineerKey);
+        var viewer = U("DEV\\viewer", "Vera Lund (demo stakeholder)", "Europe/Berlin", true, true, RoleAccess.EngineerKey);
+        var admin = U("DEV\\admin", "Adam Reyes (demo administrator)", "UTC", true, true, RoleAccess.ManagerKey);
+        var former = U("DEV\\former", "Farid Haddad (demo, deactivated)", "Asia/Riyadh", true, true, RoleAccess.EngineerKey);
         await db.SaveChangesAsync(ct);
 
         var ops = new Team { Code = "OPS", Name = "TIO Operations", LeadUserId = lead.Id, ManagerUserId = manager.Id, Description = "Fictional demo team" };

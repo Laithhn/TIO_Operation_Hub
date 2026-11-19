@@ -99,7 +99,7 @@ public static class AccessSimulation
                 scopeAvailable = await db.Teams.IgnoreQueryFilters().AnyAsync(t => t.Id == scopeId, ct);
             var roleSources = await db.AppRoles.AsNoTracking().Include(r => r.Rights)
                 .Where(r => r.IsActive && user.Roles.Contains(r.Name)).ToListAsync(ct);
-            string[] SourcesFor(string key) => roleSources.Where(r => BuiltInRoles.KeysOf(r).Contains(key, StringComparer.OrdinalIgnoreCase))
+            string[] SourcesFor(string key) => roleSources.Where(r => RoleAccess.KeysOf(r).Contains(key, StringComparer.OrdinalIgnoreCase))
                 .Select(r => r.Name).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.OrdinalIgnoreCase).ToArray();
             var sources = SourcesFor(definition.Key).ToList();
             var now = clock.GetUtcNow();

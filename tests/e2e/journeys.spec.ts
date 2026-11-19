@@ -564,8 +564,8 @@ test.describe('Access (roles and rights)', () => {
     await page.reload();
     await page.getByLabel('Search rights').fill('Cases:Maintain');
     await expect(page.getByRole('checkbox', { name: `Tickets: Edit existing records for ${name}`, exact: true })).toBeChecked();
-    // The TIO Manager role cannot lose a right.
-    await page.getByRole('combobox', { name: 'Role', exact: true }).selectOption({ label: 'TIO Manager · protected' });
+    // A role holding every right (TIO Manager on a fresh install, A120) cannot lose a right.
+    await page.getByRole('combobox', { name: 'Role', exact: true }).selectOption({ label: 'TIO Manager · all rights' });
     await page.getByLabel('Search rights').fill('Platform:Administration');
     await expect(page.getByRole('checkbox', { name: 'Platform-wide controls: Administration for TIO Manager', exact: true })).toBeDisabled();
     await page.screenshot({ path: 'test-results/visual-rights-1600.png', fullPage: true });

@@ -88,7 +88,7 @@ public sealed class RightsModelUpgradeTests
     {
         await db.GetService<IMigrator>().MigrateAsync();
         // A later release's grant, not part of this upgrade. My_dashboard_goes_to_every_role_holding_ticket_view tests it.
-        await db.Database.ExecuteSqlRawAsync("DELETE g FROM [iam].[RoleRight] g JOIN [iam].[AppRole] r ON r.Id = g.AppRoleId WHERE g.[RightKey] = N'MyDashboard:View' AND ISNULL(r.[Key], N'') <> N'Manager'");
+        await db.Database.ExecuteSqlRawAsync("DELETE g FROM [iam].[RoleRight] g JOIN [iam].[AppRole] r ON r.Id = g.AppRoleId WHERE g.[RightKey] = N'MyDashboard:View' AND r.[Name] <> N'TIO Manager'");
         await RightsCatalog.SynchronizeAsync(db);
     }
 
@@ -124,7 +124,8 @@ public sealed class RightsModelUpgradeTests
         // Old flags become rights. A flag on an inactive role stays stored there and gives nobody anything.
         Assert.Contains("Platform:Administration", await RoleRights(db, "Administrators"));
         Assert.Equal(["Cases:View", "Platform:Export"], await RoleRights(db, "Switched off"));
-        Assert.Equal(RightsCatalog.AllKeys.Length, (await RoleRights(db, "TIO Manager")).Length);
+        // A120: TIO Manager is an ordinary role that stores every right it held (a retired key may also be stored; it grants nothing).
+        Assert.Empty(RightsCatalog.AllKeys.Except(await RoleRights(db, "TIO Manager")));
     });
 
     [ApprovedOverrideSqlFact]
@@ -166,7 +167,7 @@ public sealed class RightsModelUpgradeTests
     {
         await Upgrade(db);
         var ops = await db.GroupMappings.AsNoTracking().Include(m => m.Roles).ThenInclude(r => r.AppRole).SingleAsync(m => m.GroupName == @"T\Ops");
-        Assert.Equal("Engineer", Assert.Single(ops.Roles).AppRole!.Key);
+        Assert.Equal("Operation Engineer", Assert.Single(ops.Roles).AppRole!.Name);
         Assert.True(ops.AllClients);
         var nobody = await db.GroupMappings.AsNoTracking().Include(m => m.Roles).SingleAsync(m => m.GroupName == @"T\Nobody");
         Assert.Empty(nobody.Roles);

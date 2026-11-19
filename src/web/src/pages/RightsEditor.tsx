@@ -57,7 +57,7 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
   const warnings = prerequisiteWarnings(rows, draft);
   const blockedBySave = newlyBlocked(rows, base.rights, draft);
   const canMaintain = useRight('AdminRoles', 'Maintain');
-  const disabled = base.isLocked || f.busy || !canMaintain;
+  const disabled = base.holdsAllRights || f.busy || !canMaintain;
   const sensitiveHeld = rows.filter(r => r.isActive && sensitive(r) && isGranted(draft, r)).length;
   const featureOptions = [...new Map(rows.filter(r => !filters.module || moduleOf(r) === filters.module).map(r => [r.feature, r.featureLabel]))];
   const update = (next: Partial<RightsPrefs>) => onPrefs(p => ({ ...p, ...next }));
@@ -133,14 +133,14 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
   return <div className="rights-workspace">
     <Panel>
       <div className="rights-controls">
-        <label>Role<select value={role.id} disabled={f.busy} onChange={e => onRoleChange(e.target.value)}>{roles.map(r => <option value={r.id} key={r.id}>{r.name}{r.isLocked ? ' · protected' : ''}{!r.isActive ? ' · inactive' : ''}</option>)}</select></label>
+        <label>Role<select value={role.id} disabled={f.busy} onChange={e => onRoleChange(e.target.value)}>{roles.map(r => <option value={r.id} key={r.id}>{r.name}{r.holdsAllRights ? ' · all rights' : ''}{!r.isActive ? ' · inactive' : ''}</option>)}</select></label>
         <label>Compare with role<select value={compare ? prefs.compareId : ''} onChange={e => update({ compareId: e.target.value })}>
           <option value="">No comparison</option>{roles.filter(r => r.id !== role.id).map(r => <option value={r.id} key={r.id}>{r.name}{!r.isActive ? ' · inactive' : ''}</option>)}
         </select></label>
       </div>
       {base.description && <p className="hint rights-role-description">{base.description}</p>}
       <dl className="rights-stats">
-        <div><dt>Status</dt><dd>{base.isLocked ? <Badge tone="info">Protected</Badge> : <Badge tone={base.isActive ? 'good' : 'warn'}>{base.isActive ? 'Active' : 'Inactive'}</Badge>}</dd></div>
+        <div><dt>Status</dt><dd>{base.holdsAllRights ? <Badge tone="info">All rights</Badge> : <Badge tone={base.isActive ? 'good' : 'warn'}>{base.isActive ? 'Active' : 'Inactive'}</Badge>}</dd></div>
         <div className="wide"><dt>Rights assigned</dt><dd><Coverage held={assignedCount(rows, draft)} total={activeTotal(rows)} /></dd></div>
         <div><dt>Sensitive rights</dt><dd>{sensitiveHeld}</dd></div>
         <div><dt>People holding it directly</dt><dd>{base.userCount}</dd></div>
@@ -149,7 +149,7 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
       <details className="rights-help"><summary>How rights combine</summary>
         <p className="hint">Unassigned rights are denied. A person's rights combine across their active roles. A right works only when its prerequisites are held too, and data scope decides which records it reaches. Individual exceptions can change the result for one person. Access rights open a feature; action rights allow what can be done in it.</p></details>
       {!base.isActive && <div className="notice warn">This role is inactive. Its rights give nobody access until it is activated.</div>}
-      {base.isLocked && <div className="notice">The protected role always holds every right. Clone it under Manage roles to make a role you can change.</div>}
+      {base.holdsAllRights && <div className="notice">This role always holds every right, including rights added in later releases. To choose its rights, clear "Always holds every right" under Manage roles, or clone it.</div>}
     </Panel>
     <FormError error={f.error} fields={[]} />
     {(stale || f.error?.isConflict) && <div className="notice warn" role="alert">This role has changed since editing started. Your draft is retained. <button className="linkbtn" onClick={reloadLatest}>Reload latest</button></div>}

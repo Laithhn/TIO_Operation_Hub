@@ -36,8 +36,8 @@ public static class ScheduledExportAccess
         var now = clock.GetUtcNow();
         var hasAllow = await db.UserRightExceptions.AsNoTracking().AnyAsync(o => o.UserId == userId && o.Effect == "Allow" && (o.ExpiresAt == null || o.ExpiresAt > now), ct);
         if (CouldRestrict(direct.Select(r => r.Id), mapped.Select(r => r.Id), pairs,
-            RightExceptions.MakesAdministrator(direct.SelectMany(BuiltInRoles.KeysOf)),
-            RightExceptions.MakesAdministrator(mapped.SelectMany(BuiltInRoles.KeysOf)), hasAllow)) return null;
+            RightExceptions.MakesAdministrator(direct.SelectMany(RoleAccess.KeysOf)),
+            RightExceptions.MakesAdministrator(mapped.SelectMany(RoleAccess.KeysOf)), hasAllow)) return null;
         var result = await AccessCalculator.ComputeAsync(db, user, [], ct, now);
         var after = await db.AuthorizationVersions.AsNoTracking().Where(v => v.Id == 1).Select(v => v.Version).SingleAsync(ct);
         return version == after ? result : null;

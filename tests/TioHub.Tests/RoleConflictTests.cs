@@ -53,7 +53,7 @@ public sealed class RoleConflictTests
     {
         var now = DateTimeOffset.Parse("2026-11-02T00:00:00Z");
         var active = RightsCatalog.AllKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var manager = new AppRole { Key = BuiltInRoles.ManagerKey, IsActive = true };
+        var manager = new AppRole { HoldsAllRights = true, IsActive = true };
         Assert.True(RoleConflicts.HasUserAdministrationRights([manager], [], active, now));
         Assert.False(RoleConflicts.HasUserAdministrationRights([manager],
             [new UserRightException { RightKey = "AdminUsers:View", Effect = "Deny" }], active, now));

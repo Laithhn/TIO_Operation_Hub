@@ -1065,8 +1065,8 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         var e = await Hub.As(HubFactory.Engineer);
         var roles = (await m.Get("/admin/roles")).Body!;
         Assert.Equal(RightsCatalog.AllKeys.Order(), roles["catalog"]!.AsArray().Select(r => r!["key"]!.GetValue<string>()).Order());
-        var manager = roles["roles"]!.AsArray().First(r => r!["key"]?.GetValue<string>() == "Manager")!;
-        Assert.True(manager["isLocked"]!.GetValue<bool>());
+        var manager = roles["roles"]!.AsArray().First(r => r!["holdsAllRights"]!.GetValue<bool>())!;
+        Assert.True(manager["holdsAllRights"]!.GetValue<bool>());
         Assert.Equal(RightsCatalog.AllKeys.Order(), manager["rights"]!.AsArray().Select(r => r!.GetValue<string>()).Order());
         Assert.Equal(HttpStatusCode.Forbidden, (await e.Get("/admin/roles")).Status);
 

@@ -34,16 +34,16 @@ public static class RoleConflictEndpoints
             var pairs = input.Pairs.Select(p => new RoleConflicts.Pair(Math.Min(p.FirstRoleId, p.SecondRoleId), Math.Max(p.FirstRoleId, p.SecondRoleId))).Distinct().OrderBy(p => p.FirstRoleId).ThenBy(p => p.SecondRoleId).ToArray();
             var ids = pairs.SelectMany(p => new[] { p.FirstRoleId, p.SecondRoleId }).Distinct().ToArray();
             var roles = await db.AppRoles.AsNoTracking().Where(r => ids.Contains(r.Id)).ToListAsync(ct);
-            if (roles.Count != ids.Length || roles.Any(r => r.IsLocked))
-                throw new ValidationException("pairs", "Each role must exist and the protected Manager role cannot be included.");
+            if (roles.Count != ids.Length || roles.Any(r => r.HoldsAllRights))
+                throw new ValidationException("pairs", "Each role must exist, and a role that holds every right cannot be included.");
             var value = JsonSerializer.Serialize(pairs);
             if (value.Length > 2000) throw new ValidationException("pairs", "The policy is too large.");
             if (pairs.Length > 0)
             {
                 var users = await db.Users.AsNoTracking().Where(u => u.IsActive).Include(u => u.Roles).ToListAsync(ct);
-                var manager = await db.AppRoles.AsNoTracking().Where(r => r.Key == BuiltInRoles.ManagerKey && r.IsActive).Select(r => r.Id).SingleOrDefaultAsync(ct);
+                var manager = await RoleAccess.FullAccessRoleIdsAsync(db, ct);
                 if (!await RoleConflicts.HasRecoveryAsync(db, manager, users.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())), resolver.IsForms, clock.GetUtcNow(), ct))
-                    throw new ValidationException("pairs", "Keep an active recovery administrator with Manager as their only directly assigned role and effective rights to maintain roles.");
+                    throw new ValidationException("pairs", "Keep an active recovery administrator whose only directly assigned role holds every right, with effective rights to maintain roles.");
                 var mappings = await db.GroupMappings.AsNoTracking().Include(m => m.Roles).ToListAsync(ct);
                 var activeRoleIds = (await db.AppRoles.AsNoTracking().Where(r => r.IsActive).Select(r => r.Id).ToListAsync(ct)).ToHashSet();
                 foreach (var user in users)

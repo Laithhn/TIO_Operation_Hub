@@ -4,7 +4,7 @@ import { Badge } from '../ui/kit';
 import { groupRights, moduleOf, isGranted, missingPrerequisites, sortedRights, type RightDefinition } from './adminRightsModel';
 import './role-access-matrix.css';
 
-type MatrixRole = { id: number; name: string; description?: string; isActive: boolean; isLocked: boolean; userCount: number; rights: string[] };
+type MatrixRole = { id: number; name: string; description?: string; isActive: boolean; holdsAllRights: boolean; userCount: number; rights: string[] };
 
 function assignment(role: MatrixRole, row: RightDefinition) {
   if (!isGranted(role.rights, row)) return { label: 'Not assigned', mark: '—', tone: 'none' };
@@ -22,7 +22,7 @@ export function RoleAccessMatrix({ roles, catalog, editable }: { roles: MatrixRo
   const [onlyDifferent, setOnlyDifferent] = useState(false);
   const needle = search.trim().toLocaleLowerCase();
   const filtered = rows.filter(r => (!module || moduleOf(r) === module)
-    && (!onlyDifferent || new Set(roles.filter(role => !role.isLocked).map(role => isGranted(role.rights, r))).size > 1)
+    && (!onlyDifferent || new Set(roles.filter(role => !role.holdsAllRights).map(role => isGranted(role.rights, r))).size > 1)
     && (!needle || [r.label, r.key, r.description, r.module, moduleOf(r), r.featureLabel].some(x => x.toLocaleLowerCase().includes(needle))));
   const groups = groupRights(filtered);
   const toggle = (key: string) => setOpen(p => p.includes(key) ? p.filter(k => k !== key) : [...p, key]);
@@ -44,7 +44,7 @@ export function RoleAccessMatrix({ roles, catalog, editable }: { roles: MatrixRo
       <table className="role-matrix-table" aria-label="Saved rights by role">
         <thead><tr><th scope="col">Right</th>{roles.map(r => <th scope="col" key={r.id}>
           {editable ? <Link to={`/admin/rights?role=${r.id}`} aria-label={`Edit the rights of ${r.name}`}>{r.name}</Link> : r.name}
-          {!r.isActive && <Badge tone="warn">Inactive</Badge>}{r.isLocked && <Badge>Protected</Badge>}
+          {!r.isActive && <Badge tone="warn">Inactive</Badge>}{r.holdsAllRights && <Badge tone="good">All rights</Badge>}
         </th>)}</tr></thead>
         {groups.map(group => group.features.map(feature => {
           const key = `${group.key}/${feature.key}`;

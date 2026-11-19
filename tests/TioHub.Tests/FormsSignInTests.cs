@@ -141,7 +141,12 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.False((await (await hub.NewSession()).Get("/auth/config")).Body!["setupRequired"]!.GetValue<bool>());
 
         // ---- administrator issues a temporary password to a non-administrator, never to an administrator ----
-        var roleIds = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray().Where(r => r!["key"] is not null).ToDictionary(r => r!["key"]!.GetValue<string>(), r => r!["id"]!.GetValue<long>());
+        var roleRows = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray();
+        var roleIds = new Dictionary<string, long>
+        {
+            ["Manager"] = roleRows.First(r => r!["holdsAllRights"]!.GetValue<bool>())!["id"]!.GetValue<long>(),
+            ["Engineer"] = roleRows.First(r => r!["name"]!.GetValue<string>() == RoleAccess.DefaultEngineerName)!["id"]!.GetValue<long>()
+        };
         var managerId = (await admin.Post("/admin/users", NewUser("uat.manager", "Engineer", roleIds["Engineer"]))).Body!["id"]!.GetValue<long>();
         var protectedId = (await admin.Post("/admin/users", NewUser("uat.protected", "Manager", roleIds["Manager"]))).Body!["id"]!.GetValue<long>();
         Assert.Equal(HttpStatusCode.Forbidden, (await admin.Post($"/admin/users/{protectedId}/password", new { temporaryPassword = TempPw })).Status);

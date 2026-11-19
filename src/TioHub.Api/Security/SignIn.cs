@@ -194,7 +194,7 @@ public sealed class UserResolver(HubDbContext db, IMemoryCache cache, IOptions<A
             {
                 user.AllClients = true;
                 user.AllInternal = true;
-                user.Roles.Add(new UserRole { AppRoleId = (await BuiltInRoles.EnsureAsync(db, ct))[BuiltInRoles.ManagerKey] });
+                user.Roles.Add(new UserRole { AppRoleId = await RoleAccess.EnsureFullAccessRoleAsync(db, ct) });
             }
             db.Users.Add(user);
             try
@@ -367,7 +367,7 @@ public static class AccessCalculator
                 [], [], false, [], [], [], [], false, [], AccessRestriction: "incompatible_roles");
         var active = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var roles = held.Select(r => r.Name).Order().ToArray();
-        var roleRights = held.SelectMany(BuiltInRoles.KeysOf).Where(active.Contains).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var roleRights = held.SelectMany(RoleAccess.KeysOf).Where(active.Contains).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var administrator = RightExceptions.MakesAdministrator(roleRights);
         // A right with an absent prerequisite is assigned but ineffective. Return the same decision to UI,
         // background jobs and access inspection that UserContext enforces on the server.

@@ -13,7 +13,7 @@ import type { RightDefinition } from './adminRightsModel';
 import './access-control.css';
 
 type User = { id: number; displayName: string; accountName: string; isActive: boolean };
-type Registry = { catalog: RightDefinition[]; roles: { id: number; name: string; isActive: boolean; isLocked: boolean; userCount: number }[] };
+type Registry = { catalog: RightDefinition[]; roles: { id: number; name: string; isActive: boolean; holdsAllRights: boolean; userCount: number }[] };
 type Audit = { id: number; at: string; userName?: string; action: string; entityType: string; entityLabel?: string };
 type Access = {
   user: User;

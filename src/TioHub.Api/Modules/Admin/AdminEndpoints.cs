@@ -69,7 +69,7 @@ public static class AdminEndpoints
             var definitions = RightsCatalog.All.Where(d => active.Contains(d.Key)).ToArray();
             var held = await db.AppRoles.AsNoTracking().Include(r => r.Rights)
                 .Where(r => r.IsActive && access != null && access.Roles.Contains(r.Name)).ToListAsync(ct);
-            var sources = held.SelectMany(role => BuiltInRoles.KeysOf(role).Select(key => new { key, role = role.Name }))
+            var sources = held.SelectMany(role => RoleAccess.KeysOf(role).Select(key => new { key, role = role.Name }))
                 .GroupBy(x => x.key, StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key, g => g.Select(x => x.role).Distinct().Order().ToArray(), StringComparer.OrdinalIgnoreCase);
             var now = clock.GetUtcNow();
             var exceptionRows = await db.UserRightExceptions.AsNoTracking().Where(o => o.UserId == id && (o.ExpiresAt == null || o.ExpiresAt > now)).ToListAsync(ct);
@@ -79,7 +79,7 @@ public static class AdminEndpoints
             return Results.Ok(new
             {
                 user = new { user.Id, user.AccountName, user.DisplayName, user.IsActive },
-                roles = held.Select(r => new { r.Id, r.Name, r.Description, r.IsLocked }),
+                roles = held.Select(r => new { r.Id, r.Name, r.Description, r.HoldsAllRights }),
                 effectiveRights = definitions.Where(d => effective.Contains(d.Key)).Select(d => new {
                     d.Key, d.Label, d.Description, d.Module, d.Kind, d.RiskLevel,
                     sources = sources.GetValueOrDefault(d.Key, []).Concat(exceptions.TryGetValue(d.Key, out var o) && o.Effect == "Allow" && !allowsIgnored ? ["Direct allow"] : Array.Empty<string>()).ToArray(),
@@ -192,12 +192,12 @@ public static class AdminEndpoints
             var held = await db.AppRoles.Include(role => role.Rights).Where(role => role.IsActive && (ids.Contains(role.Id) || mappedRoleIds.Contains(role.Id))).ToListAsync(ct);
             if (RoleConflicts.Conflicts(held.Select(role => role.Id), await RoleConflicts.LoadAsync(db, ct)))
                 throw new ValidationException("roles", "This account's assigned and directory-mapped roles conflict under the separation-of-duties policy.");
-            foreach (var key in held.SelectMany(BuiltInRoles.KeysOf).Where(key => !me.HasRight(key)))
+            foreach (var key in held.SelectMany(RoleAccess.KeysOf).Where(key => !me.HasRight(key)))
                 throw new ForbiddenException($"Reactivating this account would enable {key}, which you do not hold.");
             if (!me.IsSystem)
             {
                 var entries = await db.UserRightExceptions.AsNoTracking().Where(o => o.UserId == id).ToListAsync(ct);
-                var keys = held.SelectMany(BuiltInRoles.KeysOf);
+                var keys = held.SelectMany(RoleAccess.KeysOf);
                 var active = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
                 foreach (var key in RightExceptions.PotentiallyEffective(keys, entries, clock.GetUtcNow(), active).Where(key => !me.HasRight(key)))
                     throw new ForbiddenException($"Reactivating this account could enable {key}, which you do not hold.");
@@ -682,7 +682,7 @@ public static class AdminEndpoints
             foreach (var role in newRoles)
             {
                 if (!role.IsActive) check.Add("roleIds", $"{role.Name} is inactive and cannot be assigned.");
-                foreach (var key in BuiltInRoles.KeysOf(role).Where(k => !me.EffectiveRights.Contains(k, StringComparer.OrdinalIgnoreCase)))
+                foreach (var key in RoleAccess.KeysOf(role).Where(k => !me.EffectiveRights.Contains(k, StringComparer.OrdinalIgnoreCase)))
                     check.Add("roleIds", $"You cannot assign {role.Name}; it grants {key}, which you do not hold.");
             }
 
@@ -696,7 +696,7 @@ public static class AdminEndpoints
             var relevantRoles = await db.AppRoles.AsNoTracking().Include(role => role.Rights)
                 .Where(role => role.IsActive && relevantIds.Contains(role.Id))
                 .ToListAsync(ct);
-            IEnumerable<string> Keys(IEnumerable<AppRole> roles) => roles.SelectMany(BuiltInRoles.KeysOf);
+            IEnumerable<string> Keys(IEnumerable<AppRole> roles) => roles.SelectMany(RoleAccess.KeysOf);
             var before = relevantRoles.Where(role => previousIds.Contains(role.Id) || mappedIds.Contains(role.Id));
             var after = relevantRoles.Where(role => wanted.Contains(role.Id) || mappedIds.Contains(role.Id));
             var activeKeys = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct))
@@ -740,7 +740,7 @@ public static class AdminEndpoints
             var held = await db.AppRoles.AsNoTracking().Include(r => r.Rights)
                 .Where(r => r.IsActive && (wanted.Contains(r.Id) || userMappedRoleIds.Contains(r.Id))).ToListAsync(ct);
             var entries = isNew ? [] : await db.UserRightExceptions.AsNoTracking().Where(o => o.UserId == u.Id).ToListAsync(ct);
-            var roleKeys = held.SelectMany(BuiltInRoles.KeysOf);
+            var roleKeys = held.SelectMany(RoleAccess.KeysOf);
             var active = (await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
             foreach (var key in RightExceptions.PotentiallyEffective(roleKeys, entries, now, active).Where(key => !me.HasRight(key)))
                 check.Add("scopes", $"This scope change could enable {key} on additional records, which you do not hold.");
@@ -768,12 +768,12 @@ public static class AdminEndpoints
     private static async Task EnsureConflictRecoveryAsync(HubDbContext db, long userId, bool active, IEnumerable<long> proposedRoles, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
     {
         if ((await RoleConflicts.LoadAsync(db, ct)).Length == 0) return;
-        var manager = await db.AppRoles.AsNoTracking().Where(r => r.Key == BuiltInRoles.ManagerKey && r.IsActive).Select(r => r.Id).SingleOrDefaultAsync(ct);
+        var manager = await RoleAccess.FullAccessRoleIdsAsync(db, ct);
         var others = await db.Users.AsNoTracking().Where(u => u.IsActive && u.Id != userId).Include(u => u.Roles).ToListAsync(ct);
         var candidates = others.Select(u => (u.Id, u.Roles.Select(r => r.AppRoleId).ToArray())).ToList();
         if (active) candidates.Add((userId, proposedRoles.ToArray()));
         if (!await RoleConflicts.HasRecoveryAsync(db, manager, candidates, resolver.IsForms, now, ct))
-            throw new ValidationException("roles", "Keep an active recovery administrator with Manager as their only directly assigned role and effective rights to maintain roles while role conflicts are configured.");
+            throw new ValidationException("roles", "Keep an active recovery administrator whose only directly assigned role holds every right, with effective rights to maintain roles, while role conflicts are configured.");
     }
 
     private static async Task ApplyMappingAsync(GroupMapping m, MappingInput i, HubDbContext db, UserContext me, UserResolver resolver, CancellationToken ct)
@@ -799,7 +799,7 @@ public static class AdminEndpoints
             foreach (var target in targets)
             {
                 if (!target.IsActive && !currentRoles.Contains(target.Id)) check.Add("roleIds", $"{target.Name} is inactive and cannot be mapped.");
-                foreach (var key in BuiltInRoles.KeysOf(target).Where(p => !me.EffectiveRights.Contains(p, StringComparer.OrdinalIgnoreCase)))
+                foreach (var key in RoleAccess.KeysOf(target).Where(p => !me.EffectiveRights.Contains(p, StringComparer.OrdinalIgnoreCase)))
                     check.Add("roleIds", $"This group mapping would grant {key}, which you do not hold.");
             }
         if (RoleConflicts.Conflicts(requestedRoles, await RoleConflicts.LoadAsync(db, ct)))

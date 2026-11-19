@@ -7,10 +7,10 @@ using TioHub.Api.Security;
 
 namespace TioHub.Api.Modules.Admin;
 
-/// <summary>Administration → Roles and Rights. The TIO Manager role keeps every right; built-in roles cannot be deleted.</summary>
+/// <summary>Administration → Roles and Rights. No role is built in (A120); a role marked HoldsAllRights keeps every right and cannot be deleted.</summary>
 public static class RoleEndpoints
 {
-    public sealed record RoleInput(string? Name, string? Description, string[]? Rights = null, bool? IsActive = null);
+    public sealed record RoleInput(string? Name, string? Description, string[]? Rights = null, bool? IsActive = null, bool? HoldsAllRights = null);
 
     public static void MapRoleEndpoints(this RouteGroupBuilder api)
     {
@@ -18,7 +18,7 @@ public static class RoleEndpoints
 
         g.MapGet("", async (HubDbContext db, UserContext me, CancellationToken ct) =>
         {
-            var roles = await db.AppRoles.AsNoTracking().Include(r => r.Rights).OrderBy(r => r.Key == null).ThenBy(r => r.Key == BuiltInRoles.EngineerKey).ThenBy(r => r.Name).ToListAsync(ct);
+            var roles = await db.AppRoles.AsNoTracking().Include(r => r.Rights).OrderByDescending(r => r.HoldsAllRights).ThenBy(r => r.Name).ToListAsync(ct);
             var stored = await db.RightDefinitions.AsNoTracking().ToDictionaryAsync(d => d.Key, d => d.IsActive, StringComparer.OrdinalIgnoreCase, ct);
             var counts = await db.UserRoles.Where(ur => db.Users.Any(u => u.Id == ur.UserId && u.IsActive)).GroupBy(ur => ur.AppRoleId)
                 .Select(x => new { x.Key, n = x.Count() }).ToDictionaryAsync(x => x.Key, x => x.n, ct);
@@ -31,8 +31,8 @@ public static class RoleEndpoints
                 }),
                 roles = roles.Select(r => new
                 {
-                    r.Id, r.Name, r.Description, r.Key, r.IsLocked, r.IsActive,
-                    rights = BuiltInRoles.KeysOf(r).ToArray(),
+                    r.Id, r.Name, r.Description, r.HoldsAllRights, r.IsActive,
+                    rights = RoleAccess.KeysOf(r).ToArray(),
                     userCount = counts.GetValueOrDefault(r.Id), version = Convert.ToBase64String(r.RowVersion)
                 })
             });
@@ -61,7 +61,7 @@ public static class RoleEndpoints
             var source = await db.AppRoles.AsNoTracking().Include(r => r.Rights).FirstOrDefaultAsync(r => r.Id == id, ct)
                 ?? throw new NotFoundException("The role");
             var clone = new AppRole();
-            await ApplyAsync(clone, input with { Rights = BuiltInRoles.KeysOf(source).ToArray() }, db, me, resolver, clock.GetUtcNow(), ct);
+            await ApplyAsync(clone, input with { Rights = RoleAccess.KeysOf(source).ToArray(), HoldsAllRights = false }, db, me, resolver, clock.GetUtcNow(), ct);
             db.AppRoles.Add(clone);
             await db.SaveChangesAsync(ct);
             UserResolver.InvalidateAll(cache);
@@ -82,7 +82,7 @@ public static class RoleEndpoints
         {
             var r = await db.AppRoles.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The role");
             db.ExpectVersion(ctx, r);
-            if (r.Key is not null) throw new ValidationException("role", $"{r.Name} is a built-in role and cannot be deleted. You can change its rights instead.");
+            if (r.HoldsAllRights) throw new ValidationException("role", $"{r.Name} holds every right and cannot be deleted. Clear \"Always holds every right\" first.");
             var holders = await db.UserRoles.CountAsync(ur => ur.AppRoleId == id, ct);
             if (holders > 0) throw new ValidationException("role", $"{holders} user(s) still hold {r.Name}. Give them another role first (deactivated users included).");
             var mappings = await db.GroupMappingRoles.CountAsync(m => m.AppRoleId == id, ct);
@@ -98,14 +98,20 @@ public static class RoleEndpoints
     private static async Task ApplyAsync(AppRole r, RoleInput i, HubDbContext db, UserContext me, UserResolver resolver, DateTimeOffset now, CancellationToken ct)
     {
         var check = new Check().Text("name", i.Name, 60, "the role name", required: true).Text("description", i.Description, 300, "Description");
-        if (r.IsLocked && i.IsActive == false)
-            check.Add("isActive", "The protected TIO Manager role cannot be deactivated.");
+        // A120: any role can hold every right. Such a role cannot be deactivated, and at least one active one must remain.
+        var wasFull = r.Id != 0 && r.HoldsAllRights;
+        var full = i.HoldsAllRights ?? r.HoldsAllRights;
+        var fullChanged = full != wasFull;
+        if (full && i.IsActive == false)
+            check.Add("isActive", "A role that holds every right cannot be deactivated. Clear \"Always holds every right\" first.");
 
         var existing = r.Id == 0 ? new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             : (await db.RoleRights.Where(p => p.AppRoleId == r.Id).Select(p => p.RightKey).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
         var active = (await db.RightDefinitions.Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct)).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var all = RightsCatalog.AllKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
         HashSet<string> keys;
-        if (i.Rights is null) keys = existing;
+        // Clearing the mark keeps today's whole catalog stored, so nobody's access changes until rights are edited.
+        if (i.Rights is null) keys = wasFull && !full ? new(all, StringComparer.OrdinalIgnoreCase) : existing;
         else
         {
             keys = new(StringComparer.OrdinalIgnoreCase);
@@ -114,11 +120,15 @@ public static class RoleEndpoints
                 else if (existing.Contains(key)) keys.Add(key); // A retired key that is already stored stays reviewable, and grants nothing.
                 else check.Add("rights", $"Unknown or retired right: {key}.");
         }
-        var all = RightsCatalog.AllKeys.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (r.IsLocked && !keys.SetEquals(all) && i.Rights is not null)
-            check.Add("rights", "The TIO Manager role always holds every right, so administration can never be lost.");
+        if (wasFull && full && !keys.SetEquals(all) && i.Rights is not null)
+            check.Add("rights", "This role always holds every right. Clear \"Always holds every right\" before choosing its rights.");
+        if (full) keys = new(all, StringComparer.OrdinalIgnoreCase);
+        if (wasFull && !full && !await db.AppRoles.AnyAsync(x => x.Id != r.Id && x.HoldsAllRights && x.IsActive, ct))
+            check.Add("holdsAllRights", "Keep at least one active role that holds every right. Mark another role first.");
+        if (fullChanged && full && r.Id != 0 && (await RoleConflicts.LoadAsync(db, ct)).Any(p => p.FirstRoleId == r.Id || p.SecondRoleId == r.Id))
+            check.Add("holdsAllRights", "This role is part of a role conflict pair. Remove the pair first.");
         // Nobody removes their own administration (it would lock them out of this page).
-        if (r.Id != 0 && !r.IsLocked && existing.Contains(RightKeys.Administration) && !keys.Contains(RightKeys.Administration)
+        if (r.Id != 0 && !full && (wasFull || existing.Contains(RightKeys.Administration)) && !keys.Contains(RightKeys.Administration)
             && await db.UserRoles.AnyAsync(ur => ur.AppRoleId == r.Id && ur.UserId == me.UserId, ct))
             check.Add("rights", "You hold this role, so removing Administration would lock you out. Ask another administrator.");
 
@@ -126,13 +136,13 @@ public static class RoleEndpoints
         {
             var ownRole = me.Roles.Contains(r.Name, StringComparer.OrdinalIgnoreCase)
                 || await db.UserRoles.AnyAsync(ur => ur.AppRoleId == r.Id && ur.UserId == me.UserId, ct);
-            if (ownRole && (!(r.IsLocked ? all : existing).SetEquals(keys) || (i.IsActive ?? r.IsActive) != r.IsActive))
+            if (ownRole && (fullChanged || !(wasFull ? all : existing).SetEquals(keys) || (i.IsActive ?? r.IsActive) != r.IsActive))
                 check.Add("role", "You cannot change your own authorization through a role assigned to you. Ask another authorized administrator.");
         }
         if (!me.IsSystem)
         {
             var enabling = r.Id == 0 || !r.IsActive && i.IsActive != false;
-            var increases = r.Id != 0 && (i.IsActive ?? r.IsActive) && (!r.IsActive || keys.Except(existing, StringComparer.OrdinalIgnoreCase).Any());
+            var increases = r.Id != 0 && (full || (i.IsActive ?? r.IsActive)) && (!r.IsActive || keys.Except(existing, StringComparer.OrdinalIgnoreCase).Any());
             if (increases)
             {
                 var hasUsers = await db.UserRoles.AnyAsync(ur => ur.AppRoleId == r.Id, ct);
@@ -149,12 +159,13 @@ public static class RoleEndpoints
             // A prerequisite can also activate a right already stored in another role held by the recipient.
             foreach (var key in RightsCatalog.GrantCandidates(existing, keys, enabling, coassigned).Where(k => !me.HasRight(k)))
                 check.Add("rights", $"You cannot grant {key}; you do not hold that right.");
-            if (r.IsLocked && RightsCatalog.AllKeys.Any(k => !me.HasRight(k)))
-                check.Add("role", "Editing the protected TIO Manager role requires all of its rights.");
+            if ((full || wasFull) && RightsCatalog.AllKeys.Any(k => !me.HasRight(k)))
+                check.Add("role", "Changing a role that holds every right requires all of its rights.");
         }
-        if (r.Id != 0 && r.IsActive && (resolver.IsForms || i.IsActive == false || existing.Contains(RightKeys.Administration) && !keys.Contains(RightKeys.Administration)))
+        if (r.Id != 0 && r.IsActive && (resolver.IsForms || i.IsActive == false || wasFull && !full
+            || existing.Contains(RightKeys.Administration) && !keys.Contains(RightKeys.Administration)))
         {
-            var proposed = new AppRole { Id = r.Id, Key = r.Key, IsActive = r.IsLocked || (i.IsActive ?? r.IsActive) };
+            var proposed = new AppRole { Id = r.Id, HoldsAllRights = full, IsActive = full || (i.IsActive ?? r.IsActive) };
             foreach (var key in keys) proposed.Rights.Add(new RoleRight { RightKey = key });
             try { await EnsureAdministratorRemainsAsync(db, proposed, resolver, now, ct); }
             catch (ValidationException ex) { check.Add("isActive", ex.Message); }
@@ -165,8 +176,8 @@ public static class RoleEndpoints
             throw new ConflictException("A role with this name already exists.", new() { ["name"] = ["Role names are unique."] });
         r.Name = name;
         r.Description = Text.Clean(i.Description);
-        r.IsActive = r.IsLocked || (i.IsActive ?? r.IsActive);
-        if (r.IsLocked) keys = all;
+        r.HoldsAllRights = full;
+        r.IsActive = full || (i.IsActive ?? r.IsActive);
         var current = r.Id == 0 ? [] : await db.RoleRights.Where(p => p.AppRoleId == r.Id).ToListAsync(ct);
         db.RoleRights.RemoveRange(current.Where(p => !keys.Contains(p.RightKey)));
         var present = current.Select(p => p.RightKey).ToHashSet(StringComparer.OrdinalIgnoreCase);

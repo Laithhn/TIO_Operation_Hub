@@ -102,7 +102,7 @@ public static partial class AuthEndpoints
                  .Text("displayName", input.DisplayName, 150, "the display name", true);
             PasswordPolicy.Check(check, "password", input.Password, account);
             check.ThrowIfAny();
-            var managerRole = (await BuiltInRoles.EnsureAsync(db, ct))[BuiltInRoles.ManagerKey];
+            var managerRole = await RoleAccess.EnsureFullAccessRoleAsync(db, ct);
             var user = await db.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.AccountName == account, ct);
             if (user is not null && !user.Roles.Any(r => r.AppRoleId == managerRole))
                 throw new ConflictException("This account exists without the administrator role. Choose another account name.");
@@ -204,7 +204,7 @@ public static partial class AuthEndpoints
         // A reset hands control of the account to the issuer, including when an assigned role is inactive.
         var target = await resolver.ForUserAsync(id, ct);
         var assignedAdministrator = await db.UserRoles.AsNoTracking().AnyAsync(r => r.UserId == id && r.AppRole != null &&
-            (r.AppRole.Key == BuiltInRoles.ManagerKey || r.AppRole.Rights.Any(x => x.RightKey == RightKeys.Administration)), ct);
+            (r.AppRole.HoldsAllRights || r.AppRole.Rights.Any(x => x.RightKey == RightKeys.Administration)), ct);
         var activeKeys = await db.RightDefinitions.AsNoTracking().Where(p => p.IsActive).Select(p => p.Key).ToListAsync(ct);
         EnsurePasswordResetAuthority(me, target, assignedAdministrator, activeKeys);
         return user;

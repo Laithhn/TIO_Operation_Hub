@@ -106,7 +106,7 @@ public sealed class RightPrerequisiteIntegrationTests(HubFactory hub) : Scenario
     {
         var admin = await Hub.As(HubFactory.Manager);
         var engineer = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray()
-            .Single(role => role!["key"]?.GetValue<string>() == BuiltInRoles.EngineerKey)!;
+            .Single(role => role!["name"]!.GetValue<string>() == RoleAccess.DefaultEngineerName)!;
         var engineerKeys = engineer["rights"]!.AsArray().Select(key => key!.GetValue<string>()).ToArray();
         var limited = await CreateUser(admin, await CreateRole(admin, Fixture.Rights(engineerKeys, Flag.Administer)));
         Assert.DoesNotContain("AdminUsers:View", engineerKeys);

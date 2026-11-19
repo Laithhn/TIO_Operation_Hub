@@ -83,7 +83,8 @@ export function withPrerequisites(selection: string[], rows: RightDefinition[]):
   return [...result].sort();
 }
 
-export type RoleDef = { id: number; name: string; description?: string; key?: string; isLocked: boolean; isActive: boolean; rights: string[]; userCount: number; version: string };
+/** A120: no role is built in; holdsAllRights marks a role that holds every right, including rights added later. */
+export type RoleDef = { id: number; name: string; description?: string; holdsAllRights: boolean; isActive: boolean; rights: string[]; userCount: number; version: string };
 
 /** Active rights only: a retired right can stay stored, but it never counts as held. */
 export const assignedCount = (rows: RightDefinition[], selection: string[]) => rows.filter(r => r.isActive && isGranted(selection, r)).length;

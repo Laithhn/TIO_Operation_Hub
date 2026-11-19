@@ -313,13 +313,13 @@ export function AdminRoles() {
       <PageHead title="Roles" sub="A person can hold several roles and their rights combine. Set what each role may do on the Rights page."
         actions={<><Link className="btn" to="/admin/rights">Edit rights</Link><button disabled={!canCreate} className="btn btn-primary" onClick={() => setEdit('new')}>+ New role</button></>} />
       <DataTable<RoleDef> caption="Roles" rowKey={r => r.id} rows={d?.roles} loading={q.isLoading} error={q.error} columns={[
-        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{r.key && <span className="chip"> built-in</span>} {r.isLocked && <Badge>Protected</Badge>} {!r.isActive && <Badge tone="warn">Inactive</Badge>}</> },
+        { key: 'n', header: 'Role', priority: 'primary', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)}><b>{r.name}</b></button>{!r.isActive && <Badge tone="warn">Inactive</Badge>}</> },
         { key: 'd', header: 'Description', maxWidth: '18rem', render: r => r.description ?? <span className="muted">—</span> },
         { key: 'u', header: 'Active users', className: 'num', render: r => canSeeUsers ? <button className="linkbtn rights-holders" onClick={() => setHoldersOf(r)} aria-label={`${r.userCount} active users hold ${r.name}: show who`}>{r.userCount}</button> : r.userCount },
         // GUI-11: a count with the full list on request, so a long list of rights never widens the table past its actions.
-        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.isLocked ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">No rights</span>
+        { key: 'r', header: 'Rights', priority: 'primary', maxWidth: '18rem', render: r => r.holdsAllRights ? <Badge tone="good">All rights</Badge> : r.rights.length === 0 ? <span className="muted">No rights</span>
           : <RightsSummary role={r.name} items={r.rights.map(k => { const p = d?.catalog.find(x => x.key === k); return p ? `${p.featureLabel}: ${p.label}` : k; })} /> },
-        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button> {canMaintain && <Link className="linkbtn" to={`/admin/rights?role=${r.id}`} aria-label={`Rights of ${r.name}`}>Rights</Link>} {canDelete && !r.key && <RowMenu what={`role ${r.name}`} items={[{ label: 'Delete', danger: true, ariaLabel: `Delete role ${r.name}`, onClick: () => setRemove(r) }]} />}</> }
+        { key: 'a', header: '', className: 'row-actions nowrap', render: r => <><button disabled={!canMaintain} className="linkbtn" onClick={() => setEdit(r)} aria-label={`Edit role ${r.name}`}>Edit</button> <button disabled={!canCreate} className="linkbtn" onClick={() => setClone(r)} aria-label={`Clone role ${r.name}`}>Clone</button> {canMaintain && <Link className="linkbtn" to={`/admin/rights?role=${r.id}`} aria-label={`Rights of ${r.name}`}>Rights</Link>} {canDelete && !r.holdsAllRights && <RowMenu what={`role ${r.name}`} items={[{ label: 'Delete', danger: true, ariaLabel: `Delete role ${r.name}`, onClick: () => setRemove(r) }]} />}</> }
       ]} />
       {d && <RoleAccessMatrix roles={d.roles} catalog={d.catalog} editable={canMaintain} />}
       {edit && d && <RoleDialog role={edit === 'new' ? null : edit} onClose={() => setEdit(null)} />}
@@ -384,7 +384,7 @@ export function AdminRights() {
   // Held here so that moving between roles keeps the search and the comparison in use.
   const [prefs, setPrefs] = useState(() => initialRightsPrefs(searchParams.get('right') ?? ''));
   const d = q.data;
-  const role = d?.roles.find(r => String(r.id) === selected) ?? d?.roles.find(r => !r.isLocked) ?? d?.roles[0];
+  const role = d?.roles.find(r => String(r.id) === selected) ?? d?.roles.find(r => !r.holdsAllRights) ?? d?.roles[0];
   const selectRole = (id: string) => {
     if (dirty && !window.confirm('Discard the unsaved changes before selecting another role?')) return;
     setDirty(false); setSelected(id);
@@ -401,7 +401,7 @@ export function AdminRights() {
 }
 
 function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => void }) {
-  const f = useForm({ name: role?.name ?? '', description: role?.description ?? '', isActive: role?.isActive ?? true });
+  const f = useForm({ name: role?.name ?? '', description: role?.description ?? '', isActive: role?.isActive ?? true, holdsAllRights: role?.holdsAllRights ?? false });
   const toast = useToast();
   const refresh = useRefresh();
   const nav = useNavigate();
@@ -415,12 +415,14 @@ function RoleDialog({ role, onClose }: { role: RoleDef | null; onClose: () => vo
   };
   return (
     <Dialog title={role ? `Role ${role.name}` : 'New role'} onClose={onClose}>
-      <FormError error={f.error} fields={['name', 'description', 'rights']} />
+      <FormError error={f.error} fields={['name', 'description', 'rights', 'isActive', 'holdsAllRights']} />
       <div className="form-grid">
         <TextInput label="Role name" required value={f.values.name} onChange={v => f.set('name', v)} error={f.fieldError('name')} maxLength={60} />
         <TextInput label="Description" value={f.values.description} onChange={v => f.set('description', v)} error={f.fieldError('description')} maxLength={300} />
-        {role && <Checkbox label="Role is active" checked={f.values.isActive} onChange={v => f.set('isActive', v)} disabled={role.isLocked}
-          hint={role.isLocked ? 'The protected TIO Manager role cannot be deactivated.' : 'An inactive role gives nobody any rights.'} />}
+        {role && <Checkbox label="Role is active" checked={f.values.isActive || f.values.holdsAllRights} onChange={v => f.set('isActive', v)} disabled={f.values.holdsAllRights}
+          hint={f.values.holdsAllRights ? 'A role that holds every right cannot be deactivated.' : 'An inactive role gives nobody any rights.'} />}
+        <Checkbox label="Always holds every right" checked={f.values.holdsAllRights} onChange={v => f.set('holdsAllRights', v)}
+          hint="Includes every right added in later releases; the role cannot be deactivated or deleted. Only someone holding every right can change this, and at least one active role must keep it." />
       </div>
       <div className="form-actions"><button className="btn" onClick={onClose}>Cancel</button><button className="btn btn-primary" disabled={f.busy} onClick={save}>Save role</button></div>
     </Dialog>

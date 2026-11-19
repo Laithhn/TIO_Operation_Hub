@@ -4,7 +4,7 @@ import { api, ApiError, get } from '../api';
 import { useRight } from '../hooks';
 import { ErrorBox, StateMessage } from '../ui/kit';
 
-type AccessRole = { id: number; name: string; isActive: boolean; isLocked: boolean };
+type AccessRole = { id: number; name: string; isActive: boolean; holdsAllRights: boolean };
 
 type Pair = { firstRoleId: number; secondRoleId: number };
 type Policy = { pairs: Pair[]; version: string | null };
@@ -53,8 +53,8 @@ export function AccessRoleConflicts({ roles, onDirty }: { roles: AccessRole[]; o
       {stale && <div className="notice warn">{saved ? 'Policy saved. ' : 'The policy changed on the server. '}{latestChanged ? <button className="linkbtn" onClick={() => { if (!saved && dirty && !window.confirm('Discard the staged policy changes?')) return; loadLatest(); }}>Load latest policy</button> : <button className="linkbtn" onClick={() => void query.refetch()}>Fetch latest policy</button>}</div>}
       <ul>{pairs.map(pair => <li key={`${pair.firstRoleId}-${pair.secondRoleId}`}>{name(pair.firstRoleId)} + {name(pair.secondRoleId)} {editable && <button className="linkbtn" disabled={busy || stale} onClick={() => { setPairs(pairs.filter(p => p !== pair)); setReview(false); }}>Remove pair {name(pair.firstRoleId)} and {name(pair.secondRoleId)}</button>}</li>)}</ul>
       {pairs.length === 0 && <p>No incompatible role pairs are configured.</p>}
-      {editable && <><div className="access-role-fields"><label>First role<select disabled={busy || stale} value={first} onChange={e => setFirst(e.target.value)}><option value="">Select a role</option>{roles.filter(r => !r.isLocked).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
-        <label>Second role<select disabled={busy || stale} value={second} onChange={e => setSecond(e.target.value)}><option value="">Select a role</option>{roles.filter(r => !r.isLocked).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+      {editable && <><div className="access-role-fields"><label>First role<select disabled={busy || stale} value={first} onChange={e => setFirst(e.target.value)}><option value="">Select a role</option>{roles.filter(r => !r.holdsAllRights).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
+        <label>Second role<select disabled={busy || stale} value={second} onChange={e => setSecond(e.target.value)}><option value="">Select a role</option>{roles.filter(r => !r.holdsAllRights).map(r => <option key={r.id} value={r.id}>{r.name}</option>)}</select></label>
         <button className="btn" disabled={busy || stale || !first || !second || first === second || pairs.some(p => [p.firstRoleId, p.secondRoleId].includes(Number(first)) && [p.firstRoleId, p.secondRoleId].includes(Number(second)))} onClick={add}>Add incompatible pair</button></div>
         <div className="access-role-actions"><button className="btn btn-primary" disabled={busy || stale || !dirty} onClick={() => setReview(true)}>Review policy</button><button className="btn" disabled={busy || stale || !dirty} onClick={() => { if (window.confirm('Discard policy changes?')) loadLatest(); }}>Discard policy changes</button></div>
         {review && <div className="override-review" role="region" aria-label="Review incompatible roles"><h3>Review policy</h3><p>The saved policy will contain {pairs.length} incompatible pair{pairs.length === 1 ? '' : 's'}.</p>

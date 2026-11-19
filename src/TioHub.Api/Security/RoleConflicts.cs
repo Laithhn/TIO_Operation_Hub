@@ -39,11 +39,12 @@ public static class RoleConflicts
         return effective.Contains("AdminRoles:View") && effective.Contains("AdminRoles:Maintain");
     }
 
-    public static async Task<bool> HasRecoveryAsync(HubDbContext db, long managerId,
+    /// <summary>A recovery administrator holds one active all-rights role (A120) as their only directly assigned role.</summary>
+    public static async Task<bool> HasRecoveryAsync(HubDbContext db, IReadOnlyCollection<long> fullAccessRoleIds,
         IEnumerable<(long UserId, long[] RoleIds)> candidates, bool forms, DateTimeOffset now, CancellationToken ct)
     {
-        if (managerId == 0) return false;
-        var ids = candidates.Where(c => c.RoleIds.Length == 1 && c.RoleIds[0] == managerId).Select(c => c.UserId).ToArray();
+        if (fullAccessRoleIds.Count == 0) return false;
+        var ids = candidates.Where(c => c.RoleIds.Length == 1 && fullAccessRoleIds.Contains(c.RoleIds[0])).Select(c => c.UserId).ToArray();
         if (ids.Length == 0) return false;
         if (forms)
         {
@@ -105,7 +106,7 @@ public static class RoleConflicts
     public static bool HasUserAdministrationRights(IEnumerable<AppRole> roles, IEnumerable<UserRightException> exceptions,
         ISet<string> active, DateTimeOffset now)
     {
-        var keys = roles.Where(r => r.IsActive).SelectMany(BuiltInRoles.KeysOf);
+        var keys = roles.Where(r => r.IsActive).SelectMany(RoleAccess.KeysOf);
         var effective = RightExceptions.ResolveForRoles(keys, exceptions, now, active).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return effective.Contains("AdminUsers:View") && effective.Contains("AdminUsers:Maintain");
     }
