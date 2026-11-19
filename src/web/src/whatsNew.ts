@@ -3,7 +3,8 @@ export const WHATS_NEW: { version: string; date: string; changes: string[] }[] =
   {
     version: '2.69.0', date: '19 November 2026', changes: [
       'Roles: no role is built in any more. TIO Manager and Operation Engineer can be edited, cloned and managed like any other role.',
-      'A role can be set to "Always hold every right", including rights added in later releases. ITD Manager now has this setting.'
+      'A role can be set to "Always hold every right", including rights added in later releases. ITD Manager now has this setting.',
+      'Dashboard menu: My dashboard, Client 360, Operational and Financial come first. The Payments dashboard is now called Financial. Notifications opens from the bell at the top, and the Management dashboard is no longer in the menu.'
     ]
   },
   {
