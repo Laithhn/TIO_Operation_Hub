@@ -5,7 +5,7 @@ import { getIconPath, iconExists, iconViewbox, logoSvg } from '../vt';
 const MAP: Record<string, string> = {
   dashboard: 'DASHBOARD', clients: 'COMPANY', region: 'GEOLOCATION', project: 'BRIEFCASE', server: 'DATABASE', app: 'PACKAGE',
   matrix: 'TABLE', network: 'HIERARCHY', case: 'SUPPORT', commitment: 'GOAL', team: 'USERGROUP', handover: 'SHARE',
-  quality: 'QUALITY', report: 'BARCHART', admin: 'SETTINGS', users: 'GROUP', list: 'LIST', history: 'HISTORY', archive: 'ACHIVE',
+  quality: 'QUALITY', report: 'BARCHART', admin: 'SETTINGS', users: 'USERGROUP', role: 'CONTACT', list: 'LIST', history: 'HISTORY', archive: 'ACHIVE',
   plus: 'ADD', search: 'SEARCH', escalation: 'ALERT', note: 'NOTEBOOK', user: 'USER', chevron: 'NAVILEFT',
   down: 'NAVIDOWN', menu: 'BURGERMENU', close: 'CLOSE', online: 'CLOUDCONNECTED', download: 'EXPORT', signout: 'LOGOUT',
   lock: 'LOCK', key: 'KEY', storage: 'DATABASEINFO', map: 'MAP', filter: 'FILTER', calendar: 'CALENDAR', warning: 'WARNING',

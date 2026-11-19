@@ -83,7 +83,7 @@ const SECTIONS: Section[] = [
   { key: 'teams', label: 'Teams', to: '/teams', match: /^\/(teams|handovers|reassignment)/, show: biz, side: [
     { to: '/teams', label: 'Teams & coverage', icon: 'team' },
     { to: '/handovers', label: 'Handovers', icon: 'handover' },
-    { to: '/reassignment', label: 'Reassignment queue', icon: 'users' }
+    { to: '/reassignment', label: 'Reassignment queue', icon: 'user' }
   ] },
   // A70: the Reporting Center is a first-level section (no longer under Dashboard); its own menu holds the center's areas.
   { key: 'reporting', label: 'Reporting Center', to: '/reporting-center', match: /^\/(reporting-center|reports)(\/|$)/, show: m => biz(m) && canExport(m), side: [
@@ -97,7 +97,7 @@ const SECTIONS: Section[] = [
   ] },
   { key: 'admin', label: 'Administration', to: '/admin', match: /^\/admin/, show: admin, side: [
     { to: '/admin/users', label: 'Users', icon: 'users', show: admin },
-    { to: '/admin/roles', label: 'Roles', icon: 'users', show: admin },
+    { to: '/admin/roles', label: 'Roles', icon: 'role', show: admin },
     { to: '/admin/rights', label: 'Rights', icon: 'lock', show: admin },
     { to: '/admin/access', label: 'Access review', icon: 'lock', show: admin },
     { to: '/admin/groups', label: 'Group mappings', icon: 'key', show: m => admin(m) && m.app.authMode.toLowerCase() !== 'forms' },
