@@ -1,6 +1,11 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.68.0', date: '19 November 2026', changes: [
+      'Clearer icons: Users shows people and Roles shows an ID card in the Administration menu; Reassignment queue shows a single person.'
+    ]
+  },
+  {
     version: '2.67.0', date: '18 November 2026', changes: [
       'Client 360: when you update a client status, the reason is now "Comments / feedback" — free text of any length, with line breaks kept as typed.'
     ]
