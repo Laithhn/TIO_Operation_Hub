@@ -10937,3 +10937,101 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119145219_TicketDashboard'
+)
+BEGIN
+    DECLARE @now datetimeoffset = SYSDATETIMEOFFSET();
+    INSERT [iam].[RightDefinition] ([Key],[Label],[Description],[Module],[Feature],[Kind],[RiskLevel],[DisplayOrder],[IsActive],[CreatedAt],[UpdatedAt])
+    SELECT N'TicketDashboard:View', N'View', N'View in Tickets dashboard. Data, ownership and scope checks still apply.', N'Tickets', N'TicketDashboard', N'Access', N'Normal', 0, 1, @now, @now
+    WHERE NOT EXISTS (SELECT 1 FROM [iam].[RightDefinition] d WHERE d.[Key] = N'TicketDashboard:View');
+    INSERT [iam].[RoleRight] ([AppRoleId],[RightKey])
+    SELECT r.[AppRoleId], N'TicketDashboard:View' FROM [iam].[RoleRight] r
+    WHERE r.[RightKey] = N'Cases:View'
+      AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[AppRoleId] AND x.[RightKey] = N'TicketDashboard:View');
+    UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119145219_TicketDashboard'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261119145219_TicketDashboard', N'10.0.13');
+END;
+
+COMMIT;
+GO
+
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [AmountReceived] decimal(18,2) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [ApprovalState] nvarchar(20) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [ClientApproval] nvarchar(40) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [InvoiceDate] date NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [InvoiceNumber] nvarchar(50) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [WorkState] nvarchar(20) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    ALTER TABLE [contracts].[ContractPayment] ADD [WorkStatus] nvarchar(40) NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261119154256_PaymentMilestoneTemplate'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261119154256_PaymentMilestoneTemplate', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

@@ -61,6 +61,14 @@ public static class AudienceDashboardEndpoints
             return Results.File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", name);
         });
 
+        // A123: the Tickets dashboard (Tickets menu): tickets by status, unresolved per responsible party, statistics and recent activity.
+        g.MapGet("/tickets", async (long? clientId, long? teamId, long? productId, int? days, TicketDashboard dash, HubAccess access, CancellationToken ct) =>
+        {
+            access.RequireAccess();
+            if (days is not null && !TicketDashboard.Periods.Contains(days.Value)) throw new ValidationException("days", "Unknown period.");
+            return Results.Ok(await dash.BuildAsync(clientId, teamId, productId, days, access.Me, ct));
+        });
+
         g.MapGet("/clients", async (long? clientId, string? country, long? productId, long? ownerId, ClientInsight insight, HubAccess access, CancellationToken ct) =>
         {
             access.RequireAccess();

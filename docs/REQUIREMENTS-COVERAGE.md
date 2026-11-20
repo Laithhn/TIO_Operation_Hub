@@ -85,7 +85,7 @@ Status values: **Implemented** = built end to end, enforced on the server and te
 | NET-05 | MVP | Implemented | Address, subnet and port validation; duplicate warnings scoped to the network context. | AC05; GuardTests |
 | IAM-01 | Next | Deferred (Next) | Not built; no navigation, controls or zero counts are shown. | - |
 | IAM-02 | Next | Deferred (Next) | Not built; no navigation, controls or zero counts are shown. | - |
-| IAM-03 | MVP | Implemented | No secret fields; credential detector on text and links; vault references only; values never echoed or logged. | AC14; StructuralTests |
+| IAM-03 | MVP | Implemented | No secret fields; credential detector on text and links; values never echoed or logged. | AC14; StructuralTests |
 | IAM-04 | MVP | Implemented — **A22** | Technical detail (addresses, hostnames, zones, ports, topology), export and change history are part of both roles (no per-person grants). The masking code path is kept but no role lacks the grant. | AC12 Two_roles_both_see_everything… |
 | RDY-01 | Next | Deferred (Next) | Not built; no navigation, controls or zero counts are shown. | - |
 | RDY-02 | Next | Deferred (Next) | Not built; no navigation, controls or zero counts are shown. | - |
@@ -102,7 +102,7 @@ Status values: **Implemented** = built end to end, enforced on the server and te
 | OPS-05 | MVP | Implemented | Handovers with acknowledgment or Manager exception (reason, follow-up owner and date); prior ownership kept per item. | AC09 |
 | RSK-01 | Next | Deferred (Next); MVP interim implemented | Risk register deferred. MVP interim: case type Risk follow-up, without implying formal acceptance. | UI |
 | NFR-01 | MVP | Implemented; identity provider decision open | Windows Integrated sign-in through IIS (assumed approved), HTTPS redirect and HSTS outside development, server-side authorization on every request, antiforgery. | AC12, AC14 |
-| NFR-02 | MVP | Implemented | No credential fields; secret detector; vault references only. | AC14 |
+| NFR-02 | MVP | Implemented | No credential fields; secret detector. | AC14 |
 | NFR-03 | MVP | Implemented | Audit in the same transaction: actor, time, record, before/after; append-only (02-app-login.sql denies UPDATE/DELETE). | AC13 |
 | NFR-04 | MVP | Implemented | If-Match row versions; 412 keeps the draft; Reload latest. | AC13; e2e |
 | NFR-05 | MVP | Implemented; pilot load to be agreed | In-process smoke: p95 reads 95 ms, saves 181 ms (8 concurrent users, development volume). | AC15_PerformanceSmoke |

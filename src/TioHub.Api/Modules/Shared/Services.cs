@@ -12,7 +12,7 @@ public sealed record UserRef(long Id, string Name, bool IsActive);
 
 public sealed record ArchiveInput(string? Reason, string? ExceptionReason);
 
-/// <summary>Cached application policy values (approved link hosts, vault prefix, coverage policy, upcoming window).</summary>
+/// <summary>Cached application policy values (approved link hosts, coverage policy, upcoming window).</summary>
 public sealed class HubSettings(HubDbContext db, IMemoryCache cache)
 {
     public const string CacheKey = "hub-settings";

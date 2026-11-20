@@ -82,12 +82,28 @@ public sealed class AllRightsRoleUpgradeTests
             var engineer = await Role(db, "Operation Engineer");
             Assert.False(engineer.HoldsAllRights);
             Assert.Equal("Edited by an administrator", engineer.Description);
-            Assert.Equal(engineerBefore, RoleAccess.KeysOf(engineer).Order().ToArray());
-            Assert.Equal(["Cases:View"], RoleAccess.KeysOf(await Role(db, "Auditor")));
+            // A123's later upgrade adds the Tickets dashboard to every role that can see tickets; nothing else changes.
+            Assert.Equal(engineerBefore.Append("TicketDashboard:View").Order().ToArray(), RoleAccess.KeysOf(engineer).Order().ToArray());
+            Assert.Equal(["Cases:View", "TicketDashboard:View"], RoleAccess.KeysOf(await Role(db, "Auditor")).Order().ToArray());
 
             Assert.Equal(1, await db.AppRoles.CountAsync(r => r.HoldsAllRights));
             Assert.Equal(count, await db.AppRoles.CountAsync());
             Assert.Equal(itd.Id, await RoleAccess.EnsureFullAccessRoleAsync(db, default));
+        });
+
+    [ApprovedOverrideSqlFact]
+    public Task Tickets_dashboard_goes_to_every_role_holding_ticket_view() => WithDatabase(
+        "DECLARE @now datetimeoffset = SYSDATETIMEOFFSET(); INSERT [iam].[AppRole] ([Name],[Description],[Key],[Rights],[IsActive],[CreatedAt],[UpdatedAt]) VALUES (N'Contracts reader', NULL, NULL, 0, 1, @now, @now); "
+        + "INSERT [iam].[RoleRight] ([AppRoleId],[RightKey]) SELECT [Id], N'Contracts:View' FROM [iam].[AppRole] WHERE [Name] = N'Contracts reader';",
+        async db =>
+        {
+            // A123: the upgrade grants TicketDashboard:View to roles holding Cases:View, and to no other role.
+            await Upgrade(db);
+            Assert.Contains("TicketDashboard:View", RoleAccess.KeysOf(await Role(db, "Auditor")));
+            Assert.Contains("TicketDashboard:View", RoleAccess.KeysOf(await Role(db, "Operation Engineer")));
+            Assert.DoesNotContain("TicketDashboard:View", RoleAccess.KeysOf(await Role(db, "Contracts reader")));
+            var row = await db.RightDefinitions.AsNoTracking().SingleAsync(r => r.Key == "TicketDashboard:View");
+            Assert.Equal(("Tickets", "TicketDashboard", true), (row.Module, row.Feature, row.IsActive));
         });
 
     [ApprovedOverrideSqlFact]

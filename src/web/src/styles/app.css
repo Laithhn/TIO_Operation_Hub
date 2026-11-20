@@ -1120,3 +1120,51 @@ a.ad-env:hover{background:var(--row-hover);text-decoration:none}
 .c360-rate .ad-meter,.c360-rate .hint{grid-column:1 / -1}
 .c360-rate .ad-meter{height:6px;width:100%}
 .c360 .t-info{color:var(--navy)}
+/* A123: Tickets dashboard (Tickets menu), a Jira-board layout: status donut, unresolved lists and the activity stream side by side. */
+.td-grid{display:grid;grid-template-columns:minmax(280px,0.9fr) minmax(380px,1.3fr) minmax(320px,1.1fr);gap:12px;align-items:start;margin-top:12px}
+.td-grid.td-grid-2{grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+.td-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+.td-col>.panel{margin:0}
+.td-grid>.panel{margin:0}
+@media (max-width:1280px){.td-grid{grid-template-columns:1fr 1fr}.td-grid>.td-col:last-child{grid-column:1 / -1}}
+@media (max-width:820px){.td-grid{grid-template-columns:1fr}}
+.td-donut .donut-wrap{justify-content:center}
+.td-donut .donut-legend{flex:1 1 180px}
+.td-table{width:100%;border-collapse:collapse;font-size:var(--fs-sm,13px)}
+.td-table th{font-weight:600;text-align:left;color:var(--muted);padding:4px 6px;border-bottom:2px solid var(--line)}
+.td-table td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.td-table .num{text-align:right;white-space:nowrap}
+.td-table tfoot th,.td-table tfoot td{border-bottom:0;border-top:2px solid var(--line)}
+.td-key{white-space:nowrap}
+.td-sum{max-width:0;width:100%}
+.td-sum>a{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.td-sub{color:var(--muted);font-size:12px;margin-top:2px}
+.td-p{width:28px;text-align:center}
+.td-prio{font-weight:700;font-size:16px;line-height:1}
+.td-count{margin:8px 0 0;font-size:12px}
+.td-share{white-space:nowrap;width:40%}
+.td-bar{display:inline-block;vertical-align:middle;width:calc(100% - 44px);height:8px;background:var(--line);margin-right:6px}
+.td-bar>span{display:block;height:100%;background:#007db3}
+.td-stream ul{list-style:none;margin:0;padding:0}
+.td-day{font-size:12px;font-weight:600;color:var(--muted);margin:4px 0 8px;text-transform:none;letter-spacing:0}
+.td-act{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.td-act:last-child{border-bottom:0}
+.td-act-body{min-width:0;flex:1;font-size:13px}
+.td-act-change{margin-top:4px}
+.td-quote{background:var(--surface-2,#eef4fa);padding:6px 10px;margin-top:6px;white-space:pre-line;overflow-wrap:anywhere;max-height:9.5em;overflow:hidden}
+.td-when{color:var(--muted);font-size:12px;margin-top:4px}
+.td-closed{text-decoration:line-through}
+.td-dash .td-stream{max-height:1100px;overflow:auto}
+
+/* A124: payment milestone template — the template's columns in the application's own table colours */
+.pm-wrap{overflow-x:auto}
+.pm-table{min-width:1280px}
+.pm-table thead th{white-space:normal;vertical-align:bottom;padding-left:10px;padding-right:10px}
+.pm-table td{vertical-align:middle}
+.pm-table .pm-group td{background:var(--surface-2);color:var(--fg);font-weight:600}
+.pm-table .pm-desc{min-width:240px;max-width:360px;white-space:normal}
+.pm-table .pm-notes{min-width:140px;white-space:normal}
+.pm-edit{min-width:1500px}
+.pm-edit .pm-desc-input{min-width:220px;resize:vertical}
+.pm-edit .pm-inv{width:110px}
+.pm-dialog-head{font-size:var(--fs-md);margin:12px 0 4px}

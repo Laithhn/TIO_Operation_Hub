@@ -3,7 +3,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link, Navigate, Route, Routes, useNavigate } from 'react-router';
 import { get, qs } from '../api';
 import { fmtDate, fmtDateTime, fmtMoney } from '../format';
-import { useMe, useUrlState } from '../hooks';
+import { useMe, useTypes, useUrlState } from '../hooks';
+import { APPROVAL_LIST, MilestoneMark, WORK_LIST, type PaymentMilestone } from './PaymentMilestones';
 import { menuDashboards, canExport, hasRight } from '../rights';
 import { HBars, Kpi as BaseKpi, RAMP, RateLines, SERIES, STATUS, TrendLines, VizPanel, type KpiStatus } from '../ui/charts';
 import { Icon } from '../ui/Icon';
@@ -709,7 +710,7 @@ type Cli = {
   signals: SignalT[];
   contracts: { id: number; ref: string; title: string; type: string; status: string; startDate?: string | null; endDate?: string | null; noticeDeadline?: string | null; state: string; projectId: number; projectCode?: string | null; inYears: boolean }[];
   milestones: { contractId: number; contractRef: string; phase: string; description?: string | null; date?: string | null; percent?: number | null; state: string }[];
-  payments: { id: number; contractId: number; contractRef: string; condition: string; amount?: number | null; currency?: string | null; dueDate?: string | null; status: string; paidOn?: string | null; state: string; yearDate?: string | null; inYears: boolean }[];
+  payments: (PaymentMilestone & { contractId: number; contractRef: string; currency?: string | null; state: string; yearDate?: string | null; inYears: boolean })[];
   cases: { open: number; overdue: number; link: string; byPriority: BarT[]; list: { id: number; ref: string; title: string; priority: string; status: string; owner?: string | null; dueAt?: string | null; overdue: boolean }[] };
   sla: { target: number; windowDays: number; response: Tally; resolution: Tally; openBreached: number; link: string };
   escalations: { id: number; ref: string; title: string; level: number; status: string; owner: string; receivedAt: string; overdue: boolean }[];
@@ -835,6 +836,7 @@ const C360_SECTIONS = ['projects', 'contracts', 'payments', 'sla', 'tickets', 'e
 /** A113 (owner request, 12 Nov 2026): Client 360 — one client, seven sections, for the years the reader ticks. The recorded status and its signals stay one click away. */
 export function ClientDashboard() {
   const me = useMe().data!;
+  const T = useTypes();
   const [f, set] = useUrlState({ clientId: '', years: '' });
   const [dialog, setDialog] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -1007,7 +1009,7 @@ export function ClientDashboard() {
             {(d.payments.length > shownPayments.length || allPayments) && <button className="linkbtn" onClick={() => setAllPayments(v => !v)}>{allPayments ? 'Show the selected years only' : 'Show all payment terms'}</button>}
           </div>
           {shownPayments.length === 0 ? <p className="hint">No payment term is dated in the selected years.</p> : (
-            <table className="grid"><thead><tr><th>Payment</th><th>Contract</th><th>State</th><th>Date</th><th className="num">Amount</th></tr></thead><tbody>
+            <div className="table-wrap"><table className="grid"><thead><tr><th>Milestone</th><th>Contract</th><th>State</th><th>Date</th><th className="num">Invoice amount</th><th>Invoice no.</th><th>Work status</th><th>Client approval</th><th className="num">Received</th><th className="num">Outstanding</th></tr></thead><tbody>
               {shownPayments.map(x => (
                 <tr key={x.id} className={x.inYears ? undefined : 'muted'}>
                   <td><Link to={`/contracts/${x.contractId}`}>{x.condition}</Link></td>
@@ -1015,9 +1017,14 @@ export function ClientDashboard() {
                   <td><Badge tone={PAY_STATE[x.state]?.tone ?? 'neutral'}>{PAY_STATE[x.state]?.label ?? x.state}</Badge></td>
                   <td className="nowrap">{x.paidOn ? `Paid ${fmtDate(x.paidOn)}` : x.dueDate ? `Due ${fmtDate(x.dueDate)}` : <span className="muted">No date</span>}</td>
                   <td className="num nowrap">{x.amount != null ? fmtMoney(x.amount, x.currency) : <span className="muted">No amount</span>}</td>
+                  <td className="nowrap">{x.invoiceNumber ?? <span className="muted">—</span>}{x.invoiceDate && <div className="hint">{fmtDate(x.invoiceDate)}</div>}</td>
+                  <td className="nowrap"><MilestoneMark label={x.workStatus ? T.name(WORK_LIST, x.workStatus) : null} state={x.workState} /></td>
+                  <td className="nowrap"><MilestoneMark label={x.clientApproval ? T.name(APPROVAL_LIST, x.clientApproval) : null} state={x.approvalState} /></td>
+                  <td className="num nowrap">{x.received != null ? fmtMoney(x.received, x.currency) : ''}</td>
+                  <td className="num nowrap">{x.outstanding ? fmtMoney(x.outstanding, x.currency) : <span className="muted">-</span>}</td>
                 </tr>
               ))}
-            </tbody></table>
+            </tbody></table></div>
           )}
           <p className="hint">Selected years: {waived} waived{closed ? `, ${closed} on terminated contracts` : ''}. {undated} without a date, in no year. Recorded contract payment terms — not invoicing or accounting. Amounts stay in their own currency.</p>
         </C360Section>
@@ -1102,6 +1109,7 @@ type PayItem = {
   id: number; contractId: number; contractRef: string; contractTitle: string; clientId: number; clientCode: string; clientName?: string | null; owner?: string | null;
   condition: string; percentage?: number | null; amount?: number | null; currency?: string | null; dueDate?: string | null; status: string; paidOn?: string | null;
   bucket: 'paid' | 'upcoming' | 'overdue' | null; state: string; daysOverdue?: number | null; daysToDue?: number | null; products: string[];
+  invoiceDate?: string | null; invoiceNumber?: string | null; workStatus?: string | null; workState?: string | null; clientApproval?: string | null; approvalState?: string | null; received?: number | null; outstanding?: number | null;
 };
 type PayDash = {
   evaluatedAt: string; today: string; reminderDays: number;
@@ -1185,6 +1193,7 @@ function CheckPicker({ id, label, noun, nouns, options, value, onChange, findabl
 /** A115 (owner request, 13 Nov 2026): every contract payment term in view — Paid, Upcoming and Overdue — for any years and any clients. */
 export function PaymentsDashboard() {
   const me = useMe().data!;
+  const T = useTypes();
   const [f, set] = useUrlState({ years: '', clientIds: '', ownerIds: '', productIds: '', currencies: '', view: 'all' });
   const params = { years: f.years || undefined, clientIds: f.clientIds || undefined, ownerIds: f.ownerIds || undefined, productIds: f.productIds || undefined, currencies: f.currencies || undefined };
   const q = useQuery({ queryKey: ['dash-payments', params], queryFn: () => get<PayDash>(`/dashboard/payments${qs(params)}`), placeholderData: keepPreviousData });
@@ -1295,11 +1304,17 @@ export function PaymentsDashboard() {
             <DataTable<PayItem> rowKey={r => r.id} rows={rows} tools={false} empty="none" caption="Payment terms" pageSize={25} columns={[
               { key: 'cl', header: 'Client', render: r => <><b>{r.clientCode}</b>{r.clientName && <div className="hint">{r.clientName}</div>}</> },
               { key: 'k', header: 'Contract', className: 'nowrap', render: r => <><Link to={`/contracts/${r.contractId}`}>{r.contractRef}</Link><div className="hint">{r.contractTitle}</div></> },
-              { key: 'c', header: 'Payment', render: r => <>{r.condition}{r.percentage != null && <span className="muted"> · {r.percentage} %</span>}</> },
+              { key: 'c', header: 'Milestone', render: r => <>{r.condition}{r.percentage != null && <span className="muted"> · {r.percentage} %</span>}</> },
               { key: 's', header: 'State', render: r => <><Badge tone={PAY_STATE[r.state]?.tone ?? 'neutral'}>{PAY_STATE[r.state]?.label ?? r.state}</Badge>{r.status === 'Invoiced' && r.bucket !== 'paid' && <div className="hint">Invoiced</div>}</> },
               { key: 'd', header: 'Date', className: 'nowrap', render: r => r.bucket === 'paid' ? <>Paid {fmtDate(r.paidOn ?? r.dueDate)}{r.dueDate && <div className="hint">Due {fmtDate(r.dueDate)}</div>}</>
                 : <>Due {fmtDate(r.dueDate)}<div className={r.daysOverdue ? 'hint t-bad' : 'hint'}>{r.daysOverdue ? `${plural(r.daysOverdue, 'day')} overdue` : r.daysToDue === 0 ? 'Due today' : `in ${plural(r.daysToDue ?? 0, 'day')}`}</div></> },
-              { key: 'a', header: 'Amount', className: 'num nowrap', render: r => r.amount != null ? fmtMoney(r.amount, r.currency) : <span className="muted">No amount</span> },
+              { key: 'a', header: 'Invoice amount', className: 'num nowrap', render: r => r.amount != null ? fmtMoney(r.amount, r.currency) : <span className="muted">No amount</span> },
+              // A124: the payment milestone template's tracking columns.
+              { key: 'inv', header: 'Invoice no.', className: 'nowrap', render: r => <>{r.invoiceNumber ?? <span className="muted">—</span>}{r.invoiceDate && <div className="hint">{fmtDate(r.invoiceDate)}</div>}</> },
+              { key: 'w', header: 'Work status', className: 'nowrap', render: r => <MilestoneMark label={r.workStatus ? T.name(WORK_LIST, r.workStatus) : null} state={r.workState} /> },
+              { key: 'ap', header: 'Client approval', className: 'nowrap', render: r => <MilestoneMark label={r.clientApproval ? T.name(APPROVAL_LIST, r.clientApproval) : null} state={r.approvalState} /> },
+              { key: 'rc', header: 'Received', className: 'num nowrap', render: r => r.received != null ? fmtMoney(r.received, r.currency) : '' },
+              { key: 'os', header: 'Outstanding', className: 'num nowrap', render: r => r.outstanding ? fmtMoney(r.outstanding, r.currency) : <span className="muted">-</span> },
               { key: 'o', header: 'Contract owner', render: r => r.owner ?? <span className="muted">Unassigned</span> },
               ...(o?.products ? [{ key: 'p', header: 'Products', render: (r: PayItem) => r.products.length ? r.products.join(', ') : <span className="muted">—</span> }] : [])
             ]} />

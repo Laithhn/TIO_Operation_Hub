@@ -518,7 +518,6 @@ const SETTING_INFO: Record<string, { label: string; group: string; dateValue?: b
   DefaultTimeZone: { label: 'Default time zone for new users', group: 'General' },
   'Dashboard.UpcomingDays': { label: 'Upcoming window for commitments (days)', group: 'General' },
   ApprovedLinkHosts: { label: 'Approved document link hosts', group: 'Links and security' },
-  VaultReferencePrefix: { label: 'Vault reference prefix', group: 'Links and security' },
   'Coverage.EnvironmentCriticalities': { label: 'Environment criticalities that need a backup owner', group: 'Backup coverage' },
   'Coverage.CasePriorities': { label: 'Ticket priorities that need a backup owner', group: 'Backup coverage' },
   'Contracts.PaymentReminderDays': { label: 'Payment reminder (days before due)', group: 'Contracts' },
@@ -552,7 +551,7 @@ export function AdminSettings() {
   const groups = SETTING_GROUPS.map(g => ({ g, rows: (q.data ?? []).filter(s => settingInfo(s).group === g) })).filter(x => x.rows.length > 0);
   return (
     <AdminOnly>
-      <PageHead title="Settings" crumbs={configCrumbs('settings')} sub="Approved link hosts, vault reference format, coverage policy and dashboard window. Changes are audited." />
+      <PageHead title="Settings" crumbs={configCrumbs('settings')} sub="Approved link hosts, coverage policy and dashboard window. Changes are audited." />
       {q.isLoading || q.error ? <DataTable rowKey={(s: SettingRow) => s.id} rows={undefined} loading={q.isLoading} error={q.error} columns={[]} />
         : groups.map(({ g, rows }) => <Panel key={g} title={g} pad={false}>
           <DataTable<SettingRow> caption={`${g} settings`} tools={false} rowKey={s => s.id} rows={rows} fit columns={[

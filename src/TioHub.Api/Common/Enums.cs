@@ -77,10 +77,14 @@ public enum ReviewScope { Record, Condition, Inventory, Dependencies, Contacts }
 
 public enum DataQualityStatus { Open, Resolved }
 
-public enum DocumentKind { Link, VaultReference }
+public enum DocumentKind { Link }
 
 // Contracts (CLI-04): recorded terms only.
 public enum ContractType { SlaSupport, Implementation, Maintenance, Subscription, Other }
+/// <summary>A124: built-in behaviour of a configured payment milestone work status (Done shows as complete).</summary>
+public enum MilestoneWorkState { NotStarted, InProgress, Done }
+/// <summary>A124: built-in behaviour of a configured client approval value of a payment milestone.</summary>
+public enum ClientApprovalState { Pending, Approved, Rejected }
 public enum ContractStatus { Draft, Active, Ended, Terminated }
 public enum RenewalTerms { Unknown, FixedTerm, AutoRenew, RenewalByAgreement }
 public enum SupportModel { Unknown, Remote, OnSite, Hybrid }

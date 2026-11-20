@@ -11,7 +11,7 @@ namespace TioHub.Api.Common;
 /// </summary>
 public static partial class CredentialGuard
 {
-    public const string Message = "This looks like a password, key or token. Remove it, keep the secret in the approved vault and enter only the vault reference.";
+    public const string Message = "This looks like a password, key or token. Remove it: the hub must never hold secrets.";
 
     [GeneratedRegex(@"(?i)\b(password|passwd|pwd|passphrase|secret|api[_-]?key|access[_-]?key|client[_-]?secret|token|kennwort)\s*[:=]\s*\S{3,}")]
     private static partial Regex Assignment();
@@ -79,17 +79,6 @@ public static class LinkGuard
             if (h.Length == 0) return false;
             return h.StartsWith("*.") ? host.EndsWith(h[1..], StringComparison.OrdinalIgnoreCase) : string.Equals(host, h, StringComparison.OrdinalIgnoreCase);
         });
-
-    /// <summary>Vault references are identifiers in an approved format, never the secret (IAM-03).</summary>
-    public static string? VaultProblem(string? reference, string prefix)
-    {
-        if (string.IsNullOrWhiteSpace(reference)) return "Enter the vault reference.";
-        var r = reference.Trim();
-        if (string.IsNullOrWhiteSpace(prefix) || !r.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            return $"Vault references must start with {prefix}.";
-        if (r.Contains(' ') || CredentialGuard.LooksLikeSecret(r[prefix.Length..])) return "Enter only the vault path, not the secret.";
-        return null;
-    }
 }
 
 /// <summary>Jira reference rules (WRK-03, DAT-03): instance + normalized key; URL must be the approved HTTPS host and name the same key.</summary>

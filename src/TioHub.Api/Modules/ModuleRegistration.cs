@@ -38,6 +38,7 @@ public static class ModuleRegistration
         services.AddScoped<OperationalDashboard>();
         services.AddScoped<SlaContractsDashboard>();
         services.AddScoped<PaymentsDashboard>();
+        services.AddScoped<TicketDashboard>();
         services.AddScoped<ManagementDashboard>();
         services.AddHostedService<DataQualityScanner>();
         services.AddHostedService<Notifications.NotificationScanner>();
@@ -93,6 +94,7 @@ public static class ModuleRegistration
         api.MapEscalationEndpoints();
         api.MapContractEndpoints();
         api.MapPaymentEndpoints();
+        api.MapPaymentMilestoneEndpoints();
         api.MapTeamEndpoints();
         api.MapQualityEndpoints();
         api.MapDashboardEndpoints();

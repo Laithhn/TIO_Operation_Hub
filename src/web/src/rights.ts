@@ -57,6 +57,8 @@ export function routePermissions(pathname: string): string[] {
   if (root === 'dashboards') { const sub = parts[1] === 'project' ? 'client' : parts[1]; return [sub ? `${audienceDashboards.find(d => d[0] === sub)?.[3] ?? 'unregistered'}:View` : 'Dashboard:View']; }
   if (['', 'overview', 'map', 'actions', 'data-quality'].includes(root)) return ['Dashboard:View', ...businessResources.map(r => `${r}:View`)];
   if (root === 'notifications') return ['Notifications:View'];
+  // A123: the Tickets dashboard has its own right (it needs Cases:View).
+  if (root === 'cases' && parts[1] === 'dashboard') return ['TicketDashboard:View'];
   if (root === 'notes') return ['PersonalNotes:View'];
   if (root === 'reporting-center' || root === 'reports') return ['Reporting:View'];
   const resource = root === 'versions' ? 'Installations' : root === 'microservices' ? 'Products'

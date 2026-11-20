@@ -6,7 +6,8 @@ const admin = { rights: ['Platform:Administration', 'AdminConfig:View'] } as unk
 const engineer = { rights: [] } as unknown as Me;
 // Server LookupLists.All (src/TioHub.Api/Modules/Admin/AdminEntities.cs): every list must have a page.
 const SERVER_LISTS = ['ComponentRole', 'AssetRole', 'NetworkZone', 'ProjectPhase', 'BoundaryArea', 'OsFamily', 'PriorityGuidance', 'EnvironmentType', 'AssetType',
-  'ContractType', 'CaseType', 'TeamRole', 'EscalationChannel', 'TeamMemberRole', 'ConditionLabel', 'CaseStatusLabel', 'OrganizationRelationshipType'];
+  'ContractType', 'CaseType', 'TeamRole', 'EscalationChannel', 'TeamMemberRole', 'ConditionLabel', 'CaseStatusLabel', 'OrganizationRelationshipType',
+  'PaymentWorkStatus', 'PaymentClientApproval'];
 
 describe('configuration registry', () => {
   it('gives every server lookup list a page', () => {
@@ -20,7 +21,7 @@ describe('configuration registry', () => {
       ['Clients & Environments', ['Reported conditions', 'Organization relationship types', 'Environment types', 'Responsibility areas', 'Project team roles']],
       ['Servers', ['Server types', 'Server roles', 'Network zones', 'Operating systems', 'Project phases']],
       ['Products & Installations', ['Component roles']],
-      ['Contracts & Tickets', ['Contract types', 'Ticket types', 'Ticket statuses', 'Escalation channels', 'Priority guidance']],
+      ['Contracts & Tickets', ['Contract types', 'Ticket types', 'Ticket statuses', 'Escalation channels', 'Priority guidance', 'Payment milestone work statuses', 'Payment milestone client approvals']],
       ['Teams', ['Team member roles']],
       ['System', ['Review policies', 'Jira instances', 'Settings']]
     ]);

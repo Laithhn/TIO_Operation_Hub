@@ -46,7 +46,6 @@ public class GuardTests
     [InlineData("ghp_abcdefghijklmnopqrstuvwxyz0123456789", true)]
     [InlineData("Restart the import service after the vendor patch", false)]
     [InlineData("See https://docs.example.com/runbook/nta-r1-production-import-service", false)]
-    [InlineData("vault://demo/nta/r1/db01-service", false)]
     public void Credential_guard_flags_likely_secrets(string text, bool secret) => Assert.Equal(secret, CredentialGuard.LooksLikeSecret(text));
 
     [Theory]

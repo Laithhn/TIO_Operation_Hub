@@ -61,7 +61,7 @@ public class DataQualityItem : Entity, IClientOwned
     public long? ScopeClientId => ClientId;
 }
 
-/// <summary>Approved document link or vault reference attached to a record. A stored link does not prove reachability or access.</summary>
+/// <summary>Approved document link attached to a record. A stored link does not prove reachability or access.</summary>
 public class DocumentReference : Entity, IArchivable, IClientOwned
 {
     public string RecordType { get; set; } = "";

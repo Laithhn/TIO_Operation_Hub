@@ -27,6 +27,16 @@ public sealed class PaymentRow
     public DateOnly? DueDate { get; init; }
     public PaymentStatus Status { get; init; }
     public DateOnly? PaidOn { get; init; }
+    // A124: payment milestone template.
+    public DateOnly? InvoiceDate { get; init; }
+    public string? InvoiceNumber { get; init; }
+    public string? WorkStatus { get; init; }
+    public MilestoneWorkState? WorkState { get; init; }
+    public string? ClientApproval { get; init; }
+    public ClientApprovalState? ApprovalState { get; init; }
+    public decimal? AmountReceived { get; init; }
+    public decimal? Received => ContractPayment.Received(Status, Amount, AmountReceived);
+    public decimal? Outstanding => ContractPayment.Outstanding(Status, Amount, AmountReceived);
 }
 
 public sealed record PaymentFilter(long? ClientId = null, long? OwnerId = null, long? ProductId = null, string? Country = null, string? Q = null, string? State = null);
@@ -52,9 +62,11 @@ public static class PaymentQuery
             {
                 Id = p.Id, ContractId = c.Id, ContractRef = c.Ref, ContractTitle = c.Title, ContractStatus = c.Status, ClientId = c.ClientId, ClientCode = c.Client!.Code,
                 OwnerUserId = c.OwnerUserId, Owner = c.Owner == null ? null : c.Owner.DisplayName,
-                Condition = p.Condition, Percentage = p.Percentage, Amount = p.Amount, Currency = c.Currency, DueDate = p.DueDate, Status = p.Status, PaidOn = p.PaidOn
+                Condition = p.Condition, Percentage = p.Percentage, Amount = p.Amount, Currency = c.Currency, DueDate = p.DueDate, Status = p.Status, PaidOn = p.PaidOn,
+                InvoiceDate = p.InvoiceDate, InvoiceNumber = p.InvoiceNumber, WorkStatus = p.WorkStatus, WorkState = p.WorkState, ClientApproval = p.ClientApproval,
+                ApprovalState = p.ApprovalState, AmountReceived = p.AmountReceived
             }));
-        if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(p => p.Condition.Contains(f.Q) || p.ContractRef.Contains(f.Q) || p.ContractTitle.Contains(f.Q) || p.ClientCode.Contains(f.Q));
+        if (!string.IsNullOrWhiteSpace(f.Q)) q = q.Where(p => p.InvoiceNumber != null && p.InvoiceNumber.Contains(f.Q) || p.Condition.Contains(f.Q) || p.ContractRef.Contains(f.Q) || p.ContractTitle.Contains(f.Q) || p.ClientCode.Contains(f.Q));
         var open = q.Where(p => (p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Invoiced) && p.ContractStatus != ContractStatus.Terminated);
         return (f.State ?? "attention") switch
         {
@@ -119,7 +131,8 @@ public static class PaymentQuery
                 items = paged.Items.Select(p => new
                 {
                     p.Id, p.ContractId, p.ContractRef, p.ContractTitle, p.ClientId, p.ClientCode, p.Owner, p.Condition, p.Percentage, p.Amount, p.Currency, p.DueDate, p.Status, p.PaidOn,
-                    state = StateOf(p, today, days), daysToDue = p.DueDate is { } d ? d.DayNumber - today.DayNumber : (int?)null
+                    p.InvoiceDate, p.InvoiceNumber, p.WorkStatus, p.WorkState, p.ClientApproval, p.ApprovalState, p.AmountReceived, p.Received, p.Outstanding,
+                    state =StateOf(p, today, days), daysToDue = p.DueDate is { } d ? d.DayNumber - today.DayNumber : (int?)null
                 }),
                 paged.Page, paged.PageSize, paged.TotalCount,
                 summary = await SummaryAsync(db.Contracts.AsNoTracking(), f with { State = null }, now, db, days, ct)
@@ -151,4 +164,73 @@ public static class PaymentQuery
     }
 
     public sealed record PaymentStatusInput(PaymentStatus? Status, DateOnly? PaidOn, string? Notes);
+}
+
+/// <summary>
+/// A124 (owner request, 19 Nov 2026): every contract payment term follows the payment milestone template — milestone, planned invoice date,
+/// invoice amount, %, actual invoice date, invoice number, work status, client approval, payment status, amount received, outstanding, notes.
+/// The same checks serve the contract form and the one-row edit, so a milestone's values can change without editing the contract.
+/// </summary>
+public static class PaymentMilestones
+{
+    public sealed record Resolved(string? WorkStatus, MilestoneWorkState? WorkState, string? ClientApproval, ClientApprovalState? ApprovalState);
+
+    public static async Task<Resolved> CheckAsync(Check check, string f, string row, ContractEndpoints.PaymentInput x, ContractPayment? existing, LookupService lookups, CancellationToken ct)
+    {
+        check.Text(f, x.Condition, 500, $"the milestone of {row.ToLowerInvariant()}", required: true).Text(f, x.Notes, 1000, $"{row} notes")
+             .Text(f, x.InvoiceNumber, 50, $"{row} invoice number")
+             .When(x.Percentage is < 0 or > 100, f, $"{row}: the percentage is between 0 and 100.")
+             .When(x.Amount is < 0, f, $"{row}: the amount cannot be negative.")
+             .When(x.AmountReceived is < 0, f, $"{row}: the amount received cannot be negative.")
+             .When(x.Status == PaymentStatus.Paid && x.PaidOn is null, f, $"{row}: enter the date it was paid.");
+        var (work, workState) = await OptionalTypeAsync<MilestoneWorkState>(check, f, LookupLists.PaymentWorkStatus, x.WorkStatus, $"{row}: select the work status", existing?.WorkStatus, lookups, ct);
+        var (approval, approvalState) = await OptionalTypeAsync<ClientApprovalState>(check, f, LookupLists.PaymentClientApproval, x.ClientApproval, $"{row}: select the client approval", existing?.ClientApproval, lookups, ct);
+        return new Resolved(work, workState, approval, approvalState);
+    }
+
+    private static async Task<(string?, T?)> OptionalTypeAsync<T>(Check check, string f, string list, string? code, string message, string? unchanged, LookupService lookups, CancellationToken ct) where T : struct, Enum
+    {
+        if (Text.Clean(code) is null) return (null, null);
+        var probe = new Check();
+        var (value, category) = await lookups.TypeAsync<T>(probe, f, list, code, "", unchanged, ct);
+        if (probe.HasErrors) { check.Add(f, $"{message} from the list."); return (null, null); }
+        return (value, category);
+    }
+
+    public static void Apply(ContractPayment row, ContractEndpoints.PaymentInput x, Resolved r)
+    {
+        row.Condition = x.Condition!.Trim(); row.Percentage = x.Percentage; row.Amount = x.Amount; row.DueDate = x.DueDate;
+        row.Status = x.Status ?? PaymentStatus.Pending; row.PaidOn = row.Status == PaymentStatus.Paid ? x.PaidOn : null; row.Notes = Text.Clean(x.Notes);
+        row.InvoiceDate = x.InvoiceDate; row.InvoiceNumber = Text.Clean(x.InvoiceNumber);
+        row.WorkStatus = r.WorkStatus; row.WorkState = r.WorkState; row.ClientApproval = r.ClientApproval; row.ApprovalState = r.ApprovalState;
+        row.AmountReceived = x.AmountReceived;
+    }
+
+    public static void MapPaymentMilestoneEndpoints(this RouteGroupBuilder api)
+    {
+        // Edit one payment milestone without opening the contract form. Same right as the contract's payment terms (Contracts:Maintain
+        // where the contract is), like the A110 status change. The contract's version changes too, so an older contract form cannot save over it.
+        api.MapPut("/contracts/{id:long}/payments/{paymentId:long}", async (long id, long paymentId, ContractEndpoints.PaymentInput input, HubDbContext db, HubAccess access, TimeProvider clock, CancellationToken ct) =>
+        {
+            var c = await db.Contracts.Include(x => x.Payments).FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The contract");
+            access.RequireIn(RightKeys.Contracts, RightKeys.Maintain, ResourceContext.ForRecord(c.ClientId, null, [c.ProjectId]));
+            var p = c.Payments.FirstOrDefault(x => x.Id == paymentId) ?? throw new NotFoundException("The payment");
+            var today = DateOnly.FromDateTime(clock.GetUtcNow().UtcDateTime);
+            var check = new Check();
+            var r = await CheckAsync(check, "payment", "This milestone", input, p, new LookupService(db), ct);
+            check.When(input.PaidOn is { } paid && paid > today.AddDays(1), "paidOn", "The payment date cannot be in the future.")
+                 .When(input.InvoiceDate is { } inv && inv > today.AddDays(1), "invoiceDate", "The actual invoice date cannot be in the future.")
+                 .When(c.Payments.Where(x => x.Id != p.Id).Sum(x => x.Percentage ?? 0) + (input.Percentage ?? 0) > 100, "percentage", "The payment percentages of this contract would add up to more than 100 %.")
+                 .When(c.Currency is null && (input.Amount is not null || input.AmountReceived is not null), "amount", "Set the contract currency before recording amounts.");
+            check.ThrowIfAny();
+            Apply(p, input, r);
+            c.UpdatedAt = clock.GetUtcNow();
+            await db.SaveChangesAsync(ct);
+            return Results.Ok(new
+            {
+                p.Id, p.Condition, p.Percentage, p.Amount, p.DueDate, status = p.Status.ToString(), p.PaidOn, p.Notes, p.InvoiceDate, p.InvoiceNumber, p.WorkStatus, p.ClientApproval, p.AmountReceived,
+                outstanding = ContractPayment.Outstanding(p.Status, p.Amount, p.AmountReceived)
+            });
+        }).WithTags("Contracts");
+    }
 }

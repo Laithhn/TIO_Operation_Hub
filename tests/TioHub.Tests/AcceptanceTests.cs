@@ -878,7 +878,7 @@ public class AC14_SecurityAndUsability(HubFactory hub) : Scenario(hub)
         Assert.NotNull(r.Error("impactSummary"));
         Assert.DoesNotContain("Sommer2026", r.Text);
         // A52: document references were removed; their endpoint no longer exists.
-        Assert.Equal(HttpStatusCode.NotFound, (await m.Post("/documents", new { recordType = "Client", recordId = nta, kind = "VaultReference", title = "x", reference = "Pa55w0rd!" })).Status);
+        Assert.Equal(HttpStatusCode.NotFound, (await m.Post("/documents", new { recordType = "Client", recordId = nta, kind = "Link", title = "x", reference = "Pa55w0rd!" })).Status);
         // Unknown routes and server errors return problem details without internals.
         var nf = await m.Get("/does-not-exist");
         Assert.Equal(HttpStatusCode.NotFound, nf.Status);

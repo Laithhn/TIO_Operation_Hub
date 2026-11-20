@@ -44,6 +44,18 @@ export const CONFIG_LISTS: ConfigList[] = [
       { value: 'Maintenance', label: 'Maintenance', hint: 'Operation and maintenance' }, { value: 'Subscription', label: 'Subscription', hint: 'Licence or service subscription' },
       { value: 'Other', label: 'Other', hint: 'Anything else' }
     ] },
+  { slug: 'payment-work-statuses', list: 'PaymentWorkStatus', group: 'Contracts & tickets', title: 'Payment milestone work statuses', usedBy: 'contract payment milestones',
+    about: 'The work status of a contract payment milestone (A124). Each value behaves like its category; Done shows with a tick.',
+    categories: [
+      { value: 'NotStarted', label: 'Not started', hint: 'Work for the milestone has not begun' }, { value: 'InProgress', label: 'In progress', hint: 'Work is under way' },
+      { value: 'Done', label: 'Done', hint: 'The milestone is delivered; shown with a tick' }
+    ] },
+  { slug: 'payment-client-approvals', list: 'PaymentClientApproval', group: 'Contracts & tickets', title: 'Payment milestone client approvals', usedBy: 'contract payment milestones',
+    about: 'Whether the client has approved a payment milestone (A124). Each value behaves like its category; Approved shows with a tick.',
+    categories: [
+      { value: 'Pending', label: 'Pending', hint: 'Waiting for the client' }, { value: 'Approved', label: 'Approved', hint: 'The client accepted it; shown with a tick' },
+      { value: 'Rejected', label: 'Rejected', hint: 'The client did not accept it' }
+    ] },
   { slug: 'case-types', list: 'CaseType', group: 'Contracts & tickets', title: 'Ticket types', usedBy: 'cases',
     about: 'Offered when opening a ticket. Each type belongs to a category used in reports.',
     categories: [
@@ -86,7 +98,7 @@ export const CONFIG_CATEGORIES: ConfigCategory[] = [
   { id: 'clients-environments', name: 'Clients & Environments', icon: 'clients', order: 1, description: 'Conditions, environment types, responsibilities and project roles.' },
   { id: 'servers', name: 'Servers', icon: 'server', order: 2, description: 'Server types, roles, network zones, operating systems and phases.' },
   { id: 'products-installations', name: 'Products & Installations', icon: 'app', order: 3, description: 'Roles of the components of an installation.' },
-  { id: 'contracts-cases', name: 'Contracts & Tickets', icon: 'case', order: 4, description: 'Contract and ticket types, statuses, escalation channels and priorities.' },
+  { id: 'contracts-cases', name: 'Contracts & Tickets', icon: 'case', order: 4, description: 'Contract and ticket types, statuses, escalation channels, priorities and payment milestone values.' },
   { id: 'teams', name: 'Teams', icon: 'team', order: 5, description: 'Roles of the members of internal teams.' },
   { id: 'system', name: 'System', icon: 'admin', order: 6, description: 'Review policies, Jira instances and application settings.' }
 ];
@@ -107,6 +119,8 @@ const LIST_PLACES: Record<string, { category: ConfigCategoryId; order: number; d
   'project-phases': { category: 'servers', order: 5, description: 'Delivery phases of a server, such as Requested or Deployed.' },
   'component-roles': { category: 'products-installations', order: 1, description: 'Roles of installation components, such as Database or Workflow.' },
   'contract-types': { category: 'contracts-cases', order: 1, description: 'Types offered on the contract form.' },
+  'payment-work-statuses': { category: 'contracts-cases', order: 6, description: 'Work status of a contract payment milestone.' },
+  'payment-client-approvals': { category: 'contracts-cases', order: 7, description: 'Client approval of a contract payment milestone.' },
   'case-types': { category: 'contracts-cases', order: 2, description: 'Types offered when opening a ticket.' },
   'case-statuses': { category: 'contracts-cases', order: 3, description: 'Display labels of the built-in case statuses.' },
   'escalation-channels': { category: 'contracts-cases', order: 4, description: 'How escalations arrive and how replies go out.' },

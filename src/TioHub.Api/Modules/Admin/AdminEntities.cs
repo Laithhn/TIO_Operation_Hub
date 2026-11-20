@@ -43,19 +43,24 @@ public static class LookupLists
     public const string ConditionLabel = "ConditionLabel";
     public const string CaseStatusLabel = "CaseStatusLabel";
     public const string OrganizationRelationshipType = "OrganizationRelationshipType";
+    /// <summary>A124: work status and client approval of a contract payment milestone.</summary>
+    public const string PaymentWorkStatus = "PaymentWorkStatus";
+    public const string PaymentClientApproval = "PaymentClientApproval";
     public static bool IsFixedWorkflowLabel(string? list) => list is ConditionLabel;
 
-    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole, ConditionLabel, CaseStatusLabel, OrganizationRelationshipType];
+    public static readonly string[] All = [ComponentRole, AssetRole, NetworkZone, ProjectPhase, BoundaryArea, OsFamily, PriorityGuidance, EnvironmentType, AssetType, ContractType, CaseType, TeamRole, EscalationChannel, TeamMemberRole, ConditionLabel, CaseStatusLabel, OrganizationRelationshipType,
+        PaymentWorkStatus, PaymentClientApproval];
 
     /// <summary>The category enum of each type list.</summary>
     public static readonly Dictionary<string, Type> Categories = new()
     {
         [EnvironmentType] = typeof(Common.EnvironmentType), [AssetType] = typeof(Common.AssetType),
-        [ContractType] = typeof(Common.ContractType), [CaseType] = typeof(Common.CaseType), [CaseStatusLabel] = typeof(Common.CaseStatusBehavior)
+        [ContractType] = typeof(Common.ContractType), [CaseType] = typeof(Common.CaseType), [CaseStatusLabel] = typeof(Common.CaseStatusBehavior),
+        [PaymentWorkStatus] = typeof(Common.MilestoneWorkState), [PaymentClientApproval] = typeof(Common.ClientApprovalState)
     };
 }
 
-/// <summary>Application policy values (approved link hosts, vault prefix, coverage policy, upcoming window). Changes are audited.</summary>
+/// <summary>Application policy values (approved link hosts, coverage policy, upcoming window). Changes are audited.</summary>
 public class AppSetting : Entity
 {
     public string Key { get; set; } = "";
@@ -66,7 +71,6 @@ public class AppSetting : Entity
 public static class SettingKeys
 {
     public const string ApprovedLinkHosts = "ApprovedLinkHosts";
-    public const string VaultReferencePrefix = "VaultReferencePrefix";
     public const string CoverageCriticalities = "Coverage.EnvironmentCriticalities";
     public const string CoveragePriorities = "Coverage.CasePriorities";
     public const string UpcomingDays = "Dashboard.UpcomingDays";

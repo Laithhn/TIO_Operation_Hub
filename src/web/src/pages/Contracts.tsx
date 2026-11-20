@@ -6,13 +6,14 @@ import { ApiError, exportCsv, get, post, put, qs, type Paged, type UserRef } fro
 import { fmtDate, fmtMoney, label } from '../format';
 import { renewalPeriod, shiftDay } from './contractRenewal';
 import { useEnum, useForm, useLeaveGuard, useMe, useRight, useRefresh, useUrlState, useTypes } from '../hooks';
-import { ActionDialog, ArchiveDialog, TimeZoneSelect, UserPicker } from '../ui/pickers';
+import { ArchiveDialog,TimeZoneSelect, UserPicker } from '../ui/pickers';
 import { ProjectDialog, ProjectTabs } from './Clients';
 import { Badge, DataTable, DL, enumOptions, FormError, PageHead, Pager, Panel, Person, QueryState, SelectInput, ExpandableText, SectionNav, StateMessage, StatusBadge, TextInput, Unknown, useToast, DeleteAction } from '../ui/kit';
 import { ClientDisplay } from '../ui/ClientLogo';
 import { HistoryPanel, toNum, useClientOptions } from './common';
 import { AttachmentsWorkspace } from './attachments/AttachmentsWorkspace';
 import { MyNotesPanel } from './Notes';
+import { APPROVAL_LIST, PaymentMilestoneTable, WORK_LIST, type PaymentMilestone } from './PaymentMilestones';
 
 // CLI-04 contracts with recorded SLA terms. Targets are what the contract says; the hub never measures them or calculates compliance.
 // A27: every contract belongs to a project; the project gives the client and the covered products, and its page shows its contracts.
@@ -33,7 +34,7 @@ type Detail = {
   milestones: { id: number; phase: string; description?: string; completionPercent?: number; date?: string }[];
   fees: { id: number; description: string; unit?: string; quantity?: number; unitPrice?: number; total?: number }[]; feesTotal?: number;
   penaltyClauses: (Omit<PenaltyForm, 'fixedAmount' | 'percentage' | 'referenceAmount' | 'monthlyCap'> & { fixedAmount?: number; percentage?: number; referenceAmount?: number; monthlyCap?: number; currency: string })[];
-  payments: { id: number; condition: string; percentage?: number; amount?: number; dueDate?: string; status: string; paidOn?: string; notes?: string; overdue: boolean }[];
+  payments: (PaymentMilestone & { overdue: boolean })[];
   products: { id: number; code: string; name: string }[]; environments: { id: number; name: string; type: string; region?: string }[];
   slaTargets: Target[]; slaNote: string; lastReviewedAt?: string; version: string; permissions: { canEdit: boolean; canArchive: boolean };
 };
@@ -159,7 +160,7 @@ export function ContractDetail() {
           { id: 'contract-details', label: 'Details' },
           { id: 'contract-sla', label: 'SLA targets', count: c.slaTargets.length },
           { id: 'contract-delivery', label: 'Delivery', count: c.milestones.length },
-          { id: 'contract-payments', label: 'Fees and payments', count: c.payments.length },
+          { id: 'contract-payments', label: 'Payment milestones', count: c.payments.length },
           { id: 'contract-penalties', label: 'Penalties', count: c.penaltyClauses.length },
           { id: 'contract-coverage', label: 'Coverage' },
           { id: 'contract-documents', label: 'Documents' },
@@ -355,7 +356,10 @@ export function ContractForm() {
       slaPauseWhileWaitingOnCustomer: c.slaPauseWhileWaitingOnCustomer,
       milestones: c.milestones.map(m => ({ id: renewing ? undefined : m.id, phase: m.phase, description: m.description ?? '', completionPercent: renewing ? '' : m.completionPercent?.toString() ?? '', date: period ? shiftDay(m.date, period.shiftDays) : m.date ?? '' })),
       fees: c.fees.map(x => ({ id: renewing ? undefined : x.id, description: x.description, unit: x.unit ?? '', quantity: x.quantity?.toString() ?? '', unitPrice: x.unitPrice?.toString() ?? '' })),
-      payments: c.payments.map(x => ({ id: renewing ? undefined : x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: period ? shiftDay(x.dueDate, period.shiftDays) : x.dueDate ?? '', status: renewing ? 'Pending' : x.status, paidOn: renewing ? '' : x.paidOn ?? '', notes: x.notes ?? '' })),
+      // A124: a renewal copies the planned milestones only; its invoices, approvals and receipts start empty.
+      payments: c.payments.map(x => ({ id: renewing ? undefined : x.id, condition: x.condition, percentage: x.percentage?.toString() ?? '', amount: x.amount?.toString() ?? '', dueDate: period ? shiftDay(x.dueDate ?? undefined, period.shiftDays) : x.dueDate ?? '', status: renewing ? 'Pending' : x.status, paidOn: renewing ? '' : x.paidOn ?? '', notes: renewing ? '' : x.notes ?? '',
+        invoiceDate: renewing ? '' : x.invoiceDate ?? '', invoiceNumber: renewing ? '' : x.invoiceNumber ?? '', workStatus: renewing ? '' : x.workStatus ?? '', clientApproval: renewing ? '' : x.clientApproval ?? '',
+        amountReceived: renewing ? '' : x.amountReceived?.toString() ?? '' })),
       penalties: (c.penaltyClauses ?? []).map(x => ({ ...x, id: renewing ? undefined : x.id, fixedAmount: x.fixedAmount?.toString() ?? '', percentage: x.percentage?.toString() ?? '', referenceAmount: x.referenceAmount?.toString() ?? '', monthlyCap: x.monthlyCap?.toString() ?? '' }))
     });
   }, [existing.data, source.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -382,7 +386,8 @@ export function ContractForm() {
       currency: v.currency || null, slaPauseWhileWaitingOnCustomer: v.slaPauseWhileWaitingOnCustomer,
       milestones: v.milestones.map(m => ({ id: m.id ?? null, phase: m.phase, description: m.description || null, completionPercent: num(m.completionPercent), date: m.date || null })),
       fees: v.fees.map(x => ({ id: x.id ?? null, description: x.description, unit: x.unit || null, quantity: num(x.quantity), unitPrice: num(x.unitPrice) })),
-      payments: v.payments.map(x => ({ id: x.id ?? null, condition: x.condition, percentage: num(x.percentage), amount: num(x.amount), dueDate: x.dueDate || null, status: x.status, paidOn: x.status === 'Paid' ? x.paidOn || null : null, notes: x.notes || null })),
+      payments: v.payments.map(x => ({ id: x.id ?? null, condition: x.condition, percentage: num(x.percentage), amount: num(x.amount), dueDate: x.dueDate || null, status: x.status, paidOn: x.status === 'Paid' ? x.paidOn || null : null, notes: x.notes || null,
+        invoiceDate: x.invoiceDate || null, invoiceNumber: x.invoiceNumber || null, workStatus: x.workStatus || null, clientApproval: x.clientApproval || null, amountReceived: num(x.amountReceived) })),
       penaltyClauses: v.penalties.map(x => ({ id: x.id ?? null, name: x.name, trigger: x.trigger, calculation: x.calculation, fixedAmount: x.calculation === 'FixedPerBreach' ? num(x.fixedAmount) : null, percentage: x.calculation === 'PercentagePerBreach' ? num(x.percentage) : null, referenceAmount: x.calculation === 'PercentagePerBreach' ? num(x.referenceAmount) : null, monthlyCap: num(x.monthlyCap), billingTimeZone: x.monthlyCap ? x.billingTimeZone : null }))
     };
     const res = await f.submit(() => isNew ? post<{ id: number }>('/contracts', body) : put(`/contracts/${id}`, body, existing.data?.version).then(() => ({ id: Number(id) })));
@@ -549,7 +554,8 @@ export function ProjectDetail() {
 // ---------------- A49: support hours, delivery schedule, fees and costs, payment terms ----------------
 type MilestoneForm = { id?: number; phase: string; description: string; completionPercent: string; date: string };
 type FeeForm = { id?: number; description: string; unit: string; quantity: string; unitPrice: string };
-type PaymentForm = { id?: number; condition: string; percentage: string; amount: string; dueDate: string; status: string; paidOn: string; notes: string };
+type PaymentForm = { id?: number; condition: string; percentage: string; amount: string; dueDate: string; status: string; paidOn: string; notes: string;
+  invoiceDate: string; invoiceNumber: string; workStatus: string; clientApproval: string; amountReceived: string };
 const num = (x: string) => (x.trim() === '' ? null : Number(x));
 const WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const PAYMENT_STATUS = ['Pending', 'Invoiced', 'Paid', 'Waived'];
@@ -594,6 +600,7 @@ function rowErrors(errors: Record<string, string[]>, key: string) {
 }
 
 function ContractTermsEditor({ v, set, errors }: { v: TermsV; set: (k: keyof TermsV, x: unknown) => void; errors: Record<string, string[]> }) {
+  const T = useTypes();
   const upd = <K extends 'milestones' | 'fees' | 'payments'>(k: K, i: number, patch: Partial<TermsV[K][number]>) =>
     set(k, (v[k] as TermsV[K][number][]).map((r, n) => (n === i ? { ...r, ...patch } : r)));
   const del = (k: 'milestones' | 'fees' | 'payments', i: number) => set(k, (v[k] as unknown[]).filter((_, n) => n !== i));
@@ -646,24 +653,41 @@ function ContractTermsEditor({ v, set, errors }: { v: TermsV; set: (k: keyof Ter
         <datalist id="fee-units">{['year', 'month', 'licence', 'man-day', 'hour', 'site', 'server', 'lump sum'].map(u => <option key={u} value={u} />)}</datalist>
         {rowErrors(errors, 'fees')}
       </Panel>
-      <Panel title="Payment terms" actions={<button className="btn" onClick={() => set('payments', [...v.payments, { condition: '', percentage: '', amount: '', dueDate: '', status: 'Pending', paidOn: '', notes: '' }])}>+ Payment</button>}>
-        <p className="hint" style={{ marginTop: 0 }}>Open payments with a due date are announced in the notifications ahead of time (Administration → Settings → Contracts.PaymentReminderDays) and again when overdue.</p>
-        {v.payments.length === 0 ? <StateMessage kind="none">No payment terms recorded.</StateMessage> : (
-          <table className="grid terms-edit"><thead><tr><th /><th>Condition</th><th className="num">%</th><th className="num">Amount</th><th>Due date</th><th>Status</th><th>Paid on</th><th /></tr></thead>
-            <tbody>{v.payments.map((x, i) => (
+      <Panel title="Payment milestones" actions={<button className="btn" onClick={() => set('payments', [...v.payments, { condition: '', percentage: '', amount: '', dueDate: '', status: 'Pending', paidOn: '', notes: '', invoiceDate: '', invoiceNumber: '', workStatus: '', clientApproval: '', amountReceived: '' }])}>+ Milestone</button>}>
+        <p className="hint" style={{ marginTop: 0 }}>Open payments with a planned invoice date are announced in the notifications ahead of time (Administration → Settings → Contracts.PaymentReminderDays) and again when overdue.
+          The invoice, work status, approval and receipt of a milestone can also be updated later from the contract page with <b>Update</b>, without editing the contract.</p>
+        {v.payments.length === 0 ? <StateMessage kind="none">No payment milestones recorded.</StateMessage> : (
+          <div className="table-wrap"><table className="grid terms-edit pm-edit"><thead><tr><th /><th className="num">#</th><th>Milestone description</th><th>Planned invoice date</th><th className="num">Invoice amount</th><th className="num">%</th>
+            <th>Actual invoice date</th><th>Invoice no.</th><th>Work status</th><th>Client approval</th><th>Payment status</th><th>Paid on</th><th className="num">Amount received</th><th className="num">Outstanding</th><th>Notes</th><th /></tr></thead>
+            <tbody>{v.payments.map((x, i) => {
+              const out = x.status === 'Waived' || !x.amount ? null : Math.max(0, Number(x.amount) - (x.amountReceived ? Number(x.amountReceived) : x.status === 'Paid' ? Number(x.amount) : 0));
+              return (
               <tr key={i}>
                 <td>{order('payments', i, v.payments.length)}</td>
-                <td><input className="input" aria-label={`Payment ${i + 1} condition`} value={x.condition} onChange={e => upd('payments', i, { condition: e.target.value })} placeholder="e.g. 30% on signature" /></td>
-                <td className="num"><input className="input pct" type="number" min="0" max="100" step="any" aria-label={`Payment ${i + 1} percentage`} value={x.percentage} onChange={e => upd('payments', i, { percentage: e.target.value })} /></td>
+                <td className="num">{i + 1}</td>
+                <td><textarea className="input pm-desc-input" rows={2} aria-label={`Payment ${i + 1} condition`} value={x.condition} onChange={e => upd('payments', i, { condition: e.target.value })} placeholder="e.g. Requirements & Analysis – upon delivery of the agreed specifications" /></td>
+                <td><input className="input" type="date" aria-label={`Payment ${i + 1} due date`} value={x.dueDate} onChange={e => upd('payments', i, { dueDate: e.target.value })} /></td>
                 <td className="num"><input className="input money" type="number" min="0" step="0.01" aria-label={`Payment ${i + 1} amount`} value={x.amount} onChange={e => upd('payments', i, { amount: e.target.value })}
                   placeholder={x.percentage && total ? (total * Number(x.percentage) / 100).toFixed(2) : ''} /></td>
-                <td><input className="input" type="date" aria-label={`Payment ${i + 1} due date`} value={x.dueDate} onChange={e => upd('payments', i, { dueDate: e.target.value })} /></td>
+                <td className="num"><input className="input pct" type="number" min="0" max="100" step="any" aria-label={`Payment ${i + 1} percentage`} value={x.percentage} onChange={e => upd('payments', i, { percentage: e.target.value })} /></td>
+                <td><input className="input" type="date" aria-label={`Payment ${i + 1} actual invoice date`} value={x.invoiceDate} onChange={e => upd('payments', i, { invoiceDate: e.target.value })} /></td>
+                <td><input className="input pm-inv" aria-label={`Payment ${i + 1} invoice number`} value={x.invoiceNumber} maxLength={50} onChange={e => upd('payments', i, { invoiceNumber: e.target.value })} /></td>
+                <td><select className="input" data-native-select aria-label={`Payment ${i + 1} work status`} value={x.workStatus} onChange={e => upd('payments', i, { workStatus: e.target.value })}>
+                  <option value="">—</option>{T.options(WORK_LIST, x.workStatus).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></td>
+                <td><select className="input" data-native-select aria-label={`Payment ${i + 1} client approval`} value={x.clientApproval} onChange={e => upd('payments', i, { clientApproval: e.target.value })}>
+                  <option value="">—</option>{T.options(APPROVAL_LIST, x.clientApproval).map(o => <option key={o.value} value={o.value}>{o.label}</option>)}</select></td>
                 <td><select className="input" aria-label={`Payment ${i + 1} status`} value={x.status} onChange={e => upd('payments', i, { status: e.target.value })}>{PAYMENT_STATUS.map(s => <option key={s}>{s}</option>)}</select></td>
                 <td>{x.status === 'Paid' && <input className="input" type="date" aria-label={`Payment ${i + 1} paid on`} value={x.paidOn} onChange={e => upd('payments', i, { paidOn: e.target.value })} />}</td>
+                <td className="num"><input className="input money" type="number" min="0" step="0.01" aria-label={`Payment ${i + 1} amount received`} value={x.amountReceived} onChange={e => upd('payments', i, { amountReceived: e.target.value })}
+                  placeholder={x.status === 'Paid' && x.amount ? x.amount : ''} /></td>
+                <td className="num nowrap">{out ? money(out, v.currency) : '-'}</td>
+                <td><input className="input" aria-label={`Payment ${i + 1} notes`} value={x.notes} maxLength={1000} onChange={e => upd('payments', i, { notes: e.target.value })} /></td>
                 <td><button type="button" className="linkbtn" onClick={() => del('payments', i)} aria-label={`Remove payment ${i + 1}`}>Remove</button></td>
-              </tr>))}</tbody>
-            <tfoot><tr><td /><td className="num"><b>Total</b></td><td className={`num${pct > 100 ? ' err' : ''}`}><b>{pct ? `${pct} %` : ''}</b></td>
-              <td className="num nowrap"><b>{money(v.payments.reduce((a, x) => a + (Number(x.amount) || 0), 0) || null, v.currency)}</b></td><td colSpan={4} /></tr></tfoot></table>
+              </tr>);
+            })}</tbody>
+            <tfoot><tr><td /><td /><td colSpan={2} className="num"><b>Total</b></td>
+              <td className="num nowrap"><b>{money(v.payments.reduce((a, x) => a + (Number(x.amount) || 0), 0) || null, v.currency)}</b></td>
+              <td className={`num${pct > 100 ? ' err' : ''}`}><b>{pct ? `${pct} %` : ''}</b></td><td colSpan={10} /></tr></tfoot></table></div>
         )}
         {rowErrors(errors, 'payments')}
       </Panel>
@@ -672,9 +696,9 @@ function ContractTermsEditor({ v, set, errors }: { v: TermsV; set: (k: keyof Ter
 }
 
 function ContractTermsView({ c }: { c: Detail }) {
-  const [statusOf, setStatusOf] = useState<Detail['payments'][number] | null>(null);
   const done = c.milestones.length ? Math.round(c.milestones.reduce((a, m) => a + (m.completionPercent ?? 0), 0) / c.milestones.length) : null;
-  const paid = c.payments.filter(p => p.status === 'Paid').reduce((a, p) => a + (p.amount ?? 0), 0);
+  const paid = c.payments.reduce((a, p) => a + (p.received ?? 0), 0);
+  const outstanding = c.payments.reduce((a, p) => a + (p.outstanding ?? 0), 0);
   const open = c.payments.filter(p => p.status === 'Pending' || p.status === 'Invoiced');
   const next = open.filter(p => p.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))[0];
   return (
@@ -689,7 +713,16 @@ function ContractTermsView({ c }: { c: Detail }) {
           ]} />
         )}
       </Panel>
-      <div className="cols" id="contract-payments">
+      <Panel id="contract-payments" title="Payment milestones" pad={false}>
+        {c.payments.length === 0 ? <div className="panel-body"><StateMessage kind="none">No payment milestones recorded.</StateMessage></div> : (<>
+          <p className="hint" style={{ padding: '8px 12px 0', margin: 0 }}>
+            {next ? <>Next planned invoice: <b>{fmtDate(next.dueDate!)}</b> — {next.condition}{next.amount ? ` (${money(next.amount, c.currency)})` : ''}. </> : open.length ? 'Open milestones have no planned invoice date. ' : 'No open milestones. '}
+            {paid > 0 && <>Received so far: {money(paid, c.currency)}. </>}{outstanding > 0 && <>Outstanding: {money(outstanding, c.currency)}.</>}
+            {c.permissions.canEdit && <> Use <b>Update</b> on a row to record its invoice, approval or payment without editing the contract.</>}</p>
+          <PaymentMilestoneTable rows={c.payments} currency={c.currency} caption="Contract payment milestones" title={`${c.title} – Payment Milestones`} canEdit={c.permissions.canEdit} contractId={c.id} />
+        </>)}
+      </Panel>
+      <div className="cols">
         <Panel title={`Fees and costs${c.currency ? ` (${c.currency})` : ''}`} pad={false}>
           {c.fees.length === 0 ? <div className="panel-body"><StateMessage kind="none">No fees recorded.</StateMessage></div> : (<>
           <DataTable caption="Contract fees and costs" rows={c.fees} rowKey={f => f.id} columns={[
@@ -700,31 +733,6 @@ function ContractTermsView({ c }: { c: Detail }) {
           ]} />
           <p className="hint" style={{ padding: '0 12px' }}><b>Total: {money(c.feesTotal, c.currency)}</b></p>
           </>)}
-        </Panel>
-        <Panel title="Payment terms" pad={false}>
-          {c.payments.length === 0 ? <div className="panel-body"><StateMessage kind="none">No payment terms recorded.</StateMessage></div> : (<>
-            <p className="hint" style={{ padding: '8px 12px 0', margin: 0 }}>
-              {next ? <>Next due: <b>{fmtDate(next.dueDate!)}</b> — {next.condition}{next.amount ? ` (${money(next.amount, c.currency)})` : ''}. </> : open.length ? 'Open payments have no due date. ' : 'No open payments. '}
-              {paid > 0 && <>Paid so far: {money(paid, c.currency)}.</>}</p>
-            <DataTable caption="Contract payment terms" rows={c.payments} rowKey={p => p.id} columns={[
-              { key: 'condition', header: 'Condition', render: p => <>{p.condition}{p.notes && <div className="hint">{p.notes}</div>}</> },
-              { key: 'percentage', header: '%', className: 'num', render: p => p.percentage !== undefined && p.percentage !== null ? `${p.percentage} %` : '' },
-              { key: 'amount', header: 'Amount', className: 'num nowrap', render: p => money(p.amount, c.currency) },
-              { key: 'due', header: 'Due', className: 'nowrap', render: p => p.dueDate ? fmtDate(p.dueDate) : <Unknown /> },
-              { key: 'status', header: 'Status', className: 'nowrap', render: p => <><StatusBadge value={p.status} />{p.overdue && <> <Badge tone="bad">Overdue</Badge></>}{p.paidOn && <div className="hint">paid {fmtDate(p.paidOn)}</div>}</> },
-              // A110: the status of one payment changes here, without editing the contract.
-              ...(c.permissions.canEdit ? [{ key: 'change', header: '', className: 'row-actions', render: (p: Detail['payments'][number]) => <button className="linkbtn" onClick={() => setStatusOf(p)}>Change status</button> }] : [])
-            ]} />
-          </>)}
-          {statusOf && <ActionDialog title="Change payment status" submitLabel="Save status" path={`/contracts/${c.id}/payments/${statusOf.id}/status`} onClose={() => setStatusOf(null)}
-            intro={<>Payment <b>{statusOf.condition}</b>{statusOf.amount != null ? <> ({money(statusOf.amount, c.currency)})</> : null}. The rest of the contract is not changed.</>}
-            initial={{ status: statusOf.status, paidOn: statusOf.paidOn ?? '', notes: statusOf.notes ?? '' }}
-            transform={v => ({ status: v.status || null, paidOn: v.status === 'Paid' ? v.paidOn || null : null, notes: v.notes })}
-            fields={[
-              { name: 'status', label: 'Status', kind: 'select', required: true, options: [{ value: 'Pending', label: 'Pending' }, { value: 'Invoiced', label: 'Invoiced' }, { value: 'Paid', label: 'Paid' }, { value: 'Waived', label: 'Waived' }] },
-              { name: 'paidOn', label: 'Paid on', kind: 'date', hint: 'Required when the status is Paid.' },
-              { name: 'notes', label: 'Notes', kind: 'textarea', hint: 'Optional, for example the invoice number.' }
-            ]} />}
         </Panel>
       </div>
     </>

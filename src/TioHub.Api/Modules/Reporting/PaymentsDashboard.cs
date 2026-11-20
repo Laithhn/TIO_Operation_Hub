@@ -2,6 +2,7 @@ using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using TioHub.Api.Common;
 using TioHub.Api.Data;
+using TioHub.Api.Modules.Admin;
 using TioHub.Api.Modules.Contracts;
 using TioHub.Api.Security;
 
@@ -229,7 +230,8 @@ public sealed class PaymentsDashboard(HubDbContext db)
             {
                 x.Row.Id, x.Row.ContractId, x.Row.ContractRef, x.Row.ContractTitle, x.Row.ClientId, clientCode = x.Row.ClientCode, clientName = v.ClientById.GetValueOrDefault(x.Row.ClientId)?.Name,
                 x.Row.Owner, x.Row.Condition, x.Row.Percentage, x.Row.Amount, x.Row.Currency, x.Row.DueDate, status = x.Row.Status.ToString(), x.Row.PaidOn,
-                bucket = x.Bucket, state = x.State, products = x.Products,
+                x.Row.InvoiceDate, x.Row.InvoiceNumber, x.Row.WorkStatus, x.Row.WorkState, x.Row.ClientApproval, x.Row.ApprovalState, x.Row.AmountReceived, x.Row.Received, x.Row.Outstanding,
+                bucket =x.Bucket, state = x.State, products = x.Products,
                 daysOverdue = x.Bucket == "overdue" ? today.DayNumber - x.Row.DueDate!.Value.DayNumber : (int?)null,
                 daysToDue = x.Bucket == "upcoming" ? x.Row.DueDate!.Value.DayNumber - today.DayNumber : (int?)null
             }).ToList()
@@ -250,6 +252,10 @@ public sealed class PaymentsDashboard(HubDbContext db)
         static DateTime? D(DateOnly? d) => d?.ToDateTime(TimeOnly.MinValue);
         string Names<T>(IReadOnlyList<T> ids, Func<T, string?> name, string all) => ids.Count == 0 ? all : string.Join(", ", ids.Select(i => name(i) ?? i!.ToString()));
         string MoneyOf(Part p) => p.Amounts.Count == 0 ? (p.Count == 0 ? "0" : "No amount") : string.Join(" · ", p.Amounts.Select(a => $"{(a.Currency.Length > 0 ? a.Currency + " " : "")}{a.Value.ToString("#,0.##", CultureInfo.InvariantCulture)}"));
+        // A124: configured labels of the milestone work status and client approval.
+        var labels = await db.LookupValues.AsNoTracking().Where(l => l.ListName == LookupLists.PaymentWorkStatus || l.ListName == LookupLists.PaymentClientApproval)
+            .Select(l => new { l.ListName, l.Code, l.Label }).ToListAsync(ct);
+        string? Label(string list, string? code) => code is null ? null : labels.FirstOrDefault(l => l.ListName == list && l.Code == code)?.Label ?? code;
 
         var summary = new List<IReadOnlyList<object?>>
         {
@@ -284,7 +290,9 @@ public sealed class PaymentsDashboard(HubDbContext db)
         {
             x.Row.ClientCode, v.ClientById.GetValueOrDefault(x.Row.ClientId)?.Name, x.Row.ContractRef, x.Row.ContractTitle, x.Row.Owner, string.Join(", ", x.Products),
             x.Row.Condition, x.Row.Percentage, StateWords.GetValueOrDefault(x.State, x.State), x.Row.Status.ToString(), D(x.Row.DueDate), D(x.Row.PaidOn),
-            x.Bucket == "overdue" ? v.Today.DayNumber - x.Row.DueDate!.Value.DayNumber : null, x.Row.Amount, x.Row.Currency, YearDate(x.Row)?.Year
+            x.Bucket == "overdue" ? v.Today.DayNumber - x.Row.DueDate!.Value.DayNumber : null, x.Row.Amount, x.Row.Currency, YearDate(x.Row)?.Year,
+            D(x.Row.InvoiceDate), x.Row.InvoiceNumber, Label(LookupLists.PaymentWorkStatus, x.Row.WorkStatus), Label(LookupLists.PaymentClientApproval, x.Row.ClientApproval),
+            x.Row.Received, x.Row.Outstanding
         }).ToList();
         var byClient = ByClient(v).Select(c => (IReadOnlyList<object?>)new object?[]
         {
@@ -293,7 +301,8 @@ public sealed class PaymentsDashboard(HubDbContext db)
 
         var bytes = Xlsx.Build([
             new XlsxSheet("Summary", null, summary),
-            new XlsxSheet("Payment terms", ["Client", "Client name", "Contract", "Contract title", "Contract owner", "Products", "Payment", "Percentage", "State", "Recorded status", "Due date", "Paid on", "Days overdue", "Amount", "Currency", "Counts in year"], terms),
+            new XlsxSheet("Payment terms", ["Client", "Client name", "Contract", "Contract title", "Contract owner", "Products", "Payment", "Percentage", "State", "Recorded status", "Due date", "Paid on", "Days overdue", "Amount", "Currency", "Counts in year",
+                "Actual invoice date", "Invoice no.", "Work status", "Client approval", "Amount received", "Outstanding"], terms),
             new XlsxSheet("By client", ["Client", "Client name", "Paid terms", "Paid amount", "Upcoming terms", "Upcoming amount", "Overdue terms", "Overdue amount", "Terms"], byClient)
         ]);
         return (bytes, $"tio-hub-payments-dashboard-{v.Now.UtcDateTime:yyyyMMdd-HHmm}.xlsx", listed.Count);

@@ -78,7 +78,9 @@ public static class ContractEndpoints
     /// <summary>The client comes from the project (ClientId, when sent, must match it); covered products are the project's products.</summary>
     public sealed record MilestoneInput(long? Id, string? Phase, string? Description, int? CompletionPercent, DateOnly? Date);
     public sealed record FeeInput(long? Id, string? Description, string? Unit, decimal? Quantity, decimal? UnitPrice);
-    public sealed record PaymentInput(long? Id, string? Condition, decimal? Percentage, decimal? Amount, DateOnly? DueDate, PaymentStatus? Status, DateOnly? PaidOn, string? Notes);
+    /// <summary>A124 adds the milestone tracking values (invoice, work status, client approval, amount received); left out, they are cleared.</summary>
+    public sealed record PaymentInput(long? Id, string? Condition, decimal? Percentage, decimal? Amount, DateOnly? DueDate, PaymentStatus? Status, DateOnly? PaidOn, string? Notes,
+        DateOnly? InvoiceDate = null, string? InvoiceNumber = null, string? WorkStatus = null, string? ClientApproval = null, decimal? AmountReceived = null);
     public sealed record PenaltyClauseInput(long? Id, string? Name, PenaltyTrigger? Trigger, PenaltyCalculation? Calculation, decimal? FixedAmount, decimal? Percentage, decimal? ReferenceAmount, decimal? MonthlyCap, string? BillingTimeZone);
     public sealed record PenaltyReasonInput(string? Reason);
     public sealed record ContractInput(long? ClientId, long? ProjectId, string? Title, string? ContractReference, string? Type, ContractStatus? Status, long? OwnerUserId,
@@ -159,7 +161,9 @@ public static class ContractEndpoints
                 payments = c.Payments.OrderBy(x => x.SortOrder).Select(x => new
                 {
                     x.Id, x.Condition, x.Percentage, x.Amount, x.DueDate, x.Status, x.PaidOn, x.Notes,
-                    overdue = x.DueDate != null && x.DueDate < DateOnly.FromDateTime(now.UtcDateTime) && (x.Status == PaymentStatus.Pending || x.Status == PaymentStatus.Invoiced)
+                    x.InvoiceDate, x.InvoiceNumber, x.WorkStatus, x.WorkState, x.ClientApproval, x.ApprovalState,
+                    x.AmountReceived, received = ContractPayment.Received(x.Status, x.Amount, x.AmountReceived), outstanding = ContractPayment.Outstanding(x.Status, x.Amount, x.AmountReceived),
+                    overdue =x.DueDate != null && x.DueDate < DateOnly.FromDateTime(now.UtcDateTime) && (x.Status == PaymentStatus.Pending || x.Status == PaymentStatus.Invoiced)
                 }),
                 products = await db.Products.AsNoTracking().Where(p => access.Me.HasRight(RightKeys.Products, RightKeys.View) && productIds.Contains(p.Id)).OrderBy(p => p.Code).Select(p => new { p.Id, p.Code, p.Name }).ToListAsync(ct),
                 environments = await db.Environments.AsNoTracking().Where(e => access.Me.HasRight(RightKeys.Environments, RightKeys.View) && envIds.Contains(e.Id))
@@ -411,13 +415,13 @@ public static class ContractEndpoints
                  .When(x.Quantity is <= 0, f, $"Fee row {n + 1}: the quantity must be more than zero.");
         }
         var payments = i.Payments ?? [];
+        var lookups = new LookupService(db);
+        var resolved = new List<PaymentMilestones.Resolved>();
         for (var n = 0; n < payments.Count; n++)
         {
-            var x = payments[n]; var f = $"payments[{n}]";
-            check.Text(f, x.Condition, 500, $"the condition of payment row {n + 1}", required: true).Text(f, x.Notes, 1000, $"Payment row {n + 1} notes")
-                 .When(x.Percentage is < 0 or > 100, f, $"Payment row {n + 1}: the percentage is between 0 and 100.")
-                 .When(x.Amount is < 0, f, $"Payment row {n + 1}: the amount cannot be negative.")
-                 .When(x.Status == PaymentStatus.Paid && x.PaidOn is null, f, $"Payment row {n + 1}: enter the date it was paid.");
+            var x = payments[n];
+            var existing = x.Id is > 0 ? c.Payments.FirstOrDefault(p => p.Id == x.Id) : null;
+            resolved.Add(await PaymentMilestones.CheckAsync(check, $"payments[{n}]", $"Payment row {n + 1}", x, existing, lookups, ct));
         }
         if (payments.Sum(x => x.Percentage ?? 0) > 100) check.Add("payments", "The payment percentages add up to more than 100 %.");
         var currency = Text.Clean(i.Currency)?.ToUpperInvariant();
@@ -449,11 +453,7 @@ public static class ContractEndpoints
         // Rows keep their id when sent back; new rows are added; rows not sent are removed. The order is the order sent.
         Sync(c.Milestones, milestones, m => m.Id, x => x.Id, (row, x, n) => { row.SortOrder = n; row.Phase = x.Phase!.Trim(); row.Description = Text.Clean(x.Description); row.CompletionPercent = x.CompletionPercent; row.Date = x.Date; });
         Sync(c.Fees, fees, m => m.Id, x => x.Id, (row, x, n) => { row.SortOrder = n; row.Description = x.Description!.Trim(); row.Unit = Text.Clean(x.Unit); row.Quantity = x.Quantity; row.UnitPrice = x.UnitPrice; });
-        Sync(c.Payments, payments, m => m.Id, x => x.Id, (row, x, n) =>
-        {
-            row.SortOrder = n; row.Condition = x.Condition!.Trim(); row.Percentage = x.Percentage; row.Amount = x.Amount; row.DueDate = x.DueDate;
-            row.Status = x.Status ?? PaymentStatus.Pending; row.PaidOn = row.Status == PaymentStatus.Paid ? x.PaidOn : null; row.Notes = Text.Clean(x.Notes);
-        });
+        Sync(c.Payments, payments, m => m.Id, x => x.Id, (row, x, n) => { row.SortOrder = n; PaymentMilestones.Apply(row, x, resolved[n]); });
         if (penalties is not null)
             Sync(c.PenaltyClauses, penalties, m => m.Id, x => x.Id, (row, x, _) =>
             {

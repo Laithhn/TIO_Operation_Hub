@@ -162,4 +162,21 @@ public class ContractPayment
     public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
     public DateOnly? PaidOn { get; set; }
     public string? Notes { get; set; }
+    // A124 (owner request, 19 Nov 2026): the payment milestone template — planned invoice date (DueDate), invoice amount (Amount) and %
+    // come from the contract; the actual invoice, work status, client approval and the amount received are tracked per row.
+    public DateOnly? InvoiceDate { get; set; }
+    public string? InvoiceNumber { get; set; }
+    /// <summary>Configured work status (list PaymentWorkStatus); <see cref="WorkState"/> keeps its built-in behaviour.</summary>
+    public string? WorkStatus { get; set; }
+    public MilestoneWorkState? WorkState { get; set; }
+    /// <summary>Configured client approval (list PaymentClientApproval); <see cref="ApprovalState"/> keeps its built-in behaviour.</summary>
+    public string? ClientApproval { get; set; }
+    public ClientApprovalState? ApprovalState { get; set; }
+    public decimal? AmountReceived { get; set; }
+
+    /// <summary>What was received: the recorded amount, or the whole amount for a Paid row recorded before A124 without one.</summary>
+    public static decimal? Received(PaymentStatus status, decimal? amount, decimal? received) => received ?? (status == PaymentStatus.Paid ? amount : null);
+    /// <summary>Still to be received: nothing for a waived row; otherwise the amount less what was received, never below zero.</summary>
+    public static decimal? Outstanding(PaymentStatus status, decimal? amount, decimal? received) =>
+        status == PaymentStatus.Waived || amount is null ? null : Math.Max(0, amount.Value - (Received(status, amount, received) ?? 0));
 }

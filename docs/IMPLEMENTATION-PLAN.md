@@ -65,6 +65,6 @@ there are no speculative repositories or message buses.
   Application Administrator alone sees no client data; Export, Technical detail and Change history are separate rights.
 - Project scope grants the client summary plus records linked to that project (environments and their inventory, commitments, cases touching those environments).
 - Restore requires Team Lead or Manager within scope (administration alone is insufficient).
-- Approved link hosts, vault-reference prefix, coverage policy and review policies are configurable settings seeded with placeholder-safe defaults (no real hosts).
+- Approved link hosts, coverage policy and review policies are configurable settings seeded with placeholder-safe defaults (no real hosts).
 - Condition-evidence review interval defaults to 7 days (BRD gives no figure); configurable.
 - Time zones are IANA identifiers; ambiguous local times (DST overlap) require an explicit offset; invalid local times (DST gap) are rejected.

@@ -23,7 +23,9 @@ public static class SignalState
 public sealed record ProjectFact(long Id, string Code, string Name, ProjectStatus Status, string? Owner, DateOnly? ServiceStart, DateOnly? ServiceEnd);
 public sealed record ContractFact(long Id, string Ref, string Title, string Type, ContractStatus Status, DateOnly? StartDate, DateOnly? EndDate, int? NoticeDays, string? Currency, long ProjectId = 0, string? ProjectCode = null);
 public sealed record MilestoneFact(long ContractId, string ContractRef, ContractStatus ContractStatus, int SortOrder, string Phase, string? Description, DateOnly? Date, int? Percent);
-public sealed record PaymentFact(long Id, long ContractId, string ContractRef, ContractStatus ContractStatus, int SortOrder, string Condition, decimal? Amount, string? Currency, DateOnly? DueDate, PaymentStatus Status, DateOnly? PaidOn);
+public sealed record PaymentFact(long Id, long ContractId, string ContractRef, ContractStatus ContractStatus, int SortOrder, string Condition, decimal? Amount, string? Currency, DateOnly? DueDate, PaymentStatus Status, DateOnly? PaidOn,
+    decimal? Percentage = null, DateOnly? InvoiceDate = null, string? InvoiceNumber = null, string? WorkStatus = null, MilestoneWorkState? WorkState = null,
+    string? ClientApproval = null, ClientApprovalState? ApprovalState = null, decimal? AmountReceived = null);
 public sealed record EnvFact(long Id, string Name, string Type, EnvironmentType TypeCategory, Condition Condition, DateTimeOffset? ObservedAt, string? Reason);
 public sealed record CaseFact(long Id, string Ref, string Title, Priority Priority, CaseStatus Status, DateTimeOffset CreatedAt, DateTimeOffset? DueAt, long? ContractId, string? Owner,
     SlaState Response, DateTimeOffset? ResponseDueAt, SlaState Resolution, DateTimeOffset? ResolutionDueAt);
@@ -325,7 +327,8 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
         {
             c.Id, c.ClientId, c.ProjectId, projectCode = c.Project!.Code, c.Ref, c.Title, c.Type, c.Status, c.StartDate, c.EndDate, c.NoticeDays, c.Currency,
             milestones = c.Milestones.Select(m => new { m.SortOrder, m.Phase, m.Description, m.Date, m.CompletionPercent }).ToList(),
-            payments = c.Payments.Select(p => new { p.Id, p.SortOrder, p.Condition, p.Amount, p.DueDate, p.Status, p.PaidOn }).ToList()
+            payments = c.Payments.Select(p => new { p.Id, p.SortOrder, p.Condition, p.Amount, p.DueDate, p.Status, p.PaidOn,
+                p.Percentage, p.InvoiceDate, p.InvoiceNumber, p.WorkStatus, p.WorkState, p.ClientApproval, p.ApprovalState, p.AmountReceived }).ToList()
         }).ToListAsync(ct);
 
         var envs = (await db.Environments.AsNoTracking().Where(e => ids.Contains(e.ClientId))
@@ -367,7 +370,8 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
                 Projects = projects[c.Id].ToList(),
                 Contracts = mine.Select(k => new ContractFact(k.Id, k.Ref, k.Title, k.Type, k.Status, k.StartDate, k.EndDate, k.NoticeDays, k.Currency, k.ProjectId, k.projectCode)).ToList(),
                 Milestones = mine.SelectMany(k => k.milestones.Select(m => new MilestoneFact(k.Id, k.Ref, k.Status, m.SortOrder, m.Phase, m.Description, m.Date, m.CompletionPercent))).ToList(),
-                Payments = mine.SelectMany(k => k.payments.Select(x => new PaymentFact(x.Id, k.Id, k.Ref, k.Status, x.SortOrder, x.Condition, x.Amount, k.Currency, x.DueDate, x.Status, x.PaidOn))).ToList(),
+                Payments = mine.SelectMany(k => k.payments.Select(x => new PaymentFact(x.Id, k.Id, k.Ref, k.Status, x.SortOrder, x.Condition, x.Amount, k.Currency, x.DueDate, x.Status, x.PaidOn,
+                    x.Percentage, x.InvoiceDate, x.InvoiceNumber, x.WorkStatus, x.WorkState, x.ClientApproval, x.ApprovalState, x.AmountReceived))).ToList(),
                 Environments = envs[c.Id].ToList(),
                 Cases = cases[c.Id].ToList(),
                 Escalations = escs[c.Id].ToList(),
@@ -559,7 +563,9 @@ public sealed class ClientInsight(HubDbContext db, HubSettings settings, Freshne
             payments = f.Payments.OrderBy(p => p.DueDate ?? DateOnly.MaxValue).ThenBy(p => p.SortOrder).Select(p => new
             {
                 p.Id, p.ContractId, p.ContractRef, p.Condition, p.Amount, p.Currency, p.DueDate, status = p.Status.ToString(), p.PaidOn,
-                state = PaymentQuery.StateOf(new PaymentRow { ContractStatus = p.ContractStatus, DueDate = p.DueDate, Status = p.Status }, today, reminder),
+                p.Percentage, p.InvoiceDate, p.InvoiceNumber, p.WorkStatus, p.WorkState, p.ClientApproval, p.ApprovalState, p.AmountReceived,
+                received = ContractPayment.Received(p.Status, p.Amount, p.AmountReceived), outstanding = ContractPayment.Outstanding(p.Status, p.Amount, p.AmountReceived),
+                state =PaymentQuery.StateOf(new PaymentRow { ContractStatus = p.ContractStatus, DueDate = p.DueDate, Status = p.Status }, today, reminder),
                 // A113: a paid term counts in the year it was paid (its due date when no paid date is recorded); any other term in the year it is due. No date = not in any year.
                 yearDate = PaymentDate(p), inYears = PaymentDate(p) is { } pd && sel.Contains(pd)
             }).ToList(),

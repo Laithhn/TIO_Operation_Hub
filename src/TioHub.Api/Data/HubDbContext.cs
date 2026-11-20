@@ -782,6 +782,13 @@ public sealed class HubDbContext(DbContextOptions<HubDbContext> options, UserCon
             e.Property(x => x.Amount).HasPrecision(18, 2);
             e.Property(x => x.Status).HasConversion<string>().HasMaxLength(20);
             e.Property(x => x.Notes).HasMaxLength(1000);
+            // A124: payment milestone tracking.
+            e.Property(x => x.InvoiceNumber).HasMaxLength(50);
+            e.Property(x => x.WorkStatus).HasMaxLength(40);
+            e.Property(x => x.WorkState).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.ClientApproval).HasMaxLength(40);
+            e.Property(x => x.ApprovalState).HasConversion<string>().HasMaxLength(20);
+            e.Property(x => x.AmountReceived).HasPrecision(18, 2);
             e.HasIndex(x => new { x.Status, x.DueDate });
         });
         m.Entity<SlaTarget>(e =>

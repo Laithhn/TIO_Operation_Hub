@@ -87,8 +87,9 @@ public sealed class RightsModelUpgradeTests
     private static async Task Upgrade(HubDbContext db)
     {
         await db.GetService<IMigrator>().MigrateAsync();
-        // A later release's grant, not part of this upgrade. My_dashboard_goes_to_every_role_holding_ticket_view tests it.
-        await db.Database.ExecuteSqlRawAsync("DELETE g FROM [iam].[RoleRight] g JOIN [iam].[AppRole] r ON r.Id = g.AppRoleId WHERE g.[RightKey] = N'MyDashboard:View' AND r.[Name] <> N'TIO Manager'");
+        // Later releases' grants, not part of this upgrade. My_dashboard_goes_to_every_role_holding_ticket_view and
+        // AllRightsRoleUpgradeTests.Tickets_dashboard_goes_to_every_role_holding_ticket_view (A123) test them.
+        await db.Database.ExecuteSqlRawAsync("DELETE g FROM [iam].[RoleRight] g JOIN [iam].[AppRole] r ON r.Id = g.AppRoleId WHERE g.[RightKey] IN (N'MyDashboard:View', N'TicketDashboard:View') AND r.[Name] <> N'TIO Manager'");
         await RightsCatalog.SynchronizeAsync(db);
     }
 

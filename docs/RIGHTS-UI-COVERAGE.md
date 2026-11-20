@@ -72,6 +72,7 @@ All record screens also depend on data scope (client, project or team). A record
 
 | Screen or address | What it is | Browser needs | Controls and server |
 |---|---|---|---|
+| `/cases/dashboard` | Tickets dashboard (A123), *Tickets → Tickets dashboard*: tickets by status, unresolved per responsible party, statistics per owner, priority, type and client, activity stream. The activity stream shows with `tab.Cases.timeline:View`; the Product filter with `Products:View`; *+ New Ticket* with `Cases:Create` | `TicketDashboard:View` (requires `Cases:View`) | Tickets dashboard API; ticket scope applies |
 | `/cases, /cases/new, /cases/:id, /cases/:id/edit` | Cases and their tabs | `Cases:View`; `:Create`; `:DetailsView`; `:Maintain` | Tabs `tab.Cases.*:View`. Triage, assign, reopen `Cases:Coordinate`. Jira references `tab.Cases.jira:*`. Workflow buttons come from the record's `permissions` flags, decided on the server |
 | `/commitments, /commitments/new, /commitments/:id` | Commitments | `Commitments:View`; `:Create`; `:DetailsView` | Revise, complete, cancel, reopen: `Commitments:Maintain` (may be limited to a scope). Assign someone else `Commitments:Coordinate` |
 | `/escalations, /escalations/new, /escalations/:id, /escalations/:id/edit` | Escalations | `OtherOperations:View`; `:Create`; `:DetailsView`; `:Maintain` | Change owner `OtherOperations:Coordinate` |

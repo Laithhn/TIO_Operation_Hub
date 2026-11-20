@@ -561,6 +561,91 @@ public class AC108_AudienceDashboards(HubFactory hub) : Scenario(hub)
         Assert.Equal(HttpStatusCode.Forbidden, (await norole.Get("/dashboard/payments")).Status);
     }
 
+    /// <summary>A role with exactly these rights (and the platform rights they imply), for the Tickets dashboard's own right.</summary>
+    private async Task<Api> TicketsPerson(params string[] keys)
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var roleId = await m.Create("/admin/roles", new { name = U("A123"), rights = Fixture.Rights(keys, Flag.None) });
+        var account = $@"DEV\{U("a123")}";
+        await m.Create("/admin/users", new { accountName = account, displayName = "A123 test", workingTimeZone = "UTC", allClients = true, allInternal = true, roleId });
+        return await Hub.As(account);
+    }
+
+    [Fact]
+    public async Task Tickets_dashboard_right_allows_and_denies_access()
+    {
+        // A123: the Tickets dashboard needs its own right and ticket access, not the dashboard area (Dashboard:View).
+        var allowed = await TicketsPerson("Cases:View", "TicketDashboard:View");
+        Assert.Equal(HttpStatusCode.OK, (await allowed.Get("/dashboard/tickets")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await TicketsPerson("Cases:View")).Get("/dashboard/tickets")).Status);
+        Assert.Equal(HttpStatusCode.Forbidden, (await (await ViewerWithout("TicketDashboard:View")).Get("/dashboard/tickets")).Status);
+        // The activity stream is the ticket Activity tab's content, so it needs that tab's right; the rest of the page does not.
+        Assert.Null((await allowed.Get("/dashboard/tickets")).Body!["activity"]);
+        var withActivity = await TicketsPerson("Cases:View", "Cases:DetailsView", "TicketDashboard:View");
+        Assert.NotNull((await withActivity.Get("/dashboard/tickets")).Body!["activity"]);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await allowed.Get("/dashboard/tickets?days=13")).Status);
+    }
+
+    [Fact]
+    public async Task Tickets_dashboard_counts_equal_their_lists_and_show_recent_activity()
+    {
+        var m = await Hub.As(HubFactory.Manager);
+        var c = await NewClient();
+        var owned = await NewCase(c, owner: m.UserId);
+        var unowned = await NewCase(c);
+        var closed = await NewCase(c, owner: m.UserId);
+        using (var scope = Hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
+            await db.Cases.IgnoreQueryFilters().Where(x => x.Id == closed).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, CaseStatus.Closed).SetProperty(x => x.StatusCode, CaseStatuses.ClosedCode).SetProperty(x => x.ClosedAt, DateTimeOffset.UtcNow));
+        }
+        await m.Create($"/cases/{owned}/comments", new { body = "Customer informed of the workaround" });
+
+        var d = (await m.Get($"/dashboard/tickets?clientId={c}")).Body!;
+        var k = d["kpis"]!;
+        Assert.Equal(3, k["total"]!["value"]!.GetValue<int>());
+        Assert.Equal(2, k["open"]!["value"]!.GetValue<int>());
+        Assert.Equal(1, k["done"]!["value"]!.GetValue<int>());
+        Assert.Equal(33, k["done"]!["percent"]!.GetValue<int>());
+        Assert.Equal(1, k["unassigned"]!["value"]!.GetValue<int>());
+        // Every figure opens the list it counts.
+        foreach (var key in new[] { "total", "open", "done", "unassigned" })
+            Assert.Equal(k[key]!["value"]!.GetValue<int>(), Total(await m.Get(k[key]!["link"]!.GetValue<string>())));
+        foreach (var s in d["byStatus"]!.AsArray())
+            Assert.Equal(s!["value"]!.GetValue<int>(), Total(await m.Get(s["link"]!.GetValue<string>())));
+        Assert.Equal(3, d["byStatus"]!.AsArray().Sum(s => s!["value"]!.GetValue<int>()));
+        Assert.Contains(d["byStatus"]!.AsArray(), s => s!["done"]!.GetValue<bool>() && s["value"]!.GetValue<int>() == 1);
+        var unassignedRow = d["byOwner"]!.AsArray().Single(o => o!["owner"]!.GetValue<string>() == "Unassigned")!;
+        Assert.Equal(1, Total(await m.Get(unassignedRow["link"]!.GetValue<string>())));
+
+        // Unresolved tickets, per responsible party: the closed one is not there.
+        var listed = d["unresolved"]!.AsArray().SelectMany(u => u!["items"]!.AsArray()).Select(Id).ToList();
+        Assert.Equal([owned, unowned], listed.Order());
+        Assert.Equal(2, d["unresolved"]!.AsArray().Sum(u => u!["total"]!.GetValue<int>()));
+        Assert.Equal(2, d["byPriority"]!.AsArray().Single(p => p!["key"]!.GetValue<string>() == "High")!["value"]!.GetValue<int>());
+        Assert.Empty(d["byClient"]!.AsArray());
+
+        // Recent activity: hub events and TIO comments of the tickets in view, newest first, with the ticket each belongs to.
+        var activity = d["activity"]!.AsArray();
+        Assert.Contains(activity, a => a!["kind"]!.GetValue<string>() == "Comment" && a["caseId"]!.GetValue<long>() == owned && a["body"]!.GetValue<string>().Contains("workaround"));
+        Assert.Contains(activity, a => a!["kind"]!.GetValue<string>() == "Created" && a["caseId"]!.GetValue<long>() == unowned);
+        Assert.All(activity, a => Assert.Contains(a!["caseId"]!.GetValue<long>(), new[] { owned, unowned, closed }));
+        var times = activity.Select(a => a!["at"]!.GetValue<DateTimeOffset>()).ToList();
+        Assert.Equal(times.OrderByDescending(t => t), times);
+
+        // The period counts tickets by the date they were opened; its list link carries the same start.
+        using (var scope = Hub.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TioHub.Api.Data.HubDbContext>();
+            var old = DateTimeOffset.UtcNow.AddDays(-40);
+            await db.Cases.IgnoreQueryFilters().Where(x => x.Id == unowned).ExecuteUpdateAsync(s => s.SetProperty(x => x.CreatedAt, old).SetProperty(x => x.SlaClockStartAt, old));
+        }
+        var recent = (await m.Get($"/dashboard/tickets?clientId={c}&days=30")).Body!["kpis"]!;
+        Assert.Equal(2, recent["total"]!["value"]!.GetValue<int>());
+        Assert.Equal(1, recent["open"]!["value"]!.GetValue<int>());
+        Assert.Equal(1, Total(await m.Get(recent["open"]!["link"]!.GetValue<string>())));
+    }
+
     [Fact]
     public async Task Operational_dashboard_shows_running_clocks_and_counts_that_equal_their_lists()
     {

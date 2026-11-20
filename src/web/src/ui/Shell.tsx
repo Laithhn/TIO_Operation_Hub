@@ -64,6 +64,8 @@ const SECTIONS: Section[] = [
   ] },
   { key: 'cases', label: 'Tickets', to: '/cases', match: /^\/cases/, show: biz, side: [
     { to: '/cases', label: 'All tickets', icon: 'case', end: true },
+    // A123: the Tickets dashboard (Jira-board style), with its own right.
+    { to: '/cases/dashboard', label: 'Tickets dashboard', icon: 'report', show: m => hasRight(m, 'TicketDashboard', 'View') },
     { to: '/cases/new', label: 'New ticket', icon: 'plus', show: action('Cases', 'Create') }
   ] },
   { key: 'commitments', label: 'Commitments', to: '/commitments', match: /^\/commitments/, show: biz, side: [

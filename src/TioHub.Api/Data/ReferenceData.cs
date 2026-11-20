@@ -31,10 +31,20 @@ public static class ReferenceData
         [LookupLists.ConditionLabel] = [("Unknown", null), ("Healthy", null), ("Degraded", null), ("Unavailable", null)]
     };
 
+    /// <summary>A124: typed lists (each value has a built-in category) of the payment milestone template.</summary>
+    public static readonly Dictionary<string, (string Code, string Label, string Category)[]> MilestoneLists = new()
+    {
+        [LookupLists.PaymentWorkStatus] = [
+            ("NotStarted", "Not started", nameof(MilestoneWorkState.NotStarted)), ("InProgress", "In progress", nameof(MilestoneWorkState.InProgress)),
+            ("Done", "Done", nameof(MilestoneWorkState.Done))],
+        [LookupLists.PaymentClientApproval] = [
+            ("Pending", "Pending", nameof(ClientApprovalState.Pending)), ("Approved", "Approved", nameof(ClientApprovalState.Approved)),
+            ("Rejected", "Rejected", nameof(ClientApprovalState.Rejected))]
+    };
+
     private static readonly (string Key, string Value, string Description)[] Settings =
     [
         (SettingKeys.ApprovedLinkHosts, "", "Comma-separated HTTPS hosts approved for document links (open decision; empty = no links accepted)."),
-        (SettingKeys.VaultReferencePrefix, "vault://", "Required prefix of approved vault references. The hub stores references only, never secrets."),
         (SettingKeys.CoverageCriticalities, "Critical,High", "Environment criticalities that require an active backup owner (coverage policy)."),
         (SettingKeys.CoveragePriorities, "Critical", "Ticket priorities that require an active backup owner (coverage policy)."),
         (SettingKeys.UpcomingDays, "7", "Upcoming window for commitments, in calendar days (Section 7 proposed default)."),
@@ -46,6 +56,9 @@ public static class ReferenceData
         (SettingKeys.DependencyWarningDays, "2", "A commitment is at risk when its dependencies leave less than this many calendar days of buffer (0–30)."),
         (SettingKeys.ExternalReminderDays, "5", "Days before an External commitment is due that its follow-up owner is reminded (1–30).")
     ];
+
+    /// <summary>A126: settings of removed features; their rows are deleted from existing databases so they no longer show under Settings.</summary>
+    private static readonly string[] RetiredSettings = ["VaultReferencePrefix"];
 
     // OPS-04 pilot defaults; condition evidence interval is an implementation assumption (BRD gives no figure).
     private static readonly (string Type, ReviewScope Scope, int? Days, bool Next, string Notes)[] Policies =
@@ -69,6 +82,11 @@ public static class ReferenceData
         if (!have.Any(x => x.ListName == LookupLists.CaseStatusLabel))
             foreach (var (s, i) in Modules.Work.CaseStatuses.Initial.Select((s, i) => (s, i)))
                 db.LookupValues.Add(new LookupValue { ListName = LookupLists.CaseStatusLabel, Code = s.Code, Label = s.Label, Category = s.Behavior.ToString(), SortOrder = (i + 1) * 10 });
+        // A124: payment milestone work status and client approval; only an empty list is filled, so administrators' changes stay.
+        foreach (var (list, values) in MilestoneLists)
+            if (!have.Any(x => x.ListName == list))
+                foreach (var (v, i) in values.Select((v, i) => (v, i)))
+                    db.LookupValues.Add(new LookupValue { ListName = list, Code = v.Code, Label = v.Label, Category = v.Category, SortOrder = (i + 1) * 10 });
         // A53: team roles typed before the list existed become list values, so they can still be chosen.
         var typed = await db.TeamMembers.Where(m => m.TeamRole != null).Select(m => m.TeamRole!).Distinct().ToListAsync(ct);
         foreach (var (role, i) in typed.Where(r => !have.Contains((LookupLists.TeamMemberRole, r)) && !Lookups[LookupLists.TeamMemberRole].Any(v => v.Code == r)).Select((r, i) => (r, i)))
@@ -83,6 +101,7 @@ public static class ReferenceData
         var keys = await db.Settings.Select(s => s.Key).ToListAsync(ct);
         foreach (var s in Settings.Where(s => !keys.Contains(s.Key)))
             db.Settings.Add(new AppSetting { Key = s.Key, Value = s.Value, Description = s.Description });
+        db.Settings.RemoveRange(await db.Settings.Where(s => RetiredSettings.Contains(s.Key)).ToListAsync(ct));
 
         if (!await db.ReviewPolicies.AnyAsync(ct))
             foreach (var p in Policies)

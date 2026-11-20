@@ -33,6 +33,7 @@ const MyDashboard = page(() => import('./pages/MyDashboard'), 'MyDashboard');
 const CaseDetail = page(() => import('./pages/Cases'), 'CaseDetail');
 const CaseForm = page(() => import('./pages/Cases'), 'CaseForm');
 const CaseList = page(() => import('./pages/Cases'), 'CaseList');
+const TicketDashboard = page(() => import('./pages/ticket/TicketDashboard'), 'TicketDashboard');
 const ClientDetail = page(() => import('./pages/Clients'), 'ClientDetail');
 const ClientForm = page(() => import('./pages/Clients'), 'ClientForm');
 const ClientList = page(() => import('./pages/Clients'), 'ClientList');
@@ -191,6 +192,7 @@ export const router = createBrowserRouter([
       { path: 'firewall-rules', element: <FirewallRuleList /> },
       { path: 'my-dashboard', element: <MyDashboard /> },
       { path: 'cases', element: <CaseList /> },
+      { path: 'cases/dashboard', element: <TicketDashboard /> },
       { path: 'cases/new', element: <CaseForm /> },
       { path: 'cases/:id', element: <CaseDetail /> },
       { path: 'cases/:id/edit', element: <CaseForm /> },

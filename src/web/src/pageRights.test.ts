@@ -48,6 +48,13 @@ describe('every page is in the rights', () => {
     expect(requires[i].map(r => keys[r])).toEqual(['PaymentsDashboard:View']);
   });
 
+  it('the Tickets dashboard has its own right, which needs ticket access (A123)', () => {
+    expect(canAccessPath(person(['TicketDashboard:View', 'Cases:View']), '/cases/dashboard')).toBe(true);
+    expect(canAccessPath(person(['Cases:View']), '/cases/dashboard')).toBe(false);
+    expect(canAccessPath(person(['TicketDashboard:View']), '/cases/dashboard')).toBe(false);
+    expect(requires[keys.indexOf('TicketDashboard:View')].map(r => keys[r])).toEqual(['Cases:View']);
+  });
+
   it('My dashboard has its own right, which also needs ticket access', () => {
     expect(canAccessPath(person(['MyDashboard:View', 'Cases:View']), '/my-dashboard')).toBe(true);
     expect(canAccessPath(person(['Cases:View']), '/my-dashboard')).toBe(false);
