@@ -149,7 +149,7 @@ export function RoleRightsEditor({ role, roles, catalog, prefs, onPrefs, onRoleC
       <details className="rights-help"><summary>How rights combine</summary>
         <p className="hint">Unassigned rights are denied. A person's rights combine across their active roles. A right works only when its prerequisites are held too, and data scope decides which records it reaches. Individual exceptions can change the result for one person. Access rights open a feature; action rights allow what can be done in it.</p></details>
       {!base.isActive && <div className="notice warn">This role is inactive. Its rights give nobody access until it is activated.</div>}
-      {base.holdsAllRights && <div className="notice">This role always holds every right, including rights added in later releases. To choose its rights, clear "Always holds every right" under Manage roles, or clone it.</div>}
+      {base.holdsAllRights && <div className="notice">This role always holds every right, including rights added in later releases. {base.isBuiltIn ? 'It is the built-in System Administrator role and cannot be changed; clone it to make an editable copy.' : 'To choose its rights, clear "Always holds every right" under Manage roles, or clone it.'}</div>}
     </Panel>
     <FormError error={f.error} fields={[]} />
     {(stale || f.error?.isConflict) && <div className="notice warn" role="alert">This role has changed since editing started. Your draft is retained. <button className="linkbtn" onClick={reloadLatest}>Reload latest</button></div>}

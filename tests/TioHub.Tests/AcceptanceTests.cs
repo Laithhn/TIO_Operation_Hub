@@ -1116,12 +1116,12 @@ public class AC31_RolesAndRights(HubFactory hub) : Scenario(hub)
         var afterDeactivation = (await v.Get("/me")).Body!;
         Assert.DoesNotContain(RightKeys.Audit, afterDeactivation["rights"]!.AsArray().Select(x => x!.GetValue<string>()));
 
-        // Giving the role Edit lets its holders work at once; the TIO Manager role cannot lose a right; built-in roles cannot be deleted.
+        // Giving the role Edit lets its holders work at once; the built-in System Administrator role (A127) cannot be changed or deleted.
         var rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
         Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{viewerRole}", new { name = rv["name"]!.GetValue<string>(), rights = Fixture.Rights(readPermissions.Concat(Fixture.Engineer), Flag.Edit | Flag.Export) }, rv["version"]!.GetValue<string>())).Status);
         Assert.Equal(HttpStatusCode.Created, (await v.Post("/environments", new { clientId = c, name = "Production", type = "Production", criticality = "Normal" })).Status);
         Assert.Equal(HttpStatusCode.OK, (await v.Get("/export/contracts")).Status);
-        Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Cases:View" } }, manager["version"]!.GetValue<string>())).Error("rights"));
+        Assert.NotNull((await m.Put($"/admin/roles/{Id(manager)}", new { name = manager["name"]!.GetValue<string>(), rights = new[] { "Cases:View" } }, manager["version"]!.GetValue<string>())).Error("role"));
         Assert.NotNull((await m.Send(HttpMethod.Delete, $"/admin/roles/{Id(manager)}", null, manager["version"]!.GetValue<string>())).Error("role"));
         rv = (await m.Get("/admin/roles")).Body!["roles"]!.AsArray().First(r => Id(r) == viewerRole)!;
         Assert.Equal(1, rv["userCount"]!.GetValue<int>());
@@ -1228,7 +1228,7 @@ public class AC12_NoSelfGrantThroughGroups(HubFactory hub) : Scenario(hub)
         await admin.Create("/admin/group-mappings", new { groupName = admins, role = "Manager", allClients = true, allInternal = true, export = false, technicalDetail = false, audit = false, scopes = Array.Empty<object>() });
         var second = await Hub.As($@"DEV\{U("second-admin")}", groups: $"{admins};{unmappedOwn}");
         Assert.Equal(HttpStatusCode.OK, second.SignInStatus);
-        Assert.Contains("TIO Manager", second.Me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
+        Assert.Contains("System Administrator", second.Me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
 
         // Mapping their own group to a business role is refused — before and after adding the group to an existing name.
         var own = await second.Post("/admin/group-mappings", new { groupName = unmappedOwn.ToLowerInvariant(), role = "Manager", allClients = true, allInternal = true, export = true, technicalDetail = true, audit = true, scopes = Array.Empty<object>() });

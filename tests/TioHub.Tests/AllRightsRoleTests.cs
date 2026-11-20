@@ -9,7 +9,7 @@ using TioHub.Api.Security;
 
 namespace TioHub.Tests;
 
-/// <summary>A120: no built-in roles; any role can hold every right, which then includes rights added by later releases.</summary>
+/// <summary>A120/A127: any role can hold every right; the one built-in role (System Administrator) is the sole all-access role and cannot be changed.</summary>
 public sealed class AllRightsRoleTests(HubFactory hub) : IClassFixture<HubFactory>
 {
     private const string Itd = "ITD Manager";
@@ -50,7 +50,7 @@ public sealed class AllRightsRoleTests(HubFactory hub) : IClassFixture<HubFactor
     }
 
     [Fact]
-    public async Task TIO_Manager_and_Operation_Engineer_are_ordinary_roles_that_can_be_edited()
+    public async Task Operation_Engineer_is_ordinary_but_the_built_in_System_Administrator_cannot_be_changed()
     {
         await EnsureItdAsync();
         var itd = await hub.As(ItdAccount);
@@ -73,26 +73,26 @@ public sealed class AllRightsRoleTests(HubFactory hub) : IClassFixture<HubFactor
         Assert.Equal(HttpStatusCode.UnprocessableEntity, delete.Status);
         Assert.Contains("user(s) still hold", delete.Text);
 
-        // TIO Manager: clear "holds every right" (it keeps today's rights stored), change its rights and description, then restore the mark.
-        var manager = await RoleRow(itd, RoleAccess.DefaultFullAccessName);
-        var managerId = Id(manager);
-        Assert.Equal(HttpStatusCode.NoContent, (await itd.Put($"/admin/roles/{managerId}", new { name = RoleAccess.DefaultFullAccessName, description = "Runs the TIO team.", holdsAllRights = false }, Version(manager))).Status);
-        manager = await RoleRow(itd, RoleAccess.DefaultFullAccessName);
-        Assert.False(manager["holdsAllRights"]!.GetValue<bool>());
-        Assert.Equal(RightsCatalog.AllKeys.Length, manager["rights"]!.AsArray().Count);
-        var fewer = RightsCatalog.AllKeys.Where(k => k != "Cases:Delete").ToArray();
-        Assert.Equal(HttpStatusCode.NoContent, (await itd.Put($"/admin/roles/{managerId}", new { name = RoleAccess.DefaultFullAccessName, rights = fewer }, Version(manager))).Status);
-        manager = await RoleRow(itd, RoleAccess.DefaultFullAccessName);
-        Assert.DoesNotContain("Cases:Delete", manager["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
-        var clone = await itd.Create($"/admin/roles/{managerId}/clone", new { name = "TIO Manager copy" });
-        Assert.False((await RoleRow(itd, "TIO Manager copy"))["holdsAllRights"]!.GetValue<bool>());
-        Assert.Equal(HttpStatusCode.NoContent, (await itd.Send(HttpMethod.Delete, $"/admin/roles/{clone}", ifMatch: Version(await RoleRow(itd, "TIO Manager copy")))).Status);
-        Assert.Equal(HttpStatusCode.NoContent, (await itd.Put($"/admin/roles/{managerId}", new { name = RoleAccess.DefaultFullAccessName, holdsAllRights = true }, Version(manager))).Status);
-        Assert.True((await RoleRow(itd, RoleAccess.DefaultFullAccessName))["holdsAllRights"]!.GetValue<bool>());
+        // A127: the built-in System Administrator role is the sole all-access role and cannot be changed in any way.
+        var sysadmin = await RoleRow(itd, RoleAccess.SystemAdministratorName);
+        Assert.True(sysadmin["holdsAllRights"]!.GetValue<bool>());
+        Assert.True(sysadmin["isBuiltIn"]!.GetValue<bool>());
+        var sysId = Id(sysadmin);
+        // Rename, clear the mark, reduce rights and deactivate are all refused, as is deletion.
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await itd.Put($"/admin/roles/{sysId}", new { name = "Renamed", holdsAllRights = true }, Version(sysadmin))).Status);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await itd.Put($"/admin/roles/{sysId}", new { name = RoleAccess.SystemAdministratorName, holdsAllRights = false }, Version(sysadmin))).Status);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await itd.Put($"/admin/roles/{sysId}", new { name = RoleAccess.SystemAdministratorName, isActive = false }, Version(sysadmin))).Status);
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, (await itd.Send(HttpMethod.Delete, $"/admin/roles/{sysId}", ifMatch: Version(sysadmin))).Status);
+        // It may, however, be cloned into an ordinary (non-built-in, non-all-rights) role.
+        var clone = await itd.Create($"/admin/roles/{sysId}/clone", new { name = "System Administrator copy" });
+        var cloneRow = await RoleRow(itd, "System Administrator copy");
+        Assert.False(cloneRow["holdsAllRights"]!.GetValue<bool>());
+        Assert.False(cloneRow["isBuiltIn"]!.GetValue<bool>());
+        Assert.Equal(HttpStatusCode.NoContent, (await itd.Send(HttpMethod.Delete, $"/admin/roles/{clone}", ifMatch: Version(cloneRow))).Status);
     }
 
     [Fact]
-    public async Task A_role_holding_every_right_cannot_be_reduced_deactivated_deleted_or_be_the_last_one()
+    public async Task A_marked_role_cannot_be_reduced_deactivated_deleted_or_have_its_own_holder_clear_the_mark()
     {
         var (itdRoleId, _) = await EnsureItdAsync();
         var m = await hub.As(HubFactory.Manager);
@@ -108,14 +108,10 @@ public sealed class AllRightsRoleTests(HubFactory hub) : IClassFixture<HubFactor
         Assert.Equal(HttpStatusCode.UnprocessableEntity, own.Status);
         Assert.NotNull(own.Error("role"));
 
-        // With TIO Manager cleared, ITD Manager is the last role holding every right and keeps the mark.
-        var manager = await RoleRow(itd, RoleAccess.DefaultFullAccessName);
-        Assert.Equal(HttpStatusCode.NoContent, (await itd.Put($"/admin/roles/{Id(manager)}", new { name = RoleAccess.DefaultFullAccessName, holdsAllRights = false }, Version(manager))).Status);
-        var last = await m.Put($"/admin/roles/{itdRoleId}", new { name = Itd, holdsAllRights = false }, Version(await RoleRow(m, Itd)));
-        Assert.Equal(HttpStatusCode.UnprocessableEntity, last.Status);
-        Assert.NotNull(last.Error("holdsAllRights"));
-        manager = await RoleRow(itd, RoleAccess.DefaultFullAccessName);
-        Assert.Equal(HttpStatusCode.NoContent, (await itd.Put($"/admin/roles/{Id(manager)}", new { name = RoleAccess.DefaultFullAccessName, holdsAllRights = true }, Version(manager))).Status);
+        // A127: the built-in System Administrator is always an active all-rights role, so another admin-created all-rights
+        // role (ITD Manager) is never "the last one" and its mark can be cleared by someone who does not hold it.
+        Assert.Equal(HttpStatusCode.NoContent, (await m.Put($"/admin/roles/{itdRoleId}", new { name = Itd, holdsAllRights = false }, Version(await RoleRow(m, Itd)))).Status);
+        Assert.False((await RoleRow(m, Itd))["holdsAllRights"]!.GetValue<bool>());
     }
 
     [Fact]

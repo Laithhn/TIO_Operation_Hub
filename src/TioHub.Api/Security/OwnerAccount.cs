@@ -11,8 +11,8 @@ namespace TioHub.Api.Security;
 /// The reserved owner account (<c>TioAdmin</c>): a single, named, fully-audited break-glass account that holds every right.
 /// It is seeded without any password; its first password is set by whoever can read a one-time claim code written to a file on
 /// the server (see <see cref="OwnerClaimCode"/>), so no password is ever stored in source control or seed data. The account is an
-/// ordinary administrator, visible in Administration, and — because it holds the Administration right — is itself protected by the
-/// rule that no administrator can reset another administrator's password (AuthEndpoints.EnsurePasswordResetAuthority).
+/// ordinary administrator, visible in Administration, placed under the built-in System Administrator role (A127), so it may reset
+/// any account's password; only a non-System-Administrator administrator could not reset it.
 /// </summary>
 public static class OwnerAccount
 {

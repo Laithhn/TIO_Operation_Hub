@@ -83,8 +83,8 @@ export function withPrerequisites(selection: string[], rows: RightDefinition[]):
   return [...result].sort();
 }
 
-/** A120: no role is built in; holdsAllRights marks a role that holds every right, including rights added later. */
-export type RoleDef = { id: number; name: string; description?: string; holdsAllRights: boolean; isActive: boolean; rights: string[]; userCount: number; version: string };
+/** A120/A127: holdsAllRights marks a role that holds every right (incl. later releases); isBuiltIn marks the one built-in role (System Administrator), which cannot be changed. */
+export type RoleDef = { id: number; name: string; description?: string; holdsAllRights: boolean; isBuiltIn: boolean; isActive: boolean; rights: string[]; userCount: number; version: string };
 
 /** Active rights only: a retired right can stay stored, but it never counts as held. */
 export const assignedCount = (rows: RightDefinition[], selection: string[]) => rows.filter(r => r.isActive && isGranted(selection, r)).length;

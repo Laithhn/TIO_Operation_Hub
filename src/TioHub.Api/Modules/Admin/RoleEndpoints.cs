@@ -31,7 +31,7 @@ public static class RoleEndpoints
                 }),
                 roles = roles.Select(r => new
                 {
-                    r.Id, r.Name, r.Description, r.HoldsAllRights, r.IsActive,
+                    r.Id, r.Name, r.Description, r.HoldsAllRights, r.IsActive, r.IsBuiltIn,
                     rights = RoleAccess.KeysOf(r).ToArray(),
                     userCount = counts.GetValueOrDefault(r.Id), version = Convert.ToBase64String(r.RowVersion)
                 })
@@ -71,6 +71,7 @@ public static class RoleEndpoints
         g.MapPut("/{id:long}", async (long id, RoleInput input, HttpContext ctx, HubDbContext db, UserContext me, UserResolver resolver, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
         {
             var r = await db.AppRoles.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The role");
+            if (r.IsBuiltIn) throw new ValidationException("role", $"{RoleAccess.SystemAdministratorName} is the hub's built-in super-administrator role and cannot be changed.");
             db.ExpectVersion(ctx, r);
             await ApplyAsync(r, input, db, me, resolver, clock.GetUtcNow(), ct);
             await db.SaveChangesAsync(ct);
@@ -82,6 +83,7 @@ public static class RoleEndpoints
         {
             var r = await db.AppRoles.FirstOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("The role");
             db.ExpectVersion(ctx, r);
+            if (r.IsBuiltIn) throw new ValidationException("role", $"{RoleAccess.SystemAdministratorName} is the hub's built-in super-administrator role and cannot be deleted.");
             if (r.HoldsAllRights) throw new ValidationException("role", $"{r.Name} holds every right and cannot be deleted. Clear \"Always holds every right\" first.");
             var holders = await db.UserRoles.CountAsync(ur => ur.AppRoleId == id, ct);
             if (holders > 0) throw new ValidationException("role", $"{holders} user(s) still hold {r.Name}. Give them another role first (deactivated users included).");

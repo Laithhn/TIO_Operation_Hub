@@ -75,6 +75,16 @@ See `AUTHORIZATION-HIERARCHY-2.44.md` and `AUTHORIZATION-HIERARCHY-MATRIX.md` fo
 
 The access-control changes add the `PreserveLegacyEffectiveScopes`, `UserPermissionOverrides` and `ExportAccessFingerprint` migrations. Review `ACCESS-CONTROL-IMPLEMENTATION.md` and `AUTHORIZATION-DATA-SCOPE-UPGRADE.md`, including the compatibility grants to existing role-backed directory mappings and the requirement to regenerate older export files. These migrations have not been applied or verified against a database as part of this change. Validate the complete generated script and recovery procedure on an approved isolated copy before any DBA deployment; do not enable production startup migrations.
 
+### Built-in System Administrator role (A127)
+
+Migration `SystemAdministratorRole` adds the column `iam.AppRole.IsBuiltIn` and runs a **one-time data change**, so the regenerated `database/01-schema.sql` **must be applied before** deploying the application files (the application identity needs no new permission). It:
+
+1. Creates one built-in, immutable role **System Administrator** that holds every right and is the hub's single all-access role. It cannot be renamed, re-scoped, deactivated, deleted or un-marked (it can be cloned to make an editable copy); in Administration → Roles it shows a *Built-in* badge with Edit and Delete disabled.
+2. For every *other* role that held all rights (TIO Manager / ITD Manager from A120) it **stores that role's current rights explicitly and clears its all-rights mark**. Those roles' holders — your existing administrators — keep exactly today's access, but no longer receive rights added by future releases automatically. Grant them System Administrator (or mark their role all-rights) if they should.
+3. Moves the reserved owner account `TioAdmin` under System Administrator alone.
+
+After this, **holders of the System Administrator role can reset any password, administrators included** (A127 supersedes the earlier "no administrator can reset another administrator" wording for these holders). Because first-run setup provisions the first administrator with this role, that administrator is a System Administrator and can reset other administrators; only custom admin roles (Administration right without the built-in role) remain barred. Review Administration → Roles after upgrade to confirm the built-in role and who holds it. The Down migration only drops the column; the demotion and reassignment are not reversed, so going back needs the database backup.
+
 ### Reserved owner account TioAdmin, claimed with a server code (A125)
 
 Forms mode seeds one reserved break-glass account, **`TioAdmin`**, that holds every right. It is seeded **without a password** — there is no secret in the package, the schema or the database — so on an upgrade no table changes and `database/01-schema.sql` needs no new run for this feature (the account is a data row the application writes on start-up; a brand-new install gets it at first start). `TioAdmin` is a normal, visible, audited administrator and appears under Administration → Users.

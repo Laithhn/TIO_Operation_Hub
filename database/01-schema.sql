@@ -11035,3 +11035,80 @@ END;
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    ALTER TABLE [iam].[AppRole] ADD [IsBuiltIn] bit NOT NULL DEFAULT CAST(0 AS bit);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'IF NOT EXISTS (SELECT 1 FROM [iam].[AppRole] WHERE [Name] = N''System Administrator'') INSERT INTO [iam].[AppRole] ([Name], [Description], [IsActive], [HoldsAllRights], [IsBuiltIn], [CreatedAt], [UpdatedAt]) VALUES (N''System Administrator'', N''The hub''''s built-in super-administrator: holds every right and cannot be changed.'', 1, 1, 1, SYSDATETIMEOFFSET(), SYSDATETIMEOFFSET());');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'UPDATE [iam].[AppRole] SET [IsBuiltIn] = 1, [HoldsAllRights] = 1, [IsActive] = 1 WHERE [Name] = N''System Administrator'';');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'INSERT INTO [iam].[RoleRight] ([AppRoleId], [RightKey]) SELECT r.[Id], d.[Key] FROM [iam].[AppRole] r CROSS JOIN [iam].[RightDefinition] d WHERE r.[HoldsAllRights] = 1 AND r.[IsBuiltIn] = 0 AND d.[IsActive] = 1 AND NOT EXISTS (SELECT 1 FROM [iam].[RoleRight] x WHERE x.[AppRoleId] = r.[Id] AND x.[RightKey] = d.[Key]);');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'UPDATE [iam].[AppRole] SET [HoldsAllRights] = 0 WHERE [IsBuiltIn] = 0 AND [HoldsAllRights] = 1;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'INSERT INTO [iam].[UserRole] ([UserId], [AppRoleId]) SELECT u.[Id], r.[Id] FROM [iam].[User] u CROSS JOIN [iam].[AppRole] r WHERE u.[AccountName] = N''TioAdmin'' AND r.[Name] = N''System Administrator'' AND NOT EXISTS (SELECT 1 FROM [iam].[UserRole] x WHERE x.[UserId] = u.[Id] AND x.[AppRoleId] = r.[Id]);');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'DELETE ur FROM [iam].[UserRole] ur JOIN [iam].[User] u ON u.[Id] = ur.[UserId] JOIN [iam].[AppRole] r ON r.[Id] = ur.[AppRoleId] WHERE u.[AccountName] = N''TioAdmin'' AND r.[Name] <> N''System Administrator'';');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    EXEC(N'UPDATE [iam].[AuthorizationVersion] SET [Version] = [Version] + 1 WHERE [Id] = 1;');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [admin].[__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261120072028_SystemAdministratorRole'
+)
+BEGIN
+    INSERT INTO [admin].[__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261120072028_SystemAdministratorRole', N'10.0.13');
+END;
+
+COMMIT;
+GO
+

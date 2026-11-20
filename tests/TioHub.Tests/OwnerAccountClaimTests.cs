@@ -18,9 +18,9 @@ public class OwnerAccountClaimTests(FormsFactory hub) : IClassFixture<FormsFacto
         // Opening a session starts the host, which applies the migrations and runs the Forms-mode owner seed.
         var anon = await hub.NewSession();
 
-        // ---- seeded on startup: present, holds all rights, full scope, and has no credential at all ----
+        // ---- seeded on startup: present, under the built-in System Administrator role, full scope, and no credential at all ----
         Assert.Equal(1, await hub.Scalar("SELECT COUNT(*) FROM iam.[User] WHERE AccountName='TioAdmin'"));
-        Assert.Equal(1, await hub.Scalar("SELECT COUNT(*) FROM iam.UserRole ur JOIN iam.[User] u ON u.Id=ur.UserId JOIN iam.AppRole r ON r.Id=ur.AppRoleId WHERE u.AccountName='TioAdmin' AND r.HoldsAllRights=1"));
+        Assert.Equal(1, await hub.Scalar("SELECT COUNT(*) FROM iam.UserRole ur JOIN iam.[User] u ON u.Id=ur.UserId JOIN iam.AppRole r ON r.Id=ur.AppRoleId WHERE u.AccountName='TioAdmin' AND r.Name='System Administrator' AND r.IsBuiltIn=1 AND r.HoldsAllRights=1"));
         Assert.Equal(2, await hub.Scalar("SELECT CAST(AllClients AS int)+CAST(AllInternal AS int) FROM iam.[User] WHERE AccountName='TioAdmin'"));
         Assert.Equal(0, await hub.Scalar("SELECT COUNT(*) FROM iam.UserCredential c JOIN iam.[User] u ON u.Id=c.UserId WHERE u.AccountName='TioAdmin'"));
 
@@ -57,9 +57,14 @@ public class OwnerAccountClaimTests(FormsFactory hub) : IClassFixture<FormsFacto
         // ---- the owner signs in afterwards with its chosen password ----
         Assert.Equal(HttpStatusCode.OK, (await (await hub.NewSession()).Login("TioAdmin", OwnerPw)).Status);
 
-        // ---- the owner is an administrator, so another administrator may not reset its password (the guard) ----
-        var ownerId = await hub.Scalar("SELECT Id FROM iam.[User] WHERE AccountName='TioAdmin'");
-        Assert.Equal(HttpStatusCode.Forbidden, (await admin.Post($"/admin/users/{ownerId}/password", new { temporaryPassword = TempPw })).Status);
+        // ---- A127: holders of the built-in System Administrator role may reset ANY account, administrators included ----
+        // The owner and the first administrator (set up above) both hold that role, so the owner may reset the other.
+        var adminId = await hub.Scalar("SELECT Id FROM iam.[User] WHERE AccountName='hub.admin'");
+        Assert.True((await owner.Get($"/admin/users/{adminId}/password-reset-availability")).Body!["available"]!.GetValue<bool>());
+        Assert.Equal(HttpStatusCode.NoContent, (await owner.Post($"/admin/users/{adminId}/password", new { temporaryPassword = TempPw })).Status);
+        // the reset ended hub.admin's session and set a temporary password it must change
+        Assert.Equal(HttpStatusCode.Unauthorized, (await admin.Get("/me")).Status);
+        Assert.True((await (await hub.NewSession()).Login("hub.admin", TempPw)).Body!["mustChangePassword"]!.GetValue<bool>());
 
         // ---- the claim is audited without any value ----
         Assert.Equal(1, await hub.Scalar("SELECT COUNT(*) FROM audit.AuditEntry WHERE Action='OwnerAccountClaimed' AND Changes IS NULL"));

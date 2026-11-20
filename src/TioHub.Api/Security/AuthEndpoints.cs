@@ -251,7 +251,11 @@ public static partial class AuthEndpoints
     {
         if (target is null || target.AccessRestriction is not null)
             throw new ForbiddenException("The target's access could not be evaluated safely.");
-        if (assignedAdministrator || target.Holds(RightKeys.Administration))
+        // A127: holders of the built-in System Administrator role (the reserved owner TioAdmin, and anyone explicitly given that role)
+        // may reset any account, administrators included. Every other administrator is still barred from resetting an administrator,
+        // so ordinary admins cannot impersonate one another.
+        var actorIsSystemAdministrator = !actor.IsSystem && actor.Roles.Contains(RoleAccess.SystemAdministratorName, StringComparer.OrdinalIgnoreCase);
+        if (!actorIsSystemAdministrator && (assignedAdministrator || target.Holds(RightKeys.Administration)))
             throw new ForbiddenException("Administrator passwords cannot be reset through this endpoint.");
         if (actor.IsSystem) return;
         if (!actor.IsAdministrator || !actor.HasRight("AdminUsers:Maintain") || !actor.AllClients || !actor.AllInternal || activeKeys.Any(key => !actor.HasRight(key)))

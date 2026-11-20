@@ -135,7 +135,7 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.False(File.Exists(hub.SetupFile));
         var me = (await admin.Get("/me")).Body!;
         Assert.Equal("hub.admin", me["account"]!.GetValue<string>());
-        Assert.Equal(["TIO Manager"], me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
+        Assert.Equal(["System Administrator"], me["roles"]!.AsArray().Select(r => r!.GetValue<string>()));
         Assert.Contains(RightKeys.Administration, me["rights"]!.AsArray().Select(r => r!.GetValue<string>()));
         // A44: the setting-up computer's time zone becomes the administrator's and the hub default (the shipped default was UTC).
         Assert.Equal("Asia/Dubai", me["timeZone"]!.GetValue<string>());
@@ -143,7 +143,7 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
         Assert.Equal(HttpStatusCode.Conflict, (await (await hub.NewSession()).Post("/auth/setup", new { setupCode = code, accountName = "x.admin", displayName = "X", password = AdminPw })).Status);
         Assert.False((await (await hub.NewSession()).Get("/auth/config")).Body!["setupRequired"]!.GetValue<bool>());
 
-        // ---- administrator issues a temporary password to a non-administrator, never to an administrator ----
+        // ---- A127: a System Administrator (hub.admin holds the built-in role) issues a temporary password to anyone, administrators included ----
         var roleRows = (await admin.Get("/admin/roles")).Body!["roles"]!.AsArray();
         var roleIds = new Dictionary<string, long>
         {
@@ -151,8 +151,9 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
             ["Engineer"] = roleRows.First(r => r!["name"]!.GetValue<string>() == RoleAccess.DefaultEngineerName)!["id"]!.GetValue<long>()
         };
         var managerId = (await admin.Post("/admin/users", NewUser("uat.manager", "Engineer", roleIds["Engineer"]))).Body!["id"]!.GetValue<long>();
+        // uat.protected also holds the built-in System Administrator role; a System Administrator may still reset it.
         var protectedId = (await admin.Post("/admin/users", NewUser("uat.protected", "Manager", roleIds["Manager"]))).Body!["id"]!.GetValue<long>();
-        Assert.Equal(HttpStatusCode.Forbidden, (await admin.Post($"/admin/users/{protectedId}/password", new { temporaryPassword = TempPw })).Status);
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.Post($"/admin/users/{protectedId}/password", new { temporaryPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Post($"/admin/users/{managerId}/password", new { temporaryPassword = "uat.manager-12345" })).Status); // contains the account name
         Assert.Equal(HttpStatusCode.NoContent, (await admin.Post($"/admin/users/{managerId}/password", new { temporaryPassword = TempPw })).Status);
         Assert.Equal(HttpStatusCode.UnprocessableEntity, (await admin.Post($"/admin/users/{me["id"]!.GetValue<long>()}/password", new { temporaryPassword = TempPw })).Status);
@@ -213,11 +214,11 @@ public class FormsSignInTests(FormsFactory hub) : IClassFixture<FormsFactory>
 
         // ---- the hash exists only in the credential table: never in audit, user APIs or the session cookie ----
         Assert.Equal(0, await hub.Scalar("SELECT COUNT(*) FROM audit.AuditEntry WHERE Changes LIKE '%pbkdf2%' OR Changes LIKE '%PasswordHash%' OR Changes LIKE '%" + TempPw + "%'"));
-        Assert.Equal(2, await hub.Scalar("SELECT COUNT(*) FROM iam.UserCredential WHERE PasswordHash LIKE 'pbkdf2-sha256$600000$%'"));
+        Assert.Equal(3, await hub.Scalar("SELECT COUNT(*) FROM iam.UserCredential WHERE PasswordHash LIKE 'pbkdf2-sha256$600000$%'"));
         var users = await admin.Get("/admin/users");
         Assert.DoesNotContain("pbkdf2", users.Text);
         Assert.DoesNotContain("pbkdf2", (await admin.Get("/admin/users/sign-in-status")).Text);
-        // Setup 1 + issued 1 + changed 2 + reset 1, each without any value.
-        Assert.Equal(5, await hub.Scalar("SELECT COUNT(*) FROM audit.AuditEntry WHERE Action IN ('FirstAdministratorSetUp','PasswordIssued','PasswordChanged','PasswordReset') AND Changes IS NULL"));
+        // Setup 1 + issued 2 (uat.protected, uat.manager) + changed 2 + reset 1, each without any value.
+        Assert.Equal(6, await hub.Scalar("SELECT COUNT(*) FROM audit.AuditEntry WHERE Action IN ('FirstAdministratorSetUp','PasswordIssued','PasswordChanged','PasswordReset') AND Changes IS NULL"));
     }
 }

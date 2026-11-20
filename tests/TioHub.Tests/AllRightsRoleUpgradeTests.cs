@@ -65,16 +65,23 @@ public sealed class AllRightsRoleUpgradeTests
             var count = await db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS [Value] FROM [iam].[AppRole]").SingleAsync();
             await Upgrade(db);
 
+            // A127: the built-in System Administrator role is now the single all-access role.
+            var sysadmin = await Role(db, "System Administrator");
+            Assert.True(sysadmin.HoldsAllRights);
+            Assert.True(sysadmin.IsBuiltIn);
+            Assert.True(sysadmin.IsActive);
+            var active = await db.RightDefinitions.AsNoTracking().Where(d => d.IsActive).Select(d => d.Key).ToListAsync();
+
+            // ITD Manager got every right from A120, then A127 demoted it: no longer all-access, but it keeps every right it effectively held.
             var itd = await Role(db, "ITD Manager");
-            Assert.True(itd.HoldsAllRights);
+            Assert.False(itd.HoldsAllRights);
             Assert.True(itd.IsActive);
             Assert.Equal("Owner's manager", itd.Description);
-            Assert.Equal(RightsCatalog.AllKeys, RoleAccess.KeysOf(itd));
+            Assert.Empty(active.Except(RoleAccess.KeysOf(itd), StringComparer.OrdinalIgnoreCase));
 
             // TIO Manager is an ordinary role now. It keeps everything it effectively held, including what was missing from storage.
             var manager = await Role(db, "TIO Manager");
             Assert.False(manager.HoldsAllRights);
-            var active = await db.RightDefinitions.AsNoTracking().Where(d => d.IsActive).Select(d => d.Key).ToListAsync();
             Assert.Empty(active.Except(RoleAccess.KeysOf(manager), StringComparer.OrdinalIgnoreCase));
             Assert.Contains("Cases:View", RoleAccess.KeysOf(manager));
 
@@ -86,9 +93,11 @@ public sealed class AllRightsRoleUpgradeTests
             Assert.Equal(engineerBefore.Append("TicketDashboard:View").Order().ToArray(), RoleAccess.KeysOf(engineer).Order().ToArray());
             Assert.Equal(["Cases:View", "TicketDashboard:View"], RoleAccess.KeysOf(await Role(db, "Auditor")).Order().ToArray());
 
+            // Exactly one role holds every right — the built-in System Administrator — and it is the only role A127 added.
             Assert.Equal(1, await db.AppRoles.CountAsync(r => r.HoldsAllRights));
-            Assert.Equal(count, await db.AppRoles.CountAsync());
-            Assert.Equal(itd.Id, await RoleAccess.EnsureFullAccessRoleAsync(db, default));
+            Assert.Equal(sysadmin.Id, await db.AppRoles.Where(r => r.HoldsAllRights).Select(r => r.Id).SingleAsync());
+            Assert.Equal(count + 1, await db.AppRoles.CountAsync());
+            Assert.Equal(sysadmin.Id, await RoleAccess.EnsureFullAccessRoleAsync(db, default));
         });
 
     [ApprovedOverrideSqlFact]
@@ -107,12 +116,16 @@ public sealed class AllRightsRoleUpgradeTests
         });
 
     [ApprovedOverrideSqlFact]
-    public Task Without_ITD_Manager_TIO_Manager_keeps_every_right() => WithDatabase(null, async db =>
+    public Task Without_ITD_Manager_TIO_Manager_keeps_its_rights_but_A127_takes_all_access() => WithDatabase(null, async db =>
     {
         await Upgrade(db);
+        // A120 would leave TIO Manager holding every right; A127 then demotes it and makes System Administrator the sole all-access role.
+        var sysadmin = await Role(db, "System Administrator");
+        Assert.True(sysadmin.HoldsAllRights && sysadmin.IsBuiltIn);
         var manager = await Role(db, "TIO Manager");
-        Assert.True(manager.HoldsAllRights);
-        Assert.Equal(RightsCatalog.AllKeys, RoleAccess.KeysOf(manager));
+        Assert.False(manager.HoldsAllRights);
+        var active = await db.RightDefinitions.AsNoTracking().Where(d => d.IsActive).Select(d => d.Key).ToListAsync();
+        Assert.Empty(active.Except(RoleAccess.KeysOf(manager), StringComparer.OrdinalIgnoreCase));
         Assert.False((await Role(db, "Operation Engineer")).HoldsAllRights);
         Assert.Equal(1, await db.AppRoles.CountAsync(r => r.HoldsAllRights));
     });
@@ -126,6 +139,8 @@ public sealed class AllRightsRoleUpgradeTests
             var itd = await Role(db, "ITD Manager");
             Assert.False(itd.IsActive);
             Assert.False(itd.HoldsAllRights);
-            Assert.True((await Role(db, "TIO Manager")).HoldsAllRights);
+            // A120 would leave TIO Manager holding every right; A127 demotes it, so System Administrator alone is all-access.
+            Assert.False((await Role(db, "TIO Manager")).HoldsAllRights);
+            Assert.True((await Role(db, "System Administrator")).HoldsAllRights);
         });
 }

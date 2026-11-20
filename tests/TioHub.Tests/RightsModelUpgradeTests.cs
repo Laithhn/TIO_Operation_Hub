@@ -198,7 +198,8 @@ public sealed class RightsModelUpgradeTests
         Assert.Equal(exceptions, await Count("[iam].[UserPermissionOverride]"));
         Assert.Equal(7, await db.Database.SqlQueryRaw<int>("SELECT [Grants] AS [Value] FROM [iam].[User] WHERE [AccountName] = N'T\\complete'").SingleAsync());
         Assert.True(await db.AuditEntries.CountAsync() > history);
-        Assert.Equal(await db.AppRoles.CountAsync(), await db.AuditEntries.CountAsync(a => a.Action == "RightsModelUpgrade" && a.EntityType == "AppRole"));
+        // The built-in System Administrator role (A127) is created by a later migration, so RightsModelUpgrade did not audit it.
+        Assert.Equal(await db.AppRoles.CountAsync(r => !r.IsBuiltIn), await db.AuditEntries.CountAsync(a => a.Action == "RightsModelUpgrade" && a.EntityType == "AppRole"));
         Assert.True(await db.AuthorizationVersions.AsNoTracking().Select(v => v.Version).SingleAsync() > version);
         // Retired columns no longer block writes by the new code, and retired rows no longer block deletes.
         db.AppRoles.Add(new AppRole { Name = "After upgrade" });

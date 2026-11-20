@@ -399,6 +399,8 @@ public static class RoleAccess
     public const string EngineerKey = "Engineer";
     public const string DefaultFullAccessName = "TIO Manager";
     public const string DefaultEngineerName = "Operation Engineer";
+    /// <summary>A127: the single built-in role. It always holds every right, is the all-access role the hub provisions, and cannot be changed.</summary>
+    public const string SystemAdministratorName = "System Administrator";
 
     /// <summary>The rights a role carries. A role that holds all rights carries the whole catalog, whatever is stored.</summary>
     public static IEnumerable<string> KeysOf(AppRole role) => role.HoldsAllRights ? RightsCatalog.AllKeys : role.Rights.Select(p => p.RightKey);
@@ -408,19 +410,20 @@ public static class RoleAccess
         db.AppRoles.AsNoTracking().Where(r => r.HoldsAllRights && r.IsActive).OrderBy(r => r.Id).Select(r => r.Id).ToArrayAsync(ct);
 
     /// <summary>
-    /// The role given to the first administrator (setup and directory bootstrap, which only run while nobody can administer the hub).
-    /// Uses the oldest active role that holds every right. Only when none exists does it mark the role named TIO Manager, or create it.
+    /// The all-access role the hub provisions (first-administrator setup, directory bootstrap, the reserved owner account): the single
+    /// built-in <see cref="SystemAdministratorName"/> role (A127). It is ensured present, active, all-rights and built-in, and never changed otherwise.
+    /// The migration is what demotes any former all-rights role; this only guarantees the built-in role exists (new installs included).
     /// </summary>
     public static async Task<long> EnsureFullAccessRoleAsync(HubDbContext db, CancellationToken ct)
     {
-        var existing = await db.AppRoles.Where(r => r.HoldsAllRights && r.IsActive).OrderBy(r => r.Id).FirstOrDefaultAsync(ct);
-        if (existing is not null) return existing.Id;
-        var role = await db.AppRoles.FirstOrDefaultAsync(r => r.Name == DefaultFullAccessName, ct);
+        var role = await db.AppRoles.FirstOrDefaultAsync(r => r.IsBuiltIn, ct)
+            ?? await db.AppRoles.FirstOrDefaultAsync(r => r.Name == SystemAdministratorName, ct);
         if (role is null)
         {
-            role = new AppRole { Name = DefaultFullAccessName, Description = "Runs the TIO team; administers the hub." };
+            role = new AppRole { Name = SystemAdministratorName, Description = "The hub's built-in super-administrator: holds every right and cannot be changed." };
             db.AppRoles.Add(role);
         }
+        role.IsBuiltIn = true;
         role.HoldsAllRights = true;
         role.IsActive = true;
         await db.SaveChangesAsync(ct);

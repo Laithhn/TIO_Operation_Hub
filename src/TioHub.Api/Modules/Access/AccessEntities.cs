@@ -33,7 +33,7 @@ public class UserRole
     public AppRole? AppRole { get; set; }
 }
 
-/// <summary>A configurable role and the rights assigned to it. Built-in roles carry a key (Manager, Engineer); the Manager role always holds every right.</summary>
+/// <summary>A configurable role and the rights assigned to it.</summary>
 public class AppRole : Entity
 {
     public string Name { get; set; } = "";
@@ -41,6 +41,11 @@ public class AppRole : Entity
     public bool IsActive { get; set; } = true;
     /// <summary>A120: holds every right in the catalog, including rights added by later releases. Such a role cannot be deactivated or deleted.</summary>
     public bool HoldsAllRights { get; set; }
+    /// <summary>
+    /// A127: the one built-in role, "System Administrator". It always holds every right, is the sole all-access role the hub provisions, and
+    /// cannot be renamed, re-described, re-scoped, deactivated, deleted, or un-marked. Set only by the migration and start-up seed, never through the API.
+    /// </summary>
+    public bool IsBuiltIn { get; set; }
     public List<RoleRight> Rights { get; set; } = [];
 }
 
