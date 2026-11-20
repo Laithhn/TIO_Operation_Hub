@@ -10,7 +10,7 @@ import { cx, frameCss } from '../vt/frame';
 
 // Forms sign-in screens (Security/AuthEndpoints.cs). They render outside the application shell.
 
-type AuthConfig = { mode: string; setupRequired: boolean; passwordRule: string };
+type AuthConfig = { mode: string; setupRequired: boolean; ownerClaimRequired: boolean; ownerAccount: string; passwordRule: string };
 
 /** Only same-site relative paths are followed after sign-in (no open redirect). */
 const safeReturn = (v: string | null) => (v && v.startsWith('/') && !v.startsWith('//') && !v.startsWith('/login') ? v : '/');
@@ -36,15 +36,18 @@ function AuthFrame({ title, sub, children }: { title: string; sub?: ReactNode; c
 
 export function LoginPage() {
   const cfg = useQuery({ queryKey: ['auth-config'], queryFn: () => get<AuthConfig>('/auth/config') });
+  const [claiming, setClaiming] = useState(false);
   if (cfg.isLoading) return <AuthFrame title="Sign in"><StateMessage kind="loading" /></AuthFrame>;
   if (cfg.data && cfg.data.mode.toLowerCase() !== 'forms') {
     return <AuthFrame title="Sign in" sub="This installation uses Windows sign-in. Open the hub again; your organization account is used automatically."><Link className="btn btn-primary" to="/">Open the hub</Link></AuthFrame>;
   }
   if (cfg.data?.setupRequired) return <SetupForm rule={cfg.data.passwordRule} />;
-  return <SignInForm />;
+  if (claiming && cfg.data?.ownerClaimRequired)
+    return <ClaimOwnerForm rule={cfg.data.passwordRule} account={cfg.data.ownerAccount} onCancel={() => setClaiming(false)} />;
+  return <SignInForm ownerClaim={cfg.data?.ownerClaimRequired ? { account: cfg.data.ownerAccount, start: () => setClaiming(true) } : undefined} />;
 }
 
-function SignInForm() {
+function SignInForm({ ownerClaim }: { ownerClaim?: { account: string; start: () => void } }) {
   const [sp] = useSearchParams();
   const f = useForm({ accountName: '', password: '' });
   const account = useRef<HTMLInputElement>(null);
@@ -65,6 +68,39 @@ function SignInForm() {
         </div>
         <button className="btn btn-primary auth-submit" disabled={f.busy || !f.values.accountName || !f.values.password}><Icon name="lock" size={14} /> Sign in</button>
         <p className="hint">Forgot your password? Ask the System Administrator to issue a temporary one.</p>
+      </form>
+      {ownerClaim && (
+        <div className="auth-links">
+          <button type="button" className="linkbtn" onClick={ownerClaim.start}>Set up the {ownerClaim.account} owner account</button>
+        </div>
+      )}
+    </AuthFrame>
+  );
+}
+
+function ClaimOwnerForm({ rule, account, onCancel }: { rule: string; account: string; onCancel: () => void }) {
+  const f = useForm({ code: '', password: '', confirm: '' });
+  const [mismatch, setMismatch] = useState(false);
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (f.values.password !== f.values.confirm) { setMismatch(true); return; }
+    setMismatch(false);
+    const r = await f.submit(() => post('/auth/claim-owner', { code: f.values.code, password: f.values.password }));
+    if (r) location.assign('/');
+  };
+  return (
+    <AuthFrame title={`Set up the ${account} owner account`}
+      sub={<>The reserved owner account <code>{account}</code> has every right and no password yet. Enter the one-time claim code from the file <code>App_Data\owner-claim-code.txt</code> in the application folder on the server, then choose its password. The code stops working once this is done.</>}>
+      <form onSubmit={submit} noValidate>
+        <FormError error={f.error} />
+        <div className="auth-fields">
+          <TextInput label="Claim code" required value={f.values.code} onChange={v => f.set('code', v)} error={f.fieldError('code')} />
+          <PasswordPair f={f} rule={rule} mismatch={mismatch} field="password" />
+        </div>
+        <button className="btn btn-primary auth-submit" disabled={f.busy}>Set the password and sign in</button>
+        <div className="auth-links">
+          <button type="button" className="linkbtn" onClick={onCancel}>Back to sign in</button>
+        </div>
       </form>
     </AuthFrame>
   );

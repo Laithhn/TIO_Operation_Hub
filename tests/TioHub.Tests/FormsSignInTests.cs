@@ -16,6 +16,7 @@ public sealed class FormsFactory : WebApplicationFactory<Program>, IAsyncLifetim
     private static string SqlAuth => Environment.GetEnvironmentVariable("TIOHUB_TEST_SQL_AUTH") ?? "Trusted_Connection=True";
     public string ConnectionString => $"Server={SqlServer};Database={_db};{SqlAuth};TrustServerCertificate=True";
     public string SetupFile { get; } = Path.Combine(Path.GetTempPath(), $"tiohub-setup-{Guid.NewGuid():N}.txt");
+    public string OwnerClaimFile { get; } = Path.Combine(Path.GetTempPath(), $"tiohub-owner-{Guid.NewGuid():N}.txt");
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -24,6 +25,7 @@ public sealed class FormsFactory : WebApplicationFactory<Program>, IAsyncLifetim
         builder.UseSetting("Auth:Mode", "Forms");
         builder.UseSetting("Auth:LockoutAttempts", "3");
         builder.UseSetting("Auth:SetupCodeFile", SetupFile);
+        builder.UseSetting("Auth:OwnerClaimCodeFile", OwnerClaimFile);
         builder.UseSetting("Auth:CacheSeconds", "5");
         builder.UseSetting("Database:ApplyMigrationsOnStartup", "true");
         builder.UseSetting("Database:SeedDevelopmentData", "false");
@@ -54,6 +56,7 @@ public sealed class FormsFactory : WebApplicationFactory<Program>, IAsyncLifetim
     {
         await base.DisposeAsync();
         if (File.Exists(SetupFile)) File.Delete(SetupFile);
+        if (File.Exists(OwnerClaimFile)) File.Delete(OwnerClaimFile);
         SqlConnection.ClearAllPools();
         await using var conn = new SqlConnection($"Server={SqlServer};Database=master;{SqlAuth};TrustServerCertificate=True");
         await conn.OpenAsync();

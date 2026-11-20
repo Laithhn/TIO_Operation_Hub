@@ -29,6 +29,7 @@ builder.Services.Configure<AppOptions>(config.GetSection("App"));
 builder.Services.AddScoped<UserContext>();
 builder.Services.AddScoped<UserResolver>();
 builder.Services.AddSingleton<SetupCode>(); // used only in forms mode; the setup endpoint answers 404 otherwise
+builder.Services.AddSingleton<OwnerClaimCode>(); // break-glass claim of the reserved owner account (forms mode only)
 builder.Services.AddHubServices();
 builder.Services.AddHubDataProtection(config, builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing") ? null : HubDataProtection.DefaultFolder);
 
@@ -132,7 +133,12 @@ using (var scope = app.Services.CreateScope())
         else await DevelopmentData.SeedAsync(db, seedClock);
     }
     if (string.Equals(authMode, "Forms", StringComparison.OrdinalIgnoreCase))
+    {
+        // Reserved owner account (TioAdmin): seed it without a password, then keep its one-time break-glass claim code current.
+        await OwnerAccount.EnsureSeededAsync(db, CancellationToken.None);
         await scope.ServiceProvider.GetRequiredService<SetupCode>().EnsureAsync(db, CancellationToken.None);
+        await scope.ServiceProvider.GetRequiredService<OwnerClaimCode>().EnsureAsync(db, CancellationToken.None);
+    }
     // A48: the attachment folder and limits saved under Settings override the configuration file.
     var attachmentStore = scope.ServiceProvider.GetRequiredService<TioHub.Api.Modules.Attachments.AttachmentStore>();
     await TioHub.Api.Modules.Attachments.StorageSettings.LoadAsync(db, attachmentStore, CancellationToken.None);

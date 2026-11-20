@@ -21,7 +21,7 @@ public static partial class AuthEndpoints
     public const string StampClaim = "tiohub:stamp";
     public const string MustChangeClaim = "tiohub:must-change";
     /// <summary>Paths reachable without a session (forms mode).</summary>
-    public static readonly string[] AnonymousPaths = ["/api/v1/auth/config", "/api/v1/auth/login", "/api/v1/auth/setup", "/api/v1/auth/logout"];
+    public static readonly string[] AnonymousPaths = ["/api/v1/auth/config", "/api/v1/auth/login", "/api/v1/auth/setup", "/api/v1/auth/claim-owner", "/api/v1/auth/logout"];
     /// <summary>Paths reachable while a temporary password must still be changed.</summary>
     public static readonly string[] MustChangePaths = ["/api/v1/me", "/api/v1/auth/password"];
     private const string Failed = "The account name or password is incorrect, or the account is temporarily locked.";
@@ -29,6 +29,8 @@ public static partial class AuthEndpoints
     public sealed record SignInInput(string? AccountName, string? Password);
     /// <summary><paramref name="TimeZone"/>: the setting-up computer's time zone (A44); it becomes the default while the shipped UTC is in place.</summary>
     public sealed record SetupInput(string? SetupCode, string? AccountName, string? DisplayName, string? Password, string? TimeZone = null);
+    /// <summary>Break-glass claim of the reserved owner account: the server-local one-time code and the first password to set on it.</summary>
+    public sealed record ClaimOwnerInput(string? Code, string? Password);
     public sealed record ChangePasswordInput(string? CurrentPassword, string? NewPassword);
     public sealed record TemporaryPasswordInput(string? TemporaryPassword);
 
@@ -42,7 +44,14 @@ public static partial class AuthEndpoints
         g.MapGet("/config", async (HttpContext ctx, HubDbContext db, IOptions<AuthOptions> o, IAntiforgery af, CancellationToken ct) =>
         {
             IssueRequestToken(ctx, af);
-            return Results.Ok(new { mode = o.Value.Mode, setupRequired = o.Value.IsForms && await SetupCode.RequiredAsync(db, ct), passwordRule = PasswordPolicy.Description });
+            return Results.Ok(new
+            {
+                mode = o.Value.Mode,
+                setupRequired = o.Value.IsForms && await SetupCode.RequiredAsync(db, ct),
+                ownerClaimRequired = o.Value.IsForms && await OwnerClaimCode.RequiredAsync(db, ct),
+                ownerAccount = OwnerClaimCode.AccountName,
+                passwordRule = PasswordPolicy.Description,
+            });
         }).AllowAnonymous();
 
         g.MapPost("/login", async (SignInInput input, HttpContext ctx, HubDbContext db, IOptions<AuthOptions> o, IAntiforgery af, TimeProvider clock, ILogger<SignInInput> log, CancellationToken ct) =>
@@ -134,6 +143,33 @@ public static partial class AuthEndpoints
             await db.AuditActionAsync("FirstAdministratorSetUp", "User", user.Id, user.AccountName, null, "One-time setup code used", null, ct, "Access");
             await tx.CommitAsync(ct);
             setup.Consume();
+            UserResolver.InvalidateAll(cache);
+            await SignInAsync(ctx, af, user, cred);
+            return Results.Ok(new { mustChangePassword = false });
+        }).AllowAnonymous();
+
+        // Break-glass claim of the reserved owner account (TioAdmin). Available while that account exists, is active, and has no
+        // usable password; validated by a server-local one-time code. It only ever sets a first password, never resets one.
+        g.MapPost("/claim-owner", async (ClaimOwnerInput input, HttpContext ctx, HubDbContext db, OwnerClaimCode claim, IOptions<AuthOptions> o, IAntiforgery af, IMemoryCache cache, TimeProvider clock, CancellationToken ct) =>
+        {
+            RequireForms(o.Value);
+            // Serialize with setup and authorization administration so the one-time code cannot be consumed twice on stale state.
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await db.Database.ExecuteSqlRawAsync("UPDATE [iam].[AuthorizationVersion] WITH (UPDLOCK,HOLDLOCK) SET [Version]=[Version] WHERE [Id]=1", ct);
+            if (!await OwnerClaimCode.RequiredAsync(db, ct))
+                throw new ConflictException("The owner account has already been set up. Sign in with it, or ask an administrator.");
+            var check = new Check();
+            if (!claim.Matches(input.Code)) check.Add("code", "The claim code is not correct. Copy it from the owner-claim file on the server.");
+            PasswordPolicy.Check(check, "password", input.Password, OwnerClaimCode.AccountName);
+            check.ThrowIfAny();
+            var user = await db.Users.FirstOrDefaultAsync(u => u.AccountName == OwnerClaimCode.AccountName && u.IsActive, ct)
+                ?? throw new ConflictException("The owner account is not present.");
+            var cred = await db.UserCredentials.FirstOrDefaultAsync(c => c.UserId == user.Id, ct) ?? db.UserCredentials.Add(new UserCredential { UserId = user.Id }).Entity;
+            SetPassword(cred, input.Password!, mustChange: false, clock.GetUtcNow());
+            await db.SaveChangesAsync(ct);
+            await db.AuditActionAsync("OwnerAccountClaimed", "User", user.Id, user.AccountName, null, "One-time owner-claim code used", null, ct, "Access");
+            await tx.CommitAsync(ct);
+            claim.Consume();
             UserResolver.InvalidateAll(cache);
             await SignInAsync(ctx, af, user, cred);
             return Results.Ok(new { mustChangePassword = false });

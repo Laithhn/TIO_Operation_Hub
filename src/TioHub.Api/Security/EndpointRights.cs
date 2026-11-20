@@ -120,6 +120,7 @@ public static class EndpointRights
         ["DELETE /attachments/{id:long}"] = Dynamic(DynamicPolicy.Attachment),
         ["GET /attachments/{id:long}/download"] = Dynamic(DynamicPolicy.Attachment),
         ["GET /attachments/{id:long}/preview"] = Dynamic(DynamicPolicy.Attachment),
+        ["POST /auth/claim-owner"] = Public("Break-glass claim of the reserved owner account, protected by the server-local owner-claim code."),
         ["GET /auth/config"] = Public("Tells the sign-in page which mode is active."),
         ["POST /auth/login"] = Public("Sign-in itself."),
         ["POST /auth/logout"] = Public("Ends the caller's own session."),

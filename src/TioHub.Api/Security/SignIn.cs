@@ -33,6 +33,8 @@ public sealed class AuthOptions
     public int LockoutMinutes { get; set; } = 15;
     /// <summary>Forms: where the one-time first-administrator setup code is written (relative to the application folder).</summary>
     public string SetupCodeFile { get; set; } = "App_Data/setup-code.txt";
+    /// <summary>Forms: where the one-time break-glass claim code for the reserved owner account (TioAdmin) is written (relative to the application folder).</summary>
+    public string OwnerClaimCodeFile { get; set; } = "App_Data/owner-claim-code.txt";
     public string DevUser { get; set; } = "DEV\\manager";
     /// <summary>Accounts that receive only the Application Administrator role on first sign-in, so access can be set up. No business access.</summary>
     public string[] BootstrapAdministrators { get; set; } = [];
