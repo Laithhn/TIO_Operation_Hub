@@ -1,6 +1,13 @@
 /** What people see under What's new in the footer: newest first, in plain words. Add an entry with every release; a test checks the top one matches the version. */
 export const WHATS_NEW: { version: string; date: string; changes: string[] }[] = [
   {
+    version: '2.71.0', date: '20 November 2026', changes: [
+      'Tickets → Tickets dashboard: figures, tickets by status, unresolved tickets per responsible party, statistics per owner, priority, type and client, and the latest activity. Every number opens the tickets it counts.',
+      'Contract payment terms now follow the payment milestone template: planned and actual invoice date, invoice no., work status, client approval, amount received and outstanding. Update on a row changes one milestone without editing the contract.',
+      'Administrators can set up the reserved TioAdmin owner account with a one-time code from the server. The unused vault reference setting is gone.'
+    ]
+  },
+  {
     version: '2.70.0', date: '19 November 2026', changes: [
       'Notifications are one simple list: every payment, commitment and contract alert has its own row instead of being grouped ("4 overdue payments").',
       'An icon on the left shows how urgent each notification is: red for critical, orange for action required, blue for information, green when resolved. Unread notifications are bold with a blue dot.',
